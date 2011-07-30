@@ -68,9 +68,7 @@ proc portcheckdestroot::types_list {dir type {bin 0} } {
         } else {
             #is from the correct type
             if { $bin } {
-                if { [binary? $item] } {
-                    lappend ret $item
-                }
+                lappend ret $item
             } else {
                 lappend ret $item
             }
@@ -218,86 +216,76 @@ proc portcheckdestroot::checkdestroot_mtree {} {
         }
     }
 
-    # Check for dynamic links that aren't in the dependency list
-    proc portcheckdestroot::checkdestroot_libs {} {
-        global destroot prefix UI_PREFIX subport
-        ui_notice "$UI_PREFIX Checking for wrong dynamic links"
+# Check for dynamic links that aren't in the dependency list
+proc portcheckdestroot::checkdestroot_libs {} {
+    global destroot prefix UI_PREFIX subport
+    ui_notice "$UI_PREFIX Checking for wrong dynamic links"
 
-        #Folders that don't need to be alerted if not on dependencies.
-        #TODO: Compile whitelist folders
-        set dep_whitelist {/usr/lib/ /System/Library/ /lib/}
+    #Folders that don't need to be alerted if not on dependencies.
+    set files_whitelist {libSystem.B.dylib}
+    set folders_whitelist {/System/Library}
 
-        #Get dependencies files list.
-        set dep_files {}
-        foreach dep [get_dependencies] {
-            lappend dep_files [file tail [registry_port_registered $dep]]
-        }
-        set self_files [bin_list $destroot$prefix]
-        set dep_files [concat $dep_files $self_files]
+    #Get dependencies files list.
+    set dep_files {}
+    foreach dep [get_dependencies] {
+        lappend dep_files [file tail [registry_port_registered $dep]]
+    }
+    set self_files [bin_list $destroot$prefix]
+    set dep_files [concat $dep_files $self_files]
 
 
-        #Get package files
-        foreach file [files_list $destroot] {
-            foreach file_lib [list_dlibs $file] {
-            if { ! [regexp $file_lib $file] } {
+    #Get package files
+    foreach file [files_list $destroot] {
+        foreach file_lib [list_dlibs $file] {
+            set valid_lib 0
+            if { [regexp $file_lib $file] } {
+                set valid_lib 1
+            }
+            if { ! $valid_lib } {
                 if { [lsearch $dep_files $file_lib] != -1 } {
+                    set valid_lib 1
                     ui_debug "$file_lib binary dependency is met"
-                } else {
-                    #match file folder agains whitelist
-                    set found 0
-                    foreach dep $dep_whitelist {
-                        if { [regexp "^$dep" [regsub $prefix $file_lib ""]] } {
-                            set found 1
-                            break
-                        }
-                    }
-                    if { $found } {
+                }
+            }
+            if { ! $valid_lib } {
+                foreach dep_file $files_whitelist {
+                    if { [regexp $dep_file [regsub ".*/" $file_lib ""]] } {
                         ui_debug "$file_lib binary dependency folder is on whitelist"
-                    } else {
-                        return -code error "$file_lib binary dependencies are NOT met"
+                        set valid_lib 1
+                        break
                     }
                 }
             }
-        }
-    }
-}
-
-#For the given archs, check if the files from destroot are compatible
-proc portcheckdestroot::checkdestroot_arches { archs } {
-    global destroot
-    foreach file [files_list $destroot] {
-        set file_archs [list_archs $file]
-        foreach arch $file_archs {
-            if { [lsearch $arch $archs] == -1 } {
-                return -code error "$file supports the arch $arch, and should not"
+            if { ! $valid_lib } {
+                foreach dep_folder $folders_whitelist {
+                    if { [regexp "^$dep" [regsub $prefix $file_lib ""]] } {
+                        ui_debug "$file_lib binary dependency folder is on whitelist"
+                        set valid_lib 1
+                        break
+                    }
+                }
+            }
+            if { ! $valid_lib } {
+                   return -code error "$file_lib binary dependencies are NOT met"
             }
         }
     }
-}
-
-# Recover the arches from a file, from it's lipo output. For internal use only.
-proc portcheckdestroot::get_lipo_arches { file } {
-    if { [ catch { set lipo_output [exec lipo -info $file 2>/dev/null] } ] } {
-        return "ignore"
-    }
-    return [regsub "Architectures in the.*are:" $lipo_output ""]
-}
-
-# Recover the arches from a file, from it's lipo output. For internal use only.
-proc portcheckdestroot::get_otool_libs { file } {
-    if { [ catch { set output [exec -keepnewline otool -L $file 2>/dev/null] } ] } {
-        return "ignore"
-    }
-    return [split $output "\n"]
 }
 
 # Check for arch constraints
 proc portcheckdestroot::checkdestroot_arch {} {
-    global UI_PREFIX
+    global UI_PREFIX destroot
     ui_notice "$UI_PREFIX Checking for archs"
     set archs [get_canonical_archs]
     if { "archs" != "noarch" } {
-        checkdestroot_arches $archs
+        foreach file [files_list $destroot] {
+            set file_archs [list_archs $file]
+            foreach arch $file_archs {
+                if { [lsearch $arch $archs] == -1 } {
+                    return -code error "$file supports the arch $arch, and should not"
+                }
+            }
+        }
     }
 }
 
