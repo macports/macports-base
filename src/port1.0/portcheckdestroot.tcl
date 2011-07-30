@@ -35,9 +35,6 @@ proc portcheckdestroot::checkdestroot_start {args} {
     }
 }
 
-# List contents for a given port.
-proc portcheckdestroot::get_port_files {portname} {
-}
 
 # escape chars in order to be usable as regexp. This function is for internal use.
 proc portcheckdestroot::escape_chars {str} {
@@ -75,19 +72,6 @@ proc portcheckdestroot::types_list {dir type {bin 0} } {
         }
     }
     return $ret
-}
-
-# Get files from a list. For internal use only
-proc portcheckdestroot::get_files { list } {
-    set files {}
-    foreach element $list {
-        if { [regexp {^/?[A-Za-z0-9\.-]+(/[A-Za-z0-9\.-]+)*$} $element] } {
-            if { [file exists $element] } {
-                lappend files $element
-            }
-        }
-    }
-    return $files
 }
 
 # List dependencies from the current package
@@ -219,11 +203,9 @@ proc portcheckdestroot::checkdestroot_mtree {} {
 # Check for dynamic links that aren't in the dependency list
 proc portcheckdestroot::checkdestroot_libs {} {
     global destroot prefix UI_PREFIX subport
-    ui_notice "$UI_PREFIX Checking for wrong dynamic links"
+    global files_whitelist folders_whitelist
 
-    #Folders that don't need to be alerted if not on dependencies.
-    set files_whitelist {libSystem.B.dylib}
-    set folders_whitelist {/System/Library}
+    ui_notice "$UI_PREFIX Checking for wrong dynamic links"
 
     #Get dependencies files list.
     set dep_files {}
@@ -258,7 +240,7 @@ proc portcheckdestroot::checkdestroot_libs {} {
             }
             if { ! $valid_lib } {
                 foreach dep_folder $folders_whitelist {
-                    if { [regexp "^$dep" [regsub $prefix $file_lib ""]] } {
+                    if { [regexp "^$dep_folder" [regsub $prefix $file_lib ""]] } {
                         ui_debug "$file_lib binary dependency folder is on whitelist"
                         set valid_lib 1
                         break

@@ -51,6 +51,7 @@ namespace eval macports {
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
+        files_whitelist folders_whitelist \
         registry.path registry.format \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
@@ -525,6 +526,20 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                 }
             }
             close $fd
+        }
+    }
+
+    # Read dynamic libraries whitelist config files
+    set whitelist_conf_files {folders_whitelist files_whitelist}
+    foreach whitelist $whitelist_conf_files {
+        set file "${macports_conf_path}/${whitelist}.conf"
+        if { [file exists $file] } {
+            set macports::${whitelist} {}
+            set fd [open $file]
+            while { [gets $fd line] >= 0 } {
+                lappend macports::${whitelist} $line
+            }
+            global macports::${whitelist}
         }
     }
 
