@@ -4672,6 +4672,9 @@ if { [llength $remaining_args] > 0 } {
 if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exists ui_options(ports_commandfiles)] } {
     set exit_status [process_command_files $ui_options(ports_commandfiles)]
 }
+if {$exit_status == -999} {
+    set exit_status 0
+}
 
 # shut down macports1.0
 mportshutdown
