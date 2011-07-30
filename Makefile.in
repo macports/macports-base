@@ -51,7 +51,7 @@ ifeq ($(DESTDIR),)
             if test `id -u` -eq 0; then \
                 echo "Creating user \"${RUNUSR}\"" ; \
                 NEXTUID=501; \
-                while test -n "`dscl -q /Search -search /Users UniqueID $$NEXTUID`"; do \
+                while test -n "`${DSCL} -q /Search -search /Users UniqueID $$NEXTUID`"; do \
                     let "NEXTUID=NEXTUID+1"; \
                 done; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$NEXTUID ; \
