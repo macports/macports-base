@@ -1282,6 +1282,7 @@ proc element { resname } {
         ^depends_run:       -
         ^depends_extract:   -
         ^depends_fetch:     -
+        ^replaced_by:       -
         ^revision:          -
         ^license:           { # Handle special port selectors
             advance
