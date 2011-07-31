@@ -1227,7 +1227,7 @@ proc macports::getportdir {url {destdir "."}} {
     switch ${protocol} {
         file {
             set path [file normalize [string range $url [expr [string length $protocol] + 3] end]]
-            if {[file isdirectory $path]} {
+            if {![file isfile $path]} {
                 return $path
             } else {
                 # need to create a local dir for the exracted port, but only once
