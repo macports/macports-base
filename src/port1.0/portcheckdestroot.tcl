@@ -35,6 +35,10 @@ proc portcheckdestroot::checkdestroot_start {args} {
     }
 }
 
+# escape chars in order to be usable as regexp. This function is for internal use. 
+proc portcheckdestroot::escape_chars {str} {
+ 	return [regsub -all {\W} $str {\\&}]
+}
 
 # List all links on a directory recursively. This function is for internal use.
 proc portcheckdestroot::links_list {dir} {
@@ -205,34 +209,41 @@ proc portcheckdestroot::checkdestroot_libs {} {
     #Get dependencies files list.
     set dep_files {}
     foreach dep [get_dependencies] {
-        lappend dep_files [file tail [registry_port_registered $dep]]
+        lappend dep_files [registry_port_registered $dep]
     }
+
     set self_files [bin_list $destroot$prefix]
     set dep_files [concat $dep_files $self_files]
-
 
     #Get package files
     foreach file [files_list $destroot] {
         foreach file_lib [list_dlibs $file] {
             set valid_lib 0
-            if { [regexp $file_lib $file] } {
+            # File itself
+            if { [regexp [escape_chars $file_lib] $file] } {
                 set valid_lib 1
             }
+
+            # File from the package or its depended ports
             if { ! $valid_lib } {
-                if { [lsearch $dep_files $file_lib] != -1 } {
-                    set valid_lib 1
-                    ui_debug "$file_lib binary dependency is met"
+                foreach dep_file $dep_files {
+                    if { [regexp [escape_chars $file_lib] $dep_file] } {
+                        set valid_lib 1
+                        ui_debug "$file_lib binary dependency is met"
+                    }
                 }
             }
+            # on files whitelist
             if { ! $valid_lib } {
                 foreach dep_file $files_whitelist {
-                    if { [regexp $dep_file [regsub ".*/" $file_lib ""]] } {
+                    if { [regexp [escape_chars $dep_file] [file tail $file_lib]] } {
                         ui_debug "$file_lib binary dependency folder is on whitelist"
                         set valid_lib 1
                         break
                     }
                 }
             }
+            # on folders whitelist
             if { ! $valid_lib } {
                 foreach dep_folder $folders_whitelist {
                     if { [regexp "^$dep_folder" [regsub $prefix $file_lib ""]] } {
@@ -243,7 +254,7 @@ proc portcheckdestroot::checkdestroot_libs {} {
                 }
             }
             if { ! $valid_lib } {
-                   return -code error "$file_lib binary dependencies are NOT met"
+                   return -code error "$file '$file_lib' binary dependencies are NOT met"
             }
         }
     }

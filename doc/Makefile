@@ -1,7 +1,7 @@
 MAN1=		port.1
 MAN5=		macports.conf.5
 MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7
-CONF=       macports.conf pubkeys.conf sources.conf variants.conf
+CONF=       macports.conf pubkeys.conf sources.conf variants.conf files_whitelist.conf folders_whitelist.conf
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
