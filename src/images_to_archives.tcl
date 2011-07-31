@@ -33,8 +33,11 @@ puts "This could take a while..."
 # list of ports we successfully create an archive of, to be used to update
 # the registry only after we know all creation attempts were successful.
 set archived_list {}
+set installed_len [llength $ilist]
+set counter 0
 
 foreach installed $ilist {
+    incr counter
     set iname [lindex $installed 0]
     set iversion [lindex $installed 1]
     set irevision [lindex $installed 2]
@@ -84,6 +87,7 @@ foreach installed $ilist {
 
         # compute new name and location of archive
         set archivename "${iname}-${iversion}_${irevision}${ivariants}.${macports::os_platform}_${macports::os_major}.[join $archs -].${archivetype}"
+        ui_msg "Processing ${counter} of ${installed_len}: ${archivename}"
         if {$installtype == "image"} {
             set targetdir [file dirname $location]
         } else {
@@ -115,8 +119,13 @@ foreach installed $ilist {
     }
 }
 
+set archived_len [llength $archived_list]
+set counter 0
+
 registry::write {
     foreach archived $archived_list {
+        incr counter
+        ui_msg "Updating registry: ${counter} of ${archived_len}"
         set installtype [lindex $archived 0]
         set iref [lindex $archived 1]
         set newlocation [lindex $archived 3]
@@ -134,8 +143,11 @@ registry::write {
     }
 }
 
+set counter 0
 foreach archived $archived_list {
+    incr counter
     set location [lindex $archived 2]
+    ui_msg "Deleting ${counter} of ${archived_len}: ${location}"
     if {$location != "" && [file isdirectory $location]} {
         if {[catch {file delete -force $location} result]} {
             ui_warn "Failed to delete ${location}: $result"
