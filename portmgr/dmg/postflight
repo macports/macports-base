@@ -138,7 +138,7 @@ function create_run_user {
     DSEDITGROUP=/usr/sbin/dseditgroup
     if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then
         echo "Creating group \"${RUNUSR}\""
-        ${DSEDITGROUP} -q -o create -n . ${RUNUSR}
+        ${DSEDITGROUP} -q -o create ${RUNUSR}
     fi
     if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
         echo "Creating user \"${RUNUSR}\""
@@ -151,6 +151,13 @@ function create_run_user {
         ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
         ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /var/empty
         ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
+    fi
+    if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $2}') -eq 4 ]]; then
+        GID=$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
+        if [[ "$(${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
+            echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
+            ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $GID
+        fi
     fi
 }
 
