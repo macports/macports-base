@@ -42,7 +42,7 @@ ifeq ($(DESTDIR),)
         if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then \
             if test `id -u` -eq 0; then \
                 echo "Creating group \"${RUNUSR}\"" ; \
-                ${DSEDITGROUP} -q -o create -n . ${RUNUSR} ; \
+                ${DSEDITGROUP} -q -o create ${RUNUSR} ; \
             else \
                 echo "Not creating group \"${RUNUSR}\" (not root)" ; \
             fi ; \
@@ -61,6 +61,13 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
             else \
                 echo "Not creating user \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if test `sw_vers -productVersion | /usr/bin/awk -F . '{print $$2}'` -eq 4; then \
+            GID=`${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
+            if test "`${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
+                echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$GID ; \
             fi ; \
         fi ; \
     else \
