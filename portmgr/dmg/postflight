@@ -147,6 +147,7 @@ function create_run_user {
             let "NEXTUID=NEXTUID+1"
         done
         ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $NEXTUID
+        ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
         ${DSCL} -q . -create /Users/${RUNUSR} Password \*
         ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
         ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /var/empty
@@ -157,6 +158,7 @@ function create_run_user {
         if [[ "$(${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
             echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
             ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $GID
+            ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
         fi
     fi
 }
