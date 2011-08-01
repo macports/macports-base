@@ -2096,10 +2096,20 @@ proc adduser {name args} {
 
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
-        exec $dscl . -create /Users/${name} Password ${passwd}
         exec $dscl . -create /Users/${name} UniqueID ${uid}
-        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
+
+        # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+        # causes the user to be visible in the Users & Groups Preference Pane,
+        # and the others are just noise, so delete them.
+        # https://trac.macports.org/ticket/30168
+        exec $dscl . -delete /Users/${name} AuthenticationAuthority
+        exec $dscl . -delete /Users/${name} PasswordPolicyOptions
+        exec $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
+        exec $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
+
         exec $dscl . -create /Users/${name} RealName ${realname}
+        exec $dscl . -create /Users/${name} Password ${passwd}
+        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
         exec $dscl . -create /Users/${name} NFSHomeDirectory ${home}
         exec $dscl . -create /Users/${name} UserShell ${shell}
     } else {
