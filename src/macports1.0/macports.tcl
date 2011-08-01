@@ -686,6 +686,18 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set macports::porttrace $macports::global_options(ports_trace)
         }
     }
+    # Check command line override for source/binary only mode
+    if {![info exists macports::global_options(ports_binary_only)]
+        && ![info exists macports::global_options(ports_source_only)]
+        && [info exists macports::buildfromsource]} {
+        if {${macports::buildfromsource} == "never"} {
+            set macports::global_options(ports_binary_only) yes
+        } elseif {${macports::buildfromsource} == "always"} {
+            set macports::global_options(ports_source_only) yes
+        } elseif {${macports::buildfromsource} != "ifneeded"} {
+            ui_warn "'buildfromsource' set to unknown value '${macports::buildfromsource}', using 'ifneeded' instead"
+        }
+    }
 
     # Duplicate prefix into prefix_frozen, so that port actions
     # can always get to the original prefix, even if a portfile overrides prefix
