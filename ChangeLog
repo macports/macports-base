@@ -3,6 +3,28 @@
 # $Id$
 ###
 
+Release 2.0.1 (Unreleased):
+    - Added replaced_by pseudo-portname selector. (afb in r81475)
+
+    - Added progress output to port image conversion script.
+      (#30347, jmr in r81464)
+
+    - Now doing a better job of avoiding UID conflicts with non-local users
+      when creating the 'macports' user. (#30464, jmr in r81414, r81415) Also
+      improved Tiger compatibility in this area. (jmr in r81454, r81467)
+
+    - Fixed 'port selfupdate' exiting with non-zero status after installing a
+      new version of base. (jmr in r81371)
+
+    - Added --subports to options accepted by 'port info'. (jmr in r81234)
+
+    - Fixed incorrect info sometimes being added to PortIndex entries when
+      using subports. (#30463, jmr in r81361)
+
+    - Fixed descriptions not being shown for default variants. (jmr in r80971)
+
+    - Fixed 'port variants --index'. (jmr in r80969)
+
 Release 2.0.0 (2011-07-22 by jmr):
 
     - Multiple ports can now be defined in one Portfile using the 'subport'
