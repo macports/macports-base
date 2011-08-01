@@ -356,6 +356,8 @@ proc portconfigure::configure_get_default_compiler {args} {
     global xcodeversion macosx_deployment_target
     if {$xcodeversion == "none" || $xcodeversion == ""} {
         return cc
+    } elseif {[rpm-vercomp $xcodeversion 4.2] >= 0} {
+        return clang
     } elseif {[rpm-vercomp $xcodeversion 4.0] >= 0} {
         return llvm-gcc-4.2
     } elseif {[rpm-vercomp $xcodeversion 3.2] >= 0 && $macosx_deployment_target != "10.4"} {
