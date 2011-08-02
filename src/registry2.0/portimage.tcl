@@ -304,7 +304,7 @@ proc extract_archive_to_tmpdir {location} {
         set unarchive.pre_args {}
         set unarchive.args {}
         set unarchive.pipe_cmd ""
-        set unarchive.type [file tail $location]
+        set unarchive.type [file extension $location]
         switch -regex ${unarchive.type} {
             cp(io|gz) {
                 set pax "pax"
