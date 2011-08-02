@@ -249,7 +249,17 @@ proc _check_registry {name version revision variants} {
 ## @param [in] dstfile path to activate file to
 ## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
-    switch [file type $srcfile] {
+    if {[catch {set filetype [file type $srcfile]} result]} {
+        # this can happen if the archive was built on case-sensitive and we're case-insensitive
+        # we know any existing dstfile is ours because we checked for conflicts earlier
+        if {![catch {file type $dstfile}]} {
+            ui_debug "skipping case-conflicting file: $srcfile"
+            return 0
+        } else {
+            error $result
+        }
+    }
+    switch $filetype {
         directory {
             # Don't recursively copy directories
             ui_debug "activating directory: $dstfile"
