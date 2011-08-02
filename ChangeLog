@@ -3,7 +3,13 @@
 # $Id$
 ###
 
-Release 2.0.1 (Unreleased):
+Release 2.0.1 (2011-08-02 by jmr):
+    - Fixed errors when installing some archives built on a case-sensitive
+      filesystem onto a case-insensitive one. (#30373, jmr in r81562)
+
+    - Fixed users created by MacPorts showing up in the GUI in some places on
+      Lion. (#30168, jeremyhu in r81558)
+
     - Added replaced_by pseudo-portname selector. (afb in r81475)
 
     - Added progress output to port image conversion script.
