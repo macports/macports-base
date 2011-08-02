@@ -147,6 +147,16 @@ function create_run_user {
             let "NEXTUID=NEXTUID+1"
         done
         ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $NEXTUID
+
+        # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+        # causes the user to be visible in the Users & Groups Preference Pane,
+        # and the others are just noise, so delete them.
+        # https://trac.macports.org/ticket/30168
+        ${DSCL} -q . -delete /Users/${RUNUSR} AuthenticationAuthority
+        ${DSCL} -q . -delete /Users/${RUNUSR} PasswordPolicyOptions
+        ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:KerberosKeys
+        ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:ShadowHashData
+
         ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
         ${DSCL} -q . -create /Users/${RUNUSR} Password \*
         ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')

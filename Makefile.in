@@ -55,6 +55,12 @@ ifeq ($(DESTDIR),)
                     let "NEXTUID=NEXTUID+1"; \
                 done; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$NEXTUID ; \
+                \
+                ${DSCL} -q . -delete /Users/${RUNUSR} AuthenticationAuthority ; \
+                ${DSCL} -q . -delete /Users/${RUNUSR} PasswordPolicyOptions ; \
+                ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:KerberosKeys ; \
+                ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:ShadowHashData ; \
+                \
                 ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
