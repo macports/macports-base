@@ -4156,7 +4156,7 @@ proc parse_options { action ui_options_name global_options_name } {
                         foreach e $kopts {
                             lappend errlst "--[lindex $e 0]"
                         }
-                        return -code error "${action} --${key} is ambiguous: \n  [join $errlst "\n  "]"
+                        return -code error "\"port ${action} --${key}\" is ambiguous: \n  port ${action} [join $errlst "\n  port ${action} "]"
                     }
                     set key   [lindex [lindex $kopts 0] 0]
                     set kargc [lindex [lindex $kopts 0] 1]
@@ -4313,9 +4313,9 @@ proc process_cmd { argv } {
             set action_proc [get_action_proc $action]
         } else {
             if {[llength $actions] > 1} {
-                puts "Ambiguous action \"$action\": could be any of {$actions}."
+                ui_error "\"port ${action}\" is ambiguous: \n  port [join $actions "\n  port "]"
             } else {
-                puts "Unrecognized action \"$action\""
+                ui_error "Unrecognized action \"port $action\""
             }
             set action_status 1
             break
