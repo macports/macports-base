@@ -7,6 +7,7 @@ test::
 include ../../Mk/macports.autoconf.mk
 
 CFLAGS+= -fPIC -Wno-deprecated-declarations
+CFLAGS_PEDANTIC=
 
 all:: ${SHLIB_NAME}
 

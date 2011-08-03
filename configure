@@ -674,6 +674,7 @@ PTHREAD_CFLAGS
 PTHREAD_LIBS
 acx_pthread_config
 CFLAGS_WERROR
+CFLAGS_PEDANTIC
 CFLAGS_QUICHEEATERS
 TAR_CMD
 TAR_Q
@@ -6134,8 +6135,10 @@ $as_echo "$PATCH_CMD" >&6; }
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
-	CFLAGS_QUICHEEATERS='-W -Wall -pedantic'
+	CFLAGS_QUICHEEATERS='-Wextra -Wall'
+	CFLAGS_PEDANTIC='-pedantic'
 fi
+
 
 
 
