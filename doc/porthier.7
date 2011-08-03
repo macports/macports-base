@@ -99,7 +99,10 @@ Where ports are built and destrooted
 .It Pa distfiles/
 Holds the distfiles of the fetched ports
 .It Pa receipts/
-Holds the registry information and receipts for the installed ports
+Obsolete. Formerly held the registry information and receipts for the installed ports,
+in flat-file format.
+.It Pa registry/
+Contains the registry database in sqlite format.
 .It Pa software/
 Holds compressed images of the installed ports. These
 are extracted to ${prefix} when activated.
