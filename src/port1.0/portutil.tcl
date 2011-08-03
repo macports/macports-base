@@ -2075,6 +2075,7 @@ proc adduser {name args} {
         return
     } elseif {[geteuid] != 0} {
         seteuid 0; setegid 0
+        set escalated 1
     }
 
     set passwd {*}
@@ -2117,6 +2118,10 @@ proc adduser {name args} {
         ui_warn "adduser is not implemented on ${os.platform}."
         ui_warn "The requested user '$name' was not created."
     }
+
+    if {[info exists escalated]} {
+        dropPrivileges
+    }
 }
 
 proc addgroup {name args} {
@@ -2128,6 +2133,7 @@ proc addgroup {name args} {
         return
     } elseif {[geteuid] != 0} {
         seteuid 0; setegid 0
+        set escalated 1
     }
 
     set gid [nextgid]
@@ -2157,6 +2163,10 @@ proc addgroup {name args} {
         # XXX addgroup is only available for darwin, add more support here
         ui_warn "addgroup is not implemented on ${os.platform}."
         ui_warn "The requested group was not created."
+    }
+
+    if {[info exists escalated]} {
+        dropPrivileges
     }
 }
 
