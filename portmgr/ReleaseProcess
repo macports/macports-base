@@ -208,6 +208,7 @@ practice to update the same file accordingly in its branched guise.
 
 
 === Update trunk's version for next release ===
+
 Once trunk is to be used for development of the next major version, increase its version information to
 indicate it's moved past the release version by setting the patch-level version to 99, e.g. 2.0.99 (in
 trunk/base/config/macports_version).
@@ -226,3 +227,12 @@ Once the release has been posted, notification of the release should be sent/pos
  * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
  * [http://twitter.com/macports twitter] (submitter: raimue@)
  * (Where else?)
+
+
+=== Use of new features in Portfiles ===
+
+Using new features introduced by a release should be delayed for 14 days. This
+should allow users to upgrade their installations to the new release. This
+delay matches the warning about outdated ports tree sources.
+
+
