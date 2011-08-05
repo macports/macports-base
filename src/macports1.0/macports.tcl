@@ -1186,7 +1186,6 @@ proc macports::fetch_port {url {local 0}} {
     set qflag ${macports::autoconf::tar_q}
     set cmdline "$tarcmd ${tarflags}${qflag}xOf {$fetchfile} +CONTENTS"
     ui_debug "$cmdline"
-    set contents [eval exec $cmdline]
     if {![catch {set contents [eval exec $cmdline]}]} {
         set binary 1
         ui_debug "getting port name from binary archive"
