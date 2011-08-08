@@ -53,7 +53,7 @@ default dpkg.asroot yes
 set_ui_prefix
 
 proc portdpkg::main {args} {
-	global UI_PREFIX destpath os.arch os.platform
+	global UI_PREFIX destpath os.arch os.platform supported_archs configure.build_arch
     
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option subport] [option version]]"
 
@@ -131,8 +131,9 @@ proc portdpkg::main {args} {
 	# sparc and sparc64. The operating system, os, is one of: linux, gnu,          
 	# freebsd and openbsd. Use of gnu in this string is reserved for the           
 	# GNU/Hurd operating system.
-	switch -regex ${os.arch} {
+	switch -regex ${configure.build_arch} {
 		i[3-9]86 { set pkg_arch "i386" }
+		x86_64 { set pkg_arch "x86_64" }
 		default { set pkg_arch ${os.arch} }
 	}
 
@@ -140,6 +141,13 @@ proc portdpkg::main {args} {
 	# the operating system name
 	if {${os.platform} != "linux"} {
 		set pkg_arch "${os.platform}-${pkg_arch}"
+	} elseif {${pkg_arch} == "x86_64"} {
+		set pkg_arch "amd64"
+	}
+	
+	# An architecture-independent package
+	if {$supported_archs == "noarch"} {
+		set pkg_arch "all"
 	}
 
 	puts $controlfd "Package: [option subport]"
