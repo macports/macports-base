@@ -37,7 +37,7 @@ proc portcheckdestroot::checkdestroot_start {args} {
 
 # escape chars in order to be usable as regexp. This function is for internal use. 
 proc portcheckdestroot::escape_chars {str} {
- 	return [regsub -all {\W} $str {\\&}]
+    return [regsub -all {\W} $str {\\&}]
 }
 
 # List all links on a directory recursively. This function is for internal use.
@@ -78,37 +78,31 @@ proc portcheckdestroot::get_dependencies {} {
     global destroot destroot.depends_lib subport depends_lib
     set deps {}
     if {[info exists depends_lib]} {
-        foreach dep [set depends_lib] {
+        foreach dep $depends_lib {
             set dep_portname [_get_dep_port $dep]
-            if {$dep_portname != ""} {
-                set dep_portname [_get_dep_port $dep]
-                lappend deps $dep_portname
-            }
+            lappend deps $dep_portname
         }
     }
     return $deps
 }
 
 # Check for errors on port symlinks
-proc portcheckdestroot::checkdestroot_symlink {} {
+proc portcheckdestroot::checkdestroot_symlinks {} {
     global UI_PREFIX destroot prefix
-    ui_notice "$UI_PREFIX Checking for links"
+    ui_notice "$UI_PREFIX Checking symlinks"
     foreach link [links_list $destroot] {
         set points_to [file link $link]
         if { [file pathtype $points_to] eq {absolute} } {
             #This might be changed for RegExp support
             if {[regexp $destroot$prefix $points_to]} {
-                ui_debug "$link is an absolute link to a path inside destroot"
                 return -code error "$link is an absolute link to a path inside destroot"
             } else {
                 ui_debug "$link is an absolute link to a path outside destroot"
             }
-                ui_debug "Relative link path pointing to inside of destroot"
         } elseif {[file pathtype $points_to] eq {relative}} {
             if {[regexp $destroot$prefix [file normalize [file join [file dirname $link] $points_to]]]} {
                 ui_debug "$link is a relative link to a path inside destroot"
             } else {
-                ui_debug "$link is a relative link to a path outside destroot"
                 return -code error "$link is a relative link to a path outside destroot"
             }
         }
@@ -265,12 +259,19 @@ proc portcheckdestroot::checkdestroot_arch {} {
     global UI_PREFIX destroot
     ui_notice "$UI_PREFIX Checking for archs"
     set archs [get_canonical_archs]
-    if { "archs" != "noarch" } {
+    if { [expr {$archs ne "noarch"}] } {
         foreach file [files_list $destroot] {
             set file_archs [list_archs $file]
-            foreach arch $file_archs {
-                if { [lsearch $arch $archs] == -1 } {
-                    return -code error "$file supports the arch $arch, and should not"
+            if { [expr {$file_archs ne {}}] } {
+                foreach arch $file_archs {
+                    if { [lsearch $arch $archs] == -1 } {
+                        return -code error "$file supports the arch $arch, and should not"
+                    }
+                }
+                foreach arch $archs {
+                    if { [lsearch $arch $file_archs] == -1 } {
+                        return -code error "$file does not suport the arch $arch, and it should"
+                    }
                 }
             }
         }
@@ -281,7 +282,7 @@ proc portcheckdestroot::checkdestroot_main {args} {
     global UI_PREFIX
     ui_notice "$UI_PREFIX Executing check-destroot phase"
 
-    checkdestroot_symlink
+    checkdestroot_symlinks
     checkdestroot_mtree
     checkdestroot_libs
     checkdestroot_arch
