@@ -22,3 +22,4 @@ test:: ${SHLIB_NAME}
 	${TCLSH} tests/fs-traverse.tcl ./${SHLIB_NAME}
 	${TCLSH} tests/symlink.tcl ./${SHLIB_NAME}
 	${TCLSH} tests/unsetenv.tcl ./${SHLIB_NAME}
+	${TCLSH} tests/vercomp.tcl ./${SHLIB_NAME}

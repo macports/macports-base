@@ -482,9 +482,9 @@ proc portlist_compare { a b } {
     }
     set avr_ [split $a_(version) "_"]
     set bvr_ [split $b_(version) "_"]
-    set vercmp [rpm-vercomp [lindex $avr_ 0] [lindex $bvr_ 0]]
-    if {$vercmp != 0} {
-        return $vercmp
+    set versioncmp [vercmp [lindex $avr_ 0] [lindex $bvr_ 0]]
+    if {$versioncmp != 0} {
+        return $versioncmp
     }
     set ar_ [lindex $avr_ 1]
     set br_ [lindex $bvr_ 1]
@@ -855,7 +855,7 @@ proc get_outdated_ports {} {
             if {$installed_version != $latest_version} {
                 set comp_result [expr $installed_epoch - $latest_epoch]
                 if { $comp_result == 0 } {
-                    set comp_result [rpm-vercomp $installed_version $latest_version]
+                    set comp_result [vercmp $installed_version $latest_version]
                 }
             }
             if { $comp_result == 0 } {
@@ -3079,7 +3079,7 @@ proc action_outdated { action portlist opts } {
             
             # Compare versions, first checking epoch, then version, then revision
             set epoch_comp_result [expr $installed_epoch - $latest_epoch]
-            set comp_result [rpm-vercomp $installed_version $latest_version]
+            set comp_result [vercmp $installed_version $latest_version]
             if { $comp_result == 0 } {
                 set comp_result [expr $installed_revision - $latest_revision]
             }

@@ -3003,7 +3003,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
     }
 
     # check if we we need to rebuild base
-    set comp [rpm-vercomp $macports_version_new $macports::autoconf::macports_version]
+    set comp [vercmp $macports_version_new $macports::autoconf::macports_version]
     if {$use_the_force_luke == "yes" || $comp > 0} {
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
             ui_msg "--->  MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
@@ -3226,9 +3226,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set revision [lindex $i 2]
         set epoch [lindex $i 5]
         if { $version_installed == {} || ($epoch > $epoch_installed && $version != $version_installed) ||
-                ($epoch >= $epoch_installed && [rpm-vercomp $version $version_installed] > 0)
+                ($epoch >= $epoch_installed && [vercmp $version $version_installed] > 0)
                 || ($epoch >= $epoch_installed
-                    && [rpm-vercomp $version $version_installed] == 0
+                    && [vercmp $version $version_installed] == 0
                     && $revision > $revision_installed)} {
             set version_installed $version
             set revision_installed $revision
@@ -3360,9 +3360,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set build_override 0
     set will_install yes
     # check installed version against version in ports
-    if { ( [rpm-vercomp $version_installed $version_in_tree] > 0
-            || ([rpm-vercomp $version_installed $version_in_tree] == 0
-                && [rpm-vercomp $revision_installed $revision_in_tree] >= 0 ))
+    if { ( [vercmp $version_installed $version_in_tree] > 0
+            || ([vercmp $version_installed $version_in_tree] == 0
+                && [vercmp $revision_installed $revision_in_tree] >= 0 ))
         && ![info exists options(ports_upgrade_force)] } {
         if {$portname != $newname} { 
             ui_debug "ignoring versions, installing replacement port"

@@ -175,7 +175,7 @@ proc portlivecheck::livecheck_main {args} {
                     while {[gets $chan line] >= 0} {
                         if {[regexp $the_re $line matched upver]} {
                             set foundmatch 1
-                            if {$updated_version == 0 || [rpm-vercomp $upver $updated_version] > 0} {
+                            if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
                                 set updated_version $upver
                             }
                             ui_debug "The regex matched \"$matched\", extracted \"$upver\""

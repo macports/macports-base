@@ -2722,10 +2722,10 @@ proc _check_xcode_version {} {
         }
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
-        } elseif {[rpm-vercomp $xcodeversion $min] < 0} {
+        } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
             return 1
-        } elseif {[rpm-vercomp $xcodeversion $ok] < 0} {
+        } elseif {[vercmp $xcodeversion $ok] < 0} {
             ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
         }
     }
