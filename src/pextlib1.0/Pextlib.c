@@ -485,6 +485,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "fs-traverse", FsTraverseCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "filemap", FilemapCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "vercmp", RPMVercompCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha256", SHA256Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "base32encode", Base32EncodeCmd, NULL, NULL);

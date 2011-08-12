@@ -480,9 +480,9 @@ proc portlist_compare { a b } {
     }
     set avr_ [split $a_(version) "_"]
     set bvr_ [split $b_(version) "_"]
-    set vercmp [rpm-vercomp [lindex $avr_ 0] [lindex $bvr_ 0]]
-    if {$vercmp != 0} {
-        return $vercmp
+    set versioncmp [rpm-vercomp [lindex $avr_ 0] [lindex $bvr_ 0]]
+    if {$versioncmp != 0} {
+        return $versioncmp
     }
     set ar_ [lindex $avr_ 1]
     set br_ [lindex $bvr_ 1]
