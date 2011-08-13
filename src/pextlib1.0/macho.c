@@ -292,7 +292,7 @@ int list_dlibs(ClientData clientData __attribute__((unused)) , Tcl_Interp *inter
 
 
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "directory");
+		Tcl_WrongNumArgs(interp, 1, objv, "Should pass a file path as parameter");
 		return TCL_ERROR;
 	}
 
@@ -346,7 +346,7 @@ int list_archs(ClientData clientData  __attribute__((unused)), Tcl_Interp *inter
 	macho_input_t input_file;
 
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "directory");
+		Tcl_WrongNumArgs(interp, 1, objv,  "Should pass a file path as parameter");
 		return TCL_ERROR;
 	}
 
