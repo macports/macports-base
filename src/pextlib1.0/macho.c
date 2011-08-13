@@ -43,13 +43,14 @@ static const void *macho_offset (macho_input_t *input, const void *address, size
 static uint32_t macho_swap32 (uint32_t input) {
 	return OSSwapInt32(input);
 }
-
 static uint32_t macho_nswap32(uint32_t input) {
 	return input;
 }
 
-
-/* If the file is a universal binary, this function is called to call the callback function on each header */
+/* If the file is a universal binary, this function is called to call the callback function on each header.
+ * This is needed because an universal file has multiple single file headers, and so to get all the arches
+ * and libraries we should parse each one. The callback_func is the function that gets the arches or the libraries
+ * */
 Tcl_Obj * handle_universal(macho_input_t *input, Tcl_Interp * interp,  const struct fat_header * fat_header,
 	Tcl_Obj* (*callback_func)(macho_input_t *, Tcl_Interp *, Tcl_Obj *) ){
 	uint32_t i;
@@ -78,56 +79,52 @@ Tcl_Obj * handle_universal(macho_input_t *input, Tcl_Interp * interp,  const str
 	return return_list;
 }
 
-Tcl_Obj * check_magic(const uint32_t magic, macho_input_t *input, bool * universal, uint32_t (**swap32)(uint32_t), const struct mach_header ** header, size_t * header_size){
-	const struct mach_header_64 *header64;
+/* For a giver magic, this function takes the file header. Note that if the file is universal, 
+ * he flag universal is marked as true, and the file header is set on fat_header. If the file 
+ * is not universal, the flag universal is not set and the file header is set on header.
+ */
 
+Tcl_Obj * check_magic(const uint32_t magic, macho_input_t **input, bool * universal, uint32_t (**swap32)(uint32_t), const struct mach_header ** header, const struct fat_header ** fat_header, size_t * header_size){
 	switch (magic) {
 		case MH_CIGAM:
+		case MH_CIGAM_64:
 			*swap32 = macho_swap32;
 			/* Fall-through */
 
 		case MH_MAGIC:
+		case MH_MAGIC_64:
 			*header_size = sizeof(**header);
-			*header = macho_read(input, input->data, *header_size);
+			*header = macho_read(*input, (*input)->data, *header_size);
 			if (*header == NULL) {
 				return (Tcl_Obj *)TCL_ERROR;
 			}
 			break;
 
-		case MH_CIGAM_64:
-			*swap32 = macho_swap32;
-			/* Fall-through */
-
-		case MH_MAGIC_64:
-			*header_size = sizeof(*header64);
-			header64 = macho_read(input, input->data, sizeof(*header64));
-			if (header64 == NULL)
-				return (Tcl_Obj *)TCL_ERROR;
-
-			/* The 64-bit header is a direct superset of the 32-bit header */
-
-			*header = (struct mach_header *) header64;
-
-			break;
-
 		case FAT_CIGAM:
 		case FAT_MAGIC:
-			*header = macho_read(input, input->data, sizeof(**header));
+			*fat_header = macho_read(*input, (*input)->data, sizeof(**fat_header));
 			*universal = true;
 			break;
-
 		default:
 			return (Tcl_Obj *)TCL_ERROR;
 	}
+	return (Tcl_Obj *)TCL_OK;
 }
-/* Parse a Mach-O header */
+
+/* This function parses, for a fiven input, its libraries. The last parameter is a Tcl List,
+ * that will hold the libraries, and is needed on the recursion. If is the first call, you
+ * should use the function without _l.
+ */
 Tcl_Obj * list_macho_dlibs_l(macho_input_t *input, Tcl_Interp * interp, Tcl_Obj * dlibs) {
+	/* Read the file type. */
+	const uint32_t *magic = macho_read(input, input->data, sizeof(uint32_t));
 
 	/* Parse the Mach-O header */
-	const uint32_t *magic;
 	bool universal = false;
 	uint32_t (*swap32)(uint32_t) = macho_nswap32;
+
 	const struct mach_header *header;
+	const struct fat_header *fat_header;
 	size_t header_size;
 
 	const NXArchInfo *archInfo;
@@ -135,19 +132,20 @@ Tcl_Obj * list_macho_dlibs_l(macho_input_t *input, Tcl_Interp * interp, Tcl_Obj 
 	uint32_t ncmds;
 	uint32_t i;
 
-	/* get file header magic */
-	magic = macho_read(input, input->data, sizeof(uint32_t));
+
 	if (magic == NULL)
 		return (Tcl_Obj *)TCL_ERROR;
 
+
 	/* Check file header magic */
-	if(check_magic(*magic, input, &universal, &swap32, &header, &header_size) == (Tcl_Obj *)TCL_ERROR){
+	if(check_magic(*magic, &input, &universal, &swap32, &header, &fat_header, &header_size) == (Tcl_Obj *)TCL_ERROR){
+		printf("1\n");
 		return (Tcl_Obj *)TCL_ERROR;
 	}
 
 	/* Parse universal file. */
 	if (universal) {
-		return handle_universal(input, interp, &header, list_macho_dlibs_l);
+		return handle_universal(input, interp, fat_header, list_macho_dlibs_l);
 	}
 
 	/* Fetch the arch name */
@@ -235,33 +233,36 @@ Tcl_Obj * list_macho_dlibs(macho_input_t *input, Tcl_Interp *interp) {
 	return list_macho_dlibs_l(input, interp, Tcl_NewListObj(0,NULL));
 }
 
-/* List Mach-O archs */
+/* This function parses, for a fiven input, its arches. The last parameter is a Tcl List,
+ * that will hold the libraries, and is needed on the recursion. If is the first call, you
+ * should use the function without _l.
+ */
 Tcl_Obj * list_macho_archs_l(macho_input_t *input, Tcl_Interp *interp, Tcl_Obj * archs_list) {
+	const struct mach_header *header;
+	const struct mach_header_64 *header64;
+	size_t header_size;
+	const NXArchInfo *archInfo;
+	const struct fat_header *fat_header;
+
 	/* Parse the Mach-O header */
-	const uint32_t *magic;
 	bool universal = false;
 	uint32_t (*swap32)(uint32_t) = macho_nswap32;
-	const struct mach_header *header;
-	size_t header_size;
 
-	const NXArchInfo *archInfo;
-	const struct load_command *cmd;
-	uint32_t ncmds;
-	uint32_t i;
-
-	/* get file header magic */
-	magic = macho_read(input, input->data, sizeof(uint32_t));
+	/* Read the file type. */
+	const uint32_t *magic = macho_read(input, input->data, sizeof(uint32_t));
 	if (magic == NULL)
-		return (Tcl_Obj *)TCL_ERROR;
+		return false;
+
 
 	/* Check file header magic */
-	if(check_magic(*magic, input, &universal, &swap32, &header, &header_size) == (Tcl_Obj *)TCL_ERROR){
+	if(check_magic(*magic, &input, &universal, &swap32, &header, &fat_header, &header_size) == (Tcl_Obj *)TCL_ERROR){
+		printf("1\n");
 		return (Tcl_Obj *)TCL_ERROR;
 	}
 
 	/* Parse universal file. */
 	if (universal) {
-		return handle_universal(input, interp, &header, list_macho_archs_l);
+		return handle_universal(input, interp, fat_header, list_macho_archs_l);
 	}
 
 	/* Fetch the arch name */
@@ -269,7 +270,6 @@ Tcl_Obj * list_macho_archs_l(macho_input_t *input, Tcl_Interp *interp, Tcl_Obj *
 	if (archInfo != NULL) {
 		Tcl_ListObjAppendElement(interp, archs_list, Tcl_NewStringObj(archInfo->name,-1));
 	}
-
 	return archs_list;
 }
 
@@ -277,6 +277,10 @@ Tcl_Obj * list_macho_archs(macho_input_t *input, Tcl_Interp *interp) {
 	return list_macho_archs_l(input, interp, Tcl_NewListObj(0,NULL));
 }
 
+
+/* This is the C function for Tcl list_dlibs call. It returns a list of libraries
+ * from a given file. Note that the file is a file path, not a file hander.
+ */
 int list_dlibs(ClientData clientData __attribute__((unused)) , Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]){
 	const char *path;
 	int fd;
@@ -330,6 +334,9 @@ int list_dlibs(ClientData clientData __attribute__((unused)) , Tcl_Interp *inter
 }
 
 
+/* This is the C function for Tcl list_archs call. It returns a list of libraries
+ * from a given file. Note that the file is a file path, not a file hander.
+ */
 int list_archs(ClientData clientData  __attribute__((unused)), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]){
 	const char *path;
 	int fd;
