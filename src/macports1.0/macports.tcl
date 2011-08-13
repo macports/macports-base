@@ -530,18 +530,21 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # Read dynamic libraries whitelist config files
-    set whitelist_conf_files {folders_whitelist files_whitelist}
-    foreach whitelist $whitelist_conf_files {
-        set file "${macports_conf_path}/${whitelist}.conf"
-        if { [file exists $file] } {
-            set macports::${whitelist} {}
-            set fd [open $file]
-            while { [gets $fd line] >= 0 } {
-                lappend macports::${whitelist} $line
+    set whitelist_conf_file "${macports_conf_path}/whitelist.conf"
+    set macports::folders_whitelist {}
+    set macports::files_whitelist {}
+    if { [file exists $whitelist_conf_file] } {
+        set fd [open $whitelist_conf_file]
+        while { [gets $fd line] >= 0 } {
+            if { [file isdirectory $line] } {
+                lappend macports::folders_whitelist $line
+            } else {
+                lappend macports::files_whitelist $line
             }
-            global macports::${whitelist}
         }
     }
+    global macports::folders_whitelist
+    global macports::files_whitelist
 
     # Process per-user only settings
     set per_user "${macports_user_dir}/user.conf"
