@@ -122,9 +122,6 @@ default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
 
-# Deprecation
-option_deprecate svn.tag svn.revision
-
 # Option-executed procedures
 option_proc use_bzip2 portfetch::set_extract_type
 option_proc use_lzma  portfetch::set_extract_type

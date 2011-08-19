@@ -47,11 +47,10 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
 
 # defaults
 default livecheck.url {$homepage}
-default livecheck.check default
 default livecheck.type default
 default livecheck.md5 ""
 default livecheck.regex ""
@@ -59,9 +58,6 @@ default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 default livecheck.ignore_sslcert yes
-
-# Deprecation
-option_deprecate livecheck.check livecheck.type
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version

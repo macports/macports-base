@@ -47,14 +47,10 @@ namespace eval portdistcheck {
 }
 
 # define options
-options distcheck.type distcheck.check
+options distcheck.type
 
 # defaults
 default distcheck.type moddate
-default distcheck.check moddate
-
-# Deprecation
-option_deprecate distcheck.check distcheck.type
 
 proc portdistcheck::distcheck_main {args} {
     global distcheck.type
