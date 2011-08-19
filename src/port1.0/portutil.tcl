@@ -132,11 +132,11 @@ proc handle_option-delete {option args} {
 }
 
 ##
-# Handle option-replace
+# Handle option-strsed
 #
 # @param option name of the option
 # @param args arguments
-proc handle_option-replace {option args} {
+proc handle_option-strsed {option args} {
     global $option user_options option_procs
 
     if {![info exists user_options($option)] && [info exists $option]} {
@@ -145,6 +145,37 @@ proc handle_option-replace {option args} {
             set temp [strsed $temp $val]
         }
         set $option $temp
+    }
+}
+
+##
+# Handle option-replace
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-replace {option args} {
+    global $option user_options option_procs deprecated_options
+
+    # Deprecate -replace with only one argument, for backwards compatibility call -strsed
+    # XXX: Remove this in 2.2.0
+    if {[llength $args] == 1} {
+        if {![info exists deprecated_options(${option}-replace)]} {
+            set deprecated_options(${option}-replace) [list ${option}-strsed 0]
+        }
+        set refcount [lindex $deprecated_options(${option}-replace) 1]
+        lset deprecated_options(${option}-replace) 1 [expr $refcount + 1]
+        ui_msg "LOL"
+        return [eval handle_option-strsed $option $args]
+    }
+
+    if {![info exists user_options($option)] && [info exists $option]} {
+        foreach {old new} $args {
+            set index [lsearch -exact [set $option] $old]
+            if {$index == -1} {
+                continue
+            }
+            set $option [lreplace [set $option] $index $index $new]
+        }
     }
 }
 
@@ -160,6 +191,7 @@ proc options {args} {
         interp alias {} $option {} handle_option $option
         interp alias {} $option-append {} handle_option-append $option
         interp alias {} $option-delete {} handle_option-delete $option
+        interp alias {} $option-strsed {} handle_option-strsed $option
         interp alias {} $option-replace {} handle_option-replace $option
     }
 }
