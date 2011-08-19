@@ -164,7 +164,6 @@ proc handle_option-replace {option args} {
         }
         set refcount [lindex $deprecated_options(${option}-replace) 1]
         lset deprecated_options(${option}-replace) 1 [expr $refcount + 1]
-        ui_msg "LOL"
         return [eval handle_option-strsed $option $args]
     }
 
