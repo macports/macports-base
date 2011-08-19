@@ -3,6 +3,11 @@
 # $Id$
 ###
 
+    - Implement new option-replace using lsearch/lreplace. The old behavior is
+      deprecated for option-replace with only one argument, but can still be
+      found in option-strsed.
+      (raimue in r82760, r82761)
+
 Release 2.0.1 (2011-08-02 by jmr):
     - Fixed errors when installing some archives built on a case-sensitive
       filesystem onto a case-insensitive one. (#30373, jmr in r81562)
