@@ -211,7 +211,9 @@ proc portcheckdestroot::checkdestroot_libs {} {
 
     #Get package files
     foreach file [files_list $destroot] {
-        foreach file_lib [list_dlibs $file] {
+        set file_libs [list_dlibs $file]
+        ui_debug "File $file has $file_libs libs"
+        foreach file_lib $file_libs {
             set valid_lib 0
             # File itself
             if { [regexp [escape_chars $file_lib] $file] } {
@@ -262,6 +264,7 @@ proc portcheckdestroot::checkdestroot_arch {} {
     if { [expr {$archs ne "noarch"}] } {
         foreach file [files_list $destroot] {
             set file_archs [list_archs $file]
+            ui_debug "File $file has $file_archs archs"
             if { [expr {$file_archs ne {}}] } {
                 foreach arch $file_archs {
                     if { [lsearch $arch $archs] == -1 } {
