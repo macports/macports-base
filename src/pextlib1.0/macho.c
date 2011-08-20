@@ -85,19 +85,32 @@ Tcl_Obj * handle_universal(macho_input_t *input, Tcl_Interp * interp,  const str
  */
 
 Tcl_Obj * check_magic(const uint32_t magic, macho_input_t **input, bool * universal, uint32_t (**swap32)(uint32_t), const struct mach_header ** header, const struct fat_header ** fat_header, size_t * header_size){
+	const struct mach_header_64 *header64;
 	switch (magic) {
 		case MH_CIGAM:
-		case MH_CIGAM_64:
 			*swap32 = macho_swap32;
 			/* Fall-through */
 
 		case MH_MAGIC:
-		case MH_MAGIC_64:
 			*header_size = sizeof(**header);
 			*header = macho_read(*input, (*input)->data, *header_size);
 			if (*header == NULL) {
 				return (Tcl_Obj *)TCL_ERROR;
 			}
+			break;
+
+		case MH_CIGAM_64:
+			*swap32 = macho_swap32;
+			/* Fall-through */
+
+		case MH_MAGIC_64:
+			*header_size = sizeof(*header64);
+			header64 = macho_read(*input, (*input)->data, sizeof(*header64));
+			if (header64 == NULL)
+				return (Tcl_Obj *)TCL_ERROR;
+
+			/* The 64-bit header is a direct superset of the 32-bit header */
+			*header = (struct mach_header *) header64;
 			break;
 
 		case FAT_CIGAM:
@@ -136,7 +149,6 @@ Tcl_Obj * list_macho_dlibs_l(macho_input_t *input, Tcl_Interp * interp, Tcl_Obj 
 	if (magic == NULL)
 		return (Tcl_Obj *)TCL_ERROR;
 
-
 	/* Check file header magic */
 	if(check_magic(*magic, &input, &universal, &swap32, &header, &fat_header, &header_size) == (Tcl_Obj *)TCL_ERROR){
 		return (Tcl_Obj *)TCL_ERROR;
@@ -152,8 +164,9 @@ Tcl_Obj * list_macho_dlibs_l(macho_input_t *input, Tcl_Interp * interp, Tcl_Obj 
 
 	/* Parse the Mach-O load commands */
 	cmd = macho_offset(input, header, header_size, sizeof(struct load_command));
-	if (cmd == NULL)
+	if (cmd == NULL){
 		return (Tcl_Obj *)TCL_ERROR;
+	}
 	ncmds = swap32(header->ncmds);
 
 	/* Iterate over the load commands */
@@ -238,7 +251,6 @@ Tcl_Obj * list_macho_dlibs(macho_input_t *input, Tcl_Interp *interp) {
  */
 Tcl_Obj * list_macho_archs_l(macho_input_t *input, Tcl_Interp *interp, Tcl_Obj * archs_list) {
 	const struct mach_header *header;
-	const struct mach_header_64 *header64;
 	size_t header_size;
 	const NXArchInfo *archInfo;
 	const struct fat_header *fat_header;
