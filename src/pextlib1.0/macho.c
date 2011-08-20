@@ -139,7 +139,6 @@ Tcl_Obj * list_macho_dlibs_l(macho_input_t *input, Tcl_Interp * interp, Tcl_Obj 
 
 	/* Check file header magic */
 	if(check_magic(*magic, &input, &universal, &swap32, &header, &fat_header, &header_size) == (Tcl_Obj *)TCL_ERROR){
-		printf("1\n");
 		return (Tcl_Obj *)TCL_ERROR;
 	}
 
@@ -256,7 +255,6 @@ Tcl_Obj * list_macho_archs_l(macho_input_t *input, Tcl_Interp *interp, Tcl_Obj *
 
 	/* Check file header magic */
 	if(check_magic(*magic, &input, &universal, &swap32, &header, &fat_header, &header_size) == (Tcl_Obj *)TCL_ERROR){
-		printf("1\n");
 		return (Tcl_Obj *)TCL_ERROR;
 	}
 
