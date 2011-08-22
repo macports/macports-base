@@ -2630,9 +2630,24 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             continue
         }
         foreach depspec $portinfo($deptype) {
-            # skip depspec/archs combos we've already seen
+            # skip depspec/archs combos we've already seen, and ones with less archs than ones we've seen
             set seenkey "${depspec},[join $required_archs ,]"
+            set seen 0
             if {[info exists depspec_seen($seenkey)]} {
+                set seen 1
+            } else {
+                set prev_seenkeys [array names depspec_seen ${depspec},*]
+                set nrequired [llength $required_archs]
+                foreach key $prev_seenkeys {
+                    set key_archs [lrange [split $key ,] 1 end]
+                    if {[llength $key_archs] > $nrequired} {
+                        set seen 1
+                        set seenkey $key
+                        break
+                    }
+                }
+            }
+            if {$seen} {
                 if {$depspec_seen($seenkey) != 0} {
                     # nonzero means the dep is not satisfied, so we have to record it
                     ditem_append_unique $mport requires $depspec_seen($seenkey)
