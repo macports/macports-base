@@ -109,8 +109,11 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
         return 0;
     }
     if (sqlite3_open(NULL, &reg->db) == SQLITE_OK) {
-        /* Enable extended status codes*/
+        /* Enable extended result codes, requires SQLite >= 3.3.8
+         * Check added for compatibility with Tiger. */
+#if SQLITE_VERSION_NUMBER >= 3003008
         sqlite3_extended_result_codes(reg->db, 1);
+#endif
 
         if (init_db(reg->db, errPtr)) {
             reg->status = reg_none;
