@@ -2727,7 +2727,13 @@ proc action_stats { action portlist opts } {
             }
             
             set json [json_encode_stats ${macports::stats_id} os ports]
-            curl post "submit\[data\]=$json" ${macports::stats_url}  
+            ui_notice "Submitting to ${macports::stats_url}"
+            
+            if {[catch {curl post "submission\[data\]=$json" ${macports::stats_url}} value]} {
+                global errorInfo
+                ui_error "$errorInfo"
+                return 0
+            }
         }
         default {
             puts "Unknown subcommand. See port help stats"
