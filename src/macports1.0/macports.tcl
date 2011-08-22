@@ -2611,7 +2611,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
     set workername [ditem_key $mport workername]
     set deptypes [macports::_deptypes_for_target $target $workername]
 
-    set subPorts {}
+    set depPorts {}
     if {[llength $deptypes] > 0} {
         array set optionsarray [ditem_key $mport options]
         # avoid propagating requested flag from parent
@@ -2682,23 +2682,23 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     set check_archs 0
                 }
                 lappend options subport $dep_portname
-                # Figure out the subport. Check the open_mports list first, since
+                # Figure out the depport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
-                set subport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $options variations $variations]]
+                set depport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $options variations $variations]]
                 
-                if {$subport == {}} {
+                if {$depport == {}} {
                     # We haven't opened this one yet.
-                    set subport [mportopen $dep_portinfo(porturl) $options $variations]
+                    set depport [mportopen $dep_portinfo(porturl) $options $variations]
                 }
             }
 
             # check archs
             if {$parse && $check_archs
-                && ![macports::_mport_supports_archs $subport $required_archs]} {
+                && ![macports::_mport_supports_archs $depport $required_archs]} {
 
-                set supported_archs [_mportkey $subport supported_archs]
-                mportclose $subport
+                set supported_archs [_mportkey $depport supported_archs]
+                mportclose $depport
                 set arch_mismatch 1
                 set has_universal 0
                 if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
@@ -2709,8 +2709,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     if {![info exists variation_array(universal)] || $variation_array(universal) != "+"} {
                         set variation_array(universal) +
                         # try again with +universal
-                        set subport [mportopen $dep_portinfo(porturl) $options [array get variation_array]]
-                        if {[macports::_mport_supports_archs $subport $required_archs]} {
+                        set depport [mportopen $dep_portinfo(porturl) $options [array get variation_array]]
+                        if {[macports::_mport_supports_archs $depport $required_archs]} {
                             set arch_mismatch 0
                         }
                     }
@@ -2724,24 +2724,24 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             if {$parse} {
                 if {$recurseDeps} {
                     # Add to the list we need to recurse on.
-                    lappend subPorts $subport
+                    lappend depPorts $depport
                 }
-    
+
                 # Append the sub-port's provides to the port's requirements list.
-                set subport_provides "[ditem_key $subport provides]"
-                ditem_append_unique $mport requires $subport_provides
-                set depspec_seen($seenkey) $subport_provides
+                set depport_provides "[ditem_key $depport provides]"
+                ditem_append_unique $mport requires $depport_provides
+                set depspec_seen($seenkey) $depport_provides
             } else {
                 set depspec_seen($seenkey) 0
             }
         }
     }
 
-    # Loop on the subports.
+    # Loop on the depports.
     if {$recurseDeps} {
-        foreach subport $subPorts {
+        foreach depport $depPorts {
             # Sub ports should be installed (all dependencies must be satisfied).
-            set res [mportdepends $subport "" $recurseDeps $skipSatisfied 1]
+            set res [mportdepends $depport "" $recurseDeps $skipSatisfied 1]
             if {$res != 0} {
                 return $res
             }
