@@ -513,6 +513,43 @@ proc portlist_sortint { list } {
     return [lsort -command portlist_compareint $list]
 }
 
+# sort portlist so dependents come before their dependencies
+proc portlist_sortdependents { portlist } {
+    foreach p $portlist {
+        array set pvals $p
+        lappend entries($pvals(name)) $p
+        if {![info exists dependents($pvals(name))]} {
+            set dependents($pvals(name)) {}
+            foreach result [registry::list_dependents $pvals(name)] {
+                lappend dependents($pvals(name)) [lindex $result 2]
+            }
+        }
+        array unset pvals
+    }
+    set ret {}
+    foreach p $portlist {
+        portlist_sortdependents_helper $p entries dependents seen ret
+    }
+    return $ret
+}
+
+proc portlist_sortdependents_helper {p up_entries up_dependents up_seen up_retlist} {
+    upvar $up_seen seen
+    if {![info exists seen($p)]} {
+        set seen($p) 1
+        upvar $up_entries entries $up_dependents dependents $up_retlist retlist
+        array set pvals $p
+        foreach dependent $dependents($pvals(name)) {
+            if {[info exists entries($dependent)]} {
+                foreach entry $entries($dependent) {
+                    portlist_sortdependents_helper $entry entries dependents seen retlist
+                }
+            }
+        }
+        lappend retlist $p
+    }
+}
+
 proc regex_pat_sanitize { s } {
     set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
     return $sanitized
@@ -2336,6 +2373,7 @@ proc action_deactivate { action portlist opts } {
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
+    set portlist [portlist_sortdependents $portlist]
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
         if {![info exists options(ports_deactivate_no-exec)]
@@ -2898,6 +2936,8 @@ proc action_uninstall { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
+
+    set portlist [portlist_sortdependents $portlist]
 
     foreachport $portlist {
         if {![registry::entry_exists_for_name $portname]} {
