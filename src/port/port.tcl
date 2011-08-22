@@ -236,7 +236,9 @@ proc break_softcontinue { msg status name_status } {
 
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
-    ui_notice "To report a bug, see <http://guide.macports.org/#project.tickets>"
+    if {${macports::prefix} != "/usr/local" && ${macports::prefix} != "/usr"} {
+        ui_notice "To report a bug, see <http://guide.macports.org/#project.tickets>"
+    }
 }
 
 # Form a composite version as is sometimes used for registry functions
@@ -480,9 +482,9 @@ proc portlist_compare { a b } {
     }
     set avr_ [split $a_(version) "_"]
     set bvr_ [split $b_(version) "_"]
-    set vercmp [rpm-vercomp [lindex $avr_ 0] [lindex $bvr_ 0]]
-    if {$vercmp != 0} {
-        return $vercmp
+    set versioncmp [vercmp [lindex $avr_ 0] [lindex $bvr_ 0]]
+    if {$versioncmp != 0} {
+        return $versioncmp
     }
     set ar_ [lindex $avr_ 1]
     set br_ [lindex $bvr_ 1]
@@ -853,7 +855,7 @@ proc get_outdated_ports {} {
             if {$installed_version != $latest_version} {
                 set comp_result [expr $installed_epoch - $latest_epoch]
                 if { $comp_result == 0 } {
-                    set comp_result [rpm-vercomp $installed_version $latest_version]
+                    set comp_result [vercmp $installed_version $latest_version]
                 }
             }
             if { $comp_result == 0 } {
@@ -1280,6 +1282,7 @@ proc element { resname } {
         ^depends_run:       -
         ^depends_extract:   -
         ^depends_fetch:     -
+        ^replaced_by:       -
         ^revision:          -
         ^license:           { # Handle special port selectors
             advance
@@ -2090,7 +2093,7 @@ proc action_info { action portlist opts } {
                             array unset variant
                             array set variant $vinfo($v)
                             if {[info exists variant(is_default)]} {
-                                set varmodifier "\[+]"
+                                set varmodifier "\[$variant(is_default)]"
                             }
                         }
                         lappend inf "$varmodifier$v"
@@ -3269,7 +3272,7 @@ proc action_outdated { action portlist opts } {
             
             # Compare versions, first checking epoch, then version, then revision
             set epoch_comp_result [expr $installed_epoch - $latest_epoch]
-            set comp_result [rpm-vercomp $installed_version $latest_version]
+            set comp_result [vercmp $installed_version $latest_version]
             if { $comp_result == 0 } {
                 set comp_result [expr $installed_revision - $latest_revision]
             }
@@ -3491,6 +3494,7 @@ proc action_variants { action portlist opts } {
             ui_notice "$portname has the variants:"
             foreach v [lsort $portinfo(variants)] {
                 unset -nocomplain vconflicts vdescription vrequires
+                set varmodifier "   "
                 # Retrieve variants' information from the new format.
                 if {[info exists vinfo]} {
                     array unset variant
@@ -3512,9 +3516,7 @@ proc action_variants { action portlist opts } {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set varmodifier "($global_variations($v))"
                     } elseif {[info exists variant(is_default)]} {
-                        set varmodifier "\[+]"
-                    } else {
-                        set varmodifier "   "
+                        set varmodifier "\[$variant(is_default)\]"
                     }
                     if {[info exists variant(requires)]} {
                         set vrequires $variant(requires)
@@ -4252,7 +4254,7 @@ array set cmd_opts_array {
                  depends description epoch fullname heading homepage index license
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
-                 replaced_by revision variant variants version}
+                 replaced_by revision subports variant variants version}
     contents    {size {units 1}}
     deps        {index no-build}
     rdeps       {index no-build full}
@@ -4348,7 +4350,7 @@ proc parse_options { action ui_options_name global_options_name } {
                         foreach e $kopts {
                             lappend errlst "--[lindex $e 0]"
                         }
-                        return -code error "${action} --${key} is ambiguous: \n  [join $errlst "\n  "]"
+                        return -code error "\"port ${action} --${key}\" is ambiguous: \n  port ${action} [join $errlst "\n  port ${action} "]"
                     }
                     set key   [lindex [lindex $kopts 0] 0]
                     set kargc [lindex [lindex $kopts 0] 1]
@@ -4505,9 +4507,9 @@ proc process_cmd { argv } {
             set action_proc [get_action_proc $action]
         } else {
             if {[llength $actions] > 1} {
-                puts "Ambiguous action \"$action\": could be any of {$actions}."
+                ui_error "\"port ${action}\" is ambiguous: \n  port [join $actions "\n  port "]"
             } else {
-                puts "Unrecognized action \"$action\""
+                ui_error "Unrecognized action \"port $action\""
             }
             set action_status 1
             break
@@ -4864,6 +4866,9 @@ if { [llength $remaining_args] > 0 } {
 # Process any prescribed command files, including standard input
 if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exists ui_options(ports_commandfiles)] } {
     set exit_status [process_command_files $ui_options(ports_commandfiles)]
+}
+if {$exit_status == -999} {
+    set exit_status 0
 }
 
 # shut down macports1.0

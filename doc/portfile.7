@@ -2119,8 +2119,8 @@ See
 .Xr mkdtemp 3 .
 .It Ic md5 Ar
 Compute the MD5 hashes of the file(s).
-.It Ic rpm-vercomp Ar versionA Ar versionB
-Compare two RPM-format versions for equality.  The return value is like
+.It Ic vercmp Ar versionA Ar versionB
+Compare two EVR-format versions for equality.  The return value is like
 strcmp(), returning -1, 0, or 1 when versionA is earlier, equal to, or
 later than versionB, respectively.  Note that some comparisions featuring
 floating-point notation may compare incorrectly, e.g. 2.101 is considered

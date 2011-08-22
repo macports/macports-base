@@ -249,7 +249,17 @@ proc _check_registry {name version revision variants} {
 ## @param [in] dstfile path to activate file to
 ## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
-    switch [file type $srcfile] {
+    if {[catch {set filetype [file type $srcfile]} result]} {
+        # this can happen if the archive was built on case-sensitive and we're case-insensitive
+        # we know any existing dstfile is ours because we checked for conflicts earlier
+        if {![catch {file type $dstfile}]} {
+            ui_debug "skipping case-conflicting file: $srcfile"
+            return 0
+        } else {
+            error $result
+        }
+    }
+    switch $filetype {
         directory {
             # Don't recursively copy directories
             ui_debug "activating directory: $dstfile"
@@ -279,10 +289,11 @@ proc _activate_file {srcfile dstfile} {
 # extract an archive to a temporary location
 # returns: path to the extracted directory
 proc extract_archive_to_tmpdir {location} {
-    set extractdir [mkdtemp [file join [macports::gettmpdir] mpextractXXXXXXXX]]
+    global macports::registry.path
+    set extractdir [mkdtemp [file dirname $location]/mpextractXXXXXXXX]
+    set startpwd [pwd]
 
     try {
-        set startpwd [pwd]
         if {[catch {cd $extractdir} err]} {
             throw MACPORTS $err
         }
@@ -294,7 +305,7 @@ proc extract_archive_to_tmpdir {location} {
         set unarchive.pre_args {}
         set unarchive.args {}
         set unarchive.pipe_cmd ""
-        set unarchive.type [file tail $location]
+        set unarchive.type [file extension $location]
         switch -regex ${unarchive.type} {
             cp(io|gz) {
                 set pax "pax"
@@ -463,7 +474,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         # if we're forcing the activation, then we move any existing
                         # files to a backup file, both in the filesystem and in the
                         # registry
-                        if { [file exists $file] } {
+                        if { ![catch {file type $file}] } {
                             set bakfile "${file}${baksuffix}"
                             ui_warn "File $file already exists.  Moving to: $bakfile."
                             file rename -force -- $file $bakfile

@@ -32,7 +32,7 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-6]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
@@ -123,6 +123,8 @@ AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [], [$PATH:/usr/local/bin])
 AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROG(LZMA, [lzma], [])
+AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
 AC_PATH_PROG(PAX, [pax], [])
@@ -142,6 +144,8 @@ AC_ARG_VAR(GNUTAR, [path to gnutar command])
 AC_ARG_VAR(BSDMAKE, [path to bsdmake/pmake command])
 AC_ARG_VAR(GNUMAKE, [path to gnumake command])
 AC_ARG_VAR(BZIP2, [path to bzip2 command])
+AC_ARG_VAR(LZMA, [path to lzma command])
+AC_ARG_VAR(XZ, [path to xz command])
 AC_ARG_VAR(XAR, [path to xar command])
 AC_ARG_VAR(OPEN, [path to open command])
 
@@ -152,9 +156,11 @@ MP_PATCH_GNU_VERSION
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
-	CFLAGS_QUICHEEATERS='-W -Wall -pedantic'
+	CFLAGS_QUICHEEATERS='-Wextra -Wall'
+	CFLAGS_PEDANTIC='-pedantic'
 fi
 AC_SUBST(CFLAGS_QUICHEEATERS)
+AC_SUBST(CFLAGS_PEDANTIC)
 MP_WERROR
 
 MP_COMPILER_ATTRIBUTE_UNUSED
@@ -180,8 +186,8 @@ AC_ARG_WITH(
 		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
 		[with_unsupported_prefix=$withval],
 		[with_unsupported_prefix=no])
-if test x$prefix = x/usr/local -a x$with_unsupported_prefix != xyes; then
-    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported. If \
+if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_prefix != xyes; then
+    AC_MSG_ERROR([Installing MacPorts into $prefix is not supported. If \
 you understand this and wish to do so anyway, pass --with-unsupported-prefix \
 to configure.])
 fi

@@ -194,6 +194,7 @@ proc portconfigure::configure_start {args} {
 
     set name ""
     switch -exact ${configure.compiler} {
+        cc { set name "System cc" }
         gcc { set name "System gcc" }
         gcc-3.3 { set name "Mac OS X gcc 3.3" }
         gcc-4.0 { set name "Mac OS X gcc 4.0" }
@@ -352,13 +353,17 @@ proc portconfigure::arch_flag_supported {args} {
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
-    global macosx_deployment_target
-    switch -exact ${macosx_deployment_target} {
-        "10.4"      -
-        "10.5"      { return gcc-4.0 }
-        "10.6"      { return gcc-4.2 }
-        "10.7"      { return llvm-gcc-4.2 }
-        default     { return gcc }
+    global xcodeversion macosx_deployment_target
+    if {$xcodeversion == "none" || $xcodeversion == ""} {
+        return cc
+    } elseif {[vercmp $xcodeversion 4.2] >= 0} {
+        return clang
+    } elseif {[vercmp $xcodeversion 4.0] >= 0} {
+        return llvm-gcc-4.2
+    } elseif {[vercmp $xcodeversion 3.2] >= 0 && $macosx_deployment_target != "10.4"} {
+        return gcc-4.2
+    } else {
+        return gcc-4.0
     }
 }
 
@@ -367,6 +372,14 @@ proc portconfigure::configure_get_compiler {type} {
     global configure.compiler prefix developer_dir
     set ret ""
     switch -exact ${configure.compiler} {
+        cc {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/cc }
+                objc { set ret /usr/bin/cc }
+                cxx  { set ret /usr/bin/c++ }
+                cpp  { set ret /usr/bin/cpp }
+            }
+        }
         gcc {
             switch -exact ${type} {
                 cc   { set ret /usr/bin/gcc }
@@ -438,6 +451,7 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret ${prefix}/bin/gcc-apple-4.2 }
                 objc { set ret ${prefix}/bin/gcc-apple-4.2 }
                 cpp  { set ret ${prefix}/bin/cpp-apple-4.2 }
+                cxx  { set ret ${prefix}/bin/g++-apple-4.2 }
             }
         }
         macports-gcc-4.0 {

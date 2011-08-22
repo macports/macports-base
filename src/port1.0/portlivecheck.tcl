@@ -47,11 +47,10 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
 
 # defaults
 default livecheck.url {$homepage}
-default livecheck.check default
 default livecheck.type default
 default livecheck.md5 ""
 default livecheck.regex ""
@@ -59,9 +58,6 @@ default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 default livecheck.ignore_sslcert yes
-
-# Deprecation
-option_deprecate livecheck.check livecheck.type
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
@@ -101,6 +97,14 @@ proc portlivecheck::livecheck_main {args} {
         if {$has_master_sites} {
             foreach {master_site} ${master_sites} {
                 if {[regexp "^($available_types)(?::(\[^:\]+))?" ${master_site} _ site subdir]} {
+                    set subdirs [split $subdir /]
+                    if {[llength $subdirs] > 1} {
+                        if {[lindex $subdirs 0] == "project"} {
+                            set subdir [lindex $subdirs 1]
+                        } else {
+                            set subdir ""
+                        }
+                    }
                     if {${subdir} ne "" && ${livecheck.name} eq "default"} {
                         set livecheck.name ${subdir}
                     }
@@ -167,7 +171,7 @@ proc portlivecheck::livecheck_main {args} {
                     while {[gets $chan line] >= 0} {
                         if {[regexp $the_re $line matched upver]} {
                             set foundmatch 1
-                            if {$updated_version == 0 || [rpm-vercomp $upver $updated_version] > 0} {
+                            if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
                                 set updated_version $upver
                             }
                             ui_debug "The regex matched \"$matched\", extracted \"$upver\""

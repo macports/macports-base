@@ -8,7 +8,7 @@ datarootdir=	@datarootdir@
 mandir=		@mandir@
 mandircat8=	${mandir}/cat8
 
-CFLAGS_QUICHEEATERS	= -W -Wall
+CFLAGS_PEDANTIC	=
 CPPFLAGS	+= -I../..
 SRCS		= main.c
 OBJS		= main.o

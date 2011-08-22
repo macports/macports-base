@@ -132,11 +132,11 @@ proc handle_option-delete {option args} {
 }
 
 ##
-# Handle option-replace
+# Handle option-strsed
 #
 # @param option name of the option
 # @param args arguments
-proc handle_option-replace {option args} {
+proc handle_option-strsed {option args} {
     global $option user_options option_procs
 
     if {![info exists user_options($option)] && [info exists $option]} {
@@ -145,6 +145,36 @@ proc handle_option-replace {option args} {
             set temp [strsed $temp $val]
         }
         set $option $temp
+    }
+}
+
+##
+# Handle option-replace
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-replace {option args} {
+    global $option user_options option_procs deprecated_options
+
+    # Deprecate -replace with only one argument, for backwards compatibility call -strsed
+    # XXX: Remove this in 2.2.0
+    if {[llength $args] == 1} {
+        if {![info exists deprecated_options(${option}-replace)]} {
+            set deprecated_options(${option}-replace) [list ${option}-strsed 0]
+        }
+        set refcount [lindex $deprecated_options(${option}-replace) 1]
+        lset deprecated_options(${option}-replace) 1 [expr $refcount + 1]
+        return [eval handle_option-strsed $option $args]
+    }
+
+    if {![info exists user_options($option)] && [info exists $option]} {
+        foreach {old new} $args {
+            set index [lsearch -exact [set $option] $old]
+            if {$index == -1} {
+                continue
+            }
+            set $option [lreplace [set $option] $index $index $new]
+        }
     }
 }
 
@@ -160,6 +190,7 @@ proc options {args} {
         interp alias {} $option {} handle_option $option
         interp alias {} $option-append {} handle_option-append $option
         interp alias {} $option-delete {} handle_option-delete $option
+        interp alias {} $option-strsed {} handle_option-strsed $option
         interp alias {} $option-replace {} handle_option-replace $option
     }
 }
@@ -2020,20 +2051,18 @@ proc handle_default_variants {option action {value ""}} {
             array set vinfo $PortInfo(vinfo)
 
             foreach v $value {
-                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant] && ![info exists variations($variant)]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
                         set vinfo($variant) {}
                     }
+                    array unset info
                     array set info $vinfo($variant)
+                    # Set is_default and update vinfo.
+                    set info(is_default) $val
+                    array set vinfo [list $variant [array get info]]
 
-                    if {![info exists variations($variant)]} {
-                        # Set is_default and update vinfo.
-                        array set info [list is_default val]
-                        array set vinfo [list $variant [array get info]]
-
-                        set variations($variant) $val
-                    }
+                    set variations($variant) $val
                 }
             }
             # Update PortInfo(vinfo).
@@ -2077,14 +2106,15 @@ proc adduser {name args} {
         return
     } elseif {[geteuid] != 0} {
         seteuid 0; setegid 0
+        set escalated 1
     }
 
     set passwd {*}
     set uid [nextuid]
     set gid [existsgroup nogroup]
     set realname ${name}
-    set home /dev/null
-    set shell /dev/null
+    set home /var/empty
+    set shell /usr/bin/false
 
     foreach arg $args {
         if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
@@ -2098,16 +2128,30 @@ proc adduser {name args} {
 
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
-        exec $dscl . -create /Users/${name} Password ${passwd}
         exec $dscl . -create /Users/${name} UniqueID ${uid}
-        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
+
+        # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+        # causes the user to be visible in the Users & Groups Preference Pane,
+        # and the others are just noise, so delete them.
+        # https://trac.macports.org/ticket/30168
+        exec $dscl . -delete /Users/${name} AuthenticationAuthority
+        exec $dscl . -delete /Users/${name} PasswordPolicyOptions
+        exec $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
+        exec $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
+
         exec $dscl . -create /Users/${name} RealName ${realname}
+        exec $dscl . -create /Users/${name} Password ${passwd}
+        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
         exec $dscl . -create /Users/${name} NFSHomeDirectory ${home}
         exec $dscl . -create /Users/${name} UserShell ${shell}
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "adduser is not implemented on ${os.platform}."
         ui_warn "The requested user '$name' was not created."
+    }
+
+    if {[info exists escalated]} {
+        dropPrivileges
     }
 }
 
@@ -2120,6 +2164,7 @@ proc addgroup {name args} {
         return
     } elseif {[geteuid] != 0} {
         seteuid 0; setegid 0
+        set escalated 1
     }
 
     set gid [nextgid]
@@ -2149,6 +2194,10 @@ proc addgroup {name args} {
         # XXX addgroup is only available for darwin, add more support here
         ui_warn "addgroup is not implemented on ${os.platform}."
         ui_warn "The requested group was not created."
+    }
+
+    if {[info exists escalated]} {
+        dropPrivileges
     }
 }
 
@@ -2508,6 +2557,15 @@ proc dropPrivileges {} {
     }
 }
 
+proc validate_macportsuser {} {
+    global macportsuser
+    if {[getuid] == 0 && $macportsuser != "root" && 
+        ([existsuser $macportsuser] == 0 || [existsgroup $macportsuser] == 0 )} {
+        ui_warn "configured user/group $macportsuser does not exist, will build as root"
+        set macportsuser "root"
+    }
+}
+
 # dependency analysis helpers
 
 ### _libtest is private; subject to change without notice
@@ -2635,6 +2693,18 @@ proc get_canonical_archs {} {
     }
 }
 
+# returns the flags that should be passed to the compiler to choose arch(s)
+proc get_canonical_archflags {{tool cc}} {
+    if {![variant_exists universal] || ![variant_isset universal]} {
+        return [option configure.${tool}_archflags]
+    } else {
+        if {$tool == "cc" || $tool == "objc"} {
+            set tool c
+        }
+        return [option configure.universal_${tool}flags]
+    }
+}
+
 # check that the selected archs are supported
 proc check_supported_archs {} {
     global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs subport
@@ -2670,18 +2740,23 @@ proc _check_xcode_version {} {
                 set ok 3.1
                 set rec 3.1.4
             }
-            default {
+            10.6 {
                 set min 3.2
                 set ok 3.2
                 set rec 3.2.6
             }
+            default {
+                set min 4.1
+                set ok 4.1
+                set rec 4.1
+            }
         }
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
-        } elseif {[rpm-vercomp $xcodeversion $min] < 0} {
+        } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
             return 1
-        } elseif {[rpm-vercomp $xcodeversion $ok] < 0} {
+        } elseif {[vercmp $xcodeversion $ok] < 0} {
             ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
         }
     }

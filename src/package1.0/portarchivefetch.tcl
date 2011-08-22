@@ -66,6 +66,10 @@ default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
     global prefix porturl
+    set mirrorfile [get_full_archive_sites_path]
+    if {[file exists $mirrorfile]} {
+        source $mirrorfile
+    }
     set ret {}
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
         if {$portfetch::mirror_sites::archive_prefix($site) == $prefix} {
@@ -74,6 +78,7 @@ proc portarchivefetch::filter_sites {} {
     }
     if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]]} {
         lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]
+        archive.subdir
     }
     return $ret
 }
@@ -93,16 +98,10 @@ proc portarchivefetch::checkarchivefiles {urls} {
     # throws an error if unsupported
     archiveTypeIsSupported $portarchivetype
 
-    if {[file isfile ${archive.path}]} {
-        ui_debug "Found archive: ${archive.path}"
-        set all_archive_files {}
-        set fetch_urls {}
-    } else {
-        set archive.file [file tail ${archive.path}]
-        lappend all_archive_files ${archive.file}
-        if {[info exists archive_sites]} {
-            lappend fetch_urls archive_sites ${archive.file}
-        }
+    set archive.file [file tail ${archive.path}]
+    lappend all_archive_files ${archive.file}
+    if {[info exists archive_sites]} {
+        lappend fetch_urls archive_sites ${archive.file}
     }
 }
 

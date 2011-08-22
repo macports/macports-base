@@ -33,15 +33,15 @@ install:: all
 
 	echo "${TCL_PACKAGE_DIR}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
 	if test -z "${DESTDIR}" -a "${INSTALLPKGLINK}" != "${INSTALLDIR}"; then \
-		if test ! -d "${TCL_PACKAGE_DIR}"; then \
-			$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${TCL_PACKAGE_DIR}" || true; \
-		fi; \
-		if test -w "${TCL_PACKAGE_DIR}"; then \
-			if test ! -L "${INSTALLPKGLINK}" && test -d "${INSTALLPKGLINK}"; then \
-				rm -rf "${INSTALLPKGLINK}" || true; \
-			fi; \
-			if test ! -e "${INSTALLPKGLINK}"; then \
-				ln -s "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
-			fi; \
-		fi; \
+		if test ! -L "${INSTALLPKGLINK}"; then \
+            if test ! -e "${TCL_PACKAGE_DIR}"; then \
+                $(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${TCL_PACKAGE_DIR}" || true; \
+            fi; \
+            if test -d "${INSTALLPKGLINK}"; then \
+                rm -vrf "${INSTALLPKGLINK}" || true; \
+            fi; \
+            if test ! -e "${INSTALLPKGLINK}"; then \
+                ln -vs "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
+            fi; \
+        fi; \
 	fi
