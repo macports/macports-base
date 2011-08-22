@@ -110,7 +110,7 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
     }
     if (sqlite3_open(NULL, &reg->db) == SQLITE_OK) {
         /* Enable extended status codes*/
-        sqlite3_extended_result_codes(&reg->db, 1);
+        sqlite3_extended_result_codes(reg->db, 1);
 
         if (init_db(reg->db, errPtr)) {
             reg->status = reg_none;
