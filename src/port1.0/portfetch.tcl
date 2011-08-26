@@ -104,7 +104,7 @@ default hg.dir {${workpath}}
 default hg.tag {tip}
 
 # Set distfiles
-default distfiles {[portfetch::suffix $distname]}
+default distfiles {[list [portfetch::suffix $distname]]}
 default dist_subdir {${name}}
 
 # user name & password
@@ -226,7 +226,7 @@ proc portfetch::checkpatchfiles {urls} {
 
     if {[info exists patchfiles]} {
         foreach file $patchfiles {
-            if {![file exists $filespath/$file]} {
+            if {![file exists "${filespath}/${file}"]} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
@@ -249,7 +249,7 @@ proc portfetch::checkdistfiles {urls} {
 
     if {[info exists distfiles]} {
         foreach file $distfiles {
-            if {![file exists $filespath/$file]} {
+            if {![file exists "${filespath}/${file}"]} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
