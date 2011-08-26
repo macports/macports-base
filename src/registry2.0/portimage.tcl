@@ -289,7 +289,8 @@ proc _activate_file {srcfile dstfile} {
 # extract an archive to a temporary location
 # returns: path to the extracted directory
 proc extract_archive_to_tmpdir {location} {
-    set extractdir [mkdtemp [file join [macports::gettmpdir] mpextractXXXXXXXX]]
+    global macports::registry.path
+    set extractdir [mkdtemp [file dirname $location]/mpextractXXXXXXXX]
     set startpwd [pwd]
 
     try {
