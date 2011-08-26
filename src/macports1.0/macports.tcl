@@ -1633,6 +1633,7 @@ proc _mportexec {target mport} {
         # An error occurred.
         global ::logenabled ::debuglogname
         ui_error "Failed to install $portname"
+        ui_debug "$::errorInfo"
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_notice "Log for $portname is at: $::debuglogname"
         }
