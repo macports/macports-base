@@ -125,11 +125,16 @@ function delete_reg1 {
 # link macports1.0 into tcl package dir if possible
 function link_tcl_package {
     # delete old directory if present
-    if [[ ! -L "${TCL_PACKAGE_DIR}/macports1.0" ]] && [[ -d "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
-        rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
-    fi
-    if [[ ! -e "${TCL_PACKAGE_DIR}/macports1.0" ]] && [[ -w "${TCL_PACKAGE_DIR}" ]]; then
-		ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
+    if [[ ! -L "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
+        if [[ ! -e "${TCL_PACKAGE_DIR}" ]]; then
+            /usr/bin/install -d "${TCL_PACKAGE_DIR}" || true
+        fi
+        if [[ -d "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
+            rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
+        fi
+        if [[ ! -e "${TCL_PACKAGE_DIR}/macports1.0" && -d "${TCL_PACKAGE_DIR}" ]]; then
+            ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
+        fi
 	fi
 }
 
