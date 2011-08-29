@@ -1924,6 +1924,9 @@ proc mportsync {{optionslist {}}} {
     global macports::portverbose
     global macports::autoconf::rsync_path macports::autoconf::tar_path macports::autoconf::openssl_path
     array set options $optionslist
+    if {[info exists options(no_reindex)]} {
+        upvar $options(needed_portindex_var) any_needed_portindex
+    }
 
     set numfailed 0
 
@@ -2051,8 +2054,10 @@ proc mportsync {{optionslist {}}} {
                     file delete -force ${destdir}/tmp
                 }
 
+                set needs_portindex 1
                 # now sync the index if the local file is missing or older than a day
-                if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400} {
+                if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400
+                      || [info exists options(no_reindex)]} {
                     if {$is_tarball} {
                         # chop ports.tar off the end
                         set index_source [string range $source 0 end-[string length [file tail $source]]]
@@ -2066,8 +2071,10 @@ proc mportsync {{optionslist {}}} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
                     } else {
                         set ok 1
+                        set needs_portindex 0
                         if {$is_tarball} {
                             set ok 0
+                            set needs_portindex 1
                             # verify signature for PortIndex
                             set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${remote_indexfile}.rmd160 ${destdir}"
                             ui_debug $rsync_commandline
@@ -2075,6 +2082,7 @@ proc mportsync {{optionslist {}}} {
                                 foreach pubkey ${macports::archivefetch_pubkeys} {
                                     if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex} result]} {
                                         set ok 1
+                                        set needs_portindex 0
                                         ui_debug "successful verification with key $pubkey"
                                         break
                                     } else {
@@ -2096,7 +2104,6 @@ proc mportsync {{optionslist {}}} {
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
-                set needs_portindex 1
             }
             {^https?$|^ftp$} {
                 if {[_source_is_snapshot $source filename extension]} {
@@ -2158,8 +2165,6 @@ proc mportsync {{optionslist {}}} {
                     }
 
                     file delete $tarpath
-                    
-                    set needs_portindex 1
                 } else {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
@@ -2174,10 +2179,13 @@ proc mportsync {{optionslist {}}} {
         }
         
         if {$needs_portindex} {
-            global macports::prefix
-            set indexdir [file dirname [macports::getindex $source]]
-            if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
-                ui_error "updating PortIndex for $source failed"
+            set any_needed_portindex 1
+            if {![info exists options(no_reindex)]} {
+                global macports::prefix
+                set indexdir [file dirname [macports::getindex $source]]
+                if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
+                    ui_error "updating PortIndex for $source failed"
+                }
             }
         }
     }
@@ -2921,14 +2929,6 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
         set updatestatus no
     }
 
-    # syncing ports tree.
-    if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        ui_msg "--->  Updating the ports tree"
-        if {[catch {mportsync $optionslist} result]} {
-            return -code error "Couldn't sync the ports tree: $result"
-        }
-    }
-
     # are we syncing a tarball? (implies detached signature)
     set is_tarball 0
     if {[string range ${rsync_dir} end-3 end] == ".tar"} {
@@ -3017,6 +3017,20 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 
     # check if we we need to rebuild base
     set comp [rpm-vercomp $macports_version_new $macports::autoconf::macports_version]
+
+    # syncing ports tree.
+    if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
+        ui_msg "--->  Updating the ports tree"
+        if {$comp > 0} {
+            # updated portfiles potentially need new base to parse - tell sync to try to 
+            # use prefabricated PortIndex files and signal if it couldn't
+            lappend optionslist no_reindex 1 needed_portindex_var needed_portindex
+        }
+        if {[catch {mportsync $optionslist} result]} {
+            return -code error "Couldn't sync the ports tree: $result"
+        }
+    }
+
     if {$use_the_force_luke == "yes" || $comp > 0} {
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
             ui_msg "--->  MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
@@ -3084,8 +3098,13 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
     }
 
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
-        ui_msg "  port upgrade outdated"
+        if {[info exists needed_portindex]} {
+            ui_msg "Not all sources could be fully synced using the old version of MacPorts."
+            ui_msg "Please run selfupdate again now that MacPorts base has been updated."
+        } else {
+            ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
+            ui_msg "  port upgrade outdated"
+        }
     }
 
     return 0
