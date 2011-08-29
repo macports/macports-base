@@ -838,19 +838,45 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::macosx_deployment_target $macosx_version
     }
 
+    # make tools we run operate in UTF-8 mode
+    set env(LANG) en_US.UTF-8
+
     # ENV cleanup.
     set keepenvkeys {
         DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
         DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
         DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
         HOME JAVA_HOME MASTER_SITE_LOCAL ARCHIVE_SITE_LOCAL
-        PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
-        USER GROUP
+        PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY
+        USER GROUP LANG
         http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
         COLUMNS LINES
     }
     if {[info exists extra_env]} {
         set keepenvkeys [concat ${keepenvkeys} ${extra_env}]
+    }
+
+    if {[file isdirectory $libpath]} {
+        lappend auto_path $libpath
+        set macports::auto_path $auto_path
+
+        # XXX: not sure if this the best place, but it needs to happen
+        # early, and after auto_path has been set.  Or maybe Pextlib
+        # should ship with macports1.0 API?
+        package require Pextlib 1.0
+        package require registry 1.0
+        package require registry2 2.0
+    } else {
+        return -code error "Library directory '$libpath' must exist"
+    }
+
+    # don't keep unusable TMPDIR/TMP values
+    foreach var {TMP TMPDIR} {
+        if {[info exists env($var)] && [file writable $env($var)] && 
+            ([getuid] != 0 || $macportsuser == "root" ||
+             [file attributes $env($var) -owner] == $macportsuser)} {
+            lappend keepenvkeys $var
+        }
     }
 
     set env_names [array names env]
@@ -860,8 +886,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    # make tools we run operate in UTF-8 mode
-    set env(LANG) en_US.UTF-8
+    # unset environment an extra time, to work around bugs in Leopard Tcl
+    if {$macosx_version == "10.5"} {
+        foreach envkey $env_names {
+            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+                unsetenv $envkey
+            }
+        }
+    }
 
     if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
         # We'll resolve these later (if needed)
@@ -882,29 +914,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     if {[info exists archive_site_local] && ![info exists env(ARCHIVE_SITE_LOCAL)]} {
         set env(ARCHIVE_SITE_LOCAL) "$archive_site_local"
-    }
-
-    if {[file isdirectory $libpath]} {
-        lappend auto_path $libpath
-        set macports::auto_path $auto_path
-
-        # XXX: not sure if this the best place, but it needs to happen
-        # early, and after auto_path has been set.  Or maybe Pextlib
-        # should ship with macports1.0 API?
-        package require Pextlib 1.0
-        package require registry 1.0
-        package require registry2 2.0
-    } else {
-        return -code error "Library directory '$libpath' must exist"
-    }
-
-    # unset environment an extra time, to work around bugs in Leopard Tcl
-    if {$macosx_version == "10.5"} {
-        foreach envkey $env_names {
-            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
-                unsetenv $envkey
-            }
-        }
     }
 
     # Proxy handling (done this late since Pextlib is needed)
