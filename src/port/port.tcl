@@ -4680,6 +4680,9 @@ set remaining_args [lrange $cmd_argv $cmd_argn end]
 # interactive mode
 if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
     lappend ui_options(ports_commandfiles) -
+} elseif {[lookahead] == "selfupdate" || [lookahead] == "sync"} {
+    # tell mportinit not to tell the user they should selfupdate
+    set ui_options(ports_no_old_index_warning) 1
 }
 
 # Initialize mport
