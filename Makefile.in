@@ -86,9 +86,13 @@ ifeq ($(DESTDIR),)
 # Convert image directories (and direct mode installs) to image archives
 	$(TCLSH) src/images_to_archives.tcl "${macports_tcl_dir}"
 endif
+ifndef SELFUPDATING
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
 	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at https://trac.macports.org/ for full documentation."; echo ""
+else
+	@echo ""; echo "Congratulations, you have successfully upgraded the MacPorts system."; echo ""
+endif
 
 group::
 	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
