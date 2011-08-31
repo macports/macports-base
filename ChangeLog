@@ -3,10 +3,47 @@
 # $Id$
 ###
 
+Unreleased changes:
+
     - Implement new option-replace using lsearch/lreplace. The old behavior is
       deprecated for option-replace with only one argument, but can still be
       found in option-strsed.
       (raimue in r82760, r82761)
+
+Release 2.0.2 (Unreleased):
+    - Messages recommending running selfupdate will no longer be printed when
+      selfupdate is being run. (#23094, jmr in r83270, r83391)
+
+    - The PortIndex will not be regenerated during selfupdate when base is
+      outdated. This avoids failure to index ports that use features only
+      available in the current version. (#30739, jmr in r83271)
+
+    - Fixed build failures when the TMPDIR environment variable is set to a
+      directory that is not writable by the macports user.
+      (#30749, jmr in r83267)
+
+    - Fixed error when checksumming distfiles with names containing spaces.
+      (#28568, jmr in r83149)
+
+    - The uninstall and deactivate actions now sort the port list so that
+      dependents are processed before the ports they depend on.
+      (#8431, jmr in r82947)
+
+    - Fixed an issue where a non-universal version of a port could be
+      installed as a dependency as well as the universal version, with
+      unpredictable results, when some ports in the dependency graph needed
+      the universal version but others didn't. (jmr in r82924)
+
+    - Now using a temp dir inside ${prefix} when activating, as /tmp or
+      /var/folders may be on a different volume. (jmr in r82767)
+
+    - Fixed extracting portfile-only archives. (#31033, jmr in r81830)
+
+    - Fixed adduser and addgroup procedures not re-dropping privileges when
+      done. (jmr in r81630)
+
+    - Fixed error activating ports with names containing the string "cpio".
+      (#30532, jmr in r81577)
 
 Release 2.0.1 (2011-08-02 by jmr):
     - Fixed errors when installing some archives built on a case-sensitive
