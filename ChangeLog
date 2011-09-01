@@ -10,7 +10,7 @@ Unreleased changes:
       found in option-strsed.
       (raimue in r82760, r82761)
 
-Release 2.0.2 (Unreleased):
+Release 2.0.2 (2011-09-01 by jmr):
     - Messages recommending running selfupdate will no longer be printed when
       selfupdate is being run. (#23094, jmr in r83270, r83391)
 
