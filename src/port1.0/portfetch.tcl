@@ -165,6 +165,9 @@ proc portfetch::set_extract_type {option action args} {
 proc portfetch::set_fetch_type {option action args} {
     global os.platform os.major
     if {[string equal ${action} "set"]} {
+        if {$args != "standard"} {
+            distfiles
+        }
         switch $args {
             bzr {
                 depends_fetch-append bin:bzr:bzr
@@ -204,16 +207,8 @@ set_ui_prefix
 
 # Given a distname, return the distname with extract.suffix appended
 proc portfetch::suffix {distname} {
-    global extract.suffix fetch.type
-    switch -- "${fetch.type}" {
-        bzr         -
-        cvs         -
-        svn         -
-        git         -
-        hg          { return "" }
-        standard    -
-        default     { return "${distname}${extract.suffix}" }
-    }
+    global extract.suffix
+    return "${distname}${extract.suffix}"
 }
 # XXX import suffix into the global namespace as it is currently used from
 # Portfiles, but should better go somewhere else
