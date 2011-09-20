@@ -53,10 +53,12 @@ proc portdistfiles::distfiles_start {args} {
 }
 
 proc portdistfiles::distfiles_main {args} {
-    global UI_PREFIX master_sites checksums_array portdbpath dist_subdir all_dist_files
+    global UI_PREFIX master_sites patch_sites patchfiles checksums_array \
+           portdbpath dist_subdir all_dist_files
     
     # give up on ports that do not provide URLs
-    if {![info exists master_sites] || $master_sites == "{}"} {
+    if {(![info exists master_sites] || $master_sites == "{}")
+        && (![info exists patchfiles] || ![info exists patch_sites] || $patch_sites == "{}")} {
         return 0
     }
 
