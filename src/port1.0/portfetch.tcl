@@ -279,6 +279,7 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
+    global patchfiles
     if {[catch {command_exec bzr "" "2>&1"} result]} {
         return -code error [msgcat::mc "Bazaar checkout failed"]
     }
@@ -338,7 +339,7 @@ proc portfetch::cvsfetch {args} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url
+    global svn.args svn.method svn.revision svn.url patchfiles
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -362,7 +363,7 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global worksrcpath
+    global worksrcpath patchfiles
     global git.url git.branch git.sha1 git.cmd
 
     set options "-q"
@@ -394,7 +395,7 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen
+    global worksrcpath prefix_frozen patchfiles
     global hg.url hg.tag hg.cmd
 
     set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
