@@ -1,6 +1,6 @@
 include ../Mk/macports.autoconf.mk
 
-TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c dependencies-d dependencies-e case-insensitive-deactivate variants
+TESTS?=checksums-1 svn-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c dependencies-d dependencies-e case-insensitive-deactivate variants
 
 PWD=$(shell pwd)
 

@@ -1,32 +1,31 @@
 # $Id$
 
 PortSystem 1.0
-name		cvs-and-patchsites
+
+name		svn-and-patchsites
 version		1
 categories	test
-maintainers	pguyot@kallisys.net
-description	Test port for cvs+distant patchfiles functionalities
+maintainers	nomaintainer
+description	Test port for svn+distant patchfiles functionalities
 homepage	http://www.macports.org/
 platforms	darwin
 
 long_description ${description}
 
-fetch.type          cvs
-cvs.root            :pserver:anonymous@common-lisp.net:/project/slime/cvsroot
-cvs.module          slime
-cvs.password        anonymous
-worksrcdir          slime
+fetch.type          svn
+svn.url             http://svn.pythonmac.org/altgraph/altgraph/tags/altgraph-0.7.0/
+worksrcdir          altgraph-0.7.0
 
 patch_sites      http://home.uchicago.edu/~dgc/sw/mutt/
 patchfiles       patch-1.5.14.dgc.xlabel_ext.9
 checksums        patch-1.5.14.dgc.xlabel_ext.9 md5 c5badc733020187b6677f31b343195e8
 
-# Set depends_build to be empty to remove the dependency on cvs added by base,
+# Set depends_fetch to be empty to remove the dependency on svn added by base,
 # as it is not available in the test suite. Otherwise MacPorts will try to
-# verify a cvs port exists.
-depends_build
+# verify a subversion port exists.
+depends_fetch
 
-# disable the patch phase in case the cvs code gets out of sync with the patch.
+# disable the patch phase in case the svn code gets out of sync with the patch.
 patch		{}
 extract		{}
 configure	{}
