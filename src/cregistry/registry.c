@@ -193,10 +193,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
             if (!(sb.st_mode & S_IWGRP)) {
                 can_write = 0;
             }
-        } else {
-            if (!(sb.st_mode & S_IWOTH)) {
-                can_write = 0;
-            }
+        } else if (!(sb.st_mode & S_IWOTH) && getuid() != 0) {
+            can_write = 0;
         }
     }
     if (initialized || can_write) {
