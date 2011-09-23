@@ -237,6 +237,20 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
+#if LIBCURL_VERSION_NUM == 0x071307
+        /* FTP_PROXY workaround for Snow Leopard */
+        if (strncmp(theURL, "ftp:", 4) == 0) {
+            char *ftp_proxy = getenv("FTP_PROXY");
+            if (ftp_proxy) {
+                theCurlCode = curl_easy_setopt(theHandle, CURLOPT_PROXY, ftp_proxy);
+                if (theCurlCode != CURLE_OK) {
+                    theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+                    break;
+                }
+            }
+        }
+#endif
+
 		/* -L option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);
 		if (theCurlCode != CURLE_OK) {
