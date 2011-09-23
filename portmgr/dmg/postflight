@@ -87,19 +87,19 @@ function update_macports {
 # backing up the original only if it exists and if it doesn't contain the ${OUR_STRING} identification string,
 # which hints that we've already tweaked it and therefore already backed it up.
 function write_setting () {
-    if [[ -f ${HOME}/.${CONF_FILE} ]] && ! grep "${OUR_STRING}" ${HOME}/.${CONF_FILE} > /dev/null; then
+    if [[ -f "${HOME}/.${CONF_FILE}" ]] && ! grep "${OUR_STRING}" "${HOME}/.${CONF_FILE}" > /dev/null; then
         echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
-        /bin/cp -fp ${HOME}/.${CONF_FILE} "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
+        /bin/cp -fp "${HOME}/.${CONF_FILE}" "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             update_macports
             exit 1
         }
-        echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> ${HOME}/.${CONF_FILE}
+        echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> "${HOME}/.${CONF_FILE}"
     fi
-    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
-    echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> ${HOME}/.${CONF_FILE}
-    echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> ${HOME}/.${CONF_FILE}
-    chown ${USER} ${HOME}/.${CONF_FILE} || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
+    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> "${HOME}/.${CONF_FILE}"
+    echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> "${HOME}/.${CONF_FILE}"
+    echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> "${HOME}/.${CONF_FILE}"
+    chown ${USER} "${HOME}/.${CONF_FILE}" || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
 }
 
@@ -204,9 +204,9 @@ case "${USHELL}" in
         LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
-        if [[ -f ${HOME}/.tcshrc ]]; then
+        if [[ -f "${HOME}/.tcshrc" ]]; then
             CONF_FILE=tcshrc
-        elif [[ -f ${HOME}/.cshrc ]]; then
+        elif [[ -f "${HOME}/.cshrc" ]]; then
             CONF_FILE=cshrc
         else
             CONF_FILE=tcshrc
@@ -217,9 +217,9 @@ case "${USHELL}" in
         LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
-        if [[ -f ${HOME}/.bash_profile ]]; then
+        if [[ -f "${HOME}/.bash_profile" ]]; then
             CONF_FILE=bash_profile
-        elif [[ -f ${HOME}/.bash_login ]]; then
+        elif [[ -f "${HOME}/.bash_login" ]]; then
             CONF_FILE=bash_login
         else
             CONF_FILE=profile
