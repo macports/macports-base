@@ -1511,7 +1511,7 @@ proc eval_targets {target} {
             ui_debug "Skipping $target ($subport) since this port is already installed"
             return 0
         } elseif {$target == "activate"} {
-            set regref [registry_open $subport $version $revision $portvariants $epoch]
+            set regref [registry_open $subport $version $revision $portvariants ""]
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
                 ui_debug "Skipping $target ($subport @${version}_${revision}${portvariants}) since this port is already active"
