@@ -43,6 +43,7 @@ set lint_required [list \
     "homepage" \
     "master_sites" \
     "checksums" \
+    "license"
     ]
 
 set lint_optional [list \
@@ -289,7 +290,7 @@ proc portlint::lint_main {args} {
     global version revision epoch
     set portarch [get_canonical_archs]
     global description long_description platforms categories all_variants
-    global maintainers homepage master_sites checksums patchfiles
+    global maintainers license homepage master_sites checksums patchfiles
     global depends_fetch depends_extract depends_lib depends_build depends_run distfiles fetch.type
     
     global lint_portsystem lint_platforms
@@ -498,6 +499,11 @@ proc portlint::lint_main {args} {
         [string match "*openmaintainer@macports.org*" $maintainers]} {
         ui_warn "Using full email address for no/open maintainer"
         incr warnings
+    }
+
+    if {[string match "unknown" $license]} {
+        ui_error "$license license"
+        incr errors
     }
 
     # these checks are only valid for ports stored in the regular tree directories
