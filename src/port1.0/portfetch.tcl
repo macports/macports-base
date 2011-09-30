@@ -104,7 +104,7 @@ default hg.dir {${workpath}}
 default hg.tag {tip}
 
 # Set distfiles
-default distfiles {[portfetch::suffix $distname]}
+default distfiles {[list [portfetch::suffix $distname]]}
 default dist_subdir {${name}}
 
 # user name & password
@@ -165,6 +165,9 @@ proc portfetch::set_extract_type {option action args} {
 proc portfetch::set_fetch_type {option action args} {
     global os.platform os.major
     if {[string equal ${action} "set"]} {
+        if {$args != "standard"} {
+            distfiles
+        }
         switch $args {
             bzr {
                 depends_fetch-append bin:bzr:bzr
@@ -204,16 +207,8 @@ set_ui_prefix
 
 # Given a distname, return the distname with extract.suffix appended
 proc portfetch::suffix {distname} {
-    global extract.suffix fetch.type
-    switch -- "${fetch.type}" {
-        bzr         -
-        cvs         -
-        svn         -
-        git         -
-        hg          { return "" }
-        standard    -
-        default     { return "${distname}${extract.suffix}" }
-    }
+    global extract.suffix
+    return "${distname}${extract.suffix}"
 }
 # XXX import suffix into the global namespace as it is currently used from
 # Portfiles, but should better go somewhere else
@@ -226,7 +221,7 @@ proc portfetch::checkpatchfiles {urls} {
 
     if {[info exists patchfiles]} {
         foreach file $patchfiles {
-            if {![file exists $filespath/$file]} {
+            if {![file exists "${filespath}/${file}"]} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
@@ -249,7 +244,7 @@ proc portfetch::checkdistfiles {urls} {
 
     if {[info exists distfiles]} {
         foreach file $distfiles {
-            if {![file exists $filespath/$file]} {
+            if {![file exists "${filespath}/${file}"]} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
@@ -284,6 +279,7 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
+    global patchfiles
     if {[catch {command_exec bzr "" "2>&1"} result]} {
         return -code error [msgcat::mc "Bazaar checkout failed"]
     }
@@ -343,7 +339,7 @@ proc portfetch::cvsfetch {args} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url
+    global svn.args svn.method svn.revision svn.url patchfiles
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -367,7 +363,7 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global worksrcpath
+    global worksrcpath patchfiles
     global git.url git.branch git.sha1 git.cmd
 
     set options "-q"
@@ -399,7 +395,7 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen
+    global worksrcpath prefix_frozen patchfiles
     global hg.url hg.tag hg.cmd
 
     set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"

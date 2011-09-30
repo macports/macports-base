@@ -874,19 +874,45 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::macosx_deployment_target $macosx_version
     }
 
+    # make tools we run operate in UTF-8 mode
+    set env(LANG) en_US.UTF-8
+
     # ENV cleanup.
     set keepenvkeys {
         DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
         DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
         DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
         HOME JAVA_HOME MASTER_SITE_LOCAL ARCHIVE_SITE_LOCAL
-        PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
-        USER GROUP
+        PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY
+        USER GROUP LANG
         http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
         COLUMNS LINES
     }
     if {[info exists extra_env]} {
         set keepenvkeys [concat ${keepenvkeys} ${extra_env}]
+    }
+
+    if {[file isdirectory $libpath]} {
+        lappend auto_path $libpath
+        set macports::auto_path $auto_path
+
+        # XXX: not sure if this the best place, but it needs to happen
+        # early, and after auto_path has been set.  Or maybe Pextlib
+        # should ship with macports1.0 API?
+        package require Pextlib 1.0
+        package require registry 1.0
+        package require registry2 2.0
+    } else {
+        return -code error "Library directory '$libpath' must exist"
+    }
+
+    # don't keep unusable TMPDIR/TMP values
+    foreach var {TMP TMPDIR} {
+        if {[info exists env($var)] && [file writable $env($var)] && 
+            ([getuid] != 0 || $macportsuser == "root" ||
+             [file attributes $env($var) -owner] == $macportsuser)} {
+            lappend keepenvkeys $var
+        }
     }
 
     set env_names [array names env]
@@ -896,8 +922,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    # make tools we run operate in UTF-8 mode
-    set env(LANG) en_US.UTF-8
+    # unset environment an extra time, to work around bugs in Leopard Tcl
+    if {$macosx_version == "10.5"} {
+        foreach envkey $env_names {
+            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+                unsetenv $envkey
+            }
+        }
+    }
 
     if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
         # We'll resolve these later (if needed)
@@ -924,29 +956,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     if {[info exists archive_site_local] && ![info exists env(ARCHIVE_SITE_LOCAL)]} {
         set env(ARCHIVE_SITE_LOCAL) "$archive_site_local"
-    }
-
-    if {[file isdirectory $libpath]} {
-        lappend auto_path $libpath
-        set macports::auto_path $auto_path
-
-        # XXX: not sure if this the best place, but it needs to happen
-        # early, and after auto_path has been set.  Or maybe Pextlib
-        # should ship with macports1.0 API?
-        package require Pextlib 1.0
-        package require registry 1.0
-        package require registry2 2.0
-    } else {
-        return -code error "Library directory '$libpath' must exist"
-    }
-
-    # unset environment an extra time, to work around bugs in Leopard Tcl
-    if {$macosx_version == "10.5"} {
-        foreach envkey $env_names {
-            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
-                unsetenv $envkey
-            }
-        }
     }
 
     # Proxy handling (done this late since Pextlib is needed)
@@ -996,14 +1005,16 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # load the quick index
     _mports_load_quickindex
 
-    set default_source_url [lindex ${sources_default} 0]
-    if {[macports::getprotocol $default_source_url] == "file" || [macports::getprotocol $default_source_url] == "rsync"} {
-        set default_portindex [macports::getindex $default_source_url]
-        if {[file exists $default_portindex] && [expr [clock seconds] - [file mtime $default_portindex]] > 1209600} {
-            ui_warn "port definitions are more than two weeks old, consider using selfupdate"
+    if {![info exists macports::ui_options(ports_no_old_index_warning)]} {
+        set default_source_url [lindex ${sources_default} 0]
+        if {[macports::getprotocol $default_source_url] == "file" || [macports::getprotocol $default_source_url] == "rsync"} {
+            set default_portindex [macports::getindex $default_source_url]
+            if {[file exists $default_portindex] && [expr [clock seconds] - [file mtime $default_portindex]] > 1209600} {
+                ui_warn "port definitions are more than two weeks old, consider using selfupdate"
+            }
         }
     }
-    
+
     # init registry
     set db_path [file join ${registry.path} registry registry.db]
     set db_exists [file exists $db_path]
@@ -1675,6 +1686,7 @@ proc _mportexec {target mport} {
         # An error occurred.
         global ::logenabled ::debuglogname
         ui_error "Failed to install $portname"
+        ui_debug "$::errorInfo"
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_notice "Log for $portname is at: $::debuglogname"
         }
@@ -1968,6 +1980,9 @@ proc mportsync {{optionslist {}}} {
     global macports::portverbose
     global macports::autoconf::rsync_path macports::autoconf::tar_path macports::autoconf::openssl_path
     array set options $optionslist
+    if {[info exists options(no_reindex)]} {
+        upvar $options(needed_portindex_var) any_needed_portindex
+    }
 
     set numfailed 0
 
@@ -2095,8 +2110,10 @@ proc mportsync {{optionslist {}}} {
                     file delete -force ${destdir}/tmp
                 }
 
+                set needs_portindex 1
                 # now sync the index if the local file is missing or older than a day
-                if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400} {
+                if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400
+                      || [info exists options(no_reindex)]} {
                     if {$is_tarball} {
                         # chop ports.tar off the end
                         set index_source [string range $source 0 end-[string length [file tail $source]]]
@@ -2110,8 +2127,10 @@ proc mportsync {{optionslist {}}} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
                     } else {
                         set ok 1
+                        set needs_portindex 0
                         if {$is_tarball} {
                             set ok 0
+                            set needs_portindex 1
                             # verify signature for PortIndex
                             set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${remote_indexfile}.rmd160 ${destdir}"
                             ui_debug $rsync_commandline
@@ -2119,6 +2138,7 @@ proc mportsync {{optionslist {}}} {
                                 foreach pubkey ${macports::archivefetch_pubkeys} {
                                     if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex} result]} {
                                         set ok 1
+                                        set needs_portindex 0
                                         ui_debug "successful verification with key $pubkey"
                                         break
                                     } else {
@@ -2140,7 +2160,6 @@ proc mportsync {{optionslist {}}} {
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
-                set needs_portindex 1
             }
             {^https?$|^ftp$} {
                 if {[_source_is_snapshot $source filename extension]} {
@@ -2202,8 +2221,6 @@ proc mportsync {{optionslist {}}} {
                     }
 
                     file delete $tarpath
-                    
-                    set needs_portindex 1
                 } else {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
@@ -2218,10 +2235,13 @@ proc mportsync {{optionslist {}}} {
         }
         
         if {$needs_portindex} {
-            global macports::prefix
-            set indexdir [file dirname [macports::getindex $source]]
-            if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
-                ui_error "updating PortIndex for $source failed"
+            set any_needed_portindex 1
+            if {![info exists options(no_reindex)]} {
+                global macports::prefix
+                set indexdir [file dirname [macports::getindex $source]]
+                if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
+                    ui_error "updating PortIndex for $source failed"
+                }
             }
         }
     }
@@ -2672,9 +2692,24 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             continue
         }
         foreach depspec $portinfo($deptype) {
-            # skip depspec/archs combos we've already seen
+            # skip depspec/archs combos we've already seen, and ones with less archs than ones we've seen
             set seenkey "${depspec},[join $required_archs ,]"
+            set seen 0
             if {[info exists depspec_seen($seenkey)]} {
+                set seen 1
+            } else {
+                set prev_seenkeys [array names depspec_seen ${depspec},*]
+                set nrequired [llength $required_archs]
+                foreach key $prev_seenkeys {
+                    set key_archs [lrange [split $key ,] 1 end]
+                    if {[llength $key_archs] > $nrequired} {
+                        set seen 1
+                        set seenkey $key
+                        break
+                    }
+                }
+            }
+            if {$seen} {
                 if {$depspec_seen($seenkey) != 0} {
                     # nonzero means the dep is not satisfied, so we have to record it
                     ditem_append_unique $mport requires $depspec_seen($seenkey)
@@ -2950,14 +2985,6 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
         set updatestatus no
     }
 
-    # syncing ports tree.
-    if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        ui_msg "--->  Updating the ports tree"
-        if {[catch {mportsync $optionslist} result]} {
-            return -code error "Couldn't sync the ports tree: $result"
-        }
-    }
-
     # are we syncing a tarball? (implies detached signature)
     set is_tarball 0
     if {[string range ${rsync_dir} end-3 end] == ".tar"} {
@@ -3046,6 +3073,20 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 
     # check if we we need to rebuild base
     set comp [vercmp $macports_version_new $macports::autoconf::macports_version]
+
+    # syncing ports tree.
+    if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
+        ui_msg "--->  Updating the ports tree"
+        if {$comp > 0} {
+            # updated portfiles potentially need new base to parse - tell sync to try to 
+            # use prefabricated PortIndex files and signal if it couldn't
+            lappend optionslist no_reindex 1 needed_portindex_var needed_portindex
+        }
+        if {[catch {mportsync $optionslist} result]} {
+            return -code error "Couldn't sync the ports tree: $result"
+        }
+    }
+
     if {$use_the_force_luke == "yes" || $comp > 0} {
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
             ui_msg "--->  MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
@@ -3092,7 +3133,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as $owner:$group; permissions $perms; Tcl-Package in $tclpackage\n"
-            if { [catch { system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make && make install" } result] } {
+            if { [catch { system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make && make install SELFUPDATING=1" } result] } {
                 return -code error "Error installing new MacPorts base: $result"
             }
             if {[info exists updatestatus]} {
@@ -3113,8 +3154,13 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
     }
 
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
-        ui_msg "  port upgrade outdated"
+        if {[info exists needed_portindex]} {
+            ui_msg "Not all sources could be fully synced using the old version of MacPorts."
+            ui_msg "Please run selfupdate again now that MacPorts base has been updated."
+        } else {
+            ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
+            ui_msg "  port upgrade outdated"
+        }
     }
 
     return 0

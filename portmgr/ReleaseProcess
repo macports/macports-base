@@ -129,7 +129,7 @@ Note that if you omit the "ARC=yes" flag at the start of the make call then the 
 All these tarballs are uploaded to the http://distfiles.macports.org/MacPorts/ directory. At present, this must
 be done with the help of the MacOSForge sysadmin.
 
-Additionally, a file is created, and posted to the same location, that contains md5, sha1, and rmd160 checksums
+Additionally, a file is created, and posted to the same location, that contains md5, sha1, rmd160, and sha256 checksums
 for each of the files:
 
  MacPorts-2.0.0.chk.txt

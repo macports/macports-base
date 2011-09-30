@@ -262,8 +262,14 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
     sqlite3_stmt* stmt = NULL;
     reg_entry* entry = NULL;
-    char* query = "SELECT id FROM registry.ports WHERE name=? AND version=? "
+    char* query;
+    if (strlen(epoch) > 0) {
+        query = "SELECT id FROM registry.ports WHERE name=? AND version=? "
         "AND revision=? AND variants=? AND epoch=?";
+    } else {
+        query = "SELECT id FROM registry.ports WHERE name=? AND version=? "
+        "AND revision=? AND variants=? AND epoch!=?";
+    }
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC)
                 == SQLITE_OK)

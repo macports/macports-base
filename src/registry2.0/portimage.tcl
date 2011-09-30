@@ -576,10 +576,14 @@ variable precious_dirs
 array set precious_dirs { /Library/LaunchDaemons 1 /Library/LaunchAgents 1 }
 
 proc _deactivate_file {dstfile} {
-    if { [file type $dstfile] == "link" } {
+    if {[catch {file type $dstfile} filetype]} {
+        ui_debug "$dstfile does not exist"
+        return
+    }
+    if { $filetype == "link" } {
         ui_debug "deactivating link: $dstfile"
         file delete -- $dstfile
-    } elseif { [file isdirectory $dstfile] } {
+    } elseif { $filetype == "directory" } {
         # 0 item means empty.
         if { [llength [readdir $dstfile]] == 0 } {
             variable precious_dirs
