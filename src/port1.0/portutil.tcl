@@ -2754,7 +2754,7 @@ proc _check_xcode_version {} {
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
             if {[file exists "/Applications/Install\ XCode.app"]} {
-                ui_warn "If you downloaded Xcode from the Mac App Store you must run \"Install Xcode\" in your /Applications folder."
+                ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
             }
         } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
