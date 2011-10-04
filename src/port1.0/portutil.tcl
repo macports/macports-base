@@ -2726,7 +2726,7 @@ proc check_supported_archs {} {
 
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
-    global os.subplatform macosx_version xcodeversion
+    global os.subplatform macosx_version xcodeversion xcodeinstaller
 
     if {${os.subplatform} == "macosx"} {
         switch $macosx_version {
@@ -2753,6 +2753,9 @@ proc _check_xcode_version {} {
         }
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
+            if {$xcodeinstaller} {
+                ui_warn "If you downloaded Xcode through the AppStore you must run \"Install Xcode\" in your /Applications folder."
+            }
         } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
             return 1

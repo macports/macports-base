@@ -44,7 +44,7 @@ namespace eval macports {
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
-        rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
+        rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd xcodeinstaller \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -358,12 +358,14 @@ proc macports::getoption {name} {
 proc macports::setxcodeinfo {name1 name2 op} {
     global macports::xcodeversion
     global macports::xcodebuildcmd
+    global macports::xcodeinstaller
 
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
     if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
         if {![info exists xcodeversion]} {
+            set macports::xcodeinstaller [file exists "/Applications/Install\ XCode.app"]
             # Determine xcode version
             set macports::xcodeversion "2.0orlower"
             if {[catch {set xcodebuildversion [exec -- $xcodebuild -version 2> /dev/null]}] == 0} {
