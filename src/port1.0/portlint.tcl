@@ -501,9 +501,9 @@ proc portlint::lint_main {args} {
         incr warnings
     }
 
-    if {[string match "unknown" $license]} {
-        ui_error "$license license"
-        incr errors
+    if {$license == "unknown"} {
+        ui_warn "no license set"
+        incr warnings
     }
 
     # these checks are only valid for ports stored in the regular tree directories
