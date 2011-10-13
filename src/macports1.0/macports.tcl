@@ -1590,18 +1590,21 @@ proc _mportispresent {mport depspec} {
     }
 }
 
-### _mportconflictsinstalled is private; may change without notice
+### _mporterrorifconflictsinstalled is private; may change without notice
 
-# Determine if the port, per the conflicts option, has any conflicts with
-# what is installed.
+# Determine if the port, per the conflicts option, has any conflicts
+# with what is installed. If it does, raises an error unless force
+# option is set.
 #
 # mport   the port to check for conflicts
-# Returns a list of which installed ports conflict, or an empty list if none
-proc _mportconflictsinstalled {mport conflictinfo} {
+proc _mporterrorifconflictsinstalled {mport} {
     set conflictlist {}
-    if {[llength $conflictinfo] > 0} {
+    array set portinfo [mportinfo $mport]
+
+    if {[info exists portinfo(conflicts)] &&
+        [llength $portinfo(conflicts)] > 0} {
         ui_debug "Checking for conflicts against [_mportkey $mport subport]"
-        foreach conflictport ${conflictinfo} {
+        foreach conflictport $portinfo(conflicts) {
             if {[_mportispresent $mport port:${conflictport}]} {
                 lappend conflictlist $conflictport
             }
@@ -1610,9 +1613,17 @@ proc _mportconflictsinstalled {mport conflictinfo} {
         ui_debug "[_mportkey $mport subport] has no conflicts"
     }
 
-    return $conflictlist
+    if {[llength ${conflictlist}] != 0} {
+        if {[macports::global_option_isset ports_force]} {
+            ui_warn "Force option set; installing $portinfo(name) despite conflicts with: ${conflictlist}"
+        } else {
+            if {![macports::ui_isset ports_debug]} {
+                ui_msg ""
+            }
+            return -code error "Can't install $portinfo(name) because conflicting ports are installed: ${conflictlist}"
+        }
+    }
 }
-
 
 ### _mportexec is private; may change without notice
 
@@ -1738,6 +1749,11 @@ proc mportexec {mport target} {
         # Close the dependencies, we're done installing them.
         foreach ditem $dlist {
             mportclose $ditem
+        }
+    } else {
+        # No dependencies, but we still need to check for conflicts.
+        if {$target == "" || $target == "install" || $target == "activate"} {
+            _mporterrorifconflictsinstalled $mport
         }
     }
 
@@ -2614,18 +2630,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         flush stdout
     }
     
-    if {[info exists portinfo(conflicts)] && ($target == "" || $target == "install" || $target == "activate")} {
-        set conflictports [_mportconflictsinstalled $mport $portinfo(conflicts)]
-        if {[llength ${conflictports}] != 0} {
-            if {[macports::global_option_isset ports_force]} {
-                ui_warn "Force option set; installing $portinfo(name) despite conflicts with: ${conflictports}"
-            } else {
-                if {![macports::ui_isset ports_debug]} {
-                    ui_msg ""
-                }
-                return -code error "Can't install $portinfo(name) because conflicting ports are installed: ${conflictports}"
-            }
-        }
+    if {$target == "" || $target == "install" || $target == "activate"} {
+        _mporterrorifconflictsinstalled $mport
     }
 
     set workername [ditem_key $mport workername]
