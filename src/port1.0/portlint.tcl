@@ -524,7 +524,7 @@ proc portlint::lint_main {args} {
                 set license_skip 1
 
             # missing hyphen
-            } elseif {![string equal -nocase "X11" $test] && [regexp {([^-+a-z]+)$} $test license_full license_name license_vers]} {
+            } elseif {![string equal -nocase "X11" $test] && [regexp {([^-a-z]+)$} $test license_full license_name license_vers]} {
                 ui_error "invalid license '${test}': missing hyphen between ${license_name} ${license_vers}"
             }
 
