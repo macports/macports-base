@@ -508,26 +508,44 @@ proc portlint::lint_main {args} {
 
         # If maintainer set license, it must follow correct format
 
-        # Apache 2 is illegal, use Apache-2
-        if {[regexp {[A-Za-z] [0-9]} $license]} {
-            ui_error "Invalid license format: use a hyphen between name and version"
+        set licenses [split $license '\ ']
+        set prev ''
+        set license_skip 0
+        foreach test $licenses {
+            if {${license_skip} == 1} {
+                set license_skip 0
+                ui_debug "Skipping ${test}"
+                continue
+            }
+
+            # space instead of hyphen
+            if {[string is double -strict $test]} {
+                ui_error "Invalid license '${prev} ${test}': missing hyphen between ${prev} ${test}"
+                set license_skip 1
+
+            # missing hyphen
+            } elseif {![string equal -nocase "X11" $test] && [regexp {([^-+a-z]+)$} $test license_full license_name license_vers]} {
+                ui_error "invalid license '${test}': missing hyphen between ${license_name} ${license_vers}"
+            }
+
+            # BSD-2 => BSD
+            if {[string equal -nocase "BSD-2" $test]} {
+                ui_error "Invalid license '${test}': use BSD instead"
+            }
+    
+            # BSD-3 => BSD
+            if {[string equal -nocase "BSD-3" $test]} {
+                ui_error "Invalid license '${test}': use BSD instead"
+            }
+    
+            # BSD-4 => BSD-old
+            if {[string equal -nocase "BSD-4" $test]} {
+                ui_error "Invalid license '${test}': use BSD-old instead"
+            }
+    
+            set prev $test
         }
 
-        # GPL3 is illegal, use GPL-3
-        # but beware X11
-        regsub -all -nocase {\mX11\M} $license '' tmp_license
-        if {[regexp {[A-Za-z][0-9]} $tmp_license]} {
-            ui_error "Invalid license format: must be name\[-version\[.revision\]\]"
-        }
-
-        # BSD-2 is illegal, use BSD
-        # BSD-3 is illegal, use BSD
-        # BSD-4 is illegal, use BSD-old
-        if {[regexp -nocase {BSD-[0-9]} $license]} {
-            ui_error "Invalid BSD license:"
-            ui_error " * BSD (for 2/3 clause)"
-            ui_error " * BSD-old (for 4 clause)"
-        }
     }
 
     # these checks are only valid for ports stored in the regular tree directories
