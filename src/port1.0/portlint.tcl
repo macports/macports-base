@@ -510,18 +510,11 @@ proc portlint::lint_main {args} {
 
         set licenses [split $license '\ ']
         set prev ''
-        set license_skip 0
         foreach test $licenses {
-            if {${license_skip} == 1} {
-                set license_skip 0
-                ui_debug "Skipping ${test}"
-                continue
-            }
 
             # space instead of hyphen
             if {[string is double -strict $test]} {
                 ui_error "Invalid license '${prev} ${test}': missing hyphen between ${prev} ${test}"
-                set license_skip 1
 
             # missing hyphen
             } elseif {![string equal -nocase "X11" $test] && [regexp {([^-a-z]+)$} $test license_full license_name license_vers]} {
