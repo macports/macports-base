@@ -504,6 +504,30 @@ proc portlint::lint_main {args} {
     if {$license == "unknown"} {
         ui_warn "no license set"
         incr warnings
+    } else {
+
+        # If maintainer set license, it must follow correct format
+
+        # Apache 2 is illegal, use Apache-2
+        if {[regexp {[A-Za-z] [0-9]} $license]} {
+            ui_error "Invalid license format: use a hyphen between name and version"
+        }
+
+        # GPL3 is illegal, use GPL-3
+        # but beware X11
+        regsub -all -nocase {\mX11\M} $license '' tmp_license
+        if {[regexp {[A-Za-z][0-9]} $tmp_license]} {
+            ui_error "Invalid license format: must be name\[-version\[.revision\]\]"
+        }
+
+        # BSD-2 is illegal, use BSD
+        # BSD-3 is illegal, use BSD
+        # BSD-4 is illegal, use BSD-old
+        if {[regexp -nocase {BSD-[0-9]} $license]} {
+            ui_error "Invalid BSD license:"
+            ui_error " * BSD (for 2/3 clause)"
+            ui_error " * BSD-old (for 4 clause)"
+        }
     }
 
     # these checks are only valid for ports stored in the regular tree directories
