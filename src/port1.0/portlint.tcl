@@ -518,7 +518,7 @@ proc portlint::lint_main {args} {
 
             # missing hyphen
             } elseif {![string equal -nocase "X11" $test]} {
-                foreach subtest [split $test '-']} {
+                foreach subtest [split $test '-'] {
                     ui_debug "testing ${subtest}"
 
                     # license names start with letters: versions and empty strings need not apply
