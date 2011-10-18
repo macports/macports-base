@@ -508,17 +508,27 @@ proc portlint::lint_main {args} {
 
         # If maintainer set license, it must follow correct format
 
-        set licenses [split $license '\ ']
+        set licenses [split [string map { \{ '' \} ''} $license] '\ ']
         set prev ''
         foreach test $licenses {
+            ui_debug "Checking format of license '${test}'"
 
             # space instead of hyphen
             if {[string is double -strict $test]} {
                 ui_error "Invalid license '${prev} ${test}': missing hyphen between ${prev} ${test}"
 
             # missing hyphen
-            } elseif {![string equal -nocase "X11" $test] && [regexp {([^-a-z]+)$} $test license_full license_name license_vers]} {
-                ui_error "invalid license '${test}': missing hyphen between ${license_name} ${license_vers}"
+            } elseif {![string equal -nocase "X11" $test]} {
+                set subtests [split $test '-']
+                foreach subtest $subtests {
+                    ui_debug "testing ${subtest}"
+                    if {[string is alpha -strict [string index $subtest 0]]} {
+                        set license_end [string index $subtest end]
+                        if {[string equal "+" $license_end] || [string is integer -strict $license_end]} {
+                            ui_error "invalid license '${test}': missing hyphen before version"
+                        }
+                    }
+                }
             }
 
             # BSD-2 => BSD
