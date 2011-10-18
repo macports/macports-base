@@ -508,9 +508,8 @@ proc portlint::lint_main {args} {
 
         # If maintainer set license, it must follow correct format
 
-        set licenses [split [string map { \{ '' \} ''} $license] '\ ']
         set prev ''
-        foreach test $licenses {
+        foreach test [split [string map { \{ '' \} ''} $license] '\ '] {
             ui_debug "Checking format of license '${test}'"
 
             # space instead of hyphen
@@ -519,10 +518,14 @@ proc portlint::lint_main {args} {
 
             # missing hyphen
             } elseif {![string equal -nocase "X11" $test]} {
-                set subtests [split $test '-']
-                foreach subtest $subtests {
+                foreach subtest [split $test '-']} {
                     ui_debug "testing ${subtest}"
+
+                    # license names start with letters: versions and empty strings need not apply
                     if {[string is alpha -strict [string index $subtest 0]]} {
+
+                        # if the last character of license name is a number or plus sign
+                        # then a hyphen is missing
                         set license_end [string index $subtest end]
                         if {[string equal "+" $license_end] || [string is integer -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
