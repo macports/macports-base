@@ -5,6 +5,8 @@
 
 Unreleased changes:
 
+    - port lint now recognizes licenses (snc in r85929, r86016)
+
     - Implement new option-replace using lsearch/lreplace. The old behavior is
       deprecated for option-replace with only one argument, but can still be
       found in option-strsed.
