@@ -593,7 +593,7 @@ proc portconfigure::configure_main {args} {
             system "cd ${worksrcpath} && make Makefiles"
         }
     } elseif {[tbool use_configure]} {
-        # Merge (ld|c|cpp|cxx)flags into the environment variable.
+        # Merge (ld|cc|cpp|cxx)flags into the environment variable.
         parse_environment configure
 
         # Set pre-compiler filter to use (ccache/distcc), if any.
