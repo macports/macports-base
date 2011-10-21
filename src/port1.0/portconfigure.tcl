@@ -201,7 +201,6 @@ proc portconfigure::configure_start {args} {
         gcc-4.2 { set name "Mac OS X gcc 4.2" }
         llvm-gcc-4.2 { set name "Mac OS X llvm-gcc 4.2" }
         clang { set name "Mac OS X clang" }
-        apple-gcc-3.3 { set name "MacPorts Apple gcc 3.3" }
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
         apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
         macports-gcc-4.0 { set name "MacPorts gcc 4.0" }
@@ -431,12 +430,6 @@ proc portconfigure::configure_get_compiler {type} {
                         set ret ${developer_dir}/usr/bin/llvm-g++-4.2
                     }
                 }
-            }
-        }
-        apple-gcc-3.3 {
-            switch -exact ${type} {
-                cc  { set ret ${prefix}/bin/gcc-apple-3.3 }
-                cpp { set ret ${prefix}/bin/cpp-apple-3.3 }
             }
         }
         apple-gcc-4.0 {
