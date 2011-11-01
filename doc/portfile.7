@@ -1792,7 +1792,7 @@ versions of the same platform.
 .Xc
 The body is executed if the given platform/version/arch combination matches
 os.platform or os.subplatform and/or os.major and/or os.arch.
-The following examples are from the databases/db4 and devel/libidl1
+The following examples are from the lang/php5, audio/flac and sysutils/getopt
 .Nm Portfiles
 respectively.
 .br
@@ -1801,19 +1801,17 @@ respectively.
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-platform darwin 6 { configure.args-append   --enable-tcl \e\
-
-        --with-tcl=/System/Library/Tcl/8.3 }
+platform darwin 10 { configure.env-append LIBS=-lresolv }
 .Ed
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-platform darwin powerpc { configure.args-append \e\
-
-        --host=${os.arch}-apple-rhapsody${os.version} }
-platform darwin i386 { configure.args-append \e\
-
-        --host=i386-gnu-rhapsody${os.version} }
+platform darwin i386 { configure.args-append --disable-asm-optimizations }
+.Ed
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+platform darwin 8 powerpc { configure.universal_ldflags-append -liconv }
 .Ed
 .El
 .Sh PORTGROUP
