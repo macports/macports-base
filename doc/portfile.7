@@ -967,7 +967,7 @@ Specify the url from which to fetch files.
 .Sy Example:
 .Dl svn.url https://www.example.com/svn/project/tags/1.2.3
       svn.url svn://www.example.com/svn/project/tags/1.2.3
-.It Ic svn.tag
+.It Ic svn.revision
 Specify a tag from which svn should fetch files. This
 corresponds to the -r option to the svn cli.  Note that you
 will need to use backslashes to escape characters that have
@@ -981,8 +981,8 @@ quotes.
 .Em none
 .br
 .Sy Example:
-.Dl svn.tag 37192
-      svn.tag \\{\\"2006-02-17 15:30 +0230\\"\\}
+.Dl svn.revision 37192
+      svn.revision \\{\\"2006-02-17 15:30 +0230\\"\\}
 .El
 .Ss FETCHING FROM GIT
 As an alternative to fetching distribution files, pulling the sources
