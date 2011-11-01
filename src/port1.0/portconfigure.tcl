@@ -203,6 +203,7 @@ proc portconfigure::configure_start {args} {
         clang { set name "Mac OS X clang" }
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
         apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
+        macports-gcc     { set name "MacPorts gcc (port select)" }
         macports-gcc-4.0 { set name "MacPorts gcc 4.0" }
         macports-gcc-4.1 { set name "MacPorts gcc 4.1" }
         macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
@@ -211,7 +212,10 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.5 { set name "MacPorts gcc 4.5" }
         macports-gcc-4.6 { set name "MacPorts gcc 4.6" }
         macports-llvm-gcc-4.2 { set name "MacPorts llvm-gcc 4.2" }
-        macports-clang { set name "MacPorts clang" }
+        macports-clang { set name "MacPorts clang (port select)" }
+        macports-clang-2.9 { set name "MacPorts clang 2.9" }
+        macports-clang-3.0 { set name "MacPorts clang 3.0" }
+        macports-clang-3.1 { set name "MacPorts clang 3.1" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -447,6 +451,17 @@ proc portconfigure::configure_get_compiler {type} {
                 cxx  { set ret ${prefix}/bin/g++-apple-4.2 }
             }
         }
+        macports-gcc {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc }
+                objc { set ret ${prefix}/bin/gcc }
+                cxx  { set ret ${prefix}/bin/g++ }
+                cpp  { set ret ${prefix}/bin/cpp }
+                fc   { set ret ${prefix}/bin/gfortran }
+                f77  { set ret ${prefix}/bin/gfortran }
+                f90  { set ret ${prefix}/bin/gfortran }
+            }
+        }
         macports-gcc-4.0 {
             switch -exact ${type} {
                 cc   { set ret ${prefix}/bin/gcc-mp-4.0 }
@@ -540,6 +555,27 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret ${prefix}/bin/clang }
                 objc { set ret ${prefix}/bin/clang }
                 cxx  { set ret ${prefix}/bin/clang++ }
+            }
+        }
+        macports-clang-2.9 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang-mp-2.9 }
+                objc { set ret ${prefix}/bin/clang-mp-2.9 }
+                cxx  { set ret ${prefix}/bin/clang++-mp-2.9 }
+            }
+        }
+        macports-clang-3.0 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang-mp-3.0 }
+                objc { set ret ${prefix}/bin/clang-mp-3.0 }
+                cxx  { set ret ${prefix}/bin/clang++-mp-3.0 }
+            }
+        }
+        macports-clang-3.1 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang-mp-3.1 }
+                objc { set ret ${prefix}/bin/clang-mp-3.1 }
+                cxx  { set ret ${prefix}/bin/clang++-mp-3.1 }
             }
         }
     }
