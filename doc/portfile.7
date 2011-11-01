@@ -459,7 +459,7 @@ is run in. This is often overridden on a per
 basis.
 .br
 .Sy Example:
-.Dl configure.env CPP=/usr/bin/cpp-4.0
+.Dl build.env CC="${configure.cc} [get_canonical_archflags]"
 .It Va target Ns Ic .pre_args
 Additional arguments passed before the main arguments.
 .br
