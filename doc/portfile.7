@@ -1743,7 +1743,7 @@ Add a "gnome" variant to a port.
 .Bd -literal -offset indent -compact
 variant gnome requires glib { configure.args-append --with-gnome \e\
 
-    depends_lib-append lib:gnome-session:gnome-session }
+    depends_lib-append port:gnome-session }
 .Ed
 .It Ic default_variants
 If variants are defined, then the
