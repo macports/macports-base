@@ -1193,32 +1193,28 @@ Selects a complete compiler suite to use. This option will override the compiler
 .Em gcc-3.3
 .Em gcc-4.0
 .Em gcc-4.2
-use the standard system compiler suites,
 .Em llvm-gcc-4.2
 .Em clang
-use the newer, non-default compilers installed by Xcode,
-.Em apple-gcc-3.3
+use the standard Xcode compiler suites,
 .Em apple-gcc-4.0
 .Em apple-gcc-4.2
 use Apple's gcc suite installed via MacPorts,
-.Em macports-gcc-3.3
-.Em macports-gcc-3.4
-.Em macports-gcc-4.0
-.Em macports-gcc-4.1
 .Em macports-gcc-4.2
 .Em macports-gcc-4.3
 .Em macports-gcc-4.4
 .Em macports-gcc-4.5
-use the vanilla gcc installed via MacPorts.
+.Em macports-gcc-4.6
+.Em macports-llvm-gcc-4.2
+use the vanilla compiler suites installed via MacPorts.
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Values:
-.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-3.3 apple-gcc-4.0 apple-gcc-4.2 macports-gcc-3.3 macports-gcc-3.4 macports-gcc-4.0 macports-gcc-4.1 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5
+.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-4.0 apple-gcc-4.2 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5 macports-gcc-4.6 macports-llvm-gcc-4.2
 .br
 .Sy Example:
-.Dl configure.compiler gcc-4.0
+.Dl configure.compiler llvm-gcc-4.2
 .\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
