@@ -84,9 +84,14 @@ Upstream version of software.
 If a port's version numbering changes such that a newer version looks
 older than the previous version, the
 .Ic epoch
-should be increased. Often the
+should be increased. Some
+.Nm Portfile
+authors have used large
 .Ic epoch
-is formatted like a date.
+values that look like a date, but there is no reason to do so. The
+.Ic epoch
+is simply an unsigned integer, and the only requirement is that it never be
+decreased.
 .br
 .Sy Type:
 .Em optional
@@ -95,7 +100,7 @@ is formatted like a date.
 .Em 0
 .br
 .Sy Example:
-.Dl epoch 20041231
+.Dl epoch 1
 .It Ic description
 One line description of the software and what it does.  To appear in the
 description, brackets and semi-colons need to be escaped with a backslash (i.e.
