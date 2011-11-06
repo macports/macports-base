@@ -1973,8 +1973,10 @@ proc mportsync {{optionslist {}}} {
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
                 set portdir [macports::getportdir $source]
-                if {[file exists $portdir/.svn]} {
-                    set svn_commandline "[macports::findBinary svn] update --non-interactive ${portdir}"
+                set svn_cmd ""
+                catch {set svn_cmd [macports::findBinary svn]}
+                if {$svn_cmd != "" && ([file exists $portdir/.svn] || ![catch {exec $svn_cmd info $portdir > /dev/null 2>@1}])} {
+                    set svn_commandline "$svn_cmd update --non-interactive ${portdir}"
                     ui_debug $svn_commandline
                     if {
                         [catch {
