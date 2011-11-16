@@ -2724,7 +2724,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 } elseif {[info exists dep_portinfo(installs_libs)] && !$dep_portinfo(installs_libs)} {
                     set check_archs 0
                 }
-                lappend options subport $dep_portname
+                lappend options subport $dep_portinfo(name)
                 # Figure out the depport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
@@ -3165,7 +3165,6 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 proc macports::_upgrade {portname dspec variationslist optionslist {depscachename ""}} {
     global macports::global_variations
     array set options $optionslist
-    set options(subport) $portname
 
     if {![string match "" $depscachename]} {
         upvar $depscachename depscache
@@ -3193,6 +3192,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     array set portinfo [lindex $result 1]
     # set portname again since the one we were passed may not have had the correct case
     set portname $portinfo(name)
+    set options(subport) $portname
 
     set ilist {}
     if { [catch {set ilist [registry::installed $portname ""]} result] } {

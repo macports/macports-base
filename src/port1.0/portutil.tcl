@@ -781,7 +781,7 @@ proc subport {subname body} {
     if {![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1} {
         lappend PortInfo(subports) $subname
     }
-    if {$subname == $subport} {
+    if {[string equal -nocase $subname $subport]} {
         set PortInfo(name) $subname
         uplevel 1 $body
     }

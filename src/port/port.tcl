@@ -1051,7 +1051,7 @@ proc get_dep_ports {portname recursive} {
     set porturl $portinfo(porturl)
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [list subport $portname] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
         ui_debug "$::errorInfo"
         return -code error "Unable to open port: $result"
     }
@@ -1097,7 +1097,7 @@ proc get_dep_ports {portname recursive} {
                     set porturl $portinfo(porturl)
                 
                     # open its portfile
-                    if {[catch {set mport [mportopen $porturl [list subport $depname] [array get global_variations]]} result]} {
+                    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
                         ui_debug "$::errorInfo"
                         ui_error "Unable to open port: $result"
                         continue
@@ -1886,6 +1886,7 @@ proc action_info { action portlist opts } {
             set index_only 1
         }
         puts -nonewline $separator
+        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl == "" || $index_only} {
@@ -1897,7 +1898,6 @@ proc action_info { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array unset portinfo
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
             set portdir $portinfo(portdir)
@@ -1914,7 +1914,11 @@ proc action_info { action portlist opts } {
                 } 
             }
             if {![info exists options(subport)]} {
-                set options(subport) $portname
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
             }
  
             if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
@@ -2239,6 +2243,7 @@ proc action_notes { action portlist opts } {
 
     set status 0
     foreachport $portlist {
+        array unset portinfo
         if {$porturl eq ""} {
             # Look up the port.
             if {[catch {mportlookup $portname} result]} {
@@ -2251,7 +2256,6 @@ proc action_notes { action portlist opts } {
             }
 
             # Retrieve the port's URL.
-            array unset portinfo
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
         }
@@ -2266,7 +2270,11 @@ proc action_notes { action portlist opts } {
             } 
         }
         if {![info exists options(subport)]} {
-            set options(subport) $portname
+            if {[info exists portinfo(name)]} {
+                set options(subport) $portinfo(name)
+            } else {
+                set options(subport) $portname
+            }
         }
 
         # Open the Portfile associated with this port.
@@ -2716,7 +2724,8 @@ proc action_deps { action portlist opts } {
         } else {
             set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
         }
-        
+
+        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq ""} {
@@ -2728,7 +2737,6 @@ proc action_deps { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array unset portinfo
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
         } elseif {$porturl ne "file://."} {
@@ -2747,7 +2755,6 @@ proc action_deps { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Portdir $portdir not found" 1 status
             }
-            array unset portinfo
             array set portinfo [lindex $result 1]
         }
 
@@ -2762,7 +2769,11 @@ proc action_deps { action portlist opts } {
                 } 
             }
             if {![info exists options(subport)]} {
-                set options(subport) $portname
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
             }
             if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
@@ -2842,7 +2853,7 @@ proc action_deps { action portlist opts } {
                     array unset portinfo
                     array set portinfo [lindex $result 1]
                     set porturl $portinfo(porturl)
-                    set options(subport) $depname
+                    set options(subport) $portinfo(name)
                     
                     # open the portfile if requested
                     if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
@@ -3284,6 +3295,7 @@ proc action_variants { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        array unset portinfo
         if {$porturl eq ""} {
             # look up port
             if {[catch {mportlookup $portname} result]} {
@@ -3295,7 +3307,6 @@ proc action_variants { action portlist opts } {
                 break_softcontinue "Port $portname not found" 1 status
             }
 
-            array unset portinfo
             array set portinfo [lindex $result 1]
 
             set porturl $portinfo(porturl)
@@ -3304,7 +3315,11 @@ proc action_variants { action portlist opts } {
 
         if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
             if {![info exists options(subport)]} {
-                set options(subport) $portname
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
             }
             if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
                 ui_debug "$::errorInfo"
@@ -3799,6 +3814,7 @@ proc action_target { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl == ""} {
@@ -3817,7 +3833,6 @@ proc action_target { action portlist opts } {
                     break_softcontinue "Port $portname not found" 1 status
                 }
             }
-            array unset portinfo
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
         }
@@ -3852,7 +3867,11 @@ proc action_target { action portlist opts } {
             set target $action
         }
         if {![info exists options(subport)]} {
-            set options(subport) $portname
+            if {[info exists portinfo(name)]} {
+                set options(subport) $portinfo(name)
+            } else {
+                set options(subport) $portname
+            }
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo
