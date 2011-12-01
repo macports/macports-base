@@ -294,10 +294,6 @@ proc portchecksum::checksum_main {args} {
             if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
                 # no checksums specified; output the default set
 
-                if {[llength $all_dist_files] > 1} {
-                    lappend sums $distfile
-                }
-
                 foreach type $default_checksum_types {
                     lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
                 }
