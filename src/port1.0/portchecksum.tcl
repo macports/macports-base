@@ -242,6 +242,10 @@ proc portchecksum::checksum_main {args} {
                 }
             }
 
+            if {[llength $all_dist_files] > 1} {
+                lappend sums $distfile
+            }
+
             # check that there is at least one checksum for the distfile.
             if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
                 ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
@@ -283,16 +287,17 @@ proc portchecksum::checksum_main {args} {
 
         # Show the desired checksum line for easy cut-paste
         foreach distfile $all_dist_files {
-            if {[llength $all_dist_files] > 1} {
-                lappend sums $distfile
-            }
-
             set fullpath [file join $distpath $distfile]
             if {![file isfile $fullpath] && (!$usealtworkpath && [file isfile "${altprefix}${fullpath}"])} {
                 set fullpath "${altprefix}${fullpath}"
             }
             if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
                 # no checksums specified; output the default set
+
+                if {[llength $all_dist_files] > 1} {
+                    lappend sums $distfile
+                }
+
                 foreach type $default_checksum_types {
                     lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
                 }
