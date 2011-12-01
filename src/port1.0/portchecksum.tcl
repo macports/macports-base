@@ -250,6 +250,12 @@ proc portchecksum::checksum_main {args} {
             if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
                 ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
                 set fail yes
+
+                # no checksums specified; output the default set
+                foreach type $default_checksum_types {
+                    lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
+                }
+
             } else {
                 # retrieve the list of types/values from the array.
                 set portfile_checksums $checksums_array($distfile)
@@ -286,19 +292,6 @@ proc portchecksum::checksum_main {args} {
     if {[tbool fail]} {
 
         # Show the desired checksum line for easy cut-paste
-        foreach distfile $all_dist_files {
-            set fullpath [file join $distpath $distfile]
-            if {![file isfile $fullpath] && (!$usealtworkpath && [file isfile "${altprefix}${fullpath}"])} {
-                set fullpath "${altprefix}${fullpath}"
-            }
-            if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
-                # no checksums specified; output the default set
-
-                foreach type $default_checksum_types {
-                    lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
-                }
-            }
-        }
         ui_info "The correct checksum line may be:"
         ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
 
