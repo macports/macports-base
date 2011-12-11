@@ -399,6 +399,10 @@ proc command_exec {command args} {
         set ${command}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
     }
 
+    # When building, g-ir-scanner should not save its cache to $HOME
+    # See: https://trac.macports.org/ticket/26783
+    set ${command}.env_array(GI_SCANNER_DISABLE_CACHE) "1"
+
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
 
