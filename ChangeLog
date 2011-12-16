@@ -5,6 +5,9 @@
 
 Unreleased changes:
 
+    - port livecheck regex finds multiple matches on the same line
+      (raimue in r88031)
+
     - port lint now recognizes licenses (snc in r85929, r86016)
 
     - Implement new option-replace using lsearch/lreplace. The old behavior is
