@@ -237,7 +237,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-#if LIBCURL_VERSION_NUM == 0x071307
+#if LIBCURL_VERSION_NUM >= 0x071304 && LIBCURL_VERSION_NUM <= 0x071307
         /* FTP_PROXY workaround for Snow Leopard */
         if (strncmp(theURL, "ftp:", 4) == 0) {
             char *ftp_proxy = getenv("FTP_PROXY");
