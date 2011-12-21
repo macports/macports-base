@@ -1437,19 +1437,25 @@ proc add_multiple_ports { resname ports {remainder ""} } {
 }
 
 
-proc opUnion { a b } {
+proc uniqueEntries { entries } {
+    # Form the list of all the unique elements in the list a,
+    # considering only the port fullname, and taking the first
+    # found element first
     set result {}
-    
-    # Walk through both lists a and b, adding to result only unique ports
     array unset unique
-    foreach item [concat $a $b] {
+    foreach item $entries {
         array set port $item
         if {[info exists unique($port(fullname))]} continue
         set unique($port(fullname)) 1
         lappend result $item
     }
-    
     return $result
+}
+
+
+proc opUnion { a b } {
+    # Return the unique elements in the combined two lists
+    return uniqueEntries [concat $a $b]
 }
 
 
@@ -1470,14 +1476,14 @@ proc opIntersection { a b } {
     # First create a list of the fully discriminated names in b
     array unset bfull
     set i 0
-    foreach bitem $b {
+    foreach bitem [uniqueEntries $b] {
         array set port $bitem
         set bfull($port(fullname)) $i
         incr i
     }
     
     # Walk through each item in a, matching against b
-    foreach aitem $a {
+    foreach aitem [uniqueEntries $a] {
         array set port $aitem
         
         # Quote the fullname and portname to avoid special characters messing up the regexp
