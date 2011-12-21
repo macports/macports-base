@@ -169,13 +169,15 @@ proc portlivecheck::livecheck_main {args} {
                     set updated_version 0
                     set foundmatch 0
                     while {[gets $chan line] >= 0} {
-                        set matches [regexp -all -inline $the_re $line]
-                        foreach {matched upver} $matches {
+                        set lastoff 0
+                        while {[regexp -start $lastoff -indices $the_re $line offsets]} {
+                            regexp -start $lastoff $the_re $line matched upver
                             set foundmatch 1
                             if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
                                 set updated_version $upver
                             }
                             ui_debug "The regex matched \"$matched\", extracted \"$upver\""
+                            lassign $offsets firstoff lastoff
                         }
                     }
                     if {$foundmatch == 1} {
