@@ -2074,7 +2074,11 @@ Built-in command mimicking the BSD touch command.
 .It Ic ln
 .br
 Built-in command mimicking the BSD ln command.
-.It Ic system Ar commandline
+.It Xo
+.Ic system
+.Op Fl W Ar dir
+.Ar commandline
+.Xc
 Execute a program. See
 .Xr system 3 .
 For calls to
@@ -2088,6 +2092,12 @@ For calls to
 or similar, please use the built-in commands or
 .Nm file
 if they don't meet your requirements.
+.Bl -tag -width indent
+.It Fl W
+Change to
+.Ar dir
+before working.
+.El
 .It Ic variant_isset Ar variant
 Checks if the given
 .Ar variant
