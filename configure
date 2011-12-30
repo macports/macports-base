@@ -5800,7 +5800,8 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
+as_dummy="$PATH:/usr/local/bin"
+for as_dir in $as_dummy
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -5814,7 +5815,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_SWIG" && ac_cv_path_SWIG="$PATH:/usr/local/bin"
   ;;
 esac
 fi

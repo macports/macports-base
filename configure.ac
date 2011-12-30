@@ -126,7 +126,7 @@ AC_PATH_PROG(MKBOM, [mkbom], [])
 AC_PATH_PROG(PAX, [pax], [])
 AC_PATH_PROG(XAR, [xar], [])
 AC_PATH_PROG(OPEN, [open], [])
-AC_PATH_PROG(SWIG, [swig], [$PATH:/usr/local/bin])
+AC_PATH_PROG(SWIG, [swig], [], [$PATH:/usr/local/bin])
 
 # Define some precious variables allowing user to override PATH for some programs
 AC_ARG_VAR(MTREE, [path to mtree command])
