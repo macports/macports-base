@@ -1,6 +1,6 @@
 # $Id$
 
-OBJS = registry.o entry.o sql.o vercomp.o
+OBJS = registry.o entry.o sql.o vercomp.o util.o file.o
 STLIB_NAME = cregistry.a
 RANLIB = ranlib
 

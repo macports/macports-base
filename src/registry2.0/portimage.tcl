@@ -88,7 +88,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
         set noexec $options(ports_activate_no-exec)
     }
     if {![info exists registry_open]} {
-        registry::open [file join ${macports::registry.path} registry registry.db]
+        registry::open [::file join ${macports::registry.path} registry registry.db]
         set registry_open yes
     }
     set todeactivate [list]
@@ -116,7 +116,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
         if { ![string equal [$requested installtype] "image"] } {
             return -code error "Image error: ${name} @${specifier} not installed as an image."
         }
-        if {![file isfile $location]} {
+        if {![::file isfile $location]} {
             return -code error "Image error: Can't find image file $location"
         }
         if { [string equal [$requested state] "installed"] } {
@@ -158,7 +158,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         set force 0
     }
     if {![info exists registry_open]} {
-        registry::open [file join ${macports::registry.path} registry registry.db]
+        registry::open [::file join ${macports::registry.path} registry registry.db]
         set registry_open yes
     }
 
@@ -249,7 +249,7 @@ proc _check_registry {name version revision variants} {
 ## @param [in] dstfile path to activate file to
 ## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
-    if {[catch {set filetype [file type $srcfile]} result]} {
+    if {[catch {set filetype [::file type $srcfile]} result]} {
         # this can happen if the archive was built on case-sensitive and we're case-insensitive
         # we know any existing dstfile is ours because we checked for conflicts earlier
         if {![catch {file type $dstfile}]} {
@@ -264,23 +264,23 @@ proc _activate_file {srcfile dstfile} {
             # Don't recursively copy directories
             ui_debug "activating directory: $dstfile"
             # Don't do anything if the directory already exists.
-            if { ![file isdirectory $dstfile] } {
-                file mkdir $dstfile
+            if { ![::file isdirectory $dstfile] } {
+                ::file mkdir $dstfile
                 # fix attributes on the directory.
                 if {[getuid] == 0} {
-                    eval file attributes {$dstfile} [file attributes $srcfile]
+                    eval ::file attributes {$dstfile} [::file attributes $srcfile]
                 } else {
                     # not root, so can't set owner/group
-                    eval file attributes {$dstfile} -permissions [file attributes $srcfile -permissions]
+                    eval ::file attributes {$dstfile} -permissions [::file attributes $srcfile -permissions]
                 }
                 # set mtime on installed element
-                file mtime $dstfile [file mtime $srcfile]
+                ::file mtime $dstfile [::file mtime $srcfile]
             }
             return 0
         }
         default {
             ui_debug "activating file: $dstfile"
-            file rename $srcfile $dstfile
+            ::file rename $srcfile $dstfile
             return 1
         }
     }
@@ -290,7 +290,7 @@ proc _activate_file {srcfile dstfile} {
 # returns: path to the extracted directory
 proc extract_archive_to_tmpdir {location} {
     global macports::registry.path
-    set extractdir [mkdtemp [file dirname $location]/mpextractXXXXXXXX]
+    set extractdir [mkdtemp [::file dirname $location]/mpextractXXXXXXXX]
     set startpwd [pwd]
 
     try {
@@ -305,7 +305,7 @@ proc extract_archive_to_tmpdir {location} {
         set unarchive.pre_args {}
         set unarchive.args {}
         set unarchive.pipe_cmd ""
-        set unarchive.type [file extension $location]
+        set unarchive.type [::file extension $location]
         switch -regex ${unarchive.type} {
             cp(io|gz) {
                 set pax "pax"
@@ -413,7 +413,7 @@ proc extract_archive_to_tmpdir {location} {
         }
         system $cmdstring
     } catch {*} {
-        file delete -force $extractdir
+        ::file delete -force $extractdir
         throw
     } finally {
         cd $startpwd
@@ -451,7 +451,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                 # To be able to install links, we test if we can lstat the file to
                 # figure out if the source file exists (file exists will return
                 # false for symlinks on files that do not exist)
-                if { [catch {file lstat $srcfile dummystatvar}] } {
+                if { [catch {::file lstat $srcfile dummystatvar}] } {
                     throw registry::image-error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port [$port name]."
                 }
 
@@ -474,10 +474,10 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         # if we're forcing the activation, then we move any existing
                         # files to a backup file, both in the filesystem and in the
                         # registry
-                        if { ![catch {file type $file}] } {
+                        if { ![catch {::file type $file}] } {
                             set bakfile "${file}${baksuffix}"
                             ui_warn "File $file already exists.  Moving to: $bakfile."
-                            file rename -force -- $file $bakfile
+                            ::file rename -force -- $file $bakfile
                             lappend backups $file
                         }
                         if { $owner != {} } {
@@ -490,7 +490,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         # the registry
                         if { $owner != {} && $owner != $port } {
                             throw registry::image-error "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
-                        } elseif { $owner == {} && ![catch {file type $file}] } {
+                        } elseif { $owner == {} && ![catch {::file type $file}] } {
                             throw registry::image-error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
                         }
                     }
@@ -504,10 +504,10 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                 # subpaths. We do need, nevertheless, all sub paths to make sure
                 # we'll set the directory attributes properly for all
                 # directories.
-                set directory [file dirname $file]
+                set directory [::file dirname $file]
                 while { [lsearch -exact $files $directory] == -1 } {
                     lappend files $directory
-                    set directory [file dirname $directory]
+                    set directory [::file dirname $directory]
                 }
 
                 # Also add the filename to the imagefile list.
@@ -555,7 +555,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
         # locations, then rethrow the error. Transaction rollback will take care
         # of this in the registry.
         foreach file $backups {
-            file rename -force -- "${file}${baksuffix}" $file
+            ::file rename -force -- "${file}${baksuffix}" $file
         }
         # reactivate deactivated ports
         foreach entry [array names todeactivate] {
@@ -564,10 +564,10 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
             }
         }
         # remove temp image dir
-        file delete -force $extracted_dir
+        ::file delete -force $extracted_dir
         throw
     }
-    file delete -force $extracted_dir
+    ::file delete -force $extracted_dir
 }
 
 # These directories should not be removed during deactivation even if they are empty.
@@ -576,7 +576,7 @@ variable precious_dirs
 array set precious_dirs { /Library/LaunchDaemons 1 /Library/LaunchAgents 1 }
 
 proc _deactivate_file {dstfile} {
-    if {[catch {file type $dstfile} filetype]} {
+    if {[catch {::file type $dstfile} filetype]} {
         ui_debug "$dstfile does not exist"
         return
     }
@@ -589,7 +589,7 @@ proc _deactivate_file {dstfile} {
             variable precious_dirs
             if {![info exists precious_dirs($dstfile)]} {
                 ui_debug "deactivating directory: $dstfile"
-                file delete -- $dstfile
+                ::file delete -- $dstfile
             } else {
                 ui_debug "directory $dstfile does not belong to us"
             }
@@ -598,7 +598,7 @@ proc _deactivate_file {dstfile} {
         }
     } else {
         ui_debug "deactivating file: $dstfile"
-        file delete -- $dstfile
+        ::file delete -- $dstfile
     }
 }
 
@@ -606,7 +606,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [list]
 
     foreach file $imagefiles {
-        if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
+        if { [::file exists $file] || (![catch {::file type $file}] && [::file type $file] == "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
             # Remark: paths in the registry may be not normalized.
@@ -617,14 +617,14 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # belong to any port.
             # The custom realpath proc is necessary because file normalize
             # does not resolve symlinks on OS X < 10.6
-            set directory [realpath [file dirname $file]]
-            lappend files [file join $directory [file tail $file]]
+            set directory [realpath [::file dirname $file]]
+            lappend files [::file join $directory [::file tail $file]]
 
             # Split out the filename's subpaths and add them to the image list
             # as well.
             while { [lsearch -exact $files $directory] == -1 } {
                 lappend files $directory
-                set directory [file dirname $directory]
+                set directory [::file dirname $directory]
             }
         } else {
             ui_debug "$file does not exist."

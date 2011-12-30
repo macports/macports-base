@@ -215,7 +215,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         file delete $imagefile
         # Try to delete the port's image dir; will fail if there are more image
         # files so just ignore the failure
-        catch {file delete [file dirname $imagefile]}
+        catch {file delete [::file dirname $imagefile]}
 
         registry::entry delete $port
     }

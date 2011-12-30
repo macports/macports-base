@@ -3,6 +3,7 @@
 SRCS = registry.tcl registry_autoconf.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portimage.tcl portuninstall.tcl
 OBJS = registry.o util.o \
 	entry.o entryobj.o \
+	file.o fileobj.o \
 	../cregistry/cregistry.a
 	#graph.o graphobj.o
 

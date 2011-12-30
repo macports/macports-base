@@ -36,12 +36,6 @@
 
 #include <sqlite3.h>
 
-typedef enum {
-    reg_strategy_exact = 1,
-    reg_strategy_glob = 2,
-    reg_strategy_regexp = 3
-} reg_strategy;
-
 typedef struct {
     sqlite_int64 id; /* rowid in database */
     reg_registry* reg; /* associated registry */

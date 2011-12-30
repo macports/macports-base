@@ -36,6 +36,7 @@
 
 #include "util.h"
 #include "entryobj.h"
+#include "fileobj.h"
 
 /**
  * Generates a unique proc name starting with prefix.
@@ -45,23 +46,27 @@
  * Tcl interp context. This behavior is similar to that of the builtin
  * `interp create` command, and is intended to generate names for created
  * objects of a similar nature.
- *
- * TODO: add a int* parameter so that functions which need large numbers of
- * unique names can keep track of the lower bound between calls,thereby turning
- * N^2 to N. It'll be alchemy for the 21st century.
  */
-char* unique_name(Tcl_Interp* interp, char* prefix) {
+char* unique_name(Tcl_Interp* interp, char* prefix, int* lower_bound) {
     int result_size = strlen(prefix) + TCL_INTEGER_SPACE + 1;
     char* result = malloc(result_size);
     Tcl_CmdInfo info;
     int i;
     if (!result)
         return NULL;
-    for (i=0; ; i++) {
+    if (lower_bound == NULL) {
+        i = 0;
+    } else {
+        i = *lower_bound;
+    }
+    for (; ; i++) {
         snprintf(result, result_size, "%s%d", prefix, i);
         if (Tcl_GetCommandInfo(interp, result, &info) == 0) {
             break;
         }
+    }
+    if (lower_bound != NULL) {
+        *lower_bound = i + 1;
     }
     return result;
 }
@@ -175,12 +180,33 @@ int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr) {
     if (set_object(interp, name, entry, "entry", entry_obj_cmd, NULL,
                 errPtr)) {
-        int size = strlen(name) + 1;
-        entry->proc = malloc(size*sizeof(char));
+        entry->proc = strdup(name);
         if (!entry->proc) {
             return 0;
         }
-        memcpy(entry->proc, name, size);
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * Sets a given name to be a file object.
+ *
+ * @param [in] interp  Tcl interpreter to create the file within
+ * @param [in] name    name to associate the given file with
+ * @param [in] file    file to associate with the given name
+ * @param [out] errPtr description of error if it couldn't be set
+ * @return             true if success; false if failure
+ * @see set_object
+ */
+int set_file(Tcl_Interp* interp, char* name, reg_file* file,
+        reg_error* errPtr) {
+    if (set_object(interp, name, file, "file", file_obj_cmd, NULL,
+                errPtr)) {
+        file->proc = strdup(name);
+        if (!file->proc) {
+            return 0;
+        }
         return 1;
     }
     return 0;
@@ -204,47 +230,6 @@ void set_sqlite_result(Tcl_Interp* interp, sqlite3* db, const char* query) {
     }
 }
 
-/**
- * Sets the result of the interpreter to all objects returned by a query.
- *
- * This function executes `query` on `db` It expects that the query will return
- * records of a single column, `rowid`. It will then use `prefix` to construct
- * unique names for these records, and call `setter` to construct their proc
- * objects. The result of `interp` will be set to a list of all such objects.
- *
- * If TCL_OK is returned, then a list is in the result. If TCL_ERROR is, then an
- * error is there.
- */
-int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
-        set_object_function* setter) {
-    sqlite3_stmt* stmt;
-    if (sqlite3_prepare(db, query, -1, &stmt, NULL) == SQLITE_OK) {
-        Tcl_Obj* result = Tcl_NewListObj(0, NULL);
-        Tcl_SetObjResult(interp, result);
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            sqlite_int64 rowid = sqlite3_column_int64(stmt, 0);
-            char* name = unique_name(interp, prefix);
-            if (!name) {
-                return TCL_ERROR;
-            }
-            if (setter(interp, name, rowid) == TCL_OK) {
-                Tcl_Obj* element = Tcl_NewStringObj(name, -1);
-                Tcl_ListObjAppendElement(interp, result, element);
-                free(name);
-            } else {
-                free(name);
-                return TCL_ERROR;
-            }
-        }
-        sqlite3_finalize(stmt);
-        return TCL_OK;
-    } else {
-        sqlite3_finalize(stmt);
-        set_sqlite_result(interp, db, query);
-        return TCL_ERROR;
-    }
-}
-
 const char* string_or_null(Tcl_Obj* obj) {
     const char* string = Tcl_GetString(obj);
     if (string[0] == '\0') {
@@ -254,15 +239,16 @@ const char* string_or_null(Tcl_Obj* obj) {
     }
 }
 
-int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
-        void** inv, int inc, reg_error* errPtr) {
+int recast(void* userdata, cast_function* fn, void* castcalldata,
+        free_function* del, void*** outv, void** inv, int inc,
+        reg_error* errPtr) {
     void** result = malloc(inc*sizeof(void*));
     int i;
     if (!result) {
         return 0;
     }
     for (i=0; i<inc; i++) {
-        if (!fn(userdata, &result[i], inv[i], errPtr)) {
+        if (!fn(userdata, &result[i], inv[i], castcalldata, errPtr)) {
             if (del != NULL) {
                 for ( ; i>=0; i--) {
                     del(userdata, result[i]);
@@ -277,9 +263,9 @@ int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
 }
 
 int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
-        reg_error* errPtr) {
+        int* lower_bound, reg_error* errPtr) {
     if (entry->proc == NULL) {
-        char* name = unique_name(interp, "::registry::entry");
+        char* name = unique_name(interp, "::registry::entry", lower_bound);
         if (!name) {
             return 0;
         }
@@ -293,26 +279,51 @@ int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
     return 1;
 }
 
+int file_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_file* file,
+        int* lower_bound, reg_error* errPtr) {
+    if (file->proc == NULL) {
+        char* name = unique_name(interp, "::registry::file", lower_bound);
+        if (!name) {
+            return 0;
+        }
+        if (!set_file(interp, name, file, errPtr)) {
+            free(name);
+            return 0;
+        }
+        free(name);
+    }
+    *obj = Tcl_NewStringObj(file->proc, -1);
+    return 1;
+}
+
 int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_entry** entries, int entry_count, reg_error* errPtr) {
-    return recast(interp, (cast_function*)entry_to_obj, NULL, (void***)objs,
-            (void**)entries, entry_count, errPtr);
+    int lower_bound = 0;
+    return recast(interp, (cast_function*)entry_to_obj, &lower_bound, NULL,
+            (void***)objs, (void**)entries, entry_count, errPtr);
+}
+
+int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_file** files, int file_count, reg_error* errPtr) {
+    int lower_bound = 0;
+    return recast(interp, (cast_function*)file_to_obj, &lower_bound, NULL,
+            (void***)objs, (void**)files, file_count, errPtr);
 }
 
 static int obj_to_string(void* userdata UNUSED, char** string, Tcl_Obj* obj,
-        reg_error* errPtr UNUSED) {
+        void* param UNUSED, reg_error* errPtr UNUSED) {
     *string = Tcl_GetString(obj);
     return 1;
 }
 
 int list_obj_to_string(char*** strings, Tcl_Obj** objv, int objc,
         reg_error* errPtr) {
-    return recast(NULL, (cast_function*)obj_to_string, NULL, (void***)strings,
+    return recast(NULL, (cast_function*)obj_to_string, NULL, NULL, (void***)strings,
             (void**)objv, objc, errPtr);
 }
 
 static int string_to_obj(void* userdata UNUSED, Tcl_Obj** obj, char* string,
-        reg_error* errPtr UNUSED) {
+        void* param UNUSED, reg_error* errPtr UNUSED) {
     *obj = Tcl_NewStringObj(string, -1);
     return 1;
 }
@@ -323,6 +334,6 @@ static void free_obj(void* userdata UNUSED, Tcl_Obj* obj) {
 
 int list_string_to_obj(Tcl_Obj*** objv, char** strings, int objc,
         reg_error* errPtr) {
-    return recast(NULL, (cast_function*)string_to_obj, (free_function*)free_obj,
+    return recast(NULL, (cast_function*)string_to_obj, NULL, (free_function*)free_obj,
             (void***)objv, (void**)strings, objc, errPtr);
 }

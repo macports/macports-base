@@ -34,8 +34,9 @@
 #include "sql.h"
 #include "vercomp.h"
 
-#include <tcl.h>
 #include <sqlite3.h>
+#include <string.h>
+#include <tcl.h>
 #include <time.h>
 
 /**
@@ -108,7 +109,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', 1.000)",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', 1.100)",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -130,11 +131,12 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* file map */
         "CREATE TABLE registry.files (id INTEGER, path TEXT, actual_path TEXT, "
-            "active INT, mtime DATETIME, md5sum TEXT, editable INT, "
+            "active INT, mtime DATETIME, md5sum TEXT, editable INT, binary BOOL, "
             "FOREIGN KEY(id) REFERENCES ports(id))",
         "CREATE INDEX registry.file_port ON files (id)",
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
+        "CREATE INDEX registry.file_binary ON files(binary)",
 
         /* dependency map */
         "CREATE TABLE registry.dependencies (id INTEGER, name TEXT, variants TEXT, "
@@ -145,6 +147,57 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         NULL
     };
     return do_queries(db, queries, errPtr);
+}
+
+/**
+ * Updates the database if necessary. This function queries the current database version
+ * from the metadata table and executes SQL to update the schema to newer versions if needed.
+ * After that, this function updates the database version number
+ *
+ * @param [in] db      database to update
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
+int update_db(sqlite3* db, reg_error* errPtr) {
+    const char* version;
+    char* query = "SELECT value FROM registry.metadata WHERE key = 'version'";
+    sqlite3_stmt *stmt = NULL;
+
+    if ((sqlite3_prepare(db, query, -1, &stmt, NULL) != SQLITE_OK)
+            || (sqlite3_step(stmt) != SQLITE_ROW)) {
+        goto reg_err_out;
+    }
+    if (NULL == (version = (const char *)sqlite3_column_text(stmt, 0))) {
+        goto reg_err_out;
+    }
+    /* can't call rpm_vercomp directly, because it is static, but can call sql_version */
+    if (sql_version(NULL, strlen(version), version, strlen("1.1"), "1.1") < 0) {
+        /* conversion necessary, add binary field and index to files table */
+        static char* version_1_1_queries[] = {
+            "BEGIN",
+
+            "ALTER TABLE registry.files ADD COLUMN binary BOOL",
+            "CREATE INDEX registry.file_binary ON files(binary)",
+
+            "UPDATE registry.metadata SET value = '1.100' WHERE key = 'version'",
+
+            "COMMIT"
+        };
+
+        if (!do_queries(db, version_1_1_queries, errPtr)) {
+            goto err_out;
+        }
+
+        /* TODO: Walk the file tree and set the binary field */
+    }
+    sqlite3_finalize(stmt);
+    return 1;
+
+reg_err_out:
+    reg_sqlite_error(db, errPtr, query);
+err_out:
+    sqlite3_finalize(stmt);
+    return 0;
 }
 
 /**

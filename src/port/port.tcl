@@ -2572,6 +2572,7 @@ proc action_upgrade { action portlist opts } {
     if {[require_portlist portlist] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
         return 1
     }
+
     # shared depscache for all ports in the list
     array set depscache {}
     set status 0
@@ -2587,8 +2588,21 @@ proc action_upgrade { action portlist opts } {
     
     if {$status != 0} {
         print_tickets_url
+    } else {
+        array set options $opts
+        if {![info exists options(ports_upgrade_no-rev-upgrade)]} {
+            set status [action_revupgrade $action $portlist $opts]
+        }
     }
 
+    return $status
+}
+
+proc action_revupgrade { action portlist opts } {
+    set status [macports::revupgrade $opts]
+    if {$status != 0} {
+        print_tickets_url
+    }
     return $status
 }
 
@@ -3984,6 +3998,7 @@ array set action_array [list \
     unsetrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
     \
     upgrade     [list action_upgrade        [ACTION_ARGS_PORTS]] \
+    rev-upgrade [list action_revupgrade     [ACTION_ARGS_NONE]] \
     \
     version     [list action_version        [ACTION_ARGS_NONE]] \
     platform    [list action_platform       [ACTION_ARGS_NONE]] \
@@ -4146,13 +4161,14 @@ array set cmd_opts_array {
     lint        {nitpick}
     select      {list set show}
     log         {{phase 1} {level 1}}
-    upgrade     {force enforce-variants no-replace}
+    upgrade     {force enforce-variants no-replace no-rev-upgrade}
+    rev-upgrade {id-loadcmd-check}
 }
 
 ##
 # Checks whether the given option is valid
 #
-# œparam action for which action
+# @param action for which action
 # @param option the prefix of the option to check
 # @return list of pairs {name argc} for all matching options
 proc cmd_option_matches {action option} {

@@ -37,6 +37,7 @@
 
 #include <cregistry/registry.h>
 #include <cregistry/entry.h>
+#include <cregistry/file.h>
 
 typedef struct {
     char* option;
@@ -45,7 +46,7 @@ typedef struct {
 
 #define END_FLAGS 0
 
-char* unique_name(Tcl_Interp* interp, char* prefix);
+char* unique_name(Tcl_Interp* interp, char* prefix, int* lower_bound);
 
 int parse_flags(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[], int* start,
         option_spec options[], int* flags);
@@ -56,23 +57,25 @@ int set_object(Tcl_Interp* interp, char* name, void* value, char* type,
         Tcl_ObjCmdProc* proc, Tcl_CmdDeleteProc* deleteProc, reg_error* errPtr);
 int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr);
+int set_file(Tcl_Interp* interp, char* name, reg_file* file,
+        reg_error* errPtr);
 
 void set_sqlite_result(Tcl_Interp* interp, sqlite3* db, const char* query);
 
-typedef int set_object_function(Tcl_Interp* interp, char* name,
-        sqlite_int64 rowid);
-int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
-        set_object_function* setter);
-
 const char* string_or_null(Tcl_Obj* obj);
 
-int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
-        void** inv, int inc, reg_error* errPtr);
+int recast(void* userdata, cast_function* fn, void* castcalldata,
+        free_function* del, void*** outv, void** inv, int inc,
+        reg_error* errPtr);
 
 int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
-        reg_error* errPtr);
+        int* lower_bound, reg_error* errPtr);
 int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_entry** entries, int entry_count, reg_error* errPtr);
+int file_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_file* file,
+        int* lower_bound, reg_error* errPtr);
+int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_file** files, int file_count, reg_error* errPtr);
 
 void free_strings(void* userdata UNUSED, char** strings, int count);
 

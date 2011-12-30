@@ -1,6 +1,7 @@
 /*
  * registry.c
  * $Id$
+ * vim:expandtab:tw=80
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * All rights reserved.
@@ -31,6 +32,7 @@
 #endif
 
 #include "entry.h"
+#include "file.h"
 #include "sql.h"
 
 #include <stdio.h>
@@ -214,6 +216,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                         if (initialized || (create_tables(reg->db, errPtr))) {
                             Tcl_InitHashTable(&reg->open_entries,
                                     sizeof(sqlite_int64)/sizeof(int));
+                            Tcl_InitHashTable(&reg->open_files,
+                                    TCL_STRING_KEYS);
                             reg->status |= reg_attached;
                             result = 1;
                         }
@@ -224,6 +228,10 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                         reg_sqlite_error(reg->db, errPtr, query);
                 }
             } while (r == SQLITE_BUSY);
+
+            if (result) {
+                result &= update_db(reg->db, errPtr);
+            }
         } else {
             reg_sqlite_error(reg->db, errPtr, query);
         }
@@ -275,6 +283,15 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                         free(entry);
                     }
                     Tcl_DeleteHashTable(&reg->open_entries);
+                    for (curr = Tcl_FirstHashEntry(&reg->open_files, &search);
+                            curr != NULL; curr = Tcl_NextHashEntry(&search)) {
+                        reg_file* file = Tcl_GetHashValue(curr);
+
+                        free(file->proc);
+                        free(file->key.path);
+                        free(file);
+                    }
+                    Tcl_DeleteHashTable(&reg->open_files);
                     reg->status &= ~reg_attached;
                     result = 1;
                     break;

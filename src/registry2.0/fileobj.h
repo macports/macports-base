@@ -1,8 +1,9 @@
 /*
- * sql.h
+ * fileobj.h
+ * vim:tw=80:expandtab
  * $Id$
  *
- * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +26,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _SQL_H
-#define _SQL_H
+#ifndef _FILE_OBJ_CMD_H
+#define _FILE_OBJ_CMD_H
 
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include "registry.h"
-
+#include <tcl.h>
 #include <sqlite3.h>
 
-int create_tables(sqlite3* db, reg_error* errPtr);
-int init_db(sqlite3* db, reg_error* errPtr);
-int update_db(sqlite3* db, reg_error* errPtr);
+extern const char* file_props[];
 
-#endif /* _SQL_H */
+int file_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
+        Tcl_Obj* CONST objv[]);
+
+#endif /* _FILE_OBJ_CMD_H */

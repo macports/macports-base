@@ -38,12 +38,14 @@
 
 #include <cregistry/registry.h>
 #include <cregistry/entry.h>
+#include <cregistry/file.h>
 
-#include "registry.h"
-#include "graph.h"
-#include "item.h"
 #include "entry.h"
 #include "entryobj.h"
+#include "file.h"
+#include "graph.h"
+#include "item.h"
+#include "registry.h"
 #include "util.h"
 
 int registry_failed(Tcl_Interp* interp, reg_error* errPtr) {
@@ -54,6 +56,8 @@ int registry_failed(Tcl_Interp* interp, reg_error* errPtr) {
     return TCL_ERROR;
 }
 
+/* we don't need delete_file_list and restore_file_list unless we allow deletion
+   of files via the file interface */
 static void delete_entry_list(ClientData list, Tcl_Interp* interp UNUSED) {
     entry_list* curr = *(entry_list**)list;
     while (curr) {
@@ -80,8 +84,11 @@ static void restore_entry_list(ClientData list, Tcl_Interp* interp) {
 int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
         reg_error* errPtr) {
     reg_entry** entries;
-    int entry_count = reg_all_open_entries(reg, &entries);
+    reg_file** files;
+    int entry_count;
+    int file_count;
     int i;
+    entry_count = reg_all_open_entries(reg, &entries);
     if (entry_count == -1) {
         return 0;
     }
@@ -91,6 +98,16 @@ int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
         }
     }
     free(entries);
+    file_count = reg_all_open_files(reg, &files);
+    if (file_count == -1) {
+        return 0;
+    }
+    for (i = 0; i < file_count; i++) {
+        if (files[i]->proc) {
+            Tcl_DeleteCommand(interp, files[i]->proc);
+        }
+    }
+    free(files);
     if (!reg_detach(reg, errPtr)) {
         return registry_failed(interp, errPtr);
     }
@@ -319,6 +336,7 @@ int Registry_Init(Tcl_Interp* interp) {
     /* Tcl_CreateObjCommand(interp, "registry::graph", GraphCmd, NULL, NULL); */
     /* Tcl_CreateObjCommand(interp, "registry::item", item_cmd, NULL, NULL); */
     Tcl_CreateObjCommand(interp, "registry::entry", entry_cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::file", file_cmd, NULL, NULL);
     if (Tcl_PkgProvide(interp, "registry2", "2.0") != TCL_OK) {
         return TCL_ERROR;
     }

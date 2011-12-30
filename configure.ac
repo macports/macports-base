@@ -126,6 +126,7 @@ AC_PATH_PROG(MKBOM, [mkbom], [])
 AC_PATH_PROG(PAX, [pax], [])
 AC_PATH_PROG(XAR, [xar], [])
 AC_PATH_PROG(OPEN, [open], [])
+AC_PATH_PROG(SWIG, [swig], [$PATH:/usr/local/bin])
 
 # Define some precious variables allowing user to override PATH for some programs
 AC_ARG_VAR(MTREE, [path to mtree command])
@@ -144,6 +145,7 @@ AC_ARG_VAR(LZMA, [path to lzma command])
 AC_ARG_VAR(XZ, [path to xz command])
 AC_ARG_VAR(XAR, [path to xar command])
 AC_ARG_VAR(OPEN, [path to open command])
+AC_ARG_VAR(SWIG, [path to swig command])
 
 MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
@@ -368,6 +370,7 @@ AC_CONFIG_FILES([
 	doc/pubkeys.conf
 	portmgr/freebsd/Makefile
 	src/Makefile
+	src/machista1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
 	src/registry2.0/registry_autoconf.tcl

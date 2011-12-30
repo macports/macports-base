@@ -320,7 +320,7 @@ proc fileinfo_for_file {fname} {
     # (we won't store the md5 of the target of links since it's meaningless
     # and $statvar(mode) tells us that links are links).
     if {![catch {file lstat $fname statvar}]} {
-	if {[file isfile $fname] && [file type $fname] != "link"} {
+	if {[::file isfile $fname] && [::file type $fname] != "link"} {
 	    if {[catch {md5 file $fname} md5sum] == 0} {
 		# Create a line that matches md5(1)'s output
 		# for backwards compatibility
@@ -347,7 +347,7 @@ proc fileinfo_for_index {flist} {
 	set rval [list]
 	foreach file $flist {
 		if {[string index $file 0] != "/"} {
-			set file [file join $prefix $file]
+			set file [::file join $prefix $file]
 		}
 		lappend rval [fileinfo_for_file $file]
 	}
@@ -396,9 +396,9 @@ proc exclusive_lock {} {
     if {$nlocked > 1} {
         return
     }
-    set lockpath [file join ${registry.path} registry .registry.lock]
+    set lockpath [::file join ${registry.path} registry .registry.lock]
     if {![info exists lockfd]} {
-        if {![file writable [file dirname $lockpath]]} {
+        if {![::file writable [::file dirname $lockpath]]} {
             # skip locking, registry can't be modified anyway
             return
         }
