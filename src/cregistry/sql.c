@@ -181,7 +181,8 @@ int update_db(sqlite3* db, reg_error* errPtr) {
 
             "UPDATE registry.metadata SET value = '1.100' WHERE key = 'version'",
 
-            "COMMIT"
+            "COMMIT",
+            NULL
         };
 
         if (!do_queries(db, version_1_1_queries, errPtr)) {
