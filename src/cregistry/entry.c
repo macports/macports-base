@@ -34,10 +34,11 @@
 #include "entry.h"
 #include "registry.h"
 #include "sql.h"
+#include "util.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <sqlite3.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * TODO: possibly, allow reg_entry_search to take different matching strategies
@@ -53,9 +54,6 @@
  *       always have very discrete values. These could be more efficiently dealt
  *       with as integers.
  *
- * TODO: move the utility functions to util.h or something. Not important until
- *       there are more types in the registry than entry, though.
- *
  * TODO: considering a "weak" flag in registry.files. The meaning of this would
  *       be "I wish for my version of this file to be activated when I am, but
  *       not to be deactivated when I am; nor should other ports be prevented
@@ -69,85 +67,6 @@
  */
 
 /**
- * Concatenates `src` to string `dst`. Simple concatenation. Only guaranteed to
- * work with strings that have been allocated with `malloc`. Amortizes cost of
- * expanding string buffer for O(N) concatenation and such. Uses `memcpy` in
- * favor of `strcpy` in hopes it will perform a bit better.
- *
- * @param [in,out] dst       a reference to a null-terminated string
- * @param [in,out] dst_len   number of characters currently in `dst`
- * @param [in,out] dst_space number of characters `dst` can hold
- * @param [in] src           string to concatenate to `dst`
- */
-static int reg_strcat(char** dst, size_t* dst_len, size_t* dst_space, char* src) {
-    size_t src_len = strlen(src);
-    size_t result_len = *dst_len + src_len;
-    if (result_len > *dst_space) {
-        char* new_dst;
-        *dst_space *= 2;
-        if (*dst_space < result_len) {
-            *dst_space = result_len;
-        }
-        new_dst = realloc(*dst, *dst_space * sizeof(char) + 1);
-        if (!new_dst)
-            return 0;
-        else
-            *dst = new_dst;
-    }
-    memcpy(*dst + *dst_len, src, src_len+1);
-    *dst_len = result_len;
-    return 1;
-}
-
-/**
- * Appends element `src` to the list `dst`. It's like `reg_strcat`, except `src`
- * represents a single element and not a sequence of `char`s.
- *
- * @param [in,out] dst       a reference to a list of pointers
- * @param [in,out] dst_len   number of elements currently in `dst`
- * @param [in,out] dst_space number of elements `dst` can hold
- * @param [in] src           elements to append to `dst`
- */
-static int reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
-    if (*dst_len == *dst_space) {
-        void** new_dst;
-        *dst_space *= 2;
-        new_dst = realloc(*dst, *dst_space * sizeof(void*));
-        if (!new_dst)
-            return 0;
-        else
-            *dst = new_dst;
-    }
-    (*dst)[*dst_len] = src;
-    (*dst_len)++;
-    return 1;
-}
-
-/**
- * Returns an expression to use for the given strategy. This should be passed as
- * the `fmt` argument of `sqlite3_mprintf`, with the key and value following.
- *
- * @param [in] strategy a strategy (one of the `reg_strategy_*` constants)
- * @param [out] errPtr  on error, a description of the error that occurred
- * @return              a sqlite3 expression if success; NULL if failure
- */
-static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
-    switch (strategy) {
-        case reg_strategy_exact:
-            return "%q = '%q'";
-        case reg_strategy_glob:
-            return "%q GLOB '%q'";
-        case reg_strategy_regexp:
-            return "REGEXP(%q, '%q')";
-        default:
-            errPtr->code = REG_INVALID;
-            errPtr->description = "invalid matching strategy specified";
-            errPtr->free = NULL;
-            return NULL;
-    }
-}
-
-/**
  * Converts a `sqlite3_stmt` into a `reg_entry`. The first column of the stmt's
  * row must be the id of an entry; the second either `SQLITE_NULL` or the
  * address of the entry in memory.
@@ -159,7 +78,7 @@ static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
  * @return              true if success; false if failure
  */
 static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
-        reg_error* errPtr UNUSED) {
+        void* calldata UNUSED, reg_error* errPtr UNUSED) {
     int is_new;
     reg_registry* reg = (reg_registry*)userdata;
     sqlite_int64 id = sqlite3_column_int64(stmt, 0);
@@ -262,6 +181,7 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
     sqlite3_stmt* stmt = NULL;
     reg_entry* entry = NULL;
+    int lower_bound = 0;
     char* query;
     if (strlen(epoch) > 0) {
         query = "SELECT id FROM registry.ports WHERE name=? AND version=? "
@@ -286,7 +206,7 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
-                    reg_stmt_to_entry(reg, (void**)&entry, stmt, errPtr);
+                    reg_stmt_to_entry(reg, (void**)&entry, stmt, &lower_bound, errPtr);
                     break;
                 case SQLITE_DONE:
                     errPtr->code = REG_NOT_FOUND;
@@ -416,72 +336,6 @@ void reg_entry_free(reg_entry* entry) {
 }
 
 /**
- * Convenience method for returning all objects of a given type from the
- * registry.
- *
- * @param [in] reg       registry to select objects from
- * @param [in] query     the select query to execute
- * @param [in] query_len length of the query (or -1 for automatic)
- * @param [out] objects  the objects selected
- * @param [in] fn        a function to convert sqlite3_stmts to the desired type
- * @param [in] del       a function to delete the desired type of object
- * @param [out] errPtr   on error, a description of the error that occurred
- * @return               the number of objects if success; negative if failure
- */
-static int reg_all_objects(reg_registry* reg, char* query, int query_len,
-        void*** objects, cast_function* fn, free_function* del,
-        reg_error* errPtr) {
-    void** results = malloc(10*sizeof(void*));
-    int result_count = 0;
-    int result_space = 10;
-    sqlite3_stmt* stmt = NULL;
-    if (!results || !fn) {
-        return -1;
-    }
-    if (sqlite3_prepare(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
-        int r;
-        reg_entry* entry;
-        do {
-            r = sqlite3_step(stmt);
-            switch (r) {
-                case SQLITE_ROW:
-                    if (fn(reg, (void**)&entry, stmt, errPtr)) {
-                        if (!reg_listcat(&results, &result_count, &result_space, entry)) {
-                            r = SQLITE_ERROR;
-                        }
-                    } else {
-                        r = SQLITE_ERROR;
-                    }
-                    break;
-                case SQLITE_DONE:
-                case SQLITE_BUSY:
-                    break;
-                default:
-                    reg_sqlite_error(reg->db, errPtr, query);
-                    break;
-            }
-        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
-        sqlite3_finalize(stmt);
-        if (r == SQLITE_DONE) {
-            *objects = results;
-            return result_count;
-        } else if (del) {
-            int i;
-            for (i=0; i<result_count; i++) {
-                del(NULL, results[i]);
-            }
-        }
-    } else {
-        if (stmt) {
-            sqlite3_finalize(stmt);
-        }
-        reg_sqlite_error(reg->db, errPtr, query);
-    }
-    free(results);
-    return -1;
-}
-
-/**
  * Type-safe version of `reg_all_objects` for `reg_entry`.
  *
  * @param [in] reg       registry to select entries from
@@ -493,8 +347,9 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
  */
 static int reg_all_entries(reg_registry* reg, char* query, int query_len,
         reg_entry*** objects, reg_error* errPtr) {
+    int lower_bound = 0;
     return reg_all_objects(reg, query, query_len, (void***)objects,
-            reg_stmt_to_entry, NULL, errPtr);
+            reg_stmt_to_entry, &lower_bound, NULL, errPtr);
 }
 
 /**
@@ -640,6 +495,7 @@ int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
     int result = 0;
     sqlite3_stmt* stmt = NULL;
     char* query = "SELECT id FROM registry.files WHERE actual_path=? AND active";
+    int lower_bound = 0;
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
@@ -649,7 +505,7 @@ int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
             switch (r) {
                 case SQLITE_ROW:
                     result = reg_stmt_to_entry(reg, (void**)entry, stmt,
-                            errPtr);
+                            &lower_bound, errPtr);
                     break;
                 case SQLITE_DONE:
                     *entry = NULL;

@@ -492,6 +492,24 @@ finally the global variants specified in variants.conf, if any.  Note that
 upgrade will not normally rebuild a port only to change the selected 
 variants; you can either specify --enforce-variants, or deactivate the port and reinstall it 
 with different variants. 
+.Pp
+After the upgrade MacPorts will automatically run \fBrev-upgrade\fP to check for
+broken ports that need to be rebuilt. If there are known problems with
+\fBrev-upgrade\fP or other reasons why you would want to avoid running this
+step, you can disable it by running \fBport upgrade\fP with the
+\fB--no-rev-upgrade\fP switch:
+.Pp
+.Dl "port upgrade --no-rev-upgrade outdated"
+.Ss rev-upgrade
+Manually check for broken binaries and rebuild ports containing broken binaries.
+\fBrev-upgrade\fP is usually automatically run after each upgrade, unless you
+specify the \fB--no-rev-upgrade\fP option.
+.Pp
+\fBrev-upgrade\fP can run more checks against a special loadcommand in Mach-O
+binaries that should always be referencing the file itself. This check is most
+helpful for maintainers to check whether their ports have been built correctly.
+It is disabled by default and can be enabled by passing \fB--id-loadcmd-check\fP
+to \fBrev-upgrade\fP.
 .Ss clean
 Clean the files used for building
 .Ar portname .

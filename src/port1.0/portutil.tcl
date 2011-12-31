@@ -399,6 +399,10 @@ proc command_exec {command args} {
         set ${command}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
     }
 
+    # When building, g-ir-scanner should not save its cache to $HOME
+    # See: https://trac.macports.org/ticket/26783
+    set ${command}.env_array(GI_SCANNER_DISABLE_CACHE) "1"
+
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
 
@@ -781,7 +785,7 @@ proc subport {subname body} {
     if {![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1} {
         lappend PortInfo(subports) $subname
     }
-    if {$subname == $subport} {
+    if {[string equal -nocase $subname $subport]} {
         set PortInfo(name) $subname
         uplevel 1 $body
     }
@@ -2753,6 +2757,9 @@ proc _check_xcode_version {} {
         }
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
+            if {[file exists "/Applications/Install XCode.app"]} {
+                ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
+            }
         } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
             return 1

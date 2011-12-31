@@ -75,7 +75,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 
     # regex match case
     if {$portversion == 0} {
-	set x [glob -nocomplain -directory [file join ${macports::registry.path} receipts] -- ${portname}-*]
+	set x [glob -nocomplain -directory [::file join ${macports::registry.path} receipts] -- ${portname}-*]
 	if {[string length $x]} {
 	    set matchfile [lindex $x 0]
 		# Remove trailing .bz2, if any.
@@ -84,7 +84,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 	    set matchfile ""
 	}
     } else {
-	set matchfile [file join ${macports::registry.path} receipts ${portname}-${portversion}]
+	set matchfile [::file join ${macports::registry.path} receipts ${portname}-${portversion}]
     }
 
     # Might as well bail out early if no file to match
@@ -92,7 +92,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 		return ""
     }
 
-    if {[file exists $matchfile] || [file exists ${matchfile}.bz2]} {
+    if {[::file exists $matchfile] || [::file exists ${matchfile}.bz2]} {
 		return $matchfile
     }
     return ""
@@ -110,11 +110,11 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 	    return $ref_index($name,$version,$revision,$variants)
 	}
 
-	set receipt_path [file join ${macports::registry.path} receipts ${name}]
+	set receipt_path [::file join ${macports::registry.path} receipts ${name}]
 
 	# If the receipt path ${name} doesn't exist, then the receipt probably is
 	# in the old HEAD format.
-	if { ![file isdirectory $receipt_path] } {
+	if { ![::file isdirectory $receipt_path] } {
 		set receipt_file [get_head_entry_receipt_path $name $version]
 		
 		if {![string length $receipt_file]} {
@@ -127,7 +127,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 		
 		# Extract the version from the path.
 		if { $version == "" } {
-			set theFileName [file tail $receipt_file]
+			set theFileName [::file tail $receipt_file]
 			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
@@ -137,7 +137,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 			# version given to us.  How should we handle this?
 			set x [glob -nocomplain -directory ${receipt_path} *]
 			if { [string length $x] } {
-				set v [lindex [file split [lindex $x 0]] end]
+				set v [lindex [::file split [lindex $x 0]] end]
 				regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} $v match version revision variants
 			} else {
 				return -code error "Registry error: ${name} not registered as installed."
@@ -148,15 +148,15 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 			return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 		}
 	
-		set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+		set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	
-		set receipt_file [file join ${receipt_path} receipt]
+		set receipt_file [::file join ${receipt_path} receipt]
 	}
 
-	if { [file exists ${receipt_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
+	if { [::file exists ${receipt_file}.bz2] && [::file exists ${registry::autoconf::bzip2_path}] } {
 		set receipt_file ${receipt_file}.bz2
 		set receipt_contents [exec ${registry::autoconf::bzip2_path} -d -c ${receipt_file}]
-	} elseif { [file exists ${receipt_file}] } {
+	} elseif { [::file exists ${receipt_file}] } {
 		set receipt_handle [open ${receipt_file} r]
 		set receipt_contents [read $receipt_handle]
 		close $receipt_handle
@@ -177,7 +177,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 		convert_entry_from_HEAD $name $version $revision $variants $receipt_contents $ref
 		
 		# move the old receipt
-		set convertedDirPath [file join ${macports::registry.path} receipts_converted]
+		set convertedDirPath [::file join ${macports::registry.path} receipts_converted]
 		file mkdir $convertedDirPath
 		file rename -- $receipt_file $convertedDirPath
 	} elseif {[string match "# Version: *" $receipt_contents]} {
@@ -274,15 +274,15 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 	foreach file $contents {
 		if {[llength $file]} {
 			set theFilePath [lindex $file 0]
-			if {[file isfile $theFilePath]} {
-				set previousPort [file_registered $theFilePath]
+			if {[::file isfile $theFilePath]} {
+				set previousPort [::file_registered $theFilePath]
 				if {$previousPort != 0} {
 					ui_warn "Conflict detected for file $theFilePath between $previousPort and $name."
 				}
 				if {[catch {register_file $theFilePath $name}]} {
 					ui_warn "An error occurred while adding $theFilePath to the file_map database."
 				}
-			} elseif {![file exists $theFilePath]} {
+			} elseif {![::file exists $theFilePath]} {
 				ui_warn "Port $name refers to $theFilePath which doesn't exist."
 			}
 			lappend theActualContents $file
@@ -314,10 +314,10 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 
 	set receipt_contents [array get receipt_$ref]
 
-	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
-	set receipt_file [file join ${receipt_path} receipt]
+	set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_file [::file join ${receipt_path} receipt]
 
-	if { ![file isdirectory ${receipt_path}] } {
+	if { ![::file isdirectory ${receipt_path}] } {
 		file mkdir ${receipt_path}
 	}
 
@@ -326,15 +326,15 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 	puts $receipt_handle $receipt_contents
 	close $receipt_handle
 
-	if { [file exists ${receipt_file}] } {
+	if { [::file exists ${receipt_file}] } {
 		file delete -force -- "${receipt_file}"
-	} elseif { [file exists ${receipt_file}.bz2] } {
+	} elseif { [::file exists ${receipt_file}.bz2] } {
 		file delete -force -- "${receipt_file}.bz2"
 	}
 
 	file rename -force -- "${receipt_file}.tmp" "${receipt_file}"
 
-	if { [file exists ${receipt_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
+	if { [::file exists ${receipt_file}] && [::file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${receipt_file}"
 	}
 
@@ -345,12 +345,12 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 proc entry_exists {name version {revision 0} {variants ""}} {
 	global macports::registry.path
 
-	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
-	set receipt_file [file join ${receipt_path} receipt]
+	set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_file [::file join ${receipt_path} receipt]
 
-	if { [file exists $receipt_file] } {
+	if { [::file exists $receipt_file] } {
 		return 1
-	} elseif { [file exists ${receipt_file}.bz2] } {
+	} elseif { [::file exists ${receipt_file}.bz2] } {
 		return 1
 	}
 
@@ -361,7 +361,7 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 proc entry_exists_for_name {name} {
 	global macports::registry.path
 
-	set receipt_path [file join ${macports::registry.path} receipts ${name}]
+	set receipt_path [::file join ${macports::registry.path} receipts ${name}]
 
 	if {[llength [glob -nocomplain -directory $receipt_path */receipt{,.bz2}]] > 0} {
 		return 1
@@ -417,14 +417,14 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 	    array unset ref_index "$name,$version,$revision,$variants"
 	}
 
-	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
-	if { [file exists ${receipt_path}] } {
+	set receipt_path [::file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	if { [::file exists ${receipt_path}] } {
 		# remove port receipt directory
 		ui_debug "deleting directory: ${receipt_path}"
 		file delete -force -- ${receipt_path}
 		# remove port receipt parent directory (if empty)
-		set receipt_dir [file join ${macports::registry.path} receipts ${name}]
-		if { [file isdirectory ${receipt_dir}] } {
+		set receipt_dir [::file join ${macports::registry.path} receipts ${name}]
+		if { [::file isdirectory ${receipt_dir}] } {
 			# 0 item means empty.
 			if { [llength [readdir ${receipt_dir}]] == 0 } {
 				ui_debug "deleting directory: ${receipt_dir}"
@@ -449,12 +449,12 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 proc installed {{name ""} {version ""}} {
 	global macports::registry.path
 
-	set query_path [file join ${macports::registry.path} receipts]
+	set query_path [::file join ${macports::registry.path} receipts]
 	
 	if { $name == "" } {
-		set query_path [file join ${query_path} *]
+		set query_path [::file join ${query_path} *]
 		if { $version == "" } {
-			set query_path [file join ${query_path} *]
+			set query_path [::file join ${query_path} *]
 		}
 		# [PG] Huh?
 	} else {
@@ -462,32 +462,32 @@ proc installed {{name ""} {version ""}} {
 	    # returned with the correct case even if it's wrong when given. To get the
 	    # correct case on a case-insensitive FS, we have to list the directory and
 	    # compare against each entry.
-	    set name_path [file join ${query_path} *]
+	    set name_path [::file join ${query_path} *]
 	    set name_entries [glob -nocomplain -types d ${name_path}]
 	    foreach entry $name_entries {
-	        set basename [file tail $entry]
+	        set basename [::file tail $entry]
 	        if {[string equal -nocase $basename $name]} {
 	            set name $basename
 	            break
 	        }
 	    }
-		set query_path [file join ${query_path} ${name}]
+		set query_path [::file join ${query_path} ${name}]
 		if { $version != "" } {
-			set query_path [file join ${query_path} ${version}]
+			set query_path [::file join ${query_path} ${version}]
 		} else {
-			set query_path [file join ${query_path} *]
+			set query_path [::file join ${query_path} *]
 		}
 	}
 
 	set x [glob -nocomplain -types d ${query_path}]
 	set rlist [list]
 	foreach p $x {
-		if {![file isfile [file join $p receipt.bz2]] && ![file isfile [file join $p receipt]]} {
+		if {![::file isfile [::file join $p receipt.bz2]] && ![::file isfile [::file join $p receipt]]} {
 			continue
 		}
 		set plist [list]
-		regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} [lindex [file split $p] end] match version revision variants
-		lappend plist [lindex [file split $p] end-1]
+		regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} [lindex [::file split $p] end] match version revision variants
+		lappend plist [lindex [::file split $p] end-1]
 		lappend plist $version
 		lappend plist $revision
 		lappend plist $variants
@@ -496,13 +496,13 @@ proc installed {{name ""} {version ""}} {
 
 	# append the ports in old HEAD format.
 	if { $name == "" } {
-		set query_path [file join ${macports::registry.path} receipts *]
+		set query_path [::file join ${macports::registry.path} receipts *]
 	} else {
-		set query_path [file join ${macports::registry.path} receipts ${name}-*]
+		set query_path [::file join ${macports::registry.path} receipts ${name}-*]
 	}
     set receiptglob [glob -nocomplain -types f ${query_path}]
     foreach receipt_file $receiptglob {
-		set theFileName [file tail $receipt_file]
+		set theFileName [::file tail $receipt_file]
 
     	# Remark: these regexes do not always work.
    		set theName ""
@@ -539,14 +539,14 @@ proc open_file_map {{readonly 0}} {
 	global macports::registry.path
 	variable file_map
 
-	set receipt_path [file join ${macports::registry.path} receipts]
-	set map_file [file join ${receipt_path} file_map]
+	set receipt_path [::file join ${macports::registry.path} receipts]
+	set map_file [::file join ${receipt_path} file_map]
 
 	# Don't reopen it (it actually would deadlock us), unless it was open r/o.
 	# and we want it r/w.
 	if { [info exists file_map] } {
 		if { $readonly == 0 } {
-			if {[filemap isreadonly file_map]} {
+			if {[::filemap isreadonly file_map]} {
 				filemap close file_map
 				filemap open file_map ${map_file}.db
 			}
@@ -556,11 +556,11 @@ proc open_file_map {{readonly 0}} {
 
 	set old_filemap [list]
 
-	if { ![file exists ${map_file}.db] } {
+	if { ![::file exists ${map_file}.db] } {
 		# Convert to new format
-		if { [file exists ${map_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
+		if { [::file exists ${map_file}.bz2] && [::file exists ${registry::autoconf::bzip2_path}] } {
 			set old_filemap [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
-		} elseif { [file exists $map_file] } {		
+		} elseif { [::file exists $map_file] } {		
 			set map_handle [open ${map_file} r]
 			set old_filemap [read $map_handle]
 			close $map_handle
@@ -608,8 +608,8 @@ proc file_registered {file} {
 
 	open_file_map 1
 
-	if {[filemap exists file_map $file]} {
-		return [filemap get file_map $file]
+	if {[::filemap exists file_map $file]} {
+		return [::filemap get file_map $file]
 	} else {
 		return 0
 	}
@@ -630,7 +630,7 @@ proc port_registered {name} {
 
 	open_file_map 1
 
-	set files [filemap list file_map $name]
+	set files [::filemap list file_map $name]
 
 	if { [llength $files] > 0 } {
 		return $files
@@ -641,7 +641,7 @@ proc port_registered {name} {
 			# Convert the port and retry.
 			open_entry $name
 			
-			set files [filemap list file_map $name]
+			set files [::filemap list file_map $name]
 			
 			return $files
 		} else {
@@ -662,7 +662,7 @@ proc register_file {file port} {
 
 	open_file_map
 
-	if { [file type $file] == "link" } {
+	if { [::file type $file] == "link" } {
 		ui_debug "Adding link to file_map: $file for: $port"
 	} else {
 		ui_debug "Adding file to file_map: $file for: $port"
@@ -684,7 +684,7 @@ proc register_bulk_files {files port} {
 
 	foreach f $files {
 		set file [lindex $f 0]
-		if { [file type $file] == "link" } {
+		if { [::file type $file] == "link" } {
 			ui_debug "Adding link to file_map: $file for: $port"
 		} else {
 			ui_debug "Adding file to file_map: $file for: $port"
@@ -743,13 +743,13 @@ proc open_dep_map {args} {
 	global macports::registry.path
 	variable dep_map
 
-	set receipt_path [file join ${macports::registry.path} receipts]
+	set receipt_path [::file join ${macports::registry.path} receipts]
 
-	set map_file [file join ${receipt_path} dep_map]
+	set map_file [::file join ${receipt_path} dep_map]
 
-	if { [file exists ${map_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
+	if { [::file exists ${map_file}.bz2] && [::file exists ${registry::autoconf::bzip2_path}] } {
 		set dep_map [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
-	} elseif { [file exists ${map_file}] } {
+	} elseif { [::file exists ${map_file}] } {
 		set map_handle [open ${map_file} r]
 		set dep_map [read $map_handle]
 		close $map_handle
@@ -837,9 +837,9 @@ proc write_dep_map {args} {
 	global macports::registry.path
 	variable dep_map
 
-	set receipt_path [file join ${macports::registry.path} receipts]
+	set receipt_path [::file join ${macports::registry.path} receipts]
 
-	set map_file [file join ${receipt_path} dep_map]
+	set map_file [::file join ${receipt_path} dep_map]
 
 	set map_handle [open ${map_file}.tmp w 0644]
 	puts $map_handle $dep_map
@@ -850,7 +850,7 @@ proc write_dep_map {args} {
 
     file rename -- ${map_file}.tmp ${map_file}
 
-	if { [file exists ${map_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
+	if { [::file exists ${map_file}] && [::file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${map_file}"
 	}
 

@@ -334,11 +334,10 @@ proc registry_installed {portname {portversion ""}} {
 }
 
 
-proc add_to_portlist {listname portentry} {
-    upvar $listname portlist
+proc entry_for_portlist {portentry} {
     global global_options global_variations
 
-    # The portlist currently has the following elements in it:
+    # Each portlist entry currently has the following elements in it:
     #   url             if any
     #   name
     #   version         (version_revision)
@@ -366,12 +365,18 @@ proc add_to_portlist {listname portentry} {
         }
     }
 
-
     # Form the fully discriminated portname: portname/version_revison+-variants
     set port(fullname) "$port(name)/[composite_version $port(version) $port(variants)]"
     
-    # Add it to our portlist
-    lappend portlist [array get port]
+    return [array get port]
+}
+
+
+proc add_to_portlist {listname portentry} {
+    upvar $listname portlist
+    
+    # Form portlist entry and add to portlist
+    lappend portlist [entry_for_portlist $portentry]
 }
 
 
@@ -686,30 +691,31 @@ proc unobscure_maintainers { list } {
 ##########################################
 # Port selection
 ##########################################
+proc unique_results_to_portlist {infos} {
+    set result {}
+    array unset unique
+    foreach {name info} $infos {
+        array unset portinfo
+        array set portinfo $info
+        
+        array unset entry
+        array set entry [entry_for_portlist [list url $portinfo(porturl) name $name]]
+        if {[info exists unique($entry(fullname))]} continue
+        set unique($entry(fullname)) 1
+        lappend result [array get entry]
+    }
+    return $result
+}
+
+
 proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field name}} {
     if {[catch {set res [mportsearch $pattern $casesensitive $matchstyle $field]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         fatal "search for portname $pattern failed: $result"
     }
-
-    set results {}
-    foreach {name info} $res {
-        array unset portinfo
-        array set portinfo $info
-
-        #set variants {}
-        #if {[info exists portinfo(variants)]} {
-        #   foreach variant $portinfo(variants) {
-        #       lappend variants $variant "+"
-        #   }
-        #}
-        # For now, don't include version or variants with all ports list
-        #"$portinfo(version)_$portinfo(revision)"
-        #$variants
-        add_to_portlist results [list url $portinfo(porturl) name $name]
-    }
-
+    set results [unique_results_to_portlist $res]
+    
     # Return the list of all ports, sorted
     return [portlist_sort $results]
 }
@@ -724,13 +730,7 @@ proc get_all_ports {} {
             ui_debug "$errorInfo"
             fatal "listing all ports failed: $result"
         }
-        set results {}
-        foreach {name info} $res {
-            array unset portinfo
-            array set portinfo $info
-            add_to_portlist results [list url $portinfo(porturl) name $name]
-        }
-
+        set results [unique_results_to_portlist $res]
         set all_ports_cache [portlist_sort $results]
     }
     return $all_ports_cache
@@ -1051,7 +1051,7 @@ proc get_dep_ports {portname recursive} {
     set porturl $portinfo(porturl)
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [list subport $portname] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
         ui_debug "$::errorInfo"
         return -code error "Unable to open port: $result"
     }
@@ -1097,7 +1097,7 @@ proc get_dep_ports {portname recursive} {
                     set porturl $portinfo(porturl)
                 
                     # open its portfile
-                    if {[catch {set mport [mportopen $porturl [list subport $depname] [array get global_variations]]} result]} {
+                    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
                         ui_debug "$::errorInfo"
                         ui_error "Unable to open port: $result"
                         continue
@@ -1168,7 +1168,7 @@ proc seqExpr { resname } {
             set reslist [opUnion $reslist $blist]
         }
     }
-
+    
     return $result
 }
 
@@ -1437,19 +1437,25 @@ proc add_multiple_ports { resname ports {remainder ""} } {
 }
 
 
-proc opUnion { a b } {
+proc unique_entries { entries } {
+    # Form the list of all the unique elements in the list a,
+    # considering only the port fullname, and taking the first
+    # found element first
     set result {}
-    
-    # Walk through both lists a and b, adding to result only unique ports
     array unset unique
-    foreach item [concat $a $b] {
+    foreach item $entries {
         array set port $item
         if {[info exists unique($port(fullname))]} continue
         set unique($port(fullname)) 1
         lappend result $item
     }
-    
     return $result
+}
+
+
+proc opUnion { a b } {
+    # Return the unique elements in the combined two lists
+    return [unique_entries [concat $a $b]]
 }
 
 
@@ -1470,14 +1476,14 @@ proc opIntersection { a b } {
     # First create a list of the fully discriminated names in b
     array unset bfull
     set i 0
-    foreach bitem $b {
+    foreach bitem [unique_entries $b] {
         array set port $bitem
         set bfull($port(fullname)) $i
         incr i
     }
     
     # Walk through each item in a, matching against b
-    foreach aitem $a {
+    foreach aitem [unique_entries $a] {
         array set port $aitem
         
         # Quote the fullname and portname to avoid special characters messing up the regexp
@@ -1886,6 +1892,7 @@ proc action_info { action portlist opts } {
             set index_only 1
         }
         puts -nonewline $separator
+        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl == "" || $index_only} {
@@ -1897,7 +1904,6 @@ proc action_info { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array unset portinfo
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
             set portdir $portinfo(portdir)
@@ -1914,7 +1920,11 @@ proc action_info { action portlist opts } {
                 } 
             }
             if {![info exists options(subport)]} {
-                set options(subport) $portname
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
             }
  
             if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
@@ -2239,6 +2249,7 @@ proc action_notes { action portlist opts } {
 
     set status 0
     foreachport $portlist {
+        array unset portinfo
         if {$porturl eq ""} {
             # Look up the port.
             if {[catch {mportlookup $portname} result]} {
@@ -2251,7 +2262,6 @@ proc action_notes { action portlist opts } {
             }
 
             # Retrieve the port's URL.
-            array unset portinfo
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
         }
@@ -2266,7 +2276,11 @@ proc action_notes { action portlist opts } {
             } 
         }
         if {![info exists options(subport)]} {
-            set options(subport) $portname
+            if {[info exists portinfo(name)]} {
+                set options(subport) $portinfo(name)
+            } else {
+                set options(subport) $portname
+            }
         }
 
         # Open the Portfile associated with this port.
@@ -2558,6 +2572,7 @@ proc action_upgrade { action portlist opts } {
     if {[require_portlist portlist] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
         return 1
     }
+
     # shared depscache for all ports in the list
     array set depscache {}
     set status 0
@@ -2573,8 +2588,21 @@ proc action_upgrade { action portlist opts } {
     
     if {$status != 0} {
         print_tickets_url
+    } else {
+        array set options $opts
+        if {![info exists options(ports_upgrade_no-rev-upgrade)]} {
+            set status [action_revupgrade $action $portlist $opts]
+        }
     }
 
+    return $status
+}
+
+proc action_revupgrade { action portlist opts } {
+    set status [macports::revupgrade $opts]
+    if {$status != 0} {
+        print_tickets_url
+    }
     return $status
 }
 
@@ -2909,7 +2937,8 @@ proc action_deps { action portlist opts } {
         } else {
             set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
         }
-        
+
+        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq ""} {
@@ -2921,7 +2950,6 @@ proc action_deps { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array unset portinfo
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
         } elseif {$porturl ne "file://."} {
@@ -2940,7 +2968,6 @@ proc action_deps { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Portdir $portdir not found" 1 status
             }
-            array unset portinfo
             array set portinfo [lindex $result 1]
         }
 
@@ -2955,7 +2982,11 @@ proc action_deps { action portlist opts } {
                 } 
             }
             if {![info exists options(subport)]} {
-                set options(subport) $portname
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
             }
             if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
@@ -3035,7 +3066,7 @@ proc action_deps { action portlist opts } {
                     array unset portinfo
                     array set portinfo [lindex $result 1]
                     set porturl $portinfo(porturl)
-                    set options(subport) $depname
+                    set options(subport) $portinfo(name)
                     
                     # open the portfile if requested
                     if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
@@ -3477,6 +3508,7 @@ proc action_variants { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        array unset portinfo
         if {$porturl eq ""} {
             # look up port
             if {[catch {mportlookup $portname} result]} {
@@ -3488,7 +3520,6 @@ proc action_variants { action portlist opts } {
                 break_softcontinue "Port $portname not found" 1 status
             }
 
-            array unset portinfo
             array set portinfo [lindex $result 1]
 
             set porturl $portinfo(porturl)
@@ -3497,7 +3528,11 @@ proc action_variants { action portlist opts } {
 
         if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
             if {![info exists options(subport)]} {
-                set options(subport) $portname
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
             }
             if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
                 ui_debug "$::errorInfo"
@@ -3992,6 +4027,7 @@ proc action_target { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl == ""} {
@@ -4010,7 +4046,6 @@ proc action_target { action portlist opts } {
                     break_softcontinue "Port $portname not found" 1 status
                 }
             }
-            array unset portinfo
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
         }
@@ -4045,7 +4080,11 @@ proc action_target { action portlist opts } {
             set target $action
         }
         if {![info exists options(subport)]} {
-            set options(subport) $portname
+            if {[info exists portinfo(name)]} {
+                set options(subport) $portinfo(name)
+            } else {
+                set options(subport) $portname
+            }
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo
@@ -4152,6 +4191,7 @@ array set action_array [list \
     unsetrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
     \
     upgrade     [list action_upgrade        [ACTION_ARGS_PORTS]] \
+    rev-upgrade [list action_revupgrade     [ACTION_ARGS_NONE]] \
     \
     version     [list action_version        [ACTION_ARGS_NONE]] \
     platform    [list action_platform       [ACTION_ARGS_NONE]] \
@@ -4315,13 +4355,14 @@ array set cmd_opts_array {
     lint        {nitpick}
     select      {list set show}
     log         {{phase 1} {level 1}}
-    upgrade     {force enforce-variants no-replace}
+    upgrade     {force enforce-variants no-replace no-rev-upgrade}
+    rev-upgrade {id-loadcmd-check}
 }
 
 ##
 # Checks whether the given option is valid
 #
-# œparam action for which action
+# @param action for which action
 # @param option the prefix of the option to check
 # @return list of pairs {name argc} for all matching options
 proc cmd_option_matches {action option} {

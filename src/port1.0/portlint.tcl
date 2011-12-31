@@ -292,6 +292,7 @@ proc portlint::lint_main {args} {
     global description long_description platforms categories all_variants
     global maintainers license homepage master_sites checksums patchfiles
     global depends_fetch depends_extract depends_lib depends_build depends_run distfiles fetch.type
+    global livecheck.type subport name
     
     global lint_portsystem lint_platforms
     global lint_required lint_optional
@@ -501,9 +502,61 @@ proc portlint::lint_main {args} {
         incr warnings
     }
 
-    if {[string match "unknown" $license]} {
-        ui_error "$license license"
-        incr errors
+    if {$license == "unknown"} {
+        ui_warn "no license set"
+        incr warnings
+    } else {
+
+        # If maintainer set license, it must follow correct format
+
+        set prev ''
+        foreach test [split [string map { \{ '' \} ''} $license] '\ '] {
+            ui_debug "Checking format of license '${test}'"
+
+            # space instead of hyphen
+            if {[string is double -strict $test]} {
+                ui_error "Invalid license '${prev} ${test}': missing hyphen between ${prev} ${test}"
+
+            # missing hyphen
+            } elseif {![string equal -nocase "X11" $test]} {
+                foreach subtest [split $test '-'] {
+                    ui_debug "testing ${subtest}"
+
+                    # license names start with letters: versions and empty strings need not apply
+                    if {[string is alpha -strict [string index $subtest 0]]} {
+
+                        # if the last character of license name is a number or plus sign
+                        # then a hyphen is missing
+                        set license_end [string index $subtest end]
+                        if {[string equal "+" $license_end] || [string is integer -strict $license_end]} {
+                            ui_error "invalid license '${test}': missing hyphen before version"
+                        }
+                    }
+                }
+            }
+
+            # BSD-2 => BSD
+            if {[string equal -nocase "BSD-2" $test]} {
+                ui_error "Invalid license '${test}': use BSD instead"
+            }
+    
+            # BSD-3 => BSD
+            if {[string equal -nocase "BSD-3" $test]} {
+                ui_error "Invalid license '${test}': use BSD instead"
+            }
+    
+            # BSD-4 => BSD-old
+            if {[string equal -nocase "BSD-4" $test]} {
+                ui_error "Invalid license '${test}': use BSD-old instead"
+            }
+    
+            set prev $test
+        }
+
+    }
+
+    if {$subport != $name && ${livecheck.type} != "none"} {
+        ui_warn "livecheck set for subport $subport"
     }
 
     # these checks are only valid for ports stored in the regular tree directories

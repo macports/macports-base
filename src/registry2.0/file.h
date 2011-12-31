@@ -1,8 +1,9 @@
 /*
- * sql.h
+ * file.h
+ * vim:tw=80:expandtab
  * $Id$
  *
- * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +26,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _SQL_H
-#define _SQL_H
+#ifndef _FILE_H
+#define _FILE_H
 
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include "registry.h"
+#include <tcl.h>
 
-#include <sqlite3.h>
+void delete_file(ClientData clientData);
 
-int create_tables(sqlite3* db, reg_error* errPtr);
-int init_db(sqlite3* db, reg_error* errPtr);
-int update_db(sqlite3* db, reg_error* errPtr);
+int file_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
+        Tcl_Obj* CONST objv[]);
 
-#endif /* _SQL_H */
+#endif /* _FILE_H */
+

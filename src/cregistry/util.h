@@ -1,8 +1,9 @@
 /*
- * sql.h
+ * util.h
+ * vim:tw=80:expandtab
  * $Id$
  *
- * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _SQL_H
-#define _SQL_H
+#ifndef _CUTIL_H
+#define _CUTIL_H
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -34,10 +35,19 @@
 
 #include "registry.h"
 
-#include <sqlite3.h>
+typedef enum {
+    reg_strategy_exact = 1,
+    reg_strategy_glob = 2,
+    reg_strategy_regexp = 3,
+    reg_strategy_null = 4
+} reg_strategy;
 
-int create_tables(sqlite3* db, reg_error* errPtr);
-int init_db(sqlite3* db, reg_error* errPtr);
-int update_db(sqlite3* db, reg_error* errPtr);
+int reg_strcat(char** dst, size_t* dst_len, size_t* dst_space, char* src);
+int reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src);
+int reg_all_objects(reg_registry* reg, char* query, int query_len,
+        void*** objects, cast_function* fn, void* castcalldata,
+        free_function* del, reg_error* errPtr);
+char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr);
 
-#endif /* _SQL_H */
+#endif /* _CUTIL_H */
+
