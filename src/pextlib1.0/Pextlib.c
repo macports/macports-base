@@ -5,6 +5,7 @@
  * Copyright (c) 2002 - 2003 Apple Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
  * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
+ * Copyright (c) 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

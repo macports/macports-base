@@ -1,7 +1,7 @@
 # receipt_flat.tcl
 # $Id$
 #
-# Copyright (c) 2005, 2007-2009 The MacPorts Project
+# Copyright (c) 2005, 2007-2012 The MacPorts Project
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, The MacPorts Project.
 # Copyright (c) 2002 Apple Inc.
