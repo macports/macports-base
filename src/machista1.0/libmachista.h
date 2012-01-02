@@ -4,7 +4,7 @@
  * $Id$
  *
  * Copyright (c) 2011 The MacPorts Project
- * Copyright (c) 2011 Clemens Lang
+ * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
