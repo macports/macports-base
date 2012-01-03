@@ -3860,7 +3860,15 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     }
                     ui_debug "Updating binary flag for file $i of [llength $files]: [$f path]"
                     incr i
-                    $f binary [fileIsBinary [$f path]]
+
+                    if {0 != [catch {$f binary [fileIsBinary [$f path]]} fileIsBinaryError]} {
+                        # handle errors (e.g. file not found, permission denied) gracefully
+                        if {![macports::ui_isset ports_debug]} {
+                            ui_msg ""
+                        }
+                        ui_warn "Error determining file type of `[$f path]': $fileIsBinaryError"
+                        ui_warn "Your registry for the `[[registry::entry owner [$f path]] name]' port is probably corrupt. Consider reinstalling it."
+                    }
                 }
             } catch {*} {
                 ui_error "Updating database of binaries failed"
