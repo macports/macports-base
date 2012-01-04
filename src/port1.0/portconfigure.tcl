@@ -387,6 +387,7 @@ proc portconfigure::find_developer_tool {name} {
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type} {
     global configure.compiler prefix developer_dir
+    # we likely should call find_developer_tool for cc, gcc, gcc-3.3, gcc-4.0, & gcc-4.2
     set ret ""
     switch -exact ${configure.compiler} {
         cc {
