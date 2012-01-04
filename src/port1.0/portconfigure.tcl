@@ -370,6 +370,20 @@ proc portconfigure::configure_get_default_compiler {args} {
     }
 }
 
+# Find a developer tool
+proc portconfigure::find_developer_tool {name} {
+	# Call xcode's xcrun to find the named tool.
+	# If this doesn't work reliably (or across enough xcode versions) we
+	# may need to fall-back to using ${developer_dir}/usr/bin in some
+	# instances (this doesn't work with current builds of Xcode 4.3).
+	set xcrun [findBinary xcrun $portutil::autoconf::xcrun_path]
+	if {[catch {set toolpath [exec ${xcrun} -find ${name}]} result] == 0} {
+		return ${toolpath}
+	} else {
+		return -code error "${result}"
+	}
+}
+
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type} {
     global configure.compiler prefix developer_dir
@@ -417,21 +431,22 @@ proc portconfigure::configure_get_compiler {type} {
         }
         llvm-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
-                objc { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
-                cxx  { set ret ${developer_dir}/usr/bin/llvm-g++-4.2 }
-                cpp  { set ret ${developer_dir}/usr/bin/llvm-cpp-4.2 }
+                cc   { set ret [find_developer_tool llvm-gcc-4.2] }
+                objc { set ret [find_developer_tool llvm-gcc-4.2] }
+                cxx  { set ret [find_developer_tool llvm-g++-4.2] }
+                cpp  { set ret [find_developer_tool llvm-cpp-4.2] }
             }
         }
         clang {
             switch -exact ${type} {
-                cc   { set ret ${developer_dir}/usr/bin/clang }
-                objc { set ret ${developer_dir}/usr/bin/clang }
+                cc   { set ret [find_developer_tool clang] }
+                objc { set ret [find_developer_tool clang] }
                 cxx  {
-                    if {[file executable ${developer_dir}/usr/bin/clang++]} {
-                        set ret ${developer_dir}/usr/bin/clang++
+					set clangpp [find_developer_tool clang++]
+                    if {[file executable ${clangpp}]} {
+                        set ret ${clangpp}
                     } else {
-                        set ret ${developer_dir}/usr/bin/llvm-g++-4.2
+                        set ret [find_developer_tool llvm-g++-4.2]
                     }
                 }
             }
