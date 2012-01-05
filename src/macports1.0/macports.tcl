@@ -4166,6 +4166,7 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
 # Usage: path_is_in_prefix path_to_test
 # Returns true if the path is in the prefix, false otherwise
 proc path_is_in_prefix {path} {
+    global macports::prefix macports::applications_dir
     if {[string first $macports::prefix $path] == 0} {
         return yes
     }
