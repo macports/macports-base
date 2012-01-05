@@ -3867,7 +3867,7 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
                             ui_msg ""
                         }
                         ui_warn "Error determining file type of `[$f path]': $fileIsBinaryError"
-                        ui_warn "Your registry for the `[[registry::entry owner [$f path]] name]' port is probably corrupt. Consider reinstalling it."
+                        ui_warn "A file belonging to the `[[registry::entry owner [$f path]] name]' port is missing or unreadable. Consider reinstalling it."
                     }
                 }
             } catch {*} {
