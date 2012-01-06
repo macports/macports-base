@@ -37,11 +37,6 @@ ${PKG_INDEX}:: ${SWIG_SHLIB}
 
 clean::
 	rm -f ${SWIG_OBJS} ${PKG_INDEX}
-ifdef SWIG
-	rm -f ${SWIG_SRCS}
-else
-	@echo "Not cleaning SWIG-generated sources, because you have configured MacPorts without SWIG." >&2
-endif
 	rm -f ${TESTS}
 	rm -rf ${TESTS:%=%.dSYM}
 
