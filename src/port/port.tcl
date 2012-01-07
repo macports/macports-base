@@ -3915,6 +3915,11 @@ proc action_target { action portlist opts } {
     
     if {$status != 0} {
         print_tickets_url
+    } elseif {$action == "install"} {
+        array set options $opts
+        if {![info exists options(ports_nodeps)] && ![info exists options(ports_install_no-rev-upgrade)]} {
+            set status [action_revupgrade $action $portlist $opts]
+        }
     }
     
     return $status
@@ -4154,6 +4159,7 @@ array set cmd_opts_array {
     space       {{units 1}}
     activate    {no-exec}
     deactivate  {no-exec}
+    install     {no-rev-upgrade}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all dist work logs}
