@@ -171,7 +171,10 @@ default configure.universal_cxxflags    {[portconfigure::configure_get_universal
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
-options configure.ccache configure.distcc configure.pipe configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
+options configure.ccache configure.distcc configure.pipe configure.cc \
+        configure.cxx configure.cpp configure.objc configure.f77 \
+        configure.f90 configure.fc configure.javac configure.compiler \
+        compiler.blacklist compiler.whitelist compiler.fallback
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
@@ -184,6 +187,9 @@ default configure.f90           {[portconfigure::configure_get_compiler f90]}
 default configure.fc            {[portconfigure::configure_get_compiler fc]}
 default configure.javac         {[portconfigure::configure_get_compiler javac]}
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
+default compiler.fallback       {[portconfigure::get_compiler_fallback]}
+default compiler.blacklist      {}
+default compiler.whitelist      {}
 
 set_ui_prefix
 
@@ -354,19 +360,68 @@ proc portconfigure::arch_flag_supported {args} {
     }
 }
 
+# check if a compiler comes from a port
+proc portconfigure::compiler_is_port {compiler} {
+    switch $compiler {
+        clang -
+        llvm-gcc-4.2 -
+        gcc-4.2 -
+        gcc-4.0 -
+        gcc-3.3 {return no}
+        default {return yes}
+    }
+}
+
+# maps compiler names to the port that provides them
+array set portconfigure::compiler_name_map {
+        apple-gcc-4.0           apple-gcc40
+        apple-gcc-4.2           apple-gcc42
+        macports-gcc-4.2        gcc42
+        macports-gcc-4.3        gcc43
+        macports-gcc-4.4        gcc44
+        macports-gcc-4.5        gcc45
+        macports-gcc-4.6        gcc46
+        macports-llvm-gcc-4.2   llvm-gcc42
+        macports-clang-2.9      clang-2.9
+        macports-clang-3.0      clang-3.0
+        macports-clang-3.1      clang-3.1
+}
+
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
+    global compiler.blacklist compiler.whitelist compiler.fallback
+    if {${compiler.whitelist} != {}} {
+        set search_list ${compiler.whitelist}
+    } else {
+        set search_list ${compiler.fallback}
+    }
+    foreach compiler $search_list {
+        if {[lsearch -exact ${compiler.blacklist} $compiler] == -1} {
+            if {[file executable [configure_get_compiler cc $compiler]] 
+                || [compiler_is_port $compiler]} {
+                return $compiler
+            }
+        }
+    }
+    ui_warn "All compilers are either blacklisted or unavailable; using first fallback entry as last resort"
+    return [lindex ${compiler.fallback} 0]
+}
+
+# internal function to choose compiler fallback list based on platform
+proc portconfigure::get_compiler_fallback {} {
     global xcodeversion macosx_deployment_target
     if {$xcodeversion == "none" || $xcodeversion == ""} {
-        return cc
+        return {cc}
     } elseif {[vercmp $xcodeversion 4.2] >= 0} {
-        return clang
+        return {clang llvm-gcc-4.2 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
-        return llvm-gcc-4.2
+        return {llvm-gcc-4.2 clang gcc-4.2}
     } elseif {[vercmp $xcodeversion 3.2] >= 0 && $macosx_deployment_target != "10.4"} {
-        return gcc-4.2
+        return {gcc-4.2 clang llvm-gcc-4.2 gcc-4.0 apple-gcc-4.0}
+    } elseif {$macosx_deployment_target != "10.4"} {
+        return {gcc-4.0 gcc-4.2 llvm-gcc-4.2 gcc-3.3 apple-gcc-4.0}
     } else {
-        return gcc-4.0
+        return {gcc-4.0 gcc-3.3 apple-gcc-4.0}
     }
 }
 
@@ -385,11 +440,14 @@ proc portconfigure::find_developer_tool {name} {
 }
 
 # internal function to find correct compilers
-proc portconfigure::configure_get_compiler {type} {
-    global configure.compiler prefix developer_dir
+proc portconfigure::configure_get_compiler {type {compiler {}}} {
+    global configure.compiler prefix
     # we likely should call find_developer_tool for cc, gcc, gcc-3.3, gcc-4.0, & gcc-4.2
     set ret ""
-    switch -exact ${configure.compiler} {
+    if {$compiler == {}} {
+        set compiler ${configure.compiler}
+    }
+    switch -exact ${compiler} {
         cc {
             switch -exact ${type} {
                 cc   { set ret /usr/bin/cc }
