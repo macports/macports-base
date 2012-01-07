@@ -706,6 +706,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # can always get to the original prefix, even if a portfile overrides prefix
     set macports::prefix_frozen $prefix
 
+    if {![info exists macports::applications_dir]} {
+        set macports::applications_dir /Applications/MacPorts
+    }
+
     # Export verbosity.
     if {![info exists portverbose]} {
         set macports::portverbose "no"
