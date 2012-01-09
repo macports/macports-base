@@ -4223,8 +4223,8 @@ proc revupgrade_handle_special_paths {fname path} {
 
     set executablepath_idx [string first "@executable_path" $corrected_path]
     if {$executablepath_idx != -1} {
-        ui_debug "Ignoring loadcommand containing @exectuable_path in $fname"
-        error "@exectuable_path in loadcommand"
+        ui_debug "Ignoring loadcommand containing @executable_path in $fname"
+        error "@executable_path in loadcommand"
     }
 
     set rpath_idx [string first "@rpath" $corrected_path]
