@@ -4043,7 +4043,7 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
         machista::destroy_handle $handle
 
         if {[llength $broken_files] == 0} {
-            ui_msg "$macports::ui_prefix No broken files found. :)"
+            ui_msg "$macports::ui_prefix No broken files found."
             return 0;
         }
         ui_msg "$macports::ui_prefix Found [llength $broken_files] broken file(s), matching files to ports"
