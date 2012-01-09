@@ -49,7 +49,7 @@ namespace eval macports {
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
-        master_site_local patch_site_local archive_site_local buildfromsource"
+        master_site_local patch_site_local archive_site_local buildfromsource revupgrade_mode revupgrade_check_id_loadcmds"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -695,8 +695,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         && [info exists macports::buildfromsource]} {
         if {${macports::buildfromsource} == "never"} {
             set macports::global_options(ports_binary_only) yes
+            set temp_options(ports_binary_only) yes
         } elseif {${macports::buildfromsource} == "always"} {
             set macports::global_options(ports_source_only) yes
+            set temp_options(ports_source_only) yes
         } elseif {${macports::buildfromsource} != "ifneeded"} {
             ui_warn "'buildfromsource' set to unknown value '${macports::buildfromsource}', using 'ifneeded' instead"
         }
@@ -843,6 +845,15 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     if {![info exists macports::macosx_deployment_target]} {
         set macports::macosx_deployment_target $macosx_version
+    }
+
+    if {![info exists macports::revupgrade_mode]} {
+        set macports::revupgrade_mode "rebuild"
+    }
+    if {![info exists macports::global_options(ports_rev-upgrade_id-loadcmd-check)]
+         && [info exists macports::revupgrade_check_id_loadcmds]} {
+        set macports::global_options(ports_rev-upgrade_id-loadcmd-check) ${macports::revupgrade_check_id_loadcmds}
+        set temp_options(ports_rev-upgrade_id-loadcmd-check) ${macports::revupgrade_check_id_loadcmds}
     }
 
     # make tools we run operate in UTF-8 mode
@@ -3837,12 +3848,15 @@ proc macports::gettmpdir {args} {
 }
 
 proc macports::revupgrade {opts} {
+    if {${macports::revupgrade_mode} == "off"} {
+        return 0
+    }
     set run_loop 1
     array set broken_port_counts {}
     while {$run_loop == 1} {
         set run_loop [revupgrade_scanandrebuild broken_port_counts $opts]
     }
-    return 0;
+    return 0
 }
 
 # returns 1 if ports were rebuilt and revupgrade_scanandrebuild should be called again
@@ -4044,17 +4058,19 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
         if {[llength $broken_files] == 0} {
             ui_msg "$macports::ui_prefix No broken files found."
-            return 0;
+            return 0
         }
         ui_msg "$macports::ui_prefix Found [llength $broken_files] broken file(s), matching files to ports"
         set broken_ports {}
         set broken_files [lsort -unique $broken_files]
         foreach file $broken_files {
             set port [registry::entry owner $file]
-            if {$port == ""} {
+            if {$port != ""} {
+                lappend broken_ports $port
+                lappend broken_files_by_port($port) $file
+            } else {
                 ui_error "Broken file $file doesn't belong to any port."
             }
-            lappend broken_ports $port
         }
         set broken_ports [lsort -unique $broken_ports]
 
@@ -4067,6 +4083,17 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 ui_error "Port [$port name] is still broken after rebuiling it more than 3 times. You might want to file a bug for this."
                 error "Port [$port name] still broken after rebuilding [expr $broken_port_counts([$port name]) - 1] time(s)"
             }
+        }
+
+        if {${macports::revupgrade_mode} != "rebuild"} {
+            ui_msg "$macports::ui_prefix Found [llength $broken_ports] broken port(s):"
+            foreach port $broken_ports {
+                ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
+                foreach f $broken_files_by_port($port) {
+                    ui_msg "         $f"
+                }
+            }
+            return 0
         }
 
         ui_msg "$macports::ui_prefix Found [llength $broken_ports] broken port(s), determining rebuild order"
