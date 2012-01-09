@@ -71,7 +71,7 @@ namespace eval portutil::autoconf {
 	variable tar_path "@TAR@"
 	variable tar_q "@TAR_Q@"
 	variable hdiutil_path "@HDIUTIL@"
-	variable swig_path "@SIWG@"
+	variable swig_path "@SWIG@"
 	variable have_launchd "@HAVE_LAUNCHD@"
 	variable launchctl_path "@LAUNCHCTL@"
 	variable install_command "@INSTALL@"
