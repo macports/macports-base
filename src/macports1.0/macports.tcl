@@ -3847,6 +3847,21 @@ proc macports::gettmpdir {args} {
     }
 }
 
+# check if the system we're on can run code of the given architecture
+proc macports::arch_runnable {arch} {
+    global macports::os_major macports::os_arch macports::os_platform
+    if {${macports::os_platform} == "darwin"} {
+        if {${macports::os_major} >= 11 && [string first "ppc" $arch] == 0} {
+            return no
+        } elseif {${macports::os_arch} == "i386" && $arch == "ppc64"} {
+            return no
+        } elseif {${macports::os_major} <= 8 && $arch == "x86_64"} {
+            return no
+        }
+    }
+    return yes
+}
+
 proc macports::revupgrade {opts} {
     if {${macports::revupgrade_mode} == "off"} {
         return 0
@@ -3860,7 +3875,7 @@ proc macports::revupgrade {opts} {
 }
 
 # returns 1 if ports were rebuilt and revupgrade_scanandrebuild should be called again
-proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
+proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
     upvar $broken_port_counts_name broken_port_counts
     array set options $opts
 
@@ -3987,6 +4002,14 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         }
                     }
                 }
+
+                set archname [machista::get_arch_name [$architecture cget -mat_arch]
+                if {![arch_runnable $archname]} {
+                    ui_debug "skipping $archname in [$b path] since this system can't run it anyway"
+                    set architecture [$architecture cget -next]
+                    continue
+                }
+
                 set loadcommand [$architecture cget -mat_loadcmds]
 
                 while {$loadcommand != "NULL"} {
@@ -4196,7 +4219,7 @@ proc revupgrade_scanandrebuild {broken_port_counts_name opts} {
 # Return whether a path is in the macports prefix
 # Usage: path_is_in_prefix path_to_test
 # Returns true if the path is in the prefix, false otherwise
-proc path_is_in_prefix {path} {
+proc macports::path_is_in_prefix {path} {
     global macports::prefix macports::applications_dir
     if {[string first $macports::prefix $path] == 0} {
         return yes
@@ -4213,7 +4236,7 @@ proc path_is_in_prefix {path} {
 # Note that we can't reliably replace @executable_path, because it's only clear when executing a file where it was executed from.
 # Replacing @rpath does not work yet, but it might be possible to get it working using the rpath attribute in the file containing the
 # loadcommand
-proc revupgrade_handle_special_paths {fname path} {
+proc macports::revupgrade_handle_special_paths {fname path} {
     set corrected_path $path
 
     set loaderpath_idx [string first "@loader_path" $corrected_path]
@@ -4238,7 +4261,7 @@ proc revupgrade_handle_special_paths {fname path} {
 
 # Recursively build the dependency graph between broken ports
 # Usage: revupgrade_buildgraph start_port name_of_stack name_of_adjacency_list name_of_reverse_adjacency_list name_of_visited_map
-proc revupgrade_buildgraph {port stackname adjlistname revadjlistname visitedname} {
+proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname visitedname} {
     upvar $stackname stack
     upvar $adjlistname adjlist
     upvar $revadjlistname revadjlist
