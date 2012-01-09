@@ -92,6 +92,14 @@ ports if available.
 .br
 .Ic Default:
 ${prefix}/etc/macports/variants.conf
+.It Va buildfromsource
+Controls whether ports are built from source or downloaded as pre-built
+archives. Setting to 'always' will never use archives, 'never' will always
+try to use an archive and fail if one is not available. 'ifneeded' will try to
+fetch an archive and fall back to building from source if that isn't possible.
+.br
+.Ic Default:
+ifneeded
 .It Va portarchivetype
 Format of archives in which to store port images. This controls both the type
 of archive created locally after building from source, and the type to request
@@ -211,6 +219,15 @@ and accept the consequences.
 ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 .It Va extra_env
 List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
+.It Va revupgrade_mode
+Controls the rev-upgrade functionality which checks for broken linking and
+rebuilds ports to fix it. 'rebuild' means ports will automatically be rebuilt
+when broken linking is detected in their files, 'report' means broken files
+will be scanned for and reported but the ports will not be rebuilt, and 'off'
+means linking will not be checked at all.
+.br
+.Ic Default:
+rebuild
 .El
 .Sh FILES
 .Bl -tag -width

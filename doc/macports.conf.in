@@ -29,6 +29,11 @@ sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
 # Where to find global variants definition file (optional)
 variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 
+# When to build ports from source. Default is 'ifneeded', which downloads an
+# archive if available or builds from source otherwise. 'always' has the same
+# effect as -s on the command line, and 'never' is likewise the same as -b.
+#buildfromsource    ifneeded
+
 # Type of archives to use for port images
 #
 # Supported types: tgz, tar, tbz, tbz2 (default), tlz, txz, xar, zip, cpgz, cpio
@@ -131,3 +136,7 @@ universal_archs		@UNIVERSAL_ARCHS@
 # hosts not to go through the proxy (comma-separated, applies to HTTP, HTTPS,
 # and FTP, but not rsync):
 #proxy_skip            internal1, internal2, internal3
+
+# Option controlling rev-upgrade, which checks for broken linking and rebuilds
+# affected ports. Possible values are 'rebuild' (default), 'report', or 'off'.
+#revupgrade_mode rebuild
