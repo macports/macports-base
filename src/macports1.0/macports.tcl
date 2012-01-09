@@ -4003,7 +4003,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     }
                 }
 
-                set archname [machista::get_arch_name [$architecture cget -mat_arch]
+                set archname [machista::get_arch_name [$architecture cget -mat_arch]]
                 if {![arch_runnable $archname]} {
                     ui_debug "skipping $archname in [$b path] since this system can't run it anyway"
                     set architecture [$architecture cget -next]
