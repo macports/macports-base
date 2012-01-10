@@ -1978,7 +1978,7 @@ proc mportsync {{optionslist {}}} {
 
     set numfailed 0
 
-    ui_debug "Synchronizing ports tree(s)"
+    ui_msg "$macports::ui_prefix Updating the ports tree"
     foreach source $sources {
         set flags [lrange $source 1 end]
         set source [lindex $source 0]
@@ -3060,7 +3060,6 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 
     # syncing ports tree.
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        ui_msg "$macports::ui_prefix Updating the ports tree"
         if {$comp > 0} {
             # updated portfiles potentially need new base to parse - tell sync to try to 
             # use prefabricated PortIndex files and signal if it couldn't
