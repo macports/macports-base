@@ -701,12 +701,12 @@ proc unique_results_to_portlist {infos} {
         set portentry [entry_for_portlist [list url $portinfo(porturl) name $name]]
         
         array unset entry
-        array set entry portentry
+        array set entry $portentry
         
         if {[info exists unique($entry(fullname))]} continue
         set unique($entry(fullname)) 1
         
-        lappend result portentry
+        lappend result $portentry
     }
     return $result
 }
