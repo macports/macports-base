@@ -219,12 +219,17 @@ and accept the consequences.
 ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 .It Va extra_env
 List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
+.It Va revupgrade_autorun
+Controls whether the rev-upgrade action will be run automatically after
+upgrading ports.
+.br
+.Ic Default:
+yes
 .It Va revupgrade_mode
-Controls the rev-upgrade functionality which checks for broken linking and
-rebuilds ports to fix it. 'rebuild' means ports will automatically be rebuilt
-when broken linking is detected in their files, 'report' means broken files
-will be scanned for and reported but the ports will not be rebuilt, and 'off'
-means linking will not be checked at all.
+Controls the rev-upgrade functionality which checks for broken linking and can
+rebuild ports to fix it. 'rebuild' means ports will automatically be rebuilt
+when broken linking is detected in their files, while 'report' means broken
+files will be scanned for and reported but the ports will not be rebuilt.
 .br
 .Ic Default:
 rebuild

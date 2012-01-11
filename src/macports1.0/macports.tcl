@@ -49,7 +49,7 @@ namespace eval macports {
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
-        master_site_local patch_site_local archive_site_local buildfromsource revupgrade_mode revupgrade_check_id_loadcmds"
+        master_site_local patch_site_local archive_site_local buildfromsource revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -847,6 +847,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::macosx_deployment_target $macosx_version
     }
 
+    if {![info exists macports::revupgrade_autorun]} {
+        set macports::revupgrade_autorun yes
+    }
     if {![info exists macports::revupgrade_mode]} {
         set macports::revupgrade_mode "rebuild"
     }
@@ -3862,9 +3865,6 @@ proc macports::arch_runnable {arch} {
 }
 
 proc macports::revupgrade {opts} {
-    if {${macports::revupgrade_mode} == "off"} {
-        return 0
-    }
     set run_loop 1
     array set broken_port_counts {}
     while {$run_loop == 1} {

@@ -137,6 +137,9 @@ universal_archs		@UNIVERSAL_ARCHS@
 # and FTP, but not rsync):
 #proxy_skip            internal1, internal2, internal3
 
-# Option controlling rev-upgrade, which checks for broken linking and rebuilds
-# affected ports. Possible values are 'rebuild' (default), 'report', or 'off'.
+# Set whether to automatically run rev-upgrade after upgrading ports
+#revupgrade_autorun yes
+# Option controlling action taken by rev-upgrade, which checks for broken
+# linking and can rebuild affected ports. Possible values are
+#'rebuild' (default) or 'report'.
 #revupgrade_mode rebuild

@@ -2594,7 +2594,7 @@ proc action_upgrade { action portlist opts } {
         print_tickets_url
     } else {
         array set options $opts
-        if {![info exists options(ports_upgrade_no-rev-upgrade)]} {
+        if {![info exists options(ports_upgrade_no-rev-upgrade)] && ${macports::revupgrade_autorun}} {
             set status [action_revupgrade $action $portlist $opts]
         }
     }
@@ -3921,7 +3921,7 @@ proc action_target { action portlist opts } {
         print_tickets_url
     } elseif {$action == "install"} {
         array set options $opts
-        if {![info exists options(ports_nodeps)] && ![info exists options(ports_install_no-rev-upgrade)]} {
+        if {![info exists options(ports_nodeps)] && ![info exists options(ports_install_no-rev-upgrade)] && ${macports::revupgrade_autorun}} {
             set status [action_revupgrade $action $portlist $opts]
         }
     }
