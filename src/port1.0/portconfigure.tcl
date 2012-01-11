@@ -436,10 +436,18 @@ proc portconfigure::find_developer_tool {name} {
 	}
 	
 	# If xcrun failed to find the tool, return a path from
-	# the developer_dir. The tool may not be there, but we'll
-	# leave it up to the invoking code to figure out that it
-	# doesn't have a valid compiler
-	return "${developer_dir}/usr/bin/${name}"
+	# the developer_dir, falling back to /usr/bin.
+	# The tool may not be there, but we'll leave it up to
+	# the invoking code to figure out that it doesn't have
+	# a valid compiler
+	set toolpath ""
+	foreach path "${developer_dir}/usr/bin /usr/bin" {
+		set toolpath "${path}/${name}"
+		if {[file executable $toolpath]} {
+			break
+		}
+	}
+	return $toolpath
 }
 
 # internal function to find correct compilers
