@@ -427,16 +427,19 @@ proc portconfigure::get_compiler_fallback {} {
 
 # Find a developer tool
 proc portconfigure::find_developer_tool {name} {
-	# Call xcode's xcrun to find the named tool.
-	# If this doesn't work reliably (or across enough xcode versions) we
-	# may need to fall-back to using ${developer_dir}/usr/bin in some
-	# instances (this doesn't work with current builds of Xcode 4.3).
+	global developer_dir
+	
+	# Use xcode's xcrun to find the named tool.
 	set xcrun [findBinary xcrun $portutil::autoconf::xcrun_path]
 	if {[catch {set toolpath [exec ${xcrun} -find ${name}]} result] == 0} {
 		return ${toolpath}
-	} else {
-		return -code error "${result}"
 	}
+	
+	# If xcrun failed to find the tool, return a path from
+	# the developer_dir. The tool may not be there, but we'll
+	# leave it up to the invoking code to figure out that it
+	# doesn't have a valid compiler
+	return "${developer_dir}/usr/bin/${name}"
 }
 
 # internal function to find correct compilers
