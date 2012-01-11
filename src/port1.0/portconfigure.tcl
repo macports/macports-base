@@ -442,7 +442,6 @@ proc portconfigure::find_developer_tool {name} {
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
     global configure.compiler prefix
-    # we likely should call find_developer_tool for cc, gcc, gcc-3.3, gcc-4.0, & gcc-4.2
     set ret ""
     if {$compiler == {}} {
         set compiler ${configure.compiler}
@@ -450,42 +449,42 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     switch -exact ${compiler} {
         cc {
             switch -exact ${type} {
-                cc   { set ret /usr/bin/cc }
-                objc { set ret /usr/bin/cc }
-                cxx  { set ret /usr/bin/c++ }
-                cpp  { set ret /usr/bin/cpp }
+                cc   { set ret [find_developer_tool cc] }
+                objc { set ret [find_developer_tool cc] }
+                cxx  { set ret [find_developer_tool c++] }
+                cpp  { set ret [find_developer_tool cpp] }
             }
         }
         gcc {
             switch -exact ${type} {
-                cc   { set ret /usr/bin/gcc }
-                objc { set ret /usr/bin/gcc }
-                cxx  { set ret /usr/bin/g++ }
-                cpp  { set ret /usr/bin/cpp }
+                cc   { set ret [find_developer_tool gcc] }
+                objc { set ret [find_developer_tool gcc] }
+                cxx  { set ret [find_developer_tool g++] }
+                cpp  { set ret [find_developer_tool cpp] }
             }
         }
         gcc-3.3 {
             switch -exact ${type} {
-                cc   { set ret /usr/bin/gcc-3.3 }
-                objc { set ret /usr/bin/gcc-3.3 }
-                cxx  { set ret /usr/bin/g++-3.3 }
-                cpp  { set ret /usr/bin/cpp-3.3 }
+                cc   { set ret [find_developer_tool gcc-3.3] }
+                objc { set ret [find_developer_tool gcc-3.3] }
+                cxx  { set ret [find_developer_tool g++-3.3] }
+                cpp  { set ret [find_developer_tool cpp-3.3] }
             }
         }
         gcc-4.0 {
             switch -exact ${type} {
-                cc   { set ret /usr/bin/gcc-4.0 }
-                objc { set ret /usr/bin/gcc-4.0 }
-                cxx  { set ret /usr/bin/g++-4.0 }
-                cpp  { set ret /usr/bin/cpp-4.0 }
+                cc   { set ret [find_developer_tool gcc-4.0] }
+                objc { set ret [find_developer_tool gcc-4.0] }
+                cxx  { set ret [find_developer_tool g++-4.0] }
+                cpp  { set ret [find_developer_tool cpp-4.0] }
             }
         }
         gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret /usr/bin/gcc-4.2 }
-                objc { set ret /usr/bin/gcc-4.2 }
-                cxx  { set ret /usr/bin/g++-4.2 }
-                cpp  { set ret /usr/bin/cpp-4.2 }
+                cc   { set ret [find_developer_tool gcc-4.2] }
+                objc { set ret [find_developer_tool gcc-4.2] }
+                cxx  { set ret [find_developer_tool g++-4.2] }
+                cpp  { set ret [find_developer_tool cpp-4.2] }
             }
         }
         llvm-gcc-4.2 {
