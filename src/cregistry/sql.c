@@ -296,13 +296,11 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          */
 
         /* if we arrive here, no update was done and we should end the
-         * transaction. Since no change was done, we can either ROLLBACK or
-         * COMMIT. Note that ROLLBACK will fail, if we do not finalize the
-         * current stmt!
-         */
+         * transaction. Using ROLLBACK here causes problems when rolling back
+         * other transactions later in the program. */
         sqlite3_finalize(stmt);
         stmt = NULL;
-        rollback_db(db);
+        r = sqlite3_exec(db, "COMMIT", NULL, NULL, NULL);
     } while (did_update);
 
     sqlite3_finalize(stmt);
