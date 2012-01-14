@@ -137,7 +137,7 @@ int reg_all_objects(reg_registry* reg, char* query, int query_len,
     if (!results || !fn) {
         return -1;
     }
-    if (sqlite3_prepare(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
         int r;
         void* row;
         do {

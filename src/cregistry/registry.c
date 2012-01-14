@@ -205,7 +205,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         char* query = sqlite3_mprintf("ATTACH DATABASE '%q' AS registry", path);
         int r;
         do {
-            r = sqlite3_prepare(reg->db, query, -1, &stmt, NULL);
+            r = sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL);
         } while (r == SQLITE_BUSY);
         if (r == SQLITE_OK) {
             /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
@@ -264,7 +264,7 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
         reg_throw(errPtr,REG_MISUSE,"no database is attached to this registry");
         return 0;
     }
-    if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         reg_entry* entry;
         Tcl_HashEntry* curr;
@@ -447,7 +447,7 @@ int reg_vacuum(char *db_path) {
         return 0;
     }
 
-    if (sqlite3_prepare(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
         do {

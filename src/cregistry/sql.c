@@ -52,19 +52,38 @@
  */
 int do_queries(sqlite3* db, char** queries, reg_error* errPtr) {
     char** query;
+    sqlite3_stmt* stmt = NULL;
+    int r = SQLITE_OK;
+
     for (query = queries; *query != NULL; query++) {
-        sqlite3_stmt* stmt = NULL;
-        if ((sqlite3_prepare(db, *query, -1, &stmt, NULL) != SQLITE_OK)
-                || (sqlite3_step(stmt) != SQLITE_DONE)) {
-            reg_sqlite_error(db, errPtr, *query);
-            if (stmt) {
-                sqlite3_finalize(stmt);
-            }
-            return 0;
+        if ((r = sqlite3_prepare_v2(db, *query, -1, &stmt, NULL)) != SQLITE_OK) {
+            sqlite3_finalize(stmt);
+            break;
         }
+
+        do {
+            r = sqlite3_step(stmt);
+        } while (r == SQLITE_BUSY);
+
         sqlite3_finalize(stmt);
+
+        /* Either execution succeeded and r == SQLITE_DONE | SQLITE_ROW, or there was an error */
+        if (r != SQLITE_DONE && r != SQLITE_ROW) {
+            /* stop executing statements in case of errors */
+            break;
+        }
     }
-    return 1;
+
+    switch (r) {
+        case SQLITE_OK:
+        case SQLITE_DONE:
+        case SQLITE_ROW:
+            return 1;
+        default:
+            /* handle errors */
+            reg_sqlite_error(db, errPtr, *query);
+            return 0;
+    }
 }
 
 /**
@@ -164,7 +183,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
     char* query = "SELECT value FROM registry.metadata WHERE key = 'version'";
     sqlite3_stmt *stmt = NULL;
 
-    if ((sqlite3_prepare(db, query, -1, &stmt, NULL) != SQLITE_OK)
+    if ((sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
             || (sqlite3_step(stmt) != SQLITE_ROW)) {
         goto reg_err_out;
     }
