@@ -170,6 +170,35 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 }
 
 /**
+ * Tries to ROLLBACK a currently running transaction on the SQLite database.
+ * Errors are silently ignored to preserve errors that have been set before and
+ * are probably the root cause of why we did the rollback in the first place.
+ *
+ * @param [in] db    database to rollback
+ * @return           true if success, false on failure
+ */
+static int rollback_db(sqlite3* db) {
+    char* rollback = "ROLLBACK";
+    sqlite3_stmt* stmt = NULL;
+
+    //puts("Attempting to ROLLBACK...");
+
+    if (sqlite3_prepare_v2(db, rollback, -1, &stmt, NULL) != SQLITE_OK) {
+        //printf("failed prepare: %d: %s\n", sqlite3_errcode(db), sqlite3_errmsg(db));
+        return 0;
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        //printf("failed step: %d: %s\n", sqlite3_errcode(db), sqlite3_errmsg(db));
+        return 0;
+    }
+
+    //puts("success.");
+
+    return 1;
+}
+
+/**
  * Updates the database if necessary. This function queries the current database version
  * from the metadata table and executes SQL to update the schema to newer versions if needed.
  * After that, this function updates the database version number
@@ -180,45 +209,112 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
  */
 int update_db(sqlite3* db, reg_error* errPtr) {
     const char* version;
-    char* query = "SELECT value FROM registry.metadata WHERE key = 'version'";
-    sqlite3_stmt *stmt = NULL;
+    int r;
+    int did_update = 0; // true, if an update was done and the loop should be run again
+    char* q_begin = "BEGIN";
+    char* q_version = "SELECT value FROM registry.metadata WHERE key = 'version'";
+    char* query = q_begin;
+    sqlite3_stmt* stmt = NULL;
 
-    if ((sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
-            || (sqlite3_step(stmt) != SQLITE_ROW)) {
-        goto reg_err_out;
-    }
-    if (NULL == (version = (const char *)sqlite3_column_text(stmt, 0))) {
-        goto reg_err_out;
-    }
-    /* can't call rpm_vercomp directly, because it is static, but can call sql_version */
-    if (sql_version(NULL, strlen(version), version, strlen("1.1"), "1.1") < 0) {
-        /* conversion necessary, add binary field and index to files table */
-        static char* version_1_1_queries[] = {
-            "BEGIN",
+    do {
+        did_update = 0;
 
-            "ALTER TABLE registry.files ADD COLUMN binary BOOL",
-            "CREATE INDEX registry.file_binary ON files(binary)",
-
-            "UPDATE registry.metadata SET value = '1.100' WHERE key = 'version'",
-
-            "COMMIT",
-            NULL
-        };
-
-        if (!do_queries(db, version_1_1_queries, errPtr)) {
-            goto err_out;
+        /* open a transaction to prevent a check-and-change race condition between
+         * multiply port(1) instances */
+        if ((r = sqlite3_prepare_v2(db, query, -1, &stmt, NULL)) != SQLITE_OK) {
+            break;
         }
 
-        /* TODO: Walk the file tree and set the binary field */
-    }
-    sqlite3_finalize(stmt);
-    return 1;
+        if ((r = sqlite3_step(stmt)) != SQLITE_DONE) {
+            break;
+        }
 
-reg_err_out:
-    reg_sqlite_error(db, errPtr, query);
-err_out:
+        sqlite3_finalize(stmt);
+        stmt = NULL;
+
+        /* query current version number */
+        query = q_version;
+        if ((r = sqlite3_prepare_v2(db, query, -1, &stmt, NULL)) != SQLITE_OK) {
+            break;
+        }
+
+        r = sqlite3_step(stmt);
+        if (r == SQLITE_DONE) {
+            /* the version number was not found */
+            reg_throw(errPtr, REG_INVALID, "Version number in metadata table not found.");
+            sqlite3_finalize(stmt);
+            rollback_db(db);
+            return 0;
+        }
+        if (r != SQLITE_ROW) {
+            /* an error occured querying */
+            break;
+        }
+        if (NULL == (version = (const char *)sqlite3_column_text(stmt, 0))) {
+            reg_throw(errPtr, REG_INVALID, "Version number in metadata table is NULL.");
+            sqlite3_finalize(stmt);
+            rollback_db(db);
+            return 0;
+        }
+
+        /* we can't call rpm_vercomp directly because it's static, but we have
+         * sql_version, which is basically an alias */
+        if (sql_version(NULL, -1, version, -1, "1.1") < 0) {
+            /* we need to update to 1.1, add binary field and index to files
+             * table */
+            static char* version_1_1_queries[] = {
+                "ALTER TABLE registry.files ADD COLUMN binary BOOL",
+                "CREATE INDEX registry.file_binary ON files(binary)",
+
+                "UPDATE registry.metadata SET value = '1.100' WHERE key = 'version'",
+
+                "COMMIT",
+                NULL
+            };
+
+            /* don't forget to finalize the version query here, or it might
+             * cause "cannot commit transaction - SQL statements in progress",
+             * see #32686 */
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_1_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+        /* add new versions here, but remember to:
+         *  - finalize the version query statement and set stmt to NULL
+         *  - do _not_ use "BEGIN" in your query list, since a transaction has
+         *    already been started for you
+         *  - end your query list with "COMMIT", NULL
+         *  - set did_update = 1 and continue;
+         */
+
+        /* if we arrive here, no update was done and we should end the
+         * transaction. Since no change was done, we can either ROLLBACK or
+         * COMMIT. Note that ROLLBACK will fail, if we do not finalize the
+         * current stmt!
+         */
+        sqlite3_finalize(stmt);
+        stmt = NULL;
+        rollback_db(db);
+    } while (did_update);
+
     sqlite3_finalize(stmt);
-    return 0;
+    switch (r) {
+        case SQLITE_OK:
+        case SQLITE_DONE:
+        case SQLITE_ROW:
+            return 1;
+        default:
+            reg_sqlite_error(db, errPtr, query);
+            return 0;
+    }
 }
 
 /**
