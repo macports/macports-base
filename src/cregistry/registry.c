@@ -230,6 +230,9 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                 }
             } while (r == SQLITE_BUSY);
 
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
             if (result) {
                 result &= update_db(reg->db, errPtr);
             }
@@ -372,7 +375,7 @@ int reg_start_write(reg_registry* reg, reg_error* errPtr) {
 /**
  * Helper function for `reg_commit` and `reg_rollback`.
  */
-static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
+static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr, int is_rollback) {
     if (!(reg->status & reg_transacting)) {
         reg_throw(errPtr, REG_MISUSE, "couldn't end transaction because no "
                 "transaction is open");
@@ -384,7 +387,7 @@ static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
             if (r == SQLITE_OK) {
                 return 1;
             }
-        } while (r == SQLITE_BUSY);
+        } while (r == SQLITE_BUSY && !is_rollback);
         reg_sqlite_error(reg->db, errPtr, NULL);
         return 0;
     }
@@ -399,7 +402,7 @@ static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
  * @return             true if success; false if failure
  */
 int reg_commit(reg_registry* reg, reg_error* errPtr) {
-    if (reg_end(reg, "COMMIT", errPtr)) {
+    if (reg_end(reg, "COMMIT", errPtr, 0)) {
         reg->status &= ~(reg_transacting | reg_can_write);
         return 1;
     } else {
@@ -416,7 +419,7 @@ int reg_commit(reg_registry* reg, reg_error* errPtr) {
  * @return             true if success; false if failure
  */
 int reg_rollback(reg_registry* reg, reg_error* errPtr) {
-    if (reg_end(reg, "ROLLBACK", errPtr)) {
+    if (reg_end(reg, "ROLLBACK", errPtr, 1)) {
         reg->status &= ~(reg_transacting | reg_can_write);
         return 1;
     } else {
