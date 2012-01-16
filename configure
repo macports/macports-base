@@ -9680,6 +9680,85 @@ $as_echo "$mp_cv_sqlite3_dir" >&6; }
 
 
 
+
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SQLite >= 3003011" >&5
+$as_echo_n "checking for SQLite >= 3003011... " >&6; }
+
+	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
+	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
+
+	if ${mp_cv_sqlite_version_defined+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					#include <sqlite3.h>
+					#ifndef SQLITE_VERSION_NUMBER
+					#  error "SQLITE_VERSION_NUMBER undefined"
+					#endif
+
+
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  mp_cv_sqlite_version_defined="yes"
+else
+  as_fn_error $? "\"SQLITE_VERSION_NUMBER undefined or sqlite3.h not found\"" "$LINENO" 5
+
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+fi
+
+
+	if test x"${mp_cv_sqlite_version_defined}" = "xno"; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: SQLite version not found" >&5
+$as_echo "SQLite version not found" >&6; }
+		mp_sqlite_version_ge_3003011="no"
+	else
+		if ${mp_cv_sqlite_version_ge_3003011+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+						#include <sqlite3.h>
+						#if (SQLITE_VERSION_NUMBER >= 3003011)
+						/* Everything is fine */
+						#else
+						#  error "SQLite version too old"
+						#endif
+
+
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  mp_cv_sqlite_version_ge_3003011="yes"
+else
+  mp_cv_sqlite_version_ge_3003011="no"
+
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+fi
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${mp_cv_sqlite_version_ge_3003011}" >&5
+$as_echo "${mp_cv_sqlite_version_ge_3003011}" >&6; }
+		mp_sqlite_version_ge_3003011=${mp_cv_sqlite_version_ge_3003011}
+	fi
+
+	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
+
+if test "x${mp_sqlite_version_ge_3003011}" = "xno"; then
+
+$as_echo "#define sqlite3_prepare_v2 sqlite3_prepare" >>confdefs.h
+
+fi
+
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
 

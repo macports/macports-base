@@ -231,7 +231,7 @@ AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of r
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline
-				  AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the `readline' library (-lreadline).])
+				  AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the 'readline' library (-lreadline).])
 				  ])
 	AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
 	[
@@ -270,6 +270,11 @@ MP_LIBCURL_FLAGS
 
 ## sqlite3
 MP_SQLITE3_FLAGS
+
+MP_CHECK_SQLITE_VERSION(3003011)
+if test "x${mp_sqlite_version_ge_3003011}" = "xno"; then
+	AC_DEFINE([sqlite3_prepare_v2], [sqlite3_prepare], [define sqlite3_prepare to sqlite_prepare_v2 if the latter is not available])
+fi
 
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=

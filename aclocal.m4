@@ -1064,3 +1064,76 @@ AC_DEFUN([MP_WERROR],[
 	fi
 	AC_SUBST([CFLAGS_WERROR])
 ])
+
+#------------------------------------------------------------------------
+# MP_CHECK_SQLITE_VERSION --
+#
+#	Check for a specific SQLite version and execute commands depending on availability
+#
+# Arguments:
+#       Required SQLite version for the test to succeed
+#       then-commands to execute if the version is equal to or higher than the threshold
+#       else-commands to execute if the version is lower than the threshold (optional)
+#
+# Requires:
+#       MP_SQLITE3_FLAGS
+#
+# Depends:
+#		AC_LANG_SOURCE
+#
+# Results:
+#       availability of SQLITE_VERSION_NUMBER is cached
+#       sets mp_sqlite_version_ge_$1 to yes or no
+#
+#------------------------------------------------------------------------
+AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
+	AC_REQUIRE([MP_SQLITE3_FLAGS])
+
+	AC_MSG_CHECKING([for SQLite >= $1])
+
+	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
+	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
+
+	AC_CACHE_VAL(mp_cv_sqlite_version_defined, [
+		AC_PREPROC_IFELSE(
+			[AC_LANG_SOURCE(
+				[[
+					#include <sqlite3.h>
+					#ifndef SQLITE_VERSION_NUMBER
+					#  error "SQLITE_VERSION_NUMBER undefined"
+					#endif
+				]]
+			)],
+			[mp_cv_sqlite_version_defined="yes"],
+			[AC_MSG_ERROR("SQLITE_VERSION_NUMBER undefined or sqlite3.h not found")]
+		)
+	])
+
+	if test x"${mp_cv_sqlite_version_defined}" = "xno"; then
+		AC_MSG_RESULT([SQLite version not found])
+		mp_sqlite_version_ge_$1="no"
+	else
+		AC_CACHE_VAL(mp_cv_sqlite_version_ge_$1, [
+			AC_PREPROC_IFELSE(
+				[AC_LANG_SOURCE(
+					[[
+						#include <sqlite3.h>
+						#if (SQLITE_VERSION_NUMBER >= $1)
+						/* Everything is fine */
+						#else
+						#  error "SQLite version too old"
+						#endif
+					]]
+				)],
+				[mp_cv_sqlite_version_ge_$1="yes"],
+				[mp_cv_sqlite_version_ge_$1="no"]
+			)
+		])
+
+		AC_MSG_RESULT(${mp_cv_sqlite_version_ge_$1})
+		mp_sqlite_version_ge_$1=${mp_cv_sqlite_version_ge_$1}
+	fi
+
+	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
+])
+
