@@ -1071,9 +1071,7 @@ AC_DEFUN([MP_WERROR],[
 #	Check for a specific SQLite version and execute commands depending on availability
 #
 # Arguments:
-#       Required SQLite version for the test to succeed
-#       then-commands to execute if the version is equal to or higher than the threshold
-#       else-commands to execute if the version is lower than the threshold (optional)
+#       Required SQLite version for the test to succeed in the form of SQLITE_VERSION_NUMBER
 #
 # Requires:
 #       MP_SQLITE3_FLAGS
@@ -1082,7 +1080,8 @@ AC_DEFUN([MP_WERROR],[
 #		AC_LANG_SOURCE
 #
 # Results:
-#       availability of SQLITE_VERSION_NUMBER is cached
+#		Result is cached.
+#
 #       sets mp_sqlite_version_ge_$1 to yes or no
 #
 #------------------------------------------------------------------------
