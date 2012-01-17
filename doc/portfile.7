@@ -449,6 +449,23 @@ linking in its dependents.
 .br
 .Sy Example:
 .Dl installs_libs no
+.It Ic license_noconflict
+By default, it is assumed that ports may use libraries or headers from their
+dependencies and thus form a derivative work. A dependency with an
+incompatible license thus prevents the port from being distributed in binary
+form. If a dependency with an incompatible license is not used in such a way
+that a derivative work is formed, or should not prevent binary distribution
+for any other reason, add its name to this list.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl license_noconflict openssl
+.Dl license_noconflict readline gdbm
 .El
 .Sh TARGET HOOKS
 A number of hooks are available for customizing many of the standard

@@ -53,7 +53,7 @@ options prefix name version revision epoch categories maintainers \
         platforms default_variants install.user install.group \
         macosx_deployment_target universal_variant os.universal_supported \
         supported_archs depends_skip_archcheck installs_libs \
-        copy_log_files \
+        license_noconflict copy_log_files \
         compiler.cpath compiler.library_path \
         add_users
 
@@ -65,7 +65,7 @@ option_proc default_variants handle_default_variants
 option_proc notes handle_option_string
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs
+options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs license_noconflict
 
 default subport {[portmain::get_default_subport]}
 proc portmain::get_default_subport {} {
