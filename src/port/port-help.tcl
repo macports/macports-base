@@ -253,6 +253,22 @@ Return which port provides each of the files given
 
 set porthelp(quit) $porthelp(exit)
 
+set porthelp(rev-upgrade) {
+Scan for broken binaries in the installed ports and rebuild them as needed. Can
+be run with -y to only report broken ports, but not automatically rebuild them.
+
+You normally wouldn't have to run rev-upgrade manually; it is run automatically
+after each install and upgrade by default. Rev-upgrade doesn't honor package
+names, e.g.
+	upgrade outdated
+will not run rev-upgrade only on outdated, because ports not in outdated might
+have been broken by upgrade outdated. Rev-upgrade will always run on all your
+active ports.
+
+See man 1 port, section rev-upgrade, and man 5 macports.conf, directives
+starting with revupgrade_ for configuration and more information.
+}
+
 set porthelp(rpm) {
 Creates a rpm for each of the given ports
 }
