@@ -3623,12 +3623,16 @@ proc action_list { action portlist opts } {
 
 
 proc action_echo { action portlist opts } {
+    global global_options
+
     # Simply echo back the port specs given to this command
     foreachport $portlist {
         if {![macports::ui_isset ports_quiet]} {
             set opts {}
             foreach { key value } [array get options] {
-                lappend opts "$key=$value"
+                if ![info exists global_options($key)] {
+                    lappend opts "$key=$value"
+                }
             }
 
             set composite_version [composite_version $portversion [array get variations] 1]
