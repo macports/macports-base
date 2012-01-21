@@ -2433,7 +2433,9 @@ proc action_select { action portlist opts } {
     }
     set group [lindex $portlist 0]
 
-    set commands [array names [array set {} $opts]]
+    array set opts_array $opts
+    set commands [array names opts_array ports_select_*]
+    array unset opts_array
     # If no command (--set, --show, --list) is specified *but* more than one
     # argument is specified, default to the set command.
     if {[llength $commands] < 1 && [llength $portlist] > 1} {
