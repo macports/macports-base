@@ -1594,15 +1594,16 @@ proc open_statefile {args} {
         }
     }
 
-    if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
-        file mkdir $workpath
-        chownAsRoot $subbuildpath
-    }
-
-    # Create a symlink to the workpath for port authors
-    if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-        ui_debug "Attempting ln -sf $workpath $worksymlink"
-        ln -sf $workpath $worksymlink
+    if {![tbool ports_dryrun]} {
+        if {![file isdirectory $workpath]} {
+            file mkdir $workpath
+            chownAsRoot $subbuildpath
+        }
+        # Create a symlink to the workpath for port authors
+        if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
+            ui_debug "Attempting ln -sf $workpath $worksymlink"
+            ln -sf $workpath $worksymlink
+        }
     }
 
     # de-escalate privileges if MacPorts was started with sudo
