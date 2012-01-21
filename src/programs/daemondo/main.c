@@ -921,7 +921,9 @@ void handle_child_signal(int sig)
     header.msgh_id          = sig;
     
     mach_msg_return_t status = mach_msg_send(&header);
-    status = 0;
+    if (status != 0) {
+        LogMessage("mach_msg_send failed in handle_child_signal!\n");
+    }
 }
 
 
@@ -939,7 +941,9 @@ void handle_generic_signal(int sig)
     header.msgh_id          = sig;
     
     mach_msg_return_t status = mach_msg_send(&header);
-    status = 0;
+    if (status != 0) {
+        LogMessage("mach_msg_send failed in handle_generic_signal!\n");
+    }
 }
 
 
