@@ -2023,7 +2023,7 @@ proc action_info { action portlist opts } {
         set pretty_print 0
         
         # For human-readable summary, which is the default with no options
-        if {![array size options]} {
+        if {[llength [array get options ports_info_*]] == 0} {
             set pretty_print 1
         } elseif {[info exists options(ports_info_pretty)]} {
             set pretty_print 1
