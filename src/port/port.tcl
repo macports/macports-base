@@ -3547,7 +3547,13 @@ proc action_search { action portlist opts } {
             } else {
                 if {[info exists options(ports_search_line)]
                         && $options(ports_search_line) == "yes"} {
-                    puts "$portinfo(name)\t$portinfo(version)\t$portinfo(categories)\t$portinfo(description)"
+                    # check for ports without category, e.g. replaced_by stubs
+                    if {[info exists portinfo(categories)]} {
+                        puts "$portinfo(name)\t$portinfo(version)\t$portinfo(categories)\t$portinfo(description)"
+                    } else {
+                        # keep two consecutive tabs in order to provide consistent columns' content
+                        puts "$portinfo(name)\t$portinfo(version)\t\t$portinfo(description)"
+                    }
                 } else {
                     puts -nonewline $joiner
 
