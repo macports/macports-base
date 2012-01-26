@@ -430,8 +430,7 @@ proc portconfigure::find_developer_tool {name} {
 	global developer_dir
 	
 	# Use xcode's xcrun to find the named tool.
-	set xcrun [findBinary xcrun $portutil::autoconf::xcrun_path]
-	if {[catch {set toolpath [exec ${xcrun} -find ${name}]} result] == 0} {
+	if {[catch {set toolpath [exec [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${name}]} result] == 0} {
 		return ${toolpath}
 	}
 	
