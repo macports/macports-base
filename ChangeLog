@@ -5,6 +5,9 @@
 
 Unreleased changes:
 
+    - port lint now checks for incorrect subversion properties on Portfile.
+      (raimue in r89428)
+
     - port livecheck regex finds multiple matches on the same line
       (raimue in r88031)
 
