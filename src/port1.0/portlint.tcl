@@ -627,7 +627,7 @@ proc portlint::lint_main {args} {
         } else {
             ui_debug "Property svn:eol-style is \"$output\", should be \"native\""
             if {$output != "native"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:eol-tyle native Portfile"
+                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:eol-style native Portfile"
                 incr errors
             }
         }
