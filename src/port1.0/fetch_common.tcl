@@ -252,7 +252,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
                 continue
             }
             foreach fallback $fallback_mirror_list {
-                if {[string match [append fallback *] $site]} {
+                if {[string match ${fallback}* $site]} {
                     # don't bother pinging fallback mirrors
                     set seen($host) yes
                     # and make them sort to the very end of the list
@@ -261,25 +261,29 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
                 }
             }
             if { ![info exists seen($host)] } {
-                if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]}]} {
-                    ui_debug "Spawning ping for $host failed"
-                    # will end up after all hosts that were pinged OK but before those that didn't respond
-                    set pingtimes($host) 5000
-                } else {
-                    ui_debug "Pinging $host..."
-                    set seen($host) yes
-                    lappend hosts $host
+                # first check the persistent cache
+                set pingtimes($host) [get_pingtime $host]
+                if {$pingtimes($host) == {}} {
+                    if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]}]} {
+                        ui_debug "Spawning ping for $host failed"
+                        # will end up after all hosts that were pinged OK but before those that didn't respond
+                        set pingtimes($host) 5000
+                    } else {
+                        set seen($host) yes
+                        lappend hosts $host
+                    }
                 }
             }
         }
 
         foreach host $hosts {
-            set len [gets $fds($host) pingtimes($host)]
+            gets $fds($host) pingtimes($host)
             if { [catch { close $fds($host) }] || ![string is double -strict $pingtimes($host)] } {
                 # ping failed, so put it last in the list (but before the fallback mirrors)
                 set pingtimes($host) 10000
             }
-            ui_debug "$host ping time is $pingtimes($host)"
+            # cache it
+            set_pingtime $host $pingtimes($host)
         }
 
         if {[info exists oldeuid]} {
@@ -294,7 +298,10 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
             } else {
                 regexp $hostregex $site -> host
             }
-            lappend pinglist [ list $site $pingtimes($host) ]
+            # -1 means blacklisted
+            if {$pingtimes($host) != "-1"} {
+                lappend pinglist [ list $site $pingtimes($host) ]
+            }
         }
 
         set pinglist [ lsort -real -index 1 $pinglist ]

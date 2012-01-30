@@ -49,7 +49,9 @@ namespace eval macports {
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
-        master_site_local patch_site_local archive_site_local buildfromsource revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds"
+        master_site_local patch_site_local archive_site_local buildfromsource \
+        revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
+        host_blacklist preferred_hosts"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -483,6 +485,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::macosx_version
     global macports::macosx_deployment_target
     global macports::archivefetch_pubkeys
+    global macports::ping_cache
+    global macports::host_blacklisted
+    global macports::host_preferred
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -981,6 +986,24 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # add ccache to environment
     set env(CCACHE_DIR) ${macports::ccache_dir}
 
+    # load cached ping times
+    if {[catch {
+        set pingfile [open ${macports::portdbpath}/pingtimes r]
+        array set macports::ping_cache [gets $pingfile]
+        close $pingfile
+    }]} { array set macports::ping_cache {} }
+    # set up arrays of blacklisted and preferred hosts
+    if {[info exists macports::host_blacklist]} {
+        foreach host ${macports::host_blacklist} {
+            set macports::host_blacklisted($host) 1
+        }
+    }
+    if {[info exists macports::preferred_hosts]} {
+        foreach host ${macports::preferred_hosts} {
+            set macports::host_preferred($host) 1
+        }
+    }
+
     # load the quick index
     _mports_load_quickindex
 
@@ -1016,6 +1039,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 # call this just before you exit
 proc mportshutdown {} {
+    # save ping times
+    global macports::ping_cache macports::portdbpath
+    catch {
+        set pingfile [open ${macports::portdbpath}/pingtimes w]
+        puts $pingfile [array get macports::ping_cache]
+        close $pingfile
+    }
     # close it down so the cleanup stuff is called, e.g. vacuuming the db
     registry::close
 }
@@ -1102,6 +1132,10 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     # deferred options processing.
     $workername alias getoption macports::getoption
+
+    # ping cache
+    $workername alias get_pingtime macports::get_pingtime
+    $workername alias set_pingtime macports::set_pingtime
 
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
@@ -4296,3 +4330,26 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
     }
 }
 
+# get cached ping time for host, modified by blacklist and preferred list
+proc macports::get_pingtime {host} {
+    global macports::ping_cache macports::host_blacklisted macports::host_preferred
+    if {[info exists host_blacklisted($host)]} {
+        return -1
+    } elseif {[info exists host_preferred($host)]} {
+        return 1
+    } elseif {[info exists ping_cache($host)]} {
+        # expire entries after 1 day
+        if {[expr [clock seconds] - [lindex $ping_cache($host) 1]] <= 86400} {
+            return [lindex $ping_cache($host) 0]
+        } else {
+            unset ping_cache($host)
+        }
+    }
+    return {}
+}
+
+# cache a ping time of ms for host
+proc macports::set_pingtime {host ms} {
+    global macports::ping_cache
+    set ping_cache($host) [list $ms [clock seconds]]
+}
