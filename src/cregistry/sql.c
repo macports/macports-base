@@ -181,19 +181,19 @@ static int rollback_db(sqlite3* db) {
     char* rollback = "ROLLBACK";
     sqlite3_stmt* stmt = NULL;
 
-    //puts("Attempting to ROLLBACK...");
+    /*puts("Attempting to ROLLBACK...");*/
 
     if (sqlite3_prepare_v2(db, rollback, -1, &stmt, NULL) != SQLITE_OK) {
-        //printf("failed prepare: %d: %s\n", sqlite3_errcode(db), sqlite3_errmsg(db));
+        /*printf("failed prepare: %d: %s\n", sqlite3_errcode(db), sqlite3_errmsg(db));*/
         return 0;
     }
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        //printf("failed step: %d: %s\n", sqlite3_errcode(db), sqlite3_errmsg(db));
+        /*printf("failed step: %d: %s\n", sqlite3_errcode(db), sqlite3_errmsg(db));*/
         return 0;
     }
 
-    //puts("success.");
+    /*puts("success.");*/
 
     return 1;
 }
@@ -210,7 +210,7 @@ static int rollback_db(sqlite3* db) {
 int update_db(sqlite3* db, reg_error* errPtr) {
     const char* version;
     int r;
-    int did_update = 0; // true, if an update was done and the loop should be run again
+    int did_update = 0; /* true, if an update was done and the loop should be run again */
     char* q_begin = "BEGIN";
     char* q_version = "SELECT value FROM registry.metadata WHERE key = 'version'";
     char* query = q_begin;
