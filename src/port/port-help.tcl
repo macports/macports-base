@@ -135,8 +135,6 @@ set porthelp(edit) {
 Edit given ports
 }
 
-set porthelp(ed) $porthelp(edit)
-
 set porthelp(exit) {
 Exit port
 

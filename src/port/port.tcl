@@ -3704,7 +3704,7 @@ proc action_portcmds { action portlist opts } {
                     close $f
                 }
                 
-                ed - edit {
+                edit {
                     # Edit the port's portfile with the user's editor
                     
                     # Restore our entire environment from start time.
@@ -4039,7 +4039,6 @@ array set action_array [list \
     search      [list action_search         [ACTION_ARGS_STRINGS]] \
     list        [list action_list           [ACTION_ARGS_PORTS]] \
     \
-    ed          [list action_portcmds       [ACTION_ARGS_PORTS]] \
     edit        [list action_portcmds       [ACTION_ARGS_PORTS]] \
     cat         [list action_portcmds       [ACTION_ARGS_PORTS]] \
     dir         [list action_portcmds       [ACTION_ARGS_PORTS]] \
@@ -4155,7 +4154,6 @@ proc action_needs_portlist { action } {
 global cmd_opts_array
 array set cmd_opts_array {
     edit        {{editor 1}}
-    ed          {{editor 1}}
     info        {category categories depends_fetch depends_extract
                  depends_build depends_lib depends_run
                  depends description epoch fullname heading homepage index license
