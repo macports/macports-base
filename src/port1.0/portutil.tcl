@@ -355,12 +355,13 @@ proc command_string {command} {
 }
 
 # Given a command name, execute it with the options.
-# command_exec command [-notty] [command_prefix [command_suffix]]
+# command_exec command [-notty] [-varprefix variable_prefix] [command_prefix [command_suffix]]
 # command           name of the command
+# variable_prefix   name of the variable prefix to use (defaults to command)
 # command_prefix    additional command prefix (typically pipe command)
 # command_suffix    additional command suffix (typically redirection)
 proc command_exec {command args} {
-    global ${command}.env ${command}.env_array ${command}.nice env macosx_version
+    set varprefix "${command}"
     set notty ""
     set command_prefix ""
     set command_suffix ""
@@ -371,6 +372,11 @@ proc command_exec {command args} {
             set args [lrange $args 1 end]
         }
 
+        if {[lindex $args 0] == "-varprefix"} {
+            set varprefix [lindex $args 1]
+            set args [lrange $args 2 end]
+        }
+
         if {[llength $args] > 0} {
             set command_prefix [lindex $args 0]
             if {[llength $args] > 1} {
@@ -379,37 +385,39 @@ proc command_exec {command args} {
         }
     }
 
+    global ${varprefix}.env ${varprefix}.env_array ${varprefix}.nice env macosx_version
+
     # Set the environment.
     # If the array doesn't exist, we create it with the value
-    # coming from ${command}.env
+    # coming from ${varprefix}.env
     # Otherwise, it means the caller actually played with the environment
     # array already (e.g. configure flags).
-    if {![array exists ${command}.env_array]} {
-        parse_environment ${command}
+    if {![array exists ${varprefix}.env_array]} {
+        parse_environment ${varprefix}
     }
     if {[option macosx_deployment_target] ne ""} {
-        set ${command}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
+        set ${varprefix}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
     }
-    set ${command}.env_array(CC_PRINT_OPTIONS) "YES"
-    set ${command}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
+    set ${varprefix}.env_array(CC_PRINT_OPTIONS) "YES"
+    set ${varprefix}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
     if {[option compiler.cpath] ne ""} {
-        set ${command}.env_array(CPATH) [join [option compiler.cpath] :]
+        set ${varprefix}.env_array(CPATH) [join [option compiler.cpath] :]
     }
     if {[option compiler.library_path] ne ""} {
-        set ${command}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
+        set ${varprefix}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
     }
 
     # When building, g-ir-scanner should not save its cache to $HOME
     # See: https://trac.macports.org/ticket/26783
-    set ${command}.env_array(GI_SCANNER_DISABLE_CACHE) "1"
+    set ${varprefix}.env_array(GI_SCANNER_DISABLE_CACHE) "1"
 
     # Debug that.
-    ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
+    ui_debug "Environment: [environment_array_to_string ${varprefix}.env_array]"
 
     # Prepare nice value change
     set nice ""
-    if {[info exists ${command}.nice] && [set ${command}.nice] != ""} {
-        set nice "-nice [set ${command}.nice]"
+    if {[info exists ${varprefix}.nice] && [set ${varprefix}.nice] != ""} {
+        set nice "-nice [set ${varprefix}.nice]"
     }
 
     # Get the command string.
@@ -420,14 +428,14 @@ proc command_exec {command args} {
     # Save the environment.
     array set saved_env [array get env]
     # Set the overriden variables from the portfile.
-    array set env [array get ${command}.env_array]
+    array set env [array get ${varprefix}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
     ui_debug "Executing command line: $fullcmdstring"
     set code [catch {eval system $notty $nice \$fullcmdstring} result]
 
     # Unset the command array until next time.
-    array unset ${command}.env_array
+    array unset ${varprefix}.env_array
 
     # Restore the environment.
     array unset env *

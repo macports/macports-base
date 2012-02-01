@@ -699,10 +699,9 @@ proc portconfigure::configure_main {args} {
     if {[tbool use_xmkmf]} {
         if {[catch {command_exec xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
-        } else {
-            # XXX should probably use make command abstraction but we know that
-            # X11 will already set things up so that "make Makefiles" always works.
-            system "cd ${worksrcpath} && make Makefiles"
+        }
+        if {[catch {command_exec "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
+            return -code error "[format [msgcat::mc "%s failure: %s"] "make Makefiles" $result]"
         }
     } elseif {[tbool use_configure]} {
         # Merge (ld|c|cpp|cxx)flags into the environment variable.
