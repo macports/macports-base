@@ -697,6 +697,7 @@ proc portconfigure::configure_main {args} {
     }
 
     if {[tbool use_xmkmf]} {
+        append_list_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
         }
