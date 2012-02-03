@@ -496,15 +496,21 @@ proc portlint::lint_main {args} {
         incr errors
     }
 
-    if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
-        ui_warn "Using legacy email address for no/open maintainer"
-        incr warnings
-    }
-
-    if {[string match "*nomaintainer@macports.org*" $maintainers] ||
-        [string match "*openmaintainer@macports.org*" $maintainers]} {
-        ui_warn "Using full email address for no/open maintainer"
-        incr warnings
+    foreach addr $maintainers {
+        if {$addr == "nomaintainer@macports.org" ||
+                $addr == "openmaintainer@macports.org"} {
+            ui_warn "Using full email address for no/open maintainer"
+            incr warnings
+        } elseif [regexp "^(.+)@macports.org$" $addr -> name] {
+            ui_warn "Maintainer email address for $name includes @macports.org"
+            incr warnings
+        } elseif {$addr == "darwinports@opendarwin.org"} {
+            ui_warn "Using legacy email address for no/open maintainer"
+            incr warnings
+        } elseif [regexp "^(.+)@(.+)$" $addr -> localpart domain] {
+            ui_warn "Maintainer email address should be obfuscated as $domain:$localpart"
+            incr warnings
+        }
     }
 
     if {$license == "unknown"} {
