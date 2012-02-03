@@ -250,6 +250,11 @@ proc portlint::lint_main {args} {
             }
         }
 
+        if {[string match "*addgroup*" $line] || [string match "*adduser*" $line]} {
+            ui_warn "Line $lineno should use add_users"
+            incr warnings
+        }
+
         if {[regexp {(^|\s)configure\s+\{\s*\}} $line]} {
             ui_warn "Line $lineno should say \"use_configure no\" instead of declaring an empty configure phase"
             incr warnings
