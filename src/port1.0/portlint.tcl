@@ -250,8 +250,8 @@ proc portlint::lint_main {args} {
             }
         }
 
-        if {[string match "*addgroup*" $line] || [string match "*adduser*" $line]} {
-            ui_warn "Line $lineno should use add_users"
+        if {[string match "*adduser*" $line]} {
+            ui_warn "Line $lineno calling adduser directly; consider setting add_users instead"
             incr warnings
         }
 
