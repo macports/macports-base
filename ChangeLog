@@ -5,13 +5,12 @@
 
 Unreleased changes:
 
-    - port lint now checks for incorrect subversion properties on Portfile.
-      (raimue in r89428)
-
     - port livecheck regex finds multiple matches on the same line
       (raimue in r88031)
 
-    - port lint now recognizes licenses (snc in r85929, r86016)
+    - Several improvements to port lint:
+      licenses, subversion properties, maintainer addresses
+      (snc, raimue in r85929, r86016, r89428, r89610)
 
     - Implement new option-replace using lsearch/lreplace. The old behavior is
       deprecated for option-replace with only one argument, but can still be
