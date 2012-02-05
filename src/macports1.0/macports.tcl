@@ -4241,6 +4241,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 # call macports::upgrade with ports_revupgrade option to rebuild the port
                 set status [macports::upgrade [$port name] "port:[$port name]" \
                     [array get variations] [array get macports::global_options] depscache]
+                ui_debug "Rebuilding port [$port name] finished with status $status"
                 if {$status != 0} {
                     error "Error rebuilding [$port name]"
                 }
