@@ -45,7 +45,7 @@ namespace eval macports {
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
-        rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
+        rsync_dir startupitem_type startupitem_install place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -57,7 +57,7 @@ namespace eval macports {
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
-        rsync_server rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
+        rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target $user_options"
@@ -769,6 +769,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Set startupitem default type (can be overridden by portfile)
     if {![info exists macports::startupitem_type]} {
         set macports::startupitem_type "default"
+    }
+
+    # Set whether startupitems are symlinked into system directories
+    if {![info exists macports::startupitem_install]} {
+        set macports::startupitem_install yes
     }
 
     # Default place_worksymlink

@@ -53,7 +53,7 @@ options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
 options startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
-options startupitem.uniquename startupitem.plist startupitem.location
+options startupitem.uniquename startupitem.plist startupitem.location startupitem.install
 commands destroot
 
 # Set defaults
@@ -85,6 +85,7 @@ default startupitem.pidfile     ""
 default startupitem.logfile     ""
 default startupitem.logevents   no
 default startupitem.netchange   no
+default startupitem.install     {$system_options(startupitem_install)}
 
 set_ui_prefix
 
