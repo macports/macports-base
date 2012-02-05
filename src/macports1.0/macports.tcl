@@ -4184,8 +4184,15 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         set unsorted_ports $broken_ports
         set topsort_ports {}
         while {[llength $unsorted_ports] > 0} {
+            set lowest_adj_number [llength $adjlist([lindex $unsorted_ports 0])]
+            set lowest_adj_port [lindex $unsorted_ports 0]
+
             foreach port $unsorted_ports {
-                if {[llength $adjlist($port)] == 0} {
+                set len [llength $adjlist($port)]
+                if {$len < $lowest_adj_number} {
+                    set lowest_adj_port $port
+                }
+                if {$len == 0} {
                     # this node has no further dependencies
                     # add it to topsorted list
                     lappend topsort_ports $port
@@ -4198,6 +4205,24 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         set index [lsearch -exact $adjlist($target) $port]
                         set adjlist($target) [lreplace $adjlist($target) $index $index]
                     }
+                }
+
+                # start anew
+                break;
+            }
+
+            # if we arrive here and lowest_adj_number is larger than 0, then we
+            # have a loop in the graph and need to break it somehow
+            if {$lowest_adj_number > 0} {
+                ui_debug "Breaking loop in dependency graph by starting with [$lowest_adj_port name], which has $lowest_adj_number dependencies"
+                lappend topsort_ports $lowest_adj_port
+
+                set index [lsearch -exact $unsorted_ports $lowest_adj_port]
+                set unsorted_ports [lreplace $unsorted_ports $index $index]
+
+                foreach target $revadjlist($port) {
+                    set index [lsearch -exact $adjlist($target) $lowest_adj_port]
+                    set adjlist($target) [lreplace $adjlist($target) $index $index]
                 }
             }
         }
