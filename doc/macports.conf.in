@@ -108,7 +108,7 @@ universal_archs		@UNIVERSAL_ARCHS@
 
 # Option to install symlinks into /Library/LaunchAgents or /Library/LaunchDaemons
 # startupitem_install may be empty, "yes" or "no";
-# if the option is NOT "no" then a simlink for the startupitem will be created in
+# if the option is NOT "no" then a symlink for the startupitem will be created in
 # the appropriate system directory.
 #startupitem_install    yes
 
