@@ -916,13 +916,25 @@ proc ldelete {list value} {
 # Provides "sed in place" functionality
 proc reinplace {args}  {
 
+    global env
     set extended 0
     set suppress 0
+    set oldlocale_exists 0
+    set oldlocale "" 
+    set locale ""
     while 1 {
         set arg [lindex $args 0]
         if {[string index $arg 0] eq "-"} {
             set args [lrange $args 1 end]
             switch -- [string range $arg 1 end] {
+                locale {
+                    set oldlocale_exists [info exists env(LC_CTYPE)]
+                    if {$oldlocale_exists} {
+                        set oldlocale $env(LC_CTYPE)
+                    }
+                    set locale [lindex $args 0]
+                    set args [lrange $args 1 end]
+                }
                 E {
                     set extended 1
                 }
@@ -971,15 +983,32 @@ proc reinplace {args}  {
             lappend cmdline -n
         }
         set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
+        if {$locale != ""} {
+            set env(LC_CTYPE) $locale
+        }
         if {[catch {eval exec $cmdline} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "reinplace: $error"
             file delete "$tmpfile"
+            if {$locale != ""} {
+                if {$oldlocale_exists} {
+                    set env(LC_CTYPE) $oldlocale
+                } else {
+                    unset env(LC_CTYPE)
+                }
+            }
             close $tmpfd
             return -code error "reinplace sed(1) failed"
         }
 
+        if {$locale != ""} {
+            if {$oldlocale_exists} {
+                set env(LC_CTYPE) $oldlocale
+            } else {
+                unset env(LC_CTYPE)
+            }
+        }
         close $tmpfd
 
         set attributes [file attributes $file]
