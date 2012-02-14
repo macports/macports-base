@@ -2796,7 +2796,7 @@ proc _check_xcode_version {} {
         }
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
-            if {[file exists "/Applications/Install XCode.app"]} {
+            if {[file exists "/Applications/Install Xcode.app"]} {
                 ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
             }
         } elseif {[vercmp $xcodeversion $min] < 0} {
