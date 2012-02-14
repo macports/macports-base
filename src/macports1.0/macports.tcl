@@ -4383,8 +4383,6 @@ proc macports::get_pingtime {host} {
         # expire entries after 1 day
         if {[expr [clock seconds] - [lindex $ping_cache($host) 1]] <= 86400} {
             return [lindex $ping_cache($host) 0]
-        } else {
-            unset ping_cache($host)
         }
     }
     return {}
