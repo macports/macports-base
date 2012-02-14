@@ -1046,10 +1046,18 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 proc mportshutdown {} {
     # save ping times
     global macports::ping_cache macports::portdbpath
-    catch {
-        set pingfile [open ${macports::portdbpath}/pingtimes w]
-        puts $pingfile [array get macports::ping_cache]
-        close $pingfile
+    if {[file writable ${macports::portdbpath}]} {
+        catch {
+            foreach host [array names ping_cache] {
+                # don't save expired entries
+                if {[expr [clock seconds] - [lindex $ping_cache($host) 1]] < 86400} {
+                    lappend pinglist_fresh $host $ping_cache($host)
+                }
+            }
+            set pingfile [open ${macports::portdbpath}/pingtimes w]
+            puts $pingfile $pinglist_fresh
+            close $pingfile
+        }
     }
     # close it down so the cleanup stuff is called, e.g. vacuuming the db
     registry::close
