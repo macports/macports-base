@@ -44,6 +44,8 @@ target_state ${org.macports.main} no
 namespace eval portmain {
 }
 
+set_ui_prefix
+
 # define options
 options prefix name version revision epoch categories maintainers \
         long_description description homepage notes license \
@@ -144,10 +146,81 @@ if {[option os.platform] == "darwin"} {
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
 
+
+proc is_valid_developer_dir { dir } {
+	# Check whether specified directory looks valid for an Xcode installation
+	
+	# Verify that the directory exists
+	if {![file isdirectory $dir]} {
+		return 0
+	}
+	
+	# Verify that the directory has some key subdirectories
+	foreach subdir {Headers Library usr} {
+		if {![file isdirectory "${dir}/${subdir}"]} {
+			return 0
+		}
+	}
+	
+	# The specified directory seems valid for Xcode
+	return 1
+}
+
+
+proc get_xcode_suggestions {} {
+	# Ask mdfind where Xcode is
+	set result ""
+    if {![catch {set mdfind [binaryInPath mdfind]}]} {
+    	set result [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
+	}
+	return $result
+}
+
+
 proc portmain::get_developer_dir {} {
-    if {![catch {binaryInPath xcode-select}]} {
-        return [exec xcode-select -print-path 2> /dev/null]
+	set devdir ""
+
+	# Look for xcodeselect, and make sure it has a valid value
+    if {![catch {set xcodeselect [binaryInPath xcode-select]}]} {
+		
+		# We have xcodeselect: ask it where xcode is
+    	set devdir [exec $xcodeselect -print-path 2> /dev/null]
+
+		# If the the directory is valid, use it
+    	if {[is_valid_developer_dir $devdir]} {
+    		return $devdir
+    	}
+    	
+    	# The directory from xcodeselect isn't correct.
+    	# Make some suggestions for the user
+    	set installed_xcodes [get_xcode_suggestions]
+    	if {[llength $installed_xcodes] == 0} {
+    		# No installed Xcodes found
+    		ui_error "No Xcode installation was found; please install Xcode"
+    	} else {
+    		# One, or more than one, Xcode installations found
+    		ui_error "No valid Xcode installation is properly selected"
+    		
+    		ui_error
+    		ui_error "Please use xcode-select to select an Xcode version:"
+    		foreach xcode $installed_xcodes {
+    			ui_error "    sudo xcode-select -switch ${xcode}"
+    		}
+    		ui_error
+    	}
     }
+    
+    # xcode-select wasn't found, look for Xcode at /Developer
+    set devdir "/Developer"
+    if {[is_valid_developer_dir $devdir]} {
+    	return $devdir
+    }
+    
+    ui_error
+	ui_error "No valid Xcode installation was found: please install Xcode"
+    ui_error
+    
+    # We return /Developer here even though we know it's wrong. Abort instead?
     return "/Developer"
 }
 
