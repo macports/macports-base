@@ -186,7 +186,7 @@ proc portmain::get_developer_dir {} {
         # We have xcodeselect: ask it where xcode is
         set devdir [exec $xcodeselect -print-path 2> /dev/null]
 
-        # If the the directory is valid, use it
+        # If the directory is valid, use it
         if {[is_valid_developer_dir $devdir]} {
             return $devdir
         }
@@ -196,13 +196,13 @@ proc portmain::get_developer_dir {} {
         set installed_xcodes [get_xcode_suggestions]
         if {[llength $installed_xcodes] == 0} {
             # No installed Xcodes found
-            ui_error "No Xcode installation was found; please install Xcode"
+            ui_error "No valid Xcode installation was found; please install Xcode"
         } else {
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected"
             
             ui_error
-            ui_error "Please use xcode-select to select an Xcode version:"
+            ui_error "Please use xcode-select to select an Xcode installation:"
             foreach xcode $installed_xcodes {
                 ui_error "    sudo xcode-select -switch ${xcode}"
             }
