@@ -11,6 +11,12 @@
             ..
             distfiles
             ..
+            home
+                Library
+                    Preferences uname=@RUNUSR@ gname=@RUNUSR@ mode=700
+                    ..
+                ..
+            ..
             logs
             ..
             registry
@@ -20,3 +26,5 @@
         ..
     ..
 ..
+
+

@@ -64,10 +64,18 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /var/empty ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${prefix}/var/macports/home ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
             else \
                 echo "Not creating user \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if test "$$(${DSCL} -q . -read /Users/${RUNUSR} NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ; then \
+            if test `id -u` -eq 0; then \
+                echo "Updating home directory location for user \"${RUNUSR}\"" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${prefix}/var/macports/home ; \
+            else \
+                echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
             fi ; \
         fi ; \
         if test `sw_vers -productVersion | /usr/bin/awk -F . '{print $$2}'` -eq 4 -a `id -u` -eq 0; then \
