@@ -366,7 +366,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
-    if {[!catch {findBinary xcodebuild /usr/bin/xcodebuild]} xcodebuild} {
+    if {![catch {findBinary xcodebuild /usr/bin/xcodebuild} xcodebuild]} {
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion "2.0orlower"
