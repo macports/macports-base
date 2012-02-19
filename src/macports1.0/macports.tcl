@@ -453,16 +453,17 @@ proc macports::set_developer_dir {name1 name2 op} {
             }
             ui_error
         }
-        # Try the default
-        if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
-            set devdir "/Applications/Xcode.app/Contents/Developer"
-        } else {
-            set devdir "/Developer"
-        }
-        if {![_is_valid_developer_dir $devdir]} {
-            ui_error "No valid Xcode installation was found. Please install or correctly select Xcode."
-        }
     }
+
+	# Try the default
+	if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
+		set devdir "/Applications/Xcode.app/Contents/Developer"
+	} else {
+		set devdir "/Developer"
+	}
+	if {![_is_valid_developer_dir $devdir]} {
+		ui_error "No valid Xcode installation was found. Please install or correctly select Xcode using xcode-select."
+	}
 
     return $devdir
 }
