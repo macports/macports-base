@@ -449,8 +449,8 @@ proc macports::set_developer_dir {name1 name2 op} {
             ui_error
             ui_error "Please use xcode-select to select an Xcode installation:"
             foreach xcode $installed_xcodes {
-                regexp {kMDItemVersion = "([\d.]+)"} [exec $mdls -name kMDItemVersion $xcode] match vers
-                if {![info exists vers]} { set vers "unknown" }
+                set vers [exec $mdls -raw -name kMDItemVersion $xcode]
+                if { $vers == "(null)" } { set vers "unknown" }
                 if {[vercmp $vers 4.3] >= 0 || [_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
                     ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
                 } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
