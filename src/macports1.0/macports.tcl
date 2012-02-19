@@ -433,7 +433,7 @@ proc macports::set_developer_dir {name1 name2 op} {
 
         # If the directory is valid, use it
         if {[_is_valid_developer_dir $devdir]} {
-			set macports::developer_dir $devdir
+            set macports::developer_dir $devdir
             return
         }
 
@@ -456,17 +456,17 @@ proc macports::set_developer_dir {name1 name2 op} {
         }
     }
 
-	# Try the default
-	if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
-		set devdir "/Applications/Xcode.app/Contents/Developer"
-	} else {
-		set devdir "/Developer"
-	}
-	if {![_is_valid_developer_dir $devdir]} {
-		ui_error "No valid Xcode installation was found. Please install or correctly select Xcode using xcode-select."
-	}
-	
-	set macports::developer_dir $devdir
+    # Try the default
+    if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
+        set devdir "/Applications/Xcode.app/Contents/Developer"
+    } else {
+        set devdir "/Developer"
+    }
+    if {![_is_valid_developer_dir $devdir]} {
+        ui_error "No valid Xcode installation was found. Please install or correctly select Xcode using xcode-select."
+    }
+    
+    set macports::developer_dir $devdir
 }
 
 proc macports::_is_valid_developer_dir {dir} {
@@ -749,8 +749,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::portautoclean "yes"
         global macports::portautoclean
     }
-	# whether to keep logs after successful builds
-   	if {![info exists keeplogs]} {
+    # whether to keep logs after successful builds
+    if {![info exists keeplogs]} {
         set macports::keeplogs "no"
         global macports::keeplogs
     }
