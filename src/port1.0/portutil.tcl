@@ -5,7 +5,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2011 The MacPorts Project
+# Copyright (c) 2004-2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1229,11 +1229,14 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped worksrcpath prefix subport
+    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
+           ports_dry_last_skipped worksrcpath prefix subport env portdbpath
     set portname $subport
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
+    set savedhome [file join $portdbpath home]
+    set env(HOME) "${workpath}/.home"
 
     if {[ditem_key $ditem state] != "no"} {
         set target_state_fd [open_statefile]
@@ -1428,6 +1431,8 @@ proc target_run {ditem} {
         close $target_state_fd
     }
 
+    set env(HOME) $savedhome
+
     return $result
 }
 
@@ -1533,8 +1538,8 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink subport portpath ports_ignore_older ports_dryrun
-    global usealtworkpath altprefix env applications_dir subbuildpath
+    global workpath worksymlink place_worksymlink subport portpath ports_ignore_older ports_dryrun \
+           usealtworkpath altprefix env applications_dir subbuildpath
 
     if {$usealtworkpath} {
          ui_warn_once "privileges" "MacPorts running without privileges.\
@@ -1559,9 +1564,15 @@ proc open_statefile {args} {
         }
     }
 
-    if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
-        file mkdir $workpath
-        chownAsRoot $subbuildpath
+    if {![tbool ports_dryrun]} {
+        if {![file isdirectory $workpath]} {
+            file mkdir "${workpath}/.home"
+            global xcodeversion
+            if {[vercmp $xcodeversion 4.3] >= 0} {
+                _copy_xcode_plist "${workpath}/.home"
+            }
+            chownAsRoot $subbuildpath
+        }
         # Create a symlink to the workpath for port authors
         if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
             ui_debug "Attempting ln -sf $workpath $worksymlink"
