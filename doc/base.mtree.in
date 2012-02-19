@@ -13,7 +13,7 @@
             ..
             home
                 Library
-                    Preferences uname=@RUNUSR@ gname=@RUNUSR@ mode=755
+                    Preferences
                     ..
                 ..
             ..
