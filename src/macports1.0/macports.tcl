@@ -1160,13 +1160,14 @@ proc mportshutdown {} {
 
 # link plist for xcode 4.3's benefit
 proc macports::copy_xcode_plist {target_homedir} {
-    global macports::user_home
+    global macports::user_home macports::macportsuser
     set user_plist "${user_home}/Library/Preferences/com.apple.dt.Xcode.plist"
     set target_dir "${target_homedir}/Library/Preferences"
     if {[file isfile $user_plist]} {
         if {[catch {
                 file mkdir "${target_homedir}/Library/Preferences"
                 file copy -force $user_plist $target_dir
+                file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
                 } result]} {
             ui_debug "Failed to copy com.apple.dt.Xcode.plist: $result"
         }
