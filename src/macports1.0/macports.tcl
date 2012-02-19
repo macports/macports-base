@@ -366,7 +366,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
-    if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
+    if {[!catch {findBinary xcodebuild /usr/bin/xcodebuild]} xcodebuild} {
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion "2.0orlower"
@@ -426,7 +426,7 @@ proc macports::set_developer_dir {name1 name2 op} {
 
     set devdir ""
     # Look for xcodeselect, and make sure it has a valid value
-    if {![catch {binaryInPath xcode-select} xcodeselect]} {
+    if {![catch {findBinary xcode-select /usr/bin/xcode-select} xcodeselect]} {
 
         # We have xcode-select: ask it where xcode is
         set devdir [exec $xcodeselect -print-path 2> /dev/null]
@@ -439,7 +439,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         # The directory from xcode-select isn't correct.
         # Ask mdfind where Xcode is and make some suggestions for the user
         set installed_xcodes {}
-        if {![catch {binaryInPath mdfind} mdfind]} {
+        if {![catch {findBinary mdfind /usr/bin/mdfind} mdfind]} {
             set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
         }
         if {[llength $installed_xcodes] > 0} {
