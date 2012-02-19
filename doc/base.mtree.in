@@ -11,6 +11,12 @@
             ..
             distfiles
             ..
+            home
+                Library
+                    Preferences
+                    ..
+                ..
+            ..
             logs
             ..
             registry
