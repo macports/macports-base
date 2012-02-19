@@ -437,10 +437,14 @@ proc macports::set_developer_dir {name1 name2 op} {
         }
 
         # The directory from xcode-select isn't correct.
-        # Ask mdfind where Xcode is and make some suggestions for the user
+        # Ask mdfind where Xcode is and make some suggestions for the user,
+        # searching by bundle identifier for various Xcode versions (3.x and 4.x)
         set installed_xcodes {}
         if {![catch {findBinary mdfind /usr/bin/mdfind} mdfind]} {
-            set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
+            set installed_xcodes [concat \
+                [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode'"] \
+                [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"] \
+                ]
         }
         if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls /usr/bin/mdls} mdls]} {
             # One, or more than one, Xcode installations found
