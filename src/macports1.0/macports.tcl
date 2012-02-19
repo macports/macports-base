@@ -424,7 +424,6 @@ proc macports::set_developer_dir {name1 name2 op} {
 
     trace remove variable macports::developer_dir read macports::set_developer_dir
 
-    set devdir ""
     # Look for xcodeselect, and make sure it has a valid value
     if {![catch {findBinary xcode-select /usr/bin/xcode-select} xcodeselect]} {
 
@@ -462,10 +461,7 @@ proc macports::set_developer_dir {name1 name2 op} {
     } else {
         set devdir "/Developer"
     }
-    if {![_is_valid_developer_dir $devdir]} {
-        ui_error "No valid Xcode installation was found. Please install or correctly select Xcode using xcode-select."
-    }
-    
+
     set macports::developer_dir $devdir
 }
 
