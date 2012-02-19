@@ -442,14 +442,22 @@ proc macports::set_developer_dir {name1 name2 op} {
         if {![catch {findBinary mdfind /usr/bin/mdfind} mdfind]} {
             set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
         }
-        if {[llength $installed_xcodes] > 0} {
+        if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls /usr/bin/mdls} mdls]} {
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected."
-
+            
             ui_error
             ui_error "Please use xcode-select to select an Xcode installation:"
             foreach xcode $installed_xcodes {
-                ui_error "    sudo xcode-select -switch ${xcode}"
+                regexp {kMDItemVersion = "([\d.]+)"} [exec $mdls -name kMDItemVersion $xcode] match vers
+                if {![info exists vers]} { set vers "unknown" }
+                if {[vercmp $vers 4.3] >= 0 || [_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
+                    ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
+                } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
+                    ui_error "    sudo xcode-select -switch [file normalize ${xcode}/../..] # version ${vers}"
+                } else {
+                    ui_error "    # malformed xcode at ${xcode}, version ${vers}"
+                }
             }
             ui_error
         }
