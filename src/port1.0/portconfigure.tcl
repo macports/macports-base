@@ -418,22 +418,27 @@ proc portconfigure::configure_get_compiler {type} {
             }
         }
         llvm-gcc-4.2 {
+            global macosx_version
+            set llvm_prefix ""
+            if {$macosx_version == "10.5"} {
+                set llvm_prefix ${developer_dir}
+            }
             switch -exact ${type} {
-                cc   { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
-                objc { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
-                cxx  { set ret ${developer_dir}/usr/bin/llvm-g++-4.2 }
-                cpp  { set ret ${developer_dir}/usr/bin/llvm-cpp-4.2 }
+                cc   { set ret ${llvm_prefix}/usr/bin/llvm-gcc-4.2 }
+                objc { set ret ${llvm_prefix}/usr/bin/llvm-gcc-4.2 }
+                cxx  { set ret ${llvm_prefix}/usr/bin/llvm-g++-4.2 }
+                cpp  { set ret ${llvm_prefix}/usr/bin/llvm-cpp-4.2 }
             }
         }
         clang {
             switch -exact ${type} {
-                cc   { set ret ${developer_dir}/usr/bin/clang }
-                objc { set ret ${developer_dir}/usr/bin/clang }
+                cc   { set ret /usr/bin/clang }
+                objc { set ret /usr/bin/clang }
                 cxx  {
-                    if {[file executable ${developer_dir}/usr/bin/clang++]} {
-                        set ret ${developer_dir}/usr/bin/clang++
+                    if {[file executable /usr/bin/clang++]} {
+                        set ret /usr/bin/clang++
                     } else {
-                        set ret ${developer_dir}/usr/bin/llvm-g++-4.2
+                        set ret /usr/bin/llvm-g++-4.2
                     }
                 }
             }
