@@ -1018,7 +1018,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {$os_major >= 11 && $os_platform == "darwin" && [vercmp $xcodeversion 4.3] >= 0} {
-        macports::link_xcode_plist $env(HOME)
+        macports::copy_xcode_plist $env(HOME)
     }
 
     # Set the default umask
@@ -1153,18 +1153,16 @@ proc mportshutdown {} {
 }
 
 # link plist for xcode 4.3's benefit
-proc macports::link_xcode_plist {target_homedir} {
+proc macports::copy_xcode_plist {target_homedir} {
     global macports::user_home
     set user_plist "${user_home}/Library/Preferences/com.apple.dt.Xcode.plist"
-    set plist_link "${target_homedir}/Library/Preferences/com.apple.dt.Xcode.plist"
-    if {[file isfile $user_plist] && ([catch {file type $plist_link} filetype]
-        || $filetype != "link" || [file link $plist_link] != $user_plist)} {
+    set target_dir "${target_homedir}/Library/Preferences"
+    if {[file isfile $user_plist]} {
         if {[catch {
                 file mkdir "${target_homedir}/Library/Preferences"
-                file delete -force $plist_link
-                file link -symbolic $plist_link $user_plist
+                file copy -force $user_plist $target_dir
                 } result]} {
-            ui_debug "Failed to link com.apple.dt.Xcode.plist: $result"
+            ui_debug "Failed to copy com.apple.dt.Xcode.plist: $result"
         }
     }
 }
@@ -1228,7 +1226,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias realpath realpath
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
-    $workername alias _link_xcode_plist macports::link_xcode_plist
+    $workername alias _copy_xcode_plist macports::copy_xcode_plist
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry

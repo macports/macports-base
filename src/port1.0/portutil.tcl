@@ -1641,7 +1641,7 @@ proc open_statefile {args} {
             file mkdir "${workpath}/.home"
             global xcodeversion
             if {[vercmp $xcodeversion 4.3] >= 0} {
-                _link_xcode_plist "${workpath}/.home"
+                _copy_xcode_plist "${workpath}/.home"
             }
             chownAsRoot $subbuildpath
         }
