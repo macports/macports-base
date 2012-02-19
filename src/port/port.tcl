@@ -332,11 +332,10 @@ proc registry_installed {portname {portversion ""}} {
 }
 
 
-proc add_to_portlist {listname portentry} {
-    upvar $listname portlist
+proc entry_for_portlist {portentry} {
     global global_options global_variations
 
-    # The portlist currently has the following elements in it:
+    # Each portlist entry currently has the following elements in it:
     #   url             if any
     #   name
     #   version         (version_revision)
@@ -364,12 +363,18 @@ proc add_to_portlist {listname portentry} {
         }
     }
 
-
     # Form the fully discriminated portname: portname/version_revison+-variants
     set port(fullname) "$port(name)/[composite_version $port(version) $port(variants)]"
     
-    # Add it to our portlist
-    lappend portlist [array get port]
+    return [array get port]
+}
+
+
+proc add_to_portlist {listname portentry} {
+    upvar $listname portlist
+    
+    # Form portlist entry and add to portlist
+    lappend portlist [entry_for_portlist $portentry]
 }
 
 
@@ -684,30 +689,31 @@ proc unobscure_maintainers { list } {
 ##########################################
 # Port selection
 ##########################################
+proc unique_results_to_portlist {infos} {
+    set result {}
+    array unset unique
+    foreach {name info} $infos {
+        array unset portinfo
+        array set portinfo $info
+        
+        array unset entry
+        array set entry [entry_for_portlist [list url $portinfo(porturl) name $name]]
+        if {[info exists unique($entry(fullname))]} continue
+        set unique($entry(fullname)) 1
+        lappend result [array get entry]
+    }
+    return $result
+}
+
+
 proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field name}} {
     if {[catch {set res [mportsearch $pattern $casesensitive $matchstyle $field]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         fatal "search for portname $pattern failed: $result"
     }
-
-    set results {}
-    foreach {name info} $res {
-        array unset portinfo
-        array set portinfo $info
-
-        #set variants {}
-        #if {[info exists portinfo(variants)]} {
-        #   foreach variant $portinfo(variants) {
-        #       lappend variants $variant "+"
-        #   }
-        #}
-        # For now, don't include version or variants with all ports list
-        #"$portinfo(version)_$portinfo(revision)"
-        #$variants
-        add_to_portlist results [list url $portinfo(porturl) name $name]
-    }
-
+    set results [unique_results_to_portlist $res]
+    
     # Return the list of all ports, sorted
     return [portlist_sort $results]
 }
@@ -722,13 +728,7 @@ proc get_all_ports {} {
             ui_debug "$errorInfo"
             fatal "listing all ports failed: $result"
         }
-        set results {}
-        foreach {name info} $res {
-            array unset portinfo
-            array set portinfo $info
-            add_to_portlist results [list url $portinfo(porturl) name $name]
-        }
-
+        set results [unique_results_to_portlist $res]
         set all_ports_cache [portlist_sort $results]
     }
     return $all_ports_cache
@@ -1166,7 +1166,7 @@ proc seqExpr { resname } {
             set reslist [opUnion $reslist $blist]
         }
     }
-
+    
     return $result
 }
 
@@ -1435,19 +1435,25 @@ proc add_multiple_ports { resname ports {remainder ""} } {
 }
 
 
-proc opUnion { a b } {
+proc unique_entries { entries } {
+    # Form the list of all the unique elements in the list a,
+    # considering only the port fullname, and taking the first
+    # found element first
     set result {}
-    
-    # Walk through both lists a and b, adding to result only unique ports
     array unset unique
-    foreach item [concat $a $b] {
+    foreach item $entries {
         array set port $item
         if {[info exists unique($port(fullname))]} continue
         set unique($port(fullname)) 1
         lappend result $item
     }
-    
     return $result
+}
+
+
+proc opUnion { a b } {
+    # Return the unique elements in the combined two lists
+    return [unique_entries [concat $a $b]]
 }
 
 
@@ -1468,14 +1474,14 @@ proc opIntersection { a b } {
     # First create a list of the fully discriminated names in b
     array unset bfull
     set i 0
-    foreach bitem $b {
+    foreach bitem [unique_entries $b] {
         array set port $bitem
         set bfull($port(fullname)) $i
         incr i
     }
     
     # Walk through each item in a, matching against b
-    foreach aitem $a {
+    foreach aitem [unique_entries $a] {
         array set port $aitem
         
         # Quote the fullname and portname to avoid special characters messing up the regexp
