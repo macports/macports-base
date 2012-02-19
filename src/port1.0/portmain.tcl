@@ -57,7 +57,7 @@ options prefix name version revision epoch categories maintainers \
         supported_archs depends_skip_archcheck installs_libs \
         license_noconflict copy_log_files \
         compiler.cpath compiler.library_path \
-        add_users
+        add_users altprefix
 
 # Order of option_proc and option_export matters. Filter before exporting.
 
@@ -230,30 +230,9 @@ proc portmain::get_developer_dir {} {
 set euid [geteuid]
 set egid [getegid]
 
-# resolve the alternate work path in ~/.macports
-proc portmain::set_altprefix {} {
-    global altprefix env euid
-
-    # do tilde expansion manually - Tcl won't expand tildes automatically for curl, etc.
-    if {[info exists env(HOME)]} {
-        # HOME environment var is set, use it.
-        set userhome "$env(HOME)"
-    } elseif {$euid == 0 && [info exists env(SUDO_USER)] && $env(SUDO_USER) != ""} {
-        set userhome [file normalize "~$env(SUDO_USER)"]
-    } else {
-        # the environment var isn't set, expand ~user instead
-        set username [uid_to_name [getuid]]
-        if {[catch {set userhome [file normalize "~$username"]}]} {
-            set userhome ""
-        }
-    }
-
-    set altprefix [file join $userhome .macports]
-}
-
 # if unable to write to workpath, implies running without either root privileges
 # or a shared directory owned by the group so use ~/.macports
-portmain::set_altprefix
+default altprefix {[file join $user_home .macports]}
 if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
 
     # set global variable indicating to other functions to use ~/.macports as well

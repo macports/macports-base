@@ -6,7 +6,7 @@
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
 # Copyright (c) 2004 - 2006 Ole Guldberg Jensen <olegb@opendarwin.org>.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2004 - 2011 The MacPorts Project
+# Copyright (c) 2004 - 2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ namespace eval macports {
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
-        registry.path registry.format \
+        registry.path registry.format user_home \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -492,16 +492,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Set the system encoding to utf-8
     encoding system utf-8
 
-    # Ensure that the macports user directory exists if HOME is defined
-    if {[info exists env(HOME)]} {
-        set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
-    } else {
-        # Otherwise define the user directory as a direcotory that will never exist
-        set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
-        # Tcl library code wants to do tilde expansion in various places
-        set env(HOME) ${macports::macports_user_dir}
-    }
-
     # set up platform info variables
     set os_arch $tcl_platform(machine)
     if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
@@ -515,6 +505,23 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$os_platform == "darwin"} {
         # This will probably break when Apple changes versioning
         set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
+    }
+
+    # Ensure that the macports user directory (i.e. ~/.macports) exists if HOME is defined.
+    # Also save $HOME for later use before replacing it with our own.
+    if {[info exists env(HOME)]} {
+        set macports::user_home $env(HOME)
+        set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
+    } elseif {[info exists env(SUDO_USER)] && $os_platform == "darwin"} {
+        set macports::user_home [exec dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d ' ' -f 2]
+        set macports::macports_user_dir [file join ${macports::user_home} [string range $macports::autoconf::macports_user_dir 2 end]]
+    } elseif {[exec id -u] != 0 && $os_platform == "darwin"} {
+        set macports::user_home [exec dscl -q . -read /Users/[exec id -un] NFSHomeDirectory | cut -d ' ' -f 2]
+        set macports::macports_user_dir [file join ${macports::user_home} [string range $macports::autoconf::macports_user_dir 2 end]]
+    } else {
+        # Otherwise define the user directory as a directory that will never exist
+        set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
+        set macports::user_home "/dev/null/NO_HOME_DIR"
     }
 
     # Configure the search path for configuration files
@@ -656,6 +663,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
+    set env(HOME) [file join $portdbpath home]
     set registry.path $portdbpath
 
     # Format for receipts; currently only "sqlite" is allowed
@@ -932,6 +940,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         trace add variable macports::xcodebuildcmd read macports::setxcodeinfo
     }
 
+    if {[vercmp $xcodeversion 4.3] >= 0} {
+        macports::link_xcode_plist $env(HOME)
+    }
+
     # Set the default umask
     if {![info exists destroot_umask]} {
         set destroot_umask 022
@@ -1063,6 +1075,23 @@ proc mportshutdown {} {
     registry::close
 }
 
+# link plist for xcode 4.3's benefit
+proc macports::link_xcode_plist {target_homedir} {
+    global macports::user_home
+    set user_plist "${user_home}/Library/Preferences/com.apple.dt.Xcode.plist"
+    set plist_link "${target_homedir}/Library/Preferences/com.apple.dt.Xcode.plist"
+    if {[file isfile $user_plist] && ([catch {file type $plist_link} filetype]
+        || $filetype != "link" || [file link $plist_link] != $user_plist)} {
+        if {[catch {
+                file mkdir "${target_homedir}/Library/Preferences"
+                file delete -force $plist_link
+                file link -symbolic $plist_link $user_plist
+                } result]} {
+            ui_debug "Failed to link com.apple.dt.Xcode.plist: $result"
+        }
+    }
+}
+
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
     global macports::portinterp_options macports::portinterp_deferred_options
 
@@ -1122,6 +1151,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias realpath realpath
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
+    $workername alias _link_xcode_plist macports::link_xcode_plist
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
