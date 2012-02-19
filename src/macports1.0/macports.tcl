@@ -433,7 +433,8 @@ proc macports::set_developer_dir {name1 name2 op} {
 
         # If the directory is valid, use it
         if {[_is_valid_developer_dir $devdir]} {
-            return $devdir
+			set macports::developer_dir $devdir
+            return
         }
 
         # The directory from xcode-select isn't correct.
@@ -464,8 +465,8 @@ proc macports::set_developer_dir {name1 name2 op} {
 	if {![_is_valid_developer_dir $devdir]} {
 		ui_error "No valid Xcode installation was found. Please install or correctly select Xcode using xcode-select."
 	}
-
-    return $devdir
+	
+	set macports::developer_dir $devdir
 }
 
 proc macports::_is_valid_developer_dir {dir} {
