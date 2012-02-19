@@ -440,7 +440,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         # Ask mdfind where Xcode is and make some suggestions for the user
         set installed_xcodes {}
         if {![catch {binaryInPath mdfind} mdfind]} {
-            set installed_xcodes [exec $mdfind \"kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'\"]
+            set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
         }
         if {[llength $installed_xcodes] > 0} {
             # One, or more than one, Xcode installations found
@@ -449,7 +449,7 @@ proc macports::set_developer_dir {name1 name2 op} {
             ui_error
             ui_error "Please use xcode-select to select an Xcode installation:"
             foreach xcode $installed_xcodes {
-                ui_error "    sudo xcode-select -switch ${xcode}/Contents/Developer"
+                ui_error "    sudo xcode-select -switch ${xcode}"
             }
             ui_error
         }
