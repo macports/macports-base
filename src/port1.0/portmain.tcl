@@ -145,10 +145,17 @@ default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
 
 proc portmain::get_developer_dir {} {
-    if {![catch {binaryInPath xcode-select}]} {
-        return [exec xcode-select -print-path 2> /dev/null]
+    if {![catch {binaryInPath xcode-select}]
+        && ![catch {exec xcode-select -print-path 2> /dev/null} result]
+        && [file isdirectory $result]} {
+            return $result
     }
-    return "/Developer"
+    global xcodeversion
+    if {[vercmp $xcodeversion 4.3] >= 0} {
+        return "/Applications/Xcode.app/Contents/Developer"
+    } else {
+        return "/Developer"
+    }
 }
 
 # start gsoc08-privileges
