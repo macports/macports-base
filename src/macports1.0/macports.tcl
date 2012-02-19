@@ -37,7 +37,6 @@ package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_index 1.0
 package require macports_util 1.0
-package require machista 1.0
 
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases 
@@ -974,6 +973,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         package require Pextlib 1.0
         package require registry 1.0
         package require registry2 2.0
+        package require machista 1.0
     } else {
         return -code error "Library directory '$libpath' must exist"
     }
