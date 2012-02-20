@@ -374,7 +374,7 @@ proc portconfigure::configure_get_default_compiler {args} {
 
 # Find a developer tool
 proc portconfigure::find_developer_tool {name} {
-	global developer_dir
+    global developer_dir
 
     # first try /usr/bin since this doesn't move around
     set toolpath "/usr/bin/${name}"
@@ -382,17 +382,17 @@ proc portconfigure::find_developer_tool {name} {
         return $toolpath
     }
 
-	# Use xcode's xcrun to find the named tool.
-	if {![catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${name}} toolpath]} {
-		return ${toolpath}
-	}
+    # Use xcode's xcrun to find the named tool.
+    if {![catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${name}} toolpath]} {
+        return ${toolpath}
+    }
 
-	# If xcrun failed to find the tool, return a path from
-	# the developer_dir.
-	# The tool may not be there, but we'll leave it up to
-	# the invoking code to figure out that it doesn't have
-	# a valid compiler
-	return "${developer_dir}/usr/bin/${name}"
+    # If xcrun failed to find the tool, return a path from
+    # the developer_dir.
+    # The tool may not be there, but we'll leave it up to
+    # the invoking code to figure out that it doesn't have
+    # a valid compiler
+    return "${developer_dir}/usr/bin/${name}"
 }
 
 # internal function to find correct compilers
@@ -458,7 +458,7 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret [find_developer_tool clang] }
                 objc { set ret [find_developer_tool clang] }
                 cxx  {
-					set clangpp [find_developer_tool clang++]
+                    set clangpp [find_developer_tool clang++]
                     if {[file executable ${clangpp}]} {
                         set ret ${clangpp}
                     } else {
