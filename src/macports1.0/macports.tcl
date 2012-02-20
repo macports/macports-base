@@ -439,6 +439,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         }
 
         # The directory from xcode-select isn't correct.
+        
         # Ask mdfind where Xcode is and make some suggestions for the user,
         # searching by bundle identifier for various Xcode versions (3.x and 4.x)
         set installed_xcodes {}
@@ -448,15 +449,26 @@ proc macports::set_developer_dir {name1 name2 op} {
                 [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"] \
                 ]
         }
+        
+        # In case mdfind metadata wasn't complete, also look in two well-known locations for Xcode.app
+        foreach app {/Applications/Xcode.app /Developer/Applications/Xcode.app} {
+            if {[file isdirectory $app]} {
+                lappend installed_xcodes $app
+            }
+        }
+        
+        # Form a list of unique xcode installations
+        set installed_xcodes [lsort -unique $installed_xcodes]
+
+        # Present instructions to the user
+        ui_error
         if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls $macports::autoconf::mdls_path} mdls]} {
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected."
-            
-            ui_error
             ui_error "Please use xcode-select to select an Xcode installation:"
             foreach xcode $installed_xcodes {
                 set vers [exec $mdls -raw -name kMDItemVersion $xcode]
-                if { $vers == "(null)" } { set vers "unknown" }
+                if {$vers == "(null)"} { set vers "unknown" }
                 if {[vercmp $vers 4.3] >= 0 || [_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
                     ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
                 } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
@@ -465,8 +477,11 @@ proc macports::set_developer_dir {name1 name2 op} {
                     ui_error "    # malformed Xcode at ${xcode}, version ${vers}"
                 }
             }
-            ui_error
+        } else {
+            ui_error "No Xcode installation was found."
+            ui_error "Please install Xcode and run xcode-select to specify its location."
         }
+        ui_error
     }
 
     # Try the default
