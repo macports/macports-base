@@ -17,7 +17,7 @@ Unreleased changes:
       found in option-strsed.
       (raimue in r82760, r82761)
       
-    - Resolve ambiquity in selection in portlists
+    - Resolve ambiguity in selection in portlists
       (jberry in r88179, r88185)
       
     - Xcode 4.3 support: Use xcrun -find to find xcode compiler if it's not
