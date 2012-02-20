@@ -64,8 +64,9 @@ proc portpkg::pkg_main {args} {
 }
 
 proc portpkg::package_pkg {portname portversion portrevision} {
-    global UI_PREFIX portdbpath destpath workpath prefix description package.destpath package.flat long_description homepage portpath porturl
-    global os.version os.major
+    global UI_PREFIX portdbpath destpath workpath prefix description \
+    package.destpath package.flat long_description homepage portpath porturl \
+    os.version os.major xcodeversion packagemaker_path
 
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 
@@ -74,7 +75,17 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         return 0
     }
 
-    set packagemaker "[option developer_dir]/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
+    if {![info exists packagemaker_path]} {
+        if {[vercmp $xcodeversion 4.3] >= 0} {
+            set packagemaker_path /Applications/PackageMaker.app
+            if {![file exists $packagemaker_path]} {
+                ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
+            }
+        } else {
+            set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
+        }
+    }
+    set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
     if ([file exists "$packagemaker"]) {
         set resourcepath ${workpath}/pkg_resources
     } else {
