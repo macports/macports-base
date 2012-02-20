@@ -62,7 +62,7 @@ namespace eval macports {
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "xcodeversion xcodebuildcmd developer_dir"
+    variable portinterp_deferred_options "xcodeversion xcodebuildcmd"
 
     variable open_mports {}
 
@@ -362,7 +362,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
-    if {![catch {findBinary xcodebuild /usr/bin/xcodebuild} xcodebuild]} {
+    if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion "2.0orlower"
@@ -413,85 +413,6 @@ proc macports::setxcodeinfo {name1 name2 op} {
         }
     }
 }
-
-# deferred calculation of developer_dir
-proc macports::set_developer_dir {name1 name2 op} {
-    global macports::developer_dir macports::os_major macports::xcodeversion
-
-    trace remove variable macports::developer_dir read macports::set_developer_dir
-
-    # Look for xcodeselect, and make sure it has a valid value
-    if {![catch {findBinary xcode-select /usr/bin/xcode-select} xcodeselect]} {
-
-        # We have xcode-select: ask it where xcode is
-        set devdir [exec $xcodeselect -print-path 2> /dev/null]
-
-        # If the directory is valid, use it
-        if {[_is_valid_developer_dir $devdir]} {
-            set macports::developer_dir $devdir
-            return
-        }
-
-        # The directory from xcode-select isn't correct.
-        # Ask mdfind where Xcode is and make some suggestions for the user,
-        # searching by bundle identifier for various Xcode versions (3.x and 4.x)
-        set installed_xcodes {}
-        if {![catch {findBinary mdfind /usr/bin/mdfind} mdfind]} {
-            set installed_xcodes [concat \
-                [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode'"] \
-                [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"] \
-                ]
-        }
-        if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls /usr/bin/mdls} mdls]} {
-            # One, or more than one, Xcode installations found
-            ui_error "No valid Xcode installation is properly selected."
-            
-            ui_error
-            ui_error "Please use xcode-select to select an Xcode installation:"
-            foreach xcode $installed_xcodes {
-                set vers [exec $mdls -raw -name kMDItemVersion $xcode]
-                if { $vers == "(null)" } { set vers "unknown" }
-                if {[vercmp $vers 4.3] >= 0 || [_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
-                    ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
-                } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
-                    ui_error "    sudo xcode-select -switch [file normalize ${xcode}/../..] # version ${vers}"
-                } else {
-                    ui_error "    # malformed xcode at ${xcode}, version ${vers}"
-                }
-            }
-            ui_error
-        }
-    }
-
-    # Try the default
-    if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
-        set devdir "/Applications/Xcode.app/Contents/Developer"
-    } else {
-        set devdir "/Developer"
-    }
-
-    set macports::developer_dir $devdir
-}
-
-proc macports::_is_valid_developer_dir {dir} {
-    # Check whether specified directory looks valid for an Xcode installation
-
-    # Verify that the directory exists
-    if {![file isdirectory $dir]} {
-        return 0
-    }
-
-    # Verify that the directory has some key subdirectories
-    foreach subdir {Headers Library usr} {
-        if {![file isdirectory "${dir}/${subdir}"]} {
-            return 0
-        }
-    }
-
-    # The specified directory seems valid for Xcode
-    return 1
-}
-
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$up_ui_options eq ""} {
@@ -750,8 +671,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::portautoclean "yes"
         global macports::portautoclean
     }
-    # whether to keep logs after successful builds
-    if {![info exists keeplogs]} {
+	# whether to keep logs after successful builds
+   	if {![info exists keeplogs]} {
         set macports::keeplogs "no"
         global macports::keeplogs
     }
@@ -976,15 +897,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         trace add variable macports::xcodebuildcmd read macports::setxcodeinfo
     }
 
-    if {![info exists developer_dir]} {
-        if {$os_platform == "darwin"} {
-            trace add variable macports::developer_dir read macports::set_developer_dir
-        } else {
-            set macports::developer_dir ""
-        }
-    }
-
-    if {$os_major >= 11 && $os_platform == "darwin" && [vercmp $xcodeversion 4.3] >= 0} {
+    if {[vercmp $xcodeversion 4.3] >= 0} {
         macports::copy_xcode_plist $env(HOME)
     }
 
