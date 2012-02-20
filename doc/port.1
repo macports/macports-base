@@ -367,13 +367,13 @@ Deactivate and uninstall
 .Ar portname .
 To uninstall all installed but inactive ports, use
 .Fl u .
-To recursively uninstall all dependents of
+To recursively uninstall all ports that depend on
 .Ar portname
 before uninstalling the port itself, use
 .Fl -follow-dependents .
 To uninstall
 .Ar portname
-and then recursively uninstall all its dependencies, use
+and then recursively uninstall all ports it depended on, use
 .Fl -follow-dependencies .
 This will not uninstall dependencies that are marked as requested or that have other dependents.
 .Pp
