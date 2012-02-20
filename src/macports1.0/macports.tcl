@@ -368,7 +368,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
-    if {![catch {findBinary xcodebuild /usr/bin/xcodebuild} xcodebuild]} {
+    if {![catch {findBinary xcodebuild $macports::autoconf::xcodebuild_path} xcodebuild]} {
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion "2.0orlower"
@@ -427,7 +427,7 @@ proc macports::set_developer_dir {name1 name2 op} {
     trace remove variable macports::developer_dir read macports::set_developer_dir
 
     # Look for xcodeselect, and make sure it has a valid value
-    if {![catch {findBinary xcode-select /usr/bin/xcode-select} xcodeselect]} {
+    if {![catch {findBinary xcode-select $macports::autoconf::xcode_select_path} xcodeselect]} {
 
         # We have xcode-select: ask it where xcode is
         set devdir [exec $xcodeselect -print-path 2> /dev/null]
@@ -442,13 +442,13 @@ proc macports::set_developer_dir {name1 name2 op} {
         # Ask mdfind where Xcode is and make some suggestions for the user,
         # searching by bundle identifier for various Xcode versions (3.x and 4.x)
         set installed_xcodes {}
-        if {![catch {findBinary mdfind /usr/bin/mdfind} mdfind]} {
+        if {![catch {findBinary mdfind $macports::autoconf::mdfind_path} mdfind]} {
             set installed_xcodes [concat \
                 [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode'"] \
                 [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"] \
                 ]
         }
-        if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls /usr/bin/mdls} mdls]} {
+        if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls $macports::autoconf::mdls_path} mdls]} {
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected."
             
@@ -462,7 +462,7 @@ proc macports::set_developer_dir {name1 name2 op} {
                 } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
                     ui_error "    sudo xcode-select -switch [file normalize ${xcode}/../..] # version ${vers}"
                 } else {
-                    ui_error "    # malformed xcode at ${xcode}, version ${vers}"
+                    ui_error "    # malformed Xcode at ${xcode}, version ${vers}"
                 }
             }
             ui_error
