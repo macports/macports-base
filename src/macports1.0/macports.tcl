@@ -50,7 +50,8 @@ namespace eval macports {
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
-        host_blacklist preferred_hosts"
+        host_blacklist preferred_hosts\
+        packagemaker_path"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -59,7 +60,8 @@ namespace eval macports {
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target $user_options"
+        os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target \
+        packagemaker_path $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.

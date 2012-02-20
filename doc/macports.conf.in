@@ -17,6 +17,14 @@ portdbpath		@localstatedir_expanded@/macports
 # Directory containing Xcode Tools (default is to ask xcode-select)
 #developer_dir       @DEVELOPER_DIR@
 
+# Path to PackageMaker.app
+# It may be necessary to set this with Xcode >= 4.3, as that version
+# requires PackageMaker to be installed manually from the Auxiliary Tools for
+# Xcode disk image. The default is /Applications/PackageMaker.app with Xcode
+# 4.3 and ${developer_dir}/Applications/Utilities/PackageMaker.app with older
+# versions.
+#packagemaker_path /Applications/PackageMaker.app
+
 # Directory containing Applications from ports.
 applications_dir	@MPAPPLICATIONSDIR@
 
