@@ -44,6 +44,8 @@ target_state ${org.macports.main} no
 namespace eval portmain {
 }
 
+set_ui_prefix
+
 # define options
 options prefix name version revision epoch categories maintainers \
         long_description description homepage notes license \
@@ -89,7 +91,6 @@ default workpath {[getportworkpath_from_buildpath $subbuildpath]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
-default developer_dir {[portmain::get_developer_dir]}
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
@@ -143,20 +144,6 @@ if {[option os.platform] == "darwin"} {
 
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
-
-proc portmain::get_developer_dir {} {
-    if {![catch {binaryInPath xcode-select}]
-        && ![catch {exec xcode-select -print-path 2> /dev/null} result]
-        && [file isdirectory $result]} {
-            return $result
-    }
-    global xcodeversion
-    if {[vercmp $xcodeversion 4.3] >= 0} {
-        return "/Applications/Xcode.app/Contents/Developer"
-    } else {
-        return "/Developer"
-    }
-}
 
 # start gsoc08-privileges
 
