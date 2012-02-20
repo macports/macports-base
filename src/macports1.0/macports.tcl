@@ -1171,8 +1171,10 @@ proc macports::copy_xcode_plist {target_homedir} {
         if {[catch {
                 file mkdir "${target_homedir}/Library/Preferences"
                 file copy -force $user_plist $target_dir
-                file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
-                } result]} {
+                if {[getuid] == 0} {
+                    file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
+                }
+        } result]} {
             ui_debug "Failed to copy com.apple.dt.Xcode.plist: $result"
         }
     }
