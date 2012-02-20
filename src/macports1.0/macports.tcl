@@ -1175,7 +1175,7 @@ proc macports::copy_xcode_plist {target_homedir} {
                     file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
                 }
         } result]} {
-            ui_debug "Failed to copy com.apple.dt.Xcode.plist: $result"
+            ui_warn "Failed to copy com.apple.dt.Xcode.plist to temporary home directory: $result"
         }
     }
 }
