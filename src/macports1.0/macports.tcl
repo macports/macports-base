@@ -1186,19 +1186,19 @@ proc macports::copy_xcode_plist {target_homedir} {
     if {[file isfile $user_plist]} {
         if {![file isdirectory "${target_dir}"]} {
             if {[catch {file mkdir "${target_dir}"} result]} {
-                ui_warn "Failed to create Library/Preferences in temporary home directory: $result"
+                ui_warn "Failed to create Library/Preferences in ${target_homedir}: $result"
                 return
             }
         }
-        ui_debug "Copying $user_plist to temporary home directory ${target_dir}"
         if {[file writable ${target_dir}] && [catch {
+            ui_debug "Copying $user_plist to ${target_dir}"
             file copy -force $user_plist $target_dir
             if {[getuid] == 0} {
                 file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
             }
-            file attributes "${target_dir}/com.apple.dt.Xcode.plist" -permissions 644
+            file attributes "${target_dir}/com.apple.dt.Xcode.plist" -permissions 0644
         } result]} {
-            ui_warn "Failed to copy com.apple.dt.Xcode.plist to temporary home directory: $result"
+            ui_warn "Failed to copy com.apple.dt.Xcode.plist to ${target_dir}: $result"
         }
     }
 }
