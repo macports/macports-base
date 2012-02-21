@@ -32,7 +32,7 @@ Unreleased changes:
       
     - Xcode 4.3 support: Change home directory for MacPorts user to
       ${prefix}/var/macports/home.
-      (jberry, jmr in r89988, r89993, r90002, r90010, r90011)
+      (jberry, jmr in r89988, r89993, r89994, r90002, r90010, r90011)
       
     - Xcode 4.3 support, #31827: set env(HOME) to our own dirs (#31827) and
       copy user's xcode 4.3 plist into them.
