@@ -1191,7 +1191,7 @@ proc macports::copy_xcode_plist {target_homedir} {
             }
         }
         ui_debug "Copying $user_plist to temporary home directory ${target_dir}"
-        if {[catch {
+        if {[file writable ${target_dir}] && [catch {
             file copy -force $user_plist $target_dir
             if {[getuid] == 0} {
                 file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
