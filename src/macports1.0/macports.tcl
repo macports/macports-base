@@ -1197,7 +1197,7 @@ proc macports::copy_xcode_plist {target_homedir} {
             if {[catch {
                 file copy -force $user_plist $target_dir
                 if {[getuid] == 0} {
-                    ui_debug "Attempding to chown() com.apple.dt.Xcode.plist in temporary home"
+                    ui_debug "Attempting to chown() com.apple.dt.Xcode.plist in temporary home"
                     file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
                 }
             } result]} {
