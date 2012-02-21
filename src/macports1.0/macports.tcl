@@ -429,11 +429,10 @@ proc macports::set_developer_dir {name1 name2 op} {
     # Look for xcodeselect, and make sure it has a valid value
     if {![catch {findBinary xcode-select $macports::autoconf::xcode_select_path} xcodeselect]} {
 
-        # We have xcode-select: ask it where xcode is
-        set devdir [exec $xcodeselect -print-path 2> /dev/null]
-
-        # If the directory is valid, use it
-        if {[_is_valid_developer_dir $devdir]} {
+        # We have xcode-select: ask it where xcode is and check if it's valid.
+        # If no xcode is selected, xcode-select will fail, so catch that
+        if {![catch {exec $xcodeselect -print-path 2> /dev/null} devdir] &&
+            [_is_valid_developer_dir $devdir]} {
             set macports::developer_dir $devdir
             return
         }
