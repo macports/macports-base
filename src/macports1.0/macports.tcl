@@ -4075,8 +4075,10 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 set i 1
                 foreach f $files {
                     if {![macports::ui_isset ports_debug]} {
-                        ui_msg -nonewline "\r$macports::ui_prefix Updating database of binaries: [expr $i * 100 / $files_count]%"
-                        flush stdout
+                        if {$files_count < 10000 || $i % 10 == 1 || $i == $files_count} {
+                            ui_msg -nonewline "\r$macports::ui_prefix Updating database of binaries: [expr ($i * 1000 / $files_count) / 10.0]%"
+                            flush stdout
+                        }
                     }
                     ui_debug "Updating binary flag for file $i of [llength $files]: [$f path]"
                     incr i
@@ -4113,8 +4115,10 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         set binary_count [llength $binaries]
         foreach b $binaries {
             if {![macports::ui_isset ports_debug]} {
-                ui_msg -nonewline "\r$macports::ui_prefix Scanning binaries for linking errors: [expr $i * 100 / $binary_count]%"
-                flush stdout
+                if {$binary_count < 10000 || $i % 10 == 1 || $i == $binary_count} {
+                    ui_msg -nonewline "\r$macports::ui_prefix Scanning binaries for linking errors: [expr ($i * 1000 / $binary_count) / 10.0]%"
+                    flush stdout
+                }
             }
             #ui_debug "$i/[llength $binaries]: [$b path]"
             incr i
