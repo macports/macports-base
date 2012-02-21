@@ -1184,14 +1184,24 @@ proc macports::copy_xcode_plist {target_homedir} {
     set user_plist "${user_home}/Library/Preferences/com.apple.dt.Xcode.plist"
     set target_dir "${target_homedir}/Library/Preferences"
     if {[file isfile $user_plist]} {
-        if {[catch {
-                file mkdir "${target_homedir}/Library/Preferences"
+        if {![file isdirectory "${target_dir}"]} {
+            ui_debug "Creating Library/Preferences in temporary home: ${target_dir}"
+            if {[catch {file mkdir "${target_dir}"} result]} {
+                ui_warn "Failed to create Library/Preferences in temporary home directory: $result"
+            }
+        }
+        if {![file isfile "${target_dir}/com.apple.dt.Xcode.plist"] || [file mtime "${user_plist}"] >
+            [file mtime "${target_dir}/com.apple.dt.Xcode.plist"]} {
+            ui_debug "Copying $user_plist to temporary home directory ${target_dir}"
+            if {[catch {
                 file copy -force $user_plist $target_dir
                 if {[getuid] == 0} {
+                    ui_debug "Attempding to chown() com.apple.dt.Xcode.plist in temporary home"
                     file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
                 }
-        } result]} {
-            ui_warn "Failed to copy com.apple.dt.Xcode.plist to temporary home directory: $result"
+            } result]} {
+                ui_warn "Failed to copy com.apple.dt.Xcode.plist to temporary home directory: $result"
+            }
         }
     }
 }
