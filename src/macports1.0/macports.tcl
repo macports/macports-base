@@ -1188,6 +1188,7 @@ proc macports::copy_xcode_plist {target_homedir} {
             ui_debug "Creating Library/Preferences in temporary home: ${target_dir}"
             if {[catch {file mkdir "${target_dir}"} result]} {
                 ui_warn "Failed to create Library/Preferences in temporary home directory: $result"
+                return
             }
         }
         if {![file isfile "${target_dir}/com.apple.dt.Xcode.plist"] || [file mtime "${user_plist}"] >
