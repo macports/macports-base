@@ -1043,7 +1043,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    if {$os_major >= 11 && $os_platform == "darwin" && [vercmp $xcodeversion 4.3] >= 0} {
+    if {[getuid] == 0 && $os_major >= 11 && $os_platform == "darwin" && [vercmp $xcodeversion 4.3] >= 0} {
         macports::copy_xcode_plist $env(HOME)
     }
 
@@ -1193,10 +1193,7 @@ proc macports::copy_xcode_plist {target_homedir} {
         if {[file writable ${target_dir}] && [catch {
             ui_debug "Copying $user_plist to ${target_dir}"
             file copy -force $user_plist $target_dir
-            if {[getuid] == 0} {
-                file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser
-            }
-            file attributes "${target_dir}/com.apple.dt.Xcode.plist" -permissions 0644
+            file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser -permissions 0644
         } result]} {
             ui_warn "Failed to copy com.apple.dt.Xcode.plist to ${target_dir}: $result"
         }
@@ -1262,7 +1259,6 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias realpath realpath
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
-    $workername alias _copy_xcode_plist macports::copy_xcode_plist
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
