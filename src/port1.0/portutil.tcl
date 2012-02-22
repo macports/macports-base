@@ -1567,10 +1567,6 @@ proc open_statefile {args} {
     if {![tbool ports_dryrun]} {
         if {![file isdirectory $workpath]} {
             file mkdir "${workpath}/.home"
-            global xcodeversion
-            if {[vercmp $xcodeversion 4.3] >= 0} {
-                _copy_xcode_plist "${workpath}/.home"
-            }
             chownAsRoot $subbuildpath
         }
         # Create a symlink to the workpath for port authors
