@@ -2817,7 +2817,8 @@ proc _check_xcode_version {} {
 
         # Xcode 4.3 requires the command-line utilities package to be
         # installed. 
-        if {[vercmp $xcodeversion 4.3] >= 0} {
+        if {[vercmp $xcodeversion 4.3] >= 0 ||
+            ($xcodeversion == "none" && [file exists "/Applications/Xcode.app"])} {
             if {![file exists "/usr/bin/make"]} {
                 ui_warn "The Command Line Tools for Xcode don't appear to be installed; most ports will likely fail to build."
                 ui_warn "See http://guide.macports.org/chunked/installing.xcode.html for more information."
