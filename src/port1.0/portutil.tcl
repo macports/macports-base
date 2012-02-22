@@ -2732,9 +2732,14 @@ proc _check_xcode_version {} {
             }
         }
         if {$xcodeversion == "none"} {
-            ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
-            if {[file exists "/Applications/Install XCode.app"]} {
-                ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
+            if {[file exists "/Applications/Xcode.app"]} {
+                ui_warn "Xcode appears to be installed but xcodebuild is unusable; some ports will likely fail to build."
+                ui_warn "You may need to run `sudo xcode-select -switch /Applications/Xcode.app`"
+            } else {
+                ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
+                if {[file exists "/Applications/Install XCode.app"]} {
+                    ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
+                }
             }
         } elseif {[rpm-vercomp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
@@ -2745,7 +2750,8 @@ proc _check_xcode_version {} {
 
         # Xcode 4.3 requires the command-line utilities package to be
         # installed. 
-        if {[vercmp $xcodeversion 4.3] >= 0} {
+        if {[vercmp $xcodeversion 4.3] >= 0 ||
+            ($xcodeversion == "none" && [file exists "/Applications/Xcode.app"])} {
             if {![file exists "/usr/bin/make"]} {
                 ui_warn "The Command Line Tools for Xcode don't appear to be installed; most ports will likely fail to build."
                 ui_warn "See http://guide.macports.org/chunked/installing.xcode.html for more information."
