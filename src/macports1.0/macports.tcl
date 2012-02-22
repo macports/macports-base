@@ -1889,6 +1889,20 @@ proc mportexec {mport target} {
         macports::push_log $mport
     }
 
+    # Use _target_needs_deps as a proxy for whether we're going to
+    # build and will therefore need to check Xcode version and
+    # supported_archs.
+    if {[macports::_target_needs_deps $target]} {
+        # possibly warn or error out depending on how old xcode is
+        if {[$workername eval _check_xcode_version] != 0} {
+            return 1
+        }
+        # error out if selected arch(s) not supported by this port
+        if {[$workername eval check_supported_archs] != 0} {
+            return 1
+        }
+    }
+
     # Before we build the port, we must build its dependencies.
     set dlist {}
     if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target $workername]]} {
@@ -1896,14 +1910,6 @@ proc mportexec {mport target} {
         # see if we actually need to build this port
         if {($target != "activate" && $target != "install") ||
             ![$workername eval registry_exists \$subport \$version \$revision \$portvariants]} {
-            # possibly warn or error out depending on how old xcode is
-            if {[$workername eval _check_xcode_version] != 0} {
-                return 1
-            }
-            # error out if selected arch(s) not supported by this port
-            if {[$workername eval check_supported_archs] != 0} {
-                return 1
-            }
     
             # upgrade dependencies that are already installed
             if {![macports::global_option_isset ports_nodeps]} {

@@ -2814,6 +2814,16 @@ proc _check_xcode_version {} {
         } elseif {[vercmp $xcodeversion $ok] < 0} {
             ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
         }
+
+        # Xcode 4.3 requires the command-line utilities package to be
+        # installed. 
+        if {[vercmp $xcodeversion 4.3] >= 0} {
+            if {![file exists "/usr/bin/make"]} {
+                ui_warn "The Command Line Tools for Xcode don't appear to be installed; most ports will likely fail to build."
+                ui_warn "See http://guide.macports.org/chunked/installing.xcode.html for more information."
+            }
+        }
+        
     }
     return 0
 }
