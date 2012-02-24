@@ -305,7 +305,7 @@ proc portconfigure::configure_get_sdkroot {} {
     global developer_dir macosx_deployment_target macosx_version xcodeversion os.arch os.platform
     if {${os.platform} == "darwin" && ($macosx_deployment_target != $macosx_version
         || (${os.arch} == "powerpc" && $macosx_version == "10.4" && [variant_exists universal] && [variant_isset universal]))} {
-        if {[vercmp $xcodeversion 4.3] >= 0} {
+        if {[vercmp $xcodeversion 4.3] < 0} {
             set sdks_dir "${developer_dir}/SDKs"
         } else {
             set sdks_dir "${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs"
