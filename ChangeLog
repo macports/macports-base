@@ -16,28 +16,46 @@ Unreleased changes:
       deprecated for option-replace with only one argument, but can still be
       found in option-strsed.
       (raimue in r82760, r82761)
-      
-    - Resolve ambiguity in selection in portlists
-      (jberry in r88179, r88185)
-      
+
     - Xcode 4.3 support: Use xcrun -find to find xcode compiler if it's not
       found in /usr/bin.
       (jberry, jmr in r88540,r88541,r88546,r88777,r88779,r88787,r89359,r89984,r90028)
-      
+
     - Xcode 4.3 support: Search harder for developer directory; advise user to
       run xcode-select when necessary, searching for Xcode and suggesting
       xcode-select commands.
       (jberry, jmr in r89970,r89971,r89972,r89996,r89999,r90003,r90005-r90009,
       r90018-r90019,r90024,r90031)
-      
+
+Release 2.0.4 (unreleased)
     - Xcode 4.3 support: Change home directory for MacPorts user to
       ${prefix}/var/macports/home.
       (jberry, jmr in r89988, r89993, r90002, r90010, r90011)
-      
-    - Xcode 4.3 support, #31827: set env(HOME) to our own dirs (#31827) and
-      copy user's xcode 4.3 plist into them.
-      (jmr in r89994, r90004)
-      
+
+    - set env(HOME) to ${workpath}/.home when building ports
+      (#31827, jmr in r89994, r90004)
+
+    - Added configure.cxx setting when configure.compiler is apple-gcc-4.2
+      (jeremyhu in r80248)
+
+    - Xcode 4.3 support: added packagemaker_path macports.conf setting
+      (jmr in r90058)
+
+    - Resolve ambiguity in selection in portlists
+      (jberry in r88179, r88185)
+
+    - Xcode 4.3 support: updated default developer_dir location for 4.3
+      (jmr in r90016)
+
+    - Xcode 4.3 support: use compilers in /usr/bin instead of developer_dir
+      when possible, as the latter has proven to be volatile.
+      (jmr in r90015)
+
+    - Xcode 4.3 support: updated SDK paths for 4.3 (jmr in r90000)
+
+    - Work around broken FTP proxy support in some versions of libcurl
+      (jmr in r84351, r88045)
+
 Release 2.0.3 (2011-09-05 by raimue)
     - Fix a regression introduced in 2.0.2 when fetching with a VCS
       (#31073, jmr in r83471)
