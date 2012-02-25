@@ -165,7 +165,7 @@ proc pindex {portdir} {
     }
 }
 
-if {[expr $argc > 4]} {
+if {[expr $argc > 8]} {
     print_usage
     exit 1
 }
