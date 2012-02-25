@@ -27,7 +27,7 @@ Unreleased changes:
       (jberry, jmr in r89970,r89971,r89972,r89996,r89999,r90003,r90005-r90009,
       r90018-r90019,r90024,r90031)
 
-Release 2.0.4 (unreleased)
+Release 2.0.4 (2012-02-25 by jmr)
     - Xcode 4.3 support: Change home directory for MacPorts user to
       ${prefix}/var/macports/home.
       (jberry, jmr in r89988, r89993, r90002, r90010, r90011)
