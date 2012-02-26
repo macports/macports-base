@@ -220,7 +220,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
         did_update = 0;
 
         /* open a transaction to prevent a check-and-change race condition between
-         * multiply port(1) instances */
+         * multiple port(1) instances */
         if ((r = sqlite3_prepare_v2(db, query, -1, &stmt, NULL)) != SQLITE_OK) {
             break;
         }
