@@ -221,7 +221,7 @@ Once the release has been posted, notification of the release should be sent/pos
  * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
  * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
  * [https://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
- * [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
+ * [http://freecode.com/projects/macports/ Freecode] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
  * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: rhwood@)
  * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
