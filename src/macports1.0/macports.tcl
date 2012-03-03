@@ -1863,7 +1863,7 @@ proc _mportexec {target mport} {
         ui_error "Failed to install $portname"
         ui_debug "$::errorInfo"
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
-            ui_notice "Log for $portname is at: $::debuglogname"
+            ui_notice "Please see the log file for $portname for details:\n    $::debuglogname"
         }
         macports::pop_log
         return 1
@@ -1989,7 +1989,7 @@ proc mportexec {mport target} {
     global ::logenabled ::debuglogname
     if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
         if {$result != 0} {
-            ui_notice "Log for $portname is at: $::debuglogname"
+            ui_notice "Please see the log file for port $portname for details:\n    $::debuglogname"
         }
         macports::pop_log
     }

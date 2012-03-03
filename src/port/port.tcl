@@ -237,7 +237,7 @@ proc break_softcontinue { msg status name_status } {
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
     if {${macports::prefix} != "/usr/local" && ${macports::prefix} != "/usr"} {
-        ui_notice "To report a bug, see <http://guide.macports.org/#project.tickets>"
+        ui_notice "To report a bug, follow the instructions in the guide:\n    http://guide.macports.org/#project.tickets"
     }
 }
 
@@ -3925,13 +3925,12 @@ proc action_target { action portlist opts } {
         
         # Process any error that wasn't thrown and handled already
         if {$result} {
-            break_softcontinue "Status $result encountered during processing." 1 status
+            print_tickets_url
+            break_softcontinue "Processing of port $portname failed" 1 status
         }
     }
     
-    if {$status != 0} {
-        print_tickets_url
-    } elseif {$action == "install"} {
+    if {$status == 0 && $action == "install"} {
         array set options $opts
         if {![info exists options(ports_nodeps)] && ![info exists options(ports_install_no-rev-upgrade)] && ${macports::revupgrade_autorun}} {
             set status [action_revupgrade $action $portlist $opts]

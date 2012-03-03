@@ -433,6 +433,9 @@ proc command_exec {command args} {
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
     ui_debug "Executing command line: $fullcmdstring"
     set code [catch {eval system $notty $nice \$fullcmdstring} result]
+    # Save variables in order to re-throw the same error code.
+    set errcode $::errorCode
+    set errinfo $::errorInfo
 
     # Unset the command array until next time.
     array unset ${varprefix}.env_array
@@ -445,7 +448,7 @@ proc command_exec {command args} {
     array set env [array get saved_env]
 
     # Return as if system had been called directly.
-    return -code $code $result
+    return -code $code -errorcode $errcode -errorInfo $errinfo $result
 }
 
 # default
@@ -1324,6 +1327,9 @@ proc target_run {ditem} {
 
         if {[ditem_contains $ditem init]} {
             set result [catch {[ditem_key $ditem init] $targetname} errstr]
+            # Save variables in order to re-throw the same error code.
+            set errcode $::errorCode
+            set errinfo $::errorInfo
         }
 
         if {$result == 0} {
@@ -1355,6 +1361,9 @@ proc target_run {ditem} {
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
                 }
 
                 #start tracelib
@@ -1428,19 +1437,28 @@ proc target_run {ditem} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
                         set result [catch {$pre $targetname} errstr]
+                        # Save variables in order to re-throw the same error code.
+                        set errcode $::errorCode
+                        set errinfo $::errorInfo
                         if {$result != 0} { break }
                     }
                 }
 
                 if {$result == 0} {
-                ui_debug "Executing $targetname ($portname)"
-                set result [catch {$procedure $targetname} errstr]
+                    ui_debug "Executing $targetname ($portname)"
+                    set result [catch {$procedure $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
                 }
 
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
                         set result [catch {$post $targetname} errstr]
+                        # Save variables in order to re-throw the same error code.
+                        set errcode $::errorCode
+                        set errinfo $::errorInfo
                         if {$result != 0} { break }
                     }
                 }
@@ -1449,6 +1467,9 @@ proc target_run {ditem} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
                     set result [catch {$postrun $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
                 }
 
                 # Check dependencies & file creations outside workpath.
@@ -1488,9 +1509,9 @@ proc target_run {ditem} {
             write_statefile target $targetname $target_state_fd
             }
         } else {
-            global errorInfo
-            ui_error "Target $targetname returned: $errstr"
-            ui_debug "Backtrace: $errorInfo"
+            ui_error "$targetname for port $portname returned: $errstr"
+            ui_debug "Error code: $errcode"
+            ui_debug "Backtrace: $errinfo"
             set result 1
         }
 
@@ -1594,7 +1615,7 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
         # somebody broke!
-        set errstring "Warning: the following items did not execute (for $subport):"
+        set errstring "Warning: targets not executed for $subport:"
         foreach ditem $dlist {
             append errstring " [ditem_key $ditem name]"
         }

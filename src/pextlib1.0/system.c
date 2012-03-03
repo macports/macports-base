@@ -251,6 +251,19 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         } else {
             char *errorstr;
             size_t errorstrlen;
+
+            /* print error */
+            /* get buffer large enough for additional message or the error code */
+            errorstrlen = strlen(cmdstring) + strlen("Command failed: ") + 12;
+            errorstr = malloc(errorstrlen);
+            if (errorstr) {
+                snprintf(errorstr, errorstrlen, "Command failed: %s", cmdstring);
+                ui_info(interp, errorstr);
+                snprintf(errorstr, errorstrlen, "Exit code: %d", WEXITSTATUS(ret));
+                ui_info(interp, errorstr);
+                free(errorstr);
+            }
+
             /* set errorCode [list CHILDSTATUS <pid> <code>] */
             Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
             Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
@@ -258,16 +271,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
             Tcl_SetObjErrorCode(interp, errorCode);
 
-            /* print error */
-            errorstrlen = strlen("shell command \"")+strlen(cmdstring)+strlen("\" returned error ")+12;
-            errorstr = malloc(errorstrlen);
-            if (errorstr) {
-                *errorstr = '\0';
-                snprintf(errorstr, errorstrlen, "%s%s%s%d", "shell command \"", cmdstring, "\" returned error ", WEXITSTATUS(ret));
-                ui_info(interp, errorstr);
-                free(errorstr);
-            }
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("shell command failed (see log for details)", -1));
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
         }
     }
 
