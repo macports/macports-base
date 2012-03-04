@@ -1869,7 +1869,7 @@ proc eval_variants {variations} {
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
             [lsearch $PortInfo(variants) $key] == -1} {
-            ui_debug "Requested variant $key is not provided by port $portname."
+            ui_debug "Requested variant $upvariations($key)$key is not provided by port $portname."
             array unset upvariations $key
         }
     }
