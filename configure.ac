@@ -47,17 +47,30 @@ esac
 if test "x$XCODE_SELECT" != "x"; then
   AC_MSG_CHECKING(Xcode location)
   DEVELOPER_DIR=`$XCODE_SELECT -print-path`
-  AC_MSG_RESULT([$DEVELOPER_DIR])
-else
-  DEVELOPER_DIR=/Developer
 fi
+if test -z "$DEVELOPER_DIR" -o ! -d "$DEVELOPER_DIR" ; then
+    if test -d /Applications/Xcode.app/Contents/Developer ; then
+        DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+    else
+        DEVELOPER_DIR=/Developer
+    fi
+fi
+AC_MSG_RESULT([$DEVELOPER_DIR])
 AC_SUBST(DEVELOPER_DIR)
 
-XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
+case "$DEVELOPER_DIR" in
+  *Xcode.app/Contents/Developer)
+    XCODEPLIST_BASE=`dirname $DEVELOPER_DIR`/version
+    ;;
+  *)
+    XCODEPLIST_BASE=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version
+    ;;
+esac
+XCODEPLIST=${XCODEPLIST_BASE}.plist
 if test -r "$XCODEPLIST"; then
   AC_MSG_CHECKING(Xcode version)
   if test "x$DEFAULTS" != "x"; then
-    XCODE_VERSION=`$DEFAULTS read $DEVELOPER_DIR/Applications/Xcode.app/Contents/version CFBundleShortVersionString`
+    XCODE_VERSION=`$DEFAULTS read $XCODEPLIST_BASE CFBundleShortVersionString`
   else
     XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
   fi
