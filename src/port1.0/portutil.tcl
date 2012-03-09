@@ -918,13 +918,13 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-
-    global env
+    global env worksrcpath
     set extended 0
     set suppress 0
     set oldlocale_exists 0
     set oldlocale "" 
     set locale ""
+    set dir ${worksrcpath}
     while 1 {
         set arg [lindex $args 0]
         if {[string index $arg 0] eq "-"} {
@@ -944,6 +944,10 @@ proc reinplace {args}  {
                 n {
                     set suppress 1
                 }
+                W {
+                    set dir [lindex $args 0]
+                    set args [lrange $args 1 end]
+                }
                 - {
                     break
                 }
@@ -956,12 +960,16 @@ proc reinplace {args}  {
         }
     }
     if {[llength $args] < 2} {
-        error "reinplace ?-E? pattern file ..."
+        error "reinplace ?-E? ?-n? ?-W dir? pattern file ..."
     }
     set pattern [lindex $args 0]
     set files [lrange $args 1 end]
 
     foreach file $files {
+        # if $file is an absolute path already, file join will just return the
+        # absolute path, otherwise it is $dir/$file
+        set file [file join $dir $file]
+
         if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
             global errorInfo
             ui_debug "$errorInfo"
@@ -989,6 +997,7 @@ proc reinplace {args}  {
         if {$locale != ""} {
             set env(LC_CTYPE) $locale
         }
+        ui_debug "Executing reinplace: $cmdline"
         if {[catch {eval exec $cmdline} error]} {
             global errorInfo
             ui_debug "$errorInfo"
