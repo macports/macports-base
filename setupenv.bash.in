@@ -34,6 +34,8 @@ function export_path() {
     local sbinpath="@prefix_expanded@/sbin"
 
     local IFS=":"
+    local p
+
     for p in $PATH; do
         if [ "$p" == "$binpath" ]; then
             binpath=""
@@ -54,13 +56,14 @@ function export_path() {
 }
 
 function export_manpath() {
-    mpath="@prefix_expanded@/share/man"
+    local mpath="@prefix_expanded@/share/man"
+    local IFS=":"
+    local p
 
     if [ -z "$MANPATH" ]; then
         return
     fi
 
-    local IFS=":"
     for p in $MANPATH; do
         if [ "$p" == "$mpath" ]; then
             mpath=""
