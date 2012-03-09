@@ -251,6 +251,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         } else {
             char *errorstr;
             size_t errorstrlen;
+            Tcl_Obj* errorCode;
 
             /* print error */
             /* get buffer large enough for additional message or the error code */
@@ -265,7 +266,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             }
 
             /* set errorCode [list CHILDSTATUS <pid> <code>] */
-            Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
+            errorCode = Tcl_NewListObj(0, NULL);
             Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
             Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
             Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
