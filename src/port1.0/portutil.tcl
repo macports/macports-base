@@ -208,7 +208,7 @@ proc options::export {option action {value ""}} {
             set PortInfo($option) $value
         }
         delete {
-            unset PortInfo($option)
+            unset -nocomplain PortInfo($option)
         }
     }
 }
