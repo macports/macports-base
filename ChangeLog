@@ -4,6 +4,16 @@
 ###
 
 Unreleased changes:
+    - Added 'rev-upgrade' action checking for broken linkage and rebuilding
+      ports containing broken files. Made rev-upgrade run automatically after
+      each upgrade or install.
+      (cal in branch gsoc11-rev-upgrade, merge in r88376, also cal, raimue, jmr
+      in r88377,r88411,r88441,r88511,r88666,r88732,r89180,r89659,r89661,r90102,
+      r90381)
+
+    - Added options controlling rev-upgrade behavior to macports.conf
+      (jmr, cal in r88725,r88794,r89189)
+
     - port livecheck regex finds multiple matches on the same line
       (raimue in r88031)
 
