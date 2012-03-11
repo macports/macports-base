@@ -89,8 +89,9 @@ default startupitem.netchange   no
 set_ui_prefix
 
 proc portdestroot::destroot_getargs {args} {
-    if {((![exists build.type] && [option os.platform] != "freebsd") || ([exists build.type] && [option build.type] == "gnu")) \
-        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option destroot.cmd]]} {
+    if {(([option build.type] == "default" && [option os.platform] != "freebsd") || \
+         ([option build.type] == "gnu")) \
+        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option build.cmd]]} {
         # Print "Entering directory" lines for better log debugging
         return "-w [option destroot.target]"
     }

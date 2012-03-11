@@ -43,9 +43,10 @@ namespace eval portbuild {
 }
 
 # define options
-options build.target
-options build.jobs
 options build.asroot
+options build.jobs
+options build.target
+options build.type
 options use_parallel_build
 commands build
 # defaults
@@ -56,12 +57,38 @@ default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
 default build.pre_args {[portbuild::build_getargs]}
 default build.target "all"
+default build.type "default"
 default use_parallel_build yes
+
+# proc to add dependency on bsdmake, if necessary
+option_proc build.type portbuild::set_build_type
 
 set_ui_prefix
 
+proc portbuild::set_build_type {option action args} {
+    array set build_type_map {
+        bsd     {bin:bsdmake:bsdmake}
+    }
+
+    if {$action == "set"} {
+        switch $option {
+            build.type {
+                # using [exists foo] doesn't work with arrays!
+                if {[info exists build_type_map([option build.type])]} {
+                    # remove dependencies added before when setting build.type more than once
+                    eval depends_build-delete $build_type_map([option build.type])
+                }
+                if {[info exists build_type_map($args)]} {
+                    # add dependency if needed
+                    eval depends_build-append $build_type_map($args)
+                }
+            }
+        }
+    }
+}
+
 proc portbuild::build_getmaketype {args} {
-    if {![exists build.type]} {
+    if {[option build.type] == "default"} {
         return [findBinary make $portutil::autoconf::make_path]
     }
     switch -exact -- [option build.type] {
@@ -124,7 +151,8 @@ proc portbuild::build_getjobs {args} {
 }
 
 proc portbuild::build_getargs {args} {
-    if {((![exists build.type] && [option os.platform] != "freebsd") || ([exists build.type] && [option build.type] == "gnu")) \
+    if {(([option build.type] == "default" && [option os.platform] != "freebsd") || \
+         ([option build.type] == "gnu")) \
         && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option build.cmd]]} {
         # Print "Entering directory" lines for better log debugging
         return "-w [option build.target]"
