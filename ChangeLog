@@ -40,6 +40,9 @@ Release 2.0.5 (unreleased)
     - port automatically installs bsdmake when there's no bsdmake in $PATH and a
       port sets build.type bsd (#33355, cal in r90650)
 
+    - Fix sync with subdirectory of Subversion 1.7-format working copy
+      (#33573, jmr in 86872)
+
     - dmg postflight: quote all paths to handle the increasingly frequent
       occurrence that $HOME contains spaces (#33583, ryandesign in r84345)
 
