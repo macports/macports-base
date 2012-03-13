@@ -56,6 +56,9 @@ Release 2.0.4 (2012-02-25 by jmr)
     - set env(HOME) to ${workpath}/.home when building ports
       (#31827, jmr in r89994, r90004)
 
+    - Fix use_xmkmf to honor xmkmf.env for its make Makefiles phase
+      (#31504, jeremyhu in r89537, r89538, r89539)
+
     - Added configure.cxx setting when configure.compiler is apple-gcc-4.2
       (jeremyhu in r80248)
 
