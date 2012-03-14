@@ -470,7 +470,7 @@ proc portfetch::fetchfiles {args} {
                     set fetched 1
                     break
                 } else {
-                    ui_debug "[msgcat::mc "Fetching failed:"]: $result"
+                    ui_debug "[msgcat::mc "Fetching source failed:"]: $result"
                     file delete -force "${distpath}/${distfile}.TMP"
                 }
             }
@@ -514,7 +514,7 @@ proc portfetch::fetch_init {args} {
 proc portfetch::fetch_start {args} {
     global UI_PREFIX subport distpath
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $subport]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching source for %s"] $subport]"
 
     # create and chown $distpath
     if {![file isdirectory $distpath]} {
