@@ -38,7 +38,7 @@ Unreleased changes:
 
 Release 2.0.5 (unreleased)
     - warn about non-existing developer_dir when it's set in macports.conf
-      (cal in 90801)
+      (cal in 90802)
 
     - port automatically installs bsdmake when there's no bsdmake in $PATH and a
       port sets build.type bsd (#33355, cal in r90650)
