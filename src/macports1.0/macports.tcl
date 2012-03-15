@@ -1041,6 +1041,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         } else {
             set macports::developer_dir ""
         }
+    } else {
+        if {$os_platform == "darwin" && ![file isdirectory $developer_dir]} {
+            ui_warn "Your developer_dir setting in macports.conf points to a non-existing directory.\
+                Since this is known to cause problems, please correct the setting or comment it and let\
+                macports auto-discover the correct path."
+        }
     }
 
     if {[getuid] == 0 && $os_major >= 11 && $os_platform == "darwin" && [vercmp $xcodeversion 4.3] >= 0} {
