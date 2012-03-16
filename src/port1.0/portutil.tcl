@@ -448,7 +448,7 @@ proc command_exec {command args} {
     array set env [array get saved_env]
 
     # Return as if system had been called directly.
-    return -code $code -errorcode $errcode -errorInfo $errinfo $result
+    return -code $code -errorcode $errcode -errorinfo $errinfo $result
 }
 
 # default
