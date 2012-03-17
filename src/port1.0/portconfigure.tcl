@@ -514,7 +514,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 cc   { set ret [find_developer_tool clang] }
                 objc { set ret [find_developer_tool clang] }
                 cxx  {
-					set clangpp [find_developer_tool clang++]
+                    set clangpp [find_developer_tool clang++]
                     if {[file executable ${clangpp}]} {
                         set ret ${clangpp}
                     } else {
