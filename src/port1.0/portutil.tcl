@@ -2320,10 +2320,16 @@ proc PortGroup {group version} {
     }
 }
 
-# return path where the image/archive for this port will be stored
+# return filename of the archive for this port
+proc get_portimage_name {} {
+    global portdbpath subport version revision portvariants os.platform os.major portarchivetype
+    return "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+}
+
+# return path where a newly created image/archive for this port will be stored
 proc get_portimage_path {} {
-    global registry.path subport version revision portvariants os.platform os.major portarchivetype
-    return [file join ${registry.path} software ${subport} "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"]
+    global portdbpath subport
+    return [file join ${portdbpath} software ${subport} [get_portimage_name]]
 }
 
 # return list of archive types that we can extract
@@ -2338,6 +2344,28 @@ proc supportedArchiveTypes {} {
         }
     }
     return $supported_archive_types
+}
+
+# return path to a downloaded or installed archive for this port
+proc find_portarchive_path {} {
+    global portdbpath subport version revision portvariants
+    set installed 0
+    if {[registry_exists $subport $version $revision $portvariants]} {
+        set installed 1
+    }
+    set archiverootname [file rootname [get_portimage_name]]
+    foreach unarchive.type [supportedArchiveTypes] {
+        set fullarchivename "${archiverootname}.${unarchive.type}"
+        if {$installed} {
+            set fullarchivepath [file join $portdbpath software $subport $fullarchivename]
+        } else {
+            set fullarchivepath [file join $portdbpath incoming/verified $fullarchivename]
+        }
+        if {[file isfile $fullarchivepath]} {
+            return $fullarchivepath
+        }
+    }
+    return ""
 }
 
 # check if archive type is supported by current system
@@ -2857,28 +2885,22 @@ proc _check_xcode_version {} {
 
 # check if we can unarchive this port
 proc _archive_available {} {
-    global subport version revision portvariants ports_source_only workpath \
-           registry.path os.platform os.major porturl
+    global ports_source_only porturl
 
     if {[tbool ports_source_only]} {
         return 0
     }
 
-    set found 0
-    foreach unarchive.type [supportedArchiveTypes] {
-        set fullarchivepath [file join ${registry.path} software ${subport} "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${unarchive.type}"]
-        if {[file isfile $fullarchivepath]} {
-            set found 1
-            break
-        }
+    if {[find_portarchive_path] != ""} {
+        return 1
     }
 
-    if {!$found && [file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]] && [file extension $porturl] != ""} {
-        set found 1
+    if {[file rootname [file tail $porturl]] == [file rootname [get_portimage_name]] && [file extension $porturl] != ""} {
+        return 1
     }
 
-    # TODO: maybe check if there's an archive available on the server - this
+    # TODO: check if there's an archive available on the server - this
     # is much less useful otherwise now that archive == installed image
 
-    return $found
+    return 0
 }

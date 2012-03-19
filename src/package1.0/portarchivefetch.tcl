@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004 - 2011 The MacPorts Project
+# Copyright (c) 2004 - 2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -91,14 +91,14 @@ proc portarchivefetch::checkarchivefiles {urls} {
            version revision portvariants archive_sites
     upvar $urls fetch_urls
 
-    # Define archive directory path
-    set archive.path [get_portimage_path]
-    set archivefetch.fulldestpath [file dirname ${archive.path}]
-
     # throws an error if unsupported
     archiveTypeIsSupported $portarchivetype
 
-    set archive.file [file tail ${archive.path}]
+    # Define archive directory path
+    set archivefetch.fulldestpath [file join [option portdbpath] incoming/verified]
+    set archive.file [get_portimage_name]
+    set archive.path [file join ${archivefetch.fulldestpath} ${archive.file}]
+
     lappend all_archive_files ${archive.file}
     if {[info exists archive_sites]} {
         lappend fetch_urls archive_sites ${archive.file}
@@ -141,16 +141,6 @@ proc portarchivefetch::fetchfiles {args} {
         }
     }
     set incoming_path [file join [option portdbpath] incoming]
-    if {![file isdirectory $incoming_path]} {
-        if {[catch {file mkdir $incoming_path} result]} {
-            elevateToRoot "archivefetch"
-            set elevated yes
-            if {[catch {file mkdir $incoming_path} result]} {
-                return -code error [format [msgcat::mc "Unable to create archive fetch path: %s"] $result]
-            }
-        }
-    }
-    chownAsRoot ${archivefetch.fulldestpath}
     chownAsRoot $incoming_path
     if {[info exists elevated] && $elevated == yes} {
         dropPrivileges
@@ -172,8 +162,10 @@ proc portarchivefetch::fetchfiles {args} {
     }
     set sorted no
 
+    set existing_archive [find_portarchive_path]
+
     foreach {url_var archive} $archivefetch_urls {
-        if {![file isfile ${archivefetch.fulldestpath}/${archive}]} {
+        if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive == ""} {
             ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
             if {![file writable ${archivefetch.fulldestpath}]} {
                 return -code error [format [msgcat::mc "%s must be writable"] ${archivefetch.fulldestpath}]
@@ -261,7 +253,7 @@ proc portarchivefetch::fetchfiles {args} {
 proc portarchivefetch::archivefetch_init {args} {
     global porturl portarchivetype
     # installing straight from a binary archive
-    if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]] && [file extension $porturl] != ""} {
+    if {[file rootname [file tail $porturl]] == [file rootname [get_portimage_name]] && [file extension $porturl] != ""} {
         set portarchivetype [string range [file extension $porturl] 1 end]
     }
     return 0

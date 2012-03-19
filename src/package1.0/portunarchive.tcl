@@ -2,7 +2,7 @@
 # portunarchive.tcl
 # $Id$
 #
-# Copyright (c) 2005, 2007-2011 The MacPorts Project
+# Copyright (c) 2005, 2007-2012 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -82,19 +82,10 @@ proc portunarchive::unarchive_init {args} {
         ui_debug "Skipping unarchive ($subport) since force is set"
         set skipped 1
     } else {
-        set found 0
-        set rootname [file rootname [get_portimage_path]]
-        foreach unarchive.type [supportedArchiveTypes] {
-            set unarchive.path "${rootname}.${unarchive.type}"
-            set unarchive.file [file tail ${unarchive.path}]
-            if {[file isfile ${unarchive.path}]} {
-                set found 1
-                break
-            } else {
-                ui_debug "No [string toupper ${unarchive.type}] archive: ${unarchive.path}"
-            }
-        }
-        if {$found == 1} {
+        set unarchive.path [find_portarchive_path]
+        set unarchive.file [file tail ${unarchive.path}]
+        set unarchive.type [string range [file extension ${unarchive.file}] 1 end]
+        if {${unarchive.path} != ""} {
             ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
         } else {
             if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
