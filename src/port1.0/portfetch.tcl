@@ -520,15 +520,21 @@ proc portfetch::fetch_start {args} {
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
             elevateToRoot "fetch"
-            set elevated yes
             if {[catch {file mkdir $distpath} result]} {
                 return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
             }
+            chownAsRoot $distpath
+            dropPrivileges
         }
     }
-    chownAsRoot $distpath
-    if {[info exists elevated] && $elevated == yes} {
-        dropPrivileges
+    if {![file owned $distpath]} {
+        if {[catch {chownAsRoot $distpath} result]} {
+            if {[file writable $distpath]} {
+                ui_warn "$UI_PREFIX [format [msgcat::mc "Couldn't change ownership of distribution files path to macports user: %s"] $result]"
+            } else {
+                return -code error [format [msgcat::mc "Distribution files path %s not writable and could not be chowned: %s"] $distpath $result]
+            }
+        }
     }
 }
 
