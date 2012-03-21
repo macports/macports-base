@@ -36,7 +36,7 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=2.0.0
+VERSION=2.0.99
 
 # Abstraction variables:
 PREFIX=__PREFIX__
@@ -56,7 +56,7 @@ OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 
 # Create config files from defaults if not present
 function setup_configs {
-    for f in macports.conf pubkeys.conf sources.conf variants.conf ; do
+    for f in archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf ; do
         if [[ ! -f ${CONFIGPATH}/${f} ]]; then
             echo "Copying ${f}.default to ${f}"
             /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}

@@ -1294,6 +1294,9 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias get_pingtime macports::get_pingtime
     $workername alias set_pingtime macports::set_pingtime
 
+    # archive_sites.conf handling
+    $workername alias get_archive_sites_conf_values macports::get_archive_sites_conf_values
+
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
             global macports::$opt
@@ -4546,4 +4549,67 @@ proc macports::get_pingtime {host} {
 proc macports::set_pingtime {host ms} {
     global macports::ping_cache
     set ping_cache($host) [list $ms [clock seconds]]
+}
+
+# read and cache archive_sites.conf (called from port1.0 code)
+proc macports::get_archive_sites_conf_values {} {
+    global macports::archive_sites_conf_values macports::autoconf::macports_conf_path
+    if {![info exists archive_sites_conf_values]} {
+        set archive_sites_conf_values {}
+        set all_names {}
+        array set defaults {applications_dir /Applications/MacPorts prefix /opt/local type tbz2}
+        set conf_file "${macports_conf_path}/archive_sites.conf"
+        set conf_options {applications_dir frameworks_dir name prefix type urls}
+        if {[file isfile $conf_file]} {
+            set fd [open $conf_file r]
+            while {[gets $fd line] >= 0} {
+                if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+                    if {[lsearch -exact $conf_options $option] >= 0} {
+                        if {$option == "name"} {
+                            set cur_name $val
+                            lappend all_names $val
+                        } elseif {[info exists cur_name]} {
+                            set trimmedval [string trim $val]
+                            if {$option == "urls"} {
+                                set processed_urls {}
+                                foreach url $trimmedval {
+                                    lappend processed_urls ${url}:nosubdir
+                                }
+                                lappend archive_sites_conf_values portfetch::mirror_sites::sites($cur_name) $processed_urls
+                                set sites($cur_name) $processed_urls
+                            } else {
+                                lappend archive_sites_conf_values portfetch::mirror_sites::archive_${option}($cur_name) $trimmedval
+                                set archive_${option}($cur_name) $trimmedval
+                            }
+                        } else {
+                            ui_warn "archive_sites.conf: ignoring '$option' occurring before name"
+                        }
+                    } else {
+                        ui_warn "archive_sites.conf: ignoring unknown key '$option'"
+                    }
+                }
+            }
+            close $fd
+
+            # check for unspecified values and set to defaults
+            foreach cur_name $all_names {
+                foreach key [array names defaults] {
+                    if {![info exists archive_${key}($cur_name)]} {
+                        set archive_${key}($cur_name) $defaults($key)
+                        lappend archive_sites_conf_values portfetch::mirror_sites::archive_${key}($cur_name) $defaults($key)
+                    }
+                }
+                if {![info exists archive_frameworks_dir($cur_name)]} {
+                    set archive_frameworks_dir($cur_name) $archive_prefix($cur_name)/Library/Frameworks
+                    lappend archive_sites_conf_values portfetch::mirror_sites::archive_frameworks_dir($cur_name) $archive_frameworks_dir($cur_name)
+                }
+                if {![info exists sites($cur_name)]} {
+                    ui_warn "archive_sites.conf: no urls set for $cur_name"
+                    set sites($cur_name) ""
+                    lappend archive_sites_conf_values portfetch::mirror_sites::sites($cur_name) ""
+                }
+            }
+        }
+    }
+    return $archive_sites_conf_values
 }

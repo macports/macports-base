@@ -36,7 +36,7 @@ package require portutil 1.0
 package require Pextlib 1.0
 
 set org.macports.archivefetch [target_new org.macports.archivefetch portarchivefetch::archivefetch_main]
-target_init ${org.macports.archivefetch} portarchivefetch::archivefetch_init
+#target_init ${org.macports.archivefetch} portarchivefetch::archivefetch_init
 target_provides ${org.macports.archivefetch} archivefetch
 target_requires ${org.macports.archivefetch} main
 target_prerun ${org.macports.archivefetch} portarchivefetch::archivefetch_start
@@ -65,19 +65,32 @@ default archive_sites.listpath {"port1.0/fetch"}
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
-    global prefix porturl
+    global prefix frameworks_dir applications_dir porturl
+
+    # get defaults from ports tree resources
     set mirrorfile [get_full_archive_sites_path]
     if {[file exists $mirrorfile]} {
         source $mirrorfile
     }
+    # get archive_sites.conf values
+    foreach {key val} [get_archive_sites_conf_values] {
+        set $key $val
+    }
+
     set ret {}
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
-        if {$portfetch::mirror_sites::archive_prefix($site) == $prefix} {
-            lappend ret $site
+        if {$portfetch::mirror_sites::archive_prefix($site) == $prefix &&
+            $portfetch::mirror_sites::archive_frameworks_dir($site) == $frameworks_dir &&
+            $portfetch::mirror_sites::archive_applications_dir($site) == $applications_dir &&
+            ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
+            # using the archive type as a tag
+            lappend ret ${site}::$portfetch::mirror_sites::archive_type($site)
         }
     }
-    if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]]} {
-        lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]
+
+    # check if porturl itself points to an archive
+    if {[file rootname [file tail $porturl]] == [file rootname [get_portimage_name]] && [file extension $porturl] != ""} {
+        lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]:[string range [file extension $porturl] 1 end]
         archive.subdir
     }
     return $ret
@@ -87,21 +100,22 @@ set_ui_prefix
 
 # Checks possible archive files to assemble url lists for later fetching
 proc portarchivefetch::checkarchivefiles {urls} {
-    global all_archive_files archivefetch.fulldestpath portarchivetype \
-           version revision portvariants archive_sites
+    global all_archive_files archivefetch.fulldestpath archive_sites
     upvar $urls fetch_urls
-
-    # throws an error if unsupported
-    archiveTypeIsSupported $portarchivetype
 
     # Define archive directory path
     set archivefetch.fulldestpath [file join [option portdbpath] incoming/verified]
-    set archive.file [get_portimage_name]
-    set archive.path [file join ${archivefetch.fulldestpath} ${archive.file}]
+    set archive.rootname [file rootname [get_portimage_name]]
 
-    lappend all_archive_files ${archive.file}
-    if {[info exists archive_sites]} {
-        lappend fetch_urls archive_sites ${archive.file}
+    foreach entry [option archive_sites] {
+        # the archive type is used as a tag
+        set type [lindex [split $entry :] end]
+        if {![info exists seen($type)]} {
+            set archive.file "${archive.rootname}.${type}"
+            lappend all_archive_files ${archive.file}
+            lappend fetch_urls $type ${archive.file}
+            set seen($type) 1
+        }
     }
 }
 
@@ -229,9 +243,11 @@ proc portarchivefetch::fetchfiles {args} {
                 }
                 file delete -force $signature
                 set archive_exists 1
+                break
             }
         } else {
             set archive_exists 1
+            break
         }
     }
     if {[info exists archive_exists]} {
@@ -250,14 +266,9 @@ proc portarchivefetch::fetchfiles {args} {
 }
 
 # Initialize archivefetch target and call checkfiles.
-proc portarchivefetch::archivefetch_init {args} {
-    global porturl portarchivetype
-    # installing straight from a binary archive
-    if {[file rootname [file tail $porturl]] == [file rootname [get_portimage_name]] && [file extension $porturl] != ""} {
-        set portarchivetype [string range [file extension $porturl] 1 end]
-    }
-    return 0
-}
+#proc portarchivefetch::archivefetch_init {args} {
+#    return 0
+#}
 
 proc portarchivefetch::archivefetch_start {args} {
     variable archivefetch_urls
