@@ -636,7 +636,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set fd [open $file r]
             while {[gets $fd line] >= 0} {
                 if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                    if {[lsearch $bootstrap_options $option] >= 0} {
+                    if {[lsearch -exact $bootstrap_options $option] >= 0} {
                         set macports::$option [string trim $val]
                         global macports::$option
                     }
@@ -652,7 +652,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
             if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                if {[lsearch $user_options $option] >= 0} {
+                if {[lsearch -exact $user_options $option] >= 0} {
                     set macports::$option $val
                     global macports::$option
                 }
@@ -2048,7 +2048,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                         }
                     }
                     if {[llength $missing] > 0} {
-                        if {[info exists dep_portinfo(variants)] && [lsearch $dep_portinfo(variants) universal] != -1} {
+                        if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
                             # dep offers a universal variant
                             if {[llength $active_archs] == 1} {
                                 # not installed universal
