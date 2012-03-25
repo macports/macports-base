@@ -2021,7 +2021,7 @@ proc macports::_upgrade_mport_deps {mport target} {
 
     foreach deptype $deptypes {
         if {![info exists portinfo($deptype)]} {
-            set portinfo($deptype) ""
+            continue
         }
         foreach depspec $portinfo($deptype) {
             set dep_portname [$workername eval _get_dep_port $depspec]
