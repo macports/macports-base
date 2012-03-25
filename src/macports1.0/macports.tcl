@@ -3139,7 +3139,7 @@ proc macports::_deptypes_for_target {target workername} {
         mpkg        -
         rpm         -
         dpkg        {
-            if {[$workername eval _archive_available]} {
+            if {[global_option_isset ports_binary_only] || [$workername eval _archive_available]} {
                 return "depends_lib depends_run"
             } else {
                 return "depends_fetch depends_extract depends_build depends_lib depends_run"
@@ -3148,7 +3148,8 @@ proc macports::_deptypes_for_target {target workername} {
         install     -
         activate    -
         ""          {
-            if {[$workername eval registry_exists \$subport \$version \$revision \$portvariants]
+            if {[global_option_isset ports_binary_only] ||
+                [$workername eval registry_exists \$subport \$version \$revision \$portvariants]
                 || [$workername eval _archive_available]} {
                 return "depends_lib depends_run"
             } else {

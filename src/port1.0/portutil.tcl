@@ -2885,22 +2885,64 @@ proc _check_xcode_version {} {
 
 # check if we can unarchive this port
 proc _archive_available {} {
-    global ports_source_only porturl
+    global ports_source_only porturl portutil::archive_available_result
+
+    if {[info exists archive_available_result]} {
+        return $archive_available_result
+    }
 
     if {[tbool ports_source_only]} {
+        set archive_available_result 0
         return 0
     }
 
     if {[find_portarchive_path] != ""} {
+        set archive_available_result 1
         return 1
     }
 
-    if {[file rootname [file tail $porturl]] == [file rootname [get_portimage_name]] && [file extension $porturl] != ""} {
+    set archiverootname [file rootname [get_portimage_name]]
+    if {[file rootname [file tail $porturl]] == $archiverootname && [file extension $porturl] != ""} {
+        set archive_available_result 1
         return 1
     }
 
-    # TODO: check if there's an archive available on the server - this
-    # is much less useful otherwise now that archive == installed image
+    # check if there's an archive available on the server
+    global archive_sites
+    set mirrors macports_archives
+    if {[lsearch $archive_sites macports_archives::*] == -1} {
+        set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
+    }
+    if {$mirrors == {}} {
+        set archive_available_result 0
+        return 0
+    }
+    set archivetype $portfetch::mirror_sites::archive_type($mirrors)
+    set archivename "${archiverootname}.${archivetype}"
+    # grab first site, should conventionally be the master mirror
+    set sites_entry [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+    # look for and strip off any tag, which will start with the first colon after the
+    # first slash after the ://
+    set lastcolon [string last : $sites_entry]
+    set aftersep [expr [string first : $sites_entry] + 3]
+    set firstslash [string first / $sites_entry $aftersep]
+    if {$firstslash != -1 && $firstslash < $lastcolon} {
+        incr lastcolon -1
+        set site [string range $sites_entry 0 $lastcolon]
+    } else {
+        set site $sites_entry
+    }
+    if {[string index $site end] != "/"} {
+        append site "/[option archive.subdir]"
+    } else {
+        append site [option archive.subdir]
+    }
+    set url [portfetch::assemble_url $site $archivename]
+    if {![catch {curl getsize $url} result]} {
+        set archive_available_result 1
+        return 1
+    }
 
+    set archive_available_result 0
     return 0
 }

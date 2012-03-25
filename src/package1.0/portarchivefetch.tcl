@@ -65,7 +65,11 @@ default archive_sites.listpath {"port1.0/fetch"}
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
-    global prefix frameworks_dir applications_dir porturl
+    global prefix frameworks_dir applications_dir porturl \
+        portfetch::mirror_sites::sites portfetch::mirror_sites::archive_type \
+        portfetch::mirror_sites::archive_prefix \
+        portfetch::mirror_sites::archive_frameworks_dir \
+        portfetch::mirror_sites::archive_applications_dir
 
     # get defaults from ports tree resources
     set mirrorfile [get_full_archive_sites_path]
