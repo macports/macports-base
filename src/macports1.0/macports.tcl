@@ -3139,7 +3139,8 @@ proc macports::_deptypes_for_target {target workername} {
         mpkg        -
         rpm         -
         dpkg        {
-            if {[global_option_isset ports_binary_only] || [$workername eval _archive_available]} {
+            if {[global_option_isset ports_binary_only] ||
+                (![global_option_isset ports_source_only] && [$workername eval _archive_available])} {
                 return "depends_lib depends_run"
             } else {
                 return "depends_fetch depends_extract depends_build depends_lib depends_run"
@@ -3150,7 +3151,7 @@ proc macports::_deptypes_for_target {target workername} {
         ""          {
             if {[global_option_isset ports_binary_only] ||
                 [$workername eval registry_exists \$subport \$version \$revision \$portvariants]
-                || [$workername eval _archive_available]} {
+                || (![global_option_isset ports_source_only] && [$workername eval _archive_available])} {
                 return "depends_lib depends_run"
             } else {
                 return "depends_fetch depends_extract depends_build depends_lib depends_run"
@@ -3455,7 +3456,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 array set portinfo [mportinfo $workername]
                 
                 # upgrade its dependencies first
-                set status [_upgrade_dependencies portinfo depscache variationslist options yes]
+                set status [_upgrade_dependencies portinfo depscache variationslist options]
                 if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                     catch {mportclose $workername}
                     return $status
@@ -3683,17 +3684,19 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     set will_build no
+    set already_installed [registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
     # avoid building again unnecessarily
     if {$will_install &&
         ([info exists options(ports_upgrade_force)]
             || $build_override == 1
-            || ![registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)])} {
+            || !$already_installed)} {
         set will_build yes
     }
 
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)] && !$is_revupgrade} {
-        set status [_upgrade_dependencies portinfo depscache variationslist options $will_build]
+        # the last arg is because we might have to build from source if a rebuild is being forced
+        set status [_upgrade_dependencies portinfo depscache variationslist options [expr $will_build && $already_installed]]
         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
             catch {mportclose $workername}
             return $status
@@ -3745,7 +3748,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     # are we installing an existing version due to force or epoch override?
-    if {[registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
+    if {$already_installed
         && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
          ui_debug "Uninstalling $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
         # we have to force the uninstall in case of dependents
@@ -3877,7 +3880,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 # upgrade_dependencies: helper proc for upgrade
 # Calls upgrade on each dependency listed in the PortInfo.
 # Uses upvar to access the variables.
-proc macports::_upgrade_dependencies {portinfoname depscachename variationslistname optionsname {build_needed yes}} {
+proc macports::_upgrade_dependencies {portinfoname depscachename variationslistname optionsname {build_needed no}} {
     upvar $portinfoname portinfo $depscachename depscache \
           $variationslistname variationslist \
           $optionsname options
@@ -3895,17 +3898,18 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     set saved_do_dependents [info exists options(ports_do_dependents)]
     unset -nocomplain options(ports_do_dependents)
 
-    set status 0
+    set parent_interp [ditem_key $parentworker workername]
     # each required dep type is upgraded
-    if {$build_needed} {
-        set dtypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+    if {$build_needed && ![global_option_isset ports_binary_only]} {
+        set dtypes [_deptypes_for_target destroot $parent_interp]
     } else {
-        set dtypes {depends_lib depends_run}
+        set dtypes [_deptypes_for_target install $parent_interp]
     }
+
+    set status 0
     foreach dtype $dtypes {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
-                set parent_interp [ditem_key $parentworker workername]
                 set d [$parent_interp eval _get_dep_port $i]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
                     if {$d != ""} {
