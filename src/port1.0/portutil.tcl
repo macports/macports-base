@@ -792,8 +792,9 @@ proc platform {args} {
 # This executes the given code in 'body' if we were opened as the specified
 # subport, and also adds it to the list of subports that are defined.
 proc subport {subname body} {
-    global subport PortInfo
-    if {![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1} {
+    global subport name PortInfo
+    if {$subport == $name && $subname != $name && 
+        (![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1)} {
         lappend PortInfo(subports) $subname
     }
     if {[string equal -nocase $subname $subport]} {
