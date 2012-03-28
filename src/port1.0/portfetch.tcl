@@ -395,10 +395,15 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen patchfiles
-    global hg.url hg.tag hg.cmd
+    global worksrcpath prefix_frozen patchfiles hg.url hg.tag hg.cmd \
+           fetch.ignore_sslcert
 
-    set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
+    set insecureflag ""
+    if {${fetch.ignore_sslcert}} {
+        set insecureflag --insecure
+    }
+
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
