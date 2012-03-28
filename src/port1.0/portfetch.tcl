@@ -400,7 +400,7 @@ proc portfetch::hgfetch {args} {
 
     set insecureflag ""
     if {${fetch.ignore_sslcert}} {
-        set insecureflag --insecure
+        set insecureflag " --insecure"
     }
 
     set cmdstring "${hg.cmd} clone${insecureflag} --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
