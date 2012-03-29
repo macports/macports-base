@@ -460,15 +460,16 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     if {$compiler == {}} {
         set compiler ${configure.compiler}
     }
+
+    # Set defaults
+    switch -exact ${type} {
+        cc   { set ret [find_developer_tool cc] }
+        objc { set ret [find_developer_tool cc] }
+        cxx  { set ret [find_developer_tool c++] }
+        cpp  { set ret [find_developer_tool cpp] }
+    }
+
     switch -exact ${compiler} {
-        cc {
-            switch -exact ${type} {
-                cc   { set ret [find_developer_tool cc] }
-                objc { set ret [find_developer_tool cc] }
-                cxx  { set ret [find_developer_tool c++] }
-                cpp  { set ret [find_developer_tool cpp] }
-            }
-        }
         gcc {
             switch -exact ${type} {
                 cc   { set ret [find_developer_tool gcc] }
