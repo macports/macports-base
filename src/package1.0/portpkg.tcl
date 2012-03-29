@@ -38,6 +38,7 @@ set org.macports.pkg [target_new org.macports.pkg portpkg::pkg_main]
 target_runtype ${org.macports.pkg} always
 target_provides ${org.macports.pkg} pkg
 target_requires ${org.macports.pkg} archivefetch unarchive destroot
+target_prerun ${org.macports.pkg} portpkg::pkg_start
 
 namespace eval portpkg {
 }
@@ -48,30 +49,18 @@ options package.type package.destpath package.flat
 # Set defaults
 default package.destpath {${workpath}}
 default package.flat     false
+#default package.flat     {[expr [vercmp $macosx_deployment_target 10.5] >= 0]}
 
 set_ui_prefix
 
-proc portpkg::pkg_main {args} {
-    global subport version revision package.type package.destpath package.flat UI_PREFIX
+proc portpkg::pkg_start {args} {
+    global packagemaker_path portpkg::packagemaker portpkg::resourcepath \
+           portpkg::language portpkg::pkgpath xcodeversion portpath porturl \
+           package.destpath subport version workpath description \
+           long_description homepage
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${subport} ${version}]"
-
-    if {[getuid] == 0 && [geteuid] != 0} {
-        elevateToRoot "pkg"
-    }
-
-    return [package_pkg $subport $version $revision]
-}
-
-proc portpkg::package_pkg {portname portversion portrevision} {
-    global UI_PREFIX portdbpath destpath workpath prefix description \
-    package.destpath package.flat long_description homepage portpath porturl \
-    os.version os.major xcodeversion packagemaker_path
-
-    set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
-
+    set pkgpath "${package.destpath}/${subport}-${version}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
         return 0
     }
 
@@ -95,7 +84,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
     set language "English"
     file mkdir "${resourcepath}/${language}.lproj"
     file attributes "${resourcepath}/${language}.lproj" -permissions 0755
-	
+
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
         if {![info exists $variable]} {
@@ -104,8 +93,32 @@ proc portpkg::package_pkg {portname portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $subport $version $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resourcepath}/${language}.lproj/background.tiff
+}
+
+proc portpkg::pkg_main {args} {
+    global subport version revision UI_PREFIX
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${subport} ${version}]"
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot "pkg"
+    }
+
+    return [package_pkg $subport $version $revision]
+}
+
+proc portpkg::package_pkg {portname portversion portrevision} {
+    global UI_PREFIX portdbpath destpath workpath prefix description \
+    package.flat portpath os.version os.major \
+    portpkg::packagemaker portpkg::language portpkg::resourcepath \
+    portpkg::pkgpath
+
+    if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
+        return 0
+    }
 
     foreach dir {etc var tmp} {
         if ([file exists "${destpath}/$dir"]) {
@@ -122,7 +135,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         if {${os.major} >= 9} {
             if {${package.flat}} {
                 set pkgtarget "10.5"
-                set pkgresources ""
+                set pkgresources " --resources ${resourcepath} --scripts ${resourcepath} --title \"$portname-$portversion\""
                 set infofile "${workpath}/PackageInfo"
                 write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
             } else {
