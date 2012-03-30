@@ -2840,11 +2840,10 @@ proc _mportkey {mport key} {
 proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 0}} {
 
     array set portinfo [mportinfo $mport]
-    set deptypes {}
     if {$accDeps} {
-        upvar depspec_seen depspec_seen
+        upvar port_seen port_seen
     } else {
-        array set depspec_seen {}
+        array set port_seen {}
     }
 
     # progress indicator
@@ -2879,17 +2878,19 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             continue
         }
         foreach depspec $portinfo($deptype) {
-            # skip depspec/archs combos we've already seen, and ones with less archs than ones we've seen
-            set seenkey "${depspec},[join $required_archs ,]"
+            # get the portname that satisfies the depspec
+            set dep_portname [$workername eval _get_dep_port $depspec]
+            # skip port/archs combos we've already seen, and ones with the same port but less archs than ones we've seen (or noarch)
+            set seenkey "${dep_portname},[join $required_archs ,]"
             set seen 0
-            if {[info exists depspec_seen($seenkey)]} {
+            if {[info exists port_seen($seenkey)]} {
                 set seen 1
             } else {
-                set prev_seenkeys [array names depspec_seen ${depspec},*]
+                set prev_seenkeys [array names port_seen ${dep_portname},*]
                 set nrequired [llength $required_archs]
                 foreach key $prev_seenkeys {
                     set key_archs [lrange [split $key ,] 1 end]
-                    if {[llength $key_archs] > $nrequired} {
+                    if {$key_archs == "noarch" || $required_archs == "noarch" || [llength $key_archs] > $nrequired} {
                         set seen 1
                         set seenkey $key
                         break
@@ -2897,9 +2898,9 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 }
             }
             if {$seen} {
-                if {$depspec_seen($seenkey) != 0} {
+                if {$port_seen($seenkey) != 0} {
                     # nonzero means the dep is not satisfied, so we have to record it
-                    ditem_append_unique $mport requires $depspec_seen($seenkey)
+                    ditem_append_unique $mport requires $port_seen($seenkey)
                 }
                 continue
             }
@@ -2908,8 +2909,6 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             # If we don't skip or if it is not, add it to the list.
             set present [_mportispresent $mport $depspec]
 
-            # get the portname that satisfies the depspec
-            set dep_portname [$workername eval _get_dep_port $depspec]
             if {!$skipSatisfied && $dep_portname == ""} {
                 set dep_portname [lindex [split $depspec :] end]
             }
@@ -2945,15 +2944,16 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 } elseif {[info exists dep_portinfo(installs_libs)] && !$dep_portinfo(installs_libs)} {
                     set check_archs 0
                 }
-                lappend options subport $dep_portinfo(name)
+                set dep_options $options
+                lappend dep_options subport $dep_portinfo(name)
                 # Figure out the depport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
-                set depport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $options variations $variations]]
-                
+                set depport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $dep_options]]
+
                 if {$depport == {}} {
                     # We haven't opened this one yet.
-                    set depport [mportopen $dep_portinfo(porturl) $options $variations]
+                    set depport [mportopen $dep_portinfo(porturl) $dep_options $variations]
                 }
             }
 
@@ -2962,18 +2962,18 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 && ![macports::_mport_supports_archs $depport $required_archs]} {
 
                 set supported_archs [_mportkey $depport supported_archs]
+                array unset variation_array
+                array set variation_array [[ditem_key $depport workername] eval "array get variations"]
                 mportclose $depport
                 set arch_mismatch 1
                 set has_universal 0
                 if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
                     # a universal variant is offered
                     set has_universal 1
-                    array unset variation_array
-                    array set variation_array $variations
                     if {![info exists variation_array(universal)] || $variation_array(universal) != "+"} {
                         set variation_array(universal) +
                         # try again with +universal
-                        set depport [mportopen $dep_portinfo(porturl) $options [array get variation_array]]
+                        set depport [mportopen $dep_portinfo(porturl) $dep_options [array get variation_array]]
                         if {[macports::_mport_supports_archs $depport $required_archs]} {
                             set arch_mismatch 0
                         }
@@ -2994,9 +2994,11 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 # Append the sub-port's provides to the port's requirements list.
                 set depport_provides "[ditem_key $depport provides]"
                 ditem_append_unique $mport requires $depport_provides
-                set depspec_seen($seenkey) $depport_provides
-            } else {
-                set depspec_seen($seenkey) 0
+                # record actual archs we ended up getting
+                set port_seen(${dep_portname},[join [macports::_mport_archs $depport] ,]) $depport_provides
+            } elseif {$present && $dep_portname != ""} {
+                # record actual installed archs
+                set port_seen(${dep_portname},[join [macports::_active_archs $dep_portname] ,]) 0
             }
         }
     }
@@ -3020,8 +3022,7 @@ proc macports::_mport_supports_archs {mport required_archs} {
     if {$required_archs == "noarch"} {
         return 1
     }
-    set workername [ditem_key $mport workername]
-    set provided_archs [$workername eval get_canonical_archs]
+    set provided_archs [_mport_archs $mport]
     if {$provided_archs == "noarch"} {
         return 1
     }
@@ -3033,17 +3034,21 @@ proc macports::_mport_supports_archs {mport required_archs} {
     return 1
 }
 
+# return the archs of the given mport
+proc macports::_mport_archs {mport} {
+    set workername [ditem_key $mport workername]
+    return [$workername eval get_canonical_archs]
+}
+
 # check if the active version of a port supports the given archs
 proc macports::_active_supports_archs {portname required_archs} {
     if {$required_archs == "noarch"} {
         return 1
     }
-    if {[catch {set ilist [registry::active $portname]}]} {
+    if {[catch {registry::active $portname}]} {
         return 0
     }
-    set i [lindex $ilist 0]
-    set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-    set provided_archs [registry::property_retrieve $regref archs]
+    set provided_archs [_active_archs $portname]
     if {$provided_archs == "noarch" || $provided_archs == "" || $provided_archs == 0} {
         return 1
     }
@@ -3053,6 +3058,16 @@ proc macports::_active_supports_archs {portname required_archs} {
         }
     }
     return 1
+}
+
+# get the archs for a given active port
+proc macports::_active_archs {portname} {
+    if {[catch {set ilist [registry::active $portname]}]} {
+        return ""
+    }
+    set i [lindex $ilist 0]
+    set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+    return [registry::property_retrieve $regref archs]
 }
 
 # print an error message explaining why a port's archs are not provided by a dependency
