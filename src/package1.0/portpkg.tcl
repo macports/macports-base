@@ -365,8 +365,7 @@ proc portpkg::write_distribution {dfile portname portversion} {
     set portname [xml_escape $portname]
     set portversion [xml_escape $portversion]
     set dfd [open $dfile w+]
-    puts $dfd "
-<?xml version=\"1.0\" encoding=\"utf-8\"?>
+    puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
     <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
     <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
