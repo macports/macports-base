@@ -143,11 +143,11 @@ proc portpkg::package_pkg {portname portversion portrevision} {
                 write_package_info $infofile
             } else {
                 set pkgtarget "10.3"
-                set pkgresources " --resources ${package.resources}"
+                set pkgresources " --resources ${package.resources} --title \"$portname-$portversion\""
                 set infofile "${workpath}/Info.plist"
                 write_info_plist $infofile $portname $portversion $portrevision
             }
-            set cmdline "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --title \"$portname-$portversion\" --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            set cmdline "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
             if {${os.major} >= 10} {
                 append cmdline " --no-relocate"
             }
@@ -367,10 +367,21 @@ proc portpkg::write_distribution {dfile portname portversion} {
     set dfd [open $dfile w+]
     puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
+    <title>${portname}</title>
+    <options customize=\"never\"/>
     <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
     <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
     <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
-    <pkg-ref id=\"${portname}-${portversion}.pkg\">${portname}-${portversion}.pkg</pkg-ref>
+    <choices-outline>
+        <line choice=\"default\">
+            <line choice=\"org.macports.${portname}\"/>
+        </line>
+    </choices-outline>
+    <choice id=\"default\"/>
+    <choice id=\"org.macports.${portname}\" visible=\"false\">
+        <pkg-ref id=\"org.macports.${portname}\"/>
+    </choice>
+    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portversion}.pkg</pkg-ref>
 </installer-gui-script>
 "
     close $dfd
