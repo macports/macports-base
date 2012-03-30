@@ -469,7 +469,7 @@ proc macports::set_developer_dir {name1 name2 op} {
                 set vers [exec $mdls -raw -name kMDItemVersion $xcode]
                 if {$vers == "(null)"} { set vers "unknown" }
                 if {[vercmp $vers 4.3] >= 0 || [_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
-                    ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
+                    ui_error "    sudo xcode-select -switch ${xcode}/Contents/Developer # version ${vers}"
                 } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
                     ui_error "    sudo xcode-select -switch [file normalize ${xcode}/../..] # version ${vers}"
                 } else {
