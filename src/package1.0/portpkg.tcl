@@ -44,20 +44,22 @@ namespace eval portpkg {
 }
 
 # define options
-options package.type package.destpath package.flat
+options package.type package.destpath package.flat package.resources package.scripts
 
 # Set defaults
 default package.destpath {${workpath}}
-default package.flat     false
-#default package.flat     {[expr [vercmp $macosx_deployment_target 10.5] >= 0]}
+default package.resources {${workpath}/pkg_resources}
+default package.scripts  {${workpath}/pkg_scripts}
+# Need productbuild to make flat packages really work
+default package.flat     {[expr [vercmp $macosx_deployment_target 10.6] >= 0]}
 
 set_ui_prefix
 
 proc portpkg::pkg_start {args} {
-    global packagemaker_path portpkg::packagemaker portpkg::resourcepath \
+    global packagemaker_path portpkg::packagemaker \
            portpkg::language portpkg::pkgpath xcodeversion portpath porturl \
-           package.destpath subport version workpath description \
-           long_description homepage
+           package.destpath package.resources package.scripts package.flat \
+           subport version description long_description homepage workpath os.major
 
     set pkgpath "${package.destpath}/${subport}-${version}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
@@ -75,15 +77,12 @@ proc portpkg::pkg_start {args} {
         }
     }
     set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
-    if ([file exists "$packagemaker"]) {
-        set resourcepath ${workpath}/pkg_resources
-    } else {
-        set resourcepath "${pkgpath}/Contents/Resources"
-    }
 
     set language "English"
-    file mkdir "${resourcepath}/${language}.lproj"
-    file attributes "${resourcepath}/${language}.lproj" -permissions 0755
+    file mkdir "${package.resources}/${language}.lproj"
+    file attributes "${package.resources}/${language}.lproj" -permissions 0755
+    file mkdir ${package.scripts}
+    file attributes ${package.scripts} -permissions 0755
 
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
@@ -93,8 +92,12 @@ proc portpkg::pkg_start {args} {
             set pkg_$variable [set $variable]
         }
     }
-    write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $subport $version $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resourcepath}/${language}.lproj/background.tiff
+    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $version $pkg_long_description $pkg_description $pkg_homepage
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
+
+    if {${package.flat} && ${os.major} >= 9} {
+        write_distribution "${workpath}/Distribution" $subport $version
+    }
 }
 
 proc portpkg::pkg_main {args} {
@@ -112,7 +115,7 @@ proc portpkg::pkg_main {args} {
 proc portpkg::package_pkg {portname portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description \
     package.flat portpath os.version os.major \
-    portpkg::packagemaker portpkg::language portpkg::resourcepath \
+    package.resources package.scripts portpkg::packagemaker portpkg::language \
     portpkg::pkgpath
 
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
@@ -135,33 +138,50 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         if {${os.major} >= 9} {
             if {${package.flat}} {
                 set pkgtarget "10.5"
-                set pkgresources " --resources ${resourcepath} --scripts ${resourcepath} --title \"$portname-$portversion\""
+                set pkgresources " --scripts ${package.scripts}"
                 set infofile "${workpath}/PackageInfo"
-                write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
+                write_package_info $infofile
             } else {
                 set pkgtarget "10.3"
-                set pkgresources " --resources ${resourcepath} --title \"$portname-$portversion\""
+                set pkgresources " --resources ${package.resources}"
                 set infofile "${workpath}/Info.plist"
-                write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
+                write_info_plist $infofile $portname $portversion $portrevision
             }
-            set cmdline "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            set cmdline "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --title \"$portname-$portversion\" --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
             if {${os.major} >= 10} {
                 append cmdline " --no-relocate"
             }
             ui_debug "Running command line: $cmdline"
             system $cmdline
+
+            if {${package.flat} && ${os.major} >= 10} {
+                # Generate a distribution
+                set distpkgpath [file rootname ${pkgpath}]-dist.pkg
+                set productbuild [findBinary productbuild]
+                set cmdline "$productbuild --resources ${package.resources} --identifier org.macports.${portname} --distribution ${workpath}/Distribution --package-path ${workpath} ${distpkgpath}"
+                ui_debug "Running command line: $cmdline"
+                system $cmdline
+                file rename -force ${distpkgpath} ${pkgpath}
+            }
         } else {
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
             write_description_plist ${workpath}/Description.plist $portname $portversion $description
-            system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
+            system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${package.resources} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
         }
 
-        file delete ${workpath}/Info.plist
-        file delete ${workpath}/PackageInfo
-        file delete ${workpath}/Description.plist
-        file delete -force ${workpath}/pkg_resources
+        file delete ${workpath}/Info.plist \
+                    ${workpath}/PackageInfo \
+                    ${workpath}/Distribution \
+                    ${workpath}/Description.plist
+        file delete -force ${package.resources} \
+                           ${package.scripts}
 
     } else {
+
+        file mkdir ${pkgpath}/Contents/Resources
+        foreach f [glob -directory ${package.resources} *] {
+            file copy -force -- $f ${pkgpath}/Contents/Resources
+        }
 
         write_PkgInfo ${pkgpath}/Contents/PkgInfo
         write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
@@ -169,8 +189,8 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         system "[findBinary mkbom $portutil::autoconf::mkbom_path] ${destpath} ${pkgpath}/Contents/Archive.bom"
         system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x [findBinary cpio $portutil::autoconf::cpio_path] -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 
-        write_description_plist ${resourcepath}/Description.plist $portname $portversion $description
-        write_sizes_file ${resourcepath}/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
+        write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+        write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
     }
 
@@ -332,14 +352,27 @@ CompressedSize $compressedSize"
     close $fd
 }
 
-proc portpkg::write_package_info {infofile portname portversion portrevision} {
-    set portname [xml_escape $portname]
-    set portversion [xml_escape $portversion]
-    set portrevision [xml_escape $portrevision]
-
+proc portpkg::write_package_info {infofile} {
     set infofd [open ${infofile} w+]
     puts $infofd "
 <pkg-info install-location=\"/\" relocatable=\"false\" auth=\"root\">
 </pkg-info>"
     close $infofd
+}
+
+proc portpkg::write_distribution {dfile portname portversion} {
+    global macosx_deployment_target
+    set portname [xml_escape $portname]
+    set portversion [xml_escape $portversion]
+    set dfd [open $dfile w+]
+    puts $dfd "
+<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<installer-gui-script minSpecVersion=\"1\">
+    <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
+    <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
+    <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
+    <pkg-ref id=\"${portname}-${portversion}.pkg\">${portname}-${portversion}.pkg</pkg-ref>
+</installer-gui-script>
+"
+    close $dfd
 }
