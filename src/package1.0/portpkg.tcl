@@ -147,7 +147,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
                 set infofile "${workpath}/Info.plist"
                 write_info_plist $infofile $portname $portversion $portrevision
             }
-            set cmdline "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
             if {${os.major} >= 10} {
                 append cmdline " --no-relocate"
             }
