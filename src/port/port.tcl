@@ -1822,6 +1822,7 @@ proc action_log { action portlist opts } {
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
             set portdir $portinfo(portdir)
+            set portname $portinfo(name)
         } elseif {$porturl ne "file://."} {
             # Extract the portdir from porturl and use it to search PortIndex.
             # Only the last two elements of the path (porturl) make up the
@@ -1840,6 +1841,7 @@ proc action_log { action portlist opts } {
             }
             array unset portinfo
             array set portinfo [lindex $result 1]
+            set portname $portinfo(name)
         }
         set portpath [macports::getportdir $porturl]
         set logfile [file join [macports::getportlogpath $portpath $portname] "main.log"]
@@ -3684,6 +3686,7 @@ proc action_portcmds { action portlist opts } {
             }
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
+            set portname $portinfo(name)
         }
         
         
