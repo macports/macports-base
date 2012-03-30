@@ -116,11 +116,11 @@ proc portmpkg::make_one_package {portname portversion mport} {
 	}
 }
 
-proc portmpkg::package_mpkg {portname portversion portrevision} {
+proc portmpkg::package_mpkg {subport version revision} {
     global portdbpath destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
-	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
-	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
+	set pkgpath ${package.destpath}/${subport}-${version}.pkg
+	set mpkgpath ${package.destpath}/${subport}-${version}.mpkg
 	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Resources"
 	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Packages"
 
