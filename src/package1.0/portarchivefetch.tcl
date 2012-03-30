@@ -83,10 +83,15 @@ proc portarchivefetch::filter_sites {} {
 
     set ret {}
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
+        set missing 0
         foreach var {archive_frameworks_dir archive_applications_dir archive_type} {
             if {![info exists portfetch::mirror_sites::${var}($site)]} {
                 ui_warn "no $var configured for site '$site'"
+                set missing 1
             }
+        }
+        if {$missing} {
+            continue
         }
         if {$portfetch::mirror_sites::archive_prefix($site) == $prefix &&
             $portfetch::mirror_sites::archive_frameworks_dir($site) == $frameworks_dir &&
