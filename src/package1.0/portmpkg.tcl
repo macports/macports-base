@@ -95,7 +95,6 @@ proc portmpkg::make_dependency_list {portname destination} {
     }
 
     lappend result [list $portinfo(name) $portinfo(version) $mport]
-	ui_debug "dependencies for ${portname}: $result"
 	return $result
 }
 
@@ -116,11 +115,11 @@ proc portmpkg::make_one_package {portname portversion mport} {
 	}
 }
 
-proc portmpkg::package_mpkg {subport version revision} {
+proc portmpkg::package_mpkg {portname portversion portrevision} {
     global portdbpath destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
-	set pkgpath ${package.destpath}/${subport}-${version}.pkg
-	set mpkgpath ${package.destpath}/${subport}-${version}.mpkg
+	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
+	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
 	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Resources"
 	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Packages"
 
