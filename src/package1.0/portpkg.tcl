@@ -153,13 +153,14 @@ proc portpkg::package_pkg {portname portversion portrevision} {
             system $cmdline
 
             if {${package.flat} && ${os.major} >= 10} {
+                # the package we just built is just a component
+                set componentpath "[file rootname ${pkgpath}]-component.pkg"
+                file rename -force ${pkgpath} ${componentpath}
                 # Generate a distribution
-                set distpkgpath [file rootname ${pkgpath}]-dist.pkg
                 set productbuild [findBinary productbuild]
-                set cmdline "$productbuild --resources ${package.resources} --identifier org.macports.${portname} --distribution ${workpath}/Distribution --package-path ${workpath} ${distpkgpath}"
+                set cmdline "$productbuild --resources ${package.resources} --identifier org.macports.${portname} --distribution ${workpath}/Distribution --package-path ${package.destpath} ${pkgpath}"
                 ui_debug "Running command line: $cmdline"
                 system $cmdline
-                file rename -force ${distpkgpath} ${pkgpath}
             }
         } else {
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
@@ -379,7 +380,7 @@ proc portpkg::write_distribution {dfile portname portversion} {
     <choice id=\"org.macports.${portname}\" visible=\"false\">
         <pkg-ref id=\"org.macports.${portname}\"/>
     </choice>
-    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portversion}.pkg</pkg-ref>
+    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portversion}-component.pkg</pkg-ref>
 </installer-gui-script>
 "
     close $dfd

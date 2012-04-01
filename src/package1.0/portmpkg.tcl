@@ -48,10 +48,12 @@ options package.destpath package.flat
 set_ui_prefix
 
 proc portmpkg::mpkg_main {args} {
-    global subport version revision package.destpath package.flat UI_PREFIX
+    global subport version revision os.major package.destpath package.flat UI_PREFIX
 
-    # Make sure the destination path exists.
-    file mkdir ${package.destpath}
+    if {!${package.flat} || ${os.major} < 10} {
+        # Make sure the destination path exists.
+        file mkdir ${package.destpath}
+    }
 
     return [package_mpkg $subport $version $revision]
 }
@@ -116,16 +118,25 @@ proc portmpkg::make_one_package {portname portversion mport} {
 }
 
 proc portmpkg::package_mpkg {portname portversion portrevision} {
-    global portdbpath destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
+    global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
-	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
-	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Resources"
-	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Packages"
+
+    if {${package.flat} && ${os.major} >= 10} {
+        set pkgpath ${package.destpath}/${portname}-${portversion}-component.pkg
+        set packages_path ${workpath}/mpkg_packages
+        set resources_path ${workpath}/mpkg_resources
+    } else {
+        set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
+	    set packages_path ${mpkgpath}/Contents/Packages
+	    set resources_path ${mpkgpath}/Contents/Resources
+	}
+	system "mkdir -p -m 0755 ${packages_path}"
+	system "mkdir -p -m 0755 ${resources_path}"
 
 	set dependencies {}
 	# get deplist
-	set deps [make_dependency_list $portname ${mpkgpath}/Contents/Packages]
+	set deps [make_dependency_list $portname $packages_path]
 	set deps [lsort -unique $deps]
 	foreach dep $deps {
 		set name [lindex $dep 0]
@@ -134,17 +145,28 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
 		# don't re-package ourself
 		if {$name != $portname} {
 			make_one_package $name $vers $mport
-			lappend dependencies ${name}-${vers}.pkg
+			if {${package.flat} && ${os.major} >= 10} {
+			    lappend dependencies org.macports.${name} ${name}-${vers}-component.pkg
+			} else {
+			    lappend dependencies ${name}-${vers}.pkg
+			}
 		}
 	}
+	if {${package.flat} && ${os.major} >= 10} {
+	    lappend dependencies org.macports.${portname} ${portname}-${portversion}-component.pkg
+	} else {
+	    lappend dependencies ${portname}-${portversion}.pkg
+	}
 
-	# copy our own pkg into the mpkg
-	system "cp -PR ${pkgpath} ${mpkgpath}/Contents/Packages/"
-	lappend dependencies ${portname}-${portversion}.pkg
-	
-    portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
-    mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
-    portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+    # copy our own pkg into the mpkg
+    system "cp -PR ${pkgpath} ${packages_path}"
+
+    if {!${package.flat} || ${os.major} < 10} {
+        portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
+        mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
+        portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+        set resources_path ${mpkgpath}/Contents/Resources
+    }
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
         if {![info exists $variable]} {
@@ -153,10 +175,51 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    portpkg::write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${mpkgpath}/Contents/Resources/background.tiff
+    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
+
+    if {${package.flat} && ${os.major} >= 10} {
+        write_distribution ${workpath}/Distribution $portname $dependencies
+        set productbuild [findBinary productbuild]
+        set cmdline "$productbuild --resources ${resources_path} --identifier org.macports.mpkg.${portname} --distribution ${workpath}/Distribution --package-path ${packages_path} ${mpkgpath}"
+        ui_debug "Running command line: $cmdline"
+        system $cmdline
+    }
 
 	return 0
+}
+
+proc portmpkg::write_distribution {dfile portname dependencies} {
+    global macosx_deployment_target
+    set portname [xml_escape $portname]
+    set dfd [open $dfile w+]
+    puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<installer-gui-script minSpecVersion=\"1\">
+    <title>${portname}</title>
+    <options customize=\"never\"/>
+    <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
+    <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
+    <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
+    <choices-outline>
+    <line choice=\"default\">
+        <line choice=\"org.macports.mpkg.${portname}\"/>
+    </line>
+    </choices-outline>
+    <choice id=\"default\"/>
+    <choice id=\"org.macports.mpkg.${portname}\" visible=\"false\">
+"
+    foreach {identifier package} $dependencies {
+        set id [xml_escape $identifier]
+        set pkg [xml_escape $package]
+        puts $dfd "        <pkg-ref id=\"${id}\"/>"
+        lappend pkgrefs "<pkg-ref id=\"${id}\">${pkg}</pkg-ref>"
+    }
+    puts $dfd "    </choice>"
+    foreach pkgref $pkgrefs {
+        puts $dfd "    $pkgref"
+    }
+    puts $dfd "</installer-gui-script>"
+    close $dfd
 }
 
 proc portmpkg::xml_escape {s} {
