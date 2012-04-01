@@ -6,6 +6,12 @@
     <installation-check script="InstallationCheck();"/>
     <script><![CDATA[
 function InstallationCheck () {
+    if (system.compareVersions(system.version.ProductVersion, "__XVERS__") < 0
+        || system.compareVersions(system.version.ProductVersion, "__NEXT_XVERS__") >= 0) {
+        my.result.message = "This package is meant to be installed on Mac OS X __XVERS__.";
+        my.result.type = 'Fatal';
+        return false;
+    }
     if (system.files.fileExistsAtPath('__PREFIX__/etc/ports/dp_version')) {
         my.result.message = "Your existing MacPorts or DarwinPorts installation is too old to be upgraded by this installer. Please install MacPorts 1.7.1 first.";
         my.result.type = 'Fatal';

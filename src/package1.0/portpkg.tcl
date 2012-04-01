@@ -58,7 +58,7 @@ set_ui_prefix
 proc portpkg::pkg_start {args} {
     global packagemaker_path portpkg::packagemaker \
            portpkg::language xcodeversion portpath porturl \
-           package.destpath package.resources package.scripts package.flat \
+           package.resources package.scripts package.flat \
            subport version description long_description homepage workpath os.major
 
     if {![info exists packagemaker_path]} {
@@ -109,10 +109,10 @@ proc portpkg::pkg_main {args} {
 
 proc portpkg::package_pkg {portname portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description \
-    package.flat portpath os.version os.major \
+    package.flat package.destpath portpath os.version os.major \
     package.resources package.scripts portpkg::packagemaker portpkg::language
 
-    set pkgpath "${package.destpath}/${subport}-${version}.pkg"
+    set pkgpath "${package.destpath}/${portname}-${portversion}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
         return 0
