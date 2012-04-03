@@ -286,8 +286,10 @@ proc portarchivefetch::fetchfiles {args} {
 
 proc portarchivefetch::archivefetch_start {args} {
     variable archivefetch_urls
-    global UI_PREFIX subport all_archive_files ports_source_only
-    if {![tbool ports_source_only]} {
+    global UI_PREFIX subport all_archive_files destroot target_state_fd \
+           ports_source_only ports_binary_only
+    if {![tbool ports_source_only] && ([tbool ports_binary_only] ||
+            !([check_statefile target org.macports.destroot $target_state_fd] && [file isdirectory $destroot]))} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
