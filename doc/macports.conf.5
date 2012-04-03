@@ -234,6 +234,13 @@ files will be scanned for and reported but the ports will not be rebuilt.
 .br
 .Ic Default:
 rebuild
+.It Va default_compiler
+Default value for configure.compiler. This can be a space-separated list. Later
+entries will be used if earlier entries are unavailable or blacklisted by a
+port. Setting this is unsupported.
+.br
+.Ic Default:
+none (internal list based on Xcode version is normally used)
 .El
 .Sh FILES
 .Bl -tag -width
