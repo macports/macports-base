@@ -810,21 +810,23 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 		   [  sqlite3prefix=$withval ])
 
 	if test "x$sqlite3prefix" = "x"; then
-		AC_PATH_PROG([PKG_CONFIG], [pkg-config])
-		if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
-		    # assume it's somewhere like /usr that needs no extra flags
-		    AC_CHECK_HEADER(sqlite3.h, [], [AC_MSG_ERROR([cannot find sqlite3 header])])
-            CFLAGS_SQLITE3=""
-		    LDFLAGS_SQLITE3="-lsqlite3"
-        else
-            CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
-            LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
-            # for tclsqlite below
-            mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
-            if test "x$mp_sqlite3_dir" != "x"; then
-                mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
-            fi
-        fi
+		# see if it's somewhere like /usr that needs no extra flags
+		LDFLAGS_SQLITE3="-lsqlite3"
+		AC_CHECK_HEADER(sqlite3.h, [],[
+		    # nope - try pkg-config
+			AC_PATH_PROG([PKG_CONFIG], [pkg-config])
+			if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
+				AC_MSG_ERROR([cannot find sqlite3 header])
+			else
+				CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
+				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
+				# for tclsqlite below
+				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
+            			if test "x$mp_sqlite3_dir" != "x"; then
+                			mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
+            			fi
+			fi
+		])
 	else
 	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
 		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"

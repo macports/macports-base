@@ -9653,7 +9653,15 @@ fi
 
 
 	if test "x$sqlite3prefix" = "x"; then
-		# Extract the first word of "pkg-config", so it can be a program name with args.
+		# see if it's somewhere like /usr that needs no extra flags
+		LDFLAGS_SQLITE3="-lsqlite3"
+		ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
+if test "x$ac_cv_header_sqlite3_h" = xyes; then :
+
+else
+
+		    # nope - try pkg-config
+			# Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -9693,27 +9701,21 @@ $as_echo "no" >&6; }
 fi
 
 
-		if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
-		    # assume it's somewhere like /usr that needs no extra flags
-		    ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
-if test "x$ac_cv_header_sqlite3_h" = xyes; then :
+			if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
+				as_fn_error $? "cannot find sqlite3 header" "$LINENO" 5
+			else
+				CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
+				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
+				# for tclsqlite below
+				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
+            			if test "x$mp_sqlite3_dir" != "x"; then
+                			mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
+            			fi
+			fi
 
-else
-  as_fn_error $? "cannot find sqlite3 header" "$LINENO" 5
 fi
 
 
-            CFLAGS_SQLITE3=""
-		    LDFLAGS_SQLITE3="-lsqlite3"
-        else
-            CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
-            LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
-            # for tclsqlite below
-            mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
-            if test "x$mp_sqlite3_dir" != "x"; then
-                mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
-            fi
-        fi
 	else
 	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
 		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
