@@ -10,8 +10,10 @@ prefix			@prefix_expanded@
 # Where to store MacPorts working data
 portdbpath		@localstatedir_expanded@/macports
 
-# PATH settings that are used for external tools (configure, make, etc.) while installing ports. The default
-# paths are given in the example; it need not be uncommented.  Customizing binpath is intended for advanced users only.
+# PATH settings that are used for external tools (configure, make, etc.) while
+# installing ports. The default paths are given in the example; it need not be
+# uncommented.  Customizing binpath is unsupported and is intended for
+# advanced users only.
 #binpath		@prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
 # Directory containing Xcode Tools (default is to ask xcode-select)
