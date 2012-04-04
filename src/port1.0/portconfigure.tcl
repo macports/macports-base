@@ -210,8 +210,6 @@ proc portconfigure::configure_start {args} {
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
         apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
         macports-gcc     { set name "MacPorts gcc (port select)" }
-        macports-gcc-4.0 { set name "MacPorts gcc 4.0" }
-        macports-gcc-4.1 { set name "MacPorts gcc 4.1" }
         macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
         macports-gcc-4.3 { set name "MacPorts gcc 4.3" }
         macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
@@ -554,28 +552,6 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 fc   { set ret ${prefix}/bin/gfortran }
                 f77  { set ret ${prefix}/bin/gfortran }
                 f90  { set ret ${prefix}/bin/gfortran }
-            }
-        }
-        macports-gcc-4.0 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.0 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.0 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.0 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.0 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.0 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.0 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.0 }
-            }
-        }
-        macports-gcc-4.1 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.1 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.1 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.1 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.1 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.1 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.1 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.1 }
             }
         }
         macports-gcc-4.2 {
