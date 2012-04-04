@@ -4,8 +4,9 @@
 ###
 
 Unreleased changes:
-    - configure.compiler can now be set to macports-gcc-4.7 or macports-gcc-4.8
-      (ryandesign in r91521)
+    - New configure.compiler options: macports-clang-2.9, macports-clang-3.0,
+      macports-clang-3.1, macports-gcc-4.7, macports-gcc-4.8
+      (jeremyhu in r86719, ryandesign in r91521)
 
     - Added 'rev-upgrade' action checking for broken linkage and rebuilding
       ports containing broken files. Made rev-upgrade run automatically after
