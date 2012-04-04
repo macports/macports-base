@@ -5986,6 +5986,10 @@ fi
 
 
 
+if test "x$MTREE" = "x"; then
+    as_fn_error $? "mtree not found" "$LINENO" 5
+fi
+
 
 	# Extract the first word of "sed", so it can be a program name with args.
 set dummy sed; ac_word=$2

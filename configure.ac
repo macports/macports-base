@@ -165,6 +165,10 @@ AC_ARG_VAR(TAR, [path to tar command])
 AC_ARG_VAR(XAR, [path to xar command])
 AC_ARG_VAR(XZ, [path to xz command])
 
+if test "x$MTREE" = "x"; then
+    AC_MSG_ERROR([mtree not found])
+fi
+
 MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
 MP_TAR_NO_SAME_OWNER
