@@ -251,8 +251,8 @@ Release 2.0.0 (2011-07-22 by jmr):
     - Computing large dependency trees that contain the same port(s) multiple
       times should be considerably faster. (jmr in r73133)
 
-    - configure.compiler can now be set to macports-llvm-gcc-4.2 or
-      macports-clang (mfeiri in r72936, r72937)
+    - New configure.compiler options: macports-gcc-4.2, macports-llvm-gcc-4.2,
+      macports-clang (jmr in r71487; mfeiri in r72936, r72937)
 
     - Add '-n' option to reinplace (#26406, ryandesign in r73227)
 
