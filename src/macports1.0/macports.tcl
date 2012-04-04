@@ -478,7 +478,7 @@ proc macports::set_developer_dir {name1 name2 op} {
             }
         } else {
             ui_error "No Xcode installation was found."
-            ui_error "Please install Xcode and run xcode-select to specify its location."
+            ui_error "Please install Xcode and/or run xcode-select to specify its location."
         }
         ui_error
     }
@@ -1049,7 +1049,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    if {[getuid] == 0 && $os_major >= 11 && $os_platform == "darwin" && [vercmp $xcodeversion 4.3] >= 0} {
+    if {[getuid] == 0 && $os_major >= 11 && $os_platform == "darwin" && 
+            [file isfile "${macports::user_home}/Library/Preferences/com.apple.dt.Xcode.plist"]} {
         macports::copy_xcode_plist $env(HOME)
     }
 
