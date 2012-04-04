@@ -217,6 +217,8 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
         macports-gcc-4.5 { set name "MacPorts gcc 4.5" }
         macports-gcc-4.6 { set name "MacPorts gcc 4.6" }
+        macports-gcc-4.7 { set name "MacPorts gcc 4.7" }
+        macports-gcc-4.8 { set name "MacPorts gcc 4.8" }
         macports-llvm-gcc-4.2 { set name "MacPorts llvm-gcc 4.2" }
         macports-clang { set name "MacPorts clang (port select)" }
         macports-clang-2.9 { set name "MacPorts clang 2.9" }
@@ -386,6 +388,8 @@ array set portconfigure::compiler_name_map {
         macports-gcc-4.4        gcc44
         macports-gcc-4.5        gcc45
         macports-gcc-4.6        gcc46
+        macports-gcc-4.7        gcc47
+        macports-gcc-4.8        gcc48
         macports-llvm-gcc-4.2   llvm-gcc42
         macports-clang-2.9      clang-2.9
         macports-clang-3.0      clang-3.0
@@ -627,6 +631,28 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 fc   { set ret ${prefix}/bin/gfortran-mp-4.6 }
                 f77  { set ret ${prefix}/bin/gfortran-mp-4.6 }
                 f90  { set ret ${prefix}/bin/gfortran-mp-4.6 }
+            }
+        }
+        macports-gcc-4.7 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.7 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.7 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.7 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.7 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.7 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.7 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.7 }
+            }
+        }
+        macports-gcc-4.8 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.8 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.8 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.8 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.8 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.8 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.8 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.8 }
             }
         }
         macports-llvm-gcc-4.2 {
