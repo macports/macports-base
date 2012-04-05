@@ -3,7 +3,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2004-2011 The MacPorts Project
+# Copyright (c) 2004-2012 The MacPorts Project
 # Copyright (c) 2006-2007 James D. Berry
 # Copyright (c) 2004,2005 Markus W. Weissman <mww@macports.org>
 # All rights reserved.

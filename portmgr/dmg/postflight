@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8; mode: shell-script-mode; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=sh:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2008-2011 The MacPorts Project
+# Copyright (c) 2008-2012 The MacPorts Project
 # Copyright (c) 2002-2007 Juan Manuel Palacios <jmpp@macports.org>, The MacPorts Project.
 # All rights reserved.
 #

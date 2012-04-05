@@ -3,7 +3,8 @@
  * system.c
  * $Id$
  *
- * Copyright (c) 2009 The MacPorts Project
+ * Copyright (c) 2002 - 2003 Apple, Inc.
+ * Copyright (c) 2008 - 2010, 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

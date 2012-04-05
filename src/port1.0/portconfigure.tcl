@@ -2,7 +2,7 @@
 # portconfigure.tcl
 # $Id$
 #
-# Copyright (c) 2007 - 2011 The MacPorts Project
+# Copyright (c) 2007 - 2012 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.

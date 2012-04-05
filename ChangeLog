@@ -8,6 +8,49 @@ Unreleased changes:
       macports-clang-3.1, macports-gcc-4.7, macports-gcc-4.8
       (jeremyhu in r86719, ryandesign in r91521)
 
+    - Avoid using pkg-config to find sqlite3 in our configure script unless it
+      can't be found by other means, because some third-party packages
+      incorrectly install a /usr/bin/pkg-config that points to an incompatible
+      copy of sqlite3. (#30932, dluke/jmr in r91512)
+
+    - 'port pkg' and 'port mpkg' will now create flat packages (i.e. a xar
+      archive rather than a directory) on 10.6+.
+      (jmr in r91317, r91329, r91331, r91437)
+
+    - Fixed dependencies sometimes being installed multiple times when
+      required with different archs. (#31794, jmr in r91357)
+
+    - Build-time dependencies will no longer be installed if a prebuilt
+      archive is available for download (and port is configured to use it).
+      (jmr in r91196, r91217)
+
+    - Added new config file archive_sites.conf, which can be used to configure
+      additional archive download sources. Each source has an associated
+      archive type; portarchivetype is now only used when creating archives
+      locally. Sources also have an associated prefix, applications_dir and
+      frameworks_dir, and if any of these do not match the current values, the
+      source is not used. (jmr in r91009)
+
+    - Xcode 4.3 support: Search harder for developer directory; advise user to
+      run xcode-select when necessary, searching for Xcode and suggesting
+      xcode-select commands.
+      (jberry, jmr in r89970,r89971,r89972,r89996,r89999,r90003,r90005-r90009,
+      r90018-r90019,r90024,r90031)
+
+    - warn about non-existing developer_dir when it's set in macports.conf
+      (cal in 90802)
+
+    - port automatically installs bsdmake when there's no bsdmake in $PATH and a
+      port sets build.type bsd (#33355, cal in r90650)
+
+    - Added -W option for reinplace that sets a base directory that all file
+      arguments are interpreted as being relative to. (raimue in r90610)
+
+    - Added macports.conf options 'host_blacklist' and 'preferred_hosts', used
+      for indicating lists of download hosts that should not be used or should
+      be used preferentially, respectively. These override the usual ping time
+      check. Ping times are also now cached for 24 hours. (jmr in r89459)
+
     - Added 'rev-upgrade' action checking for broken linkage and rebuilding
       ports containing broken files. Made rev-upgrade run automatically after
       each upgrade or install.
@@ -23,39 +66,46 @@ Unreleased changes:
 
     - Several improvements to port lint:
       licenses, subversion properties, maintainer addresses
-      (snc, raimue in r85929, r86016, r89428, r89610)
+      (#30194, snc, raimue in r85929, r86016, r89428, r89610)
 
-    - Implement new option-replace using lsearch/lreplace. The old behavior is
-      deprecated for option-replace with only one argument, but can still be
-      found in option-strsed.
-      (raimue in r82760, r82761)
+    - Added license_noconflict option to specify dependencies for which the
+      maintainer has manually checked license compatibility and wishes to
+      overrule the conservative automated checks. (jmr in r89004)
 
     - Xcode 4.3 support: Use xcrun -find to find xcode compiler if it's not
       found in /usr/bin.
       (jberry, jmr in r88540,r88541,r88546,r88777,r88779,r88787,r89359,r89984,r90028)
 
-    - Xcode 4.3 support: Search harder for developer directory; advise user to
-      run xcode-select when necessary, searching for Xcode and suggesting
-      xcode-select commands.
-      (jberry, jmr in r89970,r89971,r89972,r89996,r89999,r90003,r90005-r90009,
-      r90018-r90019,r90024,r90031)
-
-Release 2.0.5 (unreleased)
-    - warn about non-existing developer_dir when it's set in macports.conf
-      (cal in 90802)
-
-    - port automatically installs bsdmake when there's no bsdmake in $PATH and a
-      port sets build.type bsd (#33355, cal in r90650)
+    - Added options compiler.blacklist, compiler.whitelist, and
+      compiler.fallback; to allow blacklisting, whitelisting, and setting the
+      fallback order for configure.compiler values, respectively.
+      (#30041, jmr in r88676)
 
     - Fix sync with subdirectory of Subversion 1.7-format working copy
       (#33573, jmr in 86872)
+
+    - Fixed conflicts not being checked for when installing ports that have no
+      dependencies. (#31571, dports in r85382)
 
     - dmg postflight: quote all paths to handle the increasingly frequent
       occurrence that $HOME contains spaces (#33583, ryandesign in r84345)
 
     - dmg postflight: adjust wording of some messages (ryandesign in r84344)
 
+    - The deprecated Portfile options svn.tag, distcheck.check and
+      livecheck.check have been removed. (raimue in r82763)
+
+    - Implement new option-replace using lsearch/lreplace. The old behavior is
+      deprecated for option-replace with only one argument, but can still be
+      found in option-strsed.
+      (raimue in r82760, r82761)
+
+    - Added 'buildfromsource' macports.conf setting, which allows permanently
+      selecting the behaviour of the -s or -b option. (jmr in r81540)
+
 Release 2.0.4 (2012-02-25 by jmr)
+    - Added -locale option for reinplace (jeremyhu in r89839)
+
     - Xcode 4.3 support: Change home directory for MacPorts user to
       ${prefix}/var/macports/home.
       (jberry, jmr in r89988, r89993, r90002, r90010, r90011)
