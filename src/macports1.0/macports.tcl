@@ -4113,16 +4113,16 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                             flush stdout
                         }
                     }
-                    ui_debug "Updating binary flag for file $i of [llength $files]: [$f path]"
+                    ui_debug "Updating binary flag for file $i of [llength $files]: [$f actual_path]"
                     incr i
 
-                    if {0 != [catch {$f binary [fileIsBinary [$f path]]} fileIsBinaryError]} {
+                    if {0 != [catch {$f binary [fileIsBinary [$f actual_path]]} fileIsBinaryError]} {
                         # handle errors (e.g. file not found, permission denied) gracefully
                         if {![macports::ui_isset ports_debug]} {
                             ui_msg ""
                         }
-                        ui_warn "Error determining file type of `[$f path]': $fileIsBinaryError"
-                        ui_warn "A file belonging to the `[[registry::entry owner [$f path]] name]' port is missing or unreadable. Consider reinstalling it."
+                        ui_warn "Error determining file type of `[$f actual_path]': $fileIsBinaryError"
+                        ui_warn "A file belonging to the `[[registry::entry owner [$f actual_path]] name]' port is missing or unreadable. Consider reinstalling it."
                     }
                 }
             } catch {*} {
@@ -4153,10 +4153,10 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     flush stdout
                 }
             }
-            #ui_debug "$i/[llength $binaries]: [$b path]"
+            #ui_debug "$i/[llength $binaries]: [$b actual_path]"
             incr i
 
-            set resultlist [machista::parse_file $handle [$b path]]
+            set resultlist [machista::parse_file $handle [$b actual_path]]
             set returncode [lindex $resultlist 0]
             set result     [lindex $resultlist 1]
 
@@ -4164,12 +4164,12 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 if {$returncode == $machista::EMAGIC} {
                     # not a Mach-O file
                     # ignore silently, these are only static libs anyway
-                    #ui_debug "Error parsing file [$b path]: [machista::strerror $returncode]"
+                    #ui_debug "Error parsing file [$b actual_path]: [machista::strerror $returncode]"
                 } else {
                     if {![macports::ui_isset ports_debug]} {
                         ui_msg ""
                     }
-                    ui_warn "Error parsing file [$b path]: [machista::strerror $returncode]"
+                    ui_warn "Error parsing file [$b actual_path]: [machista::strerror $returncode]"
                 }
                 continue;
             }
@@ -4180,9 +4180,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     if {[$architecture cget -mat_install_name] != "NULL" && [$architecture cget -mat_install_name] != ""} {
                         # check if this lib's install name actually refers to this file itself
                         # if this is not the case software linking against this library might have erroneous load commands
-                        if {0 == [catch {set idloadcmdpath [revupgrade_handle_special_paths [$b path] [$architecture cget -mat_install_name]]}]} {
+                        if {0 == [catch {set idloadcmdpath [revupgrade_handle_special_paths [$b actual_path] [$architecture cget -mat_install_name]]}]} {
                             if {[string index $idloadcmdpath 0] != "/"} {
-                                set port [registry::entry owner [$b path]]
+                                set port [registry::entry owner [$b actual_path]]
                                 if {$port != ""} {
                                     set portname [$port name]
                                 } else {
@@ -4191,9 +4191,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 if {![macports::ui_isset ports_debug]} {
                                     ui_msg ""
                                 }
-                                ui_warn "ID load command in [$b path], arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
+                                ui_warn "ID load command in [$b actual_path], arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
                             } elseif {![file exists $idloadcmdpath]} {
-                                set port [registry::entry owner [$b path]]
+                                set port [registry::entry owner [$b actual_path]]
                                 if {$port != ""} {
                                     set portname [$port name]
                                 } else {
@@ -4202,15 +4202,15 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 if {![macports::ui_isset ports_debug]} {
                                     ui_msg ""
                                 }
-                                ui_warn "ID load command in [$b path], arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
+                                ui_warn "ID load command in [$b actual_path], arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
                                 ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                             } else {
     
-                                set hash_this [sha256 file [$b path]]
+                                set hash_this [sha256 file [$b actual_path]]
                                 set hash_idloadcmd [sha256 file $idloadcmdpath]
     
                                 if {$hash_this != $hash_idloadcmd} {
-                                    set port [registry::entry owner [$b path]]
+                                    set port [registry::entry owner [$b actual_path]]
                                     if {$port != ""} {
                                         set portname [$port name]
                                     } else {
@@ -4219,7 +4219,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     if {![macports::ui_isset ports_debug]} {
                                         ui_msg ""
                                     }
-                                    ui_warn "ID load command in [$b path], arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file $idloadcmdpath, which is a different file"
+                                    ui_warn "ID load command in [$b actual_path], arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file $idloadcmdpath, which is a different file"
                                     ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                                 }
                             }
@@ -4229,7 +4229,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
                 set archname [machista::get_arch_name [$architecture cget -mat_arch]]
                 if {![arch_runnable $archname]} {
-                    ui_debug "skipping $archname in [$b path] since this system can't run it anyway"
+                    ui_debug "skipping $archname in [$b actual_path] since this system can't run it anyway"
                     set architecture [$architecture cget -next]
                     continue
                 }
@@ -4237,7 +4237,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 set loadcommand [$architecture cget -mat_loadcmds]
 
                 while {$loadcommand != "NULL"} {
-                    if {0 != [catch {set filepath [revupgrade_handle_special_paths [$b path] [$loadcommand cget -mlt_install_name]]}]} {
+                    if {0 != [catch {set filepath [revupgrade_handle_special_paths [$b actual_path] [$loadcommand cget -mlt_install_name]]}]} {
                         set loadcommand [$loadcommand cget -next]
                         continue;
                     }
@@ -4255,8 +4255,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                             set files_warned_about($filepath) yes
                         }
                         if {$libreturncode == $machista::EFILE} {
-                            ui_debug "Marking [$b path] as broken"
-                            lappend broken_files [$b path]
+                            ui_debug "Marking [$b actual_path] as broken"
+                            lappend broken_files [$b actual_path]
                         }
                         set loadcommand [$loadcommand cget -next]
                         continue;
@@ -4275,8 +4275,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 ui_msg ""
                             }
                             ui_warn "Incompatible library version of file [$loadcommand cget -mlt_install_name]: Expected [$loadcommand cget -mlt_comp_version], but got [$libarchitecture cget -mat_comp_version]"
-                            ui_debug "Marking [$b path] as broken"
-                            lappend broken_files [$b path]
+                            ui_debug "Marking [$b actual_path] as broken"
+                            lappend broken_files [$b actual_path]
                         }
 
                         set libarch_found true;
@@ -4286,10 +4286,10 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     if {$libarch_found == false} {
                         ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file $filepath"
                         if {[path_is_in_prefix $filepath]} {
-                            ui_debug "Marking [$b path] as broken"
-                            lappend broken_files [$b path]
+                            ui_debug "Marking [$b actual_path] as broken"
+                            lappend broken_files [$b actual_path]
                         } else {
-                            ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file outside prefix referenced from [$b path]"
+                            ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file outside prefix referenced from [$b actual_path]"
                             # ui_debug "   How did you get that compiled anyway?"
                         }
                     }
