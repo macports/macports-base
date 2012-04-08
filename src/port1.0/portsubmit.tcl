@@ -137,7 +137,7 @@ proc portsubmit::submit_main {args} {
     }
 
     if {[system $cmd] != ""} {
-    return -code error [format [msgcat::mc "Failed to archive port : %s"] $name]
+    return -code error [format [msgcat::mc "Failed to archive port %s"] $name]
     }
 
     set portsource ""
@@ -197,7 +197,7 @@ proc portsubmit::submit_main {args} {
 
     ui_debug $cmd
     if {[system $cmd] != ""} {
-    return -code error [format [msgcat::mc "Failed to submit port : %s"] $name]
+    return -code error [format [msgcat::mc "Failed to submit port %s"] $name]
     }
 
     #
