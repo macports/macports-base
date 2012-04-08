@@ -275,6 +275,12 @@ proc portchecksum::checksum_main {args} {
                         set fail yes
                     }
                 }
+                if {[tbool fail] && ![regexp {\.html?$} ${distfile}] &&
+                    ![catch {strsed [exec [findBinary file $portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
+                    && "text/html" == $mimetype} {
+                    # file --mime-type would be preferable to file --mime and strsed, but is only available as of Snow Leopard
+                    set wrong_mimetype yes
+                }
             }
 
         }
@@ -288,6 +294,18 @@ proc portchecksum::checksum_main {args} {
         # Show the desired checksum line for easy cut-paste
         ui_info "The correct checksum line may be:"
         ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
+
+        if {[tbool wrong_mimetype]} {
+            # We got an HTML file, though the distfile name does not suggest that one was
+            # expected. Probably a helpful DNS server sent us to its search results page
+            # instead of admitting that the server we asked for doesn't exist, or a mirror that
+            # no longer has the file served its error page with a 200 response.
+            ui_notice "***"
+            ui_notice "The non-matching file appears to be HTML. See this page for possible reasons"
+            ui_notice "for the checksum mismatch:"
+            ui_notice "<https://trac.macports.org/wiki/MisbehavingServers>"
+            ui_notice "***"
+        }
 
         return -code error "[msgcat::mc "Unable to verify file checksums"]"
     }
