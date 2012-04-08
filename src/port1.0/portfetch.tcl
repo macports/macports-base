@@ -472,8 +472,20 @@ proc portfetch::fetchfiles {args} {
                 set file_url [portfetch::assemble_url $site $distfile]
                 if {![catch {eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}} result] &&
                     ![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
-                    set fetched 1
-                    break
+                    if {![regexp {\.html?$} ${distfile}] &&
+                        ![catch {strsed [exec [findBinary file $portutil::autoconf::file_path] ${distpath}/${distfile} --brief --mime] {s/;.*$//}} mimetype]
+                        && "text/html" == ${mimetype}} {
+                        # file --mime-type would be preferable to file --mime and strsed, but is only available as of Snow Leopard
+                        # We got an HTML file, though the distfile name does not suggest that one was
+                        # expected. Probably a helpful DNS server sent us to its search results page
+                        # instead of admitting that the server we asked for doesn't exist, or a mirror that
+                        # no longer has the file served its error page with a 200 response.
+                        ui_debug "[msgcat::mc "Fetching distfile failed:"]: [msgcat::mc "an HTML file was unexpectedly received instead"]"
+                        file delete -force "${distpath}/${distfile}"
+                    } else {
+                        set fetched 1
+                        break
+                    }
                 } else {
                     ui_debug "[msgcat::mc "Fetching distfile failed:"]: $result"
                     file delete -force "${distpath}/${distfile}.TMP"
