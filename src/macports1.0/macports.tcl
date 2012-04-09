@@ -4424,37 +4424,24 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         # shared depscache for all ports that are going to be rebuilt
         array set depscache {}
         set status 0
+        array set my_options [array get macports::global_options]
         foreach port $topsort_ports {
             if {![info exists depscache(port:[$port name])]} {
-
-                # convert variations into the format macports::upgrade needs
-                set minusvariant [lrange [split [$port negated_variants] "-"] 1 end]
-                set plusvariant  [lrange [split [$port variants]         "+"] 1 end]
-                set variants     [list]
-                foreach v $minusvariant {
-                    lappend variants $v "-"
-                }
-                foreach v $plusvariant {
-                    lappend variants $v "+"
-                }
-                array unset variations
-                array set variations $variants
-
                 # set rev-upgrade options and nodeps if this is not the first run
-                set macports::global_options(ports_revupgrade) "yes"
-                unset -nocomplain macports::global_options(ports_nodeps)
-                unset -nocomplain macports::global_options(ports_revupgrade_second_run)
-                unset -nocomplain macports::global_options(ports_source_only)
+                set my_options(ports_revupgrade) "yes"
+                unset -nocomplain my_options(ports_nodeps)
+                unset -nocomplain my_options(ports_revupgrade_second_run)
+                unset -nocomplain my_options(ports_source_only)
                 if {$broken_port_counts([$port name]) > 1} {
-                    set macports::global_options(ports_revupgrade_second_run) yes
-                    set macports::global_options(ports_nodeps) yes
+                    set my_options(ports_revupgrade_second_run) yes
+                    set my_options(ports_nodeps) yes
                     # build from source only until the buildbot has some method of rev-upgrade, too
-                    set macports::global_options(ports_source_only) yes
+                    set my_options(ports_source_only) yes
                 }
 
                 # call macports::upgrade with ports_revupgrade option to rebuild the port
                 set status [macports::upgrade [$port name] "port:[$port name]" \
-                    [array get variations] [array get macports::global_options] depscache]
+                    {} [array get my_options] depscache]
                 ui_debug "Rebuilding port [$port name] finished with status $status"
                 if {$status != 0} {
                     error "Error rebuilding [$port name]"
