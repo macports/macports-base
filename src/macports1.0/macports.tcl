@@ -4253,7 +4253,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                             if {![macports::ui_isset ports_debug]} {
                                 ui_msg ""
                             }
-                            ui_warn "Could not open $filepath: [machista::strerror $libreturncode]"
+                            ui_info "Could not open $filepath: [machista::strerror $libreturncode] (referenced from $bpath)"
                             set files_warned_about($filepath) yes
                         }
                         if {$libreturncode == $machista::EFILE} {
@@ -4276,7 +4276,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                             if {![macports::ui_isset ports_debug]} {
                                 ui_msg ""
                             }
-                            ui_warn "Incompatible library version of file [$loadcommand cget -mlt_install_name]: Expected [$loadcommand cget -mlt_comp_version], but got [$libarchitecture cget -mat_comp_version]"
+                            ui_info "Incompatible library version of file [$loadcommand cget -mlt_install_name]: Expected [$loadcommand cget -mlt_comp_version], but got [$libarchitecture cget -mat_comp_version]"
                             ui_debug "Marking $bpath as broken"
                             lappend broken_files $bpath
                         }
