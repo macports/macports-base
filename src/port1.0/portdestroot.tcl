@@ -92,7 +92,7 @@ set_ui_prefix
 proc portdestroot::destroot_getargs {args} {
     if {(([option build.type] == "default" && [option os.platform] != "freebsd") || \
          ([option build.type] == "gnu")) \
-        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option build.cmd]]} {
+        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option destroot.cmd]]} {
         # Print "Entering directory" lines for better log debugging
         return "-w [option destroot.target]"
     }
