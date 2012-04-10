@@ -4426,13 +4426,14 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         set status 0
         array set my_options [array get macports::global_options]
         foreach port $topsort_ports {
-            if {![info exists depscache(port:[$port name])]} {
+            set portname [$port name]
+            if {![info exists depscache(port:$portname)]} {
                 # set rev-upgrade options and nodeps if this is not the first run
                 set my_options(ports_revupgrade) "yes"
                 unset -nocomplain my_options(ports_nodeps)
                 unset -nocomplain my_options(ports_revupgrade_second_run)
                 unset -nocomplain my_options(ports_source_only)
-                if {$broken_port_counts([$port name]) > 1} {
+                if {$broken_port_counts($portname) > 1} {
                     set my_options(ports_revupgrade_second_run) yes
                     set my_options(ports_nodeps) yes
                     # build from source only until the buildbot has some method of rev-upgrade, too
@@ -4440,11 +4441,11 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 }
 
                 # call macports::upgrade with ports_revupgrade option to rebuild the port
-                set status [macports::upgrade [$port name] "port:[$port name]" \
+                set status [macports::upgrade $portname "port:$portname" \
                     {} [array get my_options] depscache]
-                ui_debug "Rebuilding port [$port name] finished with status $status"
+                ui_debug "Rebuilding port $portname finished with status $status"
                 if {$status != 0} {
-                    error "Error rebuilding [$port name]"
+                    error "Error rebuilding $portname"
                 }
             }
         }
