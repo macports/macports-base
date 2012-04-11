@@ -1,3 +1,41 @@
+== Overview of changes from MacPorts 2.0.4 to 2.1.0 ==
+
+# For regular users:
+
+*) New 'rev-upgrade' action that checks for and rebuilds ports that may have
+   become incorrectly linked when a dependency was upgraded to a new,
+   binary-incompatible version. This runs automatically after upgrades and
+   installs by default, and can be turned off or configured to only report
+   problems in macports.conf.
+
+*) The pkg and mpkg targets will create flat packages on 10.6+.
+
+*) Build-time dependencies will no longer be installed if a prebuilt
+   archive is available for download (and port is configured to use it).
+
+*) Config file archive_sites.conf can be used to download archives from
+   custom locations.
+
+*) 'buildfromsource' macports.conf option allows permanently choosing
+   source-only or binary-only mode.
+
+*) New macports.conf options 'host_blacklist' and 'preferred_hosts', for
+   controlling which download hosts will be used.
+
+# For Portfile writers:
+
+*) New -W option for reinplace that sets a base directory for all file
+   arguments.
+
+*) Livecheck can now find multiple regex matches on each line.
+
+*) license_noconflict option can be used to override automatic license
+   compatibility checks.
+
+*) compiler.whitelist, compiler.blacklist, and compiler.fallback options allow
+   simpler, detailed control over which compilers are used to build ports.
+
+
 == Overview of changes from MacPorts 1.9.2 to 2.0.0 ==
 
 # For regular users:
