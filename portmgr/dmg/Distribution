@@ -39,5 +39,5 @@ function InstallationCheck () {
     <choice id="org.macports.MacPorts" visible="false">
         <pkg-ref id="org.macports.MacPorts"/>
     </choice>
-    <pkg-ref id="org.macports.MacPorts">MacPorts-__VERSION__.pkg</pkg-ref>
+    <pkg-ref id="org.macports.MacPorts">MacPorts-__VERSION__-component.pkg</pkg-ref>
 </installer-gui-script>
