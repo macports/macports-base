@@ -3417,11 +3417,11 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # Is this a rev-upgrade-called run?
     set is_revupgrade no
-    if {[macports::global_option_isset ports_revupgrade]} {
+    if {[info exists options(ports_revupgrade)] && $options(ports_revupgrade)} {
         set is_revupgrade yes
     }
     set is_revupgrade_second_run no
-    if {[macports::global_option_isset ports_revupgrade_second_run]} {
+    if {[info exists options(ports_revupgrade_second_run)] && $options(ports_revupgrade_second_run)} {
         set is_revupgrade_second_run yes
     }
 
