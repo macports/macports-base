@@ -137,29 +137,32 @@ for each of the files:
  Security experts in the project, would you be interested in leading this effort? Eric? Mark? Anyone else?)
 
 
-=== Create Release Disk Image(s) ===
+=== Create Release Packages and Disk Image(s) ===
 
 The dmg is a Mac OS X disk image that contains a standalone installer, configured in the usual way, for major
 MacPorts releases (x.y.0), named in a consistent fashion and incorporating the OS version for which it
 was built.
 
+For 10.6 and newer, we now build flat packages, so an enclosing dmg is not necessary.
+
  MacPorts-2.0.0-10.5-Leopard.dmg
- MacPorts-2.0.0-10.6-SnowLeopard.dmg
- MacPorts-2.0.0-10.7-Lion.dmg
+ MacPorts-2.0.0-10.6-SnowLeopard.pkg
+ MacPorts-2.0.0-10.7-Lion.pkg
 
-To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
+To create a pkg or dmg, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
-downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg
-for the release). Make sure the ports tree you're using to build the dmg's is fully up to date.
+downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the pkg
+for the release). Make sure the ports tree you're using to build the pkgs is fully up to date.
 
+ sudo port -d pkg MacPorts
  sudo port -d dmg MacPorts
 
-Name the dmg appropriately, and generate checksums, which will need to be added to the existing checksums
+Name the pkg/dmg appropriately, and generate checksums, which will need to be added to the existing checksums
 file in the downloads directory:
 
  cd work
- mv MacPorts-2.0.0.dmg MacPorts-2.0.0-10.6-SnowLeopard.dmg
- for dmg in MacPorts-2.0.0-*.dmg; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $dmg; done >> MacPorts-2.0.0.chk.txt; done
+ mv MacPorts-2.0.0.pkg MacPorts-2.0.0-10.6-SnowLeopard.pkg
+ for pkg in MacPorts-2.0.0-*.{pkg,dmg}; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $pkg; done >> MacPorts-2.0.0.chk.txt; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate
 directory of the MacPorts distfiles server. Developers are required to validate the generated installer as
@@ -219,7 +222,8 @@ trunk/base/config/macports_version).
 Once the release has been posted, notification of the release should be sent/posted to the following places:
 
  * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
- * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
+ * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as
+   appropriate in the trunk/www/includes/common.inc file.
  * [https://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
  * [http://freecode.com/projects/macports/ Freecode] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
