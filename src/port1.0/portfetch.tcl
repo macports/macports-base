@@ -475,7 +475,7 @@ proc portfetch::fetchfiles {args} {
                     set fetched 1
                     break
                 } else {
-                    ui_debug "[msgcat::mc "Fetching distfile failed:"]: $result"
+                    ui_debug "[msgcat::mc "Fetching distfile failed"]: $result"
                     file delete -force "${distpath}/${distfile}.TMP"
                 }
             }
