@@ -423,19 +423,19 @@ proc portinstall::extract_contents {location type} {
     switch -- $type {
         tbz -
         tbz2 {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location ./+CONTENTS]
         }
         tgz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location ./+CONTENTS]
         }
         tar {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location ./+CONTENTS]
         }
         txz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] ./+CONTENTS]
         }
         tlz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
         }
         xar {
             system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location +CONTENTS"
