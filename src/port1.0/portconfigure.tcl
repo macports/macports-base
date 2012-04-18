@@ -428,12 +428,12 @@ proc portconfigure::get_compiler_fallback {} {
         return {clang llvm-gcc-4.2 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
         return {llvm-gcc-4.2 clang gcc-4.2}
-    } elseif {[vercmp $xcodeversion 3.2] >= 0 && $macosx_deployment_target != "10.4"} {
-        return {gcc-4.2 clang llvm-gcc-4.2 gcc-4.0 apple-gcc-4.0}
-    } elseif {$macosx_deployment_target != "10.4"} {
-        return {gcc-4.0 gcc-4.2 llvm-gcc-4.2 gcc-3.3 apple-gcc-4.0}
+    } elseif {[vercmp $xcodeversion 3.2] >= 0} {
+        return {gcc-4.2 clang llvm-gcc-4.2 gcc-4.0}
+    } elseif {[vercmp $xcodeversion 3.0] >= 0} {
+        return {gcc-4.2 apple-gcc-4.2 macports-clang-3.0 gcc-4.0}
     } else {
-        return {gcc-4.0 gcc-3.3 apple-gcc-4.0}
+        return {gcc-4.0 apple-gcc-4.2 macports-clang-3.0 gcc-3.3}
     }
 }
 
