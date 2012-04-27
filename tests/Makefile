@@ -64,6 +64,10 @@ test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/e
 				rm -f difference output.sed; \
 			fi) && \
 			success=$$(( success + 1 )); \
+			if [ -n "`PORTSRC=$(PWD)/test-macports.conf $(bindir)/port -q echo installed`" ]; then \
+			    PORTSRC=$(PWD)/test-macports.conf $(bindir)/port -f clean --all installed > /dev/null && \
+			    PORTSRC=$(PWD)/test-macports.conf $(bindir)/port -f uninstall installed > /dev/null; \
+			fi; \
 		fi; \
 		num=$$(( num + 1 )); \
 	done; \
