@@ -2197,6 +2197,8 @@ proc mportsync {{optionslist {}}} {
                 set portdir [macports::getportdir $source]
                 set svn_cmd ""
                 catch {set svn_cmd [macports::findBinary svn]}
+                set git_cmd ""
+                catch {set git_cmd [macports::findBinary git]}
                 if {$svn_cmd != "" && ([file exists $portdir/.svn] || ![catch {exec $svn_cmd info $portdir > /dev/null 2>@1}])} {
                     set svn_commandline "$svn_cmd update --non-interactive ${portdir}"
                     ui_debug $svn_commandline
@@ -2218,6 +2220,30 @@ proc mportsync {{optionslist {}}} {
                     } {
                         ui_debug "$::errorInfo"
                         ui_error "Synchronization of the local ports tree failed doing an svn update"
+                        incr numfailed
+                        continue
+                    }
+                } elseif {$git_cmd != "" && [file exists $portdir/.git]} {
+                    set git_commandline "pushd $portdir ; $git_cmd pull --rebase ; popd"
+                    ui_debug $git_commandline
+                    if {
+                        [catch {
+                            if {[getuid] == 0} {
+                                set euid [geteuid]
+                                set egid [getegid]
+                                ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+                                setegid [name_to_gid [file attributes $portdir -group]]
+                                seteuid [name_to_uid [file attributes $portdir -owner]]
+                            }
+                            system $git_commandline
+                            if {[getuid] == 0} {
+                                seteuid $euid
+                                setegid $egid
+                            }
+                        }]
+                    } {
+                        ui_debug "$::errorInfo"
+                        ui_error "Synchronization of the local ports tree failed doing a git pull --rebase"
                         incr numfailed
                         continue
                     }
