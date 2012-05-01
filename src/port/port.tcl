@@ -1840,7 +1840,13 @@ proc action_log { action portlist opts } {
                 break_softcontinue "Portdir $portdir not found" 1 status
             }
             array unset portinfo
-            array set portinfo [lindex $result 1]
+            set matchindex [lsearch -exact -nocase $result $portname]
+            if {$matchindex != -1} {
+                array set portinfo [lindex $result [incr matchindex]]
+            } else {
+                ui_warn "Portdir $portdir doesn't seem to belong to portname $portname"
+                array set portinfo [lindex $result 1]
+            }
             set portname $portinfo(name)
         }
         set portpath [macports::getportdir $porturl]
@@ -2783,7 +2789,13 @@ proc action_deps { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Portdir $portdir not found" 1 status
             }
-            array set portinfo [lindex $result 1]
+            set matchindex [lsearch -exact -nocase $result $portname]
+            if {$matchindex != -1} {
+                array set portinfo [lindex $result [incr matchindex]]
+            } else {
+                ui_warn "Portdir $portdir doesn't seem to belong to portname $portname"
+                array set portinfo [lindex $result 1]
+            }
         }
 
         if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
