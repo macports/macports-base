@@ -297,7 +297,6 @@ proc portlint::lint_main {args} {
     global description long_description platforms categories all_variants
     global maintainers license homepage master_sites checksums patchfiles
     global depends_fetch depends_extract depends_lib depends_build depends_run distfiles fetch.type
-    global livecheck.type subport name
     
     global lint_portsystem lint_platforms
     global lint_required lint_optional
@@ -564,10 +563,6 @@ proc portlint::lint_main {args} {
             set prev $test
         }
 
-    }
-
-    if {$subport != $name && ${livecheck.type} != "none"} {
-        ui_warn "livecheck set for subport $subport"
     }
 
     # these checks are only valid for ports stored in the regular tree directories
