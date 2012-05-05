@@ -291,15 +291,13 @@ proc portlint::lint_main {args} {
 
     ###################################################################
 
-    global os.platform os.arch os.version
-    global version revision epoch
+    global os.platform os.arch os.version version revision epoch \
+           description long_description platforms categories all_variants \
+           maintainers license homepage master_sites checksums patchfiles \
+           depends_fetch depends_extract depends_lib depends_build \
+           depends_run distfiles fetch.type lint_portsystem lint_platforms \
+           lint_required lint_optional
     set portarch [get_canonical_archs]
-    global description long_description platforms categories all_variants
-    global maintainers license homepage master_sites checksums patchfiles
-    global depends_fetch depends_extract depends_lib depends_build depends_run distfiles fetch.type
-    
-    global lint_portsystem lint_platforms
-    global lint_required lint_optional
 
     if (!$seen_portsystem) {
         ui_error "Didn't find PortSystem specification"
