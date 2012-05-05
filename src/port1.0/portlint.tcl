@@ -543,21 +543,17 @@ proc portlint::lint_main {args} {
                 }
             }
 
-            # BSD-2 => BSD
             if {[string equal -nocase "BSD-2" $test]} {
+                # BSD-2 => BSD
                 ui_error "Invalid license '${test}': use BSD instead"
-            }
-    
-            # BSD-3 => BSD
-            if {[string equal -nocase "BSD-3" $test]} {
+            } elseif {[string equal -nocase "BSD-3" $test]} {
+                # BSD-3 => BSD
                 ui_error "Invalid license '${test}': use BSD instead"
-            }
-    
-            # BSD-4 => BSD-old
-            if {[string equal -nocase "BSD-4" $test]} {
+            } elseif {[string equal -nocase "BSD-4" $test]} {
+                # BSD-4 => BSD-old
                 ui_error "Invalid license '${test}': use BSD-old instead"
             }
-    
+
             set prev $test
         }
 
