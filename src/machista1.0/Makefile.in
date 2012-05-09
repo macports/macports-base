@@ -40,6 +40,9 @@ clean::
 	rm -f ${TESTS}
 	rm -rf ${TESTS:%=%.dSYM}
 
+distclean::
+	rm -f Makefile
+
 test:: ${TESTS}
 	${TESTS}
 
