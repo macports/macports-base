@@ -425,7 +425,7 @@ proc macports::set_developer_dir {name1 name2 op} {
     global macports::developer_dir macports::os_major macports::xcodeversion
 
     trace remove variable macports::developer_dir read macports::set_developer_dir
-
+    
     # Look for xcodeselect, and make sure it has a valid value
     if {![catch {findBinary xcode-select $macports::autoconf::xcode_select_path} xcodeselect]} {
 
@@ -443,10 +443,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         # searching by bundle identifier for various Xcode versions (3.x and 4.x)
         set installed_xcodes {}
         if {![catch {findBinary mdfind $macports::autoconf::mdfind_path} mdfind]} {
-            set installed_xcodes [concat \
-                [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode'"] \
-                [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"] \
-                ]
+            set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
         }
         
         # In case mdfind metadata wasn't complete, also look in two well-known locations for Xcode.app
@@ -468,9 +465,16 @@ proc macports::set_developer_dir {name1 name2 op} {
             foreach xcode $installed_xcodes {
                 set vers [exec $mdls -raw -name kMDItemVersion $xcode]
                 if {$vers == "(null)"} { set vers "unknown" }
-                if {[vercmp $vers 4.3] >= 0 || [_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
+                if {[_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
+                    # Though xcode-select shipped with xcode 4.3 supports and encourages
+                    # direct use of the app path, older xcode-select does not.
+                    # Specify the Contents/Developer directory if it exists
                     ui_error "    sudo xcode-select -switch ${xcode}/Contents/Developer # version ${vers}"
+                } elseif {[vercmp $vers 4.3] >= 0} {
+                    # Future proofing: fall back to the app-path only for xcode >= 4.3, since Contents/Developer doesn't exist
+                    ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
                 } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
+                    # Older xcode (< 4.3) is below the developer directory
                     ui_error "    sudo xcode-select -switch [file normalize ${xcode}/../..] # version ${vers}"
                 } else {
                     ui_error "    # malformed Xcode at ${xcode}, version ${vers}"
