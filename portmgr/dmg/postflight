@@ -36,7 +36,7 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=2.0.99
+VERSION=2.1.0
 
 # Abstraction variables:
 PREFIX=__PREFIX__
@@ -67,12 +67,13 @@ function setup_configs {
 
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
+    SCRIPT_DIR=$(dirname $0)
     # Add [default] tag to the central MacPorts repository, if it isn't already
     echo "Adding [default] tag to sources.conf if needed..."
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
+    ${TCLSH} ${SCRIPT_DIR}/upgrade_sources_conf_default.tcl ${PREFIX}
     # Convert image directories (and direct mode installs) to image archives
     echo "Updating port image format..."
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
+    ${TCLSH} ${SCRIPT_DIR}/images_to_archives.tcl ${MACPORTS_TCL_DIR}
 
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! ${BINPATH}/port -v selfupdate; then 
