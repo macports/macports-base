@@ -177,7 +177,7 @@ proc portlivecheck::livecheck_main {args} {
                                 set updated_version $upver
                             }
                             ui_debug "The regex matched \"$matched\", extracted \"$upver\""
-                            lassign $offsets firstoff lastoff
+                            set lastoff [lindex $offsets end]
                         }
                     }
                     if {$foundmatch == 1} {
