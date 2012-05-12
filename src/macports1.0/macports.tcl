@@ -2756,11 +2756,13 @@ proc _mports_load_quickindex {args} {
         set source [lindex $source 0]
         set index [macports::getindex $source]
         if {![file exists ${index}]} {
+            incr sourceno
             continue
         }
         if {![file exists ${index}.quick]} {
             ui_warn "No quick index file found, attempting to generate one for source: $source"
             if {[catch {set quicklist [mports_generate_quickindex ${index}]}]} {
+                incr sourceno
                 continue
             }
         }
@@ -2768,6 +2770,7 @@ proc _mports_load_quickindex {args} {
         if {![info exists quicklist]} {
             if {[catch {set fd [open ${index}.quick r]} result]} {
                 ui_warn "Can't open quick index file for source: $source"
+                incr sourceno
                 continue
             } else {
                 set quicklist [read $fd]
