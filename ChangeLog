@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 2.1.0 (unreleased):
+Release 2.1.0 (2012-05-15 by jmr):
     - New configure.compiler options: macports-clang-2.9, macports-clang-3.0,
       macports-clang-3.1, macports-gcc-4.7, macports-gcc-4.8
       (jeremyhu in r86719, ryandesign in r91521)
