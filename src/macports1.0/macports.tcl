@@ -3714,8 +3714,10 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_debug "platform mismatch ... upgrading!"
             set build_override 1
         } elseif {$is_revupgrade_second_run} {
+            ui_debug "rev-upgrade override ... upgrading (from source)!"
             set build_override 1
         } elseif {$is_revupgrade} {
+            ui_debug "rev-upgrade override ... upgrading!"
             # in the first run of rev-upgrade, only activate possibly already existing files and check for missing dependencies
             set will_install yes
         } else {
@@ -4389,6 +4391,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             # initialize with empty list
             set adjlist($port) {}
             set revadjlist($port) {}
+            ui_debug "Broken: [$port name]"
         }
 
         array set visited {}
@@ -4413,6 +4416,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 set len [llength $adjlist($port)]
                 if {$len < $lowest_adj_number} {
                     set lowest_adj_port $port
+                    set lowest_adj_number $len
                 }
                 if {$len == 0} {
                     # this node has no further dependencies
@@ -4427,10 +4431,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         set index [lsearch -exact $adjlist($target) $port]
                         set adjlist($target) [lreplace $adjlist($target) $index $index]
                     }
-                }
 
-                # start anew
-                break;
+                    break;
+                }
             }
 
             # if we arrive here and lowest_adj_number is larger than 0, then we
@@ -4544,18 +4547,16 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
     upvar $revadjlistname revadjlist
     upvar $visitedname visited
 
+    set visited($port) true
+
     ui_debug "Processing port [$port name] @[$port epoch]:[$port version]_[$port revision] [$port variants] [$port negated_variants]"
     set dependent_ports [$port dependents]
     foreach dep $dependent_ports {
-        if {[info exists visited($dep)]} {
-            continue
-        }
-        set visited($dep) true
         set is_broken_port false
 
         if {[info exists adjlist($dep)]} {
-            #ui_debug "Dependency [$dep name] is broken, adding edge from [[lindex $stack 0] name] to [$dep name]"
-            #ui_debug "Making [$dep name] new head of stack"
+            ui_debug "Dependent [$dep name] is broken, adding edge from [$dep name] to [[lindex $stack 0] name]"
+            ui_debug "Making [$dep name] new head of stack"
             # $dep is one of the broken ports
             # add an edge to the last broken port in the DFS
             lappend revadjlist([lindex $stack 0]) $dep
@@ -4565,9 +4566,11 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
             
             set is_broken_port true
         }
-        revupgrade_buildgraph $dep stack adjlist revadjlist visited
+        if {![info exists visited($dep)]} {
+            revupgrade_buildgraph $dep stack adjlist revadjlist visited
+        }
         if {$is_broken_port} {
-            #ui_debug "Removing [$dep name] from stack"
+            ui_debug "Removing [$dep name] from stack"
             # remove $dep from the stack
             set stack [lrange $stack 1 end]
         }
