@@ -4337,6 +4337,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     ui_error "Please run port -d -y rev-upgrade and use the output to report a bug."
                 }
                 error "Port $portname still broken after rebuilding [expr $broken_port_counts($portname) - 1] time(s)"
+            } elseif {$broken_port_counts($portname) > 1 && [global_option_isset ports_binary_only]} {
+                error "Port $portname still broken after reinstalling -- can't rebuild due to binary-only mode"
             }
         }
 
@@ -4435,7 +4437,6 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 set my_options(ports_revupgrade) "yes"
                 unset -nocomplain my_options(ports_nodeps)
                 unset -nocomplain my_options(ports_revupgrade_second_run)
-                unset -nocomplain my_options(ports_source_only)
                 if {$broken_port_counts($portname) > 1} {
                     set my_options(ports_revupgrade_second_run) yes
                     set my_options(ports_nodeps) yes
