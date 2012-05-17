@@ -4136,13 +4136,14 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
     set files [registry::file search active 1 binary -null]
     set files_count [llength $files]
+    set fancy_output [expr ![macports::ui_isset ports_debug] && [isatty stdout]]
     if {$files_count > 0} {
         registry::write {
             try {
                 ui_msg -nonewline "$macports::ui_prefix Updating database of binaries"
                 set i 1
                 foreach f $files {
-                    if {![macports::ui_isset ports_debug]} {
+                    if {$fancy_output} {
                         if {$files_count < 10000 || $i % 10 == 1 || $i == $files_count} {
                             ui_msg -nonewline "\r$macports::ui_prefix Updating database of binaries: [expr ($i * 1000 / $files_count) / 10.0]%"
                             flush stdout
@@ -4154,7 +4155,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
                     if {0 != [catch {$f binary [fileIsBinary $fpath]} fileIsBinaryError]} {
                         # handle errors (e.g. file not found, permission denied) gracefully
-                        if {![macports::ui_isset ports_debug]} {
+                        if {$fancy_output} {
                             ui_msg ""
                         }
                         ui_warn "Error determining file type of `$fpath': $fileIsBinaryError"
@@ -4183,7 +4184,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
         set i 1
         foreach b $binaries {
-            if {![macports::ui_isset ports_debug]} {
+            if {$fancy_output} {
                 if {$binary_count < 10000 || $i % 10 == 1 || $i == $binary_count} {
                     ui_msg -nonewline "\r$macports::ui_prefix Scanning binaries for linking errors: [expr ($i * 1000 / $binary_count) / 10.0]%"
                     flush stdout
@@ -4203,7 +4204,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     # ignore silently, these are only static libs anyway
                     #ui_debug "Error parsing file ${bpath}: [machista::strerror $returncode]"
                 } else {
-                    if {![macports::ui_isset ports_debug]} {
+                    if {$fancy_output} {
                         ui_msg ""
                     }
                     ui_warn "Error parsing file ${bpath}: [machista::strerror $returncode]"
@@ -4225,7 +4226,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 } else {
                                     set portname "<unknown-port>"
                                 }
-                                if {![macports::ui_isset ports_debug]} {
+                                if {$fancy_output} {
                                     ui_msg ""
                                 }
                                 ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
@@ -4236,7 +4237,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 } else {
                                     set portname "<unknown-port>"
                                 }
-                                if {![macports::ui_isset ports_debug]} {
+                                if {$fancy_output} {
                                     ui_msg ""
                                 }
                                 ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
@@ -4253,7 +4254,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     } else {
                                         set portname "<unknown-port>"
                                     }
-                                    if {![macports::ui_isset ports_debug]} {
+                                    if {$fancy_output} {
                                         ui_msg ""
                                     }
                                     ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file $idloadcmdpath, which is a different file"
@@ -4381,7 +4382,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             incr broken_port_counts($portname)
             if {$broken_port_counts($portname) > 3} {
                 ui_error "Port $portname is still broken after rebuiling it more than 3 times."
-                if {![macports::ui_isset ports_debug]} {
+                if {$fancy_output} {
                     ui_error "Please run port -d -y rev-upgrade and use the output to report a bug."
                 }
                 error "Port $portname still broken after rebuilding [expr $broken_port_counts($portname) - 1] time(s)"
