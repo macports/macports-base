@@ -4358,8 +4358,23 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         set broken_ports [lsort -unique $broken_ports]
 
-        foreach port $broken_ports {
+        set temp_broken_ports $broken_ports
+        set broken_ports {}
+
+        foreach port $temp_broken_ports {
             set portname [$port name]
+            # don't try to rebuild ports that don't exist in the tree
+            if {${macports::revupgrade_mode} == "rebuild"} {
+                if {[catch {mportlookup $portname} result]} {
+                    ui_debug "$::errorInfo"
+                    error "lookup of portname $portname failed: $result"
+                }
+                if {[llength $result] < 2} {
+                    ui_warn "No port $portname found in the index; can't rebuild"
+                    unset broken_files_by_port($port)
+                    continue
+                }
+            }
             if {![info exists broken_port_counts($portname)]} {
                 set broken_port_counts($portname) 0
             }
@@ -4373,7 +4388,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             } elseif {$broken_port_counts($portname) > 1 && [global_option_isset ports_binary_only]} {
                 error "Port $portname still broken after reinstalling -- can't rebuild due to binary-only mode"
             }
+            lappend broken_ports $port
         }
+        unset temp_broken_ports
 
         if {${macports::revupgrade_mode} != "rebuild"} {
             ui_msg "$macports::ui_prefix Found [llength $broken_ports] broken port(s):"
