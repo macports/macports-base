@@ -4,6 +4,9 @@
 ###
 
 Release 2.1.1 (unreleased):
+    - Fixed incorrect parsing of mirror group URLs that contain a colon to
+      indicate a port number (#32018, jmr in r93258)
+
     - Do not print detailed progress information in rev-upgrade when stdout is
       not a terminal (#34480, cal in r93221,r93222)
 
@@ -18,8 +21,8 @@ Release 2.1.1 (unreleased):
     - Fixed port lookups failing for all sources when the index is missing in
       one source (#30593, jmr in r92976)
 
-    - Fix databse upgrade on Tiger, where SQLite doesn't support ALTER TABLE ADD
-      COLUMN (cal in r93256)
+    - Fix database upgrade on Tiger, where SQLite doesn't support ALTER TABLE
+      ADD COLUMN (#34463, cal in r93256)
 
 Release 2.1.0 (2012-05-15 by jmr):
     - New configure.compiler options: macports-clang-2.9, macports-clang-3.0,
