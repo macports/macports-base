@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 2.1.1 (unreleased):
+Release 2.1.1 (2012-05-19 by jmr):
     - Fixed incorrect parsing of mirror group URLs that contain a colon to
       indicate a port number (#32018, jmr in r93258)
 
