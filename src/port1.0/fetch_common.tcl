@@ -103,10 +103,17 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
 
         # here we have the chance to take a look at tags, that possibly
         # have been assigned in mirror_sites.tcl
-        set splitlist [split $element :]
-        # every element is a URL, so we'll always have multiple elements. no need to check
-        set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
-        set mirror_tag "[lindex $splitlist 2]"
+        # tag will be after the last colon after the
+        # first slash after the ://
+        set lastcolon [string last : $element]
+        set aftersep [expr [string first : $element] + 3]
+        set firstslash [string first / $element $aftersep]
+        if {$firstslash != -1 && $firstslash < $lastcolon} {
+            set mirror_tag [string range $element [expr $lastcolon + 1] end]
+            set element [string range $element 0 [expr $lastcolon - 1]]
+        } else {
+            set mirror_tag ""
+        }
 
         set name_re {\$(?:name\y|\{name\})}
         # if the URL has $name embedded, kill any mirror_tag that may have been added

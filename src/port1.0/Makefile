@@ -33,4 +33,5 @@ install:: all
 
 test::
 	${TCLSH} tests/portutil.tcl ${macports_tcl_dir}
-	${TCLSH} tests/portdestroot.tcl
+	${TCLSH} tests/portdestroot.tcl ${macports_tcl_dir}
+	${TCLSH} tests/portfetch.tcl ${macports_tcl_dir}
