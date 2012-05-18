@@ -257,7 +257,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             return 0;
         }
 
-        /* we can't call rpm_vercomp directly because it's static, but we have
+        /* we can't call vercmp directly because it's static, but we have
          * sql_version, which is basically an alias */
         if (sql_version(NULL, -1, version, -1, "1.1") < 0) {
             /* we need to update to 1.1, add binary field and index to files
