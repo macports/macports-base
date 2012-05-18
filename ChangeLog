@@ -3,10 +3,20 @@
 # $Id$
 ###
 
-Unreleased changes:
+Release 2.1.1 (unreleased):
     - Do not print detailed progress information in rev-upgrade when stdout is
-      not a terminal
-      (cal in r93221,r93222, #34480)
+      not a terminal (#34480, cal in r93221,r93222)
+
+    - Made rev-upgrade avoid trying to upgrade ports that are not in the index
+      (jmr in r93197)
+
+    - Fixed rev-upgrade disabling source-only mode in its first upgrade pass
+      (jmr in r93153)
+
+    - Fixed incorrect rebuild order in rev-upgrade (cal in r93129)
+
+    - Fixed port lookups failing for all sources when the index is missing in
+      one source (#30593, jmr in r92976)
 
 Release 2.1.0 (2012-05-15 by jmr):
     - New configure.compiler options: macports-clang-2.9, macports-clang-3.0,
