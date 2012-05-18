@@ -1,3 +1,4 @@
+source [file join [lindex $argv 0] macports1.0 macports_fastload.tcl]
 package require macports
 mportinit
 
