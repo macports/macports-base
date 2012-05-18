@@ -44,8 +44,8 @@ case "$MACOSX_VERSION" in
 esac
 
 # locate currently selected Xcode path
+AC_MSG_CHECKING(Xcode location)
 if test "x$XCODE_SELECT" != "x"; then
-  AC_MSG_CHECKING(Xcode location)
   DEVELOPER_DIR=`$XCODE_SELECT -print-path`
 fi
 if test -z "$DEVELOPER_DIR" -o ! -d "$DEVELOPER_DIR" ; then
