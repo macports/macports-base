@@ -263,7 +263,41 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             /* we need to update to 1.1, add binary field and index to files
              * table */
             static char* version_1_1_queries[] = {
+#if SQLITE_VERSION_NUMBER >= 3002000
                 "ALTER TABLE registry.files ADD COLUMN binary BOOL",
+#else
+                /*
+                 * SQLite < 3.2.0 doesn't support ALTER TABLE ADD COLUMN
+                 * Unfortunately, Tiger ships with SQLite < 3.2.0 (#34463)
+                 * This is taken from http://www.sqlite.org/faq.html#q11
+                 */
+
+                /* Create a temporary table */
+                "CREATE TEMPORARY TABLE mp_files_backup (id INTEGER, path TEXT, "
+                    "actual_path TEXT, active INT, mtime DATETIME, md5sum TEXT, editable INT, "
+                    "FOREIGN KEY(id) REFERENCES ports(id))",
+
+                /* Copy all data into the temporary table */
+                "INSERT INTO mp_files_backup SELECT id, path, actual_path, active, mtime, "
+                    "md5sum, editable FROM registry.files",
+
+                /* Drop the original table and re-create it with the new structure */
+                "DROP TABLE registry.files",
+                "CREATE TABLE registry.files (id INTEGER, path TEXT, actual_path TEXT, "
+                    "active INT, mtime DATETIME, md5sum TEXT, editable INT, binary BOOL, "
+                    "FOREIGN KEY(id) REFERENCES ports(id))",
+                "CREATE INDEX registry.file_port ON files(id)",
+                "CREATE INDEX registry.file_path ON files(path)",
+                "CREATE INDEX registry.file_actual ON files(actual_path)",
+
+                /* Copy all data back from temporary table */
+                "INSERT INTO registry.files (id, path, actual_path, active, mtime, md5sum, "
+                    "editable) SELECT id, path, actual_path, active, mtime, md5sum, "
+                    "editable FROM mp_files_backup",
+
+                /* Remove temporary table */
+                "DROP TABLE mp_files_backup",
+#endif
                 "CREATE INDEX registry.file_binary ON files(binary)",
 
                 "UPDATE registry.metadata SET value = '1.100' WHERE key = 'version'",
