@@ -18,6 +18,9 @@ Release 2.1.1 (unreleased):
     - Fixed port lookups failing for all sources when the index is missing in
       one source (#30593, jmr in r92976)
 
+    - Fix databse upgrade on Tiger, where SQLite doesn't support ALTER TABLE ADD
+      COLUMN (cal in r93256)
+
 Release 2.1.0 (2012-05-15 by jmr):
     - New configure.compiler options: macports-clang-2.9, macports-clang-3.0,
       macports-clang-3.1, macports-gcc-4.7, macports-gcc-4.8
