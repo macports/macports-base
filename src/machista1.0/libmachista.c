@@ -42,14 +42,17 @@
 #include <err.h>
 #include <string.h>
 
+#ifdef __MACH__
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 
 #include <libkern/OSAtomic.h>
+#endif
 
 #include "libmachista.h"
 #include "hashmap.h"
 
+#ifdef __MACH__
 /* Tiger compatibility */
 #ifndef LC_RPATH
 #define LC_RPATH       (0x1c | LC_REQ_DYLD)    /* runpath additions */
@@ -66,6 +69,7 @@ struct rpath_command {
 #ifndef LC_REEXPORT_DYLIB
 #define LC_REEXPORT_DYLIB (0x1f | LC_REQ_DYLD) /* load and re-export dylib */
 #endif
+#endif /* __MACH__ */
 
 typedef struct macho_input {
     const void *data;
@@ -101,11 +105,15 @@ char *macho_format_dylib_version (uint32_t version) {
 }
 
 const char *macho_get_arch_name (cpu_type_t cputype) {
+#ifdef __MACH__
     const NXArchInfo *archInfo = NXGetArchInfoFromCpuType(cputype, CPU_SUBTYPE_MULTIPLE);	
     if (!archInfo) {
         return NULL;
     }
     return archInfo->name;
+#else
+    return NULL;
+#endif
 }
 
 /* Some byteswap wrappers */
@@ -223,6 +231,7 @@ static macho_loadcmd_t *macho_loadcmdlist_append (macho_arch_t *mat) {
 
 /* Parse a Mach-O header */
 static int parse_macho (macho_t *mt, macho_input_t *input) {
+#ifdef __MACH__
     /* Read the file type. */
     const uint32_t *magic = macho_read(input, input->data, sizeof(uint32_t));
     if (magic == NULL)
@@ -418,10 +427,14 @@ static int parse_macho (macho_t *mt, macho_input_t *input) {
     }
 
     return MACHO_SUCCESS;
+#else
+    return 0;
+#endif
 }
 
 /* Parse a (possible Mach-O) file. For a more detailed description, see the header */
 int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t **res) {
+#ifdef __MACH__
     int fd;
     struct stat st;
     void *data;
@@ -481,6 +494,9 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
     close(fd);
 
     return ret;
+#else
+    return 0;
+#endif
 }
 
 /* Create a new macho_handle_t. More information on this function is available in the header */

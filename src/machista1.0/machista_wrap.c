@@ -1674,7 +1674,9 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *);
     #include "libmachista.h"
 
 
+#ifdef __MACH__
     #include <mach-o/arch.h>
+#endif
     #include <inttypes.h>
     #include <stdint.h>
 

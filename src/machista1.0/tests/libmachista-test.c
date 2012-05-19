@@ -1,3 +1,5 @@
+#ifdef __MACH__
+
 #include <libmachista.h>
 #include <limits.h>
 #include <mach-o/arch.h>
@@ -340,13 +342,18 @@ error_out:
 	free(version_string);
 	return false;
 }
+#endif
 
 int main() {
+#ifdef __MACH__
 	bool result = true;
 	result &= test_destroy_null();
 	result &= test_handle();
 	result &= test_format_dylib_version();
 	result &= test_libsystem();
-	exit(!result);
+	return !result;
+#else
+	return 0;
+#endif
 }
 
