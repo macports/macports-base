@@ -81,6 +81,7 @@ struct macho_handle {
     HashMap *result_map;
 };
 
+#ifdef __MACH__
 /* Verify that the given range is within bounds. */
 static const void *macho_read (macho_input_t *input, const void *address, size_t length) {
     if ((((uint8_t *) address) - ((uint8_t *) input->data)) + length > input->length) {
@@ -96,6 +97,7 @@ static const void *macho_offset (macho_input_t *input, const void *address, size
     void *result = ((uint8_t *) address) + offset;
     return macho_read(input, result, length);
 }
+#endif
 
 /* return a human readable formatted version number. the result must be free()'d. */
 char *macho_format_dylib_version (uint32_t version) {
@@ -116,6 +118,7 @@ const char *macho_get_arch_name (cpu_type_t cputype) {
 #endif
 }
 
+#ifdef __MACH__
 /* Some byteswap wrappers */
 static uint32_t macho_swap32 (uint32_t input) {
     return OSSwapInt32(input);
@@ -157,6 +160,7 @@ static macho_loadcmd_t *create_macho_loadcmd_t (void) {
     memset(mlt, 0, sizeof(macho_loadcmd_t));
     return mlt;
 }
+#endif
 
 /* Frees a previously allocated macho_loadcmd_t and all it's associated resources */
 static void free_macho_loadcmd_t (macho_loadcmd_t *mlt) {
@@ -199,6 +203,7 @@ static void free_macho_t (macho_t *mt) {
     free(mt);
 }
 
+#ifdef __MACH__
 /* Creates a new element in the architecture list of a macho_t (mt_archs), increases the counter of
  * architectures (mt_arch_count) and returns a pointer to the newly allocated element or NULL on
  * error */
@@ -228,6 +233,7 @@ static macho_loadcmd_t *macho_loadcmdlist_append (macho_arch_t *mat) {
 
     return mat->mat_loadcmds;
 }
+#endif
 
 /* Parse a Mach-O header */
 static int parse_macho (macho_t *mt, macho_input_t *input) {
