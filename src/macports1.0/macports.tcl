@@ -4312,7 +4312,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                             if {[macports::ui_isset ports_verbose]} {
                                 ui_msg ""
                             }
-                            ui_info "Incompatible library version of file [$loadcommand cget -mlt_install_name]: Expected [$loadcommand cget -mlt_comp_version], but got [$libarchitecture cget -mat_comp_version]"
+                            ui_info "Incompatible library version: $bpath requires version [machista::format_dylib_version [$loadcommand cget -mlt_comp_version]] or later, but $filepath provides version [machista::format_dylib_version [$libarchitecture cget -mat_comp_version]]"
                             ui_debug "Marking $bpath as broken"
                             lappend broken_files $bpath
                         }
