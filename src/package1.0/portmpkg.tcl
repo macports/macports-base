@@ -107,8 +107,11 @@ proc portmpkg::make_one_package {portname portversion mport} {
 	}
 
     ui_debug "building dependency package: $portname"
-    mport_exec $mport pkg
+    set result [mport_exec $mport pkg]
     mport_close $mport
+    if {$result} {
+        error "Processing of port $portname failed"
+    }
 
 	if {[info exists deprivileged]} {
 	    global macportsuser
