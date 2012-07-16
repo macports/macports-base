@@ -506,7 +506,7 @@ proc macports::_is_valid_developer_dir {dir} {
     }
 
     # Verify that the directory has some key subdirectories
-    foreach subdir {Headers Library usr} {
+    foreach subdir {Library usr} {
         if {![file isdirectory "${dir}/${subdir}"]} {
             return 0
         }
