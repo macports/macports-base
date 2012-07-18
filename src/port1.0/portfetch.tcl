@@ -403,7 +403,7 @@ proc portfetch::hgfetch {args} {
         set insecureflag " --insecure"
     }
 
-    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"[string map ${hg.tag} {\\ \\\\ \" \\\"}]\" ${hg.url} ${worksrcpath} 2>&1"
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
