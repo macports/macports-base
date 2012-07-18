@@ -92,19 +92,21 @@ foreach installed $ilist {
             set targetdir [file dirname $location]
         } else {
             set targetdir [file join ${macports::registry.path} software ${iname}]
-            file mkdir $targetdir
+        }
+        if {$location == "" || ![file isdirectory $location]} {
             set contents [$iref imagefiles]
         }
+        file mkdir $targetdir
         set newlocation [file join $targetdir $archivename]
 
         if {$found} {
             file rename $oldarchivefullpath $newlocation
-        } elseif {$installtype == "image"} {
+        } elseif {$installtype == "image" && [file isdirectory $location]} {
             # create archive from image dir
-            system "cd $location && $tarcmd -cjf $newlocation * > ${targetdir}/error.log 2>&1"
+            system -W $location "$tarcmd -cjf $newlocation * > ${targetdir}/error.log 2>&1"
             file delete -force ${targetdir}/error.log
         } else {
-            # direct mode, create archive from installed files
+            # direct mode (or missing image dir), create archive from installed files
             # we tell tar to read filenames from a file so as not to run afoul of command line length limits
             set fd [open ${targetdir}/tarlist w]
             foreach entry $contents {
