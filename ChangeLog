@@ -3,6 +3,10 @@
 # $Id$
 ###
 
+Release 2.1.2 (unreleased):
+    - Support spaces in hg.tag when fetching from mercurial (#22684 comment
+      11,12, cal in r95438)
+
 Release 2.1.1 (2012-05-19 by jmr):
     - Fixed incorrect parsing of mirror group URLs that contain a colon to
       indicate a port number (#32018, jmr in r93258)
