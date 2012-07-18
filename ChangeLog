@@ -4,8 +4,23 @@
 ###
 
 Release 2.1.2 (unreleased):
+    - Fixed autodetection of developer_dir with Xcode 4.4
+      (#35150, mfeiri in r95552)
+
+    - Made conversion of images to archives more robust against missing images
+      (jmr in r95480)
+
     - Support spaces in hg.tag when fetching from mercurial (#22684 comment
       11,12, cal in r95438)
+
+    - Made mpkg fail when building a component pkg fails, instead of trying to
+      continue (jmr in r95382)
+
+    - Added a log message when everything to be installed has an unsatisfied
+      dependency, such as in the case of circular dependencies (jmr in r93962)
+
+    - Fixed incorrect error message when installing a port that has a
+      dependency that is not in the index (#31130, jmr in r93511)
 
 Release 2.1.1 (2012-05-19 by jmr):
     - Fixed incorrect parsing of mirror group URLs that contain a colon to
