@@ -303,7 +303,7 @@ proc portinstall::create_archive {location archive.type} {
                      array set portinfo [lindex $dep 1]
                      set depver $portinfo(version)
                      set deprev $portinfo(revision)
-                     puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
+                     puts $fd "@pkgdep $portinfo(name)-${depver}_${deprev}"
                  }
              }
          }
