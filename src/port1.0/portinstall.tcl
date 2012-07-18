@@ -298,7 +298,7 @@ proc portinstall::create_archive {location archive.type} {
                  set depname [lindex [split $depspec :] end]
                  set dep [mport_lookup $depname]
                  if {[llength $dep] < 2} {
-                     ui_error "Dependency $dep not found"
+                     ui_debug "Dependency $depname not found"
                  } else {
                      array set portinfo [lindex $dep 1]
                      set depver $portinfo(version)
