@@ -38,7 +38,11 @@
  * The name a pun: machista is the spanish translation of "macho".
  */
 
+#ifdef __MACH__
 #include <mach-o/arch.h>
+#else
+typedef int cpu_type_t;
+#endif
 #include <inttypes.h>
 
 #define MACHO_SUCCESS   (0x00)
