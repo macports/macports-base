@@ -157,11 +157,16 @@ for the release). Make sure the ports tree you're using to build the pkgs is ful
  sudo port -d pkg MacPorts
  sudo port -d dmg MacPorts
 
-Name the pkg/dmg appropriately, and generate checksums, which will need to be added to the existing checksums
-file in the downloads directory:
+Name each pkg/dmg appropriately, and then sign the pkgs with a Developer ID (make sure to use the
+Installer certificate, not the Application one):
 
  cd work
- mv MacPorts-2.0.0.pkg MacPorts-2.0.0-10.6-SnowLeopard.pkg
+ mv MacPorts-2.0.0.pkg unsigned/MacPorts-2.0.0-10.7-Lion.pkg
+ productsign --sign "Developer ID Installer: John Doe" unsigned/MacPorts-2.0.0-10.7-Lion.pkg MacPorts-2.0.0-10.7-Lion.pkg
+
+After signing, generate checksums, which will need to be added to the existing checksums
+file in the downloads directory:
+
  for pkg in MacPorts-2.0.0-*.{pkg,dmg}; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $pkg; done >> MacPorts-2.0.0.chk.txt; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate
