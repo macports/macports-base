@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 2.1.2 (unreleased):
+Release 2.1.2 (2012-07-26 by jmr):
     - Fixed autodetection of developer_dir with Xcode 4.4
       (#35150, mfeiri in r95552)
 
