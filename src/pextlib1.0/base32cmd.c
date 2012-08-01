@@ -42,11 +42,11 @@
 #include "base32cmd.h"
 
 /* This package provides commands for encoding and decoding of hexstrings
-   into and out of the extended hex base32 encoding as specified in RFC 3548.
+   into and out of the standard base32 encoding as specified in RFC 4648.
 
    Based on public domain base32 code from tcllib, by Andreas Kupries */
 
-#define BASE32HEX 1
+#undef BASE32HEX
 
 static __inline__ int hex2dec(int data)
 {
