@@ -1637,7 +1637,7 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink subport portpath ports_ignore_older ports_dryrun \
+    global workpath worksymlink place_worksymlink subport portpath ports_ignore_different ports_dryrun \
            usealtworkpath altprefix env applications_dir subbuildpath
 
     if {$usealtworkpath} {
@@ -1680,22 +1680,32 @@ proc open_statefile {args} {
 
     # flock Portfile
     set statefile [file join $workpath .macports.${subport}.state]
+    set fresh_build yes
+    set checksum_portfile [sha256 file ${portpath}/Portfile]
     if {[file exists $statefile]} {
+        set fresh_build no
         if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
-        if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-            if {![tbool ports_dryrun]} {
-                ui_notice "Portfile changed since last build; discarding previous state."
-                chownAsRoot $subbuildpath
-                delete $workpath
-                file mkdir $workpath
-            } else {
-                ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+        if {![tbool ports_ignore_different]} {
+            set readfd [open $statefile r]
+            gets $readfd checksum_statefile
+            if {$checksum_portfile != $checksum_statefile} {
+                ui_debug "Checksum recorded in statefile \"$checksum_statefile\" differs from Portfile checksum \"$checksum_portfile\""
+                if {![tbool ports_dryrun]} {
+                    ui_notice "Portfile changed since last build; discarding previous state."
+                    chownAsRoot $subbuildpath
+                    delete $workpath
+                    file mkdir $workpath
+                    set fresh_build yes
+                } else {
+                    ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+                }
             }
+            close $readfd
         }
     } elseif {[tbool ports_dryrun]} {
         set statefile /dev/null
@@ -1714,6 +1724,9 @@ proc open_statefile {args} {
                 return -code error "$result obtaining lock on $statefile"
             }
         }
+    }
+    if {[tbool fresh_build]} {
+        puts $fd $checksum_portfile
     }
     return $fd
 }
@@ -1754,17 +1767,18 @@ proc check_statefile_variants {variations oldvariations fd} {
 
     array set upoldvariations {}
 
-    seek $fd 0 end
-    if {[tell $fd] == 0} {
-        # Statefile is empty, skipping further tests
-        return 0
-    }
-
+    set variants_found no
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
             set upoldvariations([string range $name 1 end]) [string range $name 0 0]
+            set variants_found yes
         }
+    }
+
+    if {![tbool variants_found]} {
+        # Statefile is "empty", skipping further tests
+        return 0
     }
 
     set mismatch 0
