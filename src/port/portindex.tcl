@@ -187,6 +187,10 @@ for {set i 0} {$i < $argc} {incr i} {
                 set os_platform [lindex $platlist 0]
                 set os_major [lindex $platlist 1]
                 set os_arch [lindex $platlist 2]
+                if {$os_platform == "macosx"} {
+                    lappend port_options os.subplatform $os_platform os.universal_supported yes
+                    set os_platform darwin
+                }
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg == "-f"} { # Completely rebuild index
                 set full_reindex 1
