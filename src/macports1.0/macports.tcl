@@ -2578,7 +2578,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
         }
     }
     if {!$found} {
-        return -code error "No index(es) found! Have you synced your source indexes?"
+        return -code error "No index(es) found! Have you synced your source indexes? Try running `port selfupdate` or `port sync`."
     }
 
     return $matches
@@ -2735,7 +2735,7 @@ proc mportlistall {args} {
         }
     }
     if {!$found} {
-        return -code error "No index(es) found! Have you synced your source indexes?"
+        return -code error "No index(es) found! Have you synced your source indexes? Try running `port selfupdate` or `port sync`."
     }
 
     return $matches
@@ -2783,7 +2783,7 @@ proc _mports_load_quickindex {args} {
         incr sourceno 1
     }
     if {!$sourceno} {
-        ui_warn "No index(es) found! Have you synced your source indexes?"
+        ui_warn "No index(es) found! Have you synced your source indexes? Try running `port selfupdate` or `port sync`."
     }
 }
 
