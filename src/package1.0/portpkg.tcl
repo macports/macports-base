@@ -186,7 +186,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
 
         system "[findBinary mkbom $portutil::autoconf::mkbom_path] ${destpath} ${pkgpath}/Contents/Archive.bom"
-        system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x [findBinary cpio $portutil::autoconf::cpio_path] -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+        system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 
         write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
         write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
