@@ -1,0 +1,8 @@
+Warning: Statefile has version 2 but didn't contain a checksum
+Portfile changed since last build; discarding previous state.
+--->  Fetching distfiles for statefile-version2-invalid
+--->  Verifying checksum(s) for statefile-version2-invalid
+--->  Extracting statefile-version2-invalid
+--->  Configuring statefile-version2-invalid
+--->  Building statefile-version2-invalid
+--->  Staging statefile-version2-invalid into destroot
