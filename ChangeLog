@@ -7,7 +7,7 @@ Release 2.1.3 (unreleased)
     - Fixed a bug where a certain order of starting and aborting a build,
       running selfupdate and continuing a build would resume building although
       it should start from the beginning.
-      (#29223, cal in r96136)
+      (#29223, cal in r96136, r96399, r96400)
 
 Release 2.1.2 (2012-07-26 by jmr):
     - Fixed autodetection of developer_dir with Xcode 4.4
