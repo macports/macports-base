@@ -1691,10 +1691,53 @@ proc open_statefile {args} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
         if {![tbool ports_ignore_different]} {
+            # start by assuming the statefile is current
+            set portfile_changed no
+
+            # open the statefile, determine the statefile version
             set readfd [open $statefile r]
-            gets $readfd checksum_statefile
-            if {$checksum_portfile != $checksum_statefile} {
-                ui_debug "Checksum recorded in statefile \"$checksum_statefile\" differs from Portfile checksum \"$checksum_portfile\""
+            set statefile_version 1
+            if {[get_statefile_value "version" $readfd result] != 0} {
+                set statefile_version $result
+            }
+
+            # check for outdated statefiles depending on what version the
+            # statefile is; we explicitly support older statefiles here, because
+            # all previously built archives would be invalidated (e.g., when
+            # using mpkg) if we didn't
+            switch $statefile_version {
+                1 {
+                    # statefile version 1
+                    # this statefile doesn't have a checksum, fall back to
+                    # comparing the Portfile modification date with the
+                    # statefile modification date
+                    if {[file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
+                        ui_debug "Statefile has version 1 and is older than Portfile"
+                        set portfile_changed yes
+                    }
+                }
+                2 {
+                    # statefile version 2
+                    # this statefile has a sha256 checksum of the Portfile in
+                    # the "checksum" key
+                    set checksum_statefile ""
+                    if {[get_statefile_value "checksum" $readfd checksum_statefile] == 0} {
+                        ui_warn "Statefile has version 2 but didn't contain a checksum"
+                        set portfile_changed yes
+                    } else {
+                        if {$checksum_portfile != $checksum_statefile} {
+                            ui_debug "Checksum recorded in statefile '$checksum_statefile' \
+                                differs from Portfile checksum '$checksum_portfile'"
+                            set portfile_changed yes
+                        }
+                    }
+                }
+                default {
+                    ui_warn "Unsupported statefile version '$statefile_version'"
+                    ui_warn "Please run 'port selfupdate' to update to the latest version of MacPorts"
+                }
+            }
+            if {[tbool portfile_changed]} {
                 if {![tbool ports_dryrun]} {
                     ui_notice "Portfile changed since last build; discarding previous state."
                     chownAsRoot $subbuildpath
@@ -1726,9 +1769,25 @@ proc open_statefile {args} {
         }
     }
     if {[tbool fresh_build]} {
-        puts $fd $checksum_portfile
+        write_statefile "version" 2 $fd
+        write_statefile "checksum" $checksum_portfile $fd
     }
     return $fd
+}
+
+# get_statefile_value
+# Check for a given $class in the statefile $fd and write the first match to
+# $result, if any. Returns 1 if a line matched, 0 otherwise
+proc get_statefile_value {class fd result} {
+    upvar $result upresult
+    seek $fd 0
+    while {[gets $fd line] >= 0} {
+        if {[regexp "$class: (.*)" $line match value]} {
+            set upresult $value
+            return 1
+        }
+    }
+    return 0
 }
 
 # check_statefile
