@@ -252,7 +252,7 @@ uninstall non-active ports when upgrading and uninstalling
 .It Fl f
 force mode (ignore state file)
 .It Fl o
-honor state files older than Portfile
+honor state files even if the Portfile has been modified since (called -o because it used to mean "older")
 .It Fl s
 source-only mode (build and install from source, do not attempt to fetch binary archives)
 .It Fl b

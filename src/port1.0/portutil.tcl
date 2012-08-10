@@ -1637,7 +1637,7 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink subport portpath ports_ignore_older ports_dryrun \
+    global workpath worksymlink place_worksymlink subport portpath ports_ignore_different ports_dryrun \
            usealtworkpath altprefix env applications_dir subbuildpath
 
     if {$usealtworkpath} {
@@ -1680,22 +1680,75 @@ proc open_statefile {args} {
 
     # flock Portfile
     set statefile [file join $workpath .macports.${subport}.state]
+    set fresh_build yes
+    set checksum_portfile [sha256 file ${portpath}/Portfile]
     if {[file exists $statefile]} {
+        set fresh_build no
         if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
-        if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-            if {![tbool ports_dryrun]} {
-                ui_notice "Portfile changed since last build; discarding previous state."
-                chownAsRoot $subbuildpath
-                delete $workpath
-                file mkdir $workpath
-            } else {
-                ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+        if {![tbool ports_ignore_different]} {
+            # start by assuming the statefile is current
+            set portfile_changed no
+
+            # open the statefile, determine the statefile version
+            set readfd [open $statefile r]
+            set statefile_version 1
+            if {[get_statefile_value "version" $readfd result] != 0} {
+                set statefile_version $result
             }
+
+            # check for outdated statefiles depending on what version the
+            # statefile is; we explicitly support older statefiles here, because
+            # all previously built archives would be invalidated (e.g., when
+            # using mpkg) if we didn't
+            switch $statefile_version {
+                1 {
+                    # statefile version 1
+                    # this statefile doesn't have a checksum, fall back to
+                    # comparing the Portfile modification date with the
+                    # statefile modification date
+                    if {[file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
+                        ui_debug "Statefile has version 1 and is older than Portfile"
+                        set portfile_changed yes
+                    }
+                }
+                2 {
+                    # statefile version 2
+                    # this statefile has a sha256 checksum of the Portfile in
+                    # the "checksum" key
+                    set checksum_statefile ""
+                    if {[get_statefile_value "checksum" $readfd checksum_statefile] == 0} {
+                        ui_warn "Statefile has version 2 but didn't contain a checksum"
+                        set portfile_changed yes
+                    } else {
+                        if {$checksum_portfile != $checksum_statefile} {
+                            ui_debug "Checksum recorded in statefile '$checksum_statefile' \
+                                differs from Portfile checksum '$checksum_portfile'"
+                            set portfile_changed yes
+                        }
+                    }
+                }
+                default {
+                    ui_warn "Unsupported statefile version '$statefile_version'"
+                    ui_warn "Please run 'port selfupdate' to update to the latest version of MacPorts"
+                }
+            }
+            if {[tbool portfile_changed]} {
+                if {![tbool ports_dryrun]} {
+                    ui_notice "Portfile changed since last build; discarding previous state."
+                    chownAsRoot $subbuildpath
+                    delete $workpath
+                    file mkdir $workpath
+                    set fresh_build yes
+                } else {
+                    ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+                }
+            }
+            close $readfd
         }
     } elseif {[tbool ports_dryrun]} {
         set statefile /dev/null
@@ -1715,7 +1768,26 @@ proc open_statefile {args} {
             }
         }
     }
+    if {[tbool fresh_build]} {
+        write_statefile "version" 2 $fd
+        write_statefile "checksum" $checksum_portfile $fd
+    }
     return $fd
+}
+
+# get_statefile_value
+# Check for a given $class in the statefile $fd and write the first match to
+# $result, if any. Returns 1 if a line matched, 0 otherwise
+proc get_statefile_value {class fd result} {
+    upvar $result upresult
+    seek $fd 0
+    while {[gets $fd line] >= 0} {
+        if {[regexp "$class: (.*)" $line match value]} {
+            set upresult $value
+            return 1
+        }
+    }
+    return 0
 }
 
 # check_statefile
@@ -1754,17 +1826,18 @@ proc check_statefile_variants {variations oldvariations fd} {
 
     array set upoldvariations {}
 
-    seek $fd 0 end
-    if {[tell $fd] == 0} {
-        # Statefile is empty, skipping further tests
-        return 0
-    }
-
+    set variants_found no
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
             set upoldvariations([string range $name 1 end]) [string range $name 0 0]
+            set variants_found yes
         }
+    }
+
+    if {![tbool variants_found]} {
+        # Statefile is "empty", skipping further tests
+        return 0
     }
 
     set mismatch 0
