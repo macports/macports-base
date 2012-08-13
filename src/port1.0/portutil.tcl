@@ -1827,15 +1827,19 @@ proc check_statefile_variants {variations oldvariations fd} {
     array set upoldvariations {}
 
     set variants_found no
+    set targets_found no
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
             set upoldvariations([string range $name 1 end]) [string range $name 0 0]
             set variants_found yes
         }
+        if {[regexp "target: .*" $line]} {
+            set targets_found yes
+        }
     }
 
-    if {![tbool variants_found]} {
+    if {![tbool variants_found] && ![tbool targets_found]} {
         # Statefile is "empty", skipping further tests
         return 0
     }
