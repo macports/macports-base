@@ -32,9 +32,9 @@ config.status: configure
 include Mk/macports.subdir.mk
 
 install::
-	[ ! -f $(DESTDIR)${sysconfdir}/macports/mp_version ] || rm -vf $(DESTDIR)${sysconfdir}/macports/mp_version
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  $(DESTDIR)${datadir}/macports/
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  $(DESTDIR)${datadir}/macports/
+	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
 # create run user if it doesn't exist
@@ -64,7 +64,7 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${localstatedir}/macports/home ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory "${localstatedir}/macports/home" ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
             else \
                 echo "Not creating user \"${RUNUSR}\" (not root)" ; \
@@ -73,7 +73,7 @@ ifeq ($(DESTDIR),)
         if test "$$(${DSCL} -q . -read /Users/${RUNUSR} NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ; then \
             if test `id -u` -eq 0; then \
                 echo "Updating home directory location for user \"${RUNUSR}\"" ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${localstatedir}/macports/home ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory "${localstatedir}/macports/home" ; \
             else \
                 echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
             fi ; \
