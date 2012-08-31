@@ -9999,7 +9999,7 @@ fi
 $as_echo_n "checking that any existing MacPorts install can be upgraded... " >&6; }
 
 	eval dpversionfile="${sysconfdir}/ports/dp_version"
-	if test -f $dpversionfile; then
+	if test -f "$dpversionfile"; then
 		as_fn_error $? "Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first." "$LINENO" 5
 	else
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
