@@ -295,7 +295,7 @@ AC_DEFUN([MP_CHECK_OLDLAYOUT],[
 	AC_MSG_CHECKING([that any existing MacPorts install can be upgraded])
 
 	eval dpversionfile="${sysconfdir}/ports/dp_version"
-	if test -f $dpversionfile; then
+	if test -f "$dpversionfile"; then
 		AC_MSG_ERROR([Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first.])
 	else
 		AC_MSG_RESULT([yes])
