@@ -93,6 +93,7 @@ static void dep_check(int sock, const char * path);
 static void sandbox_violation(int sock, const char * path);
 static void ui_warn(const char * format, ...);
 static void ui_info(const char * format, ...);
+static void ui_error(const char *format, ...);
 
 #define MAX_SOCKETS ((FD_SETSIZE)-1)
 
@@ -321,43 +322,47 @@ static void dep_check(int sock, const char * path)
 	char * port=0;
 	size_t len=1;
 	char resolution='!';
+	int tcl_retval;
 		
 	Tcl_SetVar(interp, "path", path, 0);
-	Tcl_Eval(interp, "registry::file_registered $path");
-	port=strdup(Tcl_GetStringResult(interp));
+	// FIXME: Use C registry API
+	tcl_retval = Tcl_Eval(interp, "registry::file_registered $path");
+	port = strdup(Tcl_GetStringResult(interp));
 	if (!port) {
 		ui_warn("dep_check: memory allocation failed");
 	    return;
 	}
+	if (tcl_retval != TCL_OK) {
+		ui_error("failed to run registry::file_registered \"%s\": %s", path, port);
+	}
 	Tcl_UnsetVar(interp, "path", 0);
 	
-	if(*port!='0'||port[1])
-	{
-		char * t;
+	if (tcl_retval == TCL_OK && (*port != '0' || port[1])) {
+		char *t;
 	
-		t=depends;
-		for(;*t;t+=strlen(t)+1)
-		{
-			if(!strcmp(t, port))
-			{
-				resolution='+';
+		t = depends;
+		for (; *t; t += strlen(t) + 1) {
+			fprintf(stderr, "trace: %s =?= %s\n", t, port);
+			if (!strcmp(t, port)) {
+				resolution = '+';
 				break;
 			}
 		}
 	}
-	
-	if(resolution!='+') {
-	    if(*port=='0'&&!port[1])
+
+	if (resolution != '+') {
+	    if (*port == '0' && !port[1]) {
 		    ui_info("trace: access denied to %s (*unknown*)", path);
-		else
+		} else {
 		    ui_info("trace: access denied to %s (%s)", path, port);
+		}
     }
 
 	free(port);
 	
-	if(send(sock, &len, sizeof(len), 0)==-1)
+	if (send(sock, &len, sizeof(len), 0) == -1)
 		ui_warn("tracelib send failed");
-	if(send(sock, &resolution, 1, 0)==-1)
+	if (send(sock, &resolution, 1, 0) == -1)
 		ui_warn("tracelib send failed");
 }
 
@@ -370,8 +375,9 @@ static void ui_msg(const char * severity, const char * format, va_list va)
 	snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
 	
 	Tcl_SetVar(interp, "warn", buf, 0);
-	
-	Tcl_Eval(interp, tclcmd);
+	if (TCL_OK != Tcl_Eval(interp, tclcmd)) {
+		fprintf(stderr, "Error evaluating tcl statement `%s': %s\n", tclcmd, Tcl_GetStringResult(interp));
+	}
 	Tcl_UnsetVar(interp, "warn", 0);
 	
 }
@@ -381,7 +387,7 @@ static void ui_warn(const char * format, ...)
 	va_list va;
 	
 	va_start(va, format);
-		ui_msg("warn", format, va);
+	ui_msg("warn", format, va);
 	va_end(va);
 }
 
@@ -390,7 +396,14 @@ static void ui_info(const char * format, ...)
 	va_list va;
 	
 	va_start(va, format);
-		ui_msg("msg", format, va);
+	ui_msg("info", format, va);
+	va_end(va);
+}
+
+static void ui_error(const char *format, ...) {
+	va_list va;
+	va_start(va, format);
+	ui_msg("error", format, va);
 	va_end(va);
 }
 
