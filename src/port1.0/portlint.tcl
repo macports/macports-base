@@ -498,8 +498,8 @@ proc portlint::lint_main {args} {
                 $addr == "openmaintainer@macports.org"} {
             ui_warn "Using full email address for no/open maintainer"
             incr warnings
-        } elseif [regexp "^(.+)@macports.org$" $addr -> name] {
-            ui_warn "Maintainer email address for $name includes @macports.org"
+        } elseif [regexp "^(.+)@macports.org$" $addr -> localpart] {
+            ui_warn "Maintainer email address for $localpart includes @macports.org"
             incr warnings
         } elseif {$addr == "darwinports@opendarwin.org"} {
             ui_warn "Using legacy email address for no/open maintainer"
