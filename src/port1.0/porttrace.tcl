@@ -183,8 +183,12 @@ proc porttrace::create_slave {workpath trace_fifo} {
     thread::send $trace_thread "package require registry 1.0"
     # and this file as well.
     thread::send $trace_thread "package require porttrace 1.0"
-    # slave needs ui_warn and ui_debug...
-    thread::send $trace_thread "macports::ui_init warn; macports::ui_init debug"
+    # slave needs ui_{info,warn,debug,error}...
+    # make sure to sync this with ../pextlib1.0/tracelib.c!
+    thread::send $trace_thread "macports::ui_init debug"
+    thread::send $trace_thread "macports::ui_init info"
+    thread::send $trace_thread "macports::ui_init warn"
+    thread::send $trace_thread "macports::ui_init error"
     # and these variables
     thread::send $trace_thread "set prefix \"$prefix\"; set developer_dir \"$developer_dir\""
 
