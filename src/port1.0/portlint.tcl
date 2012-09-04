@@ -191,7 +191,7 @@ proc portlint::lint_main {args} {
 
         if {[string match "PortSystem*" $line]} {
             if {$seen_portsystem} {
-                ui_error "Line $lineno repeats PortSystem information"
+                ui_error "Line $lineno repeats PortSystem declaration"
                 incr errors
             }
             regexp {PortSystem\s+([0-9.]+)} $line -> portsystem
@@ -204,13 +204,13 @@ proc portlint::lint_main {args} {
             set require_after "PortSystem"
         }
         if {[string match "PortGroup*" $line]} {
-            regexp {PortGroup\s+([a-z0-9]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
+            regexp {PortGroup\s+([a-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
             }
             if {[info exists portgroups($portgroup)]} {
-                ui_error "Line $lineno repeats PortGroup information"
+                ui_error "Line $lineno repeats inclusion of PortGroup $portgroup"
                 incr errors
             } else {
                 set portgroups($portgroup) $portgroupversion
