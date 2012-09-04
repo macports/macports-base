@@ -33,6 +33,7 @@ include Mk/macports.subdir.mk
 
 install::
 	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
 # Only run these scripts when not building in a destroot
