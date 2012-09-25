@@ -325,7 +325,7 @@ static void dep_check(int sock, const char * path)
 	int tcl_retval;
 		
 	Tcl_SetVar(interp, "path", path, 0);
-	// FIXME: Use C registry API
+	/* FIXME: Use C registry API */
 	tcl_retval = Tcl_Eval(interp, "registry::file_registered $path");
 	port = strdup(Tcl_GetStringResult(interp));
 	if (!port) {
