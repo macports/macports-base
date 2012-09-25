@@ -337,6 +337,31 @@ proc portfetch::cvsfetch {args} {
     return 0
 }
 
+# Given a URL to a Subversion repository, if the URL is http:// or
+# https:// and MacPorts has been configured with a proxy for that URL
+# type, then return command line options that should be passed to the
+# svn command line client to enable use of that proxy.  There are no
+# proxies for Subversion's native protocol, identified by svn:// URLs.
+proc portfetch::svn_proxy_args {url} {
+    global env
+
+    if {   [string compare -length 7 {http://} ${url}] == 0
+        && [info exists env(http_proxy)]} {
+        set proxy_parts [split $env(http_proxy) :]
+        set proxy_host [lindex $proxy_parts 0]
+        set proxy_port [lindex $proxy_parts 1]
+        return "--config-option servers:global:http-proxy-host=${proxy_host} --config-option servers:global:http-proxy-port=${proxy_port}"
+    } elseif {   [string compare -length 8 {https://} ${url}] == 0
+              && [info exists env(HTTPS_PROXY)]} {
+        set proxy_parts [split $env(HTTPS_PROXY) :]
+        set proxy_host [lindex $proxy_parts 0]
+        set proxy_port [lindex $proxy_parts 1]
+        return "--config-option servers:global:http-proxy-host=${proxy_host} --config-option servers:global:http-proxy-port=${proxy_port}"
+    } else {
+        return ""
+    }
+}
+
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
     global svn.args svn.method svn.revision svn.url patchfiles
@@ -348,7 +373,10 @@ proc portfetch::svnfetch {args} {
     if {[string length ${svn.revision}]} {
         append svn.url "@${svn.revision}"
     }
-    set svn.args "${svn.method} ${svn.args} ${svn.url}"
+
+    set proxy_args [svn_proxy_args ${svn.url}]
+
+    set svn.args "${svn.method} ${svn.args} ${proxy_args} ${svn.url}"
 
     if {[catch {command_exec svn "" "2>&1"} result]} {
         return -code error [msgcat::mc "Subversion check out failed"]
