@@ -77,14 +77,42 @@ struct linebuf {
     char *line;
 };
 
+static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char **profilestr)
+{
+    Tcl_Obj *tcl_result;
+    int supported;
+    int len;
+
+    tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_supported", NULL, TCL_GLOBAL_ONLY);
+    if (!tcl_result || Tcl_GetBooleanFromObj(interp, tcl_result, &supported) != TCL_OK || !supported) {
+        return 0;
+    }
+
+    tcl_result = Tcl_GetVar2Ex(interp, "portutil::autoconf::sandbox_exec_path", NULL, TCL_GLOBAL_ONLY);
+    if (!tcl_result || !(*sandbox_exec_path = Tcl_GetString(tcl_result))) {
+        return 0;
+    }
+
+    tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_profile", NULL, TCL_GLOBAL_ONLY);
+    if (!tcl_result || !(*profilestr = Tcl_GetStringFromObj(tcl_result, &len)) 
+        || len == 0) {
+        return 0;
+    }
+
+    return 1;
+}
+
 /* usage: system ?-notty? ?-nice value? ?-W path? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *buf;
     struct linebuf circbuf[CBUFSIZ];
     size_t linelen;
-    char *args[4];
+    char *args[7];
     char *cmdstring;
+    int sandbox = 0;
+    char *sandbox_exec_path;
+    char *profilestr;
     FILE *pdes;
     int fdset[2], nullfd;
     int fline, pos, ret;
@@ -127,6 +155,11 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             return TCL_ERROR;
         }
     }
+
+#if 0
+    /* check if and how we should use sandbox-exec */
+    sandbox = check_sandboxing(interp, &sandbox_exec_path, &profilestr);
+#endif
 
     /*
      * Fork a child to run the command, in a popen() like fashion -
@@ -178,11 +211,22 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
 
         /* XXX ugly string constants */
-        args[0] = "sh";
-        args[1] = "-c";
-        args[2] = cmdstring;
-        args[3] = NULL;
-        execve("/bin/sh", args, environ);
+        if (sandbox) {
+            args[0] = "sandbox-exec";
+            args[1] = "-p";
+            args[2] = profilestr;
+            args[3] = "sh";
+            args[4] = "-c";
+            args[5] = cmdstring;
+            args[6] = NULL;
+            execve(sandbox_exec_path, args, environ);
+        } else {
+            args[0] = "sh";
+            args[1] = "-c";
+            args[2] = cmdstring;
+            args[3] = NULL;
+            execve("/bin/sh", args, environ);
+        }
         _exit(1);
         break;
     default: /* parent */

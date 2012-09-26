@@ -58,3 +58,4 @@ package require portload 1.0
 package require portunload 1.0
 
 package require portdistfiles 1.0
+package require portsandbox 1.0
