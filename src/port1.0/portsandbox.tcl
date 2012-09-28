@@ -61,7 +61,8 @@ proc portsandbox::set_profile {target} {
     # TODO: remove altprefix support
     lappend allow_dirs $workpath $altprefix
 
-    set portsandbox_profile "(version 1) (allow default) (deny file-write*)"
+    set portsandbox_profile "(version 1) (allow default) (deny file-write*) \
+(allow file-write-data (literal \"/dev/null\")) (allow file-write* (regex #\"^(/private)?/tmp/\"))"
     foreach dir $allow_dirs {
         append portsandbox_profile " (allow file-write* "
         if {${os.major} > 9} {
@@ -71,5 +72,4 @@ proc portsandbox::set_profile {target} {
         }
         append portsandbox_profile ")"
     }
-    append portsandbox_profile " (allow file-write-data (literal \"/dev/null\"))"
 }
