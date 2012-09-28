@@ -1326,6 +1326,7 @@ proc target_run {ditem} {
     if {$procedure != ""} {
         set targetname [ditem_key $ditem name]
         set target [ditem_key $ditem provides]
+        portsandbox::set_profile $target
         global ${target}.asroot
         if { [tbool ${target}.asroot] } {
             elevateToRoot $targetname

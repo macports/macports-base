@@ -156,10 +156,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
 
-#if 0
     /* check if and how we should use sandbox-exec */
     sandbox = check_sandboxing(interp, &sandbox_exec_path, &profilestr);
-#endif
 
     /*
      * Fork a child to run the command, in a popen() like fashion -

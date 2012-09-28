@@ -35,37 +35,41 @@ namespace eval portsandbox {
 
 options portsandbox_supported portsandbox_profile
 default portsandbox_supported {[file executable $portutil::autoconf::sandbox_exec_path]}
-default portsandbox_profile {[portsandbox::get_default_profile]}
+default portsandbox_profile {}
 
-# produce a suitable profile to pass to sandbox-exec
+# set up a suitable profile to pass to sandbox-exec, based on the target
 # command line usage would be:
-# sandbox-exec -p '(version 1) (allow default) (deny file* (subpath "/usr/local") (subpath "/Library/Frameworks"))' some-command
-proc portsandbox::get_default_profile {} {
-    global os.major prefix frameworks_dir
-    set prefix_conflict [expr {$prefix == "/usr/local" || [string match $prefix "/usr/local/*"]}]
-    set frameworks_conflict [expr {$frameworks_dir == "/Library/Frameworks" || [string match $frameworks_dir "/Library/Frameworks/*"]}]
-    if {$prefix_conflict && $frameworks_conflict} {
-        return ""
+# sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
+proc portsandbox::set_profile {target} {
+    global os.major portsandbox_profile workpath distpath altprefix
+
+    switch $target {
+        activate -
+        deactivate -
+        load -
+        unload {
+            set portsandbox_profile ""
+            return
+        }
+        fetch -
+        mirror -
+        clean {
+            set allow_dirs [list $distpath]
+        }
     }
-    set profile "(version 1) (allow default) (deny "
-    if {${os.major} > 9} {
-        append profile "file* "
-        if {!$prefix_conflict} {
-            append profile {(subpath "/usr/local")}
+
+    # TODO: remove altprefix support
+    lappend allow_dirs $workpath $altprefix
+
+    set portsandbox_profile "(version 1) (allow default) (deny file-write*)"
+    foreach dir $allow_dirs {
+        append portsandbox_profile " (allow file-write* "
+        if {${os.major} > 9} {
+            append portsandbox_profile "(subpath \"${dir}\")"
+        } else {
+            append portsandbox_profile "(regex #\"^${dir}/\")"
         }
-        if {!$frameworks_conflict} {
-            append profile { (subpath "/Library/Frameworks")}
-        }
-    } else {
-        append profile "file-read* file-write* (regex "
-        if {!$prefix_conflict} {
-            append profile {#"^/usr/local/"}
-        }
-        if {!$frameworks_conflict} {
-            append profile { #"^/Library/Frameworks/"}
-        }
-        append profile ")"
+        append portsandbox_profile ")"
     }
-    append profile ")"
-    return $profile
+    append portsandbox_profile " (allow file-write-data (literal \"/dev/null\"))"
 }
