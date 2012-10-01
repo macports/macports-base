@@ -41,7 +41,7 @@ default portsandbox_profile {}
 # command line usage would be:
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
-    global os.major portsandbox_profile workpath distpath altprefix
+    global os.major portsandbox_profile workpath distpath altprefix package.destpath
 
     switch $target {
         activate -
@@ -59,6 +59,9 @@ proc portsandbox::set_profile {target} {
         mirror -
         clean {
             set allow_dirs [list $distpath]
+        }
+        pkg {
+            set allow_dirs [list ${package.destpath}]
         }
     }
 
