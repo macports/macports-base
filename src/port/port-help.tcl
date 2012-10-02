@@ -345,7 +345,14 @@ Unarchive the destroot of the given ports from installed images
 set porthelp(uninstall) {
 Uninstall the given ports
 
---no-exec   Do not execute any stored pre- or post-uninstall procedures
+--follow-dependents     Recursively uninstall all ports that depend on the
+                        specified port before uninstalling the port itself.
+--follow-dependencies   Also recursively uninstall all ports that the
+                        specified port depended on. This will not uninstall
+                        dependencies that are marked as requested or that
+                        have other dependents.
+--no-exec               Do not execute any stored pre- or post-uninstall
+                        procedures.
 }
 
 set porthelp(unload) $porthelp(load)
