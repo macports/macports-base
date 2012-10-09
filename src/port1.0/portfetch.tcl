@@ -279,9 +279,38 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
-    global patchfiles
-    if {[catch {command_exec bzr "" "2>&1"} result]} {
-        return -code error [msgcat::mc "Bazaar checkout failed"]
+    global env patchfiles
+
+    # Behind a proxy bzr will fail with the following error if proxies
+    # listed in macports.conf appear in the environment in their
+    # unmodified form:
+    #   bzr: ERROR: Invalid url supplied to transport:
+    #   "proxy.example.com:8080": No host component
+    # Set the "http_proxy" and "HTTPS_PROXY" environmental variables
+    # to valid URLs by prepending "http://" and appending "/".
+    if {   [info exists env(http_proxy)]
+        && [string compare -length 7 {http://} $env(http_proxy)] != 0} {
+        set orig_http_proxy $env(http_proxy)
+        set env(http_proxy) http://${orig_http_proxy}/
+    }
+
+    if {   [info exists env(HTTPS_PROXY)]
+        && [string compare -length 7 {http://} $env(HTTPS_PROXY)] != 0} {
+        set orig_https_proxy $env(HTTPS_PROXY)
+        set env(HTTPS_PROXY) http://${orig_https_proxy}/
+    }
+
+    try {
+        if {[catch {command_exec bzr "" "2>&1"} result]} {
+            return -code error [msgcat::mc "Bazaar checkout failed"]
+        }
+    } finally {
+        if ([info exists orig_http_proxy]) {
+            set env(http_proxy) ${orig_http_proxy}
+        }
+        if ([info exists orig_https_proxy]) {
+            set env(HTTPS_PROXY) ${orig_https_proxy}
+        }
     }
 
     if {[info exists patchfiles]} {
