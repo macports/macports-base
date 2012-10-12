@@ -69,14 +69,15 @@ proc portsandbox::set_profile {target} {
     lappend allow_dirs $workpath $altprefix
 
     set portsandbox_profile "(version 1) (allow default) (deny file-write*) \
-(allow file-write-data (literal \"/dev/null\")) (allow file-write* (regex #\"^(/private)?(/var)?/tmp/\"))"
+(allow file-write-data (literal \"/dev/null\")) (allow file-write* (regex #\"^(/private)?(/var)?/tmp/\" \
+#\"^(/private)?/var/folders/\"))"
+
     foreach dir $allow_dirs {
-        append portsandbox_profile " (allow file-write* "
+        append portsandbox_profile " (allow file-write* ("
         if {${os.major} > 9} {
-            append portsandbox_profile "(subpath \"${dir}\")"
+            append portsandbox_profile "subpath \"${dir}\"))"
         } else {
-            append portsandbox_profile "(regex #\"^${dir}/\")"
+            append portsandbox_profile "regex #\"^${dir}/\"))"
         }
-        append portsandbox_profile ")"
     }
 }
