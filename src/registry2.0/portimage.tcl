@@ -280,7 +280,12 @@ proc _activate_file {srcfile dstfile} {
         }
         default {
             ui_debug "activating file: $dstfile"
-            ::file rename $srcfile $dstfile
+            if {${macports::os_platform} == "darwin" && ${macports::os_major} >= 10  && [::file type $srcfile] != "link"} {
+                system "ditto --hfsCompression '${srcfile}' '${dstfile}'"
+                ::file delete -- $srcfile
+            } else {
+                ::file rename $srcfile $dstfile
+            }
             return 1
         }
     }
