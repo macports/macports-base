@@ -1,5 +1,5 @@
 # This file is based on the tcl.m4 file distributed with Tcl 8.4
-# Portions Copyright (2003) Apple Computer, Inc.
+# Portions Copyright (2003) Apple Inc.
 #
 # Copyright and License for this file, copied verbatim from the official
 # Tcl distribution, follows:

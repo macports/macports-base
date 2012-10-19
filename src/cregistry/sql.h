@@ -3,6 +3,7 @@
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,5 +39,6 @@
 
 int create_tables(sqlite3* db, reg_error* errPtr);
 int init_db(sqlite3* db, reg_error* errPtr);
+int update_db(sqlite3* db, reg_error* errPtr);
 
 #endif /* _SQL_H */

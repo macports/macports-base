@@ -1,5 +1,4 @@
---->  Computing dependencies for checksum
---->  Fetching checksum
+--->  Fetching distfiles for checksum
 --->  Verifying checksum(s) for checksum
 --->  Extracting checksum
 --->  Configuring checksum

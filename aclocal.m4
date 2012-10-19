@@ -295,7 +295,7 @@ AC_DEFUN([MP_CHECK_OLDLAYOUT],[
 	AC_MSG_CHECKING([that any existing MacPorts install can be upgraded])
 
 	eval dpversionfile="${sysconfdir}/ports/dp_version"
-	if test -f $dpversionfile; then
+	if test -f "$dpversionfile"; then
 		AC_MSG_ERROR([Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first.])
 	else
 		AC_MSG_RESULT([yes])
@@ -327,9 +327,15 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 		AC_MSG_RESULT([$DSTGRP])
 		AC_SUBST(DSTGRP)
 
+		# Set run-user to current user
+		AC_MSG_CHECKING([for macports user])
+		RUNUSR=`id -un`
+		AC_MSG_RESULT([$RUNUSR])
+		AC_SUBST(RUNUSR)
+
 		# Set Tcl package directory to ~/Library/Tcl
 	    AC_MSG_CHECKING(for Tcl package directory)
-		ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+		ac_cv_c_tclpkgd=`eval echo ~$DSTUSR/Library/Tcl`
 	    # Convert to a native path and substitute into the output files.
 	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
 	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
@@ -354,7 +360,7 @@ AC_DEFUN([MP_CHECK_RUNUSER],[
 	
 	AC_MSG_CHECKING([for macports user])
 	if test "x$RUNUSR" = "x" ; then
-	   RUNUSR=nobody
+	   RUNUSR=macports
 	fi
 
 	AC_MSG_RESULT([$RUNUSR])
@@ -640,7 +646,7 @@ AC_DEFUN(MP_TCL_PACKAGE_DIR, [
 			        fi
 			    fi
 			elif test "$path" = "~/Library/Tcl"; then
-			    ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+			    ac_cv_c_tclpkgd=`eval echo ~$DSTUSR/Library/Tcl`
 			    break
 			fi
 			done
@@ -804,21 +810,23 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 		   [  sqlite3prefix=$withval ])
 
 	if test "x$sqlite3prefix" = "x"; then
-		AC_PATH_PROG([PKG_CONFIG], [pkg-config])
-		if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
-		    # assume it's somewhere like /usr that needs no extra flags
-		    AC_CHECK_HEADER(sqlite3.h, [], [AC_MSG_ERROR([cannot find sqlite3 header])])
-            CFLAGS_SQLITE3=""
-		    LDFLAGS_SQLITE3="-lsqlite3"
-        else
-            CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
-            LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
-            # for tclsqlite below
-            mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
-            if test "x$mp_sqlite3_dir" != "x"; then
-                mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
-            fi
-        fi
+		# see if it's somewhere like /usr that needs no extra flags
+		LDFLAGS_SQLITE3="-lsqlite3"
+		AC_CHECK_HEADER(sqlite3.h, [],[
+		    # nope - try pkg-config
+			AC_PATH_PROG([PKG_CONFIG], [pkg-config])
+			if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
+				AC_MSG_ERROR([cannot find sqlite3 header])
+			else
+				CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
+				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
+				# for tclsqlite below
+				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
+            			if test "x$mp_sqlite3_dir" != "x"; then
+                			mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
+            			fi
+			fi
+		])
 	else
 	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
 		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
@@ -1058,3 +1066,75 @@ AC_DEFUN([MP_WERROR],[
 	fi
 	AC_SUBST([CFLAGS_WERROR])
 ])
+
+#------------------------------------------------------------------------
+# MP_CHECK_SQLITE_VERSION --
+#
+#	Check for a specific SQLite version and execute commands depending on availability
+#
+# Arguments:
+#       Required SQLite version for the test to succeed in the form of SQLITE_VERSION_NUMBER
+#
+# Requires:
+#       MP_SQLITE3_FLAGS
+#
+# Depends:
+#		AC_LANG_SOURCE
+#
+# Results:
+#		Result is cached.
+#
+#       sets mp_sqlite_version_ge_$1 to yes or no
+#
+#------------------------------------------------------------------------
+AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
+	AC_REQUIRE([MP_SQLITE3_FLAGS])
+
+	AC_MSG_CHECKING([for SQLite >= $1])
+
+	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
+	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
+
+	AC_CACHE_VAL(mp_cv_sqlite_version_defined, [
+		AC_PREPROC_IFELSE(
+			[AC_LANG_SOURCE(
+				[[
+					#include <sqlite3.h>
+					#ifndef SQLITE_VERSION_NUMBER
+					#  error "SQLITE_VERSION_NUMBER undefined"
+					#endif
+				]]
+			)],
+			[mp_cv_sqlite_version_defined="yes"],
+			[AC_MSG_ERROR("SQLITE_VERSION_NUMBER undefined or sqlite3.h not found")]
+		)
+	])
+
+	if test x"${mp_cv_sqlite_version_defined}" = "xno"; then
+		AC_MSG_RESULT([SQLite version not found])
+		mp_sqlite_version_ge_$1="no"
+	else
+		AC_CACHE_VAL(mp_cv_sqlite_version_ge_$1, [
+			AC_PREPROC_IFELSE(
+				[AC_LANG_SOURCE(
+					[[
+						#include <sqlite3.h>
+						#if (SQLITE_VERSION_NUMBER >= $1)
+						/* Everything is fine */
+						#else
+						#  error "SQLite version too old"
+						#endif
+					]]
+				)],
+				[mp_cv_sqlite_version_ge_$1="yes"],
+				[mp_cv_sqlite_version_ge_$1="no"]
+			)
+		])
+
+		AC_MSG_RESULT(${mp_cv_sqlite_version_ge_$1})
+		mp_sqlite_version_ge_$1=${mp_cv_sqlite_version_ge_$1}
+	fi
+
+	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
+])
+

@@ -3,7 +3,8 @@
 #
 # $Id$
 #
-# Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
+# Copyright (c) 2007-2011 The MacPorts Project
+# Copyright (c) 2005-2007 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -15,7 +16,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its
+# 3. Neither the name of The MacPorts Project nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
 #
@@ -46,11 +47,10 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
 
 # defaults
 default livecheck.url {$homepage}
-default livecheck.check default
 default livecheck.type default
 default livecheck.md5 ""
 default livecheck.regex ""
@@ -58,9 +58,6 @@ default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 default livecheck.ignore_sslcert yes
-
-# Deprecation
-option_deprecate livecheck.check livecheck.type
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
@@ -90,9 +87,9 @@ proc portlivecheck::livecheck_main {args} {
         return -code 1 "No available types were found. Check '$types_dir'."
     }
 
-    # Convert available_types from a list of files (e.g., { freshmeat.tcl
+    # Convert available_types from a list of files (e.g., { freecode.tcl
     # gnu.tcl ... }) into a string in the format "type|type|..." (e.g.,
-    # "freshmeat|gnu|...").
+    # "freecode|gnu|...").
     set available_types [regsub -all {\.tcl} [join $available_types |] {}]
 
     if {${livecheck.type} eq "default"} {
@@ -100,6 +97,14 @@ proc portlivecheck::livecheck_main {args} {
         if {$has_master_sites} {
             foreach {master_site} ${master_sites} {
                 if {[regexp "^($available_types)(?::(\[^:\]+))?" ${master_site} _ site subdir]} {
+                    set subdirs [split $subdir /]
+                    if {[llength $subdirs] > 1} {
+                        if {[lindex $subdirs 0] == "project"} {
+                            set subdir [lindex $subdirs 1]
+                        } else {
+                            set subdir ""
+                        }
+                    }
                     if {${subdir} ne "" && ${livecheck.name} eq "default"} {
                         set livecheck.name ${subdir}
                     }
@@ -164,12 +169,15 @@ proc portlivecheck::livecheck_main {args} {
                     set updated_version 0
                     set foundmatch 0
                     while {[gets $chan line] >= 0} {
-                        if {[regexp $the_re $line matched upver]} {
+                        set lastoff 0
+                        while {[regexp -start $lastoff -indices $the_re $line offsets]} {
+                            regexp -start $lastoff $the_re $line matched upver
                             set foundmatch 1
-                            if {$updated_version == 0 || [rpm-vercomp $upver $updated_version] > 0} {
+                            if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
                                 set updated_version $upver
                             }
                             ui_debug "The regex matched \"$matched\", extracted \"$upver\""
+                            set lastoff [lindex $offsets end]
                         }
                     }
                     if {$foundmatch == 1} {

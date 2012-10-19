@@ -3,6 +3,7 @@
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +35,8 @@
 #include <stdlib.h>
 #include <tcl.h>
 #include <sqlite3.h>
+
+#include <cregistry/util.h>
 
 #include "entry.h"
 #include "entryobj.h"
@@ -112,7 +115,7 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                 variants, epoch, &error);
         if (entry != NULL) {
             Tcl_Obj* result;
-            if (entry_to_obj(interp, &result, entry, &error)) {
+            if (entry_to_obj(interp, &result, entry, NULL, &error)) {
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
@@ -192,7 +195,7 @@ static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                 variants, epoch, &error);
         if (entry != NULL) {
             Tcl_Obj* result;
-            if (entry_to_obj(interp, &result, entry, &error)) {
+            if (entry_to_obj(interp, &result, entry, NULL, &error)) {
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
@@ -209,7 +212,7 @@ static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  */
 static int entry_close(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv, "delete entry");
+        Tcl_WrongNumArgs(interp, 1, objv, "close entry");
         return TCL_ERROR;
     } else {
         reg_error error;
@@ -455,7 +458,7 @@ static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                 return TCL_OK;
             } else {
                 Tcl_Obj* result;
-                if (entry_to_obj(interp, &result, entry, &error)) {
+                if (entry_to_obj(interp, &result, entry, NULL, &error)) {
                     Tcl_SetObjResult(interp, result);
                     return TCL_OK;
                 }

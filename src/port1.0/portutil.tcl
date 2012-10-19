@@ -2,9 +2,10 @@
 # portutil.tcl
 # $Id$
 #
+# Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2006, 2007 Markus W. Weissmann <mww@macports.org>
+# Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
+# Copyright (c) 2004-2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -15,7 +16,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -131,11 +132,11 @@ proc handle_option-delete {option args} {
 }
 
 ##
-# Handle option-replace
+# Handle option-strsed
 #
 # @param option name of the option
 # @param args arguments
-proc handle_option-replace {option args} {
+proc handle_option-strsed {option args} {
     global $option user_options option_procs
 
     if {![info exists user_options($option)] && [info exists $option]} {
@@ -144,6 +145,36 @@ proc handle_option-replace {option args} {
             set temp [strsed $temp $val]
         }
         set $option $temp
+    }
+}
+
+##
+# Handle option-replace
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-replace {option args} {
+    global $option user_options option_procs deprecated_options
+
+    # Deprecate -replace with only one argument, for backwards compatibility call -strsed
+    # XXX: Remove this in 2.2.0
+    if {[llength $args] == 1} {
+        if {![info exists deprecated_options(${option}-replace)]} {
+            set deprecated_options(${option}-replace) [list ${option}-strsed 0]
+        }
+        set refcount [lindex $deprecated_options(${option}-replace) 1]
+        lset deprecated_options(${option}-replace) 1 [expr $refcount + 1]
+        return [eval handle_option-strsed $option $args]
+    }
+
+    if {![info exists user_options($option)] && [info exists $option]} {
+        foreach {old new} $args {
+            set index [lsearch -exact [set $option] $old]
+            if {$index == -1} {
+                continue
+            }
+            set $option [lreplace [set $option] $index $index $new]
+        }
     }
 }
 
@@ -159,6 +190,7 @@ proc options {args} {
         interp alias {} $option {} handle_option $option
         interp alias {} $option-append {} handle_option-append $option
         interp alias {} $option-delete {} handle_option-delete $option
+        interp alias {} $option-strsed {} handle_option-strsed $option
         interp alias {} $option-replace {} handle_option-replace $option
     }
 }
@@ -176,7 +208,7 @@ proc options::export {option action {value ""}} {
             set PortInfo($option) $value
         }
         delete {
-            unset PortInfo($option)
+            unset -nocomplain PortInfo($option)
         }
     }
 }
@@ -323,12 +355,13 @@ proc command_string {command} {
 }
 
 # Given a command name, execute it with the options.
-# command_exec command [-notty] [command_prefix [command_suffix]]
+# command_exec command [-notty] [-varprefix variable_prefix] [command_prefix [command_suffix]]
 # command           name of the command
+# variable_prefix   name of the variable prefix to use (defaults to command)
 # command_prefix    additional command prefix (typically pipe command)
 # command_suffix    additional command suffix (typically redirection)
 proc command_exec {command args} {
-    global ${command}.env ${command}.env_array ${command}.nice env macosx_version
+    set varprefix "${command}"
     set notty ""
     set command_prefix ""
     set command_suffix ""
@@ -339,6 +372,11 @@ proc command_exec {command args} {
             set args [lrange $args 1 end]
         }
 
+        if {[lindex $args 0] == "-varprefix"} {
+            set varprefix [lindex $args 1]
+            set args [lrange $args 2 end]
+        }
+
         if {[llength $args] > 0} {
             set command_prefix [lindex $args 0]
             if {[llength $args] > 1} {
@@ -347,33 +385,35 @@ proc command_exec {command args} {
         }
     }
 
+    global ${varprefix}.env ${varprefix}.env_array ${varprefix}.nice env macosx_version
+
     # Set the environment.
     # If the array doesn't exist, we create it with the value
-    # coming from ${command}.env
+    # coming from ${varprefix}.env
     # Otherwise, it means the caller actually played with the environment
     # array already (e.g. configure flags).
-    if {![array exists ${command}.env_array]} {
-        parse_environment ${command}
+    if {![array exists ${varprefix}.env_array]} {
+        parse_environment ${varprefix}
     }
     if {[option macosx_deployment_target] ne ""} {
-        set ${command}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
+        set ${varprefix}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
     }
-    set ${command}.env_array(CC_PRINT_OPTIONS) "YES"
-    set ${command}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
+    set ${varprefix}.env_array(CC_PRINT_OPTIONS) "YES"
+    set ${varprefix}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
     if {[option compiler.cpath] ne ""} {
-        set ${command}.env_array(CPATH) [join [option compiler.cpath] :]
+        set ${varprefix}.env_array(CPATH) [join [option compiler.cpath] :]
     }
     if {[option compiler.library_path] ne ""} {
-        set ${command}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
+        set ${varprefix}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
     }
 
     # Debug that.
-    ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
+    ui_debug "Environment: [environment_array_to_string ${varprefix}.env_array]"
 
     # Prepare nice value change
     set nice ""
-    if {[info exists ${command}.nice] && [set ${command}.nice] != ""} {
-        set nice "-nice [set ${command}.nice]"
+    if {[info exists ${varprefix}.nice] && [set ${varprefix}.nice] != ""} {
+        set nice "-nice [set ${varprefix}.nice]"
     }
 
     # Get the command string.
@@ -384,14 +424,17 @@ proc command_exec {command args} {
     # Save the environment.
     array set saved_env [array get env]
     # Set the overriden variables from the portfile.
-    array set env [array get ${command}.env_array]
+    array set env [array get ${varprefix}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
     ui_debug "Executing command line: $fullcmdstring"
     set code [catch {eval system $notty $nice \$fullcmdstring} result]
+    # Save variables in order to re-throw the same error code.
+    set errcode $::errorCode
+    set errinfo $::errorInfo
 
     # Unset the command array until next time.
-    array unset ${command}.env_array
+    array unset ${varprefix}.env_array
 
     # Restore the environment.
     array unset env *
@@ -401,7 +444,7 @@ proc command_exec {command args} {
     array set env [array get saved_env]
 
     # Return as if system had been called directly.
-    return -code $code $result
+    return -code $code -errorcode $errcode -errorinfo $errinfo $result
 }
 
 # default
@@ -745,11 +788,12 @@ proc platform {args} {
 # This executes the given code in 'body' if we were opened as the specified
 # subport, and also adds it to the list of subports that are defined.
 proc subport {subname body} {
-    global subport PortInfo
-    if {![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1} {
+    global subport name PortInfo
+    if {$subport == $name && $subname != $name && 
+        (![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1)} {
         lappend PortInfo(subports) $subname
     }
-    if {$subname == $subport} {
+    if {[string equal -nocase $subname $subport]} {
         set PortInfo(name) $subname
         uplevel 1 $body
     }
@@ -871,19 +915,35 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-
+    global env worksrcpath
     set extended 0
     set suppress 0
+    set oldlocale_exists 0
+    set oldlocale "" 
+    set locale ""
+    set dir ${worksrcpath}
     while 1 {
         set arg [lindex $args 0]
         if {[string index $arg 0] eq "-"} {
             set args [lrange $args 1 end]
             switch -- [string range $arg 1 end] {
+                locale {
+                    set oldlocale_exists [info exists env(LC_CTYPE)]
+                    if {$oldlocale_exists} {
+                        set oldlocale $env(LC_CTYPE)
+                    }
+                    set locale [lindex $args 0]
+                    set args [lrange $args 1 end]
+                }
                 E {
                     set extended 1
                 }
                 n {
                     set suppress 1
+                }
+                W {
+                    set dir [lindex $args 0]
+                    set args [lrange $args 1 end]
                 }
                 - {
                     break
@@ -897,12 +957,16 @@ proc reinplace {args}  {
         }
     }
     if {[llength $args] < 2} {
-        error "reinplace ?-E? pattern file ..."
+        error "reinplace ?-E? ?-n? ?-W dir? pattern file ..."
     }
     set pattern [lindex $args 0]
     set files [lrange $args 1 end]
 
     foreach file $files {
+        # if $file is an absolute path already, file join will just return the
+        # absolute path, otherwise it is $dir/$file
+        set file [file join $dir $file]
+
         if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
             global errorInfo
             ui_debug "$errorInfo"
@@ -927,15 +991,33 @@ proc reinplace {args}  {
             lappend cmdline -n
         }
         set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
+        if {$locale != ""} {
+            set env(LC_CTYPE) $locale
+        }
+        ui_debug "Executing reinplace: $cmdline"
         if {[catch {eval exec $cmdline} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "reinplace: $error"
             file delete "$tmpfile"
+            if {$locale != ""} {
+                if {$oldlocale_exists} {
+                    set env(LC_CTYPE) $oldlocale
+                } else {
+                    unset env(LC_CTYPE)
+                }
+            }
             close $tmpfd
             return -code error "reinplace sed(1) failed"
         }
 
+        if {$locale != ""} {
+            if {$oldlocale_exists} {
+                set env(LC_CTYPE) $oldlocale
+            } else {
+                unset env(LC_CTYPE)
+            }
+        }
         close $tmpfd
 
         set attributes [file attributes $file]
@@ -1228,11 +1310,14 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped worksrcpath prefix subport
+    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
+           ports_dry_last_skipped worksrcpath prefix subport env portdbpath
     set portname $subport
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
+    set savedhome [file join $portdbpath home]
+    set env(HOME) "${workpath}/.home"
 
     if {[ditem_key $ditem state] != "no"} {
         set target_state_fd [open_statefile]
@@ -1241,6 +1326,7 @@ proc target_run {ditem} {
     if {$procedure != ""} {
         set targetname [ditem_key $ditem name]
         set target [ditem_key $ditem provides]
+        portsandbox::set_profile $target
         global ${target}.asroot
         if { [tbool ${target}.asroot] } {
             elevateToRoot $targetname
@@ -1248,6 +1334,9 @@ proc target_run {ditem} {
 
         if {[ditem_contains $ditem init]} {
             set result [catch {[ditem_key $ditem init] $targetname} errstr]
+            # Save variables in order to re-throw the same error code.
+            set errcode $::errorCode
+            set errinfo $::errorInfo
         }
 
         if {$result == 0} {
@@ -1273,13 +1362,17 @@ proc target_run {ditem} {
 
             # otherwise execute the task.
             if {$skipped == 0} {
-                set target [ditem_key $ditem provides]
+                # change current phase shown in log
+                set_phase $target
 
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
                 }
-                set_phase  $target
+
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]
@@ -1351,19 +1444,28 @@ proc target_run {ditem} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
                         set result [catch {$pre $targetname} errstr]
+                        # Save variables in order to re-throw the same error code.
+                        set errcode $::errorCode
+                        set errinfo $::errorInfo
                         if {$result != 0} { break }
                     }
                 }
 
                 if {$result == 0} {
-                ui_debug "Executing $targetname ($portname)"
-                set result [catch {$procedure $targetname} errstr]
+                    ui_debug "Executing $targetname ($portname)"
+                    set result [catch {$procedure $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
                 }
 
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
                         set result [catch {$post $targetname} errstr]
+                        # Save variables in order to re-throw the same error code.
+                        set errcode $::errorCode
+                        set errinfo $::errorInfo
                         if {$result != 0} { break }
                     }
                 }
@@ -1372,6 +1474,9 @@ proc target_run {ditem} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
                     set result [catch {$postrun $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
                 }
 
                 # Check dependencies & file creations outside workpath.
@@ -1411,9 +1516,9 @@ proc target_run {ditem} {
             write_statefile target $targetname $target_state_fd
             }
         } else {
-            global errorInfo
-            ui_error "Target $targetname returned: $errstr"
-            ui_debug "Backtrace: $errorInfo"
+            ui_error "$targetname for port $portname returned: $errstr"
+            ui_debug "Error code: $errcode"
+            ui_debug "Backtrace: $errinfo"
             set result 1
         }
 
@@ -1425,6 +1530,8 @@ proc target_run {ditem} {
     if {[ditem_key $ditem state] != "no"} {
         close $target_state_fd
     }
+
+    set env(HOME) $savedhome
 
     return $result
 }
@@ -1478,7 +1585,7 @@ proc eval_targets {target} {
             ui_debug "Skipping $target ($subport) since this port is already installed"
             return 0
         } elseif {$target == "activate"} {
-            set regref [registry_open $subport $version $revision $portvariants $epoch]
+            set regref [registry_open $subport $version $revision $portvariants ""]
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
                 ui_debug "Skipping $target ($subport @${version}_${revision}${portvariants}) since this port is already active"
@@ -1515,7 +1622,7 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
         # somebody broke!
-        set errstring "Warning: the following items did not execute (for $subport):"
+        set errstring "Warning: targets not executed for $subport:"
         foreach ditem $dlist {
             append errstring " [ditem_key $ditem name]"
         }
@@ -1531,8 +1638,8 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink subport portpath ports_ignore_older ports_dryrun
-    global usealtworkpath altprefix env applications_dir subbuildpath
+    global workpath worksymlink place_worksymlink subport portpath ports_ignore_different ports_dryrun \
+           usealtworkpath altprefix env applications_dir subbuildpath
 
     if {$usealtworkpath} {
          ui_warn_once "privileges" "MacPorts running without privileges.\
@@ -1557,9 +1664,11 @@ proc open_statefile {args} {
         }
     }
 
-    if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
-        file mkdir $workpath
-        chownAsRoot $subbuildpath
+    if {![tbool ports_dryrun]} {
+        if {![file isdirectory $workpath]} {
+            file mkdir "${workpath}/.home"
+            chownAsRoot $subbuildpath
+        }
         # Create a symlink to the workpath for port authors
         if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
             ui_debug "Attempting ln -sf $workpath $worksymlink"
@@ -1572,22 +1681,75 @@ proc open_statefile {args} {
 
     # flock Portfile
     set statefile [file join $workpath .macports.${subport}.state]
+    set fresh_build yes
+    set checksum_portfile [sha256 file ${portpath}/Portfile]
     if {[file exists $statefile]} {
+        set fresh_build no
         if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
-        if {[file mtime ${portpath}/Portfile] >= [clock seconds]} {
+        if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
-        if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-            if {![tbool ports_dryrun]} {
-                ui_notice "Portfile changed since last build; discarding previous state."
-                chownAsRoot $subbuildpath
-                delete $workpath
-                file mkdir $workpath
-            } else {
-                ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+        if {![tbool ports_ignore_different]} {
+            # start by assuming the statefile is current
+            set portfile_changed no
+
+            # open the statefile, determine the statefile version
+            set readfd [open $statefile r]
+            set statefile_version 1
+            if {[get_statefile_value "version" $readfd result] != 0} {
+                set statefile_version $result
             }
+
+            # check for outdated statefiles depending on what version the
+            # statefile is; we explicitly support older statefiles here, because
+            # all previously built archives would be invalidated (e.g., when
+            # using mpkg) if we didn't
+            switch $statefile_version {
+                1 {
+                    # statefile version 1
+                    # this statefile doesn't have a checksum, fall back to
+                    # comparing the Portfile modification date with the
+                    # statefile modification date
+                    if {[file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
+                        ui_debug "Statefile has version 1 and is older than Portfile"
+                        set portfile_changed yes
+                    }
+                }
+                2 {
+                    # statefile version 2
+                    # this statefile has a sha256 checksum of the Portfile in
+                    # the "checksum" key
+                    set checksum_statefile ""
+                    if {[get_statefile_value "checksum" $readfd checksum_statefile] == 0} {
+                        ui_warn "Statefile has version 2 but didn't contain a checksum"
+                        set portfile_changed yes
+                    } else {
+                        if {$checksum_portfile != $checksum_statefile} {
+                            ui_debug "Checksum recorded in statefile '$checksum_statefile' \
+                                differs from Portfile checksum '$checksum_portfile'"
+                            set portfile_changed yes
+                        }
+                    }
+                }
+                default {
+                    ui_warn "Unsupported statefile version '$statefile_version'"
+                    ui_warn "Please run 'port selfupdate' to update to the latest version of MacPorts"
+                }
+            }
+            if {[tbool portfile_changed]} {
+                if {![tbool ports_dryrun]} {
+                    ui_notice "Portfile changed since last build; discarding previous state."
+                    chownAsRoot $subbuildpath
+                    delete $workpath
+                    file mkdir $workpath
+                    set fresh_build yes
+                } else {
+                    ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+                }
+            }
+            close $readfd
         }
     } elseif {[tbool ports_dryrun]} {
         set statefile /dev/null
@@ -1607,7 +1769,26 @@ proc open_statefile {args} {
             }
         }
     }
+    if {[tbool fresh_build]} {
+        write_statefile "version" 2 $fd
+        write_statefile "checksum" $checksum_portfile $fd
+    }
     return $fd
+}
+
+# get_statefile_value
+# Check for a given $class in the statefile $fd and write the first match to
+# $result, if any. Returns 1 if a line matched, 0 otherwise
+proc get_statefile_value {class fd result} {
+    upvar $result upresult
+    seek $fd 0
+    while {[gets $fd line] >= 0} {
+        if {[regexp "$class: (.*)" $line match value]} {
+            set upresult $value
+            return 1
+        }
+    }
+    return 0
 }
 
 # check_statefile
@@ -1646,17 +1827,22 @@ proc check_statefile_variants {variations oldvariations fd} {
 
     array set upoldvariations {}
 
-    seek $fd 0 end
-    if {[tell $fd] == 0} {
-        # Statefile is empty, skipping further tests
-        return 0
-    }
-
+    set variants_found no
+    set targets_found no
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
             set upoldvariations([string range $name 1 end]) [string range $name 0 0]
+            set variants_found yes
         }
+        if {[regexp "target: .*" $line]} {
+            set targets_found yes
+        }
+    }
+
+    if {![tbool variants_found] && ![tbool targets_found]} {
+        # Statefile is "empty", skipping further tests
+        return 0
     }
 
     set mismatch 0
@@ -1767,7 +1953,7 @@ proc eval_variants {variations} {
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
             [lsearch $PortInfo(variants) $key] == -1} {
-            ui_debug "Requested variant $key is not provided by port $portname."
+            ui_debug "Requested variant $upvariations($key)$key is not provided by port $portname."
             array unset upvariations $key
         }
     }
@@ -2018,20 +2204,18 @@ proc handle_default_variants {option action {value ""}} {
             array set vinfo $PortInfo(vinfo)
 
             foreach v $value {
-                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant] && ![info exists variations($variant)]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
                         set vinfo($variant) {}
                     }
+                    array unset info
                     array set info $vinfo($variant)
+                    # Set is_default and update vinfo.
+                    set info(is_default) $val
+                    array set vinfo [list $variant [array get info]]
 
-                    if {![info exists variations($variant)]} {
-                        # Set is_default and update vinfo.
-                        array set info [list is_default val]
-                        array set vinfo [list $variant [array get info]]
-
-                        set variations($variant) $val
-                    }
+                    set variations($variant) $val
                 }
             }
             # Update PortInfo(vinfo).
@@ -2075,14 +2259,15 @@ proc adduser {name args} {
         return
     } elseif {[geteuid] != 0} {
         seteuid 0; setegid 0
+        set escalated 1
     }
 
     set passwd {*}
     set uid [nextuid]
     set gid [existsgroup nogroup]
     set realname ${name}
-    set home /dev/null
-    set shell /dev/null
+    set home /var/empty
+    set shell /usr/bin/false
 
     foreach arg $args {
         if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
@@ -2096,16 +2281,30 @@ proc adduser {name args} {
 
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
-        exec $dscl . -create /Users/${name} Password ${passwd}
         exec $dscl . -create /Users/${name} UniqueID ${uid}
-        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
+
+        # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+        # causes the user to be visible in the Users & Groups Preference Pane,
+        # and the others are just noise, so delete them.
+        # https://trac.macports.org/ticket/30168
+        exec $dscl . -delete /Users/${name} AuthenticationAuthority
+        exec $dscl . -delete /Users/${name} PasswordPolicyOptions
+        exec $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
+        exec $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
+
         exec $dscl . -create /Users/${name} RealName ${realname}
+        exec $dscl . -create /Users/${name} Password ${passwd}
+        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
         exec $dscl . -create /Users/${name} NFSHomeDirectory ${home}
         exec $dscl . -create /Users/${name} UserShell ${shell}
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "adduser is not implemented on ${os.platform}."
         ui_warn "The requested user '$name' was not created."
+    }
+
+    if {[info exists escalated]} {
+        dropPrivileges
     }
 }
 
@@ -2118,6 +2317,7 @@ proc addgroup {name args} {
         return
     } elseif {[geteuid] != 0} {
         seteuid 0; setegid 0
+        set escalated 1
     }
 
     set gid [nextgid]
@@ -2147,6 +2347,10 @@ proc addgroup {name args} {
         # XXX addgroup is only available for darwin, add more support here
         ui_warn "addgroup is not implemented on ${os.platform}."
         ui_warn "The requested group was not created."
+    }
+
+    if {[info exists escalated]} {
+        dropPrivileges
     }
 }
 
@@ -2191,10 +2395,16 @@ proc PortGroup {group version} {
     }
 }
 
-# return path where the image/archive for this port will be stored
+# return filename of the archive for this port
+proc get_portimage_name {} {
+    global portdbpath subport version revision portvariants os.platform os.major portarchivetype
+    return "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+}
+
+# return path where a newly created image/archive for this port will be stored
 proc get_portimage_path {} {
-    global registry.path subport version revision portvariants os.platform os.major portarchivetype
-    return [file join ${registry.path} software ${subport} "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"]
+    global portdbpath subport
+    return [file join ${portdbpath} software ${subport} [get_portimage_name]]
 }
 
 # return list of archive types that we can extract
@@ -2209,6 +2419,28 @@ proc supportedArchiveTypes {} {
         }
     }
     return $supported_archive_types
+}
+
+# return path to a downloaded or installed archive for this port
+proc find_portarchive_path {} {
+    global portdbpath subport version revision portvariants
+    set installed 0
+    if {[registry_exists $subport $version $revision $portvariants]} {
+        set installed 1
+    }
+    set archiverootname [file rootname [get_portimage_name]]
+    foreach unarchive.type [supportedArchiveTypes] {
+        set fullarchivename "${archiverootname}.${unarchive.type}"
+        if {$installed} {
+            set fullarchivepath [file join $portdbpath software $subport $fullarchivename]
+        } else {
+            set fullarchivepath [file join $portdbpath incoming/verified $fullarchivename]
+        }
+        if {[file isfile $fullarchivepath]} {
+            return $fullarchivepath
+        }
+    }
+    return ""
 }
 
 # check if archive type is supported by current system
@@ -2506,6 +2738,15 @@ proc dropPrivileges {} {
     }
 }
 
+proc validate_macportsuser {} {
+    global macportsuser
+    if {[getuid] == 0 && $macportsuser != "root" && 
+        ([existsuser $macportsuser] == 0 || [existsgroup $macportsuser] == 0 )} {
+        ui_warn "configured user/group $macportsuser does not exist, will build as root"
+        set macportsuser "root"
+    }
+}
+
 # dependency analysis helpers
 
 ### _libtest is private; subject to change without notice
@@ -2633,6 +2874,18 @@ proc get_canonical_archs {} {
     }
 }
 
+# returns the flags that should be passed to the compiler to choose arch(s)
+proc get_canonical_archflags {{tool cc}} {
+    if {![variant_exists universal] || ![variant_isset universal]} {
+        return [option configure.${tool}_archflags]
+    } else {
+        if {$tool == "cc" || $tool == "objc"} {
+            set tool c
+        }
+        return [option configure.universal_${tool}flags]
+    }
+}
+
 # check that the selected archs are supported
 proc check_supported_archs {} {
     global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs subport
@@ -2668,45 +2921,103 @@ proc _check_xcode_version {} {
                 set ok 3.1
                 set rec 3.1.4
             }
-            default {
+            10.6 {
                 set min 3.2
                 set ok 3.2
-                set rec 3.2.4
+                set rec 3.2.6
+            }
+            default {
+                set min 4.1
+                set ok 4.1
+                set rec 4.1
             }
         }
         if {$xcodeversion == "none"} {
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
-        } elseif {[rpm-vercomp $xcodeversion $min] < 0} {
+            if {[file exists "/Applications/Install Xcode.app"]} {
+                ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
+            }
+        } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
             return 1
-        } elseif {[rpm-vercomp $xcodeversion $ok] < 0} {
+        } elseif {[vercmp $xcodeversion $ok] < 0} {
             ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
         }
+
+        # Xcode 4.3 requires the command-line utilities package to be
+        # installed. 
+        if {[vercmp $xcodeversion 4.3] >= 0 ||
+            ($xcodeversion == "none" && [file exists "/Applications/Xcode.app"])} {
+            if {![file exists "/usr/bin/make"]} {
+                ui_warn "The Command Line Tools for Xcode don't appear to be installed; most ports will likely fail to build."
+                ui_warn "See http://guide.macports.org/chunked/installing.xcode.html for more information."
+            }
+        }
+        
     }
     return 0
 }
 
 # check if we can unarchive this port
 proc _archive_available {} {
-    global subport version revision portvariants ports_source_only workpath \
-           registry.path os.platform os.major
+    global ports_source_only porturl portutil::archive_available_result
+
+    if {[info exists archive_available_result]} {
+        return $archive_available_result
+    }
 
     if {[tbool ports_source_only]} {
+        set archive_available_result 0
         return 0
     }
 
-    set found 0
-    foreach unarchive.type [supportedArchiveTypes] {
-        set fullarchivepath [file join ${registry.path} software ${subport} "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${unarchive.type}"]
-        if {[file isfile $fullarchivepath]} {
-            set found 1
-            break
-        }
+    if {[find_portarchive_path] != ""} {
+        set archive_available_result 1
+        return 1
     }
-    
-    # TODO: also check if porturl points to an archive
-    # maybe check if there's an archive available on the server too - this
-    # is kind of useless otherwise now that archive == installed image
 
-    return $found
+    set archiverootname [file rootname [get_portimage_name]]
+    if {[file rootname [file tail $porturl]] == $archiverootname && [file extension $porturl] != ""} {
+        set archive_available_result 1
+        return 1
+    }
+
+    # check if there's an archive available on the server
+    global archive_sites
+    set mirrors macports_archives
+    if {[lsearch $archive_sites macports_archives::*] == -1} {
+        set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
+    }
+    if {$mirrors == {}} {
+        set archive_available_result 0
+        return 0
+    }
+    set archivetype $portfetch::mirror_sites::archive_type($mirrors)
+    set archivename "${archiverootname}.${archivetype}"
+    # grab first site, should conventionally be the master mirror
+    set sites_entry [lindex $portfetch::mirror_sites::sites($mirrors) 0]
+    # look for and strip off any tag, which will start with the first colon after the
+    # first slash after the ://
+    set lastcolon [string last : $sites_entry]
+    set aftersep [expr [string first : $sites_entry] + 3]
+    set firstslash [string first / $sites_entry $aftersep]
+    if {$firstslash != -1 && $firstslash < $lastcolon} {
+        incr lastcolon -1
+        set site [string range $sites_entry 0 $lastcolon]
+    } else {
+        set site $sites_entry
+    }
+    if {[string index $site end] != "/"} {
+        append site "/[option archive.subdir]"
+    } else {
+        append site [option archive.subdir]
+    }
+    set url [portfetch::assemble_url $site $archivename]
+    if {![catch {curl getsize $url} result]} {
+        set archive_available_result 1
+        return 1
+    }
+
+    set archive_available_result 0
+    return 0
 }

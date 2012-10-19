@@ -32,11 +32,11 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-3]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-2]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.4*|10.5*|10.6*)
+  10.4*|10.5*|10.6*|10.7*)
     dnl Supported version
     ;;
   *)
@@ -44,20 +44,33 @@ case "$MACOSX_VERSION" in
 esac
 
 # locate currently selected Xcode path
+AC_MSG_CHECKING(Xcode location)
 if test "x$XCODE_SELECT" != "x"; then
-  AC_MSG_CHECKING(Xcode location)
   DEVELOPER_DIR=`$XCODE_SELECT -print-path`
-  AC_MSG_RESULT([$DEVELOPER_DIR])
-else
-  DEVELOPER_DIR=/Developer
 fi
+if test -z "$DEVELOPER_DIR" -o ! -d "$DEVELOPER_DIR" ; then
+    if test -d /Applications/Xcode.app/Contents/Developer ; then
+        DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+    else
+        DEVELOPER_DIR=/Developer
+    fi
+fi
+AC_MSG_RESULT([$DEVELOPER_DIR])
 AC_SUBST(DEVELOPER_DIR)
 
-XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
+case "$DEVELOPER_DIR" in
+  *Xcode.app/Contents/Developer)
+    XCODEPLIST_BASE=`dirname $DEVELOPER_DIR`/version
+    ;;
+  *)
+    XCODEPLIST_BASE=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version
+    ;;
+esac
+XCODEPLIST=${XCODEPLIST_BASE}.plist
 if test -r "$XCODEPLIST"; then
   AC_MSG_CHECKING(Xcode version)
   if test "x$DEFAULTS" != "x"; then
-    XCODE_VERSION=`$DEFAULTS read $DEVELOPER_DIR/Applications/Xcode.app/Contents/version CFBundleShortVersionString`
+    XCODE_VERSION=`$DEFAULTS read $XCODEPLIST_BASE CFBundleShortVersionString`
   else
     XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
   fi
@@ -73,7 +86,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*)
+  2.*|3.*|4.*)
     dnl Supported version
     ;;
   *)
@@ -82,63 +95,80 @@ esac
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_OBJC
 AC_PROG_INSTALL
-AC_PROG_MAKE_SET
 AC_PROG_LN_S
-AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
+AC_PROG_MAKE_SET
+AC_PROG_OBJC
+
+AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
+AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROG(BZR, [bzr], [])
 AC_PATH_PROG(CHOWN, [chown], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CP, [cp], [])
 AC_PATH_PROG(CPIO, [cpio], [])
+AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(DIFF, [diff], [])
 AC_PATH_PROG(DSCL, [dscl], [])
+AC_PATH_PROG(DSEDITGROUP, [dseditgroup], [])
 AC_PATH_PROG(FILE, [file], [])
-AC_PATH_PROG(BZR, [bzr], [])
-AC_PATH_PROG(CVS, [cvs], [])
-AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(GIT, [git], [])
-AC_PATH_PROG(HG, [hg], [])
-AC_PATH_PROG(GZIP, [gzip], [])
-AC_PATH_PROG(LIPO, [lipo], [])
-AC_PATH_PROG(PATCH, [patch], [])
-AC_PATH_PROG(RMDIR, [rmdir], [])
-AC_PATH_PROG(RSYNC, [rsync], [])
-AC_PATH_PROG(OPENSSL, [openssl], [])
-AC_PATH_PROG(SED, [sed])
-AC_PATH_PROG(TAR, [tar])
-AC_PATH_PROG(UNZIP, [unzip])
-AC_PATH_PROG(ZIP, [zip])
-AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
-AC_PATH_PROG(MAKE, [make])
-AC_PATH_PROG(HDIUTIL, [hdiutil], [])
-AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
-AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
-AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
-AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [], [$PATH:/usr/local/bin])
-AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
+AC_PATH_PROG(GZIP, [gzip], [])
+AC_PATH_PROG(HDIUTIL, [hdiutil], [])
+AC_PATH_PROG(HG, [hg], [])
+AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
+AC_PATH_PROG(LIPO, [lipo], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
+AC_PATH_PROG(LZMA, [lzma], [])
+AC_PATH_PROG(MAKE, [make])
+AC_PATH_PROG(MDFIND, [mdfind], [])
+AC_PATH_PROG(MDLS, [mdls], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
-AC_PATH_PROG(PAX, [pax], [])
-AC_PATH_PROG(XAR, [xar], [])
+AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(OPEN, [open], [])
+AC_PATH_PROG(OPENSSL, [openssl], [])
+AC_PATH_PROG(PATCH, [patch], [])
+AC_PATH_PROG(PAX, [pax], [])
+AC_PATH_PROG(RMDIR, [rmdir], [])
+AC_PATH_PROG(RSYNC, [rsync], [])
+AC_PATH_PROG(SANDBOX_EXEC, [sandbox-exec], [], [/usr/bin])
+AC_PATH_PROG(SED, [sed])
+AC_PATH_PROG(SVN, [svn], [])
+AC_PATH_PROG(SWIG, [swig], [], [$PATH:/usr/local/bin])
+AC_PATH_PROG(TAR, [tar])
+AC_PATH_PROG(UNZIP, [unzip])
+AC_PATH_PROG(XAR, [xar], [])
+AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
+AC_PATH_PROG(XCRUN, [xcrun], [])
+AC_PATH_PROG(XZ, [xz], [])
+AC_PATH_PROG(ZIP, [zip])
+
+AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
 
 # Define some precious variables allowing user to override PATH for some programs
-AC_ARG_VAR(MTREE, [path to mtree command])
+AC_ARG_VAR(BSDMAKE, [path to bsdmake/pmake command])
+AC_ARG_VAR(BZIP2, [path to bzip2 command])
 AC_ARG_VAR(CVS, [path to cvs command])
-AC_ARG_VAR(SVN, [path to svn command])
+AC_ARG_VAR(GNUMAKE, [path to gnumake command])
+AC_ARG_VAR(GNUTAR, [path to gnutar command])
+AC_ARG_VAR(LZMA, [path to lzma command])
+AC_ARG_VAR(MAKE, [path to make command])
+AC_ARG_VAR(MTREE, [path to mtree command])
+AC_ARG_VAR(OPEN, [path to open command])
 AC_ARG_VAR(OPENSSL, [path to openssl command])
 AC_ARG_VAR(RSYNC, [path to rsync command])
 AC_ARG_VAR(SED, [path to sed command])
+AC_ARG_VAR(SVN, [path to svn command])
+AC_ARG_VAR(SWIG, [path to swig command])
 AC_ARG_VAR(TAR, [path to tar command])
-AC_ARG_VAR(MAKE, [path to make command])
-AC_ARG_VAR(GNUTAR, [path to gnutar command])
-AC_ARG_VAR(BSDMAKE, [path to bsdmake/pmake command])
-AC_ARG_VAR(GNUMAKE, [path to gnumake command])
-AC_ARG_VAR(BZIP2, [path to bzip2 command])
 AC_ARG_VAR(XAR, [path to xar command])
-AC_ARG_VAR(OPEN, [path to open command])
+AC_ARG_VAR(XZ, [path to xz command])
+
+if test "x$MTREE" = "x"; then
+    AC_MSG_ERROR([mtree not found])
+fi
 
 MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
@@ -147,9 +177,11 @@ MP_PATCH_GNU_VERSION
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
-	CFLAGS_QUICHEEATERS='-W -Wall -pedantic'
+	CFLAGS_QUICHEEATERS='-Wextra -Wall'
+	CFLAGS_PEDANTIC='-pedantic'
 fi
 AC_SUBST(CFLAGS_QUICHEEATERS)
+AC_SUBST(CFLAGS_PEDANTIC)
 MP_WERROR
 
 MP_COMPILER_ATTRIBUTE_UNUSED
@@ -169,8 +201,16 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
-if test x$prefix = x/usr/local; then
-    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported])
+AC_ARG_WITH(
+		unsupported-prefix,
+		AS_HELP_STRING([--with-unsupported-prefix],
+		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
+		[with_unsupported_prefix=$withval],
+		[with_unsupported_prefix=no])
+if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_prefix != xyes; then
+    AC_MSG_ERROR([Installing MacPorts into $prefix is not supported. If \
+you understand this and wish to do so anyway, pass --with-unsupported-prefix \
+to configure.])
 fi
 MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR
@@ -213,7 +253,7 @@ AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of r
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline
-				  AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the `readline' library (-lreadline).])
+				  AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the 'readline' library (-lreadline).])
 				  ])
 	AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
 	[
@@ -252,6 +292,11 @@ MP_LIBCURL_FLAGS
 
 ## sqlite3
 MP_SQLITE3_FLAGS
+
+MP_CHECK_SQLITE_VERSION(3003011)
+if test "x${mp_sqlite_version_ge_3003011}" = "xno"; then
+	AC_DEFINE([sqlite3_prepare_v2], [sqlite3_prepare], [define sqlite3_prepare to sqlite_prepare_v2 if the latter is not available])
+fi
 
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
@@ -346,12 +391,14 @@ AC_CONFIG_FILES([
 	Doxyfile
 	Makefile
 	Mk/macports.autoconf.mk
+	doc/base.mtree
 	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf
 	doc/pubkeys.conf
 	portmgr/freebsd/Makefile
 	src/Makefile
+	src/machista1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
 	src/registry2.0/registry_autoconf.tcl

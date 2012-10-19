@@ -44,7 +44,7 @@ static void delete_item(ClientData clientData) {
     sqlite_int64 rowid = ((item_t*)clientData)->rowid;
     sqlite3* db = ((item_t*)clientData)->db;
     sqlite3_stmt* stmt;
-    sqlite3_prepare(db, "DELETE FROM items WHERE rowid=?", -1, &stmt, NULL);
+    sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid=?", -1, &stmt, NULL);
     sqlite3_bind_int(stmt, rowid, 1);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -67,7 +67,7 @@ static int set_item(Tcl_Interp* interp, char* name, sqlite_int64 rowid) {
                 == TCL_OK) {
         sqlite3_stmt* stmt;
         /* record the proc name in case we need to return it in a search */
-        if ((sqlite3_prepare(db, "UPDATE items SET proc=? WHERE rowid=?", -1,
+        if ((sqlite3_prepare_v2(db, "UPDATE items SET proc=? WHERE rowid=?", -1,
                     &stmt, NULL) == SQLITE_OK)
                 && (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC)
                     == SQLITE_OK)
@@ -194,7 +194,7 @@ static int item_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             insert_size -= 7 + strlen(key);
         }
     }
-    r = sqlite3_prepare(db, query, -1, &stmt, NULL);
+    r = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     free(query);
     for (i=2; i<objc; i++) {
         char* val;

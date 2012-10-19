@@ -1,8 +1,10 @@
 /*
  * registry.c
  * $Id$
+ * vim:expandtab:tw=80
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +33,7 @@
 #endif
 
 #include "entry.h"
+#include "file.h"
 #include "sql.h"
 
 #include <stdio.h>
@@ -109,6 +112,12 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
         return 0;
     }
     if (sqlite3_open(NULL, &reg->db) == SQLITE_OK) {
+        /* Enable extended result codes, requires SQLite >= 3.3.8
+         * Check added for compatibility with Tiger. */
+#if SQLITE_VERSION_NUMBER >= 3003008
+        sqlite3_extended_result_codes(reg->db, 1);
+#endif
+
         if (init_db(reg->db, errPtr)) {
             reg->status = reg_none;
             *regPtr = reg;
@@ -187,10 +196,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
             if (!(sb.st_mode & S_IWGRP)) {
                 can_write = 0;
             }
-        } else {
-            if (!(sb.st_mode & S_IWOTH)) {
-                can_write = 0;
-            }
+        } else if (!(sb.st_mode & S_IWOTH) && getuid() != 0) {
+            can_write = 0;
         }
     }
     if (initialized || can_write) {
@@ -198,7 +205,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         char* query = sqlite3_mprintf("ATTACH DATABASE '%q' AS registry", path);
         int r;
         do {
-            r = sqlite3_prepare(reg->db, query, -1, &stmt, NULL);
+            r = sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL);
         } while (r == SQLITE_BUSY);
         if (r == SQLITE_OK) {
             /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
@@ -210,6 +217,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                         if (initialized || (create_tables(reg->db, errPtr))) {
                             Tcl_InitHashTable(&reg->open_entries,
                                     sizeof(sqlite_int64)/sizeof(int));
+                            Tcl_InitHashTable(&reg->open_files,
+                                    TCL_STRING_KEYS);
                             reg->status |= reg_attached;
                             result = 1;
                         }
@@ -220,6 +229,13 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                         reg_sqlite_error(reg->db, errPtr, query);
                 }
             } while (r == SQLITE_BUSY);
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (result) {
+                result &= update_db(reg->db, errPtr);
+            }
         } else {
             reg_sqlite_error(reg->db, errPtr, query);
         }
@@ -251,7 +267,7 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
         reg_throw(errPtr,REG_MISUSE,"no database is attached to this registry");
         return 0;
     }
-    if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         reg_entry* entry;
         Tcl_HashEntry* curr;
@@ -271,6 +287,15 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                         free(entry);
                     }
                     Tcl_DeleteHashTable(&reg->open_entries);
+                    for (curr = Tcl_FirstHashEntry(&reg->open_files, &search);
+                            curr != NULL; curr = Tcl_NextHashEntry(&search)) {
+                        reg_file* file = Tcl_GetHashValue(curr);
+
+                        free(file->proc);
+                        free(file->key.path);
+                        free(file);
+                    }
+                    Tcl_DeleteHashTable(&reg->open_files);
                     reg->status &= ~reg_attached;
                     result = 1;
                     break;
@@ -350,7 +375,7 @@ int reg_start_write(reg_registry* reg, reg_error* errPtr) {
 /**
  * Helper function for `reg_commit` and `reg_rollback`.
  */
-static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
+static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr, int is_rollback) {
     if (!(reg->status & reg_transacting)) {
         reg_throw(errPtr, REG_MISUSE, "couldn't end transaction because no "
                 "transaction is open");
@@ -362,7 +387,7 @@ static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
             if (r == SQLITE_OK) {
                 return 1;
             }
-        } while (r == SQLITE_BUSY);
+        } while (r == SQLITE_BUSY && !is_rollback);
         reg_sqlite_error(reg->db, errPtr, NULL);
         return 0;
     }
@@ -377,7 +402,7 @@ static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
  * @return             true if success; false if failure
  */
 int reg_commit(reg_registry* reg, reg_error* errPtr) {
-    if (reg_end(reg, "COMMIT", errPtr)) {
+    if (reg_end(reg, "COMMIT", errPtr, 0)) {
         reg->status &= ~(reg_transacting | reg_can_write);
         return 1;
     } else {
@@ -394,7 +419,7 @@ int reg_commit(reg_registry* reg, reg_error* errPtr) {
  * @return             true if success; false if failure
  */
 int reg_rollback(reg_registry* reg, reg_error* errPtr) {
-    if (reg_end(reg, "ROLLBACK", errPtr)) {
+    if (reg_end(reg, "ROLLBACK", errPtr, 1)) {
         reg->status &= ~(reg_transacting | reg_can_write);
         return 1;
     } else {
@@ -425,7 +450,7 @@ int reg_vacuum(char *db_path) {
         return 0;
     }
 
-    if (sqlite3_prepare(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
         do {

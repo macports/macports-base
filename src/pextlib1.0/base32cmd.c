@@ -13,7 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+ * 3. Neither the name of The MacPorts Project nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
@@ -42,11 +42,11 @@
 #include "base32cmd.h"
 
 /* This package provides commands for encoding and decoding of hexstrings
-   into and out of the extended hex base32 encoding as specified in RFC 3548.
+   into and out of the standard base32 encoding as specified in RFC 4648.
 
    Based on public domain base32 code from tcllib, by Andreas Kupries */
 
-#define BASE32HEX 1
+#undef BASE32HEX
 
 static __inline__ int hex2dec(int data)
 {

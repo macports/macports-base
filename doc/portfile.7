@@ -1,6 +1,7 @@
 .\" portfile.7
 .\"
-.\" Copyright (c) 2002 Apple Computer, Inc.
+.\" Copyright (c) 2004-2011 The MacPorts Project
+.\" Copyright (c) 2002-2003 Apple Inc.
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -11,7 +12,7 @@
 .\" 2. Redistributions in binary form must reproduce the above copyright
 .\"    notice, this list of conditions and the following disclaimer in the
 .\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of Apple Computer, Inc. nor the names of its
+.\" 3. Neither the name of Apple Inc. nor the names of its
 .\"    contributors may be used to endorse or promote products derived from
 .\"    this software without specific prior written permission.
 .\"
@@ -83,9 +84,14 @@ Upstream version of software.
 If a port's version numbering changes such that a newer version looks
 older than the previous version, the
 .Ic epoch
-should be increased. Often the
+should be increased. Some
+.Nm Portfile
+authors have used large
 .Ic epoch
-is formatted like a date.
+values that look like a date, but there is no reason to do so. The
+.Ic epoch
+is simply an unsigned integer, and the only requirement is that it never be
+decreased.
 .br
 .Sy Type:
 .Em optional
@@ -94,7 +100,7 @@ is formatted like a date.
 .Em 0
 .br
 .Sy Example:
-.Dl epoch 20041231
+.Dl epoch 1
 .It Ic description
 One line description of the software and what it does.  To appear in the
 description, brackets and semi-colons need to be escaped with a backslash (i.e.
@@ -200,6 +206,28 @@ Declares which platforms are supported by the port.
 .br
 .Sy Example:
 .Dl platforms darwin
+.It Ic supported_archs
+The CPU architectures for which this port can be built. Archs currently
+supported by Mac OS X are: i386, ppc, ppc64, x86_64. If this option is not set,
+it is assumed that the port can build for all archs. If a port does not install
+any architecture-specific files, use the special value noarch.
+.br
+If the building architecture isn't among supported_archs, port fails with an
+error message except when building on x86_64 (or ppc64) and supported_archs
+contains i386 (or ppc). In this case, the port will be built in 32-bit mode.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em i386 x86_64 ppc ppc64 noarch
+.br
+.Sy Default:
+.Em i386 x86_64 ppc ppc64
+.br
+.Sy Examples:
+.Dl supported_archs i386 x86_64
+.Dl supported_archs noarch
 .It Ic homepage
 Project homepage for the port.
 .br
@@ -256,7 +284,7 @@ List of checksums for the
 .Ic distfiles .
 The checksum
 .Ar type
-can currently be md5, rmd160 or sha1. The
+can currently be md5, sha1, rmd160 or sha256. The
 .Ar filename
 can be omitted if there is only one distfile.
 .br
@@ -300,10 +328,10 @@ If set to yes (and the user has enabled buildmakejobs in
 .Em optional
 .br
 .Sy Default:
-.Em no
+.Em yes
 .br
 .Sy Example:
-.Dl use_parallel_build yes
+.Dl use_parallel_build no
 .It Ic use_automake
 If set to yes, run the
 .Cm automake
@@ -401,6 +429,43 @@ realname, home, and shell.
 .Dl add_users squid group=squid realname=Squid\e Proxy home=${prefix}/var/squid
 .sp
 .Dl add_users user1 group=mygroup user2 group=mygroup
+.It Ic installs_libs
+By default, it is assumed that ports may install libraries or headers that can
+be incorporated into their dependents. If this is not the case, set
+.Cm installs_libs
+to
+.Em no .
+This means that this port's dependents need not check that it is installed
+for the same architectures as them; that it is permissible to distribute
+binaries of the dependents even if their licenses conflict with the license
+of this port; and that updates to this port can never result in broken dynamic
+linking in its dependents.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl installs_libs no
+.It Ic license_noconflict
+By default, it is assumed that ports may use libraries or headers from their
+dependencies and thus form a derivative work. A dependency with an
+incompatible license thus prevents the port from being distributed in binary
+form. If a dependency with an incompatible license is not used in such a way
+that a derivative work is formed, or should not prevent binary distribution
+for any other reason, add its name to this list.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl license_noconflict openssl
+.Dl license_noconflict readline gdbm
 .El
 .Sh TARGET HOOKS
 A number of hooks are available for customizing many of the standard
@@ -438,7 +503,7 @@ is run in. This is often overridden on a per
 basis.
 .br
 .Sy Example:
-.Dl configure.env CPP=/usr/bin/cpp-4.0
+.Dl build.env CC="${configure.cc} [get_canonical_archflags]"
 .It Va target Ns Ic .pre_args
 Additional arguments passed before the main arguments.
 .br
@@ -574,7 +639,7 @@ bundles (.app directories).
 .Em read-only
 .br
 .Sy Default:
-.Em /Applications/Macports
+.Em /Applications/MacPorts
 .It Ic frameworks_dir
 Absolute path to the final location to install Mac OS X framework
 bundles (.framework directories).
@@ -586,7 +651,7 @@ bundles (.framework directories).
 .Em ${prefix}/Library/Frameworks
 .El
 .Sh DEPENDENCY OPTIONS
-Port dependencies should refer to other MacPort ports
+Port dependencies should refer to other MacPorts ports
 whenever possible, therefore each dependency should be
 expressed in the format:
 .Bl -tag -width ls
@@ -649,7 +714,7 @@ targets.
 .Em optional
 .br
 .Sy Example:
-.Dl depends_extract port:xz-devel
+.Dl depends_extract path:bin/xz:xz
 .It Ic depends_build
 List of dependencies to check before
 .Cm configure ,
@@ -767,7 +832,7 @@ List of patches to fetch and apply.
 .Em optional
 .br
 .Sy Example:
-.Dl patchfiles japanese-widechar-fix.diff japanese-localization.diff
+.Dl patchfiles patch-Makefile.in.diff patch-main.c.diff
 .It Ic use_zip
 Use zip.
 .br
@@ -944,9 +1009,9 @@ Specify the url from which to fetch files.
 .Em none
 .br
 .Sy Example:
-.Dl svn.url http://www.domain.com/svn-repo/mydirectory
-      svn.url svn://www.domain.com/svn-repo/mydirectory
-.It Ic svn.tag
+.Dl svn.url https://www.example.com/svn/project/tags/1.2.3
+      svn.url svn://www.example.com/svn/project/tags/1.2.3
+.It Ic svn.revision
 Specify a tag from which svn should fetch files. This
 corresponds to the -r option to the svn cli.  Note that you
 will need to use backslashes to escape characters that have
@@ -960,8 +1025,8 @@ quotes.
 .Em none
 .br
 .Sy Example:
-.Dl svn.tag 37192
-      svn.tag \\{\\"2006-02-17 15:30 +0230\\"\\}
+.Dl svn.revision 37192
+      svn.revision \\{\\"2006-02-17 15:30 +0230\\"\\}
 .El
 .Ss FETCHING FROM GIT
 As an alternative to fetching distribution files, pulling the sources
@@ -1172,32 +1237,30 @@ Selects a complete compiler suite to use. This option will override the compiler
 .Em gcc-3.3
 .Em gcc-4.0
 .Em gcc-4.2
-use the standard system compiler suites,
 .Em llvm-gcc-4.2
 .Em clang
-use the newer, non-default compilers installed by Xcode,
-.Em apple-gcc-3.3
+use the standard Xcode compiler suites,
 .Em apple-gcc-4.0
 .Em apple-gcc-4.2
 use Apple's gcc suite installed via MacPorts,
-.Em macports-gcc-3.3
-.Em macports-gcc-3.4
-.Em macports-gcc-4.0
-.Em macports-gcc-4.1
 .Em macports-gcc-4.2
 .Em macports-gcc-4.3
 .Em macports-gcc-4.4
 .Em macports-gcc-4.5
-use the vanilla gcc installed via MacPorts.
+.Em macports-gcc-4.6
+.Em macports-gcc-4.7
+.Em macports-gcc-4.8
+.Em macports-llvm-gcc-4.2
+use the vanilla compiler suites installed via MacPorts.
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Values:
-.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-3.3 apple-gcc-4.0 apple-gcc-4.2 macports-gcc-3.3 macports-gcc-3.4 macports-gcc-4.0 macports-gcc-4.1 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5
+.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-4.0 apple-gcc-4.2 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5 macports-gcc-4.6 macports-gcc-4.7 macports-gcc-4.8 macports-llvm-gcc-4.2
 .br
 .Sy Example:
-.Dl configure.compiler gcc-4.0
+.Dl configure.compiler llvm-gcc-4.2
 .\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
@@ -1611,8 +1674,8 @@ of check should be performed on distfiles:
 .It Ic livecheck.type
 What kind of check to perform to figure out if the software has been updated.
 Can be
-.Em freshmeat
-(uses the date_updated tag of the freshmeat XML file),
+.Em freecode
+(uses the date_updated tag of the freecode XML file),
 .Em sourceforge
 (uses the version of the latest file release of the project),
 .Em googlecode
@@ -1636,19 +1699,19 @@ Can be
 or
 .Em googlecode
 if the master_sites is one of these, else
-.Em freshmeat
+.Em freecode
 .br
 .Sy Values:
-.Em freshmeat sourceforge googlecode moddate regex regexm md5 none
+.Em freecode sourceforge googlecode moddate regex regexm md5 none
 .It Ic livecheck.name
-Name of the project for live checks (used for freshmeat, sourceforge, and googlecode checks).
+Name of the project for live checks (used for freecode, sourceforge, and googlecode checks).
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${name}
-or the sourceforge/freshmeat/googlecode project name if it can be guessed by looking at the master_sites.
+or the sourceforge/freecode/googlecode project name if it can be guessed by looking at the master_sites.
 .It Ic livecheck.distname
 Name of the file release (used for sourceforge and googlecode checks).
 For sourceforge releases use the name of the package release.
@@ -1680,7 +1743,7 @@ URL to query for the check.
 .Sy Default:
 .Em ${homepage}
 or
-.Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
+.Em http://freecode.com/projects/${livecheck.name}/releases.atom
 or
 .Em http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}
 or
@@ -1726,7 +1789,7 @@ Add a "gnome" variant to a port.
 .Bd -literal -offset indent -compact
 variant gnome requires glib { configure.args-append --with-gnome \e\
 
-    depends_lib-append lib:gnome-session:gnome-session }
+    depends_lib-append port:gnome-session }
 .Ed
 .It Ic default_variants
 If variants are defined, then the
@@ -1775,7 +1838,7 @@ versions of the same platform.
 .Xc
 The body is executed if the given platform/version/arch combination matches
 os.platform or os.subplatform and/or os.major and/or os.arch.
-The following examples are from the databases/db4 and devel/libidl1
+The following examples are from the lang/php5, audio/flac and sysutils/getopt
 .Nm Portfiles
 respectively.
 .br
@@ -1784,19 +1847,17 @@ respectively.
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-platform darwin 6 { configure.args-append   --enable-tcl \e\
-
-        --with-tcl=/System/Library/Tcl/8.3 }
+platform darwin 10 { configure.env-append LIBS=-lresolv }
 .Ed
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-platform darwin powerpc { configure.args-append \e\
-
-        --host=${os.arch}-apple-rhapsody${os.version} }
-platform darwin i386 { configure.args-append \e\
-
-        --host=i386-gnu-rhapsody${os.version} }
+platform darwin i386 { configure.args-append --disable-asm-optimizations }
+.Ed
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+platform darwin 8 powerpc { configure.universal_ldflags-append -liconv }
 .Ed
 .El
 .Sh PORTGROUP
@@ -2032,7 +2093,11 @@ Built-in command mimicking the BSD touch command.
 .It Ic ln
 .br
 Built-in command mimicking the BSD ln command.
-.It Ic system Ar commandline
+.It Xo
+.Ic system
+.Op Fl W Ar dir
+.Ar commandline
+.Xc
 Execute a program. See
 .Xr system 3 .
 For calls to
@@ -2046,6 +2111,12 @@ For calls to
 or similar, please use the built-in commands or
 .Nm file
 if they don't meet your requirements.
+.Bl -tag -width indent
+.It Fl W
+Change to
+.Ar dir
+before working.
+.El
 .It Ic variant_isset Ar variant
 Checks if the given
 .Ar variant
@@ -2098,10 +2169,10 @@ See
 .Xr mkdtemp 3 .
 .It Ic md5 Ar
 Compute the MD5 hashes of the file(s).
-.It Ic rpm-vercomp Ar versionA Ar versionB
-Compare two RPM-format versions for equality.  The return value is like
+.It Ic vercmp Ar versionA Ar versionB
+Compare two EVR-format versions for equality.  The return value is like
 strcmp(), returning -1, 0, or 1 when versionA is earlier, equal to, or
-later than versionB, respectively.  Note that some comparisions featuring
+later than versionB, respectively.  Note that some comparisons featuring
 floating-point notation may compare incorrectly, e.g. 2.101 is considered
 later than 2.2 (101 is larger than 2) which may be incorrect per some
 projects versioning methods (see ticket #11873).

@@ -2,8 +2,9 @@
 # portdestroot.tcl
 # $Id$
 #
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2004-2005, 2007-2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -51,7 +52,7 @@ options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
 options startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
-options startupitem.uniquename startupitem.plist startupitem.location
+options startupitem.uniquename startupitem.plist startupitem.location startupitem.install
 commands destroot
 
 # Set defaults
@@ -82,11 +83,13 @@ default startupitem.pidfile     ""
 default startupitem.logfile     ""
 default startupitem.logevents   no
 default startupitem.netchange   no
+default startupitem.install     {$system_options(startupitem_install)}
 
 set_ui_prefix
 
 proc portdestroot::destroot_getargs {args} {
-    if {((![exists build.type] && [option os.platform] != "freebsd") || ([exists build.type] && [option build.type] == "gnu")) \
+    if {(([option build.type] == "default" && [option os.platform] != "freebsd") || \
+         ([option build.type] == "gnu")) \
         && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option destroot.cmd]]} {
         # Print "Entering directory" lines for better log debugging
         return "-w [option destroot.target]"

@@ -1,6 +1,7 @@
 .\" port.1
 .\"
-.\" Copyright (c) 2002 Apple Computer, Inc.
+.\" Copyright (c) 2004-2011 The MacPorts Project
+.\" Copyright (c) 2002-2003 Apple Inc.
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -11,7 +12,7 @@
 .\" 2. Redistributions in binary form must reproduce the above copyright
 .\"    notice, this list of conditions and the following disclaimer in the
 .\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of Apple Computer, Inc. nor the names of its
+.\" 3. Neither the name of Apple Inc. nor the names of its
 .\"    contributors may be used to endorse or promote products derived from
 .\"    this software without specific prior written permission.
 .\"
@@ -102,6 +103,10 @@ set of installed and active ports.
 .It
 .Ar inactive :
 set of installed but inactive ports.
+.Pp
+.It
+.Ar actinact :
+set of installed ports that have both an active version and one or more inactive versions.
 .Pp
 .It
 .Ar installed :
@@ -247,7 +252,7 @@ uninstall non-active ports when upgrading and uninstalling
 .It Fl f
 force mode (ignore state file)
 .It Fl o
-honor state files older than Portfile
+honor state files even if the Portfile has been modified since (called -o because it used to mean "older")
 .It Fl s
 source-only mode (build and install from source, do not attempt to fetch binary archives)
 .It Fl b
@@ -362,13 +367,13 @@ Deactivate and uninstall
 .Ar portname .
 To uninstall all installed but inactive ports, use
 .Fl u .
-To recursively uninstall all dependents of
+To recursively uninstall all ports that depend on
 .Ar portname
 before uninstalling the port itself, use
 .Fl -follow-dependents .
 To uninstall
 .Ar portname
-and then recursively uninstall all its dependencies, use
+and then recursively uninstall all ports it depended on, use
 .Fl -follow-dependencies .
 This will not uninstall dependencies that are marked as requested or that have other dependents.
 .Pp
@@ -377,6 +382,31 @@ For example:
 .Dl "port uninstall vim"
 .Dl "port -u uninstall"
 .Dl "port uninstall --follow-dependents python24"
+.Ss select
+For a given
+.Ar group ,
+selects a
+.Ar version
+to be the default by creating appropriate symbolic links.
+For instance,
+.Ic "python"
+might be linked to
+.Ic "python2.6" .
+Available select groups are installed as subdirectories of
+.Ar ${prefix}/etc/select/ .
+To list the available versions in a group, use
+.Fl -list .
+To see which version is currently selected for a group, use
+.Fl -show .
+To change the selected version for a group, use
+.Fl -set .
+.Pp
+For example:
+.Pp
+.Dl "port select --list python"
+.Dl "port select --show gcc"
+.Dl "port select --set gcc mp-gcc44"
+.Pp
 .Ss activate
 Activate the installed
 .Ar portname .
@@ -462,6 +492,27 @@ finally the global variants specified in variants.conf, if any.  Note that
 upgrade will not normally rebuild a port only to change the selected 
 variants; you can either specify --enforce-variants, or deactivate the port and reinstall it 
 with different variants. 
+.Pp
+After the upgrade MacPorts will automatically run \fBrev-upgrade\fP to check for
+broken ports that need to be rebuilt. If there are known problems with
+\fBrev-upgrade\fP or other reasons why you would want to avoid running this
+step, you can disable it by running \fBport upgrade\fP with the
+\fB--no-rev-upgrade\fP switch:
+.Pp
+.Dl "port upgrade --no-rev-upgrade outdated"
+.Ss rev-upgrade
+Manually check for broken binaries and rebuild ports containing broken binaries.
+\fBrev-upgrade\fP is usually automatically run after each upgrade, unless you
+specify the \fB--no-rev-upgrade\fP option.
+.Pp
+\fBrev-upgrade\fP can run more checks against a special loadcommand in Mach-O
+binaries that should always be referencing the file itself. This check is most
+helpful for maintainers to check whether their ports have been built correctly.
+It is disabled by default and can be enabled by passing \fB--id-loadcmd-check\fP
+to \fBrev-upgrade\fP.
+.Pp
+See also:
+.Xr macports.conf 5
 .Ss clean
 Clean the files used for building
 .Ar portname .
@@ -492,6 +543,10 @@ For example:
 .Pp
 .Dl "port log --phase configure vim"
 .Dl "port log --phase fetch --verbosity debug vim"
+.Pp
+.Ss logfile
+Displays the path to the log file for
+.Ar portname .
 .Pp
 .Ss echo
 Writes to stdout the arguments passed to
@@ -581,18 +636,13 @@ on stdout.
 .Ss edit
 Opens
 .Ar Portfile 
-with your default editor specified in your shell's environment variable. Alias
-.Ar ed
-also invokes this command.
+with your default editor specified in your shell's environment variable.
 .Pp
 You can also use the
 .Fl -editor
 flag on the command line to specify an alternative editor. For example:
 .Dl port edit --editor nano apache2
 .Pp
-.Ss ed
-An alias for
-.Ic edit .
 .Ss fetch
 Fetches the distribution files required to build
 .Ar portname .

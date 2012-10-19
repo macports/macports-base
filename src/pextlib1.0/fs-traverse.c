@@ -5,7 +5,7 @@
  * Find files and execute arbitrary expressions on them.
  * Author: Jordan K. Hubbard, Kevin Ballard, Rainer Mueller
  *
- * Copyright (c) 2004 Apple Computer, Inc.
+ * Copyright (c) 2004 Apple Inc.
  * Copyright (c) 2010 The MacPorts Project
  * All rights reserved.
  *
@@ -17,7 +17,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+ * 3. Neither the name of Apple Inc. nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
@@ -146,6 +146,8 @@ extract_tail(const char *target, const char *path)
             xpath = ".";
         } else if (*(xpath + tlen) == '/') {
             xpath += tlen + 1;
+        } else if (*(target + tlen - 1) == '/') {
+            xpath += tlen;
         }
     }
 
@@ -247,7 +249,13 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
         }
     }
     /* check errno before calling fts_close in case it sets errno to 0 on success */
-    if (errno != 0 || (fts_close(root_fts) != 0 && !(flags & F_IGNORE_ERRORS))) {
+    if (errno != 0) {
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, root_fts->fts_path, ": ", (char *)Tcl_PosixError(interp), NULL);
+        fts_close(root_fts);
+        return TCL_ERROR;
+    } else if (fts_close(root_fts) != 0 && !(flags & F_IGNORE_ERRORS)) {
         Tcl_SetErrno(errno);
         Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
         return TCL_ERROR;

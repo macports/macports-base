@@ -1,7 +1,8 @@
 # port_autoconf.tcl.in
 # $Id$
 #
-# Copyright (c) 2002 - 2004 Apple Computer, Inc.
+# Copyright (c) 2005 - 2011 The MacPorts Project
+# Copyright (c) 2002 - 2004 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -12,7 +13,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 # 
@@ -32,6 +33,8 @@ package provide port 1.0
 
 namespace eval portutil::autoconf {
 	variable bzip2_path "@BZIP2@"
+	variable lzma_path "@LZMA@"
+	variable xz_path "@XZ@"
 	variable cp_path "@CP@"
 	variable cpio_path "@CPIO@"
 	variable diff_path "@DIFF@"
@@ -59,12 +62,17 @@ namespace eval portutil::autoconf {
 	variable mtree_path "@MTREE@"
 	variable pax_path "@PAX@"
 	variable xar_path "@XAR@"
+	variable xcode_select_path "@XCODE_SELECT@"
+	variable xcodebuild_path "@XCODEBUILD@"
+	variable xcrun_path "@XCRUN@"
+	variable sandbox_exec_path "@SANDBOX_EXEC@"
 	variable sed_command "@SED@"
 	variable sed_ext_flag "@SED_EXT@"
 	variable tar_command "@TAR_CMD@"
 	variable tar_path "@TAR@"
 	variable tar_q "@TAR_Q@"
 	variable hdiutil_path "@HDIUTIL@"
+	variable swig_path "@SWIG@"
 	variable have_launchd "@HAVE_LAUNCHD@"
 	variable launchctl_path "@LAUNCHCTL@"
 	variable install_command "@INSTALL@"

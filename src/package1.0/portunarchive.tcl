@@ -2,8 +2,9 @@
 # portunarchive.tcl
 # $Id$
 #
+# Copyright (c) 2005, 2007-2012 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 # 
@@ -61,7 +62,7 @@ default unarchive.skip 0
 set_ui_prefix
 
 proc portunarchive::unarchive_init {args} {
-    global target_state_fd unarchive.skip \
+    global target_state_fd unarchive.skip destroot \
            ports_force ports_source_only ports_binary_only \
            subport version revision portvariants \
            unarchive.type unarchive.file unarchive.path
@@ -73,26 +74,18 @@ proc portunarchive::unarchive_init {args} {
     } elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
         ui_debug "Skipping unarchive ($subport) since source-only is set"
         set skipped 1
-    } elseif {[check_statefile target org.macports.destroot $target_state_fd]} {
+    } elseif {[check_statefile target org.macports.destroot $target_state_fd]
+              && [file isdirectory $destroot]} {
         ui_debug "Skipping unarchive ($subport) since destroot completed"
         set skipped 1
     } elseif {[info exists ports_force] && $ports_force == "yes"} {
         ui_debug "Skipping unarchive ($subport) since force is set"
         set skipped 1
     } else {
-        set found 0
-        set rootname [file rootname [get_portimage_path]]
-        foreach unarchive.type [supportedArchiveTypes] {
-            set unarchive.path "${rootname}.${unarchive.type}"
-            set unarchive.file [file tail ${unarchive.path}]
-            if {[file isfile ${unarchive.path}]} {
-                set found 1
-                break
-            } else {
-                ui_debug "No [string toupper ${unarchive.type}] archive: ${unarchive.path}"
-            }
-        }
-        if {$found == 1} {
+        set unarchive.path [find_portarchive_path]
+        set unarchive.file [file tail ${unarchive.path}]
+        set unarchive.type [string range [file extension ${unarchive.file}] 1 end]
+        if {${unarchive.path} != ""} {
             ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
         } else {
             if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {

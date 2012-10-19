@@ -2,8 +2,9 @@
 # portinstall.tcl
 # $Id$
 #
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2005, 2007 - 2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 # 
@@ -54,7 +55,7 @@ set_ui_prefix
 
 proc portinstall::install_start {args} {
     global UI_PREFIX subport version revision portvariants
-    global prefix registry_open registry.format registry.path
+    global prefix registry_open registry.path
     ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $subport $version $revision $portvariants]"
     
     # start gsoc08-privileges
@@ -66,7 +67,7 @@ proc portinstall::install_start {args} {
     }
     # end gsoc08-privileges
     
-    if {${registry.format} == "receipt_sqlite" && ![info exists registry_open]} {
+    if {![info exists registry_open]} {
         registry::open [file join ${registry.path} registry registry.db]
         set registry_open yes
     }
@@ -297,12 +298,12 @@ proc portinstall::create_archive {location archive.type} {
                  set depname [lindex [split $depspec :] end]
                  set dep [mport_lookup $depname]
                  if {[llength $dep] < 2} {
-                     ui_error "Dependency $dep not found"
+                     ui_debug "Dependency $depname not found"
                  } else {
                      array set portinfo [lindex $dep 1]
                      set depver $portinfo(version)
                      set deprev $portinfo(revision)
-                     puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
+                     puts $fd "@pkgdep $portinfo(name)-${depver}_${deprev}"
                  }
              }
          }
@@ -422,19 +423,19 @@ proc portinstall::extract_contents {location type} {
     switch -- $type {
         tbz -
         tbz2 {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location ./+CONTENTS]
         }
         tgz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location ./+CONTENTS]
         }
         tar {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location ./+CONTENTS]
         }
         txz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] ./+CONTENTS]
         }
         tlz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
         }
         xar {
             system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location +CONTENTS"
@@ -483,132 +484,77 @@ proc portinstall::install_main {args} {
     homepage depends_run package-install workdir workpath \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
-    registry.format os.platform os.major portarchivetype installPlist
+    os.platform os.major portarchivetype installPlist
 
     set oldpwd [pwd]
     if {$oldpwd == ""} {
         set oldpwd $portpath
     }
 
-    # throws an error if an unsupported value has been configured
-    archiveTypeIsSupported $portarchivetype
-
     set location [get_portimage_path]
-    if {![file isfile $location]} {
+    set archive_path [find_portarchive_path]
+    if {$archive_path != ""} {
+        set install_dir [file dirname $location]
+        file mkdir $install_dir
+        file rename -force $archive_path $install_dir
+        set location [file join $install_dir [file tail $archive_path]]
+        set current_archive_type [string range [file extension $location] 1 end]
+        set installPlist [extract_contents $location $current_archive_type]
+    } else {
+        # throws an error if an unsupported value has been configured
+        archiveTypeIsSupported $portarchivetype
         # create archive from the destroot
         create_archive $location $portarchivetype
     }
 
-    if {![info exists installPlist]} {
-        set installPlist [extract_contents $location $portarchivetype]
-    }
-
-    if {[string equal ${registry.format} "receipt_sqlite"]} {
-        # registry2.0
-
-        # can't do this inside the write transaction due to deadlock issues with _get_dep_port
-        set dep_portnames [list]
-        foreach deplist {depends_lib depends_run} {
-            if {[info exists $deplist]} {
-                foreach dep [set $deplist] {
-                    set dep_portname [_get_dep_port $dep]
-                    if {$dep_portname != ""} {
-                        lappend dep_portnames $dep_portname
-                    }
+    # can't do this inside the write transaction due to deadlock issues with _get_dep_port
+    set dep_portnames [list]
+    foreach deplist {depends_lib depends_run} {
+        if {[info exists $deplist]} {
+            foreach dep [set $deplist] {
+                set dep_portname [_get_dep_port $dep]
+                if {$dep_portname != ""} {
+                    lappend dep_portnames $dep_portname
                 }
             }
         }
+    }
 
-        registry::write {
+    registry::write {
 
-            set regref [registry::entry create $subport $version $revision $portvariants $epoch]
-
-            if {[info exists user_options(ports_requested)]} {
-                $regref requested $user_options(ports_requested)
-            } else {
-                $regref requested 0
-            }
-            $regref os_platform ${os.platform}
-            $regref os_major ${os.major}
-            $regref archs [get_canonical_archs]
-            # Trick to have a portable GMT-POSIX epoch-based time.
-            $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-            if {[info exists negated_variants]} {
-                $regref negated_variants $negated_variants
-            }
-
-            foreach dep_portname $dep_portnames {
-                $regref depends $dep_portname
-            }
-
-            $regref installtype image
-            $regref state imaged
-            $regref location $location
-
-            if {[info exists installPlist]} {
-                # register files
-                $regref map $installPlist
-            }
-            
-            # store portfile
-            set fd [open [file join ${portpath} Portfile]]
-            $regref portfile [read $fd]
-            close $fd
-        }
-    } else {
-        # Begin the registry entry
-        set regref [registry_new $subport $version $revision $portvariants $epoch]
-        if {[info exists negated_variants]} {
-            registry_prop_store $regref negated_variants $negated_variants
-        }
-
-        registry_prop_store $regref location $location
+        set regref [registry::entry create $subport $version $revision $portvariants $epoch]
 
         if {[info exists user_options(ports_requested)]} {
-            registry_prop_store $regref requested $user_options(ports_requested)
+            $regref requested $user_options(ports_requested)
         } else {
-            registry_prop_store $regref requested 0
+            $regref requested 0
         }
-        registry_prop_store $regref categories $categories
+        $regref os_platform ${os.platform}
+        $regref os_major ${os.major}
+        $regref archs [get_canonical_archs]
+        # Trick to have a portable GMT-POSIX epoch-based time.
+        $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
+        if {[info exists negated_variants]} {
+            $regref negated_variants $negated_variants
+        }
 
-        registry_prop_store $regref os_platform ${os.platform}
-        registry_prop_store $regref os_major ${os.major}
-        registry_prop_store $regref archs [get_canonical_archs]
+        foreach dep_portname $dep_portnames {
+            $regref depends $dep_portname
+        }
 
-        if {[info exists description]} {
-            registry_prop_store $regref description [string map {\n \\n} ${description}]
-        }
-        if {[info exists long_description]} {
-            registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
-        }
-        if {[info exists license]} {
-            registry_prop_store $regref license ${license}
-        }
-        if {[info exists homepage]} {
-            registry_prop_store $regref homepage ${homepage}
-        }
-        if {[info exists maintainers]} {
-            registry_prop_store $regref maintainers ${maintainers}
-        }
-        if {[info exists depends_run]} {
-            registry_prop_store $regref depends_run $depends_run
-            registry_register_deps $depends_run $subport
-        }
-        if {[info exists depends_lib]} {
-            registry_prop_store $regref depends_lib $depends_lib
-            registry_register_deps $depends_lib $subport
-        }
+        $regref installtype image
+        $regref state imaged
+        $regref location $location
+
         if {[info exists installPlist]} {
-            registry_prop_store $regref contents [_fake_fileinfo_for_index $installPlist]
+            # register files
+            $regref map $installPlist
         }
-        if {[info exists package-install]} {
-            registry_prop_store $regref package-install ${package-install}
-        }
-        if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-            registry_prop_store $regref pkg_uninstall [proc_disasm pkg_uninstall]
-        }
-
-        registry_write $regref
+        
+        # store portfile
+        set fd [open [file join ${portpath} Portfile]]
+        $regref portfile [read $fd]
+        close $fd
     }
 
     _cd $oldpwd

@@ -2,7 +2,8 @@
 # portfetch.tcl
 # $Id$
 #
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2004 - 2012 The MacPorts Project
+# Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -13,7 +14,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -103,7 +104,7 @@ default hg.dir {${workpath}}
 default hg.tag {tip}
 
 # Set distfiles
-default distfiles {[portfetch::suffix $distname]}
+default distfiles {[list [portfetch::suffix $distname]]}
 default dist_subdir {${name}}
 
 # user name & password
@@ -120,9 +121,6 @@ default fallback_mirror_site "macports"
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
-
-# Deprecation
-option_deprecate svn.tag svn.revision
 
 # Option-executed procedures
 option_proc use_bzip2 portfetch::set_extract_type
@@ -167,6 +165,9 @@ proc portfetch::set_extract_type {option action args} {
 proc portfetch::set_fetch_type {option action args} {
     global os.platform os.major
     if {[string equal ${action} "set"]} {
+        if {$args != "standard"} {
+            distfiles
+        }
         switch $args {
             bzr {
                 depends_fetch-append bin:bzr:bzr
@@ -206,16 +207,8 @@ set_ui_prefix
 
 # Given a distname, return the distname with extract.suffix appended
 proc portfetch::suffix {distname} {
-    global extract.suffix fetch.type
-    switch -- "${fetch.type}" {
-        bzr         -
-        cvs         -
-        svn         -
-        git         -
-        hg          { return "" }
-        standard    -
-        default     { return "${distname}${extract.suffix}" }
-    }
+    global extract.suffix
+    return "${distname}${extract.suffix}"
 }
 # XXX import suffix into the global namespace as it is currently used from
 # Portfiles, but should better go somewhere else
@@ -228,7 +221,7 @@ proc portfetch::checkpatchfiles {urls} {
 
     if {[info exists patchfiles]} {
         foreach file $patchfiles {
-            if {![file exists $filespath/$file]} {
+            if {![file exists "${filespath}/${file}"]} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
@@ -251,7 +244,7 @@ proc portfetch::checkdistfiles {urls} {
 
     if {[info exists distfiles]} {
         foreach file $distfiles {
-            if {![file exists $filespath/$file]} {
+            if {![file exists "${filespath}/${file}"]} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
@@ -286,8 +279,38 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
-    if {[catch {command_exec bzr "" "2>&1"} result]} {
-        return -code error [msgcat::mc "Bazaar checkout failed"]
+    global env patchfiles
+
+    # Behind a proxy bzr will fail with the following error if proxies
+    # listed in macports.conf appear in the environment in their
+    # unmodified form:
+    #   bzr: ERROR: Invalid url supplied to transport:
+    #   "proxy.example.com:8080": No host component
+    # Set the "http_proxy" and "HTTPS_PROXY" environmental variables
+    # to valid URLs by prepending "http://" and appending "/".
+    if {   [info exists env(http_proxy)]
+        && [string compare -length 7 {http://} $env(http_proxy)] != 0} {
+        set orig_http_proxy $env(http_proxy)
+        set env(http_proxy) http://${orig_http_proxy}/
+    }
+
+    if {   [info exists env(HTTPS_PROXY)]
+        && [string compare -length 7 {http://} $env(HTTPS_PROXY)] != 0} {
+        set orig_https_proxy $env(HTTPS_PROXY)
+        set env(HTTPS_PROXY) http://${orig_https_proxy}/
+    }
+
+    try {
+        if {[catch {command_exec bzr "" "2>&1"} result]} {
+            return -code error [msgcat::mc "Bazaar checkout failed"]
+        }
+    } finally {
+        if ([info exists orig_http_proxy]) {
+            set env(http_proxy) ${orig_http_proxy}
+        }
+        if ([info exists orig_https_proxy]) {
+            set env(HTTPS_PROXY) ${orig_https_proxy}
+        }
     }
 
     if {[info exists patchfiles]} {
@@ -343,9 +366,34 @@ proc portfetch::cvsfetch {args} {
     return 0
 }
 
+# Given a URL to a Subversion repository, if the URL is http:// or
+# https:// and MacPorts has been configured with a proxy for that URL
+# type, then return command line options that should be passed to the
+# svn command line client to enable use of that proxy.  There are no
+# proxies for Subversion's native protocol, identified by svn:// URLs.
+proc portfetch::svn_proxy_args {url} {
+    global env
+
+    if {   [string compare -length 7 {http://} ${url}] == 0
+        && [info exists env(http_proxy)]} {
+        set proxy_parts [split $env(http_proxy) :]
+        set proxy_host [lindex $proxy_parts 0]
+        set proxy_port [lindex $proxy_parts 1]
+        return "--config-option servers:global:http-proxy-host=${proxy_host} --config-option servers:global:http-proxy-port=${proxy_port}"
+    } elseif {   [string compare -length 8 {https://} ${url}] == 0
+              && [info exists env(HTTPS_PROXY)]} {
+        set proxy_parts [split $env(HTTPS_PROXY) :]
+        set proxy_host [lindex $proxy_parts 0]
+        set proxy_port [lindex $proxy_parts 1]
+        return "--config-option servers:global:http-proxy-host=${proxy_host} --config-option servers:global:http-proxy-port=${proxy_port}"
+    } else {
+        return ""
+    }
+}
+
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url
+    global svn.args svn.method svn.revision svn.url patchfiles
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -354,7 +402,10 @@ proc portfetch::svnfetch {args} {
     if {[string length ${svn.revision}]} {
         append svn.url "@${svn.revision}"
     }
-    set svn.args "${svn.method} ${svn.args} ${svn.url}"
+
+    set proxy_args [svn_proxy_args ${svn.url}]
+
+    set svn.args "${svn.method} ${svn.args} ${proxy_args} ${svn.url}"
 
     if {[catch {command_exec svn "" "2>&1"} result]} {
         return -code error [msgcat::mc "Subversion check out failed"]
@@ -369,7 +420,7 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global worksrcpath
+    global worksrcpath patchfiles
     global git.url git.branch git.sha1 git.cmd
 
     set options "-q"
@@ -401,10 +452,15 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen
-    global hg.url hg.tag hg.cmd
+    global worksrcpath prefix_frozen patchfiles hg.url hg.tag hg.cmd \
+           fetch.ignore_sslcert
 
-    set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
+    set insecureflag ""
+    if {${fetch.ignore_sslcert}} {
+        set insecureflag " --insecure"
+    }
+
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
@@ -476,7 +532,7 @@ proc portfetch::fetchfiles {args} {
                     set fetched 1
                     break
                 } else {
-                    ui_debug "[msgcat::mc "Fetching failed:"]: $result"
+                    ui_debug "[msgcat::mc "Fetching distfile failed"]: $result"
                     file delete -force "${distpath}/${distfile}.TMP"
                 }
             }
@@ -520,21 +576,27 @@ proc portfetch::fetch_init {args} {
 proc portfetch::fetch_start {args} {
     global UI_PREFIX subport distpath
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $subport]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching distfiles for %s"] $subport]"
 
     # create and chown $distpath
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
             elevateToRoot "fetch"
-            set elevated yes
             if {[catch {file mkdir $distpath} result]} {
                 return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
             }
+            chownAsRoot $distpath
+            dropPrivileges
         }
     }
-    chownAsRoot $distpath
-    if {[info exists elevated] && $elevated == yes} {
-        dropPrivileges
+    if {![file owned $distpath]} {
+        if {[catch {chownAsRoot $distpath} result]} {
+            if {[file writable $distpath]} {
+                ui_warn "$UI_PREFIX [format [msgcat::mc "Couldn't change ownership of distribution files path to macports user: %s"] $result]"
+            } else {
+                return -code error [format [msgcat::mc "Distribution files path %s not writable and could not be chowned: %s"] $distpath $result]
+            }
+        }
     }
 }
 

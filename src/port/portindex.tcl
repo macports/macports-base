@@ -146,6 +146,7 @@ proc pindex {portdir} {
                 incr stats(failed)
             } else {
                 set prefix $save_prefix
+                array unset portinfo
                 array set portinfo [mportinfo $interp]
                 mportclose $interp
                 set portinfo(portdir) $portdir
@@ -164,7 +165,7 @@ proc pindex {portdir} {
     }
 }
 
-if {[expr $argc > 4]} {
+if {[expr $argc > 8]} {
     print_usage
     exit 1
 }
@@ -186,6 +187,10 @@ for {set i 0} {$i < $argc} {incr i} {
                 set os_platform [lindex $platlist 0]
                 set os_major [lindex $platlist 1]
                 set os_arch [lindex $platlist 2]
+                if {$os_platform == "macosx"} {
+                    lappend port_options os.subplatform $os_platform os.universal_supported yes
+                    set os_platform darwin
+                }
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg == "-f"} { # Completely rebuild index
                 set full_reindex 1
@@ -259,7 +264,7 @@ set save_prefix ${macports::prefix}
 foreach key {categories depends_fetch depends_extract depends_build \
              depends_lib depends_run description epoch homepage \
              long_description maintainers name platforms revision variants \
-             version portdir portarchive replaced_by license} {
+             version portdir portarchive replaced_by license installs_libs} {
     set keepkeys($key) 1
 }
 mporttraverse pindex $directory

@@ -8,7 +8,7 @@ DISTTAG		= release_${subst .,_,${DISTVER}}
 DISTNAME	= MacPorts-${DISTVER}
 DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
-SVNURL		= http://svn.macports.org/repository/macports
+SVNURL		= https://svn.macports.org/repository/macports
 
 
 include Mk/macports.autoconf.mk
@@ -32,19 +32,76 @@ config.status: configure
 include Mk/macports.subdir.mk
 
 install::
-	[ ! -f $(DESTDIR)${sysconfdir}/macports/mp_version ] || rm -vf $(DESTDIR)${sysconfdir}/macports/mp_version
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  $(DESTDIR)${datadir}/macports/
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  $(DESTDIR)${datadir}/macports/
+	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
+# create run user if it doesn't exist
+	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
+        if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then \
+            if test `id -u` -eq 0; then \
+                echo "Creating group \"${RUNUSR}\"" ; \
+                ${DSEDITGROUP} -q -o create ${RUNUSR} ; \
+            else \
+                echo "Not creating group \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then \
+            if test `id -u` -eq 0; then \
+                echo "Creating user \"${RUNUSR}\"" ; \
+                NEXTUID=501; \
+                while test -n "`${DSCL} -q /Search -search /Users UniqueID $$NEXTUID`"; do \
+                    let "NEXTUID=NEXTUID+1"; \
+                done; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$NEXTUID ; \
+                \
+                ${DSCL} -q . -delete /Users/${RUNUSR} AuthenticationAuthority ; \
+                ${DSCL} -q . -delete /Users/${RUNUSR} PasswordPolicyOptions ; \
+                ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:KerberosKeys ; \
+                ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:ShadowHashData ; \
+                \
+                ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory "${localstatedir}/macports/home" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
+            else \
+                echo "Not creating user \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if test "$$(${DSCL} -q . -read /Users/${RUNUSR} NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ; then \
+            if test `id -u` -eq 0; then \
+                echo "Updating home directory location for user \"${RUNUSR}\"" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory "${localstatedir}/macports/home" ; \
+            else \
+                echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if test `sw_vers -productVersion | /usr/bin/awk -F . '{print $$2}'` -eq 4 -a `id -u` -eq 0; then \
+            GID=`${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
+            if test "`${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
+                echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$GID ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
+            fi ; \
+        fi ; \
+    else \
+        echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+    fi
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) src/upgrade_sources_conf_default.tcl "${prefix}"
 # Convert image directories (and direct mode installs) to image archives
 	$(TCLSH) src/images_to_archives.tcl "${macports_tcl_dir}"
 endif
+ifndef SELFUPDATING
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
-	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
+	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at https://trac.macports.org/ for full documentation."; echo ""
+else
+	@echo ""; echo "Congratulations, you have successfully upgraded the MacPorts system."; echo ""
+endif
 
 group::
 	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
@@ -71,7 +128,7 @@ _pkgdist:
 	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
 	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
 	cd ${DISTDIR}; for tarball in ${PKGNAME}.tar.*; do { \
-		for type in -md5 -sha1 -ripemd160; do { \
+		for type in -md5 -sha1 -ripemd160 -sha256; do { \
 			openssl dgst $$type $$tarball; \
 		}; done >> ${DISTNAME}.chk.txt; \
 	}; done

@@ -89,7 +89,7 @@
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
-/* Define to 1 if you have the `readline' library (-lreadline). */
+/* Define to 1 if you have the 'readline' library (-lreadline). */
 #undef HAVE_LIBREADLINE
 
 /* Define to 1 if you have the <limits.h> header file. */
@@ -269,3 +269,7 @@
 
 /* Attribute to mark unused variables */
 #undef UNUSED
+
+/* define sqlite3_prepare to sqlite_prepare_v2 if the latter is not available
+   */
+#undef sqlite3_prepare_v2

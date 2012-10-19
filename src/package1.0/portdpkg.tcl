@@ -2,8 +2,9 @@
 # portdpkg.tcl
 # $Id$
 #
+# Copyright (c) 2005, 2007, 2009, 2011 The MacPorts Project
 # Copyright (c) 2004 Landon Fuller <landonf@macports.org>
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 # 
@@ -52,7 +53,7 @@ default dpkg.asroot yes
 set_ui_prefix
 
 proc portdpkg::main {args} {
-	global UI_PREFIX destpath os.arch os.platform
+	global UI_PREFIX destpath os.arch os.platform supported_archs configure.build_arch
     
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option subport] [option version]]"
 
@@ -130,8 +131,9 @@ proc portdpkg::main {args} {
 	# sparc and sparc64. The operating system, os, is one of: linux, gnu,          
 	# freebsd and openbsd. Use of gnu in this string is reserved for the           
 	# GNU/Hurd operating system.
-	switch -regex ${os.arch} {
+	switch -regex ${configure.build_arch} {
 		i[3-9]86 { set pkg_arch "i386" }
+		x86_64 { set pkg_arch "x86_64" }
 		default { set pkg_arch ${os.arch} }
 	}
 
@@ -139,6 +141,13 @@ proc portdpkg::main {args} {
 	# the operating system name
 	if {${os.platform} != "linux"} {
 		set pkg_arch "${os.platform}-${pkg_arch}"
+	} elseif {${pkg_arch} == "x86_64"} {
+		set pkg_arch "amd64"
+	}
+	
+	# An architecture-independent package
+	if {$supported_archs == "noarch"} {
+		set pkg_arch "all"
 	}
 
 	puts $controlfd "Package: [option subport]"

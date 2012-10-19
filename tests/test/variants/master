@@ -1,7 +1,6 @@
 Utopia variant -- 2
 Utopia variant -- 2
---->  Computing dependencies for variants
---->  Fetching variants
+--->  Fetching distfiles for variants
 --->  Verifying checksum(s) for variants
 --->  Extracting variants
 --->  Configuring variants

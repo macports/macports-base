@@ -1,11 +1,11 @@
 /*
  * vercomp.c
  * $Id$
- * RPM compatible version comparison
+ * version comparison
  *
  * Author: Landon Fuller <landonf@macports.org>
  *
- * Copyright (c) 2002 - 2003 Apple Computer, Inc.
+ * Copyright (c) 2002 - 2003 Apple Inc.
  * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
  * All rights reserved.
  *
@@ -17,7 +17,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Apple Computer, Inc. nor the names of its
+ * 3. Neither the name of Apple Inc. nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
  * 
@@ -48,10 +48,10 @@
 /*
  * If A is newer than B, return an integer > 0
  * If A and B are equal, return 0
- * If B is newer than A, retun an integer < 0
+ * If B is newer than A, return an integer < 0
  */
 
-static int rpm_vercomp (const char *versionA, const char *versionB) {
+static int vercmp (const char *versionA, const char *versionB) {
 	const char *ptrA, *ptrB;
 	const char *eptrA, *eptrB;
 
@@ -155,7 +155,7 @@ static int rpm_vercomp (const char *versionA, const char *versionB) {
 		return -1;
 }
 
-int RPMVercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int VercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Obj *tcl_result;
 	const char *versionA, *versionB;
@@ -169,7 +169,7 @@ int RPMVercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tc
 	versionA = Tcl_GetString(objv[1]);
 	versionB = Tcl_GetString(objv[2]);
 
-	rval = rpm_vercomp(versionA, versionB);
+	rval = vercmp(versionA, versionB);
 
 	tcl_result = Tcl_NewIntObj(rval);
 	Tcl_SetObjResult(interp, tcl_result);

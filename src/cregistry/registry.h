@@ -1,8 +1,10 @@
 /*
  * registry.h
+ * vim:tw=80:expandtab
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +58,7 @@ void reg_error_destruct(reg_error* errPtr);
 void reg_throw(reg_error* errPtr, char* code, char* fmt, ...);
 
 typedef int (cast_function)(void* userdata, void** dst, void* src,
-        reg_error* errPtr);
+        void* calldata, reg_error* errPtr);
 typedef void (free_function)(void* userdata, void* item);
 
 enum {
@@ -70,6 +72,7 @@ typedef struct {
     sqlite3* db;
     int status;
     Tcl_HashTable open_entries;
+    Tcl_HashTable open_files;
 } reg_registry;
 
 int reg_open(reg_registry** regPtr, reg_error* errPtr);

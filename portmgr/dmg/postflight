@@ -1,6 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8; mode: shell-script-mode; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=sh:et:sw=4:ts=4:sts=4
 #
+# Copyright (c) 2008-2012 The MacPorts Project
 # Copyright (c) 2002-2007 Juan Manuel Palacios <jmpp@macports.org>, The MacPorts Project.
 # All rights reserved.
 #
@@ -12,7 +13,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple, Inc., The MacPorts Project nor the
+# 3. Neither the name of The MacPorts Project nor the
 #    names of its contributors may be used to endorse or promote products
 #    derived from this software without specific prior written permission.
 #
@@ -35,7 +36,7 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=1.9.0
+VERSION=2.1.0
 
 # Abstraction variables:
 PREFIX=__PREFIX__
@@ -45,6 +46,8 @@ CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
 MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 REG1DIR=${MACPORTS_TCL_DIR}/registry1.0
+DSCL=/usr/bin/dscl
+RUNUSR=macports
 TCLSH=/usr/bin/tclsh
 TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
@@ -53,8 +56,8 @@ OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 
 # Create config files from defaults if not present
 function setup_configs {
-    for f in macports.conf sources.conf variants.conf ; do
-        if [ ! -f ${CONFIGPATH}/${f} ]; then
+    for f in archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf ; do
+        if [[ ! -f ${CONFIGPATH}/${f} ]]; then
             echo "Copying ${f}.default to ${f}"
             /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}
             /bin/chmod 644 ${CONFIGPATH}/${f}
@@ -64,6 +67,14 @@ function setup_configs {
 
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
+    SCRIPT_DIR=$(dirname $0)
+    # Add [default] tag to the central MacPorts repository, if it isn't already
+    echo "Adding [default] tag to sources.conf if needed..."
+    ${TCLSH} ${SCRIPT_DIR}/upgrade_sources_conf_default.tcl ${PREFIX}
+    # Convert image directories (and direct mode installs) to image archives
+    echo "Updating port image format..."
+    ${TCLSH} ${SCRIPT_DIR}/images_to_archives.tcl ${MACPORTS_TCL_DIR}
+
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! ${BINPATH}/port -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
@@ -71,30 +82,25 @@ function update_macports {
     else
         echo "Successful!"
     fi
-    
-    # Add [default] tag to the central MacPorts repository, if it isn't already
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
-    # Convert image directories (and direct mode installs) to image archives
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
 # backing up the original only if it exists and if it doesn't contain the ${OUR_STRING} identification string,
 # which hints that we've already tweaked it and therefore already backed it up.
 function write_setting () {
-    if [ -f ${HOME}/.${CONF_FILE} ] && ! grep "${OUR_STRING}" ${HOME}/.${CONF_FILE} > /dev/null; then
+    if [[ -f "${HOME}/.${CONF_FILE}" ]] && ! grep "${OUR_STRING}" "${HOME}/.${CONF_FILE}" > /dev/null; then
         echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
-        /bin/cp -fp ${HOME}/.${CONF_FILE} "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
+        /bin/cp -fp "${HOME}/.${CONF_FILE}" "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             update_macports
             exit 1
         }
-        echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> ${HOME}/.${CONF_FILE}
+        echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> "${HOME}/.${CONF_FILE}"
     fi
-    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
-    echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> ${HOME}/.${CONF_FILE}
-    echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> ${HOME}/.${CONF_FILE}
-    chown ${USER} ${HOME}/.${CONF_FILE} || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
+    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> "${HOME}/.${CONF_FILE}"
+    echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> "${HOME}/.${CONF_FILE}"
+    echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> "${HOME}/.${CONF_FILE}"
+    chown ${USER} "${HOME}/.${CONF_FILE}" || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
 }
 
@@ -112,7 +118,7 @@ function cleanup_man () {
 
 # Delete the old registry1.0 directory
 function delete_reg1 {
-    if [ -d ${REG1DIR} ]; then
+    if [[ -d ${REG1DIR} ]]; then
         rm -vrf ${REG1DIR}
     fi
 }
@@ -120,16 +126,67 @@ function delete_reg1 {
 # link macports1.0 into tcl package dir if possible
 function link_tcl_package {
     # delete old directory if present
-    if ! test -L "${TCL_PACKAGE_DIR}/macports1.0" && test -d "${TCL_PACKAGE_DIR}/macports1.0"; then
-        rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
-    fi
-    if ! test -e "${TCL_PACKAGE_DIR}/macports1.0" && test -w "${TCL_PACKAGE_DIR}"; then
-		ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
+    if [[ ! -L "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
+        if [[ ! -e "${TCL_PACKAGE_DIR}" ]]; then
+            /usr/bin/install -d "${TCL_PACKAGE_DIR}" || true
+        fi
+        if [[ -d "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
+            rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
+        fi
+        if [[ ! -e "${TCL_PACKAGE_DIR}/macports1.0" && -d "${TCL_PACKAGE_DIR}" ]]; then
+            ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
+        fi
 	fi
+}
+
+# create the user to use for privilege dropping
+function create_run_user {
+    DSEDITGROUP=/usr/sbin/dseditgroup
+    if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then
+        echo "Creating group \"${RUNUSR}\""
+        ${DSEDITGROUP} -q -o create ${RUNUSR}
+    fi
+    if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
+        echo "Creating user \"${RUNUSR}\""
+        NEXTUID=501
+        while [[ -n "`${DSCL} -q /Search -search /Users UniqueID $NEXTUID`" ]]; do
+            let "NEXTUID=NEXTUID+1"
+        done
+        ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $NEXTUID
+
+        # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+        # causes the user to be visible in the Users & Groups Preference Pane,
+        # and the others are just noise, so delete them.
+        # https://trac.macports.org/ticket/30168
+        ${DSCL} -q . -delete /Users/${RUNUSR} AuthenticationAuthority
+        ${DSCL} -q . -delete /Users/${RUNUSR} PasswordPolicyOptions
+        ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:KerberosKeys
+        ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:ShadowHashData
+
+        ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
+        ${DSCL} -q . -create /Users/${RUNUSR} Password \*
+        ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
+        ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${PREFIX}/var/macports/home
+        ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
+    fi
+    if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $2}') -eq 4 ]]; then
+        GID=$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
+        if [[ "$(${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
+            echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
+            ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $GID
+            ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
+        fi
+    fi
+    if [[ "$(${DSCL} -q . -read /Users/${RUNUSR} NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ]]; then
+        echo "Updating home directory location for user \"${RUNUSR}\""
+        ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${PREFIX}/var/macports/home
+    fi
 }
 
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
+# create macports user
+create_run_user
 # Set up config files
 setup_configs
 # link macports1.0 pkg
@@ -141,7 +198,7 @@ delete_reg1
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL=$(dscl . -read /users/${USER} shell | awk -F'/' '{print $NF}') || {
+USHELL=$(${DSCL} . -read /Users/${USER} shell | awk -F'/' '{print $NF}') || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1
@@ -152,9 +209,9 @@ case "${USHELL}" in
         LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
-        if [ -f ${HOME}/.tcshrc ]; then
+        if [[ -f "${HOME}/.tcshrc" ]]; then
             CONF_FILE=tcshrc
-        elif [ -f ${HOME}/.cshrc ]; then
+        elif [[ -f "${HOME}/.cshrc" ]]; then
             CONF_FILE=cshrc
         else
             CONF_FILE=tcshrc
@@ -165,9 +222,9 @@ case "${USHELL}" in
         LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
-        if [ -f ${HOME}/.bash_profile ]; then
+        if [[ -f "${HOME}/.bash_profile" ]]; then
             CONF_FILE=bash_profile
-        elif [ -f ${HOME}/.bash_login ]; then
+        elif [[ -f "${HOME}/.bash_login" ]]; then
             CONF_FILE=bash_login
         else
             CONF_FILE=profile
@@ -193,15 +250,15 @@ ORIGINAL_MANPATH="$(${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv MANPATH")"
 # Adding our setting to the MANPATH variable only if it exists:
 if ! ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
 # and following that, if it's not empty:
-  [ -z "${ORIGINAL_MANPATH}" ] || \
+  [[ -z "${ORIGINAL_MANPATH}" ]] || \
 # or if it doesn't already contain our path:
   echo "${ORIGINAL_MANPATH}" | grep ${MANPAGES} > /dev/null || \
 # or if there's no empty component somewhere in the middle of it:
   echo "${ORIGINAL_MANPATH}" | grep :: > /dev/null || \
 # or at the start of it:
-  [ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $1}')" ] || \
+  [[ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $1}')" ]] || \
 # or at the end of it:
-  [ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $NF}')" ]; then
+  [[ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $NF}')" ]]; then
     echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
 else
     write_setting MANPATH "${MANPAGES}:\$MANPATH"
@@ -217,6 +274,7 @@ fi
 
 # Postflight script is done with its job, update MacPorts and exit gracefully!
 update_macports
-echo "You have succesfully installed the MacPorts system, launch a terminal and try it out!"
-echo "Read the port(1) manual page and http://guide.macports.org for help, http://www.macports.org/contact.php if you need to get in touch with The MacPorts Project."
+echo "You have successfully installed the MacPorts system. Launch a terminal and try it out!"
+echo "Read the port(1) manual page and http://guide.macports.org/ for help."
+echo "See http://www.macports.org/contact.php if you need to get in touch with The MacPorts Project."
 exit 0
