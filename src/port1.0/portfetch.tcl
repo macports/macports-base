@@ -376,19 +376,19 @@ proc portfetch::svn_proxy_args {url} {
 
     if {   [string compare -length 7 {http://} ${url}] == 0
         && [info exists env(http_proxy)]} {
-        set proxy_parts [split $env(http_proxy) :]
-        set proxy_host [lindex $proxy_parts 0]
-        set proxy_port [lindex $proxy_parts 1]
-        return "--config-option servers:global:http-proxy-host=${proxy_host} --config-option servers:global:http-proxy-port=${proxy_port}"
+        set proxy_str $env(http_proxy)
     } elseif {   [string compare -length 8 {https://} ${url}] == 0
               && [info exists env(HTTPS_PROXY)]} {
-        set proxy_parts [split $env(HTTPS_PROXY) :]
-        set proxy_host [lindex $proxy_parts 0]
-        set proxy_port [lindex $proxy_parts 1]
-        return "--config-option servers:global:http-proxy-host=${proxy_host} --config-option servers:global:http-proxy-port=${proxy_port}"
+        set proxy_str $env(HTTPS_PROXY)
     } else {
         return ""
     }
+    regexp {(.*://)?(\w+)(:(\d+))?} $proxy_str - - proxy_host - proxy_port
+    set ret "--config-option servers:global:http-proxy-host=${proxy_host}"
+    if {$proxy_port != ""} {
+        append ret " --config-option servers:global:http-proxy-port=${proxy_port}"
+    }
+    return $ret
 }
 
 # Perform an svn fetch
