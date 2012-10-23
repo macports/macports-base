@@ -383,7 +383,7 @@ proc portfetch::svn_proxy_args {url} {
     } else {
         return ""
     }
-    regexp {(.*://)?(\w+)(:(\d+))?} $proxy_str - - proxy_host - proxy_port
+    regexp {(.*://)?([[:alnum:].-]+)(:(\d+))?} $proxy_str - - proxy_host - proxy_port
     set ret "--config-option servers:global:http-proxy-host=${proxy_host}"
     if {$proxy_port != ""} {
         append ret " --config-option servers:global:http-proxy-port=${proxy_port}"
