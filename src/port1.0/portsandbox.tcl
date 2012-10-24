@@ -41,7 +41,8 @@ default portsandbox_profile {}
 # command line usage would be:
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
-    global os.major portsandbox_profile workpath distpath altprefix package.destpath
+    global os.major portsandbox_profile workpath distpath altprefix \
+        package.destpath configure.ccache ccache_dir
 
     switch $target {
         activate -
@@ -67,6 +68,9 @@ proc portsandbox::set_profile {target} {
 
     # TODO: remove altprefix support
     lappend allow_dirs $workpath $altprefix
+    if {${configure.ccache}} {
+        lappend allow_dirs $ccache_dir
+    }
 
     set portsandbox_profile "(version 1) (allow default) (deny file-write*) \
 (allow file-write-data (literal \"/dev/null\")) (allow file-write* (regex #\"^(/private)?(/var)?/tmp/\" \
