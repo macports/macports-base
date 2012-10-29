@@ -47,6 +47,8 @@ proc portsandbox::set_profile {target} {
     switch $target {
         activate -
         deactivate -
+        dmg -
+        mdmg -
         load -
         unload {
             set portsandbox_profile ""

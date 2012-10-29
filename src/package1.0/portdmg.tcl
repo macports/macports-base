@@ -83,7 +83,13 @@ proc portdmg::package_dmg {portname portversion portrevision} {
         # Apple_partition_scheme (Apple_partition_map is at s1)
         set subdev 2
     }
-    
+
+    if {![file isdirectory $pkgpath]} {
+        file mkdir ${package.destpath}/${imagename}
+        file copy $pkgpath ${package.destpath}/${imagename}
+        set pkgpath ${package.destpath}/${imagename}
+    }
+
     set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
     if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${pkgpath} ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
