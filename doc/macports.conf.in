@@ -153,6 +153,13 @@ universal_archs		@UNIVERSAL_ARCHS@
 # and FTP, but not rsync):
 #proxy_skip		internal1, internal2, internal3
 
+# Options 'host_blacklist' and 'preferred_hosts', used for indicating
+# space separated lists of download hosts that should not be used or
+# should be used preferentially, respectively. These override the usual
+# ping time check.
+#host_blacklist     badhost1.org badhost2.org
+#preferred_hosts    preferredhost1.org preferredhost2.org
+
 # Set whether to automatically run rev-upgrade after upgrading ports
 #revupgrade_autorun yes
 # Option controlling action taken by rev-upgrade, which checks for broken
