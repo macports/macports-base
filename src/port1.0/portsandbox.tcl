@@ -54,6 +54,14 @@ proc portsandbox::set_profile {target} {
             set portsandbox_profile ""
             return
         }
+        configure -
+        build {
+            global ${target}.asroot
+            if {![set ${target}.asroot]} {
+                set portsandbox_profile ""
+                return
+            }
+        }
         install -
         uninstall {
             set allow_dirs [list [file dirname [get_portimage_path]]]
