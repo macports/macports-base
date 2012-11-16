@@ -280,6 +280,8 @@ proc portchecksum::checksum_main {args} {
                     && "text/html" == $mimetype} {
                     # file --mime-type would be preferable to file --mime and strsed, but is only available as of Snow Leopard
                     set wrong_mimetype yes
+                    set htmlfile_path ${fullpath}.html
+                    file rename -force $fullpath $htmlfile_path
                 }
             }
 
@@ -291,10 +293,6 @@ proc portchecksum::checksum_main {args} {
 
     if {[tbool fail]} {
 
-        # Show the desired checksum line for easy cut-paste
-        ui_info "The correct checksum line may be:"
-        ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
-
         if {[tbool wrong_mimetype]} {
             # We got an HTML file, though the distfile name does not suggest that one was
             # expected. Probably a helpful DNS server sent us to its search results page
@@ -305,6 +303,11 @@ proc portchecksum::checksum_main {args} {
             ui_notice "for the checksum mismatch:"
             ui_notice "<https://trac.macports.org/wiki/MisbehavingServers>"
             ui_notice "***"
+            ui_notice "The file has been moved to: $htmlfile_path"
+        } else {
+            # Show the desired checksum line for easy cut-paste
+            ui_info "The correct checksum line may be:"
+            ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
         }
 
         return -code error "[msgcat::mc "Unable to verify file checksums"]"
