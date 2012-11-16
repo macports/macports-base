@@ -598,6 +598,8 @@ proc portfetch::fetch_start {args} {
             }
         }
     }
+
+    portfetch::check_dns
 }
 
 # Main fetch routine

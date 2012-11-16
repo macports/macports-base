@@ -339,3 +339,11 @@ proc portfetch::get_urls {} {
 
     return $urls
 }
+
+# warn if DNS is broken
+proc portfetch::check_dns {} {
+    # check_broken_dns returns true at most once, so we don't have to worry about spamming this message
+    if {[check_broken_dns]} {
+        ui_warn "Your DNS server(s) incorrectly claim to know the address of nonexistent hosts. This may cause checksum mismatches for some ports."
+    }
+}

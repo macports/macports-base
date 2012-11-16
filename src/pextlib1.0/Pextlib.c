@@ -46,6 +46,7 @@
 #include <fcntl.h>
 #include <grp.h>
 #include <limits.h>
+#include <netdb.h>
 #include <pwd.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -568,6 +569,34 @@ static int fileIsBinaryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int
 }
 #endif
 
+/* Check if the configured DNS server(s) incorrectly return a result for
+   a nonexistent hostname. Returns true if broken, false if OK. */
+int CheckBrokenDNSCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
+{
+    static int already_checked = 0;
+    Tcl_Obj *tcl_result;
+    int broken = 0;
+    struct addrinfo *res = NULL;
+    int error;
+
+    /* Only do the actual test once per run. */
+    if (!already_checked) {
+        error = getaddrinfo("invalid-host.macports.org", NULL, NULL, &res);
+        if (!error) {
+            broken = 1;
+        }
+        if (res) {
+            freeaddrinfo(res);
+        }
+    
+        already_checked = 1;
+    }
+
+    tcl_result = Tcl_NewBooleanObj(broken);
+    Tcl_SetObjResult(interp, tcl_result);
+    return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -629,6 +658,8 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "tracelib", TracelibCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "isatty", IsattyCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "term_get_size", TermGetSizeCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "check_broken_dns", CheckBrokenDNSCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

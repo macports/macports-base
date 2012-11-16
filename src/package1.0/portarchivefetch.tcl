@@ -295,6 +295,7 @@ proc portarchivefetch::archivefetch_start {args} {
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
     }
+    portfetch::check_dns
 }
 
 # Main archive fetch routine
