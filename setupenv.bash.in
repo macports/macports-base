@@ -78,7 +78,7 @@ function export_manpath() {
 }
 
 function export_display() {
-    if [ -z $DISPLAY ]; then
+    if [ -z "$DISPLAY" ]; then
         export DISPLAY=":0.0"
     fi
 }
