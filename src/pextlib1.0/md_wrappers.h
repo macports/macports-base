@@ -79,5 +79,15 @@ static char *algo##File(const char *filename, char *buf)		\
     return algo##End(&ctx, buf);						\
 }
 
+#define CHECKSUMData(algo, ctxtype)						\
+static char *algo##Data(const u_char *str, u_int32_t len, char *buf)		\
+{														\
+    ctxtype ctx;										\
+														\
+    algo##Init(&ctx);									\
+    algo##Update(&ctx,str,len);					        \
+    return algo##End(&ctx, buf);						\
+}
+
 #endif
 /* _MD_WRAPPERS_H */

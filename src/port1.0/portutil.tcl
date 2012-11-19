@@ -2398,7 +2398,17 @@ proc PortGroup {group version} {
 # return filename of the archive for this port
 proc get_portimage_name {} {
     global portdbpath subport version revision portvariants os.platform os.major portarchivetype
-    return "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+    set ret "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+    # should really look up NAME_MAX here, but it's 255 for all OS X so far
+    # (leave 10 chars for an extension like .rmd160 on the sig file)
+    if {[string length $ret] > 245 && ${portvariants} != ""} {
+        # try hashing the variants
+        set ret "${subport}-${version}_${revision}+[rmd160 string ${portvariants}].${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+    }
+    if {[string length $ret] > 245} {
+        error "filename too long: $ret"
+    }
+    return $ret
 }
 
 # return path where a newly created image/archive for this port will be stored
