@@ -3404,12 +3404,16 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 }
 
 # upgrade API wrapper procedure
-# return codes: 0 = success, 1 = general failure, 2 = port name not found in index
+# return codes:
+#   0 = success
+#   1 = general failure
+#   2 = port name not found in index
+#   3 = port not installed
 proc macports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
     # only installed ports can be upgraded
     if {![registry::entry_exists_for_name $portname]} {
         ui_error "$portname is not installed"
-        return 1
+        return 3
     }
     if {![string match "" $depscachename]} {
         upvar $depscachename depscache

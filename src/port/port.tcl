@@ -2593,16 +2593,17 @@ proc action_upgrade { action portlist opts } {
     foreachport $portlist {
         if {![info exists depscache(port:$portname)]} {
             set status [macports::upgrade $portname "port:$portname" [array get requested_variations] [array get options] depscache]
-            # status 2 means the port was not found in the index
-            if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
+            # status 2 means the port was not found in the index,
+            # status 3 means the port is not installed
+            if {$status != 0 && $status != 2 && $status != 3 && ![macports::ui_isset ports_processall]} {
                 break
             }
         }
     }
     
-    if {$status != 0} {
+    if {$status != 0 && $status != 2 && $status != 3} {
         print_tickets_url
-    } else {
+    } elseif {$status == 0} {
         array set options $opts
         if {![info exists options(ports_upgrade_no-rev-upgrade)] && ${macports::revupgrade_autorun} && ![macports::global_option_isset ports_dryrun]} {
             set status [action_revupgrade $action $portlist $opts]
