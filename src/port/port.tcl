@@ -297,7 +297,8 @@ proc map_friendly_field_names { field } {
     switch -- $field {
         variant -
         platform -
-        maintainer {
+        maintainer -
+        subport {
             set field "${field}s"
         }
         category {
@@ -1140,6 +1141,42 @@ proc get_dep_ports {portname recursive} {
     return [portlist_sort $results]
 }
 
+proc get_subports {portname} {
+    global global_variations
+
+    # look up portname
+    if {[catch {mportlookup $portname} result]} {
+        ui_debug "$::errorInfo"
+        return -code error "lookup of portname $portname failed: $result"
+    }
+    if {[llength $result] < 2} {
+        return -code error "Port $portname not found"
+    }
+    array unset portinfo
+    array set portinfo [lindex $result 1]
+    set porturl $portinfo(porturl)
+
+    # open portfile
+    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
+        ui_debug "$::errorInfo"
+        return -code error "Unable to open port: $result"
+    }
+    array unset portinfo
+    array set portinfo [mportinfo $mport]
+    mportclose $mport
+
+    # gather its subports
+    set results {}
+
+    if {[info exists portinfo(subports)]} {
+        foreach subport $portinfo(subports) {
+            add_to_portlist results [list name $subport]
+        }
+    }
+
+    return [portlist_sort $results]
+}
+
 
 ##########################################
 # Port expressions
@@ -1325,6 +1362,8 @@ proc element { resname } {
         ^depends_fetch:     -
         ^replaced_by:       -
         ^revision:          -
+        ^subport:           -
+        ^subports:          -
         ^license:           { # Handle special port selectors
             advance
 
@@ -1376,6 +1415,17 @@ proc element { resname } {
             set recursive [string equal $selector rdepof]
             add_multiple_ports reslist [get_dep_ports $portname $recursive]
             
+            set el 1
+        }
+
+        ^subportof:         {
+            advance
+
+            # Break up the token, because older Tcl switch doesn't support -matchvar
+            regexp {^(\w+):(.*)} $token matchvar selector portname
+
+            add_multiple_ports reslist [get_subports $portname]
+
             set el 1
         }
 
