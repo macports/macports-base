@@ -3,6 +3,12 @@
 # $Id$
 ###
 
+Release 2.2.0 (unreleased)
+    - Added 'subport:' pseudo-portname that expands to ports that provide
+      a matching subport; added 'subportof:' pseudo-portname that expands to
+      the list of subports of the given port name
+      (raimue in r100059)
+
 Release 2.1.3 (unreleased)
     - Fixed a bug where a certain order of starting and aborting a build,
       running selfupdate and continuing a build would resume building although
