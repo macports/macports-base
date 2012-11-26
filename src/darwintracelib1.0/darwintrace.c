@@ -59,19 +59,21 @@
 #include <sys/paths.h>
 #endif
 
+#include <dirent.h>
+#include <dlfcn.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/param.h>
-#include <sys/syscall.h>
-#include <errno.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 #ifndef HAVE_STRLCPY
 /* Define strlcpy if it's not available. */
@@ -140,10 +142,12 @@ inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
 inline char* const* __darwintrace_restore_env(char* const envp[]);
 inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
-static char * exchange_with_port(const char * buf, size_t len, int answer, char failures);
+static char * exchange_with_port(const char * buf, size_t len, int answer);
 
 #define START_FD 81
 static int __darwintrace_fd = -1;
+static FILE *__darwintrace_debug = NULL;
+static pid_t __darwintrace_pid = (pid_t) -1;
 #define BUFFER_SIZE	1024
 
 /**
@@ -160,15 +164,15 @@ static char * filemap=0;
 static char* __env_dyld_insert_libraries;
 static char* __env_dyld_force_flat_namespace;
 static char* __env_darwintrace_log;
+static char* __env_darwintrace_debug_log;
 
+#if DARWINTRACE_DEBUG_OUTPUT
 #if __STDC_VERSION__>=199901L
-#if DARWINTRACE_DEBUG_OUTPUT
-#define debug_printf(...) fprintf(stderr, __VA_ARGS__)
+#define debug_printf(format, ...) fprintf(stderr, "darwintrace[%d]: " format, getpid(), __VA_ARGS__); \
+	if (__darwintrace_debug) { \
+		fprintf(__darwintrace_debug, "darwintrace: " format, __VA_ARGS__); \
+	}
 #else
-#define debug_printf(...)
-#endif
-#else
-#if DARWINTRACE_DEBUG_OUTPUT
 __attribute__ ((format (printf, 1, 2)))
 static inline
 int debug_printf(const char *format, ...) {
@@ -179,38 +183,10 @@ int debug_printf(const char *format, ...) {
     va_end(args);
     return ret;
 }
+#endif
 #else
-#define debug_printf(format, param)
+#define debug_printf(...)
 #endif
-#endif
-
-/*
- * char wait_for_socket(int sock, char w)
- * Function used for read/write operation to socket...
- * Args:
- *  sock - socket 
- *  w - what should socket do in next operation. 1 for write, 0 for read
- * Return value: 
- *  1 - everything is ok, we can read/write to/from it
- *  0 - something's went wrong
- */
-static int wait_for_socket(int sock, char w)
-{
-	struct timeval tv;
-	fd_set fds;
-	
-	if(sock==-1)
-		return 0;
-	
-	tv.tv_sec=10;
-	tv.tv_usec=0;
-	FD_ZERO(&fds);
-	FD_SET(sock, &fds);
-	if(select(sock+1, (w==0 ? &fds : 0), (w==1 ? &fds : 0), 0, &tv)<1)
-		return 0;
-	return FD_ISSET(sock, &fds)!=0;
-}
-
 
 /*
  * return 0 if str doesn't begin with prefix, 1 otherwise.
@@ -247,6 +223,12 @@ void __darwintrace_copy_env() {
 		__env_darwintrace_log = strdup(theValue);
 	} else {
 		__env_darwintrace_log = NULL;
+	}
+	theValue = getenv("DARWINTRACE_DEBUG_LOG");
+	if (theValue != NULL) {
+		__env_darwintrace_debug_log = strdup(theValue);
+	} else {
+		__env_darwintrace_debug_log = NULL;
 	}
 }
 
@@ -291,6 +273,10 @@ inline char* const* __darwintrace_restore_env(char* const envp[]) {
 		__darwintrace_alloc_env(
 			"DARWINTRACE_LOG",
 			__env_darwintrace_log);
+	char* darwintrace_debug_log_ptr =	
+		__darwintrace_alloc_env(
+			"DARWINTRACE_DEBUG_LOG",
+			__env_darwintrace_debug_log);
 
 	char* const * theEnvIter = envp;
 	int theEnvLength = 0;
@@ -318,6 +304,9 @@ inline char* const* __darwintrace_restore_env(char* const envp[]) {
 		} else if (__darwintrace_strbeginswith(theValue, "DARWINTRACE_LOG=")) {
 			theValue = darwintrace_log_ptr;
 			darwintrace_log_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(theValue, "DARWINTRACE_DEBUG_LOG=")) {
+			theValue = darwintrace_debug_log_ptr;
+			darwintrace_debug_log_ptr = NULL;
 		}
 		
 		if (theValue) {
@@ -336,6 +325,9 @@ inline char* const* __darwintrace_restore_env(char* const envp[]) {
 	if (darwintrace_log_ptr) {
 		*theCopyIter++ = darwintrace_log_ptr;
 	}
+	if (darwintrace_debug_log_ptr) {
+		*theCopyIter++ = darwintrace_debug_log_ptr;
+	}
 
 	*theCopyIter = 0;
 	
@@ -344,7 +336,7 @@ inline char* const* __darwintrace_restore_env(char* const envp[]) {
 
 static void ask_for_filemap()
 {
-	filemap=exchange_with_port("filemap\t", sizeof("filemap\t"), 1, 0);
+	filemap=exchange_with_port("filemap\t", sizeof("filemap\t"), 1);
 	if(filemap==(char*)-1)
 		filemap=0;
 }
@@ -353,23 +345,50 @@ __attribute__((always_inline))
 inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
-	if (__darwintrace_fd == -1) {
+	pid_t oldpid = __darwintrace_pid;
+	if (__darwintrace_pid != (pid_t) -1 && __darwintrace_pid != getpid()) {
+		if (__darwintrace_fd != -1) {
+			close(__darwintrace_fd);
+			__darwintrace_fd = -1;
+		}
+		if (__darwintrace_debug) {
+			fclose(__darwintrace_debug);
+			__darwintrace_debug = NULL;
+		}
+		__darwintrace_pid = (pid_t) -1;
+	}
+	if (__darwintrace_pid == (pid_t) -1) {
+		__darwintrace_pid = getpid();
 		if (__env_darwintrace_log != NULL) {
 			int olderrno = errno;
-			int sock=socket(AF_UNIX, SOCK_STREAM, 0);
+			int sock = socket(AF_UNIX, SOCK_STREAM, 0);
 			struct sockaddr_un sun;
-			sun.sun_family=AF_UNIX;
+			sun.sun_family = AF_UNIX;
 			strncpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
-			if(connect(sock, (struct sockaddr*)&sun, strlen(__env_darwintrace_log)+1+sizeof(sun.sun_family))!=-1)
-			{
-				debug_printf("darwintrace: connect successful. socket %d\n", sock);
-				__darwintrace_fd=sock;
-				ask_for_filemap();
+			if (connect(sock, (struct sockaddr*)&sun, strlen(__env_darwintrace_log) + 1 + sizeof(sun.sun_family)) != -1) {
+				debug_printf("connect successful, socket %d in pid %d\n", sock, __darwintrace_pid);
+				__darwintrace_fd = sock;
+				ask_for_filemap() ;
 			} else {
 				debug_printf("connect failed: %s\n", strerror(errno));
 				abort();
 			}
 			errno = olderrno;
+		}
+		if (__darwintrace_debug == NULL) {
+			if (__env_darwintrace_debug_log != NULL) {
+				char logpath[MAXPATHLEN];
+				snprintf(logpath, MAXPATHLEN, __env_darwintrace_debug_log, getpid());
+				if (NULL == (__darwintrace_debug = fopen(logpath, "w"))) {
+					fprintf(stderr, "failed to open logfile: %s\n", strerror(errno));
+					abort();
+				}
+				fprintf(__darwintrace_debug, "pid %d is process %s\n", getpid(), getenv("_"));
+				debug_printf("logging socket communication to: %s\n", logpath);
+			}
+		}
+		if (oldpid != (pid_t) -1) {
+			debug_printf("seems to have forked from %d, re-opening files\n", __darwintrace_pid);
 		}
 	}
 #undef close
@@ -386,7 +405,7 @@ inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
 	int size;
 	char somepath[MAXPATHLEN];
 	char logbuffer[BUFFER_SIZE];
-	
+
 	do {
 #ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
 		if ((fd > 0) && (DARWINTRACE_LOG_FULL_PATH
@@ -416,9 +435,9 @@ inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
 
 	size = snprintf(logbuffer, sizeof(logbuffer),
 		"%s\t%s",
-		op, somepath );
+		op, somepath);
 
-	exchange_with_port(logbuffer, size+1, 0, 0);
+	exchange_with_port(logbuffer, size+1, 0);
 	
 	return;
 }
@@ -427,82 +446,63 @@ inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
  * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
  */
 inline void __darwintrace_cleanup_path(char *path) {
-  size_t pathlen;
+	size_t pathlen;
 #ifdef __APPLE__
-  size_t rsrclen;
+	size_t rsrclen;
 #endif
-  size_t i, shiftamount;
-  enum { SAWSLASH, NOTHING } state = NOTHING;
+	size_t i, shiftamount;
+	enum { SAWSLASH, NOTHING } state = NOTHING;
 
-  /* if this is a foo/..namedfork/rsrc, strip it off */
-  pathlen = strlen(path);
-  /* ..namedfork/rsrc is only on OS X */
-#ifdef __APPLE__ 
-  rsrclen = strlen(_PATH_RSRCFORKSPEC);
-  if(pathlen > rsrclen
-     && 0 == strcmp(path + pathlen - rsrclen,
-		    _PATH_RSRCFORKSPEC)) {
-    path[pathlen - rsrclen] = '\0';
-    pathlen -= rsrclen;
-  }
+	/* if this is a foo/..namedfork/rsrc, strip it off */
+	pathlen = strlen(path);
+	/* ..namedfork/rsrc is only on OS X */
+#ifdef __APPLE__
+	rsrclen = strlen(_PATH_RSRCFORKSPEC);
+	if (pathlen > rsrclen && 0 == strcmp(path + pathlen - rsrclen, _PATH_RSRCFORKSPEC)) {
+		path[pathlen - rsrclen] = '\0';
+		pathlen -= rsrclen;
+	}
 #endif
 
-  /* for each position in string (including
-     terminal \0), check if we're in a run of
-     multiple slashes, and only emit the
-     first one
-  */
-  for(i=0, shiftamount=0; i <= pathlen; i++) {
-    if(state == SAWSLASH) {
-      if(path[i] == '/') {
-	/* consume it */
-	shiftamount++;
-      } else {
-	state = NOTHING;
-	path[i - shiftamount] = path[i];
-      }
-    } else {
-      if(path[i] == '/') {
-	state = SAWSLASH;
-      }
-      path[i - shiftamount] = path[i];
-    }
-  }
-
-  debug_printf("darwintrace: cleanup resulted in %s\n", path);
+	/* for each position in string (including terminal \0), check if we're in
+	 * a run of multiple slashes, and only emit the first one */
+	for(i = 0, shiftamount = 0; i <= pathlen; i++) {
+		if (state == SAWSLASH) {
+			if (path[i] == '/') {
+				/* consume it */
+				shiftamount++;
+				continue;
+			} else {
+				state = NOTHING;
+			}
+		} else {
+			if (path[i] == '/') {
+				state = SAWSLASH;
+			}
+		}
+		path[i - shiftamount] = path[i];
+	}
 }
-
-/*
- * return 1 if path is directory or not exists
- * return 0 otherwise
- */
-static int is_directory(const char * path)
-{
-#define stat(path, sb) syscall(SYS_stat, path, sb)
-	struct stat s;
-	if(stat(path, &s)==-1)
-		/* Actually is not directory, but anyway, we shouldn't test a dependency unless file exists */
-		return 1;
-	
-	return S_ISDIR(s.st_mode);
-#undef stat
-}
-
 
 /*
  * return 1 if path allowed, 0 otherwise
  */
-static int ask_for_dependency(char * path)
-{
+static int ask_for_dependency(char * path) {
+#define stat(y, z) syscall(SYS_stat, (y), (z))
 	char buffer[BUFFER_SIZE], *p;
-	int result=0;
-	
-	if(is_directory(path))
+	int result = 0;
+	struct stat st;
+
+	if (-1 == stat(path, &st)) {
 		return 1;
+	}
+	if (S_ISDIR(st.st_mode)) {
+		return 1;
+	}
 	
 	strncpy(buffer, "dep_check\t", sizeof(buffer));
 	strncpy(buffer+10, path, sizeof(buffer)-10);
-	p=exchange_with_port(buffer, strlen(buffer)+1, 1, 0);
+	p=exchange_with_port(buffer, strlen(buffer)+1, 1);
 	if(p==(char*)-1||!p)
 		return 0;
 	
@@ -511,6 +511,7 @@ static int ask_for_dependency(char * path)
 	
 	free(p);
 	return result;
+#undef stat
 }
 
 /*
@@ -525,155 +526,180 @@ static int ask_for_dependency(char * path)
  *    0      -- data successfully sent
  *    string -- answer (caller shoud free it)
  */
-static char * exchange_with_port(const char * buf, size_t len, int answer, char failures)
-{
-	wait_for_socket(__darwintrace_fd, 1);
-	if(send(__darwintrace_fd, buf, len, 0)==-1)
-	{
-		if(errno==ENOTSOCK && failures<3)
-		{
-			__darwintrace_fd=-1;
-			__darwintrace_setup();
-			return exchange_with_port(buf, len, answer, failures+1);
-		}
-		return (char*)-1;
+static char * exchange_with_port(const char * buf, size_t len, int answer) {
+	size_t sent = 0;
+
+	if (__darwintrace_debug) {
+		fprintf(__darwintrace_debug, "> %s\n", buf);
 	}
-	if(!answer)
+	while (sent < len) {
+		ssize_t local_sent = send(__darwintrace_fd, buf + sent, len - sent, 0);
+		if (local_sent == -1) {
+			debug_printf("error communicating with socket %d: %s\n", __darwintrace_fd, strerror(errno));
+			if (__darwintrace_debug)
+				fprintf(__darwintrace_debug, "darwintrace: error communicating with socket %d: %s\n", __darwintrace_fd, strerror(errno));
+			abort();
+		}
+		sent += local_sent;
+	}
+	if (!answer) {
 		return 0;
-	{
-		size_t l=0;
-		char * b;
+	} else {
+		size_t recv_len = 0, received;
+		char *recv_buf;
 		
-		wait_for_socket(__darwintrace_fd, 0);
-		recv(__darwintrace_fd, &l, sizeof(l),0);
-		if(!l)
+		ssize_t t;
+		if (-1 == (t = recv(__darwintrace_fd, &recv_len, sizeof(recv_len), 0))) {
+			debug_printf("error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
+			if (__darwintrace_debug)
+				fprintf(__darwintrace_debug, "darwintrace: error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
+			abort();
+		}
+		if (t != sizeof(recv_len)) {
+			debug_printf("!!! received %zd, but should have been %zd\n", t, sizeof(recv_len));
+		}
+		if (recv_len == 0) {
 			return 0;
-		b=(char*)malloc(l+1);
-		b[l]=0;
-		recv(__darwintrace_fd, b, l, 0);
-		return b;
+		}
+		recv_buf = malloc(recv_len + 1);
+		recv_buf[recv_len] = '\0';
+
+		received = 0;
+		while (received < recv_len) {
+			ssize_t local_received = recv(__darwintrace_fd, recv_buf + received, recv_len - received, 0);
+			if (local_received == -1) {
+				debug_printf("error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
+				if (__darwintrace_debug)
+					fprintf(__darwintrace_debug, "darwintrace: error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
+				abort();
+			}
+			received += local_received;
+		}
+		if (__darwintrace_debug) {
+			fprintf(__darwintrace_debug, "< %s\n", recv_buf);
+		}
+		return recv_buf;
 	}
 }
+
+#define DARWINTRACE_STATUS_PATH    ((char) 0)
+#define DARWINTRACE_STATUS_COMMAND ((char) 1)
+#define DARWINTRACE_STATUS_DONE    ((char) 2)
 
 /*
  * return 1 if path (once normalized) is in sandbox or redirected, 0 otherwise.
  */
 __attribute__((always_inline))
 inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
-	char * t, * p, * _;
-	int result=-1;
+	char *t, *p, *_;
+	char lpath[MAXPATHLEN];
 	
 	__darwintrace_setup();
 	
-	if(!filemap)
+	if (!filemap)
 		return 1;
 	
-	if(*path=='/')
-		p=strdup(path);
-	else
-	{
-		p=(char*)malloc(MAXPATHLEN);
-		if (getcwd(p, MAXPATHLEN-1) == NULL) {
+	if (*path=='/') {
+		p = strcpy(lpath, path);
+	} else {
+		if (getcwd(lpath, MAXPATHLEN - 1) == NULL) {
 			fprintf(stderr, "darwintrace: getcwd: %s, path was: %s\n", strerror(errno), path);
 			abort();
 		}
-		if (p[strlen(p)-1] != '/')
-			strcat(p, "/");
-		strcat(p, path);
+		strcat(lpath, "/");
+		strcat(lpath, path);
 	}
-	__darwintrace_cleanup_path(p);
-			
-	do
-	{
-		for(t=filemap; *t;)
-		{
-			if(__darwintrace_strbeginswith(p, t))
-			{
-				t+=strlen(t)+1;
-				switch(*t)
-				{
+
+	p = lpath;
+
+	for (t = filemap; *t;) {
+		char state;
+		
+		if (__darwintrace_strbeginswith(p, t)) {
+			/* move t to the integer describing how to handle this match */
+			t += strlen(t) + 1;
+			switch (*t) {
 				case 0:
-					result=1;
-					break;
+					return 1;
 				case 1:
-					if(!newpath)
-					{
-						result=0;
-						break;
+					if (!newpath) {
+						return 0;
 					}
-					strcpy(newpath, t+1);
-					_=newpath+strlen(newpath);
-					if(_[-1]!='/')
-						*_++='/';
+					/* the redirected path starts right after the byte telling
+					 * us we should redirect */
+					strcpy(newpath, t + 1);
+					_ = newpath + strlen(newpath);
+					/* append '/' if it's missing */
+					if (_[-1] != '/') {
+						*_ = '/';
+					}
 					strcpy(_, p);
-					result=1;
-					break;
+					return 1;
 				case 2:
-					result=ask_for_dependency(p);
-					break;
-				}
+					/* ask the socket whether this file is OK */
+					return ask_for_dependency(p);
+				default:
+					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
+					abort();
 			}
-			if(result!=-1)
-				break;
-			t+=strlen(t)+1;
-			if(*t==1)
-				t+=strlen(t)+1;
-			else
-				t+=2;
 		}
-		if(result!=-1)
-			break;
-		__darwintrace_log_op("sandbox_violation", path, 0);
-		result=0;
+
+		/* advance the cursor: if the number after the string is not 1, there's
+		 * no path behind it and we can advance by strlen(t) + 3. If it is 1,
+		 * make sure to skip the path, too.
+		 */
+		state = DARWINTRACE_STATUS_PATH;
+		while (state != DARWINTRACE_STATUS_DONE) {
+			switch (state) {
+				case DARWINTRACE_STATUS_PATH:
+					if (!*t) {
+						state = DARWINTRACE_STATUS_COMMAND;
+					}
+					break;
+				case DARWINTRACE_STATUS_COMMAND:
+					if (*t == 1) {
+						state = DARWINTRACE_STATUS_PATH;
+						t++;
+					} else {
+						state = DARWINTRACE_STATUS_DONE;
+					}
+					break;
+			}
+			t++;
+		}
+		t++;
 	}
-	while(0);
-	free(p);
-	return result;
+
+	__darwintrace_log_op("sandbox_violation", path, 0);
+	return 0;
 }
 
-/* Log calls to open(2) into the file specified by DARWINTRACE_LOG.
-   Only logs if the DARWINTRACE_LOG environment variable is set.
-   Only logs files (or rather, do not logs directories)
-   Only logs files where the open succeeds.
-   Only logs files opened for read access, without the O_CREAT flag set
-   	(unless DARWINTRACE_LOG_CREATE is set).
-   The assumption is that any file that can be created isn't necessary
-   to build the project.
-*/
-
+/* wrapper for open(2) preventing opening files outside the sandbox */
 int open(const char* path, int flags, ...) {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 	mode_t mode;
-	int result;
 	va_list args;
-	struct stat sb;
 	char newpath[MAXPATHLEN];
-	int isInSandbox;	
+
+	debug_printf("open(%s)\n", path);
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		debug_printf("open %s was forbidden\n", path);
+		errno = EACCES;
+		return -1;
+	}
+
+	if (*newpath) {
+		path = newpath;
+	}
 
 	/* Why mode here ? */
 	va_start(args, flags);
 	mode = va_arg(args, int);
 	va_end(args);
-	
-	result = 0;
-	
-	if((stat(path, &sb)!=-1 && !(sb.st_mode&S_IFDIR)) || flags & O_CREAT )
-	{
-		*newpath=0;
-		__darwintrace_setup();
-		isInSandbox = __darwintrace_is_in_sandbox(path, newpath);
-		if (isInSandbox == 0) {
-			debug_printf("darwintrace: creation/writing was forbidden at %s\n", path);
-			errno = EACCES;
-			result = -1;
-		}
-		if(*newpath)
-			path=newpath;
-	}
-	if (result == 0) {
-		result = open(path, flags, mode);
-	}
-	return result;
+
+	return open(path, flags, mode);
 #undef open
 }
 
@@ -682,25 +708,26 @@ int open(const char* path, int flags, ...) {
    Only logs files where the readlink succeeds.
 */
 #ifdef READLINK_IS_NOT_P1003_1A
-int  readlink(const char * path, char * buf, int bufsiz) {
+int readlink(const char * path, char * buf, int bufsiz) {
 #else
-ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
+ssize_t readlink(const char * path, char * buf, size_t bufsiz) {
 #endif
 #define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
-	ssize_t result;
-	int isInSandbox;
+	char newpath[MAXPATHLEN];
 
-	result = readlink(path, buf, bufsiz);
-	if (result >= 0) {
-		__darwintrace_setup();
-		isInSandbox = __darwintrace_is_in_sandbox(path, 0);
-		if (!isInSandbox)
-		{
-			errno=EACCES;
-			result=-1;
-		}
+	debug_printf("readlink(%s)\n", path);
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		errno = EACCES;
+		return -1;
 	}
-	return result;
+
+	if (*newpath) {
+		path = newpath;
+	}
+
+	return readlink(path, buf, bufsiz);
 #undef readlink
 }
 
@@ -709,314 +736,417 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 #define lstat(x, y) syscall(SYS_lstat, (x), (y))
-	int result;
+	debug_printf("execve(%s)\n", path);
 	__darwintrace_setup();
 	if (__darwintrace_fd >= 0) {
-	  struct stat sb;
-	  /* for symlinks, we want to capture
-	   * both the original path and the modified one,
-	   * since for /usr/bin/gcc -> gcc-4.0,
-	   * both "gcc_select" and "gcc" are contributors
-	   */
-	  if (lstat(path, &sb) == 0) {
-	  	int fd;
+		struct stat sb;
+		/* for symlinks, we want to capture both the original path and the
+		 * modified one, since for /usr/bin/gcc -> gcc-4.0, both "gcc_select"
+		 * and "gcc" are contributors
+		 */
+		if (lstat(path, &sb) == 0) {
+			int fd;
+			if (S_ISLNK(sb.st_mode)) {
+				/* for symlinks, print both */
+				__darwintrace_log_op("execve", path, 0);
+			}
 
-	    if(S_ISLNK(sb.st_mode)) {
-	      /* for symlinks, print both */
-		  __darwintrace_log_op("execve", path, 0);
-	    }
-		
-		fd = open(path, O_RDONLY, 0);
-		if (fd > 0) {
-		  char buffer[MAXPATHLEN+1], newpath[MAXPATHLEN+1];
-		  ssize_t bytes_read;
-		
-		  *newpath=0;
-		  if(__darwintrace_is_in_sandbox(path, newpath)==0)
-		  {
-			close(fd);
-			errno=ENOENT;
-		    return -1;
-		  }
-		  if(*newpath)
-		    path=newpath;
+			fd = open(path, O_RDONLY, 0);
+			if (fd > 0) {
+				char buffer[MAXPATHLEN+1];
+				ssize_t bytes_read;
+
+				if(!__darwintrace_is_in_sandbox(path, NULL)) {
+					close(fd);
+					errno = ENOENT;
+					return -1;
+				}
 	
-		  /* once we have an open fd, if a full path was requested, do it */
-		  __darwintrace_log_op("execve", path, fd);
-
-		  /* read the file for the interpreter */
-		  bytes_read = read(fd, buffer, MAXPATHLEN);
-		  buffer[bytes_read] = 0;
-		  if (bytes_read > 2 &&
-			buffer[0] == '#' && buffer[1] == '!') {
-			const char* interp = &buffer[2];
-			int i;
-			/* skip past leading whitespace */
-			for (i = 2; i < bytes_read; ++i) {
-			  if (buffer[i] != ' ' && buffer[i] != '\t') {
-				interp = &buffer[i];
-				break;
-			  }
+				/* once we have an open fd, if a full path was requested, do it */
+				__darwintrace_log_op("execve", path, fd);
+	
+				/* read the file for the interpreter */
+				bytes_read = read(fd, buffer, MAXPATHLEN);
+				buffer[bytes_read] = 0;
+				if (bytes_read > 2 && buffer[0] == '#' && buffer[1] == '!') {
+					const char* interp = &buffer[2];
+					int i;
+					/* skip past leading whitespace */
+					for (i = 2; i < bytes_read; ++i) {
+						if (buffer[i] != ' ' && buffer[i] != '\t') {
+							interp = &buffer[i];
+							break;
+						}
+					}
+					/* found interpreter (or ran out of data); skip until next
+					 * whitespace, then terminate the string */
+					for (; i < bytes_read; ++i) {
+						if (buffer[i] == ' ' || buffer[i] == '\t' || buffer[i] == '\n') {
+							buffer[i] = 0;
+							break;
+						}
+					}
+					/* we have liftoff */
+					if (interp && interp[0] != '\0') {
+						__darwintrace_log_op("execve", interp, 0);
+					}
+				}
+				close(fd);
 			}
-			/* found interpreter (or ran out of data)
-			   skip until next whitespace, then terminate the string */
-			for (; i < bytes_read; ++i) {
-			  if (buffer[i] == ' ' || buffer[i] == '\t' || buffer[i] == '\n') {
-				buffer[i] = 0;
-				break;
-			  }
-			}
-			/* we have liftoff */
-			if (interp && interp[0] != '\0') {
-			  __darwintrace_log_op("execve", interp, 0);
-			}
-		  }
-		  close(fd);
 		}
-	  }
-	close(__darwintrace_fd);
-	__darwintrace_fd=-1;
 	}
-	
+	/* our variables won't survive exec, clean up */
+	if (__darwintrace_fd != -1) {
+		close(__darwintrace_fd);
+		__darwintrace_fd = -1;
+	}
+	if (__darwintrace_debug) {
+		fclose(__darwintrace_debug);
+		__darwintrace_debug = NULL;
+	}
+	__darwintrace_pid = (pid_t) -1;
+
 	/* call the original execve function, but fix the environment if required. */
-	result = __execve(path, argv, __darwintrace_restore_env(envp));
-	return result;
+	return __execve(path, argv, __darwintrace_restore_env(envp));
 #undef lstat
 #undef close
 #undef open
 #undef execve
 }
 
-/* if darwintrace has been initialized, trap
-   attempts to close our file descriptor
-*/
+/* if darwintrace has been initialized, trap attempts to close our file
+ * descriptor */
 int close(int fd) {
 #define close(x) syscall(SYS_close, (x))
+	if (__darwintrace_fd != -2 && fd == __darwintrace_fd) {
+		errno = EBADF;
+		return -1;
+	}
 
-  if(__darwintrace_fd != -2 && fd == __darwintrace_fd) {
-    errno = EBADF;
-    return -1;
-  }
-
-  return close(fd);
+	return close(fd);
 #undef close
 }
 
-/* Trap attempts to unlink a file outside the sandbox.
- */
+/* Trap attempts to unlink a file outside the sandbox. */
 int unlink(const char* path) {
 #define __unlink(x) syscall(SYS_unlink, (x))
-	int result = 0;
-	int isInSandbox = __darwintrace_is_in_sandbox(path, 0);
-	if (isInSandbox == 1) {
-		debug_printf("darwintrace: unlink was allowed at %s\n", path);
-	} else if (isInSandbox == 0) {
-		/* outside sandbox, but sandbox is defined: forbid */
-		debug_printf("darwintrace: unlink was forbidden at %s\n", path);
+	char newpath[MAXPATHLEN];
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		debug_printf("unlink %s was forbidden\n", path);
 		errno = EACCES;
-		result = -1;
+		return -1;
 	}
-	
-	if (result == 0) {
-		result = __unlink(path);
+
+	if (*newpath) {
+		path = newpath;
 	}
-	
-	return result;
+
+	debug_printf("unlink %s was allowed\n", path);
+
+	return __unlink(path);
 }
 
 /* Trap attempts to create directories outside the sandbox.
  */
 int mkdir(const char* path, mode_t mode) {
 #define __mkdir(x,y) syscall(SYS_mkdir, (x), (y))
-	int result = 0;
-	int isInSandbox = __darwintrace_is_in_sandbox(path, 0);
-	if (isInSandbox == 1) {
-		debug_printf("darwintrace: mkdir was allowed at %s\n", path);
-	} else if (isInSandbox == 0) {
-		/* outside sandbox, but sandbox is defined: forbid */
-		/* only consider directories that do not exist. */
-		struct stat theInfo;
-		int err;
-		err = lstat(path, &theInfo);
-		if ((err == -1) && (errno == ENOENT))
-		{
-			debug_printf("darwintrace: mkdir was forbidden at %s\n", path);
-			errno = EACCES;
-			result = -1;
-		} /* otherwise, mkdir will do nothing (directory exists) or fail
-		     (another error) */
+	char newpath[MAXPATHLEN];
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		struct stat st;
+		if (-1 == lstat(path, &st)) {
+			if (errno == ENOENT) {
+				/* directory doesn't exist yet */
+				debug_printf("mkdir was forbidden at %s\n", path);
+				errno = EACCES;
+				return -1;
+			}
+		}
+		/* otherwise, mkdir will do nothing or fail with a hopefully meaningful
+		 * error */
+	} else {
+		if (*newpath) {
+			path = newpath;
+		}
+
+		debug_printf("mkdir was allowed at %s\n", path);
 	}
-	
-	if (result == 0) {
-		result = __mkdir(path, mode);
-	}
-	
-	return result;
+
+	return __mkdir(path, mode);
 }
 
 /* Trap attempts to remove directories outside the sandbox.
  */
 int rmdir(const char* path) {
 #define __rmdir(x) syscall(SYS_rmdir, (x))
-	int result = 0;
-	int isInSandbox = __darwintrace_is_in_sandbox(path, 0);
-	if (isInSandbox == 1) {
-		debug_printf("darwintrace: rmdir was allowed at %s\n", path);
-	} else if (isInSandbox == 0) {
-		/* outside sandbox, but sandbox is defined: forbid */
-		debug_printf("darwintrace: removing directory %s was forbidden\n", path);
+	if (!__darwintrace_is_in_sandbox(path, NULL)) {
+		debug_printf("removing directory %s was forbidden\n", path);
 		errno = EACCES;
-		result = -1;
+		return -1;
 	}
-	
-	if (result == 0) {
-		result = __rmdir(path);
-	}
-	
-	return result;
+
+	debug_printf("rmdir %s was allowed\n", path);
+
+	return __rmdir(path);
 }
 
 /* Trap attempts to rename files/directories outside the sandbox.
  */
 int rename(const char* from, const char* to) {
 #define __rename(x,y) syscall(SYS_rename, (x), (y))
-	int result = 0;
-	int isInSandbox = __darwintrace_is_in_sandbox(from, 0);
-	if (isInSandbox == 1) {
-		debug_printf("darwintrace: rename was allowed at %s\n", from);
-	} else if (isInSandbox == 0) {
-		/* outside sandbox, but sandbox is defined: forbid */
-		debug_printf("darwintrace: renaming from %s was forbidden\n", from);
+	if (!__darwintrace_is_in_sandbox(from, NULL)) {
+		/* outside sandbox, forbid */
+		debug_printf("renaming from %s was forbidden\n", from);
 		errno = EACCES;
-		result = -1;
+		return -1;
+	}
+	if (!__darwintrace_is_in_sandbox(to, NULL)) {
+		debug_printf("renaming to %s was forbidden\n", to);
+		errno = EACCES;
+		return -1;
 	}
 
-	if (result == 0) {
-		isInSandbox = __darwintrace_is_in_sandbox(to, 0);
-		if (isInSandbox == 1) {
-			debug_printf("darwintrace: rename was allowed at %s\n", to);
-		} else if (isInSandbox == 0) {
-			/* outside sandbox, but sandbox is defined: forbid */
-			debug_printf("darwintrace: renaming to %s was forbidden\n", to);
-			errno = EACCES;
-			result = -1;
-		}
-	}
-	
-	if (result == 0) {
-		result = __rename(from, to);
-	}
-	
-	return result;
+	debug_printf("renaming from %s to %s was allowed\n", from, to);
+
+	return __rename(from, to);
 }
 
-int stat(const char * path, struct stat * sb)
-{
+int stat(const char * path, struct stat * sb) {
 #define stat(path, sb) syscall(SYS_stat, path, sb)
-	int result=0;
-	char newpath[260];
-		
-	*newpath=0;
-	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
-	{
-		errno=ENOENT;
-		result=-1;
-	}else
-	{
-		if(*newpath)
-			path=newpath;
-			
-		result=stat(path, sb);
+	int result = 0;
+	char newpath[MAXPATHLEN];
+
+	debug_printf("stat(%s)\n", path);
+	if (-1 == (result = stat(path, sb))) {
+		return -1;
 	}
-	
+
+	if (S_ISDIR(sb->st_mode)) {
+		return result;
+	}
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	if (*newpath) {
+		result = stat(newpath, sb);
+	}
+
 	return result;
 #undef stat
 }
 
 #if defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE)
 
-int stat64(const char * path, struct stat64 * sb)
-{
+int stat64(const char * path, struct stat64 * sb) {
 #define stat64(path, sb) syscall(SYS_stat64, path, sb)
-	int result=0;
-	char newpath[260];
-		
-	*newpath=0;
-	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
-	{
-		errno=ENOENT;
-		result=-1;
-	}else
-	{
-		if(*newpath)
-			path=newpath;
-			
-		result=stat64(path, sb);
+	int result = 0;
+	char newpath[MAXPATHLEN];
+
+	debug_printf("stat64(%s)\n", path);
+	if (-1 == (result = stat64(path, sb))) {
+		return -1;
 	}
-	
+
+	if (S_ISDIR(sb->st_mode)) {
+		return result;
+	}
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	if (*newpath) {
+		result = stat64(newpath, sb);
+	}
+
 	return result;
 #undef stat64
 }
 
-int stat$INODE64(const char * path, struct stat64 * sb)
-{
+int stat$INODE64(const char * path, struct stat64 * sb) {
     return stat64(path, sb);
 }
 
 #endif /* defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE) */
 
 
-int lstat(const char * path, struct stat * sb)
-{
+int lstat(const char * path, struct stat * sb) {
 #define lstat(path, sb) syscall(SYS_lstat, path, sb)
-	int result=0;
-	char newpath[260];
-	
-	*newpath=0;
-	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
-	{
-		errno=ENOENT;
-		result=-1;
-	}else
-	{
-		if(*newpath)
-			path=newpath;
-			
-		result=lstat(path, sb);
+	int result = 0;
+	char newpath[MAXPATHLEN];
+
+	debug_printf("lstat(%s)\n", path);
+	if (-1 == (result = lstat(path, sb))) {
+		return -1;
 	}
-	
+
+	if (S_ISDIR(sb->st_mode)) {
+		return result;
+	}
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	if (*newpath) {
+		result = lstat(newpath, sb);
+	}
+
 	return result;
 #undef lstat
 }
 
 #if defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE)
 
-int lstat64(const char * path, struct stat64 * sb)
-{
+int lstat64(const char * path, struct stat64 * sb) {
 #define lstat64(path, sb) syscall(SYS_lstat64, path, sb)
-	int result=0;
-	char newpath[260];
-	
-	*newpath=0;
-	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
-	{
-		errno=ENOENT;
-		result=-1;
-	}else
-	{
-		if(*newpath)
-			path=newpath;
-			
-		result=lstat64(path, sb);
+	int result = 0;
+	char newpath[MAXPATHLEN];
+
+	debug_printf("lstat64(%s)\n", path);
+	if (-1 == (result = lstat64(path, sb))) {
+		return -1;
 	}
-	
+
+	if (S_ISDIR(sb->st_mode)) {
+		return result;
+	}
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	if (*newpath) {
+		result = lstat64(newpath, sb);
+	}
+
 	return result;
 #undef lstat64
 }
 
-int lstat$INODE64(const char * path, struct stat64 * sb)
-{
+int lstat$INODE64(const char * path, struct stat64 * sb) {
     return lstat64(path, sb);
 }
 
 #endif /* defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE) */
+
+/**
+ * re-implementation of getdirent(2) and __getdirent64(2) preventing paths
+ * outside the sandbox to show up when reading the contents of a directory.
+ * Unfortunately, since we need to access the contents of the buffer, but the
+ * contents differ by architecture, we can not rely on the dirent structure
+ * defined by the header included by this program, because we don't know
+ * whether darwintrace.dylib has been compiled for 64bit or 32bit inodes. We
+ * thus copy both structs and decide at runtime.
+ */
+
+#ifdef __APPLE__
+/* only do this on mac, because fcntl(fd, F_GETPATH) might not be available on
+ * other systems, and because other system's syscall names are probably
+ * different anyway */
+
+#pragma pack(4)
+struct dirent32 {
+	ino_t d_ino;			/* file number of entry */
+	__uint16_t d_reclen;		/* length of this record */
+	__uint8_t  d_type; 		/* file type, see below */
+	__uint8_t  d_namlen;		/* length of string in d_name */
+	char d_name[__DARWIN_MAXNAMLEN + 1];	/* name must be no longer than this */
+};
+#pragma pack()
+
+struct dirent64  {
+	__uint64_t  d_ino;      /* file number of entry */
+	__uint64_t  d_seekoff;  /* seek offset (optional, used by servers) */
+	__uint16_t  d_reclen;   /* length of this record */
+	__uint16_t  d_namlen;   /* length of string in d_name */
+	__uint8_t   d_type;     /* file type, see below */
+	char      d_name[__DARWIN_MAXPATHLEN]; /* entry name (up to MAXPATHLEN bytes) */
+};
+
+size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep) {
+#define __getdirentries64(w,x,y,z) syscall(SYS_getdirentries64, (w), (x), (y), (z))
+	size_t sz = __getdirentries64(fd, buf, bufsize, basep);
+	char dirname[MAXPATHLEN];
+	size_t dnamelen;
+
+	if (-1 == fcntl(fd, F_GETPATH, dirname)) {
+		errno = EBADF;
+		return 0;
+	}
+
+	dnamelen = strlen(dirname);
+	if (dirname[dnamelen - 1] != '/') {
+		dirname[dnamelen] = '/';
+		dirname[dnamelen + 1] = '\0';
+		dnamelen++;
+	}
+
+	dnamelen = strlen(dirname);
+	size_t offset;
+	for (offset = 0; offset < sz;) {
+		struct dirent64 *dent = (struct dirent64 *)(((char *) buf) + offset);
+		dirname[dnamelen] = '\0';
+		strcat(dirname, dent->d_name);
+		if (!__darwintrace_is_in_sandbox(dirname, NULL)) {
+			debug_printf("__getdirentries64: filtered %s\n", dirname);
+			dent->d_ino = 0;
+		} else {
+			debug_printf("__getdirentries64:  allowed %s\n", dirname);
+		}
+		offset += dent->d_reclen;
+	}
+
+	return sz;
+#undef __getdirentries64
+}
+
+int getdirentries(int fd, char *buf, int nbytes, long *basep) {
+#define getdirentries(w,x,y,z) syscall(SYS_getdirentries, (w), (x), (y), (z))
+	size_t sz = getdirentries(fd, buf, nbytes, basep);
+	char dirname[MAXPATHLEN];
+	size_t dnamelen;
+
+	if (-1 == fcntl(fd, F_GETPATH, dirname)) {
+		errno = EBADF;
+		return 0;
+	}
+
+	dnamelen = strlen(dirname);
+	if (dirname[dnamelen - 1] != '/') {
+		dirname[dnamelen] = '/';
+		dirname[dnamelen + 1] = '\0';
+		dnamelen++;
+	}
+
+	size_t offset;
+	for (offset = 0; offset < sz;) {
+		struct dirent32 *dent = (struct dirent32 *)(buf + offset);
+		dirname[dnamelen] = '\0';
+		strcat(dirname, dent->d_name);
+		if (!__darwintrace_is_in_sandbox(dirname, NULL)) {
+			debug_printf("getdirentries: filtered %s\n", dirname);
+			dent->d_ino = 0;
+		} else {
+			debug_printf("getdirentries:  allowed %s\n", dirname);
+		}
+		offset += dent->d_reclen;
+	}
+
+	return sz;
+#undef getdirentries
+}
+#endif /* __APPLE__ */
