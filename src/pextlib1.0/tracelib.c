@@ -342,7 +342,7 @@ static void dep_check(int sock, const char * path)
 	
 		t = depends;
 		for (; *t; t += strlen(t) + 1) {
-			fprintf(stderr, "trace: %s =?= %s\n", t, port);
+			/* fprintf(stderr, "trace: %s =?= %s\n", t, port); */
 			if (!strcmp(t, port)) {
 				resolution = '+';
 				break;
