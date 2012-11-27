@@ -144,8 +144,8 @@ inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
 static char * exchange_with_port(const char * buf, size_t len, int answer);
 
-#define START_FD 81
-static int __darwintrace_fd = -1;
+#define DT_STATIC_FD_NUM (236)
+static int __darwintrace_fd = -2;
 static FILE *__darwintrace_debug = NULL;
 static pid_t __darwintrace_pid = (pid_t) -1;
 #define BUFFER_SIZE	1024
@@ -347,9 +347,9 @@ inline void __darwintrace_setup() {
 #define close(x) syscall(SYS_close, (x))
 	pid_t oldpid = __darwintrace_pid;
 	if (__darwintrace_pid != (pid_t) -1 && __darwintrace_pid != getpid()) {
-		if (__darwintrace_fd != -1) {
+		if (__darwintrace_fd != -2) {
 			close(__darwintrace_fd);
-			__darwintrace_fd = -1;
+			__darwintrace_fd = -2;
 		}
 		if (__darwintrace_debug) {
 			fclose(__darwintrace_debug);
@@ -362,13 +362,19 @@ inline void __darwintrace_setup() {
 		if (__env_darwintrace_log != NULL) {
 			int olderrno = errno;
 			int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+			if (-1 == dup2(sock, DT_STATIC_FD_NUM)) {
+				debug_printf("couldn't duplicate filedescriptor into %d", DT_STATIC_FD_NUM);
+				abort();
+			}
+			close(sock);
+			sock = DT_STATIC_FD_NUM;
 			struct sockaddr_un sun;
 			sun.sun_family = AF_UNIX;
 			strncpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
 			if (connect(sock, (struct sockaddr*)&sun, strlen(__env_darwintrace_log) + 1 + sizeof(sun.sun_family)) != -1) {
 				debug_printf("connect successful, socket %d in pid %d\n", sock, __darwintrace_pid);
 				__darwintrace_fd = sock;
-				ask_for_filemap() ;
+				ask_for_filemap();
 			} else {
 				debug_printf("connect failed: %s\n", strerror(errno));
 				abort();
@@ -388,7 +394,7 @@ inline void __darwintrace_setup() {
 			}
 		}
 		if (oldpid != (pid_t) -1) {
-			debug_printf("seems to have forked from %d, re-opening files\n", __darwintrace_pid);
+			debug_printf("seems to have forked from %d, re-opened files\n", oldpid);
 		}
 	}
 #undef close
@@ -796,9 +802,9 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 		}
 	}
 	/* our variables won't survive exec, clean up */
-	if (__darwintrace_fd != -1) {
+	if (__darwintrace_fd != -2) {
 		close(__darwintrace_fd);
-		__darwintrace_fd = -1;
+		__darwintrace_fd = -2;
 	}
 	if (__darwintrace_debug) {
 		fclose(__darwintrace_debug);
@@ -826,6 +832,21 @@ int close(int fd) {
 	return close(fd);
 #undef close
 }
+
+/* if darwintrace has been initialized, trap attempts to dup2 over our file descriptor */
+int dup2(int filedes, int filedes2) {
+#define dup2(x, y) syscall(SYS_dup2, (x), (y))
+
+	debug_printf("dup2(%d, %d)\n", filedes, filedes2);
+	if (__darwintrace_fd != -2 && filedes2 == __darwintrace_fd) {
+		errno = EBADF;
+		return -1;
+	}
+
+	return dup2(filedes, filedes2);
+#undef dup2
+}
+
 
 /* Trap attempts to unlink a file outside the sandbox. */
 int unlink(const char* path) {
