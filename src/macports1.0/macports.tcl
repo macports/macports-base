@@ -4376,8 +4376,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 }
                 if {[llength $result] < 2} {
                     ui_warn "No port $portname found in the index; can't rebuild"
-                    unset broken_files_by_port($port)
-                    continue
+                    ui_warn "Either your portindex is corrupt or $portname has been removed; consider uninstalling it."
+                    error "Port $portname not found in index"
                 }
             }
             if {![info exists broken_port_counts($portname)]} {
