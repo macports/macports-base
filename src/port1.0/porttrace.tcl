@@ -141,7 +141,7 @@ proc porttrace::trace_check_violations {} {
     # Get the list of violations.
     set violations [slave_send porttrace::slave_get_sandbox_violations]
 
-    foreach violation [lsort $violations] {
+    foreach violation [lsort -unique $violations] {
         ui_warn "An activity was attempted outside sandbox: $violation"
     }
 }
