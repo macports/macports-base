@@ -118,6 +118,8 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
         sqlite3_extended_result_codes(reg->db, 1);
 #endif
 
+        sqlite3_busy_timeout(reg->db, 25);
+
         if (init_db(reg->db, errPtr)) {
             reg->status = reg_none;
             *regPtr = reg;
