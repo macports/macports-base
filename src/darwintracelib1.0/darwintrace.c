@@ -144,7 +144,6 @@ inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
 static char * exchange_with_port(const char * buf, size_t len, int answer);
 
-#define DT_STATIC_FD_NUM (236)
 static int __darwintrace_fd = -2;
 static FILE *__darwintrace_debug = NULL;
 static pid_t __darwintrace_pid = (pid_t) -1;
@@ -362,12 +361,6 @@ inline void __darwintrace_setup() {
 		if (__env_darwintrace_log != NULL) {
 			int olderrno = errno;
 			int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-			if (-1 == dup2(sock, DT_STATIC_FD_NUM)) {
-				debug_printf("couldn't duplicate filedescriptor into %d", DT_STATIC_FD_NUM);
-				abort();
-			}
-			close(sock);
-			sock = DT_STATIC_FD_NUM;
 			struct sockaddr_un sun;
 			sun.sun_family = AF_UNIX;
 			strncpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
@@ -499,10 +492,13 @@ static int ask_for_dependency(char * path) {
 	int result = 0;
 	struct stat st;
 
+	debug_printf("ask_for_dependency: %s\n", path);
+
 	if (-1 == stat(path, &st)) {
 		return 1;
 	}
 	if (S_ISDIR(st.st_mode)) {
+		debug_printf("%s is directory\n", path);
 		return 1;
 	}
 	
@@ -692,7 +688,7 @@ int open(const char* path, int flags, ...) {
 	*newpath = '\0';
 	if (!__darwintrace_is_in_sandbox(path, newpath)) {
 		debug_printf("open %s was forbidden\n", path);
-		errno = EACCES;
+		errno = ((flags & O_CREAT) > 0) ? EACCES : ENOENT;
 		return -1;
 	}
 
@@ -725,7 +721,7 @@ ssize_t readlink(const char * path, char * buf, size_t bufsiz) {
 
 	*newpath = '\0';
 	if (!__darwintrace_is_in_sandbox(path, newpath)) {
-		errno = EACCES;
+		errno = ENOENT;
 		return -1;
 	}
 
@@ -839,8 +835,18 @@ int dup2(int filedes, int filedes2) {
 
 	debug_printf("dup2(%d, %d)\n", filedes, filedes2);
 	if (__darwintrace_fd != -2 && filedes2 == __darwintrace_fd) {
-		errno = EBADF;
-		return -1;
+		/* if somebody tries to close our file descriptor, just move it out of
+		 * the way. Make sure it doesn't end up as stdin/stdout/stderr, though!
+		 * */
+		int new_darwintrace_fd;
+
+		if (-1 == (new_darwintrace_fd = fcntl(__darwintrace_fd, F_DUPFD, STDOUT_FILENO + 1))) {
+			/* if duplicating fails, do not allow overwriting either! */
+			return -1;
+		}
+
+		debug_printf("moving __darwintrace_fd from %d to %d\n", __darwintrace_fd, new_darwintrace_fd);
+		__darwintrace_fd = new_darwintrace_fd;
 	}
 
 	return dup2(filedes, filedes2);
@@ -856,7 +862,7 @@ int unlink(const char* path) {
 	*newpath = '\0';
 	if (!__darwintrace_is_in_sandbox(path, newpath)) {
 		debug_printf("unlink %s was forbidden\n", path);
-		errno = EACCES;
+		errno = ENOENT;
 		return -1;
 	}
 
@@ -905,7 +911,7 @@ int rmdir(const char* path) {
 #define __rmdir(x) syscall(SYS_rmdir, (x))
 	if (!__darwintrace_is_in_sandbox(path, NULL)) {
 		debug_printf("removing directory %s was forbidden\n", path);
-		errno = EACCES;
+		errno = ENOENT;
 		return -1;
 	}
 
@@ -921,7 +927,7 @@ int rename(const char* from, const char* to) {
 	if (!__darwintrace_is_in_sandbox(from, NULL)) {
 		/* outside sandbox, forbid */
 		debug_printf("renaming from %s was forbidden\n", from);
-		errno = EACCES;
+		errno = ENOENT;
 		return -1;
 	}
 	if (!__darwintrace_is_in_sandbox(to, NULL)) {
