@@ -366,7 +366,7 @@ int reg_start_read(reg_registry* reg, reg_error* errPtr) {
  * @return             true if success; false if failure
  */
 int reg_start_write(reg_registry* reg, reg_error* errPtr) {
-    if (reg_start(reg, "BEGIN EXCLUSIVE", errPtr)) {
+    if (reg_start(reg, "BEGIN IMMEDIATE", errPtr)) {
         reg->status |= reg_transacting | reg_can_write;
         return 1;
     } else {
