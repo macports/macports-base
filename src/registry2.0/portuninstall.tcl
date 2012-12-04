@@ -217,7 +217,9 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         # files so just ignore the failure
         catch {file delete [::file dirname $imagefile]}
 
-        registry::entry delete $port
+        registry::write {
+            registry::entry delete $port
+        }
     }
     
     # uninstall dependencies if requested
