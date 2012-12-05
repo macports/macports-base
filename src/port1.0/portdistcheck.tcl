@@ -91,7 +91,7 @@ proc portdistcheck::distcheck_main {args} {
                         ui_warn "couldn't fetch $file_url for $subport ($error)"
                     } else {
                         if {$urlnewer} {
-                            ui_warn "port $subport: $file_url is newer than portfile"
+                            ui_warn "port $subport: $file_url is newer than Portfile"
                         }
                         incr count
                     }
