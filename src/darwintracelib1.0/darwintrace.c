@@ -550,19 +550,21 @@ static char * exchange_with_port(const char * buf, size_t len, int answer) {
 		size_t recv_len = 0, received;
 		char *recv_buf;
 		
-		ssize_t t;
-		if (-1 == (t = recv(__darwintrace_fd, &recv_len, sizeof(recv_len), 0))) {
-			debug_printf("error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
-			if (__darwintrace_debug)
-				fprintf(__darwintrace_debug, "darwintrace: error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
-			abort();
-		}
-		if (t != sizeof(recv_len)) {
-			debug_printf("!!! received %zd, but should have been %zd\n", t, sizeof(recv_len));
+		received = 0;
+		while (received < sizeof(recv_len)) {
+			ssize_t local_received = recv(__darwintrace_fd, ((char *) &recv_len) + received, sizeof(recv_len) - received, 0);
+			if (local_received == -1) {
+				debug_printf("error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
+				if (__darwintrace_debug)
+					fprintf(__darwintrace_debug, "darwintrace: error reading data from socket %d: %s\n", __darwintrace_fd, strerror(errno));
+				abort();
+			}
+			received += local_received;
 		}
 		if (recv_len == 0) {
 			return 0;
 		}
+
 		recv_buf = malloc(recv_len + 1);
 		recv_buf[recv_len] = '\0';
 
