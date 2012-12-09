@@ -83,9 +83,10 @@ proc portsandbox::set_profile {target} {
     }
 
     set portsandbox_profile "(version 1) (allow default) (deny file-write*) \
-(allow file-write-data (literal \"/dev/null\") (literal \"/dev/dtracehelper\") \
-(literal \"/dev/tty\") (literal \"/dev/stdin\") (literal \"/dev/stdout\") \
-(literal \"/dev/stderr\") (regex #\"^/dev/fd/\")) (allow file-write* \
+(allow file-write-data (literal \"/dev/null\") (literal \"/dev/zero\") \
+(literal \"/dev/dtracehelper\") (literal \"/dev/tty\") \
+(literal \"/dev/stdin\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") \
+(regex #\"^/dev/fd/\")) (allow file-write* \
 (regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\"))"
 
     foreach dir $allow_dirs {
