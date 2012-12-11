@@ -3960,7 +3960,9 @@ proc action_target { action portlist opts } {
         }
         # if installing, mark the port as explicitly requested
         if {$action == "install"} {
-            set options(ports_requested) 1
+            if {![info exists options(ports_install_unrequested)]} {
+                set options(ports_requested) 1
+            }
             # we actually activate as well
             set target activate
         } elseif {$action == "archive"} {
@@ -4238,7 +4240,7 @@ array set cmd_opts_array {
     space       {{units 1}}
     activate    {no-exec}
     deactivate  {no-exec}
-    install     {no-rev-upgrade}
+    install     {no-rev-upgrade unrequested}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all dist work logs}

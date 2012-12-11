@@ -179,7 +179,9 @@ set will be used.  The other options which do not correspond to fields are:
 }
 
 set porthelp(install) {
-Installs the given ports
+Installs the given ports.
+    --no-rev-upgrade    Do not run rev-upgrade after the installation.
+    --unrequested       Do not mark the port as requested.
 }
 
 set porthelp(installed) {
