@@ -9,7 +9,7 @@ Release 2.2.0 (unreleased)
       the list of subports of the given port name
       (raimue in r100059)
 
-    - Fixes brining trace mode back to a working state. Improvements to reduce
+    - Fixes bringing trace mode back to a working state. Improvements to reduce
       the number of builds trace mode breaks.
       (cal in r100071-100073, r100077, r100126, r100221)
 
