@@ -18,7 +18,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -54,7 +54,7 @@ set_ui_prefix
 
 proc portdpkg::main {args} {
 	global UI_PREFIX destpath os.arch os.platform supported_archs configure.build_arch
-    
+
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option subport] [option version]]"
 
 	# get deplist
@@ -95,7 +95,7 @@ proc portdpkg::main {args} {
 			set pkg_depends [join ${dependencies} ", "]
 		}
 	}
-	
+
 	# Create dpkg version number
 	if {[expr [option epoch] != 0]} {
 		set pkg_version "[option epoch]:[option version]"
@@ -125,11 +125,11 @@ proc portdpkg::main {args} {
 
 	# Discern correct architecture
 	# From http://www.debian.org/doc/debian-policy/ch-customized-programs.html#fr55:
-	# The following architectures and operating systems are currently recognised   
-	# by dpkg-archictecture. The architecture, arch, is one of the following:      
-	# alpha, arm, hppa, i386, ia64, m68k, mips, mipsel, powerpc, s390, sh, sheb,   
-	# sparc and sparc64. The operating system, os, is one of: linux, gnu,          
-	# freebsd and openbsd. Use of gnu in this string is reserved for the           
+	# The following architectures and operating systems are currently recognised
+	# by dpkg-archictecture. The architecture, arch, is one of the following:
+	# alpha, arm, hppa, i386, ia64, m68k, mips, mipsel, powerpc, s390, sh, sheb,
+	# sparc and sparc64. The operating system, os, is one of: linux, gnu,
+	# freebsd and openbsd. Use of gnu in this string is reserved for the
 	# GNU/Hurd operating system.
 	switch -regex ${configure.build_arch} {
 		i[3-9]86 { set pkg_arch "i386" }
@@ -144,7 +144,7 @@ proc portdpkg::main {args} {
 	} elseif {${pkg_arch} == "x86_64"} {
 		set pkg_arch "amd64"
 	}
-	
+
 	# An architecture-independent package
 	if {$supported_archs == "noarch"} {
 		set pkg_arch "all"
@@ -182,7 +182,7 @@ proc portdpkg::make_dependency_list {portname} {
 	}
 	foreach {name array} $res {
 		array set portinfo $array
-	
+
 		if {[info exists portinfo(depends_run)] || [info exists portinfo(depends_lib)]} {
 			# get the union of depends_run and depends_lib
 			# xxx: only examines the portfile component of the depspec

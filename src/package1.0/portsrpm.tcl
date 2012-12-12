@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -49,16 +49,16 @@ set_ui_prefix
 
 proc portsrpm::srpm_main {args} {
     global subport version revision UI_PREFIX
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating SRPM package for %s-%s"] ${subport} ${version}]"
-    
+
     return [srpm_pkg $subport $version $revision]
 }
 
 proc portsrpm::srpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix categories maintainers description long_description homepage epoch portpath distfiles fetch_urls
 	global os.platform os.arch os.version os.major
-    
+
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
         set pkgpath ${package.destpath}
@@ -69,7 +69,7 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
                    ${pkgpath}/SRPMS
         set rpmdestpath "--define '_topdir ${pkgpath}'"
     }
-    
+
     foreach dir [list "${prefix}/src/macports/SRPMS" "${prefix}/src/apple/SRPMS" "/usr/src/apple/SRPMS" "/macports/rpms/SRPMS"] {
         foreach arch {"src" "nosrc"} {
             set rpmpath "$dir/${portname}-${portversion}-${portrevision}.${arch}.rpm"
@@ -80,7 +80,7 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
             }
         }
     }
-    
+
     set specpath ${workpath}/${portname}-port.spec
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage categories maintainers} {
@@ -93,7 +93,7 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
     set category   [lindex [split $categories " "] 0]
     set license    "Unknown"
     set maintainer $maintainers
-    
+
     set dependencies {}
     # get deplist
     set deps [make_dependency_list $portname]
@@ -118,10 +118,10 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
     foreach dist $distfiles {
         system "cp -p ${distpath}/${dist} ${sourcespath}/${dist}"
     }
-    
+
     write_port_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $pkg_homepage $category $license $maintainer $distfiles $fetch_urls $dependencies $epoch $src
     system "rpmbuild -bs -v --nodeps ${rpmdestpath} ${specpath}"
-    
+
     return 0
 }
 
@@ -135,7 +135,7 @@ proc portsrpm::make_dependency_list {portname} {
     }
     foreach {name array} $res {
         array set portinfo $array
-	
+
         if {[info exists portinfo(depends_fetch)] || [info exists portinfo(depends_extract)]
             || [info exists portinfo(depends_build)] || [info exists portinfo(depends_lib)]} {
             # get the union of depends_fetch, depends_extract, depends_build and depends_lib
@@ -145,10 +145,10 @@ proc portsrpm::make_dependency_list {portname} {
             if {[info exists portinfo(depends_extract)]} { eval "lappend depends $portinfo(depends_extract)" }
             if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
             if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-	    
+
             foreach depspec $depends {
                 set dep [lindex [split $depspec :] end]
-		
+
                 # xxx: nasty hack
                 if {$dep != "XFree86"} {
                     eval "lappend result [make_dependency_list $dep]"
@@ -219,7 +219,7 @@ Source1: ${portname}-files.zip"
     set count $first
     puts $specfd "#distfiles"
     foreach file ${distfiles} {
-    
+
         puts -nonewline $specfd "Source${count}: "
         if {![info exists $fetch_urls]} {
         foreach {url_var distfile}  ${fetch_urls} {

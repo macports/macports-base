@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -53,16 +53,16 @@ set_ui_prefix
 
 proc portrpm::rpm_main {args} {
     global subport version revision UI_PREFIX
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating RPM package for %s-%s"] ${subport} ${version}]"
-    
+
     return [rpm_pkg $subport $version $revision]
 }
 
 proc portrpm::rpm_pkg {portname portversion portrevision} {
     global UI_PREFIX rpm.asroot package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
 	global os.platform os.arch os.version os.major supported_archs configure.build_arch license
-    
+
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
         set rpm.asroot no
@@ -83,7 +83,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
     } elseif {${configure.build_arch} != ""} {
         set rpmbuildarch "--target ${configure.build_arch}"
     }
-    
+
     foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
         foreach arch [list ${configure.build_arch} ${os.arch} "fat" "noarch"] {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
@@ -94,7 +94,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
             }
         }
     }
-    
+
     set specpath ${workpath}/${portname}.spec
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage categories maintainers} {
@@ -106,7 +106,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
     }
     set category   [lindex [split $categories " "] 0]
     set maintainer $maintainers
-    
+
     set dependencies {}
     # get deplist
     set deps [make_dependency_list $portname]
@@ -122,7 +122,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
 
 	# depend on system (virtual packages for apple stuff)
 	lappend dependencies "org.macports.${os.platform}${os.major}"
-    
+
     set listpath ${workpath}/${portname}.filelist
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"
     #system "cd '${destpath}' && find . -type d | grep -v -E '^.$' | sed -e 's/\"/\\\"/g' -e 's/^./%dir \"/' -e 's/$/\"/' > '${workpath}/${portname}.filelist'"
@@ -130,7 +130,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
     system "cd '${destpath}' && find . ! -type d | grep /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./%config \"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
     write_spec ${specpath} ${destpath} ${listpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $pkg_homepage $category $license $maintainer $dependencies $epoch
     system "MP_USERECEIPTS='${portdbpath}/receipts' rpmbuild -bb -v ${rpmbuildarch} ${rpmdestpath} ${specpath}"
-    
+
     return 0
 }
 
@@ -144,17 +144,17 @@ proc portrpm::make_dependency_list {portname} {
     }
     foreach {name array} $res {
         array set portinfo $array
-	
+
         if {[info exists portinfo(depends_run)] || [info exists portinfo(depends_lib)]} {
             # get the union of depends_run and depends_lib
             # xxx: only examines the portfile component of the depspec
             set depends {}
             if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
             if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-	    
+
             foreach depspec $depends {
                 set dep [lindex [split $depspec :] end]
-		
+
                 # xxx: nasty hack
                 if {$dep != "XFree86"} {
                     eval "lappend result [make_dependency_list $dep]"

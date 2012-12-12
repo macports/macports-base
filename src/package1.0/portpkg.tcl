@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -300,7 +300,7 @@ proc portpkg::write_welcome_html {filename portname portversion long_description
     set long_description [xml_escape $long_description]
     set description [xml_escape $description]
     set homepage [xml_escape $homepage]
-	
+
     puts $fd "
 <html lang=\"en\">
 <head>
@@ -325,7 +325,7 @@ proc portpkg::write_welcome_html {filename portname portversion long_description
 }
 
 proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath} {
-    
+
     if {[catch {set numFiles [llength [split [exec [findBinary lsbom $portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
@@ -343,7 +343,7 @@ proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath}
     }
     incr installedSize $infoSize
     incr installedSize $bomSize
-	
+
     set fd [open ${sizesfile} w+]
     puts $fd "NumFiles $numFiles
 InstalledSize $installedSize
