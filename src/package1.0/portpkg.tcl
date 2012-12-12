@@ -304,8 +304,8 @@ proc portpkg::write_welcome_html {filename portname portversion long_description
     puts $fd "
 <html lang=\"en\">
 <head>
-	<meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
-	<title>Install ${portname}</title>
+    <meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
+    <title>Install ${portname}</title>
 </head>
 <body>
 <font face=\"Helvetica\"><b>Welcome to the ${portname} for Mac OS X Installer</b></font>
