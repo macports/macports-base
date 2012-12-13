@@ -1959,7 +1959,7 @@ proc eval_variants {variations} {
     }
 
     # now that we've selected variants, change all provides [a b c] to [a-b-c]
-    # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
+    # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirements.
     #foreach obj $dlist {
     #    $obj set provides [list [join [$obj get provides] -]]
     #}
