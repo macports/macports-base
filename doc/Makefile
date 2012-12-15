@@ -34,13 +34,6 @@ install: all
 
 	< prefix.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
 	< base.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
-	if test -L "${INSTALLDIR}/man" ; then \
-		rm -f "${INSTALLDIR}/man"; \
-	fi
-
-	if test ! -e "${INSTALLDIR}/man" ; then \
-		$(LN_S) share/man "${INSTALLDIR}/man"; \
-	fi
 
 	for f in ${CONF}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$f "${DESTDIR}${mpconfigdir}/$${f}.default"; \
