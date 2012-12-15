@@ -3370,7 +3370,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as $owner:$group; permissions $perms; Tcl-Package in $tclpackage\n"
-            if { [catch { system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make && make install SELFUPDATING=1" } result] } {
+            if { [catch { system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1" } result] } {
                 return -code error "Error installing new MacPorts base: $result"
             }
             if {[info exists updatestatus]} {
