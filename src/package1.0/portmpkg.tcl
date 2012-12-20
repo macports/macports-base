@@ -59,7 +59,7 @@ proc portmpkg::mpkg_main {args} {
 }
 
 proc portmpkg::make_dependency_list {portname destination} {
-    global variations prefix package.destpath package.flat
+    global requested_variations prefix package.destpath package.flat
     set result {}
     if {[catch {set res [mport_lookup $portname]} error]} {
         global errorInfo
@@ -73,7 +73,7 @@ proc portmpkg::make_dependency_list {portname destination} {
         set deprivileged 1
     }
 
-    set mport [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get variations]]
+    set mport [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get requested_variations]]
 
     if {[info exists deprivileged]} {
         global macportsuser

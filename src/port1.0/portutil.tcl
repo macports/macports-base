@@ -1939,7 +1939,7 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global all_variants ports_force PortInfo portvariants negated_variants
+    global all_variants ports_force PortInfo requested_variations portvariants negated_variants
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
@@ -1950,6 +1950,8 @@ proc eval_variants {variations} {
     # Check to make sure the requested variations are available with this
     # port, if one is not, warn the user and remove the variant from the
     # array.
+    # Save the originally requested set in requested_variations.
+    array set requested_variations [array get upvariations]
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
             [lsearch $PortInfo(variants) $key] == -1} {
