@@ -4385,7 +4385,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             }
             incr broken_port_counts($portname)
             if {$broken_port_counts($portname) > 3} {
-                ui_error "Port $portname is still broken after rebuiling it more than 3 times."
+                ui_error "Port $portname is still broken after rebuilding it more than 3 times."
                 if {$fancy_output} {
                     ui_error "Please run port -d -y rev-upgrade and use the output to report a bug."
                 }
