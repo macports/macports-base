@@ -178,7 +178,7 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
 
     if {${package.flat} && ${os.major} >= 10} {
