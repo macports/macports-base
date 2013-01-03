@@ -100,7 +100,7 @@ proc portmpkg::make_dependency_list {portname destination} {
     return $result
 }
 
-proc portmpkg::make_one_package {portname portversion mport} {
+proc portmpkg::make_one_package {portname mport} {
     if {[getuid] == 0 && [geteuid] != 0} {
         setegid 0; seteuid 0
         set deprivileged 1
@@ -148,7 +148,7 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
         set mport [lindex $dep 3]
         # don't re-package ourself
         if {$name != $portname} {
-            make_one_package $name $vers $mport
+            make_one_package $name $mport
             if {${package.flat} && ${os.major} >= 10} {
                 lappend dependencies org.macports.${name} ${name}-${vers}_${rev}-component.pkg
             } else {
