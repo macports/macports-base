@@ -189,7 +189,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 
         write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
-        write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
+        write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${pkgpath} ${destpath}
 
     }
 
@@ -324,7 +324,7 @@ proc portpkg::write_welcome_html {filename portname portversion long_description
     close $fd
 }
 
-proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath} {
+proc portpkg::write_sizes_file {sizesfile pkgpath destpath} {
 
     if {[catch {set numFiles [llength [split [exec [findBinary lsbom $portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
