@@ -145,6 +145,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
             }
             set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
             if {${os.major} >= 10} {
+                append cmdline " --version ${portversion}.${portrevision}"
                 append cmdline " --no-relocate"
             } else {
                 # 10.5 Leopard does not use current language, manually specify
