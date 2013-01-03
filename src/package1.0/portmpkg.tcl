@@ -123,7 +123,7 @@ proc portmpkg::make_one_package {portname portversion mport} {
 proc portmpkg::package_mpkg {portname portversion portrevision} {
     global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
-    set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
+    set mpkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}.mpkg
 
     if {${package.flat} && ${os.major} >= 10} {
         set pkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}-component.pkg
