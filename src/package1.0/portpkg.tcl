@@ -98,7 +98,7 @@ proc portpkg::pkg_start {args} {
 proc portpkg::pkg_main {args} {
     global subport version revision UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${subport} ${version}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s_%s"] ${subport} ${version} ${revision}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
         elevateToRoot "pkg"
@@ -114,7 +114,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
 
     set pkgpath "${package.destpath}/${portname}-${portversion}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s is up-to-date"] ${portname} ${portversion} ${portrevision}]"
         return 0
     }
 
