@@ -92,7 +92,7 @@ proc portpkg::pkg_start {args} {
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
 
     if {${package.flat} && ${os.major} >= 9} {
-        write_distribution "${workpath}/Distribution" $subport $version
+        write_distribution "${workpath}/Distribution" $subport $version $revision
     }
 }
 
@@ -113,7 +113,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
     package.flat package.destpath portpath os.version os.major \
     package.resources package.scripts portpkg::packagemaker portpkg::language
 
-    set pkgpath "${package.destpath}/${portname}-${portversion}.pkg"
+    set pkgpath "${package.destpath}/${portname}-${portversion}_${portrevision}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s is up-to-date"] ${portname} ${portversion} ${portrevision}]"
         return 0
@@ -361,7 +361,7 @@ proc portpkg::write_package_info {infofile} {
     close $infofd
 }
 
-proc portpkg::write_distribution {dfile portname portversion} {
+proc portpkg::write_distribution {dfile portname portversion portrevision} {
     global macosx_deployment_target
     set portname [xml_escape $portname]
     set portversion [xml_escape $portversion]
@@ -382,7 +382,7 @@ proc portpkg::write_distribution {dfile portname portversion} {
     <choice id=\"org.macports.${portname}\" visible=\"false\">
         <pkg-ref id=\"org.macports.${portname}\"/>
     </choice>
-    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portversion}-component.pkg</pkg-ref>
+    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portversion}_${portrevision}-component.pkg</pkg-ref>
 </installer-gui-script>
 "
     close $dfd
