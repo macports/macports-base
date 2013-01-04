@@ -145,7 +145,8 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
             }
             set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
             if {${os.major} >= 10} {
-                append cmdline " --version ${portversion}.${portrevision}"
+                set v [mp_version_to_apple_version $portepoch $portversion $portrevision]
+                append cmdline " --version $v"
                 append cmdline " --no-relocate"
             } else {
                 # 10.5 Leopard does not use current language, manually specify
@@ -388,4 +389,30 @@ proc portpkg::write_distribution {dfile portname portepoch portversion portrevis
 </installer-gui-script>
 "
     close $dfd
+}
+
+# To create Apple packages, Apple version numbers consist of three
+# period separated integers [1][2].  Munki supports any number of
+# integers [3], so incorporate the port epoch, version and revision
+# number in the package version number so that Munki can do upgrades.
+# Munki also requires that version numbers only consist of integers
+# and periods.  So replace all non-periods and non-digits are found in
+# the version number with periods so that any digits following the
+# non-digits can properly version the package.
+# [1] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
+# [2] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
+# [3] https://groups.google.com/d/msg/munki-dev/-DCERUz6rrM/zMbY6iimIGwJ
+proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
+    set v "${portepoch}.${portversion}.${portrevision}"
+
+    # Replace all non-period and non-digit characters with a period.
+    regsub -all -- {[^.0-9]+} $v . v
+
+    # Replace two or more consecutive periods with a single period.
+    regsub -all -- {[.]+} $v . v
+
+    # Trim trailing periods.
+    regsub -- {[.]+$} $v {} v
+
+    return $v
 }
