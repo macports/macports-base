@@ -186,7 +186,8 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     if {${package.flat} && ${os.major} >= 10} {
         write_distribution ${workpath}/Distribution $portname $dependencies
         set productbuild [findBinary productbuild]
-        set cmdline "$productbuild --resources ${resources_path} --identifier org.macports.mpkg.${portname} --distribution ${workpath}/Distribution --package-path ${packages_path} --version ${portversion}.${portrevision} ${mpkgpath}"
+        set v [portpkg::mp_version_to_apple_version $portepoch $portversion $portrevision]
+        set cmdline "$productbuild --resources ${resources_path} --identifier org.macports.mpkg.${portname} --distribution ${workpath}/Distribution --package-path ${packages_path} --version ${v} ${mpkgpath}"
         ui_debug "Running command line: $cmdline"
         system $cmdline
     }
