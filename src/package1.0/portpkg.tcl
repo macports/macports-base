@@ -97,25 +97,25 @@ proc portpkg::pkg_start {args} {
 }
 
 proc portpkg::pkg_main {args} {
-    global subport version revision UI_PREFIX
+    global subport epoch version revision UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s_%s"] ${subport} ${version} ${revision}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s_%s_%s"] ${subport} ${epoch} ${version} ${revision}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
         elevateToRoot "pkg"
     }
 
-    return [package_pkg $subport $version $revision]
+    return [package_pkg $subport $epoch $version $revision]
 }
 
-proc portpkg::package_pkg {portname portversion portrevision} {
+proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description \
     package.flat package.destpath portpath os.version os.major \
     package.resources package.scripts portpkg::packagemaker portpkg::language
 
     set pkgpath "${package.destpath}/${portname}-${portversion}_${portrevision}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s is up-to-date"] ${portname} ${portversion} ${portrevision}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s_%s is up-to-date"] ${portname} ${portepoch} ${portversion} ${portrevision}]"
         return 0
     }
 
