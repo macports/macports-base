@@ -59,7 +59,7 @@ proc portpkg::pkg_start {args} {
     global packagemaker_path portpkg::packagemaker \
            portpkg::language xcodeversion portpath porturl \
            package.resources package.scripts package.flat \
-           subport version revision description long_description \
+           subport epoch version revision description long_description \
            homepage workpath os.major
 
     if {![info exists packagemaker_path]} {
@@ -88,7 +88,7 @@ proc portpkg::pkg_start {args} {
             set pkg_$variable [set $variable]
         }
     }
-    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $version $revision $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $epoch $version $revision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
 
     if {${package.flat} && ${os.major} >= 9} {
@@ -291,13 +291,14 @@ proc portpkg::write_description_plist {infofile portname portversion description
     close $infofd
 }
 
-proc portpkg::write_welcome_html {filename portname portversion portrevision long_description description homepage} {
+proc portpkg::write_welcome_html {filename portname portepoch portversion portrevision long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description == ""} {
         set long_description $description
     }
 
     set portname [xml_escape $portname]
+    set portepoch [xml_escape $portepoch]
     set portversion [xml_escape $portversion]
     set portrevision [xml_escape $portrevision]
     set long_description [xml_escape $long_description]
@@ -320,7 +321,7 @@ proc portpkg::write_welcome_html {filename portname portversion portrevision lon
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
-    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion}_${portrevision} for Mac OS X. To get started, click Continue.</font>
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portepoch}_${portversion}_${portrevision} for Mac OS X. To get started, click Continue.</font>
 </body>
 </html>"
 

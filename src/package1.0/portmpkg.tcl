@@ -48,14 +48,14 @@ options package.destpath package.flat
 set_ui_prefix
 
 proc portmpkg::mpkg_main {args} {
-    global subport version revision os.major package.destpath package.flat UI_PREFIX
+    global subport epoch version revision os.major package.destpath package.flat UI_PREFIX
 
     if {!${package.flat} || ${os.major} < 10} {
         # Make sure the destination path exists.
         file mkdir ${package.destpath}
     }
 
-    return [package_mpkg $subport $version $revision]
+    return [package_mpkg $subport $epoch $version $revision]
 }
 
 proc portmpkg::make_dependency_list {portname destination} {
@@ -120,7 +120,7 @@ proc portmpkg::make_one_package {portname mport} {
     }
 }
 
-proc portmpkg::package_mpkg {portname portversion portrevision} {
+proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
     set mpkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}.mpkg
@@ -179,7 +179,7 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
+    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portepoch $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
 
     if {${package.flat} && ${os.major} >= 10} {
