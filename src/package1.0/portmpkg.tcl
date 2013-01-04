@@ -96,7 +96,7 @@ proc portmpkg::make_dependency_list {portname destination} {
         }
     }
 
-    lappend result [list $portinfo(name) $portinfo(version) $portinfo(revision) $mport]
+    lappend result [list $portinfo(name) $portinfo(epoch) $portinfo(version) $portinfo(revision) $mport]
     return $result
 }
 
@@ -126,11 +126,11 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     set mpkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}.mpkg
 
     if {${package.flat} && ${os.major} >= 10} {
-        set pkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}-component.pkg
+        set pkgpath ${package.destpath}/${portname}-${portepoch}_${portversion}_${portrevision}-component.pkg
         set packages_path ${workpath}/mpkg_packages
         set resources_path ${workpath}/mpkg_resources
     } else {
-        set pkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}.pkg
+        set pkgpath ${package.destpath}/${portname}-${portepoch}_${portversion}_${portrevision}.pkg
         set packages_path ${mpkgpath}/Contents/Packages
         set resources_path ${mpkgpath}/Contents/Resources
     }
@@ -143,23 +143,24 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     set deps [lsort -unique $deps]
     foreach dep $deps {
         set name [lindex $dep 0]
-        set vers [lindex $dep 1]
-        set rev [lindex $dep 2]
-        set mport [lindex $dep 3]
+        set epoch [lindex $dep 1]
+        set vers [lindex $dep 2]
+        set rev [lindex $dep 3]
+        set mport [lindex $dep 4]
         # don't re-package ourself
         if {$name != $portname} {
             make_one_package $name $mport
             if {${package.flat} && ${os.major} >= 10} {
-                lappend dependencies org.macports.${name} ${name}-${vers}_${rev}-component.pkg
+                lappend dependencies org.macports.${name} ${name}-${epoch}_${vers}_${rev}-component.pkg
             } else {
-                lappend dependencies ${name}-${vers}_${rev}.pkg
+                lappend dependencies ${name}-${epoch}_${vers}_${rev}.pkg
             }
         }
     }
     if {${package.flat} && ${os.major} >= 10} {
-        lappend dependencies org.macports.${portname} ${portname}-${portversion}_${portrevision}-component.pkg
+        lappend dependencies org.macports.${portname} ${portname}-${portepoch}_${portversion}_${portrevision}-component.pkg
     } else {
-        lappend dependencies ${portname}-${portversion}_${portrevision}.pkg
+        lappend dependencies ${portname}-${portepoch}_${portversion}_${portrevision}.pkg
     }
 
     # copy our own pkg into the mpkg
