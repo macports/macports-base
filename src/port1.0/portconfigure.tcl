@@ -410,7 +410,7 @@ array set portconfigure::compiler_name_map {
         macports-clang-3.0      clang-3.0
         macports-clang-3.1      clang-3.1
         macports-clang-3.2      clang-3.2
-        macports-clang-3.2      clang-3.3
+        macports-clang-3.3      clang-3.3
 }
 
 # internal function to determine the default compiler
