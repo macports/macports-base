@@ -123,14 +123,22 @@ proc portmpkg::make_one_package {portname mport} {
 proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
-    set mpkgpath ${package.destpath}/${portname}-${portepoch}_${portversion}_${portrevision}.mpkg
+    set portepoch_namestr ""
+    if {${portepoch} != "0"} {
+        set portepoch_namestr "${portepoch}_"
+    }
+    set portrevision_namestr ""
+    if {${portrevision} != "0"} {
+        set portrevision_namestr "_${portrevision}"
+    }
+    set mpkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.mpkg
 
     if {${package.flat} && ${os.major} >= 10} {
-        set pkgpath ${package.destpath}/${portname}-${portepoch}_${portversion}_${portrevision}-component.pkg
+        set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
         set packages_path ${workpath}/mpkg_packages
         set resources_path ${workpath}/mpkg_resources
     } else {
-        set pkgpath ${package.destpath}/${portname}-${portepoch}_${portversion}_${portrevision}.pkg
+        set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg
         set packages_path ${mpkgpath}/Contents/Packages
         set resources_path ${mpkgpath}/Contents/Resources
     }
@@ -144,23 +152,31 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     foreach dep $deps {
         set name [lindex $dep 0]
         set epoch [lindex $dep 1]
+        set epoch_namestr ""
+        if {$epoch != "0"} {
+            set epoch_namestr "${epoch}_"
+        }
         set vers [lindex $dep 2]
         set rev [lindex $dep 3]
+        set rev_namestr ""
+        if {$rev != "0"} {
+            set rev_namestr "_${rev}"
+        }
         set mport [lindex $dep 4]
         # don't re-package ourself
         if {$name != $portname} {
             make_one_package $name $mport
             if {${package.flat} && ${os.major} >= 10} {
-                lappend dependencies org.macports.${name} ${name}-${epoch}_${vers}_${rev}-component.pkg
+                lappend dependencies org.macports.${name} ${name}-${epoch_namestr}${vers}${rev_namestr}-component.pkg
             } else {
-                lappend dependencies ${name}-${epoch}_${vers}_${rev}.pkg
+                lappend dependencies ${name}-${epoch_namestr}${vers}${rev_namestr}.pkg
             }
         }
     }
     if {${package.flat} && ${os.major} >= 10} {
-        lappend dependencies org.macports.${portname} ${portname}-${portepoch}_${portversion}_${portrevision}-component.pkg
+        lappend dependencies org.macports.${portname} ${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
     } else {
-        lappend dependencies ${portname}-${portepoch}_${portversion}_${portrevision}.pkg
+        lappend dependencies ${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg
     }
 
     # copy our own pkg into the mpkg

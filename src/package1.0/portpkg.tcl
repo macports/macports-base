@@ -113,7 +113,16 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     package.flat package.destpath portpath os.version os.major \
     package.resources package.scripts portpkg::packagemaker portpkg::language
 
-    set pkgpath "${package.destpath}/${portname}-${portepoch}_${portversion}_${portrevision}.pkg"
+    set portepoch_namestr ""
+    if {${portepoch} != "0"} {
+        set portepoch_namestr "${portepoch}_"
+    }
+    set portrevision_namestr ""
+    if {${portrevision} != "0"} {
+        set portrevision_namestr "_${portrevision}"
+    }
+
+    set pkgpath "${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s_%s is up-to-date"] ${portname} ${portepoch} ${portversion} ${portrevision}]"
         return 0
@@ -299,9 +308,21 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
     }
 
     set portname [xml_escape $portname]
-    set portepoch [xml_escape $portepoch]
+    if {$portepoch != "0"} {
+        set portepoch [xml_escape $portepoch]
+        set portepoch_str "${portepoch}_"
+    } else {
+        set portepoch ""
+        set portepoch_str ""
+    }
     set portversion [xml_escape $portversion]
-    set portrevision [xml_escape $portrevision]
+    if {$portrevision != "0"} {
+        set portrevision [xml_escape $portrevision]
+        set portrevision_str "_${portrevision}"
+    } else {
+        set portrevision ""
+        set portrevision_str ""
+    }
     set long_description [xml_escape $long_description]
     set description [xml_escape $description]
     set homepage [xml_escape $homepage]
@@ -322,7 +343,7 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
-    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portepoch}_${portversion}_${portrevision} for Mac OS X. To get started, click Continue.</font>
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portepoch_str}${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
 </body>
 </html>"
 
@@ -367,7 +388,21 @@ proc portpkg::write_package_info {infofile} {
 proc portpkg::write_distribution {dfile portname portepoch portversion portrevision} {
     global macosx_deployment_target
     set portname [xml_escape $portname]
+    if {$portepoch != "0"} {
+        set portepoch [xml_escape $portepoch]
+        set portepoch_str "${portepoch}_"
+    } else {
+        set portepoch ""
+        set portepoch_str ""
+    }
     set portversion [xml_escape $portversion]
+    if {$portrevision != "0"} {
+        set portrevision [xml_escape $portrevision]
+        set portrevision_str "_${portrevision}"
+    } else {
+        set portrevision ""
+        set portrevision_str ""
+    }
     set dfd [open $dfile w+]
     puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
@@ -385,7 +420,7 @@ proc portpkg::write_distribution {dfile portname portepoch portversion portrevis
     <choice id=\"org.macports.${portname}\" visible=\"false\">
         <pkg-ref id=\"org.macports.${portname}\"/>
     </choice>
-    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portepoch}_${portversion}_${portrevision}-component.pkg</pkg-ref>
+    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portepoch_str}${portversion}${portrevision_str}-component.pkg</pkg-ref>
 </installer-gui-script>
 "
     close $dfd
