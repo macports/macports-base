@@ -2139,7 +2139,7 @@ proc action_info { action portlist opts } {
                 set inf "$portinfo(name) @$portinfo(version)"
                 set ropt "heading"
                 if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
-                    append inf ", Revision $portinfo(revision)"
+                    append inf "_$portinfo(revision)"
                 }
                 if {[info exists portinfo(categories)]} {
                     append inf " ([join $portinfo(categories) ", "])"
@@ -3623,6 +3623,9 @@ proc action_search { action portlist opts } {
                     puts -nonewline $joiner
 
                     puts -nonewline "$portinfo(name) @$portinfo(version)"
+                    if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
+                        puts -nonewline "_$portinfo(revision)"
+                    }
                     if {[info exists portinfo(categories)]} {
                         puts -nonewline " ([join $portinfo(categories) ", "])"
                     }
