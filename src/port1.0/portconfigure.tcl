@@ -222,6 +222,8 @@ proc portconfigure::configure_start {args} {
         macports-clang-2.9 { set name "MacPorts clang 2.9" }
         macports-clang-3.0 { set name "MacPorts clang 3.0" }
         macports-clang-3.1 { set name "MacPorts clang 3.1" }
+        macports-clang-3.2 { set name "MacPorts clang 3.2" }
+        macports-clang-3.3 { set name "MacPorts clang 3.3" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -369,6 +371,8 @@ proc portconfigure::arch_flag_supported {args} {
         macports-clang-2.9 -
         macports-clang-3.0 -
         macports-clang-3.1 -
+        macports-clang-3.2 -
+        macports-clang-3.3 -
         macports-clang {
             return yes
         }
@@ -405,6 +409,8 @@ array set portconfigure::compiler_name_map {
         macports-clang-2.9      clang-2.9
         macports-clang-3.0      clang-3.0
         macports-clang-3.1      clang-3.1
+        macports-clang-3.2      clang-3.2
+        macports-clang-3.3      clang-3.3
 }
 
 # internal function to determine the default compiler
@@ -681,6 +687,20 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 cc   { set ret ${prefix}/bin/clang-mp-3.1 }
                 objc { set ret ${prefix}/bin/clang-mp-3.1 }
                 cxx  { set ret ${prefix}/bin/clang++-mp-3.1 }
+            }
+        }
+        macports-clang-3.2 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang-mp-3.2 }
+                objc { set ret ${prefix}/bin/clang-mp-3.2 }
+                cxx  { set ret ${prefix}/bin/clang++-mp-3.2 }
+            }
+        }
+        macports-clang-3.3 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang-mp-3.3 }
+                objc { set ret ${prefix}/bin/clang-mp-3.3 }
+                cxx  { set ret ${prefix}/bin/clang++-mp-3.3 }
             }
         }
     }
