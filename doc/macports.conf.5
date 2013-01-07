@@ -187,6 +187,14 @@ Supported types are: none, SystemStarter, launchd, default, rcNG.
 .br
 .Ic Default:
 default
+.It Va startupitem_install
+Option to install symlinks into /Library/LaunchAgents or
+/Library/LaunchDaemons; startupitem_install may be empty, "yes" or "no";
+if the option is NOT "no" then a symlink for the startupitem will be
+created in the appropriate system directory.
+.br
+.Ic Default:
+yes
 .It Va destroot_umask
 Umask value to use during the destrooting of a port.
 .br
@@ -220,6 +228,55 @@ ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 .It Va extra_env
 List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
 Changing this is unsupported.
+.It Va proxy_override_env
+Proxy support. Precedence is: env, macports.conf, System Preferences.
+That is, if it's set in the environment, that will be used instead of
+anything here or in System Preferences. Setting proxy_override_env to
+yes will cause any proxies set here (or in System Preferences if set
+there but not here) to override what's in the environment. Note that
+System Preferences doesn't have an rsync proxy definition. Also note, on
+10.5, sudo will clear many environment variables including those for
+proxy support. Equivalent environment variables: http_proxy,
+HTTPS_PROXY, FTP_PROXY, RSYNC_PROXY, NO_PROXY
+.br
+.Ic Default:
+yes
+.It Va proxy_http
+HTTP proxy
+.br
+.Ic Default:
+none
+.It Va proxy_https
+HTTPS proxy
+.br
+.Ic Default:
+none
+.It Va proxy_ftp
+FTP proxy
+.br
+.Ic Default:
+none
+.It Va proxy_rsync
+rsync proxy
+.br
+.Ic Default:
+none
+.It Va proxy_skip
+Hosts not to go through the proxy (comma-separated, applies to HTTP,
+HTTPS and FTP, but not rsync):
+.br
+.Ic Default:
+none
+.It Va host_blacklist
+Space separated list of download hosts that should not be used.
+.br
+.Ic Default:
+none
+.It Va preferred_hosts
+Space separated list of download hosts that should be used preferentially.
+.br
+.Ic Default:
+none
 .It Va revupgrade_autorun
 Controls whether the rev-upgrade action will be run automatically after
 upgrading ports.
