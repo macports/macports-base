@@ -702,6 +702,13 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 cxx  { set ret ${prefix}/bin/clang++-mp-3.2 }
             }
         }
+        macports-clang-3.3 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang-mp-3.3 }
+                objc { set ret ${prefix}/bin/clang-mp-3.3 }
+                cxx  { set ret ${prefix}/bin/clang++-mp-3.3 }
+            }
+        }
     }
     return $ret
 }
