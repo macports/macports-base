@@ -27,7 +27,22 @@ Release 2.1.3 (unreleased)
 
     - Fix a problem where interrupting the uninstallation process could leave
       the registry database in a corrupted state.
-      (cal in r100219)
+      (#34482, cal in r100219)
+
+    - Fixed a failure in the fallback code used by 'port pkg' when
+      PackageMaker is not installed. (#36597, jmr in r96262)
+
+    - Fixed an incorrect lint error about the port directory name when a full
+      @macports.org maintainer address is used. (#35925, ryandesign in r97264)
+
+    - Fixed creation of disk images with flat packages. (jmr in r99167)
+
+    - Fixed a bug where not all requested variants would be passed on to
+      dependencies when building an mpkg. (#36363, jmr in r100679)
+
+    - Added configure.compiler options macports-clang-3.2 and
+      macports-clang-3.3 (jeremyhu, ryandesign, jmr in r92588, r101163,
+      r101166, r101270)
 
 Release 2.1.2 (2012-07-26 by jmr):
     - Fixed autodetection of developer_dir with Xcode 4.4
