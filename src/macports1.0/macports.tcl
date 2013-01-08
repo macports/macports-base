@@ -4363,23 +4363,35 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         set broken_ports [lsort -unique $broken_ports]
 
-        set temp_broken_ports $broken_ports
-        set broken_ports {}
-
-        foreach port $temp_broken_ports {
-            set portname [$port name]
+        if {${macports::revupgrade_mode} == "rebuild"} {
             # don't try to rebuild ports that don't exist in the tree
-            if {${macports::revupgrade_mode} == "rebuild"} {
+            set temp_broken_ports {}
+            foreach port $broken_ports {
+                set portname [$port name]
                 if {[catch {mportlookup $portname} result]} {
                     ui_debug "$::errorInfo"
                     error "lookup of portname $portname failed: $result"
                 }
-                if {[llength $result] < 2} {
+                if {[llength $result] >= 2} {
+                    lappend temp_broken_ports $port
+                } else {
                     ui_warn "No port $portname found in the index; can't rebuild"
-                    ui_warn "Either your portindex is corrupt or $portname has been removed; consider uninstalling it."
-                    error "Port $portname not found in index"
                 }
             }
+
+            if {[llength $temp_broken_ports] == 0} {
+                ui_msg "$macports::ui_prefix Broken files found, but all associated ports are not in the index and so cannot be rebuilt."
+                return 0
+            }
+        } else {
+            set temp_broken_ports $broken_ports
+        }
+
+        set broken_ports {}
+
+        foreach port $temp_broken_ports {
+            set portname [$port name]
+
             if {![info exists broken_port_counts($portname)]} {
                 set broken_port_counts($portname) 0
             }
