@@ -209,6 +209,7 @@ proc portarchivefetch::fetchfiles {args} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using archive_sites"] $url_var]
                 set urlmap($url_var) $urlmap(archive_sites)
             }
+            set failed_sites 0
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {
                 if {[string index $site end] != "/"} {
@@ -226,6 +227,10 @@ proc portarchivefetch::fetchfiles {args} {
                 } else {
                     ui_debug "[msgcat::mc "Fetching archive failed:"]: $result"
                     file delete -force "${incoming_path}/${archive}.TMP"
+                    incr failed_sites
+                    if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
+                        break
+                    }
                 }
             }
             if {[info exists fetched]} {
