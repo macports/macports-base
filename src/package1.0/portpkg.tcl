@@ -429,16 +429,38 @@ proc portpkg::write_distribution {dfile portname portepoch portversion portrevis
 # To create Apple packages, Apple version numbers consist of three
 # period separated integers [1][2].  Munki supports any number of
 # integers [3], so incorporate the port epoch, version and revision
-# number in the package version number so that Munki can do upgrades.
+# numbers in the Apple package version number so that Munki can do
+# upgrades.  The Apple package number consists of the port epoch
+# number followed by the port version number followed by the port
+# revision number.
+#
 # Munki also requires that version numbers only consist of integers
-# and periods.  So replace all non-periods and non-digits are found in
-# the version number with periods so that any digits following the
+# and periods.  So replace all non-periods and non-digits in the
+# version number with periods so that any digits following the
 # non-digits can properly version the package.
+#
+# There is an edge case when upstream releases a new version which
+# adds an additional integer to its version number and the Portfile's
+# revision number is reset to 0.  For example, aspell epoch 0,
+# upstream 0.60.6, revision 4 was updated to epoch 0, upstream
+# 0.60.6.1, revision 0, which maps to 0.60.6.4 and 0.60.6.1.0
+# respectively, but the new Apple package version number is less than
+# the old one.  To handle this, all upstream version numbers are
+# mapped to six period separated integers, appending 0 as necessary.
+# Six was the largest number of integers in all upstream version
+# numbers as of January 2013 [4].  This generates a fixed format
+# version number that will correctly upgrade the package,
+# e.g. 0.60.6.4.0.0.0.4 and 0.60.6.1.0.0.1 for aspell.
+#
 # [1] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
 # [2] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
 # [3] https://groups.google.com/d/msg/munki-dev/-DCERUz6rrM/zMbY6iimIGwJ
+# [4] http://lists.macosforge.org/pipermail/macports-dev/2013-January/021477.html
 proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
-    set v "${portepoch}.${portversion}.${portrevision}"
+    # Assume that portepoch and portrevision are non-negative integers
+    # so they do not need to be specially handled like the upstream
+    # version number.
+    set v $portversion
 
     # Replace all non-period and non-digit characters with a period.
     regsub -all -- {[^.0-9]+} $v . v
@@ -448,6 +470,19 @@ proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
 
     # Trim trailing periods.
     regsub -- {[.]+$} $v {} v
+
+    # Add integers so that the total number of integers in the version
+    # number is six.
+    set vs [split $v {.}]
+    while {[llength $vs] < 6} {
+        lappend vs 0
+    }
+
+    # Prepend the epoch and append the revision number.
+    set vs [linsert $vs 0 $portepoch]
+    lappend vs $portrevision
+
+    set v [join $vs {.}]
 
     return $v
 }
