@@ -446,11 +446,12 @@ proc portpkg::write_distribution {dfile portname portepoch portversion portrevis
 # 0.60.6.1, revision 0, which maps to 0.60.6.4 and 0.60.6.1.0
 # respectively, but the new Apple package version number is less than
 # the old one.  To handle this, all upstream version numbers are
-# mapped to six period separated integers, appending 0 as necessary.
+# mapped to seven period separated integers, appending 0 as necessary.
 # Six was the largest number of integers in all upstream version
-# numbers as of January 2013 [4].  This generates a fixed format
-# version number that will correctly upgrade the package,
-# e.g. 0.60.6.4.0.0.0.4 and 0.60.6.1.0.0.1 for aspell.
+# numbers as of January 2013 [4], so add one to make space for
+# trailing [a-zA-Z] in the upstream version number.  This generates a
+# fixed format version number that will correctly upgrade the package,
+# e.g. 0.60.6.4.0.0.0.0.4 and 0.60.6.1.0.0.0.1 for aspell.
 #
 # [1] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
 # [2] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
@@ -471,10 +472,38 @@ proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
     # Trim trailing periods.
     regsub -- {[.]+$} $v {} v
 
-    # Add integers so that the total number of integers in the version
-    # number is six.
+    # Split the string into a list of integers.
     set vs [split $v {.}]
-    while {[llength $vs] < 6} {
+
+    # If the upstream version number ends in [a-zA-Z]+, e.g. openssl's
+    # 1.0.1c, then treat the trailing characters as a base 26 number,
+    # mapping 'A' and 'a' to 1, 'B' and 'b' to 2, etc.
+    if {[regexp -- {\d([a-zA-Z]+)} $portversion ignored chars]} {
+        # Get the integer ordinals of 'A' and 'a'.
+        scan "A" %c ord_A
+        scan "a" %c ord_a
+
+        set i 0
+        foreach char [split $chars ""] {
+            scan $char %c ord
+
+            # Treat uppercase and lowercase characters as the same
+            # value.  Ordinal values less then 'a' should have 'A'
+            # subtracted, otherwise subtract 'a'.  Add 1 to the value
+            # so that 'a' and 'A' are mapped to 1, not 0.
+            if {$ord < $ord_a} {
+                set j [expr $ord - $ord_A + 1]
+            } else {
+                set j [expr $ord - $ord_a + 1]
+            }
+            set i [expr 26*$i + $j]
+        }
+        lappend vs $i
+    }
+
+    # Add integers so that the total number of integers in the version
+    # number is seven.
+    while {[llength $vs] < 7} {
         lappend vs 0
     }
 
