@@ -368,6 +368,7 @@ proc portconfigure::arch_flag_supported {args} {
         clang -
         apple-gcc-4.0 -
         apple-gcc-4.2 -
+        macports-llvm-gcc-4.2 -
         macports-clang-2.9 -
         macports-clang-3.0 -
         macports-clang-3.1 -
@@ -662,9 +663,6 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 objc { set ret ${prefix}/bin/llvm-gcc-4.2 }
                 cxx  { set ret ${prefix}/bin/llvm-g++-4.2 }
                 cpp  { set ret ${prefix}/bin/llvm-cpp-4.2 }
-                fc   { set ret ${prefix}/bin/llvm-gfortran-4.2 }
-                f77  { set ret ${prefix}/bin/llvm-gfortran-4.2 }
-                f90  { set ret ${prefix}/bin/llvm-gfortran-4.2 }
             }
         }
         macports-clang {
