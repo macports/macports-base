@@ -113,7 +113,7 @@ proc portextract::extract_start {args} {
 }
 
 proc portextract::extract_main {args} {
-    global UI_PREFIX filespath worksrcpath extract.dir usealtworkpath altprefix
+    global UI_PREFIX filespath worksrcpath extract.dir usealtworkpath altprefix use_dmg
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -129,7 +129,19 @@ proc portextract::extract_main {args} {
         } else {
             option extract.args "'[option distpath]/$distfile'"
         }
-        if {[catch {command_exec extract} result]} {
+
+        # If the MacPorts user does not have the privileges to mount a
+        # DMG then hdiutil will fail with this error:
+        #   hdiutil: attach failed - Device not configured
+        # So elevate back to root.
+        if {[tbool use_dmg]} {
+            elevateToRoot {extract dmg}
+        }
+        set code [catch {command_exec extract} result]
+        if {[tbool use_dmg]} {
+            dropPrivileges
+        }
+        if {$code} {
             return -code error "$result"
         }
 
