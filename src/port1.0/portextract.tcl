@@ -108,7 +108,7 @@ proc portextract::extract_start {args} {
         set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
         option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
         option extract.pre_args attach
-        option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && [findBinary cp ${portutil::autoconf::cp_path}] -Rp \\\"${dmg_mount}\\\" \\\"${extract.dir}/${distname}\\\" && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\""
+        option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && [findBinary cp ${portutil::autoconf::cp_path}] -Rp \\\"${dmg_mount}\\\" \\\"${extract.dir}/${distname}\\\"; status=\$?; ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\"; exit \$status"
     }
 }
 
