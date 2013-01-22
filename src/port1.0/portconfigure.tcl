@@ -224,6 +224,10 @@ proc portconfigure::configure_start {args} {
         macports-clang-3.1 { set name "MacPorts clang 3.1" }
         macports-clang-3.2 { set name "MacPorts clang 3.2" }
         macports-clang-3.3 { set name "MacPorts clang 3.3" }
+        macports-dragonegg-3.0 { set name "MacPorts dragonegg 3.0" }
+        macports-dragonegg-3.1 { set name "MacPorts dragonegg 3.1" }
+        macports-dragonegg-3.2 { set name "MacPorts dragonegg 3.2" }
+        macports-dragonegg-3.3 { set name "MacPorts dragonegg 3.3" }
         default { return -code error "Invalid value for configure.compiler: ${configure.compiler}" }
     }
     ui_debug "Using compiler '$name'"
@@ -374,6 +378,10 @@ proc portconfigure::arch_flag_supported {args} {
         macports-clang-3.1 -
         macports-clang-3.2 -
         macports-clang-3.3 -
+        macports-dragonegg-3.0 -
+        macports-dragonegg-3.1 -
+        macports-dragonegg-3.2 -
+        macports-dragonegg-3.3 -
         macports-clang {
             return yes
         }
@@ -412,6 +420,10 @@ array set portconfigure::compiler_name_map {
         macports-clang-3.1      clang-3.1
         macports-clang-3.2      clang-3.2
         macports-clang-3.3      clang-3.3
+        macports-dragonegg-3.0  dragonegg-3.0
+        macports-dragonegg-3.1  dragonegg-3.1
+        macports-dragonegg-3.2  dragonegg-3.2
+        macports-dragonegg-3.3  dragonegg-3.3
 }
 
 # internal function to determine the default compiler
@@ -705,6 +717,50 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 cc   { set ret ${prefix}/bin/clang-mp-3.3 }
                 objc { set ret ${prefix}/bin/clang-mp-3.3 }
                 cxx  { set ret ${prefix}/bin/clang++-mp-3.3 }
+            }
+        }
+        macports-dragonegg-3.0 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/dragonegg-3.0-gcc }
+                objc { set ret ${prefix}/bin/dragonegg-3.0-gcc }
+                cxx  { set ret ${prefix}/bin/dragonegg-3.0-g++ }
+                cpp  { set ret ${prefix}/bin/dragonegg-3.0-cpp }
+                fc   { set ret ${prefix}/bin/dragonegg-3.0-gfortran }
+                f77  { set ret ${prefix}/bin/dragonegg-3.0-gfortran }
+                f90  { set ret ${prefix}/bin/dragonegg-3.0-gfortran }
+            }
+        }
+        macports-dragonegg-3.1 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/dragonegg-3.1-gcc }
+                objc { set ret ${prefix}/bin/dragonegg-3.1-gcc }
+                cxx  { set ret ${prefix}/bin/dragonegg-3.1-g++ }
+                cpp  { set ret ${prefix}/bin/dragonegg-3.1-cpp }
+                fc   { set ret ${prefix}/bin/dragonegg-3.1-gfortran }
+                f77  { set ret ${prefix}/bin/dragonegg-3.1-gfortran }
+                f90  { set ret ${prefix}/bin/dragonegg-3.1-gfortran }
+            }
+        }
+        macports-dragonegg-3.2 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/dragonegg-3.2-gcc }
+                objc { set ret ${prefix}/bin/dragonegg-3.2-gcc }
+                cxx  { set ret ${prefix}/bin/dragonegg-3.2-g++ }
+                cpp  { set ret ${prefix}/bin/dragonegg-3.2-cpp }
+                fc   { set ret ${prefix}/bin/dragonegg-3.2-gfortran }
+                f77  { set ret ${prefix}/bin/dragonegg-3.2-gfortran }
+                f90  { set ret ${prefix}/bin/dragonegg-3.2-gfortran }
+            }
+        }
+        macports-dragonegg-3.3 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/dragonegg-3.3-gcc }
+                objc { set ret ${prefix}/bin/dragonegg-3.3-gcc }
+                cxx  { set ret ${prefix}/bin/dragonegg-3.3-g++ }
+                cpp  { set ret ${prefix}/bin/dragonegg-3.3-cpp }
+                fc   { set ret ${prefix}/bin/dragonegg-3.3-gfortran }
+                f77  { set ret ${prefix}/bin/dragonegg-3.3-gfortran }
+                f90  { set ret ${prefix}/bin/dragonegg-3.3-gfortran }
             }
         }
     }
