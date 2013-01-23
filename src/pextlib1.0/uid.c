@@ -110,8 +110,7 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	if (0 != setuid(uid)) {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "could not set uid to %ld: %d %s", uid, errno, strerror(errno));
-        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
-        Tcl_SetObjResult(interp, result);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
         return TCL_ERROR;
     }
 		
@@ -141,8 +140,7 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	if (0 != seteuid(uid)) {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "could not set effective uid to %ld: %d %s", uid, errno, strerror(errno));
-        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
-        Tcl_SetObjResult(interp, result);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
         return TCL_ERROR;
     }
 		
@@ -168,8 +166,7 @@ int setgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     if (0 != setgid(gid)) {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "could not set gid to %ld: %d %s", gid, errno, strerror(errno));
-        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
-        Tcl_SetObjResult(interp, result);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
         return TCL_ERROR;
     }
     
@@ -195,8 +192,7 @@ int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
     if (0 != setegid(gid)) {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "could not set effective gid to %ld: %d %s", gid, errno, strerror(errno));
-        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
-        Tcl_SetObjResult(interp, result);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
         return TCL_ERROR;
     }
     
