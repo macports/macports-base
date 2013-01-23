@@ -114,8 +114,8 @@ proc portdestroot::destroot_start {args} {
         ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
         ui_debug "Run destroot without sudo to avoid root privileges."
         ui_debug "Going to escalate privileges back to root."
-        setegid $egid
         seteuid $euid
+        setegid $egid
         ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
     }
 
