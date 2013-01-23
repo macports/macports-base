@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <tcl.h>
 
@@ -107,8 +108,9 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		
 	/* set the uid */
 	if (0 != setuid(uid)) {
-        Tcl_Obj *result = Tcl_NewStringObj("could not set uid to ", -1);
-        Tcl_AppendObjToObj(result, objv[1]);
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "could not set uid to %ld: %d %s", uid, errno, strerror(errno));
+        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
         Tcl_SetObjResult(interp, result);
         return TCL_ERROR;
     }
@@ -137,8 +139,9 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 		
 	/* set the euid */
 	if (0 != seteuid(uid)) {
-        Tcl_Obj *result = Tcl_NewStringObj("could not set effective uid to ", -1);
-        Tcl_AppendObjToObj(result, objv[1]);
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "could not set effective uid to %ld: %d %s", uid, errno, strerror(errno));
+        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
         Tcl_SetObjResult(interp, result);
         return TCL_ERROR;
     }
@@ -163,8 +166,9 @@ int setgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     }
     
     if (0 != setgid(gid)) {
-        Tcl_Obj *result = Tcl_NewStringObj("could not set gid to ", -1);
-        Tcl_AppendObjToObj(result, objv[1]);
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "could not set gid to %ld: %d %s", gid, errno, strerror(errno));
+        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
         Tcl_SetObjResult(interp, result);
         return TCL_ERROR;
     }
@@ -189,8 +193,9 @@ int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
     }
     
     if (0 != setegid(gid)) {
-        Tcl_Obj *result = Tcl_NewStringObj("could not set effective gid to ", -1);
-        Tcl_AppendObjToObj(result, objv[1]);
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "could not set effective gid to %ld: %d %s", gid, errno, strerror(errno));
+        Tcl_Obj *result = Tcl_NewStringObj(buffer, -1);
         Tcl_SetObjResult(interp, result);
         return TCL_ERROR;
     }
