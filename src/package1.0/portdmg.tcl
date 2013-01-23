@@ -50,7 +50,7 @@ proc portdmg::dmg_main {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
-		setegid 0; seteuid 0
+		seteuid 0; setegid 0
 	}
 
     return [package_dmg $subport $version $revision]

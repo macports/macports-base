@@ -69,7 +69,7 @@ proc portmpkg::make_dependency_list {portname destination} {
     array set portinfo [lindex $res 1]
 
     if {[getuid] == 0 && [geteuid] != 0} {
-        setegid 0; seteuid 0
+        seteuid 0; setegid 0
         set deprivileged 1
     }
 
@@ -102,7 +102,7 @@ proc portmpkg::make_dependency_list {portname destination} {
 
 proc portmpkg::make_one_package {portname mport} {
     if {[getuid] == 0 && [geteuid] != 0} {
-        setegid 0; seteuid 0
+        seteuid 0; setegid 0
         set deprivileged 1
     }
 

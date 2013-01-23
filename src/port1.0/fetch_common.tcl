@@ -243,8 +243,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         if {[getuid] == 0 && [geteuid] != 0} {
             set oldeuid [geteuid]
             set oldegid [getegid]
-            seteuid 0
-            setegid 0
+            seteuid 0; setegid 0
         }
 
         foreach site $urllist {

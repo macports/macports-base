@@ -1594,7 +1594,7 @@ proc eval_targets {target} {
                 # run the activate target but ignore its (completed) dependencies
                 set result [target_run [lindex [dlist_search $dlist provides $target] 0]]
                 if {[getuid] == 0 && [geteuid] != 0} {
-                    setegid 0; seteuid 0
+                    seteuid 0; setegid 0
                 }
                 return $result
             }
@@ -1617,7 +1617,7 @@ proc eval_targets {target} {
     set dlist [dlist_eval $dlist "" target_run]
 
     if {[getuid] == 0 && [geteuid] != 0} {
-        setegid 0; seteuid 0
+        seteuid 0; setegid 0
     }
 
     if {[llength $dlist] > 0} {
@@ -2661,8 +2661,8 @@ proc chownAsRoot {path} {
     if { [getuid] == 0 } {
         if {[geteuid] != 0} {
             # if started with sudo but have dropped the privileges
-            setegid $egid
             seteuid $euid
+            setegid $egid
             ui_debug "euid/egid changed to: [geteuid]/[getegid]"
             chown  ${path} ${macportsuser}
             ui_debug "chowned $path to $macportsuser"
@@ -2686,8 +2686,8 @@ proc fileAttrsAsRoot {file attributes} {
     if {[getuid] == 0} {
         if {[geteuid] != 0} {
             # Started as root, but not root now
-            setegid $egid
             seteuid $euid
+            setegid $egid
             ui_debug "euid/egid changed to: [geteuid]/[getegid]"
             ui_debug "setting attributes on $file"
             eval file attributes {$file} $attributes
@@ -2714,8 +2714,8 @@ proc elevateToRoot {action} {
     if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
         ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
-        setegid $egid
         seteuid $euid
+        setegid $egid
         ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
     } elseif { [getuid] != 0 } {
         return -code error "MacPorts requires root privileges for this action"
