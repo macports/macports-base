@@ -293,7 +293,7 @@ proc portconfigure::configure_get_archflags {tool} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported] && ($tool == "cc" || $tool == "cxx" || $tool == "objc")} {
+        if {[arch_flag_supported ${configure.compiler}] && ($tool == "cc" || $tool == "cxx" || $tool == "objc")} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
@@ -310,7 +310,7 @@ proc portconfigure::configure_get_archflags {tool} {
 # ld directly. So we punt and let portfiles deal with that case.
 proc portconfigure::configure_get_ld_archflags {args} {
     global configure.build_arch
-    if {${configure.build_arch} != "" && [arch_flag_supported]} {
+    if {${configure.build_arch} != "" && [arch_flag_supported ${configure.compiler}]} {
         return "-arch ${configure.build_arch}"
     } else {
         return ""
@@ -363,9 +363,8 @@ proc portconfigure::configure_get_universal_ldflags {args} {
 }
 
 # internal proc to determine if the compiler supports -arch
-proc portconfigure::arch_flag_supported {args} {
-    global configure.compiler
-    switch -exact ${configure.compiler} {
+proc portconfigure::arch_flag_supported {compiler} {
+    switch -exact ${compiler} {
         gcc-4.0 -
         gcc-4.2 -
         llvm-gcc-4.2 -
