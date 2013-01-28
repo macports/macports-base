@@ -378,10 +378,6 @@ proc portconfigure::arch_flag_supported {args} {
         macports-clang-3.1 -
         macports-clang-3.2 -
         macports-clang-3.3 -
-        macports-dragonegg-3.0 -
-        macports-dragonegg-3.1 -
-        macports-dragonegg-3.2 -
-        macports-dragonegg-3.3 -
         macports-clang {
             return yes
         }
