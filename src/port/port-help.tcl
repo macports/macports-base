@@ -314,6 +314,7 @@ Show the disk space used by the given ports
 
 --units <units> Specify units to use. Accepted units are: B, kB, KiB, MB, MiB,
                 GB, GiB. The 'B' may be omitted.
+--total         Display the grand total only
 }
 
 set porthelp(srpm) {

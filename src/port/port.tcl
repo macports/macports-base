@@ -3360,11 +3360,13 @@ proc action_space {action portlist opts} {
                         set space [expr $space + [file size $file] ]
                     }
                 }
-                set msg "[bytesize $space $units] $portname"
-                if { $portversion != {} } {
-                    append msg " @$portversion"
+                if {![info exists options(ports_space_total)] || $options(ports_space_total) != "yes"} {
+                    set msg "[bytesize $space $units] $portname"
+                    if { $portversion != {} } {
+                        append msg " @$portversion"
+                    }
+                    puts $msg
                 }
-                puts $msg
                 set spaceall [expr $space + $spaceall]
             } else {
                 puts "Port $portname does not contain any file or is not active."
@@ -3373,7 +3375,7 @@ proc action_space {action portlist opts} {
             puts "Port $portname is not installed."
         }
     }
-    if {[llength $portlist] > 1} {
+    if {[llength $portlist] > 1 || ([info exists options(ports_space_total)] && $options(ports_space_total) == "yes")} {
         puts "[bytesize $spaceall $units] total"
     }
     return 0
@@ -4240,7 +4242,7 @@ array set cmd_opts_array {
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
     selfupdate  {nosync}
-    space       {{units 1}}
+    space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}
     install     {no-rev-upgrade unrequested}
