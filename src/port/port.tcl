@@ -3369,10 +3369,10 @@ proc action_space {action portlist opts} {
                 }
                 set spaceall [expr $space + $spaceall]
             } else {
-                puts "Port $portname does not contain any file or is not active."
+                puts stderr "Port $portname does not contain any file or is not active."
             }
         } else {
-            puts "Port $portname is not installed."
+            puts stderr "Port $portname is not installed."
         }
     }
     if {[llength $portlist] > 1 || ([info exists options(ports_space_total)] && $options(ports_space_total) == "yes")} {
