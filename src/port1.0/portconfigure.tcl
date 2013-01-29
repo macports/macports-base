@@ -224,7 +224,7 @@ proc portconfigure::configure_start {args} {
         macports-clang-3.1 { set name "MacPorts clang 3.1" }
         macports-clang-3.2 { set name "MacPorts clang 3.2" }
         macports-clang-3.3 { set name "MacPorts clang 3.3" }
-        default { return -code error "Invalid value for configure.compiler" }
+        default { return -code error "Invalid value for configure.compiler: ${configure.compiler}" }
     }
     ui_debug "Using compiler '$name'"
 
