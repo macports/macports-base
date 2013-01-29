@@ -309,7 +309,7 @@ proc portconfigure::configure_get_archflags {tool} {
 # doesn't support -arch, because it could be used to link rather than using
 # ld directly. So we punt and let portfiles deal with that case.
 proc portconfigure::configure_get_ld_archflags {args} {
-    global configure.build_arch
+    global configure.build_arch configure.compiler
     if {${configure.build_arch} != "" && [arch_flag_supported ${configure.compiler}]} {
         return "-arch ${configure.build_arch}"
     } else {
