@@ -4,6 +4,9 @@
 ###
 
 Release 2.2.0 (unreleased)
+    - Add 'port space --total' which displays the grand total only.
+      (raimue in r102248)
+
     - Added 'subport:' pseudo-portname that expands to ports that provide
       a matching subport; added 'subportof:' pseudo-portname that expands to
       the list of subports of the given port name
