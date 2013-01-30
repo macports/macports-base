@@ -443,9 +443,9 @@ proc portconfigure::configure_get_default_compiler {args} {
 
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compiler
-    if {[info exists default_compiler]} {
-        return $default_compiler
+    global xcodeversion macosx_deployment_target default_compilers
+    if {[info exists default_compilers]} {
+        return $default_compilers
     } elseif {$xcodeversion == "none" || $xcodeversion == ""} {
         return {cc}
     } elseif {[vercmp $xcodeversion 4.6] >= 0} {
