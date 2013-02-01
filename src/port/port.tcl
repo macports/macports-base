@@ -2673,13 +2673,19 @@ proc action_revupgrade { action portlist opts } {
 
 
 proc action_version { action portlist opts } {
-    puts "Version: [macports::version]"
+    if ![macports::ui_isset ports_quiet] {
+        puts -nonewline "Version: "
+    }
+    puts [macports::version]
     return 0
 }
 
 
 proc action_platform { action portlist opts } {
-    puts "Platform: ${macports::os_platform} ${macports::os_major} ${macports::os_arch}"
+    if ![macports::ui_isset ports_quiet] {
+        puts -nonewline "Platform: "
+    }
+    puts "${macports::os_platform} ${macports::os_major} ${macports::os_arch}"
     return 0
 }
 
