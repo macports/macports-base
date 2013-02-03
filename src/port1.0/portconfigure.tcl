@@ -388,14 +388,7 @@ proc portconfigure::arch_flag_supported {compiler} {
 
 # check if a compiler comes from a port
 proc portconfigure::compiler_is_port {compiler} {
-    switch $compiler {
-        clang -
-        llvm-gcc-4.2 -
-        gcc-4.2 -
-        gcc-4.0 -
-        gcc-3.3 {return no}
-        default {return yes}
-    }
+    return [info exists portconfigure::compiler_name_map($compiler)]
 }
 
 # maps compiler names to the port that provides them
