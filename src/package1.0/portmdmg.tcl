@@ -45,7 +45,7 @@ namespace eval portmdmg {
 set_ui_prefix
 
 proc portmdmg::mdmg_main {args} {
-    global subport version revision package.destpath UI_PREFIX
+    global subport epoch version revision package.destpath UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}]"
 
@@ -53,10 +53,10 @@ proc portmdmg::mdmg_main {args} {
 		seteuid 0; setegid 0
 	}
 
-    return [package_mdmg $subport $version $revision]
+    return [package_mdmg $subport $epoch $version $revision]
 }
 
-proc portmdmg::package_mdmg {portname portversion portrevision} {
+proc portmdmg::package_mdmg {portname portepoch portversion portrevision} {
     global UI_PREFIX package.destpath portpath
     global os.platform os.arch os.version os.major
 
@@ -68,7 +68,7 @@ proc portmdmg::package_mdmg {portname portversion portrevision} {
 
     set tmp_image ${package.destpath}/${imagename}.tmp.dmg
     set final_image ${package.destpath}/${imagename}.dmg
-    set mpkgpath ${package.destpath}/${portname}-${portversion}_${portrevision}.mpkg
+    set mpkgpath [portmpkg::mpkg_path $portname $portepoch $portversion $portrevision]
 
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"

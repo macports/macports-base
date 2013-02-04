@@ -120,19 +120,37 @@ proc portmpkg::make_one_package {portname mport} {
     }
 }
 
-proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
-    global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
-
+proc portmpkg::epoch_namestr {portepoch} {
     set portepoch_namestr ""
     if {${portepoch} != "0"} {
         set portepoch_namestr "${portepoch}_"
     }
+    return ${portepoch_namestr}
+}
+
+proc portmpkg::revision_namestr {portrevision} {
     set portrevision_namestr ""
     if {${portrevision} != "0"} {
         set portrevision_namestr "_${portrevision}"
     }
-    set mpkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.mpkg
+    return ${portrevision_namestr}
+}
 
+proc portmpkg::mpkg_path {portname portepoch portversion portrevision} {
+    global package.destpath
+    set portepoch_namestr [portmpkg::epoch_namestr ${portepoch}]
+    set portrevision_namestr [portmpkg::revision_namestr ${portrevision}]
+    set mpkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.mpkg
+    return $mpkgpath
+}
+
+proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
+    global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
+
+    set mpkgpath [portmpkg::mpkg_path $portname $portepoch $portversion $portrevision]
+
+    set portepoch_namestr [portmpkg::epoch_namestr ${portepoch}]
+    set portrevision_namestr [portmpkg::revision_namestr ${portrevision}]
     if {${package.flat} && ${os.major} >= 10} {
         set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
         set packages_path ${workpath}/mpkg_packages
