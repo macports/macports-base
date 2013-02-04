@@ -1424,20 +1424,25 @@ proc target_run {ditem} {
                         }
                     }
 
-                    # Dependencies are in the form verb:[param:]port
-                    set depsPorts {}
+                    # Recursively collect all dependencies from registry for tracing
+                    set deplist {}
                     foreach depspec $depends {
-                        # grab the portname portion of the depspec
-                        set dep_portname [lindex [split $depspec :] end]
-                        lappend depsPorts $dep_portname
+                        # Resolve dependencies to actual ports
+                        set name [_get_dep_port $depspec]
+
+                        # If portname is empty, the dependency is already satisfied by other means,
+                        # for example a bin: dependency on a file not installed by MacPorts
+                        if {$name != ""} {
+                            if {[lsearch -exact $deplist $name] == -1} {
+                                lappend deplist $name
+                                set deplist [recursive_collect_deps $name $deplist]
+                            }
+                        }
                     }
 
-                    set portlist $depsPorts
-                    foreach depName $depsPorts {
-                        set portlist [recursive_collect_deps $depName $deptypes $portlist]
-                    }
+                    ui_debug "Tracemode will respect recursively collected port dependencies: [lsort $deplist]"
 
-                    if {[llength $deptypes] > 0} {tracelib setdeps $portlist}
+                    if {[llength $deptypes] > 0} {tracelib setdeps $deplist}
                 }
 
                 if {$result == 0} {
@@ -1537,40 +1542,23 @@ proc target_run {ditem} {
 }
 
 # recursive dependency search for portname
-proc recursive_collect_deps {portname deptypes {depsfound {}}} \
+proc recursive_collect_deps {portname {depsfound {}}} \
 {
-    set res [mport_lookup $portname]
-    if {[llength $res] < 2} \
-    {
-        # Even if this port cannot be found in the index,
-        # it is still listed as dependency
-        if {[lsearch -exact $depsfound $portname] == -1} {
-            lappend depsfound $portname
-        }
-        return $depsfound
-    }
+    # Get the active port from the registry
+    # There can be only one port active at a time, so take the first result only
+    set regentry [lindex [registry_active $portname] 0]
+    # Get port dependencies from the registry
+    set deplist [registry_list_depends [lindex $regentry 0] [lindex $regentry 1] [lindex $regentry 2] [lindex $regentry 3]]
 
-    set depends {}
-
-    array set portinfo [lindex $res 1]
-    foreach deptype $deptypes \
-    {
-        if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} \
-        {
-            set depends [concat $depends $portinfo($deptype)]
+    foreach item $deplist {
+        set name [lindex $item 0]
+        if {[lsearch -exact $depsfound $name] == -1} {
+            lappend depsfound $name
+            set depsfound [recursive_collect_deps $name $depsfound]
         }
     }
 
-    set portdeps $depsfound
-    foreach depspec $depends \
-    {
-        set portname [lindex [split $depspec :] end]
-        if {[lsearch -exact $portdeps $portname] == -1} {
-            lappend portdeps $portname
-            set portdeps [recursive_collect_deps $portname $deptypes $portdeps]
-        }
-    }
-    return $portdeps
+    return $depsfound
 }
 
 
