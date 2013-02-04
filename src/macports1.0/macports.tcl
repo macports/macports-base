@@ -1730,6 +1730,10 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
                 break
             }
         }
+
+        if {$found} {
+            break
+        }
     }
     if {$return_match} {
         if {$found} {
