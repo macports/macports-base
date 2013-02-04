@@ -208,12 +208,13 @@ proc portlint::lint_main {args} {
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
-            }
-            if {[info exists portgroups($portgroup)]} {
-                ui_error "Line $lineno repeats inclusion of PortGroup $portgroup"
-                incr errors
             } else {
-                set portgroups($portgroup) $portgroupversion
+                if {[info exists portgroups($portgroup)]} {
+                    ui_error "Line $lineno repeats inclusion of PortGroup $portgroup"
+                    incr errors
+                } else {
+                    set portgroups($portgroup) $portgroupversion
+                }
             }
             set seen_portgroup true
             set require_blank true
