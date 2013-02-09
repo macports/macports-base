@@ -140,7 +140,7 @@ inline void __darwintrace_log_op(const char* op, const char* path, int fd);
 void __darwintrace_copy_env() __attribute__((constructor));
 inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
 inline char* const* __darwintrace_restore_env(char* const envp[]);
-inline void __darwintrace_setup();
+static inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
 static char * exchange_with_port(const char * buf, size_t len, int answer);
 
@@ -341,7 +341,7 @@ static void ask_for_filemap()
 }
 
 __attribute__((always_inline))
-inline void __darwintrace_setup() {
+static inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 	pid_t oldpid = __darwintrace_pid;
