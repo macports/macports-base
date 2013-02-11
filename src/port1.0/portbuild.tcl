@@ -60,32 +60,22 @@ default build.target "all"
 default build.type "default"
 default use_parallel_build yes
 
-# proc to add dependency on bsdmake, if necessary
-option_proc build.type portbuild::set_build_type
-
 set_ui_prefix
 
-proc portbuild::set_build_type {option action args} {
-    array set build_type_map {
-        bsd     {bin:bsdmake:bsdmake}
-    }
+# Automatically called from macports1.0 after evaluating the Portfile. If
+# ${build.type} == bsd, ensures bsdmake is present by adding a bin:-style
+# dependency.
+proc portbuild::add_automatic_buildsystem_dependencies {} {
+    global build.type
 
-    if {$action == "set"} {
-        switch $option {
-            build.type {
-                # using [exists foo] doesn't work with arrays!
-                if {[info exists build_type_map([option build.type])]} {
-                    # remove dependencies added before when setting build.type more than once
-                    eval depends_build-delete $build_type_map([option build.type])
-                }
-                if {[info exists build_type_map($args)]} {
-                    # add dependency if needed
-                    eval depends_build-append $build_type_map($args)
-                }
-            }
-        }
+    if {${build.type} == "bsd"} {
+        ui_debug "build.type is BSD, adding bin:bsdmake:bsdmake build dependency"
+        depends_build-delete bin:bsdmake:bsdmake
+        depends_build-append bin:bsdmake:bsdmake
     }
 }
+# Register the above procedure as a callback after Portfile evaluation
+port::register_callback portbuild::add_automatic_buildsystem_dependencies
 
 proc portbuild::build_getmaketype {args} {
     if {[option build.type] == "default"} {
