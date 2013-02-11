@@ -2093,9 +2093,7 @@ proc target_provides {ditem args} {
     foreach target $args {
         set origproc [ditem_key $ditem procedure]
         set ident [ditem_key $ditem name]
-        if {[info commands $target] != ""} {
-            ui_debug "$ident registered provides '$target', a pre-existing procedure. Target override will not be provided"
-        } else {
+        if {[info commands $target] == ""} {
             proc $target {args} "
                 variable proc_index
                 set proc_index \[llength \[ditem_key $ditem proc\]\]
@@ -2378,10 +2376,9 @@ proc PortGroup {group version} {
     set groupFile [getportresourcepath $porturl "port1.0/group/${group}-${version}.tcl"]
 
     if {[file exists $groupFile]} {
-        ui_debug "Using group file $groupFile"
         uplevel "source $groupFile"
     } else {
-        ui_warn "Group file could not be located."
+        ui_warn "PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
     }
 }
 
