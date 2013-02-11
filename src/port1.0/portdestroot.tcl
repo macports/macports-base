@@ -48,7 +48,7 @@ namespace eval portdestroot {
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
-options destroot.violate_mtree destroot.asroot
+options destroot.violate_mtree destroot.asroot destroot.delete_la_files
 options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
@@ -69,6 +69,7 @@ default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""
 default destroot.violate_mtree no
+default destroot.delete_la_files no
 
 default startupitem.name        {${subport}}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
@@ -149,7 +150,7 @@ proc portdestroot::destroot_main {args} {
 
 proc portdestroot::destroot_finish {args} {
     global UI_PREFIX destroot prefix subport startupitem.create destroot.violate_mtree
-    global applications_dir frameworks_dir destroot.keepdirs
+    global applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files
     global os.platform os.version
     variable oldmask
 
@@ -163,6 +164,28 @@ proc portdestroot::destroot_finish {args} {
         if [file exists "${destroot}${prefix}/${fileToDelete}"] {
             ui_debug "Deleting stray ${fileToDelete} file."
             file delete "${destroot}${prefix}/${fileToDelete}"
+        }
+    }
+
+    # Prevent overlinking due to glibtool .la files: https://trac.macports.org/ticket/38010
+    ui_debug "Fixing glibtool .la files in destroot for ${subport}"
+    fs-traverse -depth fullpath ${destroot} {
+        if {[file extension $fullpath] == ".la" && [file type $fullpath] == "file"} {
+            # Make sure it is from glibtool ... "a libtool library file" will appear in the first line
+            if {![catch {set fp [open $fullpath]}]} {
+                if {[gets $fp line] > 0 && [string first "a libtool library file" $line] != -1} {
+                    if {${destroot.delete_la_files}} {
+                        ui_debug "Removing [file tail $fullpath]"
+                        file delete -force ${fullpath}
+                    } else {
+                        ui_debug "Clearing dependency_libs in [file tail $fullpath]"
+                        reinplace "/dependency_libs/ s/'.*'/''/" ${fullpath}
+                    }
+                }
+            } else {
+                ui_debug "Failed to open $fullpath"
+            }
+            catch {close $fp}
         }
     }
 
