@@ -772,16 +772,17 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
     ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
 
     set compiler_port $compiler_name_map($compiler)
+    set deptype "build"
     if {[string first "macports-gcc-" $compiler] == 0} {
-        ui_debug "  Adding depends_lib port:$compiler_port"
-        depends_lib-append port:$compiler_port
-    } else {
-        ui_debug "  Adding depends_build port:$compiler_port"
-        depends_build-append port:$compiler_port
+        set deptype "lib"
     }
+    ui_debug "Adding depends_${deptype} port:$compiler_port"
+    depends_${deptype}-delete port:$compiler_port
+    depends_${deptype}-append port:$compiler_port
 
     if {[arch_flag_supported $compiler]} {
-        ui_debug "  Adding depends_skip_archcheck port:$compiler_port"
+        ui_debug "Adding depends_skip_archcheck port:$compiler_port"
+        depends_skip_archcheck-delete $compiler_port
         depends_skip_archcheck-append $compiler_port
     }
 }
