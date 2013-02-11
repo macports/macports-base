@@ -72,6 +72,8 @@ proc portbuild::add_automatic_buildsystem_dependencies {} {
         ui_debug "build.type is BSD, adding bin:bsdmake:bsdmake build dependency"
         depends_build-delete bin:bsdmake:bsdmake
         depends_build-append bin:bsdmake:bsdmake
+        depends_skip_archcheck-delete bsdmake
+        depends_skip_archcheck-append bsdmake
     }
 }
 # Register the above procedure as a callback after Portfile evaluation
