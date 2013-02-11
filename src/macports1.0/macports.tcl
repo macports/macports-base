@@ -1617,6 +1617,8 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         error "Error evaluating variants"
     }
 
+    $workername eval port::run_callbacks
+
     ditem_key $mport provides [$workername eval return \$subport]
 
     return $mport

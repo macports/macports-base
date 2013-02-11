@@ -757,6 +757,37 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     return $ret
 }
 
+# Automatically called from macports1.0 after evaluating the Portfile
+# Some of the compilers we use are provided by MacPorts itself; ensure we
+# automatically add a dependency when needed
+proc portconfigure::add_automatic_compiler_dependencies {} {
+    global configure.compiler portconfigure::compiler_name_map
+
+    # The default value requires substitution before use.
+    set compiler [subst ${configure.compiler}]
+    if {![compiler_is_port $compiler]} {
+        return
+    }
+
+    ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
+
+    set compiler_port $compiler_name_map($compiler)
+    if {[string first "macports-gcc-" $compiler] == 0} {
+        ui_debug "  Adding depends_lib port:$compiler_port"
+        depends_lib-append port:$compiler_port
+    } else {
+        ui_debug "  Adding depends_build port:$compiler_port"
+        depends_build-append port:$compiler_port
+    }
+
+    if {[arch_flag_supported $compiler]} {
+        ui_debug "  Adding depends_skip_archcheck port:$compiler_port"
+        depends_skip_archcheck-append $compiler_port
+    }
+}
+# Register the above procedure as a callback after Portfile evaluation
+port::register_callback portconfigure::add_automatic_compiler_dependencies
+
 proc portconfigure::configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf

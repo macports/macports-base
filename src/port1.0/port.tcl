@@ -32,6 +32,33 @@
 # standard package load
 package provide port 1.0
 
+# Provide a callback registration mechanism for port subpackages. This needs to
+# be done _before_ loading the subpackages.
+namespace eval port {
+	variable _callback_list [list]
+
+	# Append a new procedure to a list of callbacks to be called when
+	# port::run_callbacks is called from macports1.0 after evaluating
+	# a Portfile
+	proc register_callback {callback} {
+		variable _callback_list
+		lappend _callback_list ${callback}
+	}
+	
+	# Run the callbacks registered in the callback list. Called from
+	# macports1.0 in the child interpreter after evaluating the Portfile and
+	# the variants. Clears the list of callbacks.
+	proc run_callbacks {} {
+		variable _callback_list
+		foreach callback ${_callback_list} {
+			ui_debug "Running callback ${callback}"
+			${callback}
+			ui_debug "Finished running callback ${callback}"
+		}
+		set _callback_list [list]
+	}
+}
+
 package require mp_package 1.0
 package require portmain 1.0
 package require portdepends 1.0
