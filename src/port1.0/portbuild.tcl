@@ -66,9 +66,9 @@ set_ui_prefix
 # ${build.type} == bsd, ensures bsdmake is present by adding a bin:-style
 # dependency.
 proc portbuild::add_automatic_buildsystem_dependencies {} {
-    global build.type build.cmd os.platform
-
-    if {${build.type} == "bsd" && ${os.platform} == "darwin" && [string match "*bsdmake*" ${build.cmd}]} {
+    if {[option build.type] == "bsd" && [option os.platform] == "darwin" &&
+        [string match "*bsdmake*" [option build.cmd]]
+    } then {
         ui_debug "build.type is BSD, adding bin:bsdmake:bsdmake build dependency"
         depends_build-delete bin:bsdmake:bsdmake
         depends_build-append bin:bsdmake:bsdmake
