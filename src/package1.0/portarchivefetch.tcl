@@ -253,14 +253,16 @@ proc portarchivefetch::fetchfiles {args} {
                         ui_debug "openssl output: $result"
                     }
                 }
+                file delete -force $signature
                 if {!$verified} {
-                    return -code error "Failed to verify signature for archive!"
-                }
-                if {[catch {file rename -force "${incoming_path}/${archive}.TMP" "${archivefetch.fulldestpath}/${archive}"} result]} {
+                    # fall back to building from source (or error out later if binary only mode)
+                    ui_warn "Failed to verify signature for archive!"
+                    file delete -force "${incoming_path}/${archive}.TMP"
+                    break
+                } elseif {[catch {file rename -force "${incoming_path}/${archive}.TMP" "${archivefetch.fulldestpath}/${archive}"} result]} {
                     ui_debug "$::errorInfo"
                     return -code error "Failed to move downloaded archive into place: $result"
                 }
-                file delete -force $signature
                 set archive_exists 1
                 break
             }
