@@ -1440,6 +1440,11 @@ proc target_run {ditem} {
                         }
                     }
 
+                    # Add ccache port for access to ${prefix}/bin/ccache binary
+                    if [option configure.ccache] {
+                        lappend deplist ccache
+                    }
+
                     ui_debug "Tracemode will respect recursively collected port dependencies: [lsort $deplist]"
 
                     if {[llength $deptypes] > 0} {tracelib setdeps $deplist}
