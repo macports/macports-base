@@ -590,13 +590,13 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             }
         }
         default {
-            if {[regexp {macports-clang-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+            if {[regexp {macports-clang-(.*)\.(.*)} $compiler -> major minor]} {
                 switch -exact ${type} {
                     cc   { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
                     objc { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
                     cxx  { set ret ${prefix}/bin/clang++-mp-${major}.${minor} }
                 }
-            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} $compiler -> major minor]} {
             switch -exact ${type} {
                     cc   { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
                     objc { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
@@ -606,7 +606,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                     f77  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
                     f90  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
                 }
-            } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+            } elseif {[regexp {macports-gcc-(.*)\.(.*)} $compiler -> major minor]} {
                 switch -exact ${type} {
                     cc   { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
                     objc { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
