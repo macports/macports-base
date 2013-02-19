@@ -358,12 +358,8 @@ proc portconfigure::configure_get_universal_ldflags {args} {
 
 # internal proc to determine if the compiler supports -arch
 proc portconfigure::arch_flag_supported {compiler} {
-    if {[string first "macports-gcc" $compiler] == 0 ||
-        [string first "macports-dragonegg-" $compiler] == 0} {
-        return no
-    } else {
-        return yes
-    }
+    return [expr {[string first "macports-gcc-" $compiler] != 0 &&
+                  [string first "macports-dragonegg-" $compiler] != 0}]
 }
 
 # maps compiler names to the port that provides them
@@ -407,11 +403,7 @@ proc portconfigure::compiler_port_name {compiler} {
 }
 
 proc portconfigure::compiler_is_port {compiler} {
-    if {[portconfigure::compiler_port_name ${compiler}] == ""} {
-        return no
-    } else {
-        return yes
-    }
+    return [expr {[portconfigure::compiler_port_name ${compiler}] != ""}]
 }
 
 # internal function to determine the default compiler
