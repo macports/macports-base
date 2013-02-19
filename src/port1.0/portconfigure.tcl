@@ -210,25 +210,19 @@ proc portconfigure::configure_start {args} {
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
         apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
         macports-gcc     { set name "MacPorts gcc (port select)" }
-        macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
-        macports-gcc-4.3 { set name "MacPorts gcc 4.3" }
-        macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
-        macports-gcc-4.5 { set name "MacPorts gcc 4.5" }
-        macports-gcc-4.6 { set name "MacPorts gcc 4.6" }
-        macports-gcc-4.7 { set name "MacPorts gcc 4.7" }
-        macports-gcc-4.8 { set name "MacPorts gcc 4.8" }
         macports-llvm-gcc-4.2 { set name "MacPorts llvm-gcc 4.2" }
         macports-clang { set name "MacPorts clang (port select)" }
-        macports-clang-2.9 { set name "MacPorts clang 2.9" }
-        macports-clang-3.0 { set name "MacPorts clang 3.0" }
-        macports-clang-3.1 { set name "MacPorts clang 3.1" }
-        macports-clang-3.2 { set name "MacPorts clang 3.2" }
-        macports-clang-3.3 { set name "MacPorts clang 3.3" }
-        macports-dragonegg-3.0 { set name "MacPorts dragonegg 3.0" }
-        macports-dragonegg-3.1 { set name "MacPorts dragonegg 3.1" }
-        macports-dragonegg-3.2 { set name "MacPorts dragonegg 3.2" }
-        macports-dragonegg-3.3 { set name "MacPorts dragonegg 3.3" }
-        default { return -code error "Invalid value for configure.compiler: ${configure.compiler}" }
+        default {
+            if {[regexp {macports-clang-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+                set name "MacPorts clang ${major}.${minor}"
+            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+                set name "MacPorts dragonegg ${major}.${minor}"
+            } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+                set name "MacPorts gcc ${major}.${minor}"
+            } else {
+                return -code error "Invalid value for configure.compiler: ${configure.compiler}"
+            }
+        }
     }
     ui_debug "Using compiler '$name'"
 
@@ -364,34 +358,16 @@ proc portconfigure::configure_get_universal_ldflags {args} {
 
 # internal proc to determine if the compiler supports -arch
 proc portconfigure::arch_flag_supported {compiler} {
-    switch -exact ${compiler} {
-        gcc-4.0 -
-        gcc-4.2 -
-        llvm-gcc-4.2 -
-        clang -
-        apple-gcc-4.0 -
-        apple-gcc-4.2 -
-        macports-llvm-gcc-4.2 -
-        macports-clang-2.9 -
-        macports-clang-3.0 -
-        macports-clang-3.1 -
-        macports-clang-3.2 -
-        macports-clang-3.3 -
-        macports-clang {
-            return yes
-        }
-        default {
-            return no
-        }
+    if {[string first "macports-gcc" $compiler] == 0 ||
+        [string first "macports-dragonegg-" $compiler] == 0} {
+        return no
+    } else {
+        return yes
     }
 }
 
-# check if a compiler comes from a port
-proc portconfigure::compiler_is_port {compiler} {
-    return [info exists portconfigure::compiler_name_map($compiler)]
-}
-
 # maps compiler names to the port that provides them
+# TODO: Remove this after 2.2 is released and ports aren't referring to it.
 array set portconfigure::compiler_name_map {
         apple-gcc-4.0           apple-gcc40
         apple-gcc-4.2           apple-gcc42
@@ -412,6 +388,30 @@ array set portconfigure::compiler_name_map {
         macports-dragonegg-3.1  dragonegg-3.1
         macports-dragonegg-3.2  dragonegg-3.2
         macports-dragonegg-3.3  dragonegg-3.3
+}
+
+proc portconfigure::compiler_port_name {compiler} {
+    if {[regexp {apple-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
+        return "apple-gcc${major}${minor}"
+    } elseif {[regexp {macports-clang-(.*)\.(.*)} ${compiler} -> major minor]} {
+        return "clang-${major}.${minor}"
+    } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${compiler} -> major minor]} {
+        return "dragonegg-${major}.${minor}"
+    } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
+        return "gcc${major}${minor}"
+    } elseif {[regexp {macports-llvm-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
+        return "llvm-gcc${major}${minor}"
+    }
+
+    return ""
+}
+
+proc portconfigure::compiler_is_port {compiler} {
+    if {[portconfigure::compiler_port_name ${compiler}] == ""} {
+        return no
+    } else {
+        return yes
+    }
 }
 
 # internal function to determine the default compiler
@@ -582,83 +582,6 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 f90  { set ret ${prefix}/bin/gfortran }
             }
         }
-        macports-gcc-4.2 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.2 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.2 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.2 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.2 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.2 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.2 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.2 }
-            }
-        }
-        macports-gcc-4.3 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.3 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.3 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.3 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.3 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.3 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.3 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.3 }
-            }
-        }
-        macports-gcc-4.4 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.4 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.4 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.4 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.4 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.4 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.4 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.4 }
-            }
-        }
-        macports-gcc-4.5 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.5 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.5 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.5 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.5 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.5 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.5 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.5 }
-            }
-        }
-        macports-gcc-4.6 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.6 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.6 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.6 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.6 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.6 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.6 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.6 }
-            }
-        }
-        macports-gcc-4.7 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.7 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.7 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.7 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.7 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.7 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.7 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.7 }
-            }
-        }
-        macports-gcc-4.8 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-mp-4.8 }
-                objc { set ret ${prefix}/bin/gcc-mp-4.8 }
-                cxx  { set ret ${prefix}/bin/g++-mp-4.8 }
-                cpp  { set ret ${prefix}/bin/cpp-mp-4.8 }
-                fc   { set ret ${prefix}/bin/gfortran-mp-4.8 }
-                f77  { set ret ${prefix}/bin/gfortran-mp-4.8 }
-                f90  { set ret ${prefix}/bin/gfortran-mp-4.8 }
-            }
-        }
         macports-llvm-gcc-4.2 {
             switch -exact ${type} {
                 cc   { set ret ${prefix}/bin/llvm-gcc-4.2 }
@@ -674,83 +597,33 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 cxx  { set ret ${prefix}/bin/clang++ }
             }
         }
-        macports-clang-2.9 {
+        default {
+            if {[regexp {macports-clang-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+                switch -exact ${type} {
+                    cc   { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
+                    objc { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
+                    cxx  { set ret ${prefix}/bin/clang++-mp-${major}.${minor} }
+                }
+            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
             switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/clang-mp-2.9 }
-                objc { set ret ${prefix}/bin/clang-mp-2.9 }
-                cxx  { set ret ${prefix}/bin/clang++-mp-2.9 }
-            }
-        }
-        macports-clang-3.0 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/clang-mp-3.0 }
-                objc { set ret ${prefix}/bin/clang-mp-3.0 }
-                cxx  { set ret ${prefix}/bin/clang++-mp-3.0 }
-            }
-        }
-        macports-clang-3.1 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/clang-mp-3.1 }
-                objc { set ret ${prefix}/bin/clang-mp-3.1 }
-                cxx  { set ret ${prefix}/bin/clang++-mp-3.1 }
-            }
-        }
-        macports-clang-3.2 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/clang-mp-3.2 }
-                objc { set ret ${prefix}/bin/clang-mp-3.2 }
-                cxx  { set ret ${prefix}/bin/clang++-mp-3.2 }
-            }
-        }
-        macports-clang-3.3 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/clang-mp-3.3 }
-                objc { set ret ${prefix}/bin/clang-mp-3.3 }
-                cxx  { set ret ${prefix}/bin/clang++-mp-3.3 }
-            }
-        }
-        macports-dragonegg-3.0 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/dragonegg-3.0-gcc }
-                objc { set ret ${prefix}/bin/dragonegg-3.0-gcc }
-                cxx  { set ret ${prefix}/bin/dragonegg-3.0-g++ }
-                cpp  { set ret ${prefix}/bin/dragonegg-3.0-cpp }
-                fc   { set ret ${prefix}/bin/dragonegg-3.0-gfortran }
-                f77  { set ret ${prefix}/bin/dragonegg-3.0-gfortran }
-                f90  { set ret ${prefix}/bin/dragonegg-3.0-gfortran }
-            }
-        }
-        macports-dragonegg-3.1 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/dragonegg-3.1-gcc }
-                objc { set ret ${prefix}/bin/dragonegg-3.1-gcc }
-                cxx  { set ret ${prefix}/bin/dragonegg-3.1-g++ }
-                cpp  { set ret ${prefix}/bin/dragonegg-3.1-cpp }
-                fc   { set ret ${prefix}/bin/dragonegg-3.1-gfortran }
-                f77  { set ret ${prefix}/bin/dragonegg-3.1-gfortran }
-                f90  { set ret ${prefix}/bin/dragonegg-3.1-gfortran }
-            }
-        }
-        macports-dragonegg-3.2 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/dragonegg-3.2-gcc }
-                objc { set ret ${prefix}/bin/dragonegg-3.2-gcc }
-                cxx  { set ret ${prefix}/bin/dragonegg-3.2-g++ }
-                cpp  { set ret ${prefix}/bin/dragonegg-3.2-cpp }
-                fc   { set ret ${prefix}/bin/dragonegg-3.2-gfortran }
-                f77  { set ret ${prefix}/bin/dragonegg-3.2-gfortran }
-                f90  { set ret ${prefix}/bin/dragonegg-3.2-gfortran }
-            }
-        }
-        macports-dragonegg-3.3 {
-            switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/dragonegg-3.3-gcc }
-                objc { set ret ${prefix}/bin/dragonegg-3.3-gcc }
-                cxx  { set ret ${prefix}/bin/dragonegg-3.3-g++ }
-                cpp  { set ret ${prefix}/bin/dragonegg-3.3-cpp }
-                fc   { set ret ${prefix}/bin/dragonegg-3.3-gfortran }
-                f77  { set ret ${prefix}/bin/dragonegg-3.3-gfortran }
-                f90  { set ret ${prefix}/bin/dragonegg-3.3-gfortran }
+                    cc   { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
+                    objc { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
+                    cxx  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-g++ }
+                    cpp  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-cpp }
+                    fc   { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
+                    f77  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
+                    f90  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
+                }
+            } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
+                switch -exact ${type} {
+                    cc   { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
+                    objc { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
+                    cxx  { set ret ${prefix}/bin/g++-mp-${major}.${minor} }
+                    cpp  { set ret ${prefix}/bin/cpp-mp-${major}.${minor} }
+                    fc   { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
+                    f77  { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
+                    f90  { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
+                }
             }
         }
     }
@@ -761,7 +634,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
 # Some of the compilers we use are provided by MacPorts itself; ensure we
 # automatically add a dependency when needed
 proc portconfigure::add_automatic_compiler_dependencies {} {
-    global configure.compiler portconfigure::compiler_name_map
+    global configure.compiler
 
     # The default value requires substitution before use.
     set compiler [subst ${configure.compiler}]
@@ -771,7 +644,7 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
 
     ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
 
-    set compiler_port $compiler_name_map($compiler)
+    set compiler_port [portconfigure::compiler_port_name ${compiler}]
     set deptype "build"
     if {[string first "macports-gcc-" $compiler] == 0} {
         set deptype "lib"
