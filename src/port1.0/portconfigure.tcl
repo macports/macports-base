@@ -487,7 +487,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
 
     # Set defaults
     switch -exact ${type} {
-        cc   { set ret [find_developer_tool cc] }
+        cc   -
         objc { set ret [find_developer_tool cc] }
         cxx  { set ret [find_developer_tool c++] }
         cpp  { set ret [find_developer_tool cpp] }
@@ -496,7 +496,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     switch -exact ${compiler} {
         gcc {
             switch -exact ${type} {
-                cc   { set ret [find_developer_tool gcc] }
+                cc   -
                 objc { set ret [find_developer_tool gcc] }
                 cxx  { set ret [find_developer_tool g++] }
                 cpp  { set ret [find_developer_tool cpp] }
@@ -504,7 +504,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         gcc-3.3 {
             switch -exact ${type} {
-                cc   { set ret [find_developer_tool gcc-3.3] }
+                cc   -
                 objc { set ret [find_developer_tool gcc-3.3] }
                 cxx  { set ret [find_developer_tool g++-3.3] }
                 cpp  { set ret [find_developer_tool cpp-3.3] }
@@ -512,7 +512,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         gcc-4.0 {
             switch -exact ${type} {
-                cc   { set ret [find_developer_tool gcc-4.0] }
+                cc   -
                 objc { set ret [find_developer_tool gcc-4.0] }
                 cxx  { set ret [find_developer_tool g++-4.0] }
                 cpp  { set ret [find_developer_tool cpp-4.0] }
@@ -520,7 +520,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret [find_developer_tool gcc-4.2] }
+                cc   -
                 objc { set ret [find_developer_tool gcc-4.2] }
                 cxx  { set ret [find_developer_tool g++-4.2] }
                 cpp  { set ret [find_developer_tool cpp-4.2] }
@@ -528,7 +528,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         llvm-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret [find_developer_tool llvm-gcc-4.2] }
+                cc   -
                 objc { set ret [find_developer_tool llvm-gcc-4.2] }
                 cxx  { set ret [find_developer_tool llvm-g++-4.2] }
                 cpp  { set ret [find_developer_tool llvm-cpp-4.2] }
@@ -536,7 +536,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         clang {
             switch -exact ${type} {
-                cc   { set ret [find_developer_tool clang] }
+                cc   -
                 objc { set ret [find_developer_tool clang] }
                 cxx  {
                     set clangpp [find_developer_tool clang++]
@@ -550,14 +550,14 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         apple-gcc-4.0 {
             switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-apple-4.0 }
+                cc   -
                 objc { set ret ${prefix}/bin/gcc-apple-4.0 }
                 cpp  { set ret ${prefix}/bin/cpp-apple-4.0 }
             }
         }
         apple-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc-apple-4.2 }
+                cc   -
                 objc { set ret ${prefix}/bin/gcc-apple-4.2 }
                 cpp  { set ret ${prefix}/bin/cpp-apple-4.2 }
                 cxx  { set ret ${prefix}/bin/g++-apple-4.2 }
@@ -565,18 +565,18 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         macports-gcc {
             switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/gcc }
+                cc   -
                 objc { set ret ${prefix}/bin/gcc }
                 cxx  { set ret ${prefix}/bin/g++ }
                 cpp  { set ret ${prefix}/bin/cpp }
-                fc   { set ret ${prefix}/bin/gfortran }
-                f77  { set ret ${prefix}/bin/gfortran }
+                fc   -
+                f77  -
                 f90  { set ret ${prefix}/bin/gfortran }
             }
         }
         macports-llvm-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/llvm-gcc-4.2 }
+                cc   -
                 objc { set ret ${prefix}/bin/llvm-gcc-4.2 }
                 cxx  { set ret ${prefix}/bin/llvm-g++-4.2 }
                 cpp  { set ret ${prefix}/bin/llvm-cpp-4.2 }
@@ -584,7 +584,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         macports-clang {
             switch -exact ${type} {
-                cc   { set ret ${prefix}/bin/clang }
+                cc   -
                 objc { set ret ${prefix}/bin/clang }
                 cxx  { set ret ${prefix}/bin/clang++ }
             }
@@ -592,28 +592,28 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         default {
             if {[regexp {macports-clang-(.*)\.(.*)} $compiler -> major minor]} {
                 switch -exact ${type} {
-                    cc   { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
+                    cc   -
                     objc { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
                     cxx  { set ret ${prefix}/bin/clang++-mp-${major}.${minor} }
                 }
             } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} $compiler -> major minor]} {
-            switch -exact ${type} {
-                    cc   { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
+                switch -exact ${type} {
+                    cc   -
                     objc { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
                     cxx  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-g++ }
                     cpp  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-cpp }
-                    fc   { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
-                    f77  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
+                    fc   -
+                    f77  -
                     f90  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
                 }
             } elseif {[regexp {macports-gcc-(.*)\.(.*)} $compiler -> major minor]} {
                 switch -exact ${type} {
-                    cc   { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
+                    cc   -
                     objc { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
                     cxx  { set ret ${prefix}/bin/g++-mp-${major}.${minor} }
                     cpp  { set ret ${prefix}/bin/cpp-mp-${major}.${minor} }
-                    fc   { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
-                    f77  { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
+                    fc   -
+                    f77  -
                     f90  { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
                 }
             }
