@@ -4183,9 +4183,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
     set broken_files {};
     set binaries [registry::file search active 1 binary 1]
-    ui_msg -nonewline "$macports::ui_prefix Scanning binaries for linking errors"
     set binary_count [llength $binaries]
     if {$binary_count > 0} {
+        ui_msg -nonewline "$macports::ui_prefix Scanning binaries for linking errors"
         set handle [machista::create_handle]
         if {$handle == "NULL"} {
             error "Error creating libmachista handle"
