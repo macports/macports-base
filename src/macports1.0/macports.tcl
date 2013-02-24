@@ -45,20 +45,20 @@ namespace eval macports {
         portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type startupitem_install place_worksymlink xcodeversion xcodebuildcmd \
-        mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
+        configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts\
         packagemaker_path default_compilers"
-    variable user_options "submitter_name submitter_email submitter_key"
+    variable user_options ""
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format user_home \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
-        mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
+        configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target \
         packagemaker_path default_compilers $user_options"
@@ -885,14 +885,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Default place_worksymlink
     if {![info exists macports::place_worksymlink]} {
         set macports::place_worksymlink yes
-    }
-
-    # Default mp remote options
-    if {![info exists macports::mp_remote_url]} {
-        set macports::mp_remote_url "http://db.macports.org"
-    }
-    if {![info exists macports::mp_remote_submit_url]} {
-        set macports::mp_remote_submit_url "${macports::mp_remote_url}/submit"
     }
 
     # Default mp configure options

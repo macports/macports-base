@@ -329,10 +329,6 @@ set porthelp(unsetrequested) {
 Marks each of the given ports as unrequested
 }
 
-set porthelp(submit) {
-Submit a port to the MacPorts Web Application (unimplemented)
-}
-
 set porthelp(sync) {
 Synchronize the set of Portfiles
 }
