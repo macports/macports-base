@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# portconfigure.tcl
 # $Id$
 #
-# Copyright (c) 2007 - 2012 The MacPorts Project
+# Copyright (c) 2007 - 2013 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -129,7 +128,7 @@ default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
 options configure.optflags configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
-default configure.optflags  {-O2}
+default configure.optflags  {-Os}
 # compiler flags section
 default configure.cflags    {${configure.optflags}}
 default configure.cppflags  {-I${prefix}/include}
