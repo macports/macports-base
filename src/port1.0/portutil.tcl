@@ -5,7 +5,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2012 The MacPorts Project
+# Copyright (c) 2004-2013 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1318,6 +1318,7 @@ proc target_run {ditem} {
     set procedure [ditem_key $ditem procedure]
     set savedhome [file join $portdbpath home]
     set env(HOME) "${workpath}/.home"
+    set env(TMPDIR) "${workpath}/.tmp"
 
     if {[ditem_key $ditem state] != "no"} {
         set target_state_fd [open_statefile]
@@ -1542,6 +1543,9 @@ proc target_run {ditem} {
     }
 
     set env(HOME) $savedhome
+    if {[info exists env(TMPDIR)]} {
+        unset env(TMPDIR)
+    }
 
     return $result
 }
@@ -1658,8 +1662,16 @@ proc open_statefile {args} {
     }
 
     if {![tbool ports_dryrun]} {
-        if {![file isdirectory $workpath]} {
-            file mkdir "${workpath}/.home"
+        set need_chown 0
+        if {![file isdirectory $workpath/.home]} {
+            file mkdir $workpath/.home
+            set need_chown 1
+        }
+        if {![file isdirectory $workpath/.tmp]} {
+            file mkdir $workpath/.tmp
+            set need_chown 1
+        }
+        if {$need_chown} {
             chownAsRoot $subbuildpath
         }
         # Create a symlink to the workpath for port authors
