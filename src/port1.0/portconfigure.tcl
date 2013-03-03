@@ -475,149 +475,110 @@ proc portconfigure::find_developer_tool {name} {
 	return "${developer_dir}/usr/bin/${name}"
 }
 
+
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
     global configure.compiler prefix
-    set ret ""
     if {$compiler == {}} {
         set compiler ${configure.compiler}
     }
-
-    # Set defaults
-    switch -exact ${type} {
-        cc   -
-        objc { set ret [find_developer_tool cc] }
-        cxx  { set ret [find_developer_tool c++] }
-        cpp  { set ret [find_developer_tool cpp] }
-    }
-
-    switch -exact ${compiler} {
-        gcc {
-            switch -exact ${type} {
+    switch -regexp -matchvar version $compiler {
+        {^gcc(-3\.3|-4\.0|-4\.2)?$} {
+            set suffix [lindex $version 1]
+            switch -exact $type {
                 cc   -
-                objc { set ret [find_developer_tool gcc] }
-                cxx  { set ret [find_developer_tool g++] }
-                cpp  { set ret [find_developer_tool cpp] }
+                objc { return [find_developer_tool "gcc${suffix}"] }
+                cxx  { return [find_developer_tool "g++${suffix}"] }
+                cpp  { return [find_developer_tool "cpp${suffix}"] }
             }
         }
-        gcc-3.3 {
-            switch -exact ${type} {
+        {^llvm-gcc-4\.2$} {
+            switch -exact $type {
                 cc   -
-                objc { set ret [find_developer_tool gcc-3.3] }
-                cxx  { set ret [find_developer_tool g++-3.3] }
-                cpp  { set ret [find_developer_tool cpp-3.3] }
+                objc { return [find_developer_tool llvm-gcc-4.2] }
+                cxx  { return [find_developer_tool llvm-g++-4.2] }
+                cpp  { return [find_developer_tool llvm-cpp-4.2] }
             }
         }
-        gcc-4.0 {
-            switch -exact ${type} {
+        {^clang$} {
+            switch -exact $type {
                 cc   -
-                objc { set ret [find_developer_tool gcc-4.0] }
-                cxx  { set ret [find_developer_tool g++-4.0] }
-                cpp  { set ret [find_developer_tool cpp-4.0] }
-            }
-        }
-        gcc-4.2 {
-            switch -exact ${type} {
-                cc   -
-                objc { set ret [find_developer_tool gcc-4.2] }
-                cxx  { set ret [find_developer_tool g++-4.2] }
-                cpp  { set ret [find_developer_tool cpp-4.2] }
-            }
-        }
-        llvm-gcc-4.2 {
-            switch -exact ${type} {
-                cc   -
-                objc { set ret [find_developer_tool llvm-gcc-4.2] }
-                cxx  { set ret [find_developer_tool llvm-g++-4.2] }
-                cpp  { set ret [find_developer_tool llvm-cpp-4.2] }
-            }
-        }
-        clang {
-            switch -exact ${type} {
-                cc   -
-                objc { set ret [find_developer_tool clang] }
+                objc { return [find_developer_tool clang] }
                 cxx  {
                     set clangpp [find_developer_tool clang++]
-                    if {[file executable ${clangpp}]} {
-                        set ret ${clangpp}
-                    } else {
-                        set ret [find_developer_tool llvm-g++-4.2]
+                    if {[file executable $clangpp]} {
+                        return $clangpp
+                    }
+                    return [find_developer_tool llvm-g++-4.2]
+                }
+            }
+        }
+        {^apple-gcc(-4\.0|-4\.2)$} {
+            set suffix [lindex $version 1]
+            switch -exact $type {
+                cc   -
+                objc { return ${prefix}/bin/gcc-apple${suffix} }
+                cxx  {
+                    if {$suffix == "-4.2"} {
+                        return ${prefix}/bin/g++-apple${suffix}
                     }
                 }
+                cpp  { return ${prefix}/bin/cpp-apple${suffix} }
             }
         }
-        apple-gcc-4.0 {
-            switch -exact ${type} {
-                cc   -
-                objc { set ret ${prefix}/bin/gcc-apple-4.0 }
-                cpp  { set ret ${prefix}/bin/cpp-apple-4.0 }
+        {^macports-gcc(-\d+\.\d+)?$} {
+            if {[set suffix [lindex $version 1]] ne ""} {
+                set suffix "-mp${suffix}"
             }
-        }
-        apple-gcc-4.2 {
-            switch -exact ${type} {
+            switch -exact $type {
                 cc   -
-                objc { set ret ${prefix}/bin/gcc-apple-4.2 }
-                cpp  { set ret ${prefix}/bin/cpp-apple-4.2 }
-                cxx  { set ret ${prefix}/bin/g++-apple-4.2 }
-            }
-        }
-        macports-gcc {
-            switch -exact ${type} {
-                cc   -
-                objc { set ret ${prefix}/bin/gcc }
-                cxx  { set ret ${prefix}/bin/g++ }
-                cpp  { set ret ${prefix}/bin/cpp }
+                objc { return ${prefix}/bin/gcc${suffix} }
+                cxx  { return ${prefix}/bin/g++${suffix} }
+                cpp  { return ${prefix}/bin/cpp${suffix} }
                 fc   -
                 f77  -
-                f90  { set ret ${prefix}/bin/gfortran }
+                f90  { return ${prefix}/bin/gfortran${suffix} }
             }
         }
-        macports-llvm-gcc-4.2 {
-            switch -exact ${type} {
+        {^macports-llvm-gcc-4\.2$} {
+            switch -exact $type {
                 cc   -
-                objc { set ret ${prefix}/bin/llvm-gcc-4.2 }
-                cxx  { set ret ${prefix}/bin/llvm-g++-4.2 }
-                cpp  { set ret ${prefix}/bin/llvm-cpp-4.2 }
+                objc { return ${prefix}/bin/llvm-gcc-4.2 }
+                cxx  { return ${prefix}/bin/llvm-g++-4.2 }
+                cpp  { return ${prefix}/bin/llvm-cpp-4.2 }
             }
         }
-        macports-clang {
-            switch -exact ${type} {
+        {^macports-clang(-\d+\.\d+)?$} {
+            if {[set suffix [lindex $version 1]] ne ""} {
+                set suffix "-mp${suffix}"
+            }
+            switch -exact $type {
                 cc   -
-                objc { set ret ${prefix}/bin/clang }
-                cxx  { set ret ${prefix}/bin/clang++ }
+                objc { return ${prefix}/bin/clang${suffix} }
+                cxx  { return ${prefix}/bin/clang++${suffix} }
             }
         }
-        default {
-            if {[regexp {macports-clang-(.*)\.(.*)} $compiler -> major minor]} {
-                switch -exact ${type} {
-                    cc   -
-                    objc { set ret ${prefix}/bin/clang-mp-${major}.${minor} }
-                    cxx  { set ret ${prefix}/bin/clang++-mp-${major}.${minor} }
-                }
-            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} $compiler -> major minor]} {
-                switch -exact ${type} {
-                    cc   -
-                    objc { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gcc }
-                    cxx  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-g++ }
-                    cpp  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-cpp }
-                    fc   -
-                    f77  -
-                    f90  { set ret ${prefix}/bin/dragonegg-${major}.${minor}-gfortran }
-                }
-            } elseif {[regexp {macports-gcc-(.*)\.(.*)} $compiler -> major minor]} {
-                switch -exact ${type} {
-                    cc   -
-                    objc { set ret ${prefix}/bin/gcc-mp-${major}.${minor} }
-                    cxx  { set ret ${prefix}/bin/g++-mp-${major}.${minor} }
-                    cpp  { set ret ${prefix}/bin/cpp-mp-${major}.${minor} }
-                    fc   -
-                    f77  -
-                    f90  { set ret ${prefix}/bin/gfortran-mp-${major}.${minor} }
-                }
+        {^macports-dragonegg(-\d+\.\d+)$} {
+            set infix [lindex $version 1]
+            switch -exact $type {
+                cc   -
+                objc { return ${prefix}/bin/dragonegg${infix}-gcc }
+                cxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
+                cpp  { return ${prefix}/bin/dragonegg${infix}-cpp }
+                fc   -
+                f77  -
+                f90  { return ${prefix}/bin/dragonegg${infix}-gfortran }
             }
         }
     }
-    return $ret
+    # Fallbacks
+    switch -exact $type {
+        cc   -
+        objc { return [find_developer_tool cc] }
+        cxx  { return [find_developer_tool c++] }
+        cpp  { return [find_developer_tool cpp] }
+    }
+    return ""
 }
 
 # Automatically called from macports1.0 after evaluating the Portfile
