@@ -549,8 +549,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objc { return ${prefix}/bin/clang${suffix} }
             cxx  { return ${prefix}/bin/clang++${suffix} }
         }
-    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> suffix]} {
-        set infix [lindex $version 1]
+    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> infix]} {
         switch $type {
             cc   -
             objc { return ${prefix}/bin/dragonegg${infix}-gcc }
