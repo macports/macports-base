@@ -482,97 +482,87 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     if {$compiler == {}} {
         set compiler ${configure.compiler}
     }
-    switch -regexp -matchvar version $compiler {
-        {^gcc(-3\.3|-4\.0|-4\.2)?$} {
-            set suffix [lindex $version 1]
-            switch -exact $type {
-                cc   -
-                objc { return [find_developer_tool "gcc${suffix}"] }
-                cxx  { return [find_developer_tool "g++${suffix}"] }
-                cpp  { return [find_developer_tool "cpp${suffix}"] }
+    # Tcl 8.4's switch doesn't support -matchvar.
+    if {[regexp {^gcc(-3\.3|-4\.0|-4\.2)?$} $compiler -> suffix]} {
+        switch $type {
+            cc   -
+            objc { return [find_developer_tool "gcc${suffix}"] }
+            cxx  { return [find_developer_tool "g++${suffix}"] }
+            cpp  { return [find_developer_tool "cpp${suffix}"] }
+        }
+    } elseif {[regexp {^llvm-gcc-4\.2$} $compiler]} {
+        switch $type {
+            cc   -
+            objc { return [find_developer_tool llvm-gcc-4.2] }
+            cxx  { return [find_developer_tool llvm-g++-4.2] }
+            cpp  { return [find_developer_tool llvm-cpp-4.2] }
+        }
+    } elseif {[regexp {^clang$} $compiler]} {
+        switch $type {
+            cc   -
+            objc { return [find_developer_tool clang] }
+            cxx  {
+                set clangpp [find_developer_tool clang++]
+                if {[file executable $clangpp]} {
+                    return $clangpp
+                }
+                return [find_developer_tool llvm-g++-4.2]
             }
         }
-        {^llvm-gcc-4\.2$} {
-            switch -exact $type {
-                cc   -
-                objc { return [find_developer_tool llvm-gcc-4.2] }
-                cxx  { return [find_developer_tool llvm-g++-4.2] }
-                cpp  { return [find_developer_tool llvm-cpp-4.2] }
-            }
-        }
-        {^clang$} {
-            switch -exact $type {
-                cc   -
-                objc { return [find_developer_tool clang] }
-                cxx  {
-                    set clangpp [find_developer_tool clang++]
-                    if {[file executable $clangpp]} {
-                        return $clangpp
-                    }
-                    return [find_developer_tool llvm-g++-4.2]
+    } elseif {[regexp {^apple-gcc(-4\.0|-4\.2)$} $compiler -> suffix]} {
+        switch $type {
+            cc   -
+            objc { return ${prefix}/bin/gcc-apple${suffix} }
+            cxx  {
+                if {$suffix == "-4.2"} {
+                    return ${prefix}/bin/g++-apple${suffix}
                 }
             }
+            cpp  { return ${prefix}/bin/cpp-apple${suffix} }
         }
-        {^apple-gcc(-4\.0|-4\.2)$} {
-            set suffix [lindex $version 1]
-            switch -exact $type {
-                cc   -
-                objc { return ${prefix}/bin/gcc-apple${suffix} }
-                cxx  {
-                    if {$suffix == "-4.2"} {
-                        return ${prefix}/bin/g++-apple${suffix}
-                    }
-                }
-                cpp  { return ${prefix}/bin/cpp-apple${suffix} }
-            }
+    } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
+        if {[string length $suffix]} {
+            set suffix "-mp${suffix}"
         }
-        {^macports-gcc(-\d+\.\d+)?$} {
-            if {[set suffix [lindex $version 1]] ne ""} {
-                set suffix "-mp${suffix}"
-            }
-            switch -exact $type {
-                cc   -
-                objc { return ${prefix}/bin/gcc${suffix} }
-                cxx  { return ${prefix}/bin/g++${suffix} }
-                cpp  { return ${prefix}/bin/cpp${suffix} }
-                fc   -
-                f77  -
-                f90  { return ${prefix}/bin/gfortran${suffix} }
-            }
+        switch $type {
+            cc   -
+            objc { return ${prefix}/bin/gcc${suffix} }
+            cxx  { return ${prefix}/bin/g++${suffix} }
+            cpp  { return ${prefix}/bin/cpp${suffix} }
+            fc   -
+            f77  -
+            f90  { return ${prefix}/bin/gfortran${suffix} }
         }
-        {^macports-llvm-gcc-4\.2$} {
-            switch -exact $type {
-                cc   -
-                objc { return ${prefix}/bin/llvm-gcc-4.2 }
-                cxx  { return ${prefix}/bin/llvm-g++-4.2 }
-                cpp  { return ${prefix}/bin/llvm-cpp-4.2 }
-            }
+    } elseif {[regexp {^macports-llvm-gcc-4\.2$} $compiler]} {
+        switch $type {
+            cc   -
+            objc { return ${prefix}/bin/llvm-gcc-4.2 }
+            cxx  { return ${prefix}/bin/llvm-g++-4.2 }
+            cpp  { return ${prefix}/bin/llvm-cpp-4.2 }
         }
-        {^macports-clang(-\d+\.\d+)?$} {
-            if {[set suffix [lindex $version 1]] ne ""} {
-                set suffix "-mp${suffix}"
-            }
-            switch -exact $type {
-                cc   -
-                objc { return ${prefix}/bin/clang${suffix} }
-                cxx  { return ${prefix}/bin/clang++${suffix} }
-            }
+    } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
+        if {[string length $suffix]} {
+            set suffix "-mp${suffix}"
         }
-        {^macports-dragonegg(-\d+\.\d+)$} {
-            set infix [lindex $version 1]
-            switch -exact $type {
-                cc   -
-                objc { return ${prefix}/bin/dragonegg${infix}-gcc }
-                cxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
-                cpp  { return ${prefix}/bin/dragonegg${infix}-cpp }
-                fc   -
-                f77  -
-                f90  { return ${prefix}/bin/dragonegg${infix}-gfortran }
-            }
+        switch $type {
+            cc   -
+            objc { return ${prefix}/bin/clang${suffix} }
+            cxx  { return ${prefix}/bin/clang++${suffix} }
+        }
+    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> suffix]} {
+        set infix [lindex $version 1]
+        switch $type {
+            cc   -
+            objc { return ${prefix}/bin/dragonegg${infix}-gcc }
+            cxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
+            cpp  { return ${prefix}/bin/dragonegg${infix}-cpp }
+            fc   -
+            f77  -
+            f90  { return ${prefix}/bin/dragonegg${infix}-gfortran }
         }
     }
     # Fallbacks
-    switch -exact $type {
+    switch $type {
         cc   -
         objc { return [find_developer_tool cc] }
         cxx  { return [find_developer_tool c++] }
