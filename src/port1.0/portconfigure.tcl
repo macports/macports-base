@@ -608,6 +608,7 @@ proc portconfigure::configure_main {args} {
     global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
     global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune configure.sdkroot
+    global os.platform os.major
     foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
@@ -694,6 +695,11 @@ proc portconfigure::configure_main {args} {
         append_list_to_environment_value configure "BISON" ${configure.bison}
         append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
         append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+
+        # https://trac.macports.org/ticket/34221
+        if {${os.platform} == "darwin" && ${os.major} == 12} {
+            append_list_to_environment_value configure "__CFPREFERENCES_AVOID_DAEMON" 1
+        }
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
         if {${configure.sdkroot} != ""} {
