@@ -200,24 +200,24 @@ proc portconfigure::configure_start {args} {
     set name ""
     switch -exact ${configure.compiler} {
         cc { set name "System cc" }
-        gcc { set name "System gcc" }
-        gcc-3.3 { set name "Mac OS X gcc 3.3" }
-        gcc-4.0 { set name "Mac OS X gcc 4.0" }
-        gcc-4.2 { set name "Mac OS X gcc 4.2" }
-        llvm-gcc-4.2 { set name "Mac OS X llvm-gcc 4.2" }
-        clang { set name "Mac OS X clang" }
-        apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
-        apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
-        macports-gcc     { set name "MacPorts gcc (port select)" }
-        macports-llvm-gcc-4.2 { set name "MacPorts llvm-gcc 4.2" }
-        macports-clang { set name "MacPorts clang (port select)" }
+        gcc { set name "System GCC" }
+        gcc-3.3 { set name "Mac OS X GCC 3.3" }
+        gcc-4.0 { set name "Mac OS X GCC 4.0" }
+        gcc-4.2 { set name "Mac OS X GCC 4.2" }
+        llvm-gcc-4.2 { set name "Mac OS X LLVM-GCC 4.2" }
+        clang { set name "Mac OS X Clang" }
+        apple-gcc-4.0 { set name "MacPorts Apple GCC 4.0" }
+        apple-gcc-4.2 { set name "MacPorts Apple GCC 4.2" }
+        macports-gcc     { set name "MacPorts GCC (port select)" }
+        macports-llvm-gcc-4.2 { set name "MacPorts LLVM-GCC 4.2" }
+        macports-clang { set name "MacPorts Clang (port select)" }
         default {
             if {[regexp {macports-clang-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts clang ${major}.${minor}"
+                set name "MacPorts Clang ${major}.${minor}"
             } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts dragonegg ${major}.${minor}"
+                set name "MacPorts DragonEgg ${major}.${minor}"
             } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts gcc ${major}.${minor}"
+                set name "MacPorts GCC ${major}.${minor}"
             } else {
                 return -code error "Invalid value for configure.compiler: ${configure.compiler}"
             }
