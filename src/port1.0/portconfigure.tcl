@@ -406,22 +406,28 @@ proc portconfigure::compiler_is_port {compiler} {
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
-    global compiler.blacklist compiler.whitelist compiler.fallback
-    if {${compiler.whitelist} != {}} {
-        set search_list ${compiler.whitelist}
+    if {[option compiler.whitelist] != {}} {
+        set search_list [option compiler.whitelist]
     } else {
-        set search_list ${compiler.fallback}
+        set search_list [option compiler.fallback]
     }
     foreach compiler $search_list {
-        if {[lsearch -exact ${compiler.blacklist} $compiler] == -1} {
-            if {[file executable [configure_get_compiler cc $compiler]] 
-                || [compiler_is_port $compiler]} {
-                return $compiler
+        set blocked no
+        foreach pattern [option compiler.blacklist] {
+            if {[string match $pattern $compiler]} {
+                set blocked yes
+                break
             }
         }
+        if {!$blocked &&
+            ([file executable [configure_get_compiler cc $compiler]] ||
+             [compiler_is_port $compiler])
+        } then {
+            return $compiler
+        }
     }
-    ui_warn "All compilers are either blacklisted or unavailable; using first fallback entry as last resort"
-    return [lindex ${compiler.fallback} 0]
+    ui_warn "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
+    return [lindex [option compiler.fallback] 0]
 }
 
 # internal function to choose compiler fallback list based on platform
