@@ -412,14 +412,14 @@ proc portconfigure::configure_get_default_compiler {args} {
         set search_list [option compiler.fallback]
     }
     foreach compiler $search_list {
-        set blocked no
+        set allowed yes
         foreach pattern [option compiler.blacklist] {
             if {[string match $pattern $compiler]} {
-                set blocked yes
+                set allowed no
                 break
             }
         }
-        if {!$blocked &&
+        if {$allowed &&
             ([file executable [configure_get_compiler cc $compiler]] ||
              [compiler_is_port $compiler])
         } then {
