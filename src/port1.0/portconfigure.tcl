@@ -127,13 +127,17 @@ options configure.m32 configure.m64 configure.march configure.mtune
 default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
-options configure.optflags configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
-default configure.optflags  {-Os}
+options configure.optflags
+options configure.cflags configure.cxxflags configure.objcflags
+options configure.cppflags configure.ldflags configure.libs
+options configure.fflags configure.f90flags configure.fcflags
+options configure.classpath
 # compiler flags section
+default configure.optflags  {-Os}
 default configure.cflags    {${configure.optflags}}
-default configure.cppflags  {-I${prefix}/include}
 default configure.cxxflags  {${configure.optflags}}
 default configure.objcflags {${configure.optflags}}
+default configure.cppflags  {-I${prefix}/include}
 default configure.ldflags   {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
 default configure.libs      {}
 default configure.fflags    {${configure.optflags}}
@@ -142,7 +146,9 @@ default configure.fcflags   {${configure.optflags}}
 default configure.classpath {}
 
 # tools section
-options configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
+options configure.perl configure.python configure.ruby
+options configure.install configure.awk configure.bison
+options configure.pkg_config configure.pkg_config_path
 default configure.perl              {}
 default configure.python            {}
 default configure.ruby              {}
@@ -153,20 +159,22 @@ default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
 options configure.build_arch configure.ld_archflags configure.sdkroot
-default configure.build_arch {[portconfigure::choose_supported_archs ${build_arch}]}
-default configure.ld_archflags {[portconfigure::configure_get_ld_archflags]}
-default configure.sdkroot {[portconfigure::configure_get_sdkroot]}
+default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
+default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
+default configure.sdkroot       {[portconfigure::configure_get_sdkroot]}
 foreach tool {cc cxx objc f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
 
-options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
+options configure.universal_archs configure.universal_args
+options configure.universal_cflags configure.universal_cxxflags
+options configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
-default configure.universal_cppflags    {}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_cppflags    {}
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
@@ -286,7 +294,9 @@ proc portconfigure::configure_get_archflags {tool} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported ${configure.compiler}] && ($tool == "cc" || $tool == "cxx" || $tool == "objc")} {
+        if {[arch_flag_supported ${configure.compiler}] &&
+            ($tool == "cc" || $tool == "cxx" || $tool == "objc")
+        } then {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
@@ -612,8 +622,10 @@ proc portconfigure::configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
     global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
-    global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune configure.sdkroot
+    global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison
+    global configure.pkg_config configure.pkg_config_path
+    global configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot
+    global configure.march configure.mtune
     global os.platform os.major
     foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
