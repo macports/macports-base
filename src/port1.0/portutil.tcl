@@ -1742,8 +1742,7 @@ proc open_statefile {args} {
                         set portfile_changed yes
                     } else {
                         if {$checksum_portfile != $checksum_statefile} {
-                            ui_debug "Checksum recorded in statefile '$checksum_statefile' \
-                                differs from Portfile checksum '$checksum_portfile'"
+                            ui_debug "Checksum recorded in statefile '$checksum_statefile' differs from Portfile checksum '$checksum_portfile'"
                             set portfile_changed yes
                         }
                     }
