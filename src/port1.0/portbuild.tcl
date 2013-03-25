@@ -70,15 +70,11 @@ proc portbuild::add_automatic_buildsystem_dependencies {} {
         ui_debug "build.type is BSD, adding bin:bsdmake:bsdmake build dependency"
         depends_build-delete bin:bsdmake:bsdmake
         depends_build-append bin:bsdmake:bsdmake
-        depends_skip_archcheck-delete bsdmake
-        depends_skip_archcheck-append bsdmake
     }
     if {[option build.type] == "gnu" && [option os.platform] == "freebsd"} {
         ui_debug "build.type is GNU, adding bin:gmake:gmake build dependency"
         depends_build-delete bin:gmake:gmake
         depends_build-append bin:gmake:gmake
-        depends_skip_archcheck-delete gmake
-        depends_skip_archcheck-append gmake
     }
 }
 # Register the above procedure as a callback after Portfile evaluation
