@@ -3,7 +3,7 @@ Warning: depends option is not handled yet
 --->  Computing dependencies for dependencies-d
 --->  Dependencies to be installed: dependencies-a dependencies-b
 --->  Fetching distfiles for dependencies-b
---->  Verifying checksum(s) for dependencies-b
+--->  Verifying checksums for dependencies-b
 --->  Extracting dependencies-b
 --->  Configuring dependencies-b
 --->  Building dependencies-b
@@ -12,7 +12,7 @@ Warning: depends option is not handled yet
 --->  Activating dependencies-b @1_0
 --->  Cleaning dependencies-b
 --->  Fetching distfiles for dependencies-a
---->  Verifying checksum(s) for dependencies-a
+--->  Verifying checksums for dependencies-a
 --->  Extracting dependencies-a
 --->  Configuring dependencies-a
 --->  Building dependencies-a
@@ -21,7 +21,7 @@ Warning: depends option is not handled yet
 --->  Activating dependencies-a @1_0+i_want_b
 --->  Cleaning dependencies-a
 --->  Fetching distfiles for dependencies-d
---->  Verifying checksum(s) for dependencies-d
+--->  Verifying checksums for dependencies-d
 --->  Extracting dependencies-d
 --->  Configuring dependencies-d
 --->  Building dependencies-d
