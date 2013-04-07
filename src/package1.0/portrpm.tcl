@@ -49,6 +49,9 @@ options package.destpath
 # Set up defaults
 default rpm.asroot yes
 
+default rpm.srcdir {${prefix}/src/macports}
+default rpm.tmpdir {${prefix}/var/tmp}
+
 set_ui_prefix
 
 proc portrpm::rpm_main {args} {

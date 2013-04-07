@@ -45,6 +45,9 @@ namespace eval portsrpm {
 
 options package.destpath
 
+# Set up defaults
+default srpm.asroot yes
+
 set_ui_prefix
 
 proc portsrpm::srpm_main {args} {
@@ -56,8 +59,11 @@ proc portsrpm::srpm_main {args} {
 }
 
 proc portsrpm::srpm_pkg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix categories maintainers description long_description homepage epoch portpath distfiles fetch_urls
+    global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix categories maintainers description long_description homepage epoch portpath distfiles
 	global os.platform os.arch os.version os.major
+
+    set fetch_urls {}
+    portfetch::checkfiles fetch_urls
 
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -224,7 +230,7 @@ Source1: ${portname}-files.zip"
         if {![info exists $fetch_urls]} {
         foreach {url_var distfile}  ${fetch_urls} {
             if {[string equal $distfile $file]} {
-                 global portfetch::$url_var
+                 global portfetch::$url_var master_sites
                  set site [lindex [set $url_var] 0]
                  set file [portfetch::assemble_url $site $distfile]
                  break
