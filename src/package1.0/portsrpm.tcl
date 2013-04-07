@@ -120,12 +120,17 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
     set sourcespath "`rpm --eval %{_sourcedir}`"
 
     system "cp -p ${portpath}/Portfile ${sourcespath}/$portname-Portfile"
-    system "cd ${portpath} && zip -r -q ${sourcespath}/$portname-files.zip files -x \\*.DS_Store -x files/.svn\\*"
+    if {[info exists ${portpath}/files]} {
+        system "cd ${portpath} && zip -r -q ${sourcespath}/$portname-files.zip files -x \\*.DS_Store -x files/.svn\\*"
+        set zip $portname-files.zip
+    } else {
+        set zip ""
+    }
     foreach dist $distfiles {
         system "cp -p ${distpath}/${dist} ${sourcespath}/${dist}"
     }
 
-    write_port_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $pkg_homepage $category $license $maintainer $distfiles $fetch_urls $dependencies $epoch $src
+    write_port_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $pkg_homepage $category $license $maintainer $distfiles $fetch_urls $dependencies $epoch $src $zip
     system "rpmbuild -bs -v --nodeps ${rpmdestpath} ${specpath}"
 
     return 0
@@ -198,7 +203,7 @@ proc portsrpm::word_wrap {orig Length} {
     return $text
 }
 
-proc portsrpm::write_port_spec {specfile portname portversion portrevision description long_description homepage category license maintainer distfiles fetch_urls dependencies epoch src} {
+proc portsrpm::write_port_spec {specfile portname portversion portrevision description long_description homepage category license maintainer distfiles fetch_urls dependencies epoch src zip} {
     set specfd [open ${specfile} w+]
     set origportname ${portname}
     regsub -all -- "\-" $portversion "_" portversion
@@ -216,8 +221,10 @@ Group: ${category}
 License: ${license}
 URL: ${homepage}
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-Source0: ${portname}-Portfile
-Source1: ${portname}-files.zip"
+Source0: ${portname}-Portfile"
+    if {$zip != ""} {
+        puts $specfd "Source1: $zip"
+    }
     if {[expr ${epoch} != 0]} {
 	    puts $specfd "Epoch: ${epoch}"
     }
@@ -250,12 +257,17 @@ Source1: ${portname}-files.zip"
 	}
     }
     set wrap_description [word_wrap ${long_description} 72]
+    if {$zip != ""} {
+        set and "-a 1"
+    } else {
+        set and ""
+    }
     puts $specfd "
 %description
 $wrap_description
 
 %prep
-%setup -c -a 1 -T
+%setup -c $and -T
 cp -p %{SOURCE0} Portfile
 #prepare work area
 port fetch
