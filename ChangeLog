@@ -4,6 +4,9 @@
 ###
 
 Release 2.2.0 (unreleased)
+    - Remove unsupported xpkg package type, xar-based format with XML.
+      (afb in r105002)
+
     - Remove unimplemented 'port submit', remove XAR source packages.
       (cal in r103400)
 
