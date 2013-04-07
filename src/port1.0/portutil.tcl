@@ -2435,7 +2435,7 @@ proc supportedArchiveTypes {} {
     global supported_archive_types
     if {![info exists supported_archive_types]} {
         set supported_archive_types {}
-        foreach type {tbz2 tbz tgz tar txz tlz xar xpkg zip cpgz cpio} {
+        foreach type {tbz2 tbz tgz tar txz tlz xar zip cpgz cpio} {
             if {[catch {archiveTypeIsSupported $type}] == 0} {
                 lappend supported_archive_types $type
             }
@@ -2511,7 +2511,7 @@ proc archiveTypeIsSupported {type} {
                 }
             }
         }
-        xar|xpkg {
+        xar {
             set xar "xar"
             if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
                 return 0

@@ -74,7 +74,7 @@ foreach installed $ilist {
         }
         set found 0
         foreach adir [list $oldarchivedir $olderarchivedir] {
-            foreach type {tbz2 tbz tgz tar txz tlz xar xpkg zip cpgz cpio} {
+            foreach type {tbz2 tbz tgz tar txz tlz xar zip cpgz cpio} {
                 set oldarchivefullpath "[file join $adir $oldarchiverootname].${type}"
                 if {[file isfile $oldarchivefullpath]} {
                     set found 1

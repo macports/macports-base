@@ -372,7 +372,7 @@ proc extract_archive_to_tmpdir {location} {
                     throw MACPORTS "No '$tar' was found on this system!"
                 }
             }
-            xar|xpkg {
+            xar {
                 set xar "xar"
                 if {[catch {set xar [macports::findBinary $xar ${macports::autoconf::xar_path}]} errmsg] == 0} {
                     ui_debug "Using $xar"

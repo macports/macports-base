@@ -201,7 +201,7 @@ proc portunarchive::unarchive_command_setup {args} {
                 return -code error "No '$tar' was found on this system!"
             }
         }
-        xar|xpkg {
+        xar {
             set xar "xar"
             if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
                 ui_debug "Using $xar"

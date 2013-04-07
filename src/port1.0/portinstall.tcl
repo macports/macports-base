@@ -94,21 +94,6 @@ proc portinstall::_fake_fileinfo_for_index {flist} {
 	return $rval
 }
 
-proc portinstall::putel { fd el data } {
-    # Quote xml data
-    set quoted [string map  { & &amp; < &lt; > &gt; } $data]
-    # Write the element
-    puts $fd "<${el}>${quoted}</${el}>"
-}
-
-proc portinstall::putlist { fd listel itemel list } {
-    puts $fd "<$listel>"
-    foreach item $list {
-        putel $fd $itemel $item
-    }
-    puts $fd "</$listel>"
-}
-
 proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
            epoch os.platform PortInfo installPlist \
@@ -194,22 +179,6 @@ proc portinstall::create_archive {location archive.type} {
                 ui_debug "Using $xar"
                 set archive.cmd "$xar"
                 set archive.pre_args {-cvf}
-                set archive.args "${location} ."
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$xar' was found on this system!"
-            }
-        }
-        xpkg {
-            set xar "xar"
-            set compression "bzip2"
-            set archive.meta yes
-            set archive.metaname "xpkg"
-            set archive.metapath [file join $workpath "${archive.metaname}.xml"]
-            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
-                ui_debug "Using $xar"
-                set archive.cmd "$xar"
-                set archive.pre_args "-cv --exclude='\./\+.*' --compression=${compression} -n ${archive.metaname} -s ${archive.metapath} -f"
                 set archive.args "${location} ."
             } else {
                 ui_debug $errmsg
@@ -334,77 +303,6 @@ proc portinstall::create_archive {location archive.type} {
     }
     close $fd
 
-    # the XML package metadata, for XAR package
-    # (doesn't contain any file list/checksums)
-    if {[tbool archive.meta]} {
-        set sd [open ${archive.metapath} w]
-        puts $sd "<xpkg version='0.2'>"
-        # TODO: split contents into <buildinfo> (new) and <package> (current)
-        #       see existing <portpkg> for the matching source package layout
-
-        putel $sd name ${subport}
-        putel $sd epoch ${epoch}
-        putel $sd version ${version}
-        putel $sd revision ${revision}
-        putel $sd major 0
-        putel $sd minor 0
-
-        putel $sd platform ${os.platform}
-        if {[llength [get_canonical_archs]] > 1} {
-            putlist $sd archs arch [get_canonical_archs]
-        } else {
-            putel $sd arch [get_canonical_archs]
-        }
-        putlist $sd variants variant $vlist
-
-        if {[exists categories]} {
-            set primary [lindex [split [option categories] " "] 0]
-            putel $sd category $primary
-        }
-        if {[exists description]} {
-            putel $sd comment "[option description]"
-        }
-        if {[exists long_description]} {
-            putel $sd desc "[option long_description]"
-        }
-        if {[exists homepage]} {
-            putel $sd homepage "[option homepage]"
-        }
-
-            # Emit dependencies provided by this package
-            puts $sd "<provides>"
-                puts $sd "<item>"
-                putel $sd name $subport
-                putel $sd major 0
-                putel $sd minor 0
-                puts $sd "</item>"
-            puts $sd "</provides>"
-
-
-            # Emit build, library, and runtime dependencies
-            puts $sd "<requires>"
-            foreach {key type} {
-                depends_fetch "fetch"
-                depends_extract "extract"
-                depends_build "build"
-                depends_lib "library"
-                depends_run "runtime"
-            } {
-                if {[info exists $key]} {
-                    set depname [lindex [split [set $key] :] end]
-                    puts $sd "<item type=\"$type\">"
-                    putel $sd name $depname
-                    putel $sd major 0
-                    putel $sd minor 0
-                    puts $sd "</item>"
-                }
-            }
-            puts $sd "</requires>"
-
-        puts $sd "</xpkg>"
-        close $sd
-    }
-
     # Now create the archive
     ui_debug "Creating [file tail $location]"
     command_exec archive
@@ -439,10 +337,6 @@ proc portinstall::extract_contents {location type} {
         }
         xar {
             system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location +CONTENTS"
-            set twostep 1
-        }
-        xpkg {
-            system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location --compression=bzip2 +CONTENTS"
             set twostep 1
         }
         zip {
