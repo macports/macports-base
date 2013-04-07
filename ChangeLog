@@ -7,6 +7,9 @@ Release 2.2.0 (unreleased)
     - Remove unimplemented 'port submit', remove XAR source packages.
       (cal in r103400)
 
+    - Remove dependency_libs information from libtool libraries (.la).
+      (#38010, jmr in r102945)
+
     - Add 'port space --total' which displays the grand total only.
       (raimue in r102248)
 
