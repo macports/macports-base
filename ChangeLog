@@ -4,7 +4,7 @@
 ###
 
 Release 2.2.0 (unreleased)
-    - Remove unimplemented 'port submit'.
+    - Remove unimplemented 'port submit', remove XAR source packages.
       (cal in r103400)
 
     - Add 'port space --total' which displays the grand total only.
