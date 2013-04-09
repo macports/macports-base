@@ -1,6 +1,6 @@
 .\" portfile.7
 .\"
-.\" Copyright (c) 2004-2011 The MacPorts Project
+.\" Copyright (c) 2004-2013 The MacPorts Project
 .\" Copyright (c) 2002-2003 Apple Inc.
 .\" All rights reserved.
 .\"
@@ -449,6 +449,23 @@ linking in its dependents.
 .br
 .Sy Example:
 .Dl installs_libs no
+.It Ic license_noconflict
+By default, it is assumed that ports may use libraries or headers from their
+dependencies and thus form a derivative work. A dependency with an
+incompatible license thus prevents the port from being distributed in binary
+form. If a dependency with an incompatible license is not used in such a way
+that a derivative work is formed, or should not prevent binary distribution
+for any other reason, add its name to this list.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl license_noconflict openssl
+.Dl license_noconflict readline gdbm
 .El
 .Sh TARGET HOOKS
 A number of hooks are available for customizing many of the standard
@@ -1093,7 +1110,7 @@ Flags to use for optimization.
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em -Os
 .br
 .Sy Example:
 .Dl configure.optflags -O3
@@ -1231,6 +1248,8 @@ use Apple's gcc suite installed via MacPorts,
 .Em macports-gcc-4.4
 .Em macports-gcc-4.5
 .Em macports-gcc-4.6
+.Em macports-gcc-4.7
+.Em macports-gcc-4.8
 .Em macports-llvm-gcc-4.2
 use the vanilla compiler suites installed via MacPorts.
 .br
@@ -1238,7 +1257,7 @@ use the vanilla compiler suites installed via MacPorts.
 .Em optional
 .br
 .Sy Values:
-.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-4.0 apple-gcc-4.2 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5 macports-gcc-4.6 macports-llvm-gcc-4.2
+.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-4.0 apple-gcc-4.2 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5 macports-gcc-4.6 macports-gcc-4.7 macports-gcc-4.8 macports-llvm-gcc-4.2
 .br
 .Sy Example:
 .Dl configure.compiler llvm-gcc-4.2
@@ -1655,8 +1674,8 @@ of check should be performed on distfiles:
 .It Ic livecheck.type
 What kind of check to perform to figure out if the software has been updated.
 Can be
-.Em freshmeat
-(uses the date_updated tag of the freshmeat XML file),
+.Em freecode
+(uses the date_updated tag of the freecode XML file),
 .Em sourceforge
 (uses the version of the latest file release of the project),
 .Em googlecode
@@ -1680,19 +1699,19 @@ Can be
 or
 .Em googlecode
 if the master_sites is one of these, else
-.Em freshmeat
+.Em freecode
 .br
 .Sy Values:
-.Em freshmeat sourceforge googlecode moddate regex regexm md5 none
+.Em freecode sourceforge googlecode moddate regex regexm md5 none
 .It Ic livecheck.name
-Name of the project for live checks (used for freshmeat, sourceforge, and googlecode checks).
+Name of the project for live checks (used for freecode, sourceforge, and googlecode checks).
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${name}
-or the sourceforge/freshmeat/googlecode project name if it can be guessed by looking at the master_sites.
+or the sourceforge/freecode/googlecode project name if it can be guessed by looking at the master_sites.
 .It Ic livecheck.distname
 Name of the file release (used for sourceforge and googlecode checks).
 For sourceforge releases use the name of the package release.
@@ -1724,7 +1743,7 @@ URL to query for the check.
 .Sy Default:
 .Em ${homepage}
 or
-.Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
+.Em http://freecode.com/projects/${livecheck.name}/releases.atom
 or
 .Em http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}
 or

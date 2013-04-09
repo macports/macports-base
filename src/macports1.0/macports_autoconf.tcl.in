@@ -40,6 +40,8 @@ namespace eval macports::autoconf {
     variable macports_version "@MACPORTS_VERSION@"
     variable macports_user_dir "~/.macports"
     variable macportsuser "@RUNUSR@"
+    variable mdfind_path "@MDFIND@"
+    variable mdls_path "@MDLS@"
     variable open_path "@OPEN@"
     variable openssl_path "@OPENSSL@"
     variable pax_path "@PAX@"
@@ -49,4 +51,6 @@ namespace eval macports::autoconf {
     variable tar_q "@TAR_Q@"
     variable unzip_path "@UNZIP@"
     variable xar_path "@XAR@"
+    variable xcode_select_path "@XCODE_SELECT@"
+    variable xcodebuild_path "@XCODEBUILD@"
 }

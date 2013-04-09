@@ -135,8 +135,6 @@ set porthelp(edit) {
 Edit given ports
 }
 
-set porthelp(ed) $porthelp(edit)
-
 set porthelp(exit) {
 Exit port
 
@@ -181,7 +179,9 @@ set will be used.  The other options which do not correspond to fields are:
 }
 
 set porthelp(install) {
-Installs the given ports
+Installs the given ports.
+    --no-rev-upgrade    Do not run rev-upgrade after the installation.
+    --unrequested       Do not mark the port as requested.
 }
 
 set porthelp(installed) {
@@ -253,6 +253,22 @@ Return which port provides each of the files given
 
 set porthelp(quit) $porthelp(exit)
 
+set porthelp(rev-upgrade) {
+Scan for broken binaries in the installed ports and rebuild them as needed. Can
+be run with -y to only report broken ports, but not automatically rebuild them.
+
+You normally wouldn't have to run rev-upgrade manually; it is run automatically
+after each install and upgrade by default. Rev-upgrade doesn't honor package
+names, e.g.
+	upgrade outdated
+will not run rev-upgrade only on outdated, because ports not in outdated might
+have been broken by upgrade outdated. Rev-upgrade will always run on all your
+active ports.
+
+See man 1 port, section rev-upgrade, and man 5 macports.conf, directives
+starting with revupgrade_ for configuration and more information.
+}
+
 set porthelp(rpm) {
 Creates a rpm for each of the given ports
 }
@@ -298,6 +314,7 @@ Show the disk space used by the given ports
 
 --units <units> Specify units to use. Accepted units are: B, kB, KiB, MB, MiB,
                 GB, GiB. The 'B' may be omitted.
+--total         Display the grand total only
 }
 
 set porthelp(srpm) {
@@ -331,10 +348,6 @@ port stats
 port stats submit 
 }
 
-set porthelp(submit) {
-Submit a port to the MacPorts Web Application (unimplemented)
-}
-
 set porthelp(sync) {
 Synchronize the set of Portfiles
 }
@@ -350,7 +363,14 @@ Unarchive the destroot of the given ports from installed images
 set porthelp(uninstall) {
 Uninstall the given ports
 
---no-exec   Do not execute any stored pre- or post-uninstall procedures
+--follow-dependents     Recursively uninstall all ports that depend on the
+                        specified port before uninstalling the port itself.
+--follow-dependencies   Also recursively uninstall all ports that the
+                        specified port depended on. This will not uninstall
+                        dependencies that are marked as requested or that
+                        have other dependents.
+--no-exec               Do not execute any stored pre- or post-uninstall
+                        procedures.
 }
 
 set porthelp(unload) $porthelp(load)

@@ -1674,7 +1674,9 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *);
     #include "libmachista.h"
 
 
+#ifdef __MACH__
     #include <mach-o/arch.h>
+#endif
     #include <inttypes.h>
     #include <stdint.h>
 
@@ -2455,8 +2457,6 @@ SWIG_InitializeModule(void *clientdata) {
   size_t i;
   swig_module_info *module_head, *iter;
   int found, init;
-  
-  clientdata = clientdata;
   
   /* check to see if the circular list has been setup, if not, set it up */
   if (swig_module.next==0) {

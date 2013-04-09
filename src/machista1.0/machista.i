@@ -6,7 +6,9 @@
 %}
 
 %inline %{
+#ifdef __MACH__
     #include <mach-o/arch.h>
+#endif
     #include <inttypes.h>
     #include <stdint.h>
 %}

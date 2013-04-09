@@ -92,6 +92,14 @@ ports if available.
 .br
 .Ic Default:
 ${prefix}/etc/macports/variants.conf
+.It Va buildfromsource
+Controls whether ports are built from source or downloaded as pre-built
+archives. Setting to 'always' will never use archives, 'never' will always
+try to use an archive and fail if one is not available. 'ifneeded' will try to
+fetch an archive and fall back to building from source if that isn't possible.
+.br
+.Ic Default:
+ifneeded
 .It Va portarchivetype
 Format of archives in which to store port images. This controls both the type
 of archive created locally after building from source, and the type to request
@@ -179,6 +187,14 @@ Supported types are: none, SystemStarter, launchd, default, rcNG.
 .br
 .Ic Default:
 default
+.It Va startupitem_install
+Option to install symlinks into /Library/LaunchAgents or
+/Library/LaunchDaemons; startupitem_install may be empty, "yes" or "no";
+if the option is NOT "no" then a symlink for the startupitem will be
+created in the appropriate system directory.
+.br
+.Ic Default:
+yes
 .It Va destroot_umask
 Umask value to use during the destrooting of a port.
 .br
@@ -204,8 +220,8 @@ Default rsync options to use when connecting to the rsync server.
 -rtzv --delete-after
 .It Va binpath
 Sets the directory search path for locating system executables used by MacPorts. This variable should contain
-the paths for locating utilities such as rsync, tar, cvs and others. Don't change this unless you understand
-and accept the consequences.
+the paths for locating utilities such as rsync, tar, cvs and others. Changing this is unsupported; don't do so
+unless you understand and accept the consequences.
 .br
 .Ic Default:
 ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -221,6 +237,77 @@ This is the url of the server where MacPorts should submit usage data.
 .It Va stats_id
 This is a string that uniquely identifies this installation of MacPorts. It is automatically generated 
 and should not be modified.
+Changing this is unsupported.
+.It Va proxy_override_env
+Proxy support. Precedence is: env, macports.conf, System Preferences.
+That is, if it's set in the environment, that will be used instead of
+anything here or in System Preferences. Setting proxy_override_env to
+yes will cause any proxies set here (or in System Preferences if set
+there but not here) to override what's in the environment. Note that
+System Preferences doesn't have an rsync proxy definition. Also note, on
+10.5, sudo will clear many environment variables including those for
+proxy support. Equivalent environment variables: http_proxy,
+HTTPS_PROXY, FTP_PROXY, RSYNC_PROXY, NO_PROXY
+.br
+.Ic Default:
+yes
+.It Va proxy_http
+HTTP proxy
+.br
+.Ic Default:
+none
+.It Va proxy_https
+HTTPS proxy
+.br
+.Ic Default:
+none
+.It Va proxy_ftp
+FTP proxy
+.br
+.Ic Default:
+none
+.It Va proxy_rsync
+rsync proxy
+.br
+.Ic Default:
+none
+.It Va proxy_skip
+Hosts not to go through the proxy (comma-separated, applies to HTTP,
+HTTPS and FTP, but not rsync):
+.br
+.Ic Default:
+none
+.It Va host_blacklist
+Space separated list of download hosts that should not be used.
+.br
+.Ic Default:
+none
+.It Va preferred_hosts
+Space separated list of download hosts that should be used preferentially.
+.br
+.Ic Default:
+none
+.It Va revupgrade_autorun
+Controls whether the rev-upgrade action will be run automatically after
+upgrading ports.
+.br
+.Ic Default:
+yes
+.It Va revupgrade_mode
+Controls the rev-upgrade functionality which checks for broken linking and can
+rebuild ports to fix it. 'rebuild' means ports will automatically be rebuilt
+when broken linking is detected in their files, while 'report' means broken
+files will be scanned for and reported but the ports will not be rebuilt.
+.br
+.Ic Default:
+rebuild
+.It Va default_compiler
+Default value for configure.compiler. This can be a space-separated list. Later
+entries will be used if earlier entries are unavailable or blacklisted by a
+port. Setting this is unsupported.
+.br
+.Ic Default:
+none (internal list based on Xcode version is normally used)
 .El
 .Sh FILES
 .Bl -tag -width

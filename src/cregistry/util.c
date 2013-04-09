@@ -4,6 +4,7 @@
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2012 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,6 +123,7 @@ char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
  * @param [in] query_len length of the query (or -1 for automatic)
  * @param [out] objects  the objects selected
  * @param [in] fn        a function to convert sqlite3_stmts to the desired type
+ * @param [inout] data   data passed along to the cast function
  * @param [in] del       a function to delete the desired type of object
  * @param [out] errPtr   on error, a description of the error that occurred
  * @return               the number of objects if success; negative if failure
@@ -136,7 +138,7 @@ int reg_all_objects(reg_registry* reg, char* query, int query_len,
     if (!results || !fn) {
         return -1;
     }
-    if (sqlite3_prepare(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
         int r;
         void* row;
         do {

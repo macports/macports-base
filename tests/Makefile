@@ -1,6 +1,6 @@
 include ../Mk/macports.autoconf.mk
 
-TESTS?=checksums-1 svn-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c dependencies-d dependencies-e case-insensitive-deactivate variants
+TESTS?=checksums-1 svn-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c dependencies-d dependencies-e case-insensitive-deactivate variants statefile-version1 statefile-version1-outdated statefile-version2 statefile-version2-outdated statefile-version2-invalid statefile-unknown-version
 
 PWD=$(shell pwd)
 
@@ -64,6 +64,10 @@ test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/e
 				rm -f difference output.sed; \
 			fi) && \
 			success=$$(( success + 1 )); \
+			if [ -n "`PORTSRC=$(PWD)/test-macports.conf $(bindir)/port -q echo installed`" ]; then \
+			    PORTSRC=$(PWD)/test-macports.conf $(bindir)/port -f clean --all installed > /dev/null && \
+			    PORTSRC=$(PWD)/test-macports.conf $(bindir)/port -f uninstall installed > /dev/null; \
+			fi; \
 		fi; \
 		num=$$(( num + 1 )); \
 	done; \

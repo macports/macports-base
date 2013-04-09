@@ -108,7 +108,7 @@ reg_file* reg_file_open(reg_registry* reg, char* id, char* name,
     char* query = "SELECT id, path FROM registry.files WHERE id=? AND path=?";
     int lower_bound = 0;
 
-    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, id, -1, SQLITE_STATIC)
                 == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 2, name, -1, SQLITE_STATIC)
@@ -237,7 +237,7 @@ int reg_file_propget(reg_file* file, char* key, char** value,
     const char *text;
     query = sqlite3_mprintf("SELECT %q FROM registry.files WHERE id=%lld "
             "AND path='%q'", key, file->key.id, file->key.path);
-    if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         do {
             r = sqlite3_step(stmt);
@@ -292,7 +292,7 @@ int reg_file_propset(reg_file* file, char* key, char* value,
     char* query;
     query = sqlite3_mprintf("UPDATE registry.files SET %q = '%q' WHERE id=%lld "
             "AND path='%q'", key, value, file->key.id, file->key.path);
-    if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         do {
             r = sqlite3_step(stmt);

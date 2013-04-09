@@ -2,7 +2,7 @@
 # portpkg.tcl
 # $Id$
 #
-# Copyright (c) 2005, 2007 - 2011 The MacPorts Project
+# Copyright (c) 2005, 2007 - 2012 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -38,53 +38,48 @@ set org.macports.pkg [target_new org.macports.pkg portpkg::pkg_main]
 target_runtype ${org.macports.pkg} always
 target_provides ${org.macports.pkg} pkg
 target_requires ${org.macports.pkg} archivefetch unarchive destroot
+target_prerun ${org.macports.pkg} portpkg::pkg_start
 
 namespace eval portpkg {
 }
 
 # define options
-options package.type package.destpath package.flat
+options package.type package.destpath package.flat package.resources package.scripts
 
 # Set defaults
 default package.destpath {${workpath}}
-default package.flat     false
+default package.resources {${workpath}/pkg_resources}
+default package.scripts  {${workpath}/pkg_scripts}
+# Need productbuild to make flat packages really work
+default package.flat     {[expr [vercmp $macosx_deployment_target 10.6] >= 0]}
 
 set_ui_prefix
 
-proc portpkg::pkg_main {args} {
-    global subport version revision package.type package.destpath package.flat UI_PREFIX
+proc portpkg::pkg_start {args} {
+    global packagemaker_path portpkg::packagemaker \
+           portpkg::language xcodeversion portpath porturl \
+           package.resources package.scripts package.flat \
+           subport epoch version revision description long_description \
+           homepage workpath os.major
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${subport} ${version}]"
-
-    if {[getuid] == 0 && [geteuid] != 0} {
-        elevateToRoot "pkg"
+    if {![info exists packagemaker_path]} {
+        if {[vercmp $xcodeversion 4.3] >= 0} {
+            set packagemaker_path /Applications/PackageMaker.app
+            if {![file exists $packagemaker_path]} {
+                ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
+            }
+        } else {
+            set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
+        }
     }
-
-    return [package_pkg $subport $version $revision]
-}
-
-proc portpkg::package_pkg {portname portversion portrevision} {
-    global UI_PREFIX portdbpath destpath workpath prefix description package.destpath package.flat long_description homepage portpath porturl
-    global os.version os.major
-
-    set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
-
-    if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
-        return 0
-    }
-
-    set packagemaker "[option developer_dir]/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
-    if ([file exists "$packagemaker"]) {
-        set resourcepath ${workpath}/pkg_resources
-    } else {
-        set resourcepath "${pkgpath}/Contents/Resources"
-    }
+    set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
 
     set language "English"
-    file mkdir "${resourcepath}/${language}.lproj"
-    file attributes "${resourcepath}/${language}.lproj" -permissions 0755
-	
+    file mkdir "${package.resources}/${language}.lproj"
+    file attributes "${package.resources}/${language}.lproj" -permissions 0755
+    file mkdir ${package.scripts}
+    file attributes ${package.scripts} -permissions 0755
+
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
         if {![info exists $variable]} {
@@ -93,8 +88,45 @@ proc portpkg::package_pkg {portname portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resourcepath}/${language}.lproj/background.tiff
+    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $epoch $version $revision $pkg_long_description $pkg_description $pkg_homepage
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
+
+    if {${package.flat} && ${os.major} >= 9} {
+        write_distribution "${workpath}/Distribution" $subport $epoch $version $revision
+    }
+}
+
+proc portpkg::pkg_main {args} {
+    global subport epoch version revision UI_PREFIX
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s_%s_%s"] ${subport} ${epoch} ${version} ${revision}]"
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot "pkg"
+    }
+
+    return [package_pkg $subport $epoch $version $revision]
+}
+
+proc portpkg::package_pkg {portname portepoch portversion portrevision} {
+    global UI_PREFIX portdbpath destpath workpath prefix description \
+    package.flat package.destpath portpath os.version os.major \
+    package.resources package.scripts portpkg::packagemaker portpkg::language
+
+    set portepoch_namestr ""
+    if {${portepoch} != "0"} {
+        set portepoch_namestr "${portepoch}_"
+    }
+    set portrevision_namestr ""
+    if {${portrevision} != "0"} {
+        set portrevision_namestr "_${portrevision}"
+    }
+
+    set pkgpath "${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg"
+    if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s_%s is up-to-date"] ${portname} ${portepoch} ${portversion} ${portrevision}]"
+        return 0
+    }
 
     foreach dir {etc var tmp} {
         if ([file exists "${destpath}/$dir"]) {
@@ -111,42 +143,65 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         if {${os.major} >= 9} {
             if {${package.flat}} {
                 set pkgtarget "10.5"
-                set pkgresources ""
+                set pkgresources " --scripts ${package.scripts}"
                 set infofile "${workpath}/PackageInfo"
-                write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
+                write_package_info $infofile
             } else {
                 set pkgtarget "10.3"
-                set pkgresources " --resources ${resourcepath} --title \"$portname-$portversion\""
+                set pkgresources " --resources ${package.resources} --title \"$portname-$portversion\""
                 set infofile "${workpath}/Info.plist"
-                write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
+                write_info_plist $infofile $portname $portversion $portrevision
             }
-            set cmdline "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
             if {${os.major} >= 10} {
+                set v [mp_version_to_apple_version $portepoch $portversion $portrevision]
+                append cmdline " --version $v"
                 append cmdline " --no-relocate"
+            } else {
+                # 10.5 Leopard does not use current language, manually specify
+                append cmdline " -AppleLanguages \"(${language})\""
             }
             ui_debug "Running command line: $cmdline"
             system $cmdline
+
+            if {${package.flat} && ${os.major} >= 10} {
+                # the package we just built is just a component
+                set componentpath "[file rootname ${pkgpath}]-component.pkg"
+                file rename -force ${pkgpath} ${componentpath}
+                # Generate a distribution
+                set productbuild [findBinary productbuild]
+                set cmdline "$productbuild --resources ${package.resources} --identifier org.macports.${portname} --distribution ${workpath}/Distribution --package-path ${package.destpath} ${pkgpath}"
+                ui_debug "Running command line: $cmdline"
+                system $cmdline
+            }
         } else {
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
             write_description_plist ${workpath}/Description.plist $portname $portversion $description
-            system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
+            system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${package.resources} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
         }
 
-        file delete ${workpath}/Info.plist
-        file delete ${workpath}/PackageInfo
-        file delete ${workpath}/Description.plist
-        file delete -force ${workpath}/pkg_resources
+        file delete ${workpath}/Info.plist \
+                    ${workpath}/PackageInfo \
+                    ${workpath}/Distribution \
+                    ${workpath}/Description.plist
+        file delete -force ${package.resources} \
+                           ${package.scripts}
 
     } else {
+
+        file mkdir ${pkgpath}/Contents/Resources
+        foreach f [glob -directory ${package.resources} *] {
+            file copy -force -- $f ${pkgpath}/Contents/Resources
+        }
 
         write_PkgInfo ${pkgpath}/Contents/PkgInfo
         write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
 
         system "[findBinary mkbom $portutil::autoconf::mkbom_path] ${destpath} ${pkgpath}/Contents/Archive.bom"
-        system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x [findBinary cpio $portutil::autoconf::cpio_path] -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+        system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 
-        write_description_plist ${resourcepath}/Description.plist $portname $portversion $description
-        write_sizes_file ${resourcepath}/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
+        write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+        write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${pkgpath} ${destpath}
 
     }
 
@@ -246,23 +301,37 @@ proc portpkg::write_description_plist {infofile portname portversion description
     close $infofd
 }
 
-proc portpkg::write_welcome_html {filename portname portversion long_description description homepage} {
+proc portpkg::write_welcome_html {filename portname portepoch portversion portrevision long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description == ""} {
         set long_description $description
     }
 
     set portname [xml_escape $portname]
+    if {$portepoch != "0"} {
+        set portepoch [xml_escape $portepoch]
+        set portepoch_str "${portepoch}_"
+    } else {
+        set portepoch ""
+        set portepoch_str ""
+    }
     set portversion [xml_escape $portversion]
+    if {$portrevision != "0"} {
+        set portrevision [xml_escape $portrevision]
+        set portrevision_str "_${portrevision}"
+    } else {
+        set portrevision ""
+        set portrevision_str ""
+    }
     set long_description [xml_escape $long_description]
     set description [xml_escape $description]
     set homepage [xml_escape $homepage]
-	
+
     puts $fd "
 <html lang=\"en\">
 <head>
-	<meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
-	<title>Install ${portname}</title>
+    <meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
+    <title>Install ${portname}</title>
 </head>
 <body>
 <font face=\"Helvetica\"><b>Welcome to the ${portname} for Mac OS X Installer</b></font>
@@ -274,15 +343,15 @@ proc portpkg::write_welcome_html {filename portname portversion long_description
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
-    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.</font>
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portepoch_str}${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
 </body>
 </html>"
 
     close $fd
 }
 
-proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath} {
-    
+proc portpkg::write_sizes_file {sizesfile pkgpath destpath} {
+
     if {[catch {set numFiles [llength [split [exec [findBinary lsbom $portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
@@ -300,7 +369,7 @@ proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath}
     }
     incr installedSize $infoSize
     incr installedSize $bomSize
-	
+
     set fd [open ${sizesfile} w+]
     puts $fd "NumFiles $numFiles
 InstalledSize $installedSize
@@ -308,14 +377,141 @@ CompressedSize $compressedSize"
     close $fd
 }
 
-proc portpkg::write_package_info {infofile portname portversion portrevision} {
-    set portname [xml_escape $portname]
-    set portversion [xml_escape $portversion]
-    set portrevision [xml_escape $portrevision]
-
+proc portpkg::write_package_info {infofile} {
     set infofd [open ${infofile} w+]
     puts $infofd "
 <pkg-info install-location=\"/\" relocatable=\"false\" auth=\"root\">
 </pkg-info>"
     close $infofd
+}
+
+proc portpkg::write_distribution {dfile portname portepoch portversion portrevision} {
+    global macosx_deployment_target
+    set portname [xml_escape $portname]
+    if {$portepoch != "0"} {
+        set portepoch [xml_escape $portepoch]
+        set portepoch_str "${portepoch}_"
+    } else {
+        set portepoch ""
+        set portepoch_str ""
+    }
+    set portversion [xml_escape $portversion]
+    if {$portrevision != "0"} {
+        set portrevision [xml_escape $portrevision]
+        set portrevision_str "_${portrevision}"
+    } else {
+        set portrevision ""
+        set portrevision_str ""
+    }
+    set dfd [open $dfile w+]
+    puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<installer-gui-script minSpecVersion=\"1\">
+    <title>${portname}</title>
+    <options customize=\"never\"/>
+    <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
+    <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
+    <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
+    <choices-outline>
+        <line choice=\"default\">
+            <line choice=\"org.macports.${portname}\"/>
+        </line>
+    </choices-outline>
+    <choice id=\"default\"/>
+    <choice id=\"org.macports.${portname}\" visible=\"false\">
+        <pkg-ref id=\"org.macports.${portname}\"/>
+    </choice>
+    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portepoch_str}${portversion}${portrevision_str}-component.pkg</pkg-ref>
+</installer-gui-script>
+"
+    close $dfd
+}
+
+# To create Apple packages, Apple version numbers consist of three
+# period separated integers [1][2].  Munki supports any number of
+# integers [3], so incorporate the port epoch, version and revision
+# numbers in the Apple package version number so that Munki can do
+# upgrades.  The Apple package number consists of the port epoch
+# number followed by the port version number followed by the port
+# revision number.
+#
+# Munki also requires that version numbers only consist of integers
+# and periods.  So replace all non-periods and non-digits in the
+# version number with periods so that any digits following the
+# non-digits can properly version the package.
+#
+# There is an edge case when upstream releases a new version which
+# adds an additional integer to its version number and the Portfile's
+# revision number is reset to 0.  For example, aspell epoch 0,
+# upstream 0.60.6, revision 4 was updated to epoch 0, upstream
+# 0.60.6.1, revision 0, which maps to 0.60.6.4 and 0.60.6.1.0
+# respectively, but the new Apple package version number is less than
+# the old one.  To handle this, all upstream version numbers are
+# mapped to seven period separated integers, appending 0 as necessary.
+# Six was the largest number of integers in all upstream version
+# numbers as of January 2013 [4], so add one to make space for
+# trailing [a-zA-Z] in the upstream version number.  This generates a
+# fixed format version number that will correctly upgrade the package,
+# e.g. 0.60.6.4.0.0.0.0.4 and 0.60.6.1.0.0.0.1 for aspell.
+#
+# [1] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
+# [2] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
+# [3] https://groups.google.com/d/msg/munki-dev/-DCERUz6rrM/zMbY6iimIGwJ
+# [4] http://lists.macosforge.org/pipermail/macports-dev/2013-January/021477.html
+proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
+    # Assume that portepoch and portrevision are non-negative integers
+    # so they do not need to be specially handled like the upstream
+    # version number.
+    set v $portversion
+
+    # Replace all non-period and non-digit characters with a period.
+    regsub -all -- {[^.0-9]+} $v . v
+
+    # Replace two or more consecutive periods with a single period.
+    regsub -all -- {[.]+} $v . v
+
+    # Trim trailing periods.
+    regsub -- {[.]+$} $v {} v
+
+    # Split the string into a list of integers.
+    set vs [split $v {.}]
+
+    # If the upstream version number ends in [a-zA-Z]+, e.g. openssl's
+    # 1.0.1c, then treat the trailing characters as a base 26 number,
+    # mapping 'A' and 'a' to 1, 'B' and 'b' to 2, etc.
+    if {[regexp -- {\d([a-zA-Z]+)} $portversion ignored chars]} {
+        # Get the integer ordinals of 'A' and 'a'.
+        scan "A" %c ord_A
+        scan "a" %c ord_a
+
+        set i 0
+        foreach char [split $chars ""] {
+            scan $char %c ord
+
+            # Treat uppercase and lowercase characters as the same
+            # value.  Ordinal values less then 'a' should have 'A'
+            # subtracted, otherwise subtract 'a'.  Add 1 to the value
+            # so that 'a' and 'A' are mapped to 1, not 0.
+            if {$ord < $ord_a} {
+                set j [expr $ord - $ord_A + 1]
+            } else {
+                set j [expr $ord - $ord_a + 1]
+            }
+            set i [expr 26*$i + $j]
+        }
+        lappend vs $i
+    }
+
+    # Add integers so that the total number of integers in the version
+    # number is seven.
+    while {[llength $vs] < 7} {
+        lappend vs 0
+    }
+
+    # Prepend the epoch and append the revision number.
+    set vs [linsert $vs 0 $portepoch]
+    lappend vs $portrevision
+
+    set v [join $vs {.}]
+
+    return $v
 }

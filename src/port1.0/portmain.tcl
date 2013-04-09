@@ -2,7 +2,7 @@
 # portmain.tcl
 # $Id$
 #
-# Copyright (c) 2004 - 2005, 2007 - 2011 The MacPorts Project
+# Copyright (c) 2004 - 2005, 2007 - 2012 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -44,6 +44,8 @@ target_state ${org.macports.main} no
 namespace eval portmain {
 }
 
+set_ui_prefix
+
 # define options
 options prefix name version revision epoch categories maintainers \
         long_description description homepage notes license \
@@ -53,9 +55,9 @@ options prefix name version revision epoch categories maintainers \
         platforms default_variants install.user install.group \
         macosx_deployment_target universal_variant os.universal_supported \
         supported_archs depends_skip_archcheck installs_libs \
-        copy_log_files \
+        license_noconflict copy_log_files \
         compiler.cpath compiler.library_path \
-        add_users
+        add_users altprefix
 
 # Order of option_proc and option_export matters. Filter before exporting.
 
@@ -65,7 +67,7 @@ option_proc default_variants handle_default_variants
 option_proc notes handle_option_string
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs
+options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs license_noconflict
 
 default subport {[portmain::get_default_subport]}
 proc portmain::get_default_subport {} {
@@ -89,7 +91,6 @@ default workpath {[getportworkpath_from_buildpath $subbuildpath]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
-default developer_dir {[portmain::get_developer_dir]}
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
@@ -144,43 +145,15 @@ if {[option os.platform] == "darwin"} {
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
 
-proc portmain::get_developer_dir {} {
-    if {![catch {binaryInPath xcode-select}]} {
-        return [exec xcode-select -print-path 2> /dev/null]
-    }
-    return "/Developer"
-}
-
 # start gsoc08-privileges
 
 # Record initial euid/egid
 set euid [geteuid]
 set egid [getegid]
 
-# resolve the alternate work path in ~/.macports
-proc portmain::set_altprefix {} {
-    global altprefix env euid
-
-    # do tilde expansion manually - Tcl won't expand tildes automatically for curl, etc.
-    if {[info exists env(HOME)]} {
-        # HOME environment var is set, use it.
-        set userhome "$env(HOME)"
-    } elseif {$euid == 0 && [info exists env(SUDO_USER)] && $env(SUDO_USER) != ""} {
-        set userhome [file normalize "~$env(SUDO_USER)"]
-    } else {
-        # the environment var isn't set, expand ~user instead
-        set username [uid_to_name [getuid]]
-        if {[catch {set userhome [file normalize "~$username"]}]} {
-            set userhome ""
-        }
-    }
-
-    set altprefix [file join $userhome .macports]
-}
-
 # if unable to write to workpath, implies running without either root privileges
 # or a shared directory owned by the group so use ~/.macports
-portmain::set_altprefix
+default altprefix {[file join $user_home .macports]}
 if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
 
     # set global variable indicating to other functions to use ~/.macports as well

@@ -1,5 +1,5 @@
 # et:ts=4
-# portsubmit.tcl
+# portunload.tcl
 # $Id$
 #
 # Copyright (c) 2007, 2009, 2011 The MacPorts Project

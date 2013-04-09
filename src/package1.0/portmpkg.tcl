@@ -2,7 +2,7 @@
 # portmpkg.tcl
 # $Id$
 #
-# Copyright (c) 2005, 2007 - 2011 The MacPorts Project
+# Copyright (c) 2005, 2007 - 2012 The MacPorts Project
 # Copyright (c) 2002 - 2004 Apple Inc.
 # All rights reserved.
 #
@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -48,36 +48,38 @@ options package.destpath package.flat
 set_ui_prefix
 
 proc portmpkg::mpkg_main {args} {
-    global subport version revision package.destpath package.flat UI_PREFIX
+    global subport epoch version revision os.major package.destpath package.flat UI_PREFIX
 
-    # Make sure the destination path exists.
-    file mkdir ${package.destpath}
+    if {!${package.flat} || ${os.major} < 10} {
+        # Make sure the destination path exists.
+        file mkdir ${package.destpath}
+    }
 
-    return [package_mpkg $subport $version $revision]
+    return [package_mpkg $subport $epoch $version $revision]
 }
 
 proc portmpkg::make_dependency_list {portname destination} {
-    global variations prefix package.destpath package.flat
-	set result {}
-	if {[catch {set res [mport_lookup $portname]} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-		return -code error "port lookup failed: $error"
-	}
-	array set portinfo [lindex $res 1]
+    global requested_variations prefix package.destpath package.flat
+    set result {}
+    if {[catch {set res [mport_lookup $portname]} error]} {
+        global errorInfo
+        ui_debug "$errorInfo"
+        return -code error "port lookup failed: $error"
+    }
+    array set portinfo [lindex $res 1]
 
-	if {[getuid] == 0 && [geteuid] != 0} {
-		setegid 0; seteuid 0
-		set deprivileged 1
-	}
+    if {[getuid] == 0 && [geteuid] != 0} {
+        seteuid 0; setegid 0
+        set deprivileged 1
+    }
 
-	set mport [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get variations]]
+    set mport [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get requested_variations]]
 
     if {[info exists deprivileged]} {
-	    global macportsuser
-		setegid [uname_to_gid "$macportsuser"]
-		seteuid [name_to_uid "$macportsuser"]
-	}
+        global macportsuser
+        setegid [uname_to_gid "$macportsuser"]
+        seteuid [name_to_uid "$macportsuser"]
+    }
 
     unset portinfo
     array set portinfo [mport_info $mport]
@@ -94,58 +96,116 @@ proc portmpkg::make_dependency_list {portname destination} {
         }
     }
 
-    lappend result [list $portinfo(name) $portinfo(version) $mport]
-	ui_debug "dependencies for ${portname}: $result"
-	return $result
+    lappend result [list $portinfo(name) $portinfo(epoch) $portinfo(version) $portinfo(revision) $mport]
+    return $result
 }
 
-proc portmpkg::make_one_package {portname portversion mport} {
-	if {[getuid] == 0 && [geteuid] != 0} {
-		setegid 0; seteuid 0
-		set deprivileged 1
-	}
+proc portmpkg::make_one_package {portname mport} {
+    if {[getuid] == 0 && [geteuid] != 0} {
+        seteuid 0; setegid 0
+        set deprivileged 1
+    }
 
     ui_debug "building dependency package: $portname"
-    mport_exec $mport pkg
+    set result [mport_exec $mport pkg]
     mport_close $mport
+    if {$result} {
+        error "Processing of port $portname failed"
+    }
 
-	if {[info exists deprivileged]} {
-	    global macportsuser
-		setegid [uname_to_gid "$macportsuser"]
-		seteuid [name_to_uid "$macportsuser"]
-	}
+    if {[info exists deprivileged]} {
+        global macportsuser
+        setegid [uname_to_gid "$macportsuser"]
+        seteuid [name_to_uid "$macportsuser"]
+    }
 }
 
-proc portmpkg::package_mpkg {portname portversion portrevision} {
-    global portdbpath destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
+proc portmpkg::epoch_namestr {portepoch} {
+    set portepoch_namestr ""
+    if {${portepoch} != "0"} {
+        set portepoch_namestr "${portepoch}_"
+    }
+    return ${portepoch_namestr}
+}
 
-	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
-	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
-	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Resources"
-	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Packages"
+proc portmpkg::revision_namestr {portrevision} {
+    set portrevision_namestr ""
+    if {${portrevision} != "0"} {
+        set portrevision_namestr "_${portrevision}"
+    }
+    return ${portrevision_namestr}
+}
 
-	set dependencies {}
-	# get deplist
-	set deps [make_dependency_list $portname ${mpkgpath}/Contents/Packages]
-	set deps [lsort -unique $deps]
-	foreach dep $deps {
-		set name [lindex $dep 0]
-		set vers [lindex $dep 1]
-		set mport [lindex $dep 2]
-		# don't re-package ourself
-		if {$name != $portname} {
-			make_one_package $name $vers $mport
-			lappend dependencies ${name}-${vers}.pkg
-		}
-	}
+proc portmpkg::mpkg_path {portname portepoch portversion portrevision} {
+    global package.destpath
+    set portepoch_namestr [portmpkg::epoch_namestr ${portepoch}]
+    set portrevision_namestr [portmpkg::revision_namestr ${portrevision}]
+    set mpkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.mpkg
+    return $mpkgpath
+}
 
-	# copy our own pkg into the mpkg
-	system "cp -PR ${pkgpath} ${mpkgpath}/Contents/Packages/"
-	lappend dependencies ${portname}-${portversion}.pkg
-	
-    portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
-    mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
-    portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
+    global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
+
+    set mpkgpath [portmpkg::mpkg_path $portname $portepoch $portversion $portrevision]
+
+    set portepoch_namestr [portmpkg::epoch_namestr ${portepoch}]
+    set portrevision_namestr [portmpkg::revision_namestr ${portrevision}]
+    if {${package.flat} && ${os.major} >= 10} {
+        set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
+        set packages_path ${workpath}/mpkg_packages
+        set resources_path ${workpath}/mpkg_resources
+    } else {
+        set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg
+        set packages_path ${mpkgpath}/Contents/Packages
+        set resources_path ${mpkgpath}/Contents/Resources
+    }
+    system "mkdir -p -m 0755 ${packages_path}"
+    system "mkdir -p -m 0755 ${resources_path}"
+
+    set dependencies {}
+    # get deplist
+    set deps [make_dependency_list $portname $packages_path]
+    set deps [lsort -unique $deps]
+    foreach dep $deps {
+        set name [lindex $dep 0]
+        set epoch [lindex $dep 1]
+        set epoch_namestr ""
+        if {$epoch != "0"} {
+            set epoch_namestr "${epoch}_"
+        }
+        set vers [lindex $dep 2]
+        set rev [lindex $dep 3]
+        set rev_namestr ""
+        if {$rev != "0"} {
+            set rev_namestr "_${rev}"
+        }
+        set mport [lindex $dep 4]
+        # don't re-package ourself
+        if {$name != $portname} {
+            make_one_package $name $mport
+            if {${package.flat} && ${os.major} >= 10} {
+                lappend dependencies org.macports.${name} ${name}-${epoch_namestr}${vers}${rev_namestr}-component.pkg
+            } else {
+                lappend dependencies ${name}-${epoch_namestr}${vers}${rev_namestr}.pkg
+            }
+        }
+    }
+    if {${package.flat} && ${os.major} >= 10} {
+        lappend dependencies org.macports.${portname} ${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
+    } else {
+        lappend dependencies ${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg
+    }
+
+    # copy our own pkg into the mpkg
+    system "cp -PR ${pkgpath} ${packages_path}"
+
+    if {!${package.flat} || ${os.major} < 10} {
+        portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
+        mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
+        portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+        set resources_path ${mpkgpath}/Contents/Resources
+    }
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
         if {![info exists $variable]} {
@@ -154,68 +214,110 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    portpkg::write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${mpkgpath}/Contents/Resources/background.tiff
+    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portepoch $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
 
-	return 0
+    if {${package.flat} && ${os.major} >= 10} {
+        write_distribution ${workpath}/Distribution $portname $dependencies
+        set productbuild [findBinary productbuild]
+        set v [portpkg::mp_version_to_apple_version $portepoch $portversion $portrevision]
+        set cmdline "$productbuild --resources ${resources_path} --identifier org.macports.mpkg.${portname} --distribution ${workpath}/Distribution --package-path ${packages_path} --version ${v} ${mpkgpath}"
+        ui_debug "Running command line: $cmdline"
+        system $cmdline
+    }
+
+    return 0
+}
+
+proc portmpkg::write_distribution {dfile portname dependencies} {
+    global macosx_deployment_target
+    set portname [xml_escape $portname]
+    set dfd [open $dfile w+]
+    puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<installer-gui-script minSpecVersion=\"1\">
+    <title>${portname}</title>
+    <options customize=\"never\"/>
+    <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
+    <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
+    <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
+    <choices-outline>
+    <line choice=\"default\">
+        <line choice=\"org.macports.mpkg.${portname}\"/>
+    </line>
+    </choices-outline>
+    <choice id=\"default\"/>
+    <choice id=\"org.macports.mpkg.${portname}\" visible=\"false\">
+"
+    foreach {identifier package} $dependencies {
+        set id [xml_escape $identifier]
+        set pkg [xml_escape $package]
+        puts $dfd "        <pkg-ref id=\"${id}\"/>"
+        lappend pkgrefs "<pkg-ref id=\"${id}\">${pkg}</pkg-ref>"
+    }
+    puts $dfd "    </choice>"
+    foreach pkgref $pkgrefs {
+        puts $dfd "    $pkgref"
+    }
+    puts $dfd "</installer-gui-script>"
+    close $dfd
 }
 
 proc portmpkg::xml_escape {s} {
-	regsub -all {&} $s {\&amp;} s
-	regsub -all {<} $s {\&lt;} s
-	regsub -all {>} $s {\&gt;} s
-	return $s
+    regsub -all {&} $s {\&amp;} s
+    regsub -all {<} $s {\&lt;} s
+    regsub -all {>} $s {\&gt;} s
+    return $s
 }
 
 proc portmpkg::mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
-	set vers [split $portversion "."]
-	
-	if {[string index $destination end] != "/"} {
-		append destination /
-	}
-	
-	set depxml ""
-	foreach dep $dependencies {
-		set dep [xml_escape $dep]
-		append depxml "<dict>
-			<key>IFPkgFlagPackageLocation</key>
-			<string>${dep}</string>
-			<key>IFPkgFlagPackageSelection</key>
-			<string>selected</string>
-		</dict>
-		"
-	}
+    set vers [split $portversion "."]
 
-	set portname [xml_escape $portname]
-	set portversion [xml_escape $portversion]
-	set portrevision [xml_escape $portrevision]
+    if {[string index $destination end] != "/"} {
+        append destination /
+    }
 
-	set infofd [open ${infofile} w+]
-	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+    set depxml ""
+    foreach dep $dependencies {
+        set dep [xml_escape $dep]
+        append depxml "<dict>
+            <key>IFPkgFlagPackageLocation</key>
+            <string>${dep}</string>
+            <key>IFPkgFlagPackageSelection</key>
+            <string>selected</string>
+        </dict>
+        "
+    }
+
+    set portname [xml_escape $portname]
+    set portversion [xml_escape $portversion]
+    set portrevision [xml_escape $portrevision]
+
+    set infofd [open ${infofile} w+]
+    puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 }
-	puts $infofd "<dict>
-	<key>CFBundleGetInfoString</key>
-	<string>${portname} ${portversion}</string>
-	<key>CFBundleIdentifier</key>
-	<string>org.macports.mpkg.${portname}</string>
-	<key>CFBundleName</key>
-	<string>${portname}</string>
-	<key>CFBundleShortVersionString</key>
-	<string>${portversion}</string>
-	<key>IFMajorVersion</key>
-	<integer>${portrevision}</integer>
-	<key>IFMinorVersion</key>
-	<integer>0</integer>
-	<key>IFPkgFlagComponentDirectory</key>
-	<string>./Contents/Packages</string>
-	<key>IFPkgFlagPackageList</key>
-	<array>
-		${depxml}</array>
-	<key>IFPkgFormatVersion</key>
-	<real>0.10000000149011612</real>
+    puts $infofd "<dict>
+    <key>CFBundleGetInfoString</key>
+    <string>${portname} ${portversion}</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.macports.mpkg.${portname}</string>
+    <key>CFBundleName</key>
+    <string>${portname}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${portversion}</string>
+    <key>IFMajorVersion</key>
+    <integer>${portrevision}</integer>
+    <key>IFMinorVersion</key>
+    <integer>0</integer>
+    <key>IFPkgFlagComponentDirectory</key>
+    <string>./Contents/Packages</string>
+    <key>IFPkgFlagPackageList</key>
+    <array>
+        ${depxml}</array>
+    <key>IFPkgFormatVersion</key>
+    <real>0.10000000149011612</real>
 </dict>
 </plist>"
-	close $infofd
+    close $infofd
 }

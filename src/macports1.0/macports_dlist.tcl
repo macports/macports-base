@@ -306,8 +306,11 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	# Loop for as long as there are ditems in the dlist.
 	while {1} {
 		set ditem [$selector $dlist statusdict]
-		
+
 		if {$ditem == {}} {
+		    if {[llength $dlist] > 0} {
+		        ui_debug "dlist_eval: all entries in dependency list have unsatisfied dependencies; can't process"
+		    }
 			break
 		} else {
 			# $handler should return a unix status code, 0 for success.

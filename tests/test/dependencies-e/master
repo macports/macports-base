@@ -1,4 +1,5 @@
 --->  Computing dependencies for dependencies-e
 Error: Dependency 'docbook-xml-4.1.2' not found.
-Error: Status 1 encountered during processing.
-To report a bug, see <http://guide.macports.org/#project.tickets>
+To report a bug, follow the instructions in the guide:
+    http://guide.macports.org/#project.tickets
+Error: Processing of port dependencies-e failed

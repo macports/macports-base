@@ -1,0 +1,25 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+name                statefile-version2-invalid
+version             1
+categories          test
+maintainers         cal
+description         Test port for invalid statefiles, version 2
+homepage            http://www.macports.org/
+platforms           darwin
+
+long_description    ${description}
+
+distfiles
+
+fetch               {}
+extract             {}
+configure           {}
+build               {}
+destroot            {
+    system "touch ${destroot}${prefix}/lib/${name}"
+}
+
+test                {}

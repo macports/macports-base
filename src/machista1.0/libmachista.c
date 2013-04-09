@@ -42,13 +42,34 @@
 #include <err.h>
 #include <string.h>
 
+#ifdef __MACH__
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 
 #include <libkern/OSAtomic.h>
+#endif
 
 #include "libmachista.h"
 #include "hashmap.h"
+
+#ifdef __MACH__
+/* Tiger compatibility */
+#ifndef LC_RPATH
+#define LC_RPATH       (0x1c | LC_REQ_DYLD)    /* runpath additions */
+/*
+ * The rpath_command contains a path which at runtime should be added to
+ * the current run path used to find @rpath prefixed dylibs.
+ */
+struct rpath_command {
+    uint32_t     cmd;       /* LC_RPATH */
+    uint32_t     cmdsize;   /* includes string */
+    union lc_str path;      /* path to add to run path */
+};
+#endif
+#ifndef LC_REEXPORT_DYLIB
+#define LC_REEXPORT_DYLIB (0x1f | LC_REQ_DYLD) /* load and re-export dylib */
+#endif
+#endif /* __MACH__ */
 
 typedef struct macho_input {
     const void *data;
@@ -60,6 +81,7 @@ struct macho_handle {
     HashMap *result_map;
 };
 
+#ifdef __MACH__
 /* Verify that the given range is within bounds. */
 static const void *macho_read (macho_input_t *input, const void *address, size_t length) {
     if ((((uint8_t *) address) - ((uint8_t *) input->data)) + length > input->length) {
@@ -75,6 +97,7 @@ static const void *macho_offset (macho_input_t *input, const void *address, size
     void *result = ((uint8_t *) address) + offset;
     return macho_read(input, result, length);
 }
+#endif
 
 /* return a human readable formatted version number. the result must be free()'d. */
 char *macho_format_dylib_version (uint32_t version) {
@@ -84,13 +107,18 @@ char *macho_format_dylib_version (uint32_t version) {
 }
 
 const char *macho_get_arch_name (cpu_type_t cputype) {
+#ifdef __MACH__
     const NXArchInfo *archInfo = NXGetArchInfoFromCpuType(cputype, CPU_SUBTYPE_MULTIPLE);	
     if (!archInfo) {
         return NULL;
     }
     return archInfo->name;
+#else
+    return NULL;
+#endif
 }
 
+#ifdef __MACH__
 /* Some byteswap wrappers */
 static uint32_t macho_swap32 (uint32_t input) {
     return OSSwapInt32(input);
@@ -132,6 +160,7 @@ static macho_loadcmd_t *create_macho_loadcmd_t (void) {
     memset(mlt, 0, sizeof(macho_loadcmd_t));
     return mlt;
 }
+#endif
 
 /* Frees a previously allocated macho_loadcmd_t and all it's associated resources */
 static void free_macho_loadcmd_t (macho_loadcmd_t *mlt) {
@@ -174,6 +203,7 @@ static void free_macho_t (macho_t *mt) {
     free(mt);
 }
 
+#ifdef __MACH__
 /* Creates a new element in the architecture list of a macho_t (mt_archs), increases the counter of
  * architectures (mt_arch_count) and returns a pointer to the newly allocated element or NULL on
  * error */
@@ -203,9 +233,11 @@ static macho_loadcmd_t *macho_loadcmdlist_append (macho_arch_t *mat) {
 
     return mat->mat_loadcmds;
 }
+#endif
 
 /* Parse a Mach-O header */
 static int parse_macho (macho_t *mt, macho_input_t *input) {
+#ifdef __MACH__
     /* Read the file type. */
     const uint32_t *magic = macho_read(input, input->data, sizeof(uint32_t));
     if (magic == NULL)
@@ -401,10 +433,14 @@ static int parse_macho (macho_t *mt, macho_input_t *input) {
     }
 
     return MACHO_SUCCESS;
+#else
+    return 0;
+#endif
 }
 
 /* Parse a (possible Mach-O) file. For a more detailed description, see the header */
 int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t **res) {
+#ifdef __MACH__
     int fd;
     struct stat st;
     void *data;
@@ -464,6 +500,9 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
     close(fd);
 
     return ret;
+#else
+    return 0;
+#endif
 }
 
 /* Create a new macho_handle_t. More information on this function is available in the header */

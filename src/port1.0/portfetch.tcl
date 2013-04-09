@@ -2,7 +2,7 @@
 # portfetch.tcl
 # $Id$
 #
-# Copyright (c) 2004 - 2011 The MacPorts Project
+# Copyright (c) 2004 - 2012 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -279,9 +279,38 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
-    global patchfiles
-    if {[catch {command_exec bzr "" "2>&1"} result]} {
-        return -code error [msgcat::mc "Bazaar checkout failed"]
+    global env patchfiles
+
+    # Behind a proxy bzr will fail with the following error if proxies
+    # listed in macports.conf appear in the environment in their
+    # unmodified form:
+    #   bzr: ERROR: Invalid url supplied to transport:
+    #   "proxy.example.com:8080": No host component
+    # Set the "http_proxy" and "HTTPS_PROXY" environmental variables
+    # to valid URLs by prepending "http://" and appending "/".
+    if {   [info exists env(http_proxy)]
+        && [string compare -length 7 {http://} $env(http_proxy)] != 0} {
+        set orig_http_proxy $env(http_proxy)
+        set env(http_proxy) http://${orig_http_proxy}/
+    }
+
+    if {   [info exists env(HTTPS_PROXY)]
+        && [string compare -length 7 {http://} $env(HTTPS_PROXY)] != 0} {
+        set orig_https_proxy $env(HTTPS_PROXY)
+        set env(HTTPS_PROXY) http://${orig_https_proxy}/
+    }
+
+    try {
+        if {[catch {command_exec bzr "" "2>&1"} result]} {
+            return -code error [msgcat::mc "Bazaar checkout failed"]
+        }
+    } finally {
+        if ([info exists orig_http_proxy]) {
+            set env(http_proxy) ${orig_http_proxy}
+        }
+        if ([info exists orig_https_proxy]) {
+            set env(HTTPS_PROXY) ${orig_https_proxy}
+        }
     }
 
     if {[info exists patchfiles]} {
@@ -337,6 +366,31 @@ proc portfetch::cvsfetch {args} {
     return 0
 }
 
+# Given a URL to a Subversion repository, if the URL is http:// or
+# https:// and MacPorts has been configured with a proxy for that URL
+# type, then return command line options that should be passed to the
+# svn command line client to enable use of that proxy.  There are no
+# proxies for Subversion's native protocol, identified by svn:// URLs.
+proc portfetch::svn_proxy_args {url} {
+    global env
+
+    if {   [string compare -length 7 {http://} ${url}] == 0
+        && [info exists env(http_proxy)]} {
+        set proxy_str $env(http_proxy)
+    } elseif {   [string compare -length 8 {https://} ${url}] == 0
+              && [info exists env(HTTPS_PROXY)]} {
+        set proxy_str $env(HTTPS_PROXY)
+    } else {
+        return ""
+    }
+    regexp {(.*://)?([[:alnum:].-]+)(:(\d+))?} $proxy_str - - proxy_host - proxy_port
+    set ret "--config-option servers:global:http-proxy-host=${proxy_host}"
+    if {$proxy_port != ""} {
+        append ret " --config-option servers:global:http-proxy-port=${proxy_port}"
+    }
+    return $ret
+}
+
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
     global svn.args svn.method svn.revision svn.url patchfiles
@@ -348,7 +402,10 @@ proc portfetch::svnfetch {args} {
     if {[string length ${svn.revision}]} {
         append svn.url "@${svn.revision}"
     }
-    set svn.args "${svn.method} ${svn.args} ${svn.url}"
+
+    set proxy_args [svn_proxy_args ${svn.url}]
+
+    set svn.args "${svn.method} ${svn.args} ${proxy_args} ${svn.url}"
 
     if {[catch {command_exec svn "" "2>&1"} result]} {
         return -code error [msgcat::mc "Subversion check out failed"]
@@ -395,10 +452,15 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen patchfiles
-    global hg.url hg.tag hg.cmd
+    global worksrcpath prefix_frozen patchfiles hg.url hg.tag hg.cmd \
+           fetch.ignore_sslcert
 
-    set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
+    set insecureflag ""
+    if {${fetch.ignore_sslcert}} {
+        set insecureflag " --insecure"
+    }
+
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
@@ -470,7 +532,7 @@ proc portfetch::fetchfiles {args} {
                     set fetched 1
                     break
                 } else {
-                    ui_debug "[msgcat::mc "Fetching failed:"]: $result"
+                    ui_debug "[msgcat::mc "Fetching distfile failed"]: $result"
                     file delete -force "${distpath}/${distfile}.TMP"
                 }
             }
@@ -514,22 +576,30 @@ proc portfetch::fetch_init {args} {
 proc portfetch::fetch_start {args} {
     global UI_PREFIX subport distpath
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $subport]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching distfiles for %s"] $subport]"
 
     # create and chown $distpath
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
             elevateToRoot "fetch"
-            set elevated yes
             if {[catch {file mkdir $distpath} result]} {
                 return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
             }
+            chownAsRoot $distpath
+            dropPrivileges
         }
     }
-    chownAsRoot $distpath
-    if {[info exists elevated] && $elevated == yes} {
-        dropPrivileges
+    if {![file owned $distpath]} {
+        if {[catch {chownAsRoot $distpath} result]} {
+            if {[file writable $distpath]} {
+                ui_warn "$UI_PREFIX [format [msgcat::mc "Couldn't change ownership of distribution files path to macports user: %s"] $result]"
+            } else {
+                return -code error [format [msgcat::mc "Distribution files path %s not writable and could not be chowned: %s"] $distpath $result]
+            }
+        }
     }
+
+    portfetch::check_dns
 }
 
 # Main fetch routine

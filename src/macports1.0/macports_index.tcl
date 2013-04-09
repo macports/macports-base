@@ -278,8 +278,7 @@ proc macports::index::search {portdbpath url attrslist} {
 # Checks for a locally cached copy of the port, or downloads the port
 # from the specified URL.  The port is extracted into the current working
 # directory along with a .mports_source file containing the url of the
-# source the port came from.  (This can be later used as a default for
-# "port submit")
+# source the port came from.
 #
 # The cached portfiles are in the same directory as the cached remote index.
 #

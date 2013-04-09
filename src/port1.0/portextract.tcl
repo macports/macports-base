@@ -2,7 +2,7 @@
 # portextract.tcl
 # $Id$
 #
-# Copyright (c) 2005, 2007-2011 The MacPorts Project
+# Copyright (c) 2005, 2007-2011, 2013 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # All rights reserved.
@@ -108,12 +108,12 @@ proc portextract::extract_start {args} {
         set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
         option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
         option extract.pre_args attach
-        option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && [findBinary cp ${portutil::autoconf::cp_path}] -Rp \\\"${dmg_mount}\\\" \\\"${extract.dir}/${distname}\\\" && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\""
+        option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && cd \\\"${dmg_mount}\\\" && [findBinary find ${portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${portutil::autoconf::cpio_path}] -0 -p -d -m -u \\\"${extract.dir}/${distname}\\\"; status=\$?; cd / && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\"; exit \$status"
     }
 }
 
 proc portextract::extract_main {args} {
-    global UI_PREFIX filespath worksrcpath extract.dir usealtworkpath altprefix
+    global UI_PREFIX filespath worksrcpath extract.dir usealtworkpath altprefix use_dmg
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -129,14 +129,25 @@ proc portextract::extract_main {args} {
         } else {
             option extract.args "'[option distpath]/$distfile'"
         }
-        if {[catch {command_exec extract} result]} {
+
+        # If the MacPorts user does not have the privileges to mount a
+        # DMG then hdiutil will fail with this error:
+        #   hdiutil: attach failed - Device not configured
+        # So elevate back to root.
+        if {[tbool use_dmg]} {
+            elevateToRoot {extract dmg}
+        }
+        set code [catch {command_exec extract} result]
+        if {[tbool use_dmg]} {
+            dropPrivileges
+        }
+        if {$code} {
             return -code error "$result"
         }
 
-    # start gsoc08-privileges
-    chownAsRoot ${extract.dir}
-    # end gsoc08-privileges
-
+        # start gsoc08-privileges
+        chownAsRoot ${extract.dir}
+        # end gsoc08-privileges
     }
     return 0
 }

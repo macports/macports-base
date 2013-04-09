@@ -252,7 +252,7 @@ uninstall non-active ports when upgrading and uninstalling
 .It Fl f
 force mode (ignore state file)
 .It Fl o
-honor state files older than Portfile
+honor state files even if the Portfile has been modified since (called -o because it used to mean "older")
 .It Fl s
 source-only mode (build and install from source, do not attempt to fetch binary archives)
 .It Fl b
@@ -367,13 +367,13 @@ Deactivate and uninstall
 .Ar portname .
 To uninstall all installed but inactive ports, use
 .Fl u .
-To recursively uninstall all dependents of
+To recursively uninstall all ports that depend on
 .Ar portname
 before uninstalling the port itself, use
 .Fl -follow-dependents .
 To uninstall
 .Ar portname
-and then recursively uninstall all its dependencies, use
+and then recursively uninstall all ports it depended on, use
 .Fl -follow-dependencies .
 This will not uninstall dependencies that are marked as requested or that have other dependents.
 .Pp
@@ -510,6 +510,9 @@ binaries that should always be referencing the file itself. This check is most
 helpful for maintainers to check whether their ports have been built correctly.
 It is disabled by default and can be enabled by passing \fB--id-loadcmd-check\fP
 to \fBrev-upgrade\fP.
+.Pp
+See also:
+.Xr macports.conf 5
 .Ss clean
 Clean the files used for building
 .Ar portname .
@@ -540,6 +543,10 @@ For example:
 .Pp
 .Dl "port log --phase configure vim"
 .Dl "port log --phase fetch --verbosity debug vim"
+.Pp
+.Ss logfile
+Displays the path to the log file for
+.Ar portname .
 .Pp
 .Ss echo
 Writes to stdout the arguments passed to
@@ -629,18 +636,13 @@ on stdout.
 .Ss edit
 Opens
 .Ar Portfile 
-with your default editor specified in your shell's environment variable. Alias
-.Ar ed
-also invokes this command.
+with your default editor specified in your shell's environment variable.
 .Pp
 You can also use the
 .Fl -editor
 flag on the command line to specify an alternative editor. For example:
 .Dl port edit --editor nano apache2
 .Pp
-.Ss ed
-An alias for
-.Ic edit .
 .Ss fetch
 Fetches the distribution files required to build
 .Ar portname .

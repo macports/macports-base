@@ -2,7 +2,7 @@
 # portbuild.tcl
 # $Id$
 #
-# Copyright (c) 2007 - 2011 The MacPorts Project
+# Copyright (c) 2007 - 2012 The MacPorts Project
 # Copyright (c) 2002 - 2004 Apple Inc.
 # All rights reserved.
 #
@@ -43,9 +43,10 @@ namespace eval portbuild {
 }
 
 # define options
-options build.target
-options build.jobs
 options build.asroot
+options build.jobs
+options build.target
+options build.type
 options use_parallel_build
 commands build
 # defaults
@@ -56,12 +57,31 @@ default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
 default build.pre_args {[portbuild::build_getargs]}
 default build.target "all"
+default build.type "default"
 default use_parallel_build yes
 
 set_ui_prefix
 
+# Automatically called from macports1.0 after evaluating the Portfile. If
+# ${build.type} == bsd, ensures bsdmake is present by adding a bin:-style
+# dependency.
+proc portbuild::add_automatic_buildsystem_dependencies {} {
+    if {[option build.type] == "bsd" && [option os.platform] == "darwin"} {
+        ui_debug "build.type is BSD, adding bin:bsdmake:bsdmake build dependency"
+        depends_build-delete bin:bsdmake:bsdmake
+        depends_build-append bin:bsdmake:bsdmake
+    }
+    if {[option build.type] == "gnu" && [option os.platform] == "freebsd"} {
+        ui_debug "build.type is GNU, adding bin:gmake:gmake build dependency"
+        depends_build-delete bin:gmake:gmake
+        depends_build-append bin:gmake:gmake
+    }
+}
+# Register the above procedure as a callback after Portfile evaluation
+port::register_callback portbuild::add_automatic_buildsystem_dependencies
+
 proc portbuild::build_getmaketype {args} {
-    if {![exists build.type]} {
+    if {[option build.type] == "default"} {
         return [findBinary make $portutil::autoconf::make_path]
     }
     switch -exact -- [option build.type] {
@@ -124,7 +144,8 @@ proc portbuild::build_getjobs {args} {
 }
 
 proc portbuild::build_getargs {args} {
-    if {((![exists build.type] && [option os.platform] != "freebsd") || ([exists build.type] && [option build.type] == "gnu")) \
+    if {(([option build.type] == "default" && [option os.platform] != "freebsd") || \
+         ([option build.type] == "gnu")) \
         && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option build.cmd]]} {
         # Print "Entering directory" lines for better log debugging
         return "-w [option build.target]"

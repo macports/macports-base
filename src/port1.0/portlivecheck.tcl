@@ -87,9 +87,9 @@ proc portlivecheck::livecheck_main {args} {
         return -code 1 "No available types were found. Check '$types_dir'."
     }
 
-    # Convert available_types from a list of files (e.g., { freshmeat.tcl
+    # Convert available_types from a list of files (e.g., { freecode.tcl
     # gnu.tcl ... }) into a string in the format "type|type|..." (e.g.,
-    # "freshmeat|gnu|...").
+    # "freecode|gnu|...").
     set available_types [regsub -all {\.tcl} [join $available_types |] {}]
 
     if {${livecheck.type} eq "default"} {
@@ -177,7 +177,7 @@ proc portlivecheck::livecheck_main {args} {
                                 set updated_version $upver
                             }
                             ui_debug "The regex matched \"$matched\", extracted \"$upver\""
-                            lassign $offsets firstoff lastoff
+                            set lastoff [lindex $offsets end]
                         }
                     }
                     if {$foundmatch == 1} {

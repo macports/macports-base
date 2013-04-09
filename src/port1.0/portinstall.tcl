@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2005, 2007 - 2011 The MacPorts Project
+# Copyright (c) 2005, 2007 - 2012 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -92,21 +92,6 @@ proc portinstall::_fake_fileinfo_for_index {flist} {
 		lappend rval [list $file [getuid] [getgid] 0644 0 "MD5 ($fname) NONE"]
 	}
 	return $rval
-}
-
-proc portinstall::putel { fd el data } {
-    # Quote xml data
-    set quoted [string map  { & &amp; < &lt; > &gt; } $data]
-    # Write the element
-    puts $fd "<${el}>${quoted}</${el}>"
-}
-
-proc portinstall::putlist { fd listel itemel list } {
-    puts $fd "<$listel>"
-    foreach item $list {
-        putel $fd $itemel $item
-    }
-    puts $fd "</$listel>"
 }
 
 proc portinstall::create_archive {location archive.type} {
@@ -200,22 +185,6 @@ proc portinstall::create_archive {location archive.type} {
                 return -code error "No '$xar' was found on this system!"
             }
         }
-        xpkg {
-            set xar "xar"
-            set compression "bzip2"
-            set archive.meta yes
-            set archive.metaname "xpkg"
-            set archive.metapath [file join $workpath "${archive.metaname}.xml"]
-            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
-                ui_debug "Using $xar"
-                set archive.cmd "$xar"
-                set archive.pre_args "-cv --exclude='\./\+.*' --compression=${compression} -n ${archive.metaname} -s ${archive.metapath} -f"
-                set archive.args "${location} ."
-            } else {
-                ui_debug $errmsg
-                return -code error "No '$xar' was found on this system!"
-            }
-        }
         zip {
             set zip "zip"
             if {[catch {set zip [findBinary $zip ${portutil::autoconf::zip_path}]} errmsg] == 0} {
@@ -298,12 +267,12 @@ proc portinstall::create_archive {location archive.type} {
                  set depname [lindex [split $depspec :] end]
                  set dep [mport_lookup $depname]
                  if {[llength $dep] < 2} {
-                     ui_error "Dependency $dep not found"
+                     ui_debug "Dependency $depname not found"
                  } else {
                      array set portinfo [lindex $dep 1]
                      set depver $portinfo(version)
                      set deprev $portinfo(revision)
-                     puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
+                     puts $fd "@pkgdep $portinfo(name)-${depver}_${deprev}"
                  }
              }
          }
@@ -334,77 +303,6 @@ proc portinstall::create_archive {location archive.type} {
     }
     close $fd
 
-    # the XML package metadata, for XAR package
-    # (doesn't contain any file list/checksums)
-    if {[tbool archive.meta]} {
-        set sd [open ${archive.metapath} w]
-        puts $sd "<xpkg version='0.2'>"
-        # TODO: split contents into <buildinfo> (new) and <package> (current)
-        #       see existing <portpkg> for the matching source package layout
-
-        putel $sd name ${subport}
-        putel $sd epoch ${epoch}
-        putel $sd version ${version}
-        putel $sd revision ${revision}
-        putel $sd major 0
-        putel $sd minor 0
-
-        putel $sd platform ${os.platform}
-        if {[llength [get_canonical_archs]] > 1} {
-            putlist $sd archs arch [get_canonical_archs]
-        } else {
-            putel $sd arch [get_canonical_archs]
-        }
-        putlist $sd variants variant $vlist
-
-        if {[exists categories]} {
-            set primary [lindex [split [option categories] " "] 0]
-            putel $sd category $primary
-        }
-        if {[exists description]} {
-            putel $sd comment "[option description]"
-        }
-        if {[exists long_description]} {
-            putel $sd desc "[option long_description]"
-        }
-        if {[exists homepage]} {
-            putel $sd homepage "[option homepage]"
-        }
-
-            # Emit dependencies provided by this package
-            puts $sd "<provides>"
-                puts $sd "<item>"
-                putel $sd name $subport
-                putel $sd major 0
-                putel $sd minor 0
-                puts $sd "</item>"
-            puts $sd "</provides>"
-
-
-            # Emit build, library, and runtime dependencies
-            puts $sd "<requires>"
-            foreach {key type} {
-                depends_fetch "fetch"
-                depends_extract "extract"
-                depends_build "build"
-                depends_lib "library"
-                depends_run "runtime"
-            } {
-                if {[info exists $key]} {
-                    set depname [lindex [split [set $key] :] end]
-                    puts $sd "<item type=\"$type\">"
-                    putel $sd name $depname
-                    putel $sd major 0
-                    putel $sd minor 0
-                    puts $sd "</item>"
-                }
-            }
-            puts $sd "</requires>"
-
-        puts $sd "</xpkg>"
-        close $sd
-    }
-
     # Now create the archive
     ui_debug "Creating [file tail $location]"
     command_exec archive
@@ -423,26 +321,22 @@ proc portinstall::extract_contents {location type} {
     switch -- $type {
         tbz -
         tbz2 {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location ./+CONTENTS]
         }
         tgz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location ./+CONTENTS]
         }
         tar {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location ./+CONTENTS]
         }
         txz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] ./+CONTENTS]
         }
         tlz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] +CONTENTS]
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
         }
         xar {
             system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location +CONTENTS"
-            set twostep 1
-        }
-        xpkg {
-            system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location --compression=bzip2 +CONTENTS"
             set twostep 1
         }
         zip {
@@ -491,17 +385,20 @@ proc portinstall::install_main {args} {
         set oldpwd $portpath
     }
 
-    # throws an error if an unsupported value has been configured
-    archiveTypeIsSupported $portarchivetype
-
     set location [get_portimage_path]
-    if {![file isfile $location]} {
+    set archive_path [find_portarchive_path]
+    if {$archive_path != ""} {
+        set install_dir [file dirname $location]
+        file mkdir $install_dir
+        file rename -force $archive_path $install_dir
+        set location [file join $install_dir [file tail $archive_path]]
+        set current_archive_type [string range [file extension $location] 1 end]
+        set installPlist [extract_contents $location $current_archive_type]
+    } else {
+        # throws an error if an unsupported value has been configured
+        archiveTypeIsSupported $portarchivetype
         # create archive from the destroot
         create_archive $location $portarchivetype
-    }
-
-    if {![info exists installPlist]} {
-        set installPlist [extract_contents $location $portarchivetype]
     }
 
     # can't do this inside the write transaction due to deadlock issues with _get_dep_port

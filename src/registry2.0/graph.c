@@ -43,7 +43,7 @@
 
 void DeleteGraph(graph* g) {
     sqlite3_stmt* stmt;
-    if ((sqlite3_prepare(g->db, "DETACH DATABASE registry", -1, &stmt, NULL)
+    if ((sqlite3_prepare_v2(g->db, "DETACH DATABASE registry", -1, &stmt, NULL)
                 != SQLITE_OK)
             || (sqlite3_step(stmt) != SQLITE_DONE)) {
         fprintf(stderr, "error: registry db not detached correctly (%s)\n",
@@ -80,11 +80,11 @@ int GraphCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             printf("initializing\n");
         }
 
-        if ((sqlite3_prepare(db, query, -1, &stmt, NULL) == SQLITE_OK)
+        if ((sqlite3_prepare_v2(db, query, -1, &stmt, NULL) == SQLITE_OK)
                 && (sqlite3_step(stmt) == SQLITE_DONE)) {
             sqlite3_finalize(stmt);
             if (!needsInit
-                    || ((sqlite3_prepare(db, "CREATE TABLE registry.ports "
+                    || ((sqlite3_prepare_v2(db, "CREATE TABLE registry.ports "
                                 "(name, portfile, url, location, epoch, "
                                 "version, revision, variants, state)", -1,
                                 &stmt, NULL)

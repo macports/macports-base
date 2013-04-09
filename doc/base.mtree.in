@@ -5,11 +5,19 @@
 
 /set type=dir uname=@DSTUSR@ gname=@DSTGRP@ mode=@DSTMODE@
 .
+    man type=link link=share/man
+    ..
     var
         macports
             build
             ..
             distfiles
+            ..
+            home
+                Library
+                    Preferences
+                    ..
+                ..
             ..
             logs
             ..

@@ -3,17 +3,250 @@
 # $Id$
 ###
 
-Unreleased changes:
+Release 2.2.0 (unreleased)
+    - Remove unsupported xpkg package type, xar-based format with XML.
+      (afb in r105002)
+
+    - Remove unimplemented 'port submit', remove XAR source packages.
+      (cal in r103400)
+
+    - Remove dependency_libs information from libtool libraries (.la).
+      (#38010, jmr in r102945)
+
+    - Add 'port space --total' which displays the grand total only.
+      (raimue in r102248)
+
+    - Added 'subport:' pseudo-portname that expands to ports that provide
+      a matching subport; added 'subportof:' pseudo-portname that expands to
+      the list of subports of the given port name
+      (raimue in r100059)
+
+    - Fixes bringing trace mode back to a working state. Improvements to reduce
+      the number of builds trace mode breaks.
+      (cal in r100071-100073, r100077, r100126, r100221)
+
+    - Began using sandbox-exec(1) on 10.5+ to prevent commands executed using
+      the 'system' procedure from writing files outside of the build directory
+      and selected other locations like /tmp. (jmr in r98156, r98193, etc.)
+
+Release 2.1.3 (2013-01-31 by jmr)
+    - Fixed a bug where a certain order of starting and aborting a build,
+      running selfupdate and continuing a build would resume building although
+      it should start from the beginning.
+      (#29223, cal in r96136, r96399, r96400, r96538)
+
+    - Fix permission problem in the creation of the ccache directory with
+      ccache >= 3.1.7 by running the initialization step as the macportsuser.
+      (raimue in r97868)
+
+    - Fix an endless loop that could be triggered in rev-upgrade when a broken
+      port is not in the index, e.g. when it has been deleted from the tree,
+      or it was installed directly from a Portfile not in the tree.
+      (cal in r100129, jmr in r101313)
+
+    - Set a busy timeout on SQLite connections to prevent MacPorts from
+      uselessly burning CPU cycles when waiting for a database lock.
+      (cal in r100217)
+
+    - Switch from exclusive locking to immediate locking in the registry
+      database to avoid locking reads where not needed.
+      (cal in r100218)
+
+    - Fix a problem where interrupting the uninstallation process could leave
+      the registry database in a corrupted state.
+      (#34482, cal in r100219)
+
+    - Fixed a failure in the fallback code used by 'port pkg' when
+      PackageMaker is not installed. (#36597, jmr in r96262)
+
+    - Fixed an incorrect lint error about the port directory name when a full
+      @macports.org maintainer address is used. (#35925, ryandesign in r97264)
+
+    - Fixed creation of disk images with flat packages. (jmr in r99167)
+
+    - Fixed a bug where not all requested variants would be passed on to
+      dependencies when building an mpkg. (#36363, jmr in r100679)
+
+    - Added configure.compiler options macports-clang-3.2 and
+      macports-clang-3.3 (jeremyhu, ryandesign, jmr in r92588, r101163,
+      r101166, r101270)
+
+    - Added configure.compiler options macports-dragonegg-3.0 through
+      macports-dragonegg-3.3. (jeremyhu in r101933)
+
+Release 2.1.2 (2012-07-26 by jmr):
+    - Fixed autodetection of developer_dir with Xcode 4.4
+      (#35150, mfeiri in r95552)
+
+    - Made conversion of images to archives more robust against missing images
+      (jmr in r95480)
+
+    - Support spaces in hg.tag when fetching from mercurial (#22684 comment
+      11,12, cal in r95438)
+
+    - Made mpkg fail when building a component pkg fails, instead of trying to
+      continue (jmr in r95382)
+
+    - Added a log message when everything to be installed has an unsatisfied
+      dependency, such as in the case of circular dependencies (jmr in r93962)
+
+    - Fixed incorrect error message when installing a port that has a
+      dependency that is not in the index (#31130, jmr in r93511)
+
+Release 2.1.1 (2012-05-19 by jmr):
+    - Fixed incorrect parsing of mirror group URLs that contain a colon to
+      indicate a port number (#32018, jmr in r93258)
+
+    - Do not print detailed progress information in rev-upgrade when stdout is
+      not a terminal (#34480, cal in r93221,r93222)
+
+    - Made rev-upgrade avoid trying to upgrade ports that are not in the index
+      (jmr in r93197)
+
+    - Fixed rev-upgrade disabling source-only mode in its first upgrade pass
+      (jmr in r93153)
+
+    - Fixed incorrect rebuild order in rev-upgrade (cal in r93129)
+
+    - Fixed port lookups failing for all sources when the index is missing in
+      one source (#30593, jmr in r92976)
+
+    - Fix database upgrade on Tiger, where SQLite doesn't support ALTER TABLE
+      ADD COLUMN (#34463, cal in r93256)
+
+Release 2.1.0 (2012-05-15 by jmr):
+    - New configure.compiler options: macports-clang-2.9, macports-clang-3.0,
+      macports-clang-3.1, macports-gcc-4.7, macports-gcc-4.8
+      (jeremyhu in r86719, ryandesign in r91521)
+
+    - Avoid using pkg-config to find sqlite3 in our configure script unless it
+      can't be found by other means, because some third-party packages
+      incorrectly install a /usr/bin/pkg-config that points to an incompatible
+      copy of sqlite3. (#30932, dluke/jmr in r91512)
+
+    - 'port pkg' and 'port mpkg' will now create flat packages (i.e. a xar
+      archive rather than a directory) on 10.6+.
+      (jmr in r91317, r91329, r91331, r91437)
+
+    - Fixed dependencies sometimes being installed multiple times when
+      required with different archs. (#31794, jmr in r91357)
+
+    - Build-time dependencies will no longer be installed if a prebuilt
+      archive is available for download (and port is configured to use it).
+      (jmr in r91196, r91217)
+
+    - Added new config file archive_sites.conf, which can be used to configure
+      additional archive download sources. Each source has an associated
+      archive type; portarchivetype is now only used when creating archives
+      locally. Sources also have an associated prefix, applications_dir and
+      frameworks_dir, and if any of these do not match the current values, the
+      source is not used. (jmr in r91009)
+
+    - Xcode 4.3 support: Search harder for developer directory; advise user to
+      run xcode-select when necessary, searching for Xcode and suggesting
+      xcode-select commands.
+      (jberry, jmr in r89970,r89971,r89972,r89996,r89999,r90003,r90005-r90009,
+      r90018-r90019,r90024,r90031)
+
+    - warn about non-existing developer_dir when it's set in macports.conf
+      (cal in 90802)
+
+    - port automatically installs bsdmake when there's no bsdmake in $PATH and a
+      port sets build.type bsd (#33355, cal in r90650)
+
+    - Added -W option for reinplace that sets a base directory that all file
+      arguments are interpreted as being relative to. (raimue in r90610)
+
+    - Added macports.conf options 'host_blacklist' and 'preferred_hosts', used
+      for indicating lists of download hosts that should not be used or should
+      be used preferentially, respectively. These override the usual ping time
+      check. Ping times are also now cached for 24 hours. (jmr in r89459)
+
+    - Added 'rev-upgrade' action checking for broken linkage and rebuilding
+      ports containing broken files. Made rev-upgrade run automatically after
+      each upgrade or install.
+      (cal in branch gsoc11-rev-upgrade, merge in r88376, also cal, raimue, jmr
+      in r88377,r88411,r88441,r88511,r88666,r88732,r89180,r89659,r89661,r90102,
+      r90381)
+
+    - Added options controlling rev-upgrade behavior to macports.conf
+      (jmr, cal in r88725,r88794,r89189)
 
     - port livecheck regex finds multiple matches on the same line
       (raimue in r88031)
 
-    - port lint now recognizes licenses (snc in r85929, r86016)
+    - Several improvements to port lint:
+      licenses, subversion properties, maintainer addresses
+      (#30194, snc, raimue in r85929, r86016, r89428, r89610)
+
+    - Added license_noconflict option to specify dependencies for which the
+      maintainer has manually checked license compatibility and wishes to
+      overrule the conservative automated checks. (jmr in r89004)
+
+    - Xcode 4.3 support: Use xcrun -find to find xcode compiler if it's not
+      found in /usr/bin.
+      (jberry, jmr in r88540,r88541,r88546,r88777,r88779,r88787,r89359,r89984,r90028)
+
+    - Added options compiler.blacklist, compiler.whitelist, and
+      compiler.fallback; to allow blacklisting, whitelisting, and setting the
+      fallback order for configure.compiler values, respectively.
+      (#30041, jmr in r88676)
+
+    - Fix sync with subdirectory of Subversion 1.7-format working copy
+      (#33573, jmr in 86872)
+
+    - Fixed conflicts not being checked for when installing ports that have no
+      dependencies. (#31571, dports in r85382)
+
+    - dmg postflight: quote all paths to handle the increasingly frequent
+      occurrence that $HOME contains spaces (#33583, ryandesign in r84345)
+
+    - dmg postflight: adjust wording of some messages (ryandesign in r84344)
+
+    - The deprecated Portfile options svn.tag, distcheck.check and
+      livecheck.check have been removed. (raimue in r82763)
 
     - Implement new option-replace using lsearch/lreplace. The old behavior is
       deprecated for option-replace with only one argument, but can still be
       found in option-strsed.
       (raimue in r82760, r82761)
+
+    - Added 'buildfromsource' macports.conf setting, which allows permanently
+      selecting the behaviour of the -s or -b option. (jmr in r81540)
+
+Release 2.0.4 (2012-02-25 by jmr)
+    - Added -locale option for reinplace (jeremyhu in r89839)
+
+    - Xcode 4.3 support: Change home directory for MacPorts user to
+      ${prefix}/var/macports/home.
+      (jberry, jmr in r89988, r89993, r90002, r90010, r90011)
+
+    - set env(HOME) to ${workpath}/.home when building ports
+      (#31827, jmr in r89994, r90004)
+
+    - Fix use_xmkmf to honor xmkmf.env for its make Makefiles phase
+      (#31504, jeremyhu in r89537, r89538, r89539)
+
+    - Added configure.cxx setting when configure.compiler is apple-gcc-4.2
+      (jeremyhu in r80248)
+
+    - Xcode 4.3 support: added packagemaker_path macports.conf setting
+      (jmr in r90058)
+
+    - Resolve ambiguity in selection in portlists
+      (jberry in r88179, r88185)
+
+    - Xcode 4.3 support: updated default developer_dir location for 4.3
+      (jmr in r90016)
+
+    - Xcode 4.3 support: use compilers in /usr/bin instead of developer_dir
+      when possible, as the latter has proven to be volatile.
+      (jmr in r90015)
+
+    - Xcode 4.3 support: updated SDK paths for 4.3 (jmr in r90000)
+
+    - Work around broken FTP proxy support in some versions of libcurl
+      (jmr in r84351, r88045)
 
 Release 2.0.3 (2011-09-05 by raimue)
     - Fix a regression introduced in 2.0.2 when fetching with a VCS
@@ -179,8 +412,8 @@ Release 2.0.0 (2011-07-22 by jmr):
     - Computing large dependency trees that contain the same port(s) multiple
       times should be considerably faster. (jmr in r73133)
 
-    - configure.compiler can now be set to macports-llvm-gcc-4.2 or
-      macports-clang (mfeiri in r72936, r72937)
+    - New configure.compiler options: macports-gcc-4.6, macports-llvm-gcc-4.2,
+      macports-clang (jmr in r71487; mfeiri in r72936, r72937)
 
     - Add '-n' option to reinplace (#26406, ryandesign in r73227)
 

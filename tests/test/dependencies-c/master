@@ -1,8 +1,7 @@
 --->  Computing dependencies for dependencies-c
 --->  Dependencies to be installed: dependencies-a dependencies-b
---->  Fetching archive for dependencies-b
---->  Fetching dependencies-b
---->  Verifying checksum(s) for dependencies-b
+--->  Fetching distfiles for dependencies-b
+--->  Verifying checksums for dependencies-b
 --->  Extracting dependencies-b
 --->  Configuring dependencies-b
 --->  Building dependencies-b
@@ -10,9 +9,8 @@
 --->  Installing dependencies-b @1_0
 --->  Activating dependencies-b @1_0
 --->  Cleaning dependencies-b
---->  Fetching archive for dependencies-a
---->  Fetching dependencies-a
---->  Verifying checksum(s) for dependencies-a
+--->  Fetching distfiles for dependencies-a
+--->  Verifying checksums for dependencies-a
 --->  Extracting dependencies-a
 --->  Configuring dependencies-a
 --->  Building dependencies-a
@@ -20,8 +18,8 @@
 --->  Installing dependencies-a @1_0+i_want_b
 --->  Activating dependencies-a @1_0+i_want_b
 --->  Cleaning dependencies-a
---->  Fetching dependencies-c
---->  Verifying checksum(s) for dependencies-c
+--->  Fetching distfiles for dependencies-c
+--->  Verifying checksums for dependencies-c
 --->  Extracting dependencies-c
 --->  Configuring dependencies-c
 --->  Building dependencies-c

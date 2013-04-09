@@ -4,9 +4,10 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl \
 	portinstall.tcl portuninstall.tcl portdepends.tcl portdestroot.tcl \
 	portlint.tcl portclean.tcl porttest.tcl portactivate.tcl \
-	portdeactivate.tcl portsubmit.tcl port_autoconf.tcl portstartupitem.tcl \
+	portdeactivate.tcl port_autoconf.tcl portstartupitem.tcl \
 	porttrace.tcl portlivecheck.tcl portdistcheck.tcl portmirror.tcl \
-	portload.tcl portunload.tcl portdistfiles.tcl fetch_common.tcl
+	portload.tcl portunload.tcl portdistfiles.tcl fetch_common.tcl \
+	portsandbox.tcl
 
 include ../../Mk/macports.subdir.mk
 include ../../Mk/macports.autoconf.mk
@@ -33,3 +34,5 @@ install:: all
 
 test::
 	${TCLSH} tests/portutil.tcl ${macports_tcl_dir}
+	${TCLSH} tests/portdestroot.tcl ${macports_tcl_dir}
+	${TCLSH} tests/portfetch.tcl ${macports_tcl_dir}

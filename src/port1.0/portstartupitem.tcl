@@ -3,7 +3,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2004-2011 The MacPorts Project
+# Copyright (c) 2004-2012 The MacPorts Project
 # Copyright (c) 2006-2007 James D. Berry
 # Copyright (c) 2004,2005 Markus W. Weissman <mww@macports.org>
 # All rights reserved.
@@ -400,6 +400,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
     global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
     global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
+    global startupitem.install
 
     set scriptdir ${prefix}/etc/startup
     
@@ -602,8 +603,8 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
     close ${plist}
 
-    # Make a symlink to the plist file
-    if {[getuid] == 0} {
+    if { [getuid] == 0 && 
+      ${startupitem.install} != "no" } {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     }

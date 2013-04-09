@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -36,7 +36,7 @@ package require portutil 1.0
 
 set org.macports.mdmg [target_new org.macports.mdmg portmdmg::mdmg_main]
 target_runtype ${org.macports.mdmg} always
-target_provides ${org.macports.mdmg} mdmg 
+target_provides ${org.macports.mdmg} mdmg
 target_requires ${org.macports.mdmg} mpkg
 
 namespace eval portmdmg {
@@ -45,31 +45,31 @@ namespace eval portmdmg {
 set_ui_prefix
 
 proc portmdmg::mdmg_main {args} {
-    global subport version revision package.destpath UI_PREFIX
+    global subport epoch version revision package.destpath UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
-		setegid 0; seteuid 0
+		seteuid 0; setegid 0
 	}
 
-    return [package_mdmg $subport $version $revision]
+    return [package_mdmg $subport $epoch $version $revision]
 }
 
-proc portmdmg::package_mdmg {portname portversion portrevision} {
+proc portmdmg::package_mdmg {portname portepoch portversion portrevision} {
     global UI_PREFIX package.destpath portpath
     global os.platform os.arch os.version os.major
-    
+
     if {[expr (${portrevision} > 0)]} {
         set imagename "${portname}-${portversion}-${portrevision}"
     } else {
         set imagename "${portname}-${portversion}"
     }
-    
+
     set tmp_image ${package.destpath}/${imagename}.tmp.dmg
     set final_image ${package.destpath}/${imagename}.dmg
-    set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
-    
+    set mpkgpath [portmpkg::mpkg_path $portname $portepoch $portversion $portrevision]
+
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"
         return 0
@@ -84,6 +84,12 @@ proc portmdmg::package_mdmg {portname portversion portrevision} {
         set subdev 2
     }
 
+    if {![file isdirectory $mpkgpath]} {
+        file mkdir ${package.destpath}/${imagename}
+        file copy $mpkgpath ${package.destpath}/${imagename}
+        set mpkgpath ${package.destpath}/${imagename}
+    }
+
     set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
     if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${mpkgpath} ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
@@ -95,6 +101,6 @@ proc portmdmg::package_mdmg {portname portversion portrevision} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     file delete -force "${tmp_image}"
-    
+
     return 0
 }
