@@ -2603,6 +2603,14 @@ proc action_selfupdate { action portlist opts } {
     if { [catch {macports::selfupdate [array get global_options] base_updated} result ] } {
         global errorInfo
         ui_debug "$errorInfo"
+        ui_error "$result"
+        if {![macports::ui_isset ports_verbose]} {
+            ui_msg "Please run `port -v selfupdate' for details."
+        } else {
+            # Let's only print the ticket URL if the user has followed the
+            # advice we printed earlier.
+            print_tickets_url
+        }
         fatal "port selfupdate failed: $result"
     }
     
