@@ -419,12 +419,12 @@ proc url_to_portname { url {quiet 0} } {
 
 
 # Supply a default porturl/portname if the portlist is empty
-proc require_portlist { nameportlist {is_update "no"} } {
+proc require_portlist { nameportlist {is_upgrade "no"} } {
     global private_options
     upvar $nameportlist portlist
 
     if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) == "no")} {
-        if {${is_update} == "yes"} {
+        if {${is_upgrade} == "yes"} {
             # $> port upgrade outdated
             # Error: No ports matched the given expression
             # is not very user friendly - if we're in the special case of
