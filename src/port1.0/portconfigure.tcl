@@ -750,6 +750,10 @@ proc portconfigure::configure_main {args} {
 
         # Execute the command (with the new environment).
         if {[catch {command_exec configure} result]} {
+            global configure.dir
+            if {[file exists ${configure.dir}/config.log]} {
+                ui_error "[format [msgcat::mc "Failed to configure %s, consult %s/config.log"] [option subport] ${configure.dir}]"
+            }
             return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
         }
     }
