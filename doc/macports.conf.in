@@ -166,3 +166,24 @@ universal_archs		@UNIVERSAL_ARCHS@
 # linking and can rebuild affected ports. Possible values are
 #'rebuild' (default) or 'report'.
 #revupgrade_mode	rebuild
+
+# When creating a pkg, specify the files and/or directories in
+# ${prefix} to delete after the unarchive stage and before the
+# pkg is created.  If not set, nothing is deleted.
+#
+# Because mpkg's are built from pkg's, any mpkg's will also have
+# the specified files and/or directories omitted.
+#
+# For example
+#
+#   pkg_post_unarchive_deletions include share/doc share/man
+#
+# will delete ${prefix}/include, ${prefix}/share/doc and
+# ${prefix}/share/man.
+#
+# This feature is useful when one wants to shrink the size of the
+# pkg's and mpkg's for deployment to Macs that will not be used
+# for development.  One large mpkg was observed to shrink from
+# 504 MB to 271 MB.
+#
+#pkg_post_unarchive_deletions include share/doc share/man

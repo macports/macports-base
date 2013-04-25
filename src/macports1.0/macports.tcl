@@ -51,7 +51,7 @@ namespace eval macports {
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts\
-        packagemaker_path default_compilers"
+        packagemaker_path default_compilers pkg_post_unarchive_deletions"
     variable user_options ""
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -61,7 +61,8 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target \
-        packagemaker_path default_compilers $user_options"
+        packagemaker_path default_compilers \
+        pkg_post_unarchive_deletions $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.

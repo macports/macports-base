@@ -111,7 +111,8 @@ proc portpkg::pkg_main {args} {
 proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description \
     package.flat package.destpath portpath os.version os.major \
-    package.resources package.scripts portpkg::packagemaker portpkg::language
+    package.resources package.scripts portpkg::packagemaker \
+    pkg_post_unarchive_deletions portpkg::language
 
     set portepoch_namestr ""
     if {${portepoch} != "0"} {
@@ -134,6 +135,15 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
             file mkdir "${destpath}/private/${dir}"
             eval file rename [glob ${destpath}/${dir}/*] "${destpath}/private/${dir}"
             delete "${destpath}/${dir}"
+        }
+    }
+
+    if {[info exists pkg_post_unarchive_deletions]} {
+        foreach rmfile ${pkg_post_unarchive_deletions} {
+            set full_rmfile "${destpath}${prefix}/${rmfile}"
+            if {[file exists "${full_rmfile}"]} {
+                delete "${full_rmfile}"
+            }
         }
     }
 
