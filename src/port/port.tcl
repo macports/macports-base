@@ -419,11 +419,20 @@ proc url_to_portname { url {quiet 0} } {
 
 
 # Supply a default porturl/portname if the portlist is empty
-proc require_portlist { nameportlist } {
+proc require_portlist { nameportlist {is_upgrade "no"} } {
     global private_options
     upvar $nameportlist portlist
 
     if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) == "no")} {
+        if {${is_upgrade} == "yes"} {
+            # $> port upgrade outdated
+            # Error: No ports matched the given expression
+            # is not very user friendly - if we're in the special case of
+            # "upgrade", let's print a message that's a little easier to
+            # understand and less alarming.
+            ui_msg "Nothing to upgrade."
+            return 1
+        }
         ui_error "No ports matched the given expression"
         return 1
     }
@@ -2594,6 +2603,14 @@ proc action_selfupdate { action portlist opts } {
     if { [catch {macports::selfupdate [array get global_options] base_updated} result ] } {
         global errorInfo
         ui_debug "$errorInfo"
+        ui_error "$result"
+        if {![macports::ui_isset ports_verbose]} {
+            ui_msg "Please run `port -v selfupdate' for details."
+        } else {
+            # Let's only print the ticket URL if the user has followed the
+            # advice we printed earlier.
+            print_tickets_url
+        }
         fatal "port selfupdate failed: $result"
     }
     
@@ -2633,7 +2650,7 @@ proc action_setrequested { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    if {[require_portlist portlist] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
+    if {[require_portlist portlist "yes"] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
         return 1
     }
 
