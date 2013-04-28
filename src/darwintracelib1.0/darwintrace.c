@@ -1114,7 +1114,7 @@ size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *base
 
 	if (-1 == fcntl(fd, F_GETPATH, dirname)) {
 		errno = EBADF;
-		return 0;
+		return -1;
 	}
 
 	dnamelen = strlen(dirname);
