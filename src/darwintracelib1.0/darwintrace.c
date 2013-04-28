@@ -1087,16 +1087,6 @@ int lstat$INODE64(const char * path, struct stat64 * sb) {
  * other systems, and because other system's syscall names are probably
  * different anyway */
 
-#pragma pack(4)
-struct dirent32 {
-	ino_t d_ino;            /* file number of entry */
-	__uint16_t d_reclen;    /* length of this record */
-	__uint8_t  d_type;      /* file type */
-	__uint8_t  d_namlen;    /* length of string in d_name */
-	char d_name[__DARWIN_MAXNAMLEN + 1]; /* name must be no longer than this */
-};
-#pragma pack()
-
 struct dirent64  {
 	__uint64_t  d_ino;      /* file number of entry */
 	__uint64_t  d_seekoff;  /* seek offset */
@@ -1142,6 +1132,16 @@ size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *base
 	return sz;
 #undef __getdirentries64
 }
+
+#pragma pack(4)
+struct dirent32 {
+	ino_t d_ino;            /* file number of entry */
+	__uint16_t d_reclen;    /* length of this record */
+	__uint8_t  d_type;      /* file type */
+	__uint8_t  d_namlen;    /* length of string in d_name */
+	char d_name[__DARWIN_MAXNAMLEN + 1]; /* name must be no longer than this */
+};
+#pragma pack()
 
 int getdirentries(int fd, char *buf, int nbytes, long *basep) {
 #define getdirentries(w,x,y,z) syscall(SYS_getdirentries, (w), (x), (y), (z))
