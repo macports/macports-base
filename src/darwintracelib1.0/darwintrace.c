@@ -1087,6 +1087,8 @@ int lstat$INODE64(const char * path, struct stat64 * sb) {
  * other systems, and because other system's syscall names are probably
  * different anyway */
 
+#if defined(__DARWIN_64_BIT_INO_T)
+
 struct dirent64  {
 	__uint64_t  d_ino;      /* file number of entry */
 	__uint64_t  d_seekoff;  /* seek offset */
@@ -1132,6 +1134,8 @@ size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *base
 	return sz;
 #undef __getdirentries64
 }
+
+#endif /* defined(__DARWIN_64_BIT_INO_T) */
 
 #pragma pack(4)
 struct dirent32 {
