@@ -1089,20 +1089,20 @@ int lstat$INODE64(const char * path, struct stat64 * sb) {
 
 #pragma pack(4)
 struct dirent32 {
-	ino_t d_ino;			/* file number of entry */
-	__uint16_t d_reclen;		/* length of this record */
-	__uint8_t  d_type; 		/* file type, see below */
-	__uint8_t  d_namlen;		/* length of string in d_name */
-	char d_name[__DARWIN_MAXNAMLEN + 1];	/* name must be no longer than this */
+	ino_t d_ino;            /* file number of entry */
+	__uint16_t d_reclen;    /* length of this record */
+	__uint8_t  d_type;      /* file type */
+	__uint8_t  d_namlen;    /* length of string in d_name */
+	char d_name[__DARWIN_MAXNAMLEN + 1]; /* name must be no longer than this */
 };
 #pragma pack()
 
 struct dirent64  {
 	__uint64_t  d_ino;      /* file number of entry */
-	__uint64_t  d_seekoff;  /* seek offset (optional, used by servers) */
+	__uint64_t  d_seekoff;  /* seek offset */
 	__uint16_t  d_reclen;   /* length of this record */
 	__uint16_t  d_namlen;   /* length of string in d_name */
-	__uint8_t   d_type;     /* file type, see below */
+	__uint8_t   d_type;     /* file type */
 	char      d_name[__DARWIN_MAXPATHLEN]; /* entry name (up to MAXPATHLEN bytes) */
 };
 
