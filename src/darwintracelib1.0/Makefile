@@ -2,8 +2,6 @@ OBJS=		darwintrace.o
 SHLIB_NAME=	darwintrace${SHLIB_SUFFIX}
 INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/darwintrace1.0
 
-test::
-
 include ../../Mk/macports.autoconf.mk
 
 CFLAGS+= -fPIC -Wno-deprecated-declarations
@@ -22,3 +20,5 @@ distclean:: clean
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
+
+test::
