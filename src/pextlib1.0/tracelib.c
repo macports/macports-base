@@ -430,11 +430,13 @@ static int TracelibOpenSocketCmd(Tcl_Interp * in)
 	
 	interp=in;
 	
-	rl.rlim_cur=rl.rlim_max=RLIM_INFINITY;
+	/* raise the limit of open files to the maximum from the default soft limit
+	 * of 256 */
 #if defined(__APPLE__) && defined(OPEN_MAX)
-	if (OPEN_MAX < rl.rlim_cur)
-		rl.rlim_cur = OPEN_MAX;
+	if (rl.rlim_max > OPEN_MAX)
+		rl.rlim_max = OPEN_MAX;
 #endif
+	rl.rlim_cur = rl.rlim_max;
 	if(setrlimit(RLIMIT_NOFILE, &rl)==-1)
 	{
 		ui_warn("setrlimit failed (%d)", errno);
