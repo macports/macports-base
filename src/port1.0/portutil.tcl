@@ -1,5 +1,4 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# portutil.tcl
 # $Id$
 #
 # Copyright (c) 2002-2003 Apple Inc.
@@ -258,8 +257,8 @@ proc get_deprecated_options {} {
 }
 
 ##
-# Mark an option as deprecate
-# If it is set or accessed, it will be mapped it to the new option
+# Mark an option as deprecated
+# If it is set or accessed, it will be mapped to the new option
 #
 # @param option name of the option
 # @param newoption name of a superseding option
