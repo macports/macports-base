@@ -76,24 +76,6 @@ proc portinstall::install_start {args} {
     handle_add_users
 }
 
-# fake some info for a list of files to match the format
-# used for contents in the flat registry
-# This list is a 6-tuple of the form:
-# 0: file path
-# 1: uid
-# 2: gid
-# 3: mode
-# 4: size
-# 5: md5 checksum information
-proc portinstall::_fake_fileinfo_for_index {flist} {
-    global 
-	set rval [list]
-	foreach file $flist {
-		lappend rval [list $file [getuid] [getgid] 0644 0 "MD5 ($fname) NONE"]
-	}
-	return $rval
-}
-
 proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
            epoch os.platform PortInfo installPlist \
@@ -453,33 +435,4 @@ proc portinstall::install_main {args} {
 
     _cd $oldpwd
     return 0
-}
-
-# apparent usage of pkg_uninstall variable in the (flat) registry
-# the Portfile needs to define a procedure
-# proc pkg_uninstall {portname portver} {
-#     body of proc
-# }
-# which gets stored above in the receipt's pkg_uninstall property
-# this is then called by the portuninstall procedure
-# note that the portuninstall procedure is not called within
-# the context of the portfile so many usual port variables do not exist
-# e.g. destroot/workpath/filespath
- 
-# this procedure encodes the pkg_uninstall body so that it can be stored in the
-# the receipt file
-proc portinstall::proc_disasm {pname} {
-    set p "proc "
-    append p $pname " {"
-    set space ""
-    foreach arg [info args $pname] {
-        if {[info default $pname $arg value]} {
-            append p "$space{" [list $arg $value] "}"
-        } else {
-            append p $space $arg
-        }
-        set space " "
-    }
-    append p "} {" [string map { \n \\n } [info body $pname] ] " }"
-    return $p
 }
