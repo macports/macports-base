@@ -299,60 +299,7 @@ proc portinstall::create_archive {location archive.type} {
 }
 
 proc portinstall::extract_contents {location type} {
-    set qflag ${portutil::autoconf::tar_q}
-    switch -- $type {
-        tbz -
-        tbz2 {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location ./+CONTENTS]
-        }
-        tgz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location ./+CONTENTS]
-        }
-        tar {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location ./+CONTENTS]
-        }
-        txz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] ./+CONTENTS]
-        }
-        tlz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
-        }
-        xar {
-            system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location +CONTENTS"
-            set twostep 1
-        }
-        zip {
-            set raw_contents [exec [findBinary unzip ${portutil::autoconf::unzip_path}] -p $location +CONTENTS]
-        }
-        cpgz {
-            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rzf $location +CONTENTS"
-            set twostep 1
-        }
-        cpio {
-            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rf $location +CONTENTS"
-            set twostep 1
-        }
-    }
-    if {[info exists twostep]} {
-        set fd [open "${workpath}/+CONTENTS"]
-        set raw_contents [read $fd]
-        close $fd
-    }
-    set contents {}
-    set ignore 0
-    set sep [file separator]
-    foreach line [split $raw_contents \n] {
-        if {$ignore} {
-            set ignore 0
-            continue
-        }
-        if {[string index $line 0] != "@"} {
-            lappend contents "${sep}${line}"
-        } elseif {$line == "@ignore"} {
-            set ignore 1
-        }
-    }
-    return $contents
+    return [extract_archive_metadata $location $type contents]
 }
 
 proc portinstall::install_main {args} {

@@ -2531,6 +2531,76 @@ proc archiveTypeIsSupported {type} {
     return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
+# return the specified piece of metadata from the +CONTENTS file in the given archive
+proc extract_archive_metadata {archive_location archive_type metadata_type} {
+    set qflag ${portutil::autoconf::tar_q}
+    set raw_contents ""
+    switch -- $archive_type {
+        tbz -
+        tbz2 {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
+        }
+        tgz {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $archive_location ./+CONTENTS]
+        }
+        tar {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location ./+CONTENTS]
+        }
+        txz {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary xz ""] ./+CONTENTS]
+        }
+        tlz {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
+        }
+        xar {
+            system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $archive_location +CONTENTS"
+            set twostep 1
+        }
+        zip {
+            set raw_contents [exec [findBinary unzip ${portutil::autoconf::unzip_path}] -p $archive_location +CONTENTS]
+        }
+        cpgz {
+            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rzf $archive_location +CONTENTS"
+            set twostep 1
+        }
+        cpio {
+            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rf $archive_location +CONTENTS"
+            set twostep 1
+        }
+    }
+    if {[info exists twostep]} {
+        set fd [open "${workpath}/+CONTENTS"]
+        set raw_contents [read $fd]
+        close $fd
+    }
+    if {$metadata_type == "contents"} {
+        set contents {}
+        set ignore 0
+        set sep [file separator]
+        foreach line [split $raw_contents \n] {
+            if {$ignore} {
+                set ignore 0
+                continue
+            }
+            if {[string index $line 0] != "@"} {
+                lappend contents "${sep}${line}"
+            } elseif {$line == "@ignore"} {
+                set ignore 1
+            }
+        }
+        return $contents
+    } elseif {$metadata_type == "portname"} {
+        foreach line [split $raw_contents \n] {
+            if {[lindex $line 0] == "@portname"} {
+                return [lindex $line 1]
+            }
+        }
+        return ""
+    } else {
+        return -code error "unknown metadata_type: $metadata_type"
+    }
+}
+
 #
 # merge function for universal builds
 #

@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# portclean.tcl
 # $Id$
 #
-# Copyright (c) 2005-2007, 2009-2011 The MacPorts Project
+# Copyright (c) 2005-2007, 2009-2011, 2013 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -61,9 +60,8 @@ proc portclean::clean_start {args} {
 }
 
 proc portclean::clean_main {args} {
-    global UI_PREFIX \
-           ports_clean_dist ports_clean_work ports_clean_logs \
-           ports_clean_all keeplogs usealtworkpath
+    global UI_PREFIX ports_clean_dist ports_clean_work ports_clean_logs \
+           ports_clean_archive ports_clean_all keeplogs usealtworkpath
 
     if {$usealtworkpath} {
         ui_warn "Only cleaning in ~/.macports; insufficient privileges for standard locations"
@@ -74,8 +72,16 @@ proc portclean::clean_main {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option subport]]"
         clean_dist
     }
+    if {([info exists ports_clean_all] && $ports_clean_all == "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive == "yes")
+        && !$usealtworkpath} {
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing temporary archives for %s"] [option subport]]"
+        clean_archive
+    }
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_work] && $ports_clean_work == "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive == "yes" || \
+        [info exists ports_clean_dist] && $ports_clean_dist == "yes" || \
         !([info exists ports_clean_logs] && $ports_clean_logs == "yes")} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing work directory for %s"] [option subport]]"
          clean_work
@@ -257,5 +263,57 @@ proc portclean::clean_logs {args} {
     } else {
         ui_debug "No log directory found to remove at ${logpath}"
     }           	
+    return 0
+}
+
+proc portclean::clean_archive {args} {
+    global subport ports_version_glob portdbpath
+
+    # Define archive destination directory, target filename, regex for archive name
+    set archivepath [file join $portdbpath incoming]
+
+    if {[info exists ports_version_glob]} {
+        # Match all possible archive variants that match the version
+        # glob specified by the user.
+        set fileglob "$subport-[option ports_version_glob]*.*.*.*"
+    } else {
+        # Match all possible archives for this port.
+        set fileglob "$subport-*_*.*.*.*"
+    }
+
+    # Remove the archive files
+    set count 0
+    foreach dir [list $archivepath ${archivepath}/verified] {
+        set archivelist [glob -nocomplain -directory $dir $fileglob]
+        foreach path $archivelist {
+            # Make sure file is truly an archive file for this port, and not
+            # an accidental match with some other file that might exist. Also
+            # delete anything ending in .TMP since those are incomplete and
+            # thus can't be checked and aren't useful anyway.
+            set archivetype [string range [file extension $path] 1 end]
+            if {[file isfile $path] && ($archivetype == "TMP"
+                || [extract_archive_metadata $path $archivetype portname] == $subport)} {
+                ui_debug "Removing archive: $path"
+                if {[catch {delete $path} result]} {
+                    ui_debug "$::errorInfo"
+                    ui_error "$result"
+                }
+                if {[file isfile ${path}.rmd160]} {
+                    ui_debug "Removing archive signature: ${path}.rmd160"
+                    if {[catch {delete ${path}.rmd160} result]} {
+                        ui_debug "$::errorInfo"
+                        ui_error "$result"
+                    }
+                }
+                incr count
+            }
+        }
+    }
+    if {$count > 0} {
+        ui_debug "$count archive(s) removed."
+    } else {
+        ui_debug "No archives found to remove at $archivepath"
+    }
+
     return 0
 }
