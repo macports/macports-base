@@ -57,8 +57,8 @@ proc portdmg::dmg_main {args} {
 }
 
 proc portdmg::package_dmg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portpath
-    global os.platform os.arch os.version os.major
+    global UI_PREFIX package.destpath portpath \
+           os.platform os.arch os.version os.major
 
     if {[expr (${portrevision} > 0)]} {
         set imagename "${portname}-${portversion}-${portrevision}"

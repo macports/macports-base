@@ -61,9 +61,9 @@ proc portclean::clean_start {args} {
 }
 
 proc portclean::clean_main {args} {
-    global UI_PREFIX
-    global ports_clean_dist ports_clean_work ports_clean_logs
-    global ports_clean_all keeplogs usealtworkpath
+    global UI_PREFIX \
+           ports_clean_dist ports_clean_work ports_clean_logs \
+           ports_clean_all keeplogs usealtworkpath
 
     if {$usealtworkpath} {
         ui_warn "Only cleaning in ~/.macports; insufficient privileges for standard locations"

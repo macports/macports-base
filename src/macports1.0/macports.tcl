@@ -363,8 +363,7 @@ proc macports::getoption {name} {
 
 # deferred and on-need extraction of xcodeversion and xcodebuildcmd.
 proc macports::setxcodeinfo {name1 name2 op} {
-    global macports::xcodeversion
-    global macports::xcodebuildcmd
+    global macports::xcodeversion macports::xcodebuildcmd
 
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
@@ -542,51 +541,51 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::ui_init $priority
     }
 
-    global auto_path env tcl_platform
-    global macports::autoconf::macports_conf_path
-    global macports::macports_user_dir
-    global macports::bootstrap_options
-    global macports::user_options
-    global macports::extra_env
-    global macports::portconf
-    global macports::portdbpath
-    global macports::portsharepath
-    global macports::registry.format
-    global macports::registry.path
-    global macports::sources
-    global macports::sources_default
-    global macports::sources_conf
-    global macports::destroot_umask
-    global macports::libpath
-    global macports::prefix
-    global macports::macportsuser
-    global macports::prefix_frozen
-    global macports::rsync_dir
-    global macports::rsync_options
-    global macports::rsync_server
-    global macports::variants_conf
-    global macports::xcodebuildcmd
-    global macports::xcodeversion
-    global macports::configureccache
-    global macports::ccache_dir
-    global macports::ccache_size
-    global macports::configuredistcc
-    global macports::configurepipe
-    global macports::buildnicevalue
-    global macports::buildmakejobs
-    global macports::universal_archs
-    global macports::build_arch
-    global macports::os_arch
-    global macports::os_endian
-    global macports::os_version
-    global macports::os_major
-    global macports::os_platform
-    global macports::macosx_version
-    global macports::macosx_deployment_target
-    global macports::archivefetch_pubkeys
-    global macports::ping_cache
-    global macports::host_blacklisted
-    global macports::host_preferred
+    global auto_path env tcl_platform \
+        macports::autoconf::macports_conf_path \
+        macports::macports_user_dir \
+        macports::bootstrap_options \
+        macports::user_options \
+        macports::extra_env \
+        macports::portconf \
+        macports::portdbpath \
+        macports::portsharepath \
+        macports::registry.format \
+        macports::registry.path \
+        macports::sources \
+        macports::sources_default \
+        macports::sources_conf \
+        macports::destroot_umask \
+        macports::libpath \
+        macports::prefix \
+        macports::macportsuser \
+        macports::prefix_frozen \
+        macports::rsync_dir \
+        macports::rsync_options \
+        macports::rsync_server \
+        macports::variants_conf \
+        macports::xcodebuildcmd \
+        macports::xcodeversion \
+        macports::configureccache \
+        macports::ccache_dir \
+        macports::ccache_size \
+        macports::configuredistcc \
+        macports::configurepipe \
+        macports::buildnicevalue \
+        macports::buildmakejobs \
+        macports::universal_archs \
+        macports::build_arch \
+        macports::os_arch \
+        macports::os_endian \
+        macports::os_version \
+        macports::os_major \
+        macports::os_platform \
+        macports::macosx_version \
+        macports::macosx_deployment_target \
+        macports::archivefetch_pubkeys \
+        macports::ping_cache \
+        macports::host_blacklisted \
+        macports::host_preferred
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -2176,9 +2175,9 @@ proc macports::getindex {source} {
 }
 
 proc mportsync {{optionslist {}}} {
-    global macports::sources macports::portdbpath macports::rsync_options tcl_platform
-    global macports::portverbose
-    global macports::autoconf::rsync_path macports::autoconf::tar_path macports::autoconf::openssl_path
+    global macports::sources macports::portdbpath macports::rsync_options \
+           tcl_platform macports::portverbose macports::autoconf::rsync_path \
+           macports::autoconf::tar_path macports::autoconf::openssl_path
     array set options $optionslist
     if {[info exists options(no_reindex)]} {
         upvar $options(needed_portindex_var) any_needed_portindex
@@ -3212,9 +3211,10 @@ proc macports::_deptypes_for_target {target workername} {
 
 # selfupdate procedure
 proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
-    global macports::prefix macports::portdbpath macports::libpath macports::rsync_server macports::rsync_dir macports::rsync_options
-    global macports::autoconf::macports_version macports::autoconf::rsync_path tcl_platform
-    global macports::autoconf::openssl_path macports::autoconf::tar_path
+    global macports::prefix macports::portdbpath macports::libpath \
+           macports::rsync_server macports::rsync_dir macports::rsync_options \
+           macports::autoconf::macports_version macports::autoconf::rsync_path \
+           tcl_platform macports::autoconf::openssl_path macports::autoconf::tar_path
     array set options $optionslist
     
     # variable that indicates whether we actually updated base

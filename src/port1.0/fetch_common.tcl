@@ -84,8 +84,8 @@ proc portfetch::assemble_url {site distfile} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
-    global UI_PREFIX name dist_subdir
-    global global_mirror_site fallback_mirror_site
+    global UI_PREFIX name dist_subdir \
+           global_mirror_site fallback_mirror_site
 
     if {[file exists $mirrorfile]} {
         source $mirrorfile

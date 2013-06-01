@@ -620,13 +620,13 @@ port::register_callback portconfigure::add_automatic_compiler_dependencies
 
 proc portconfigure::configure_main {args} {
     global [info globals]
-    global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
-    global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
-    global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison
-    global configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot
-    global configure.march configure.mtune
-    global os.platform os.major
+    global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf \
+           configure.env configure.pipe configure.libs configure.classpath configure.universal_args \
+           configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \
+           configure.pkg_config configure.pkg_config_path \
+           configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot \
+           configure.march configure.mtune \
+           os.platform os.major
     foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }

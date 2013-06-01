@@ -152,10 +152,10 @@ proc portarchivefetch::checkfiles {urls} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc portarchivefetch::fetchfiles {args} {
-    global archivefetch.fulldestpath UI_PREFIX
-    global archivefetch.user archivefetch.password archivefetch.use_epsv \
-           archivefetch.ignore_sslcert
-    global portverbose ports_binary_only
+    global archivefetch.fulldestpath UI_PREFIX \
+           archivefetch.user archivefetch.password archivefetch.use_epsv \
+           archivefetch.ignore_sslcert \
+           portverbose ports_binary_only
     variable archivefetch_urls
     variable ::portfetch::urlmap
 

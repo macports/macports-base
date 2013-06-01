@@ -74,10 +74,10 @@ namespace eval portstartupitem {
 set_ui_prefix
 
 proc portstartupitem::startupitem_create_rcng {args} {
-    global prefix destroot os.platform
-    global startupitem.name startupitem.requires
-    global startupitem.start startupitem.stop startupitem.restart
-    global startupitem.type
+    global prefix destroot os.platform \
+           startupitem.name startupitem.requires \
+           startupitem.start startupitem.stop startupitem.restart \
+           startupitem.type
 
     set scriptdir ${destroot}${prefix}/etc/rc.d
 
@@ -120,10 +120,10 @@ proc portstartupitem::startupitem_create_rcng {args} {
 }
 
 proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform
-    global startupitem.name startupitem.requires startupitem.init
-    global startupitem.start startupitem.stop startupitem.restart startupitem.executable
-    global startupitem.pidfile startupitem.logfile startupitem.logevents
+    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform \
+           startupitem.name startupitem.requires startupitem.init \
+           startupitem.start startupitem.stop startupitem.restart startupitem.executable \
+           startupitem.pidfile startupitem.logfile startupitem.logevents
     
     set scriptdir ${prefix}/etc/startup
     
@@ -396,11 +396,11 @@ RunService "$1"
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target
-    global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
-    global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
-    global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
-    global startupitem.install
+    global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target \
+           startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
+           startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable \
+           startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
+           startupitem.install
 
     set scriptdir ${prefix}/etc/startup
     
@@ -632,8 +632,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 }
 
 proc portstartupitem::startupitem_create {args} {
-    global UI_PREFIX
-    global startupitem.type os.platform
+    global UI_PREFIX startupitem.type os.platform
     
     set startupitem.type [string tolower ${startupitem.type}]
     

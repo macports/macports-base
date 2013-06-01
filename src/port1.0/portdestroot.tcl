@@ -102,9 +102,9 @@ proc portdestroot::destroot_getargs {args} {
 }
 
 proc portdestroot::destroot_start {args} {
-    global UI_PREFIX prefix subport porturl destroot os.platform destroot.clean portsharepath
-    global destroot.umask destroot.asroot euid egid
-    global applications_dir frameworks_dir
+    global UI_PREFIX prefix subport porturl destroot os.platform destroot.clean portsharepath \
+           destroot.umask destroot.asroot euid egid \
+           applications_dir frameworks_dir
     variable oldmask
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${subport}]"
@@ -149,9 +149,9 @@ proc portdestroot::destroot_main {args} {
 }
 
 proc portdestroot::destroot_finish {args} {
-    global UI_PREFIX destroot prefix subport startupitem.create destroot.violate_mtree
-    global applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files
-    global os.platform os.version
+    global UI_PREFIX destroot prefix subport startupitem.create destroot.violate_mtree \
+           applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files \
+           os.platform os.version
     variable oldmask
 
     # Create startup-scripts/items

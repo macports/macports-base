@@ -59,8 +59,10 @@ proc portsrpm::srpm_main {args} {
 }
 
 proc portsrpm::srpm_pkg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix categories maintainers description long_description homepage epoch portpath distfiles
-	global os.platform os.arch os.version os.major
+    global UI_PREFIX package.destpath portdbpath destpath workpath distpath \
+           prefix categories maintainers description long_description \
+           homepage epoch portpath distfiles os.platform os.arch os.version \
+           os.major
 
     set fetch_urls {}
     portfetch::checkfiles fetch_urls

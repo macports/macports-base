@@ -2206,8 +2206,7 @@ proc variant_new {name} {
 }
 
 proc handle_default_variants {option action {value ""}} {
-    global PortInfo
-    global variations
+    global PortInfo variations
     switch -regex $action {
         set|append {
             # Retrieve the information associated with each variant.

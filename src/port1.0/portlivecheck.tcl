@@ -60,10 +60,10 @@ default livecheck.version {$version}
 default livecheck.ignore_sslcert yes
 
 proc portlivecheck::livecheck_main {args} {
-    global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
-    global livecheck.ignore_sslcert
-    global homepage portpath workpath
-    global master_sites name subport distfiles
+    global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
+           livecheck.ignore_sslcert \
+           homepage portpath workpath \
+           master_sites name subport distfiles
 
     set updated 0
     set updated_version "unknown"

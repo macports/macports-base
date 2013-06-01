@@ -3752,8 +3752,7 @@ proc action_echo { action portlist opts } {
 
 proc action_portcmds { action portlist opts } {
     # Operations on the port's directory and Portfile
-    global env boot_env
-    global current_portdir
+    global env boot_env current_portdir
 
     array set local_options $opts
     
@@ -4468,9 +4467,9 @@ proc lock_reg_if_needed {action} {
 }
 
 proc process_cmd { argv } {
-    global cmd_argc cmd_argv cmd_argn
-    global global_options global_options_base private_options ui_options
-    global current_portdir
+    global cmd_argc cmd_argv cmd_argn \
+           global_options global_options_base private_options ui_options \
+           current_portdir
     set cmd_argv $argv
     set cmd_argc [llength $argv]
     set cmd_argn 0
@@ -4603,8 +4602,7 @@ proc complete_portname { text state } {
 
 # return text action beginning with $text
 proc complete_action { text state } {   
-    global action_array
-    global complete_choices complete_position
+    global action_array complete_choices complete_position
 
     if {$state == 0} {
         set complete_position 0
@@ -4795,17 +4793,15 @@ array set private_options {}
 # We do this here to save it in the boot_env, in case we determined it manually
 term_init_size
 
+global env boot_env argv0 cmdname argc argv cmd_argc cmd_argv cmd_argn \
+       current_portdir global_options_base exit_status
+
 # Save off a copy of the environment before mportinit monkeys with it
-global env boot_env
 array set boot_env [array get env]
 
-global argv0
-global cmdname
 set cmdname [file tail $argv0]
 
 # Setp cmd_argv to match argv
-global argc argv
-global cmd_argc cmd_argv cmd_argn
 set cmd_argv $argv
 set cmd_argc $argc
 set cmd_argn 0
@@ -4850,16 +4846,13 @@ if {[catch {mportinit ui_options global_options global_variations} result]} {
 }
 
 # Set up some global state for our code
-global current_portdir
 set current_portdir [pwd]
 
 # Freeze global_options into global_options_base; global_options
 # will be reset to global_options_base prior to processing each command.
-global global_options_base
 set global_options_base [array get global_options]
 
 # First process any remaining args as action(s)
-global exit_status
 set exit_status 0
 if { [llength $remaining_args] > 0 } {
 

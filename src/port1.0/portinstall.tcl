@@ -54,8 +54,8 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-    global UI_PREFIX subport version revision portvariants
-    global prefix registry_open registry.path
+    global UI_PREFIX subport version revision portvariants \
+           prefix registry_open registry.path
     ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $subport $version $revision $portvariants]"
     
     # start gsoc08-privileges

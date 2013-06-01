@@ -63,8 +63,10 @@ proc portrpm::rpm_main {args} {
 }
 
 proc portrpm::rpm_pkg {portname portversion portrevision} {
-    global UI_PREFIX rpm.asroot package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
-	global os.platform os.arch os.version os.major supported_archs configure.build_arch license
+    global UI_PREFIX rpm.asroot package.destpath portdbpath destpath workpath \
+           prefix categories maintainers description long_description \
+           homepage epoch portpath os.platform os.arch os.version os.major \
+           supported_archs configure.build_arch license
 
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
