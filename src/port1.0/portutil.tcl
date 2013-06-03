@@ -914,7 +914,7 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global env worksrcpath macosx_version
+    global env workpath worksrcpath macosx_version
     set extended 0
     set suppress 0
     set oldlocale_exists 0
@@ -961,12 +961,18 @@ proc reinplace {args}  {
     set pattern [lindex $args 0]
     set files [lrange $args 1 end]
 
+    if {[file isdirectory ${workpath}/.tmp]} {
+        set tempdir ${workpath}/.tmp
+    } else {
+        set tempdir /tmp
+    }
+
     foreach file $files {
         # if $file is an absolute path already, file join will just return the
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
 
-        if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+        if {[catch {set tmpfile [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "reinplace: $error"
