@@ -50,7 +50,7 @@ namespace eval macports {
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
-        host_blacklist preferred_hosts\
+        host_blacklist preferred_hosts sandbox_enable \
         packagemaker_path default_compilers pkg_post_unarchive_deletions"
     variable user_options ""
     variable portinterp_options "\
@@ -61,7 +61,7 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target \
-        packagemaker_path default_compilers \
+        packagemaker_path default_compilers sandbox_enable \
         pkg_post_unarchive_deletions $user_options"
 
     # deferred options are only computed when needed.
@@ -965,6 +965,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
          && [info exists macports::revupgrade_check_id_loadcmds]} {
         set macports::global_options(ports_rev-upgrade_id-loadcmd-check) ${macports::revupgrade_check_id_loadcmds}
         set temp_options(ports_rev-upgrade_id-loadcmd-check) ${macports::revupgrade_check_id_loadcmds}
+    }
+
+    if {![info exists macports::sandbox_enable]} {
+        set macports::sandbox_enable yes
     }
 
     # make tools we run operate in UTF-8 mode
