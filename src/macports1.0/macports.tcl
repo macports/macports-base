@@ -546,24 +546,17 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::macports_user_dir \
         macports::bootstrap_options \
         macports::user_options \
-        macports::extra_env \
         macports::portconf \
-        macports::portdbpath \
         macports::portsharepath \
         macports::registry.format \
         macports::registry.path \
         macports::sources \
         macports::sources_default \
-        macports::sources_conf \
         macports::destroot_umask \
         macports::libpath \
         macports::prefix \
         macports::macportsuser \
         macports::prefix_frozen \
-        macports::rsync_dir \
-        macports::rsync_options \
-        macports::rsync_server \
-        macports::variants_conf \
         macports::xcodebuildcmd \
         macports::xcodeversion \
         macports::configureccache \
