@@ -2535,6 +2535,21 @@ proc archiveTypeIsSupported {type} {
 proc extract_archive_metadata {archive_location archive_type metadata_type} {
     set qflag ${portutil::autoconf::tar_q}
     set raw_contents ""
+
+    switch -- $archive_type {
+        xar -
+        cpgz -
+        cpio {
+            set twostep 1
+            global workpath
+            if {[file isdirectory ${workpath}/.tmp]} {
+                set tempdir [mkdtemp ${workpath}/.tmp/portarchiveXXXXXXXX]
+            } else {
+                set tempdir [mkdtemp /tmp/portarchiveXXXXXXXX]
+            }
+        }
+    }
+
     switch -- $archive_type {
         tbz -
         tbz2 {
@@ -2553,25 +2568,23 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
             set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
         }
         xar {
-            system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $archive_location +CONTENTS"
-            set twostep 1
+            system -W ${tempdir} "[findBinary xar ${portutil::autoconf::xar_path}] -xf $archive_location +CONTENTS"
         }
         zip {
             set raw_contents [exec [findBinary unzip ${portutil::autoconf::unzip_path}] -p $archive_location +CONTENTS]
         }
         cpgz {
-            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rzf $archive_location +CONTENTS"
-            set twostep 1
+            system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rzf $archive_location +CONTENTS"
         }
         cpio {
-            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rf $archive_location +CONTENTS"
-            set twostep 1
+            system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rf $archive_location +CONTENTS"
         }
     }
     if {[info exists twostep]} {
-        set fd [open "${workpath}/+CONTENTS"]
+        set fd [open "${tempdir}/+CONTENTS"]
         set raw_contents [read $fd]
         close $fd
+        file delete -force $tempdir
     }
     if {$metadata_type == "contents"} {
         set contents {}
