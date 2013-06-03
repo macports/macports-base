@@ -838,16 +838,16 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Set rync options
     if {![info exists rsync_server]} {
-        set macports::rsync_server rsync.macports.org
         global macports::rsync_server
+        set macports::rsync_server rsync.macports.org
     }
     if {![info exists rsync_dir]} {
-        set macports::rsync_dir release/tarballs/base.tar
         global macports::rsync_dir
+        set macports::rsync_dir release/tarballs/base.tar
     }
     if {![info exists rsync_options]} {
-        set rsync_options "-rtzv --delete-after"
         global macports::rsync_options
+        set rsync_options "-rtzv --delete-after"
     }
 
     set portsharepath ${prefix}/share/macports
