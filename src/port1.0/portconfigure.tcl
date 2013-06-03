@@ -127,11 +127,11 @@ options configure.m32 configure.m64 configure.march configure.mtune
 default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
-options configure.optflags
-options configure.cflags configure.cxxflags configure.objcflags
-options configure.cppflags configure.ldflags configure.libs
-options configure.fflags configure.f90flags configure.fcflags
-options configure.classpath
+options configure.optflags \
+        configure.cflags configure.cxxflags configure.objcflags \
+        configure.cppflags configure.ldflags configure.libs \
+        configure.fflags configure.f90flags configure.fcflags \
+        configure.classpath
 # compiler flags section
 default configure.optflags  {-Os}
 default configure.cflags    {${configure.optflags}}
@@ -146,9 +146,9 @@ default configure.fcflags   {${configure.optflags}}
 default configure.classpath {}
 
 # tools section
-options configure.perl configure.python configure.ruby
-options configure.install configure.awk configure.bison
-options configure.pkg_config configure.pkg_config_path
+options configure.perl configure.python configure.ruby \
+        configure.install configure.awk configure.bison \
+        configure.pkg_config configure.pkg_config_path
 default configure.perl              {}
 default configure.python            {}
 default configure.ruby              {}
@@ -167,9 +167,9 @@ foreach tool {cc cxx objc f77 f90 fc} {
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
 
-options configure.universal_archs configure.universal_args
-options configure.universal_cflags configure.universal_cxxflags
-options configure.universal_cppflags configure.universal_ldflags
+options configure.universal_archs configure.universal_args \
+        configure.universal_cflags configure.universal_cxxflags \
+        configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}

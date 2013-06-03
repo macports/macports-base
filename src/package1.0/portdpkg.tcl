@@ -44,8 +44,8 @@ namespace eval portdpkg {
 }
 
 # Options
-options dpkg.asroot
-options package.destpath
+options dpkg.asroot \
+        package.destpath
 
 # Set up defaults
 default dpkg.asroot yes

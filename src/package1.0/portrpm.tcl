@@ -43,8 +43,8 @@ namespace eval portrpm {
 }
 
 # Options
-options rpm.asroot
-options package.destpath
+options rpm.asroot \
+        package.destpath
 
 # Set up defaults
 default rpm.asroot yes

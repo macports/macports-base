@@ -43,11 +43,11 @@ namespace eval portbuild {
 }
 
 # define options
-options build.asroot
-options build.jobs
-options build.target
-options build.type
-options use_parallel_build
+options build.asroot \
+        build.jobs \
+        build.target \
+        build.type \
+        use_parallel_build
 commands build
 # defaults
 default build.asroot no
