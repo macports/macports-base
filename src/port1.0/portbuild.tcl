@@ -2,7 +2,7 @@
 # portbuild.tcl
 # $Id$
 #
-# Copyright (c) 2007 - 2012 The MacPorts Project
+# Copyright (c) 2007 - 2013 The MacPorts Project
 # Copyright (c) 2002 - 2004 Apple Inc.
 # All rights reserved.
 #

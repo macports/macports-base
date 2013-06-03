@@ -5,7 +5,7 @@ exec @TCLSH@ "$0" "$@"
 # port.tcl
 # $Id$
 #
-# Copyright (c) 2004-2012 The MacPorts Project
+# Copyright (c) 2004-2013 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002-2003 Apple Inc.
 # All rights reserved.

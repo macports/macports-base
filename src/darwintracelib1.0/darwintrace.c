@@ -2,6 +2,7 @@
  * Copyright (c) 2005 Apple Inc. All rights reserved.
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
+ * Copyright (c) 2006-2013 The MacPorts Project
  *
  * $Id$
  *

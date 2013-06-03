@@ -2,7 +2,7 @@
 # portmdmg.tcl
 # $Id$
 #
-# Copyright (c) 2005, 2007-2011 The MacPorts Project
+# Copyright (c) 2005, 2007-2013 The MacPorts Project
 # Copyright (c) 2003-2004 Apple Inc.
 # All rights reserved.
 #
