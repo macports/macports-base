@@ -3788,14 +3788,47 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     if {$will_build} {
-        # install version_in_tree (but don't activate yet)
-        if {[catch {set result [mportexec $workername install]} result] || $result != 0} {
-            if {[info exists ::errorInfo]} {
-                ui_debug "$::errorInfo"
+        if {$already_installed
+            && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
+            # Tell archivefetch/unarchive not to use the installed archive, i.e. a
+            # fresh one will be either fetched or built locally.
+            # Ideally this would be done in the interp_options when we mportopen,
+            # but we don't know if we want to do this at that point.
+            set mportinterp [ditem_key $workername workername]
+            $mportinterp eval "set force_archive_refresh yes"
+
+            # run archivefetch and destroot for version_in_tree
+            # doing this instead of just running install ensures that we have the
+            # new copy ready but not yet installed, so we can safely uninstall the
+            # existing one.
+            if {[catch {set result [mportexec $workername archivefetch]} result] || $result != 0} {
+                if {[info exists ::errorInfo]} {
+                    ui_debug "$::errorInfo"
+                }
+                ui_error "Unable to upgrade port: $result"
+                catch {mportclose $workername}
+                return 1
             }
-            ui_error "Unable to upgrade port: $result"
-            catch {mportclose $workername}
-            return 1
+            # the following is a noop if archivefetch found an archive
+            if {[catch {set result [mportexec $workername destroot]} result] || $result != 0} {
+                if {[info exists ::errorInfo]} {
+                    ui_debug "$::errorInfo"
+                }
+                ui_error "Unable to upgrade port: $result"
+                catch {mportclose $workername}
+                return 1
+            }
+        } else {
+            # Normal non-forced case
+            # install version_in_tree (but don't activate yet)
+            if {[catch {set result [mportexec $workername install]} result] || $result != 0} {
+                if {[info exists ::errorInfo]} {
+                    ui_debug "$::errorInfo"
+                }
+                ui_error "Unable to upgrade port: $result"
+                catch {mportclose $workername}
+                return 1
+            }
         }
     }
 
