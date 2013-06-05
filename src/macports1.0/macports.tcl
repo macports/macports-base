@@ -3485,8 +3485,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # We need to pass _mportispresent a reference to the mport that is
             # actually declaring the dependency on the one we're checking for.
             # We got here via _upgrade_dependencies, so we grab it from 2 levels up.
-            upvar 2 workername parentworker
-            if {![_mportispresent $parentworker $dspec ] } {
+            upvar 2 mport parentmport
+            if {![_mportispresent $parentmport $dspec ] } {
                 # open porthandle
                 set porturl $portinfo(porturl)
                 if {![info exists porturl]} {
@@ -3495,7 +3495,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 # Grab the variations from the parent
                 upvar 2 variations variations
 
-                if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
+                if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
                     ui_error "Unable to open port: $result"
@@ -3503,30 +3503,30 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 }
                 # While we're at it, update the portinfo
                 array unset portinfo
-                array set portinfo [mportinfo $workername]
+                array set portinfo [mportinfo $mport]
                 
                 # upgrade its dependencies first
                 set status [_upgrade_dependencies portinfo depscache variationslist options]
                 if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-                    catch {mportclose $workername}
+                    catch {mportclose $mport}
                     return $status
                 }
                 # now install it
-                if {[catch {set result [mportexec $workername activate]} result]} {
+                if {[catch {set result [mportexec $mport activate]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
                     ui_error "Unable to exec port: $result"
-                    catch {mportclose $workername}
+                    catch {mportclose $mport}
                     return 1
                 }
                 if {$result > 0} {
                     ui_error "Problem while installing $portname"
-                    catch {mportclose $workername}
+                    catch {mportclose $mport}
                     return $result
                 }
                 # we just installed it, so mark it done in the cache
                 set depscache(port:${portname}) 1
-                mportclose $workername
+                mportclose $mport
             } else {
                 # dependency is satisfied by something other than the named port
                 ui_debug "$portname not installed, soft dependency satisfied"
@@ -3680,7 +3680,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set interp_options(ports_requested) $requestedflag
     set interp_options(subport) $newname
 
-    if {[catch {set workername [mportopen $porturl [array get interp_options] [array get variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [array get interp_options] [array get variations]]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         ui_error "Unable to open port: $result"
@@ -3689,7 +3689,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     array unset interp_options
 
     array unset portinfo
-    array set portinfo [mportinfo $workername]
+    array set portinfo [mportinfo $mport]
     set version_in_tree "$portinfo(version)"
     set revision_in_tree "$portinfo(revision)"
     set epoch_in_tree "$portinfo(epoch)"
@@ -3710,8 +3710,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                   && [info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
             ui_debug "variant override ... upgrading!"
         } elseif {$os_platform_installed != "" && $os_major_installed != "" && $os_platform_installed != 0
-                  && ([_mportkey $workername "{os.platform}"] != $os_platform_installed
-                  || [_mportkey $workername "{os.major}"] != $os_major_installed)} {
+                  && ([_mportkey $mport "{os.platform}"] != $os_platform_installed
+                  || [_mportkey $mport "{os.major}"] != $os_major_installed)} {
             ui_debug "platform mismatch ... upgrading!"
             set build_override 1
         } elseif {$is_revupgrade_second_run} {
@@ -3750,7 +3750,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         # the last arg is because we might have to build from source if a rebuild is being forced
         set status [_upgrade_dependencies portinfo depscache variationslist options [expr $will_build && $already_installed]]
         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-            catch {mportclose $workername}
+            catch {mportclose $mport}
             return $status
         }
     } else {
@@ -3776,14 +3776,14 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                     if {![llength [array get depscache port:${mpname}]]} {
                         set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
                         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-                            catch {mportclose $workername}
+                            catch {mportclose $mport}
                             return $status
                         }
                     }
                 }
             }
         }
-        mportclose $workername
+        mportclose $mport
         return 0
     }
 
@@ -3794,39 +3794,39 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # fresh one will be either fetched or built locally.
             # Ideally this would be done in the interp_options when we mportopen,
             # but we don't know if we want to do this at that point.
-            set mportinterp [ditem_key $workername workername]
-            $mportinterp eval "set force_archive_refresh yes"
+            set workername [ditem_key $mport workername]
+            $workername eval "set force_archive_refresh yes"
 
             # run archivefetch and destroot for version_in_tree
             # doing this instead of just running install ensures that we have the
             # new copy ready but not yet installed, so we can safely uninstall the
             # existing one.
-            if {[catch {set result [mportexec $workername archivefetch]} result] || $result != 0} {
+            if {[catch {set result [mportexec $mport archivefetch]} result] || $result != 0} {
                 if {[info exists ::errorInfo]} {
                     ui_debug "$::errorInfo"
                 }
                 ui_error "Unable to upgrade port: $result"
-                catch {mportclose $workername}
+                catch {mportclose $mport}
                 return 1
             }
             # the following is a noop if archivefetch found an archive
-            if {[catch {set result [mportexec $workername destroot]} result] || $result != 0} {
+            if {[catch {set result [mportexec $mport destroot]} result] || $result != 0} {
                 if {[info exists ::errorInfo]} {
                     ui_debug "$::errorInfo"
                 }
                 ui_error "Unable to upgrade port: $result"
-                catch {mportclose $workername}
+                catch {mportclose $mport}
                 return 1
             }
         } else {
             # Normal non-forced case
             # install version_in_tree (but don't activate yet)
-            if {[catch {set result [mportexec $workername install]} result] || $result != 0} {
+            if {[catch {set result [mportexec $mport install]} result] || $result != 0} {
                 if {[info exists ::errorInfo]} {
                     ui_debug "$::errorInfo"
                 }
                 ui_error "Unable to upgrade port: $result"
-                catch {mportclose $workername}
+                catch {mportclose $mport}
                 return 1
             }
         }
@@ -3848,7 +3848,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
-            catch {mportclose $workername}
+            catch {mportclose $mport}
             return 1
         }
         if {!$force_cur} {
@@ -3872,7 +3872,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Deactivating $portname @${version_active}_${revision_active}${variant_active} failed: $result"
-            catch {mportclose $workername}
+            catch {mportclose $mport}
             return 1
         }
         if {!$force_cur} {
@@ -3891,11 +3891,11 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
         }
         ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-    } elseif {[catch {set result [mportexec $workername activate]} result]} {
+    } elseif {[catch {set result [mportexec $mport activate]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
-        catch {mportclose $workername}
+        catch {mportclose $mport}
         return 1
     }
 
@@ -3922,7 +3922,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 if {![llength [array get depscache port:${mpname}]]} {
                     set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-                        catch {mportclose $workername}
+                        catch {mportclose $mport}
                         return $status
                     }
                 }
@@ -3950,7 +3950,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
                 if {$result != "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
                     ui_error "Uninstall $portname @${version}_${revision}${variant} failed: $result"
-                    catch {mportclose $workername}
+                    catch {mportclose $mport}
                     return 1
                 }
             }
@@ -3958,7 +3958,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     # close the port handle
-    mportclose $workername
+    mportclose $mport
     return 0
 }
 
@@ -3969,7 +3969,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     upvar $portinfoname portinfo $depscachename depscache \
           $variationslistname variationslist \
           $optionsname options
-    upvar workername parentworker
+    upvar mport parentmport
 
     # If we're following dependents, we only want to follow this port's
     # dependents, not those of all its dependencies. Otherwise, we would
@@ -3983,19 +3983,19 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     set saved_do_dependents [info exists options(ports_do_dependents)]
     unset -nocomplain options(ports_do_dependents)
 
-    set parent_interp [ditem_key $parentworker workername]
+    set parentworker [ditem_key $parentmport workername]
     # each required dep type is upgraded
     if {$build_needed && ![global_option_isset ports_binary_only]} {
-        set dtypes [_deptypes_for_target destroot $parent_interp]
+        set dtypes [_deptypes_for_target destroot $parentworker]
     } else {
-        set dtypes [_deptypes_for_target install $parent_interp]
+        set dtypes [_deptypes_for_target install $parentworker]
     }
 
     set status 0
     foreach dtype $dtypes {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
-                set d [$parent_interp eval _get_dep_port $i]
+                set d [$parentworker eval _get_dep_port $i]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
                     if {$d != ""} {
                         set dspec port:$d
