@@ -3701,9 +3701,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             || ([vercmp $version_installed $version_in_tree] == 0
                 && [vercmp $revision_installed $revision_in_tree] >= 0 ))
         && ![info exists options(ports_upgrade_force)] } {
-        if {$portname != $newname} { 
+        if {$portname != $newname} {
             ui_debug "ignoring versions, installing replacement port"
-        } elseif { $epoch_installed < $epoch_in_tree } {
+        } elseif { $epoch_installed < $epoch_in_tree && $version_installed != $version_in_tree } {
             set build_override 1
             ui_debug "epoch override ... upgrading!"
         } elseif {[info exists options(ports_upgrade_enforce-variants)] && $options(ports_upgrade_enforce-variants) eq "yes"
