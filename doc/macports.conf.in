@@ -135,8 +135,8 @@ universal_archs		@UNIVERSAL_ARCHS@
 # will cause any proxies set here (or in System Preferences if set there but
 # not here) to override what's in the environment.
 # Note that System Preferences doesn't have an rsync proxy definition.
-# Also note, on 10.5, sudo will clear many environment variables including
-# those for proxy support.
+# Also note that on 10.5 and later, sudo will clear many environment
+# variables, including those for proxy support.
 # Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
 # RSYNC_PROXY, NO_PROXY
 #
