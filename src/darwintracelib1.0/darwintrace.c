@@ -595,9 +595,11 @@ static char * exchange_with_port(const char * buf, size_t len, int answer) {
  * return 1 if path (once normalized) is in sandbox or redirected, 0 otherwise.
  */
 __attribute__((always_inline))
-inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
+static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 	char *t, *p, *_;
+	char *strpos, *normpos;
 	char lpath[MAXPATHLEN];
+	char normalizedpath[MAXPATHLEN];
 	
 	__darwintrace_setup();
 	
@@ -614,13 +616,49 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 		strcat(lpath, "/");
 		strcat(lpath, path);
 	}
-
 	p = lpath;
+
+	normalizedpath[0] = '\0';
+	strpos = p + 1;
+	normpos = normalizedpath;
+	for (;;) {
+		char *curpos = strsep(&strpos, "/");
+		if (curpos == NULL) {
+			/* reached the end of the path */
+			break;
+		} else if (*curpos == '\0') {
+			/* empty entry, ignore */
+			continue;
+		} else if (strcmp(curpos, ".") == 0) {
+			/* no-op directory, ignore */
+			continue;
+		} else if (strcmp(curpos, "..") == 0) {
+			/* walk up one directory */
+			char *lastSep = strrchr(normalizedpath, '/');
+			if (lastSep == NULL) {
+				/* path is completely empty */
+				normpos = normalizedpath;
+				*normpos = '\0';
+				continue;
+			}
+			/* remove last component by overwriting the slash with \0, update normpos */
+			*lastSep = '\0';
+			normpos = lastSep;
+		}
+		/* default case: standard path, copy */
+		strcat(normpos, "/");
+		normpos++;
+		strcat(normpos, curpos);
+		debug_printf("path %s, processing entry %s, normalized %s\n", path, curpos, normalizedpath);
+	}
+	if (*normalizedpath == '\0') {
+		strcat(normalizedpath, "/");
+	}
 
 	for (t = filemap; *t;) {
 		char state;
 		
-		if (__darwintrace_strbeginswith(p, t)) {
+		if (__darwintrace_strbeginswith(normalizedpath, t)) {
 			/* move t to the integer describing how to handle this match */
 			t += strlen(t) + 1;
 			switch (*t) {
@@ -638,11 +676,11 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 					if (_[-1] != '/') {
 						*_ = '/';
 					}
-					strcpy(_, p);
+					strcpy(_, normalizedpath);
 					return 1;
 				case 2:
 					/* ask the socket whether this file is OK */
-					return ask_for_dependency(p);
+					return ask_for_dependency(normalizedpath);
 				default:
 					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
 					abort();
@@ -675,7 +713,7 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 		t++;
 	}
 
-	__darwintrace_log_op("sandbox_violation", path, 0);
+	__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
 	return 0;
 }
 
