@@ -1833,6 +1833,25 @@ proc write_statefile {class name fd} {
     flush $fd
 }
 
+# Change the value of an existing statefile key
+# caller must call open_statefile after this
+proc update_statefile {class name path} {
+    set fd [open $path r]
+    while {[gets $fd line] >= 0} {
+        if {[lindex $line 0] != "${class}:"} {
+            lappend lines $line
+        }
+    }
+    close $fd
+    # truncate
+    set fd [open $path w]
+    puts $fd "$class: $name"
+    foreach line $lines {
+        puts $fd $line
+    }
+    close $fd
+}
+
 ##
 # Check that recorded selection of variants match the current selection
 #
