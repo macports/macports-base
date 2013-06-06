@@ -590,7 +590,11 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
 # Some of the compilers we use are provided by MacPorts itself; ensure we
 # automatically add a dependency when needed
 proc portconfigure::add_automatic_compiler_dependencies {} {
-    global configure.compiler
+    global configure.compiler configure.compiler.add_deps
+
+    if {!${configure.compiler.add_deps}} {
+        return
+    }
 
     # The default value requires substitution before use.
     set compiler [subst ${configure.compiler}]
@@ -617,6 +621,9 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
 }
 # Register the above procedure as a callback after Portfile evaluation
 port::register_callback portconfigure::add_automatic_compiler_dependencies
+# and an option to turn it off if required
+options configure.compiler.add_deps
+default configure.compiler.add_deps yes
 
 proc portconfigure::configure_main {args} {
     global [info globals]
