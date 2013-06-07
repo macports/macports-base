@@ -1,29 +1,33 @@
 # MacPorts system wide configuration file
 # $Id$
 
-# Set the directory in which to install ports. Must match where MacPorts itself is installed.
+# Set the directory in which to install ports. Must match where MacPorts
+# itself is installed.
 prefix			@prefix_expanded@
 
-# Set the user to run MacPorts compiles, etc as when privileges are dropped during an install
+# Set the user to run MacPorts compiles, etc as when privileges are
+# dropped during an install
 #macportsuser		@RUNUSR@
 
 # Where to store MacPorts working data
 portdbpath		@localstatedir_expanded@/macports
 
-# PATH settings that are used for external tools (configure, make, etc.) while
-# installing ports. The default paths are given in the example; it need not be
-# uncommented.  Customizing binpath is unsupported and is intended for
-# advanced users only.
+# PATH settings that are used for external tools (configure, make, etc.)
+# while installing ports. The default paths are given in the example; it
+# need not be uncommented.  Customizing binpath is unsupported and is
+# intended for advanced users only.
 #binpath		@prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
 # Directory containing Xcode Tools (default is to ask xcode-select)
 #developer_dir		@DEVELOPER_DIR@
 
 # Path to PackageMaker.app
+#
 # It may be necessary to set this with Xcode >= 4.3, as that version
-# requires PackageMaker to be installed manually from the Auxiliary Tools for
-# Xcode disk image. The default is /Applications/PackageMaker.app with Xcode
-# 4.3 and ${developer_dir}/Applications/Utilities/PackageMaker.app with older
+# requires PackageMaker to be installed manually from the Auxiliary
+# Tools for Xcode disk image. The default is
+# /Applications/PackageMaker.app with Xcode 4.3 and
+# ${developer_dir}/Applications/Utilities/PackageMaker.app with older
 # versions.
 #packagemaker_path /Applications/PackageMaker.app
 
@@ -39,19 +43,22 @@ sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
 # Where to find global variants definition file (optional)
 variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 
-# When to build ports from source. Default is 'ifneeded', which downloads an
-# archive if available or builds from source otherwise. 'always' has the same
-# effect as -s on the command line, and 'never' is likewise the same as -b.
+# When to build ports from source. Default is 'ifneeded', which
+# downloads an archive if available or builds from source otherwise.
+# 'always' has the same effect as -s on the command line, and 'never' is
+# likewise the same as -b.
 #buildfromsource	ifneeded
 
 # Type of archives to use for port images
 #
-# Supported types: tgz, tar, tbz, tbz2 (default), tlz, txz, xar, zip, cpgz, cpio
+# Supported types: tgz, tar, tbz, tbz2 (default), tlz, txz, xar, zip,
+# cpgz, cpio
 #portarchivetype	tbz2
 
-# CPU architecture to compile for. Defaults to i386 or ppc on Mac OS X 10.5
-# and earlier, depending on the CPU type detected at runtime. On Mac OS X 10.6
-# the default is x86_64 if the CPU supports it, i386 otherwise.
+# CPU architecture to compile for. Defaults to i386 or ppc on Mac OS
+# X 10.5 and earlier, depending on the CPU type detected at runtime. On
+# Mac OS X 10.6 the default is x86_64 if the CPU supports it, i386
+# otherwise.
 #build_arch		i386
 
 # CPU architectures to use for Universal Binaries (+universal variant)
@@ -76,10 +83,11 @@ universal_archs		@UNIVERSAL_ARCHS@
 # Lowered scheduling priority (0-20) to use for make when building ports
 #buildnicevalue		0
 
-# Number of simultaneous make jobs (commands) to use when building ports. This
-# value may be set to 0 so the number of simultaneous make jobs will be set to
-# the number of CPU cores that are automatically detected, or the number of GB
-# of physical memory plus one, whichever is less.
+# Number of simultaneous make jobs (commands) to use when building
+# ports. This value may be set to 0 so the number of simultaneous make
+# jobs will be set to the number of CPU cores that are automatically
+# detected, or the number of GB of physical memory plus one, whichever
+# is less.
 #buildmakejobs		0
 
 # umask value to use when a port installs its files
@@ -91,52 +99,58 @@ universal_archs		@UNIVERSAL_ARCHS@
 # Set to yes if you don't want logs to be deleted after successful builds
 #keeplogs		no
 
-# Rsync server to fetch MacPorts sources from. Note that this is only used
-# for selfupdate. The source(s) for the ports tree are set in sources.conf.
-# Known mirrors at time of writing (see https://trac.macports.org/wiki/Mirrors
-# for the current list):
+# Rsync server to fetch MacPorts sources from. Note that this is only
+# used for selfupdate. The source(s) for the ports tree are set in
+# sources.conf. Known mirrors at time of writing (see
+# https://trac.macports.org/wiki/Mirrors for the current list):
 #   rsync.macports.org        - California, USA (master)
 #   trd.no.rsync.macports.org - Trondheim, Norway
 #rsync_server		rsync.macports.org
 
-# Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
-# If this points to a .tar file, a signed .rmd160 must exist next to it
-# on the server and will be used to verify its integrity.
+# Rsync directory from which to pull the base/ component
+# (infrastructure) of MacPorts If this points to a .tar file, a signed
+# .rmd160 must exist next to it on the server and will be used to verify
+# its integrity.
 #rsync_dir		release/tarballs/base.tar
 
 # Rsync options
 #rsync_options		-rtzv --delete-after
 
 # Options for generated startup items
-# startupitem_type may be "default", "systemstarter", "launchd", or "none";
-# if the option is empty or "default" then a startupitem type appropriate
-# to the platform will be chosen. Mac OS X 10.4 Tiger and above will default to
-# launchd, while older Mac OS X systems will default to systemstarter. If
-# option "none" is chosen, port startupitems are ignored and no startupitems
-# are installed.
+#
+# startupitem_type may be "default", "systemstarter", "launchd", or
+# "none"; if the option is empty or "default" then a startupitem type
+# appropriate to the platform will be chosen. Mac OS X 10.4 Tiger and
+# above will default to launchd, while older Mac OS X systems will
+# default to systemstarter. If option "none" is chosen, port
+# startupitems are ignored and no startupitems are installed.
 #startupitem_type	default
 
 # Option to install symlinks into /Library/LaunchAgents or /Library/LaunchDaemons
-# startupitem_install may be empty, "yes" or "no";
-# if the option is NOT "no" then a symlink for the startupitem will be created in
-# the appropriate system directory.
+#
+# startupitem_install may be empty, "yes" or "no"; if the option is NOT
+# "no" then a symlink for the startupitem will be created in the
+# appropriate system directory.
 #startupitem_install	yes
 
-# Extra environment variables to keep. Any variables listed here are added
-# to the list of variables that are not removed from the environment used
-# while processing ports. As with binpath, setting extra_env is intended for
-# advanced users and is unsupported.
+# Extra environment variables to keep. Any variables listed here are
+# added to the list of variables that are not removed from the
+# environment used while processing ports. As with binpath, setting
+# extra_env is intended for advanced users and is unsupported.
 # extra_env		KEEP_THIS THIS_TOO
 
 # Proxy support
+#
 # Precedence is: env, macports.conf, System Preferences
+#
 # That is, if it's set in the environment, that will be used instead of
-# anything here or in System Preferences.  Setting proxy_override_env to yes
-# will cause any proxies set here (or in System Preferences if set there but
-# not here) to override what's in the environment.
-# Note that System Preferences doesn't have an rsync proxy definition.
-# Also note that on 10.5 and later, sudo will clear many environment
-# variables, including those for proxy support.
+# anything here or in System Preferences.  Setting proxy_override_env to
+# yes will cause any proxies set here (or in System Preferences if set
+# there but not here) to override what's in the environment. Note that
+# System Preferences doesn't have an rsync proxy definition. Also note
+# that on 10.5 and later, sudo will clear many environment variables,
+# including those for proxy support.
+#
 # Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
 # RSYNC_PROXY, NO_PROXY
 #
@@ -162,8 +176,9 @@ universal_archs		@UNIVERSAL_ARCHS@
 
 # Set whether to automatically run rev-upgrade after upgrading ports
 #revupgrade_autorun yes
-# Option controlling action taken by rev-upgrade, which checks for broken
-# linking and can rebuild affected ports. Possible values are
+
+# Option controlling action taken by rev-upgrade, which checks for
+# broken linking and can rebuild affected ports. Possible values are
 #'rebuild' (default) or 'report'.
 #revupgrade_mode	rebuild
 
