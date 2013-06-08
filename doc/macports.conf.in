@@ -85,8 +85,9 @@ universal_archs         @UNIVERSAL_ARCHS@
 # various stages of C, C++, Objective-C, and Objective-C++ compilation.
 #configurepipe          yes
 
-# Lowered scheduling priority to use for make(1) during builds. Accepted
-# values are 0 (normal priority) through 20 (lowest priority).
+# Lowered scheduling priority to use for commands run during configure,
+# build, and destroot. Accepted values are 0 (normal priority) through
+# 20 (lowest priority).
 #buildnicevalue         0
 
 # Number of simultaneous make(1) jobs to use when building ports. If set
