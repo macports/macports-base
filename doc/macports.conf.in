@@ -1,29 +1,28 @@
-# MacPorts system-wide configuration file
-#
-# Commented-out values are defaults unless otherwise noted.
-#
+# -*- coding: utf-8; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=8:sts=4
 # $Id$
 
+# MacPorts system-wide configuration file.
+# Commented-out values are defaults unless otherwise noted.
 
 # Directory under which MacPorts should install ports. This must be
 # where MacPorts itself is installed.
-prefix			@prefix_expanded@
+prefix                  @prefix_expanded@
 
 # User to run operations as when MacPorts drops privileges.
-#macportsuser		@RUNUSR@
+#macportsuser           @RUNUSR@
 
 # Directory for MacPorts working data.
-portdbpath		@localstatedir_expanded@/macports
+portdbpath              @localstatedir_expanded@/macports
 
 # Colon-delimited list of directories to search for external tools
 # (make(1), pkg-config(1), etc.). While installing ports, MacPorts uses
 # this list for PATH. Changing this setting is intended for advanced
 # users only and is unsupported.
-#binpath		@prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+#binpath                @prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
 # Directory containing Xcode Tools. By default, MacPorts determines this
 # using xcode-select(1).
-#developer_dir		@DEVELOPER_DIR@
+#developer_dir          @DEVELOPER_DIR@
 
 # Location of PackageMaker. Defaults to
 # "${developer_dir}/Applications/Utilities/PackageMaker.app" with Xcode
@@ -31,16 +30,16 @@ portdbpath		@localstatedir_expanded@/macports
 #packagemaker_path /Applications/PackageMaker.app
 
 # Directory for application bundles installed by ports.
-applications_dir	@MPAPPLICATIONSDIR@
+applications_dir        @MPAPPLICATIONSDIR@
 
 # Directory for frameworks installed by ports.
-frameworks_dir		@MPFRAMEWORKSDIR@
+frameworks_dir          @MPFRAMEWORKSDIR@
 
 # Location of the MacPorts sources list.
-sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
+sources_conf            @MPCONFIGDIR_EXPANDED@/sources.conf
 
 # Location of the MacPorts global variants definition file. Optional.
-variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
+variants_conf           @MPCONFIGDIR_EXPANDED@/variants.conf
 
 # When MacPorts should build ports from source.
 # - ifneeded: Download binary archives if available; build from source
@@ -48,79 +47,79 @@ variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 # - always: Always build from source; never try fetching archives.
 # - never: Never build from source; try fetching archives and abort if
 #   unavailable.
-#buildfromsource	ifneeded
+#buildfromsource        ifneeded
 
 # Type of archive to use for port images. Supported types are cpgz,
 # cpio, tar, tbz, tbz2, tgz, tlz, txz, xar, zip.
-#portarchivetype	tbz2
+#portarchivetype        tbz2
 
 # CPU architecture to target. Supported values are "ppc", "ppc64",
 # "i386", and "x86_64". Defaults to:
 # - OS X 10.5 and earlier: "ppc" on PowerPC, otherwise "i386".
 # - OS X 10.6 and later: "x86_64" on Intel 64, otherwise "i386".
-#build_arch		i386
+#build_arch             i386
 
 # Space-delimited list of CPU architectures to target when building
 # universal. Defaults to "i386 ppc" on OS X 10.5 and earlier and
 # "x64_64 i386" on OS X 10.6 and later.
-universal_archs		@UNIVERSAL_ARCHS@
+universal_archs         @UNIVERSAL_ARCHS@
 
 # Use ccache, a compiler cache for C, C++, Objective-C, and
 # Objective-C++. (See http://ccache.samba.org.) The "ccache" executable
 # must exist in one of the directories in binpath.
-#configureccache	no
+#configureccache        no
 
 # Directory for ccache's cached compiler output.
-#ccache_dir		@localstatedir_expanded@/macports/build/.ccache
+#ccache_dir             @localstatedir_expanded@/macports/build/.ccache
 
 # Maximum size of files stored in ccache's cache. Append "G", "M", or
 # "K" for gigabytes, megabytes, or kilobytes.
-#ccache_size		2G
+#ccache_size            2G
 
 # Use distcc, a distributed compiler for C, C++, Objective-C, and
 # Objective-C++. (See http://distcc.org.) The "distcc" executable must
 # exist in one of the directories in binpath.
-#configuredistcc	no
+#configuredistcc        no
 
 # Use pipes rather than temporary files for communication between the
 # various stages of C, C++, Objective-C, and Objective-C++ compilation.
-#configurepipe		yes
+#configurepipe          yes
 
 # Lowered scheduling priority to use for make(1) during builds. Accepted
 # values are 0 (normal priority) through 20 (lowest priority).
-#buildnicevalue		0
+#buildnicevalue         0
 
 # Number of simultaneous make(1) jobs to use when building ports. If set
 # to 0, the number of jobs will be the lesser of:
 # - number of automatically-detected CPU cores
 # - gigabytes of physical memory + 1
-#buildmakejobs		0
+#buildmakejobs          0
 
 # umask value to use when a port installs its files.
-#destroot_umask		022
+#destroot_umask         022
 
 # Automatically execute "clean" after "install" of ports.
-#portautoclean		yes
+#portautoclean          yes
 
 # Keep logs after successful installations.
-#keeplogs		no
+#keeplogs               no
 
 # The rsync server for fetching MacPorts base during selfupdate. This
 # setting is NOT used when downloading the ports tree; the sources for
 # the ports tree are set in sources.conf. See
 # https://trac.macports.org/wiki/Mirrors#MacPortsSource for a list of
 # available servers.
-#rsync_server		rsync.macports.org
+#rsync_server           rsync.macports.org
 
 # Location of MacPorts base sources on rsync_server. If this references
 # a .tar file, a signed .rmd160 file must exist in the same directory
 # and will be used to verify its integrity. See
 # https://trac.macports.org/wiki/Mirrors#MacPortsSource to find the
 # correct rsync_dir for a particular rsync_server.
-#rsync_dir		release/tarballs/base.tar
+#rsync_dir              release/tarballs/base.tar
 
 # Options to pass to rsync when fetching MacPorts base and the ports tree.
-#rsync_options		-rtzv --delete-after
+#rsync_options          -rtzv --delete-after
 
 # Type of generated StartupItems.
 # - launchd: Create StartupItems for use with launchd.
@@ -130,12 +129,12 @@ universal_archs		@UNIVERSAL_ARCHS@
 #   older, for launchd on OS X 10.4 and newer, and for rc.d on other
 #   platforms.
 # - none: Disable creation of StartupItems.
-#startupitem_type	default
+#startupitem_type       default
 
 # Create system-level symlinks to generated StartupItems. If set to
 # "no", symlinks will not be created; otherwise, symlinks will be placed
 # in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate.
-#startupitem_install	yes
+#startupitem_install    yes
 
 # Extra environment variables to keep. MacPorts sanitizes its
 # environment while processing ports, keeping:
@@ -153,7 +152,7 @@ universal_archs		@UNIVERSAL_ARCHS@
 # unsupported. (Note that sudo(8) sanitizes its environment on OS X 10.5
 # and later, so it may have to be configured to pass the desired
 # variables to MacPorts.)
-#extra_env		KEEP_THIS THIS_TOO
+#extra_env              KEEP_THIS THIS_TOO
 
 # Override proxy-related environment variables. By default, MacPorts
 # takes proxy settings from the environment, from the proxy_* options
@@ -163,39 +162,39 @@ universal_archs		@UNIVERSAL_ARCHS@
 # for rsync proxies. Also note that sudo(8) sanitizes its environment on
 # OS X 10.5 and later, so it may have to be configured to pass desired
 # variables to MacPorts.)
-#proxy_override_env	no
+#proxy_override_env     no
 
 # Proxies. These have no default values. The analagous environment
 # variables are "http_proxy", "HTTPS_PROXY", "FTP_PROXY", and
 # "RSYNC_PROXY".
-#proxy_http		hostname:12345
-#proxy_https		hostname:12345
-#proxy_ftp		hostname:12345
-#proxy_rsync		hostname:12345
+#proxy_http             hostname:12345
+#proxy_https            hostname:12345
+#proxy_ftp              hostname:12345
+#proxy_rsync            hostname:12345
 
 # Comma-delimited list of hosts that MacPorts should not access through
 # the HTTP, HTTPS, and FTP proxies. This does not apply to rsync, and it
 # has no default value.
-#proxy_skip		internal1, internal2, internal3
+#proxy_skip             internal1, internal2, internal3
 
 # Space-delimited lists of download hosts that MacPorts should not use
 # and that MacPorts should prefer, respectively, overriding the usual
 # ping time checks. These have no default values.
-#host_blacklist		badhost1.org badhost2.org
-#preferred_hosts	preferredhost1.org preferredhost2.org
+#host_blacklist         badhost1.org badhost2.org
+#preferred_hosts        preferredhost1.org preferredhost2.org
 
 # Whether MacPorts should automatically run rev-upgrade after upgrading
 # ports.
-#revupgrade_autorun	yes
+#revupgrade_autorun     yes
 
 # Whether rev-upgrade should automatically rebuild ports with broken
 # linking or merely report the breakage. Supported values are "report"
 # and "rebuild".
-#revupgrade_mode	rebuild
+#revupgrade_mode        rebuild
 
 # Space-delimited list of files and directories to delete after the
 # unarchive stage and before creating a pkg. Paths are interpreted
 # relative to prefix, and there is no default value. This is useful for
 # removing unnecessary files and directories prior to pkg or mpkg
 # deployment.
-#pkg_post_unarchive_deletions	include share/doc share/man
+#pkg_post_unarchive_deletions   include share/doc share/man
