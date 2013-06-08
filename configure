@@ -638,7 +638,6 @@ SHLIB_LDFLAGS
 SHLIB_CFLAGS
 SHLIB_LD
 STLIB_LD
-PATHCONF
 INCLUDES
 subdirs
 SQLITE3_TCL_DIR
@@ -2955,7 +2954,7 @@ case "$MACOSX_VERSION" in
     as_fn_error $? "This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/" "$LINENO" 5
     ;;
-  10.4.[0-9]|10.4.10|10.5.[0-7]|10.6.[0-7]|10.7.[0-4]|10.8.[0-1])
+  10.4.[0-9]|10.4.10|10.5.[0-7]|10.6.[0-7]|10.7.[0-4]|10.8.[0-3])
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of Mac OS X is out of date" >&5
 $as_echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
@@ -10056,7 +10055,6 @@ SHLIB_LD=${TCL_SHLIB_LD}
 STLIB_LD=${TCL_STLIB_LD}
 SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
-
 
 
 
