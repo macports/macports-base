@@ -126,9 +126,8 @@ universal_archs         @UNIVERSAL_ARCHS@
 # - launchd: Create StartupItems for use with launchd.
 # - systemstarter: Create StartupItems for use with SystemStarter.
 # - rcng: Create StartupItems for use with the rc.d system.
-# - default: Create StartupItems for SystemStarter on OS X 10.3 and
-#   older, for launchd on OS X 10.4 and newer, and for rc.d on other
-#   platforms.
+# - default: Create StartupItems for launchd on OS X and for rc.d on
+#   other platforms.
 # - none: Disable creation of StartupItems.
 #startupitem_type       default
 
