@@ -38,7 +38,7 @@ Release 2.2.0 (unreleased)
 
     - Fixes bringing trace mode back to a working state. Improvements to reduce
       the number of builds trace mode breaks.
-      (cal in r100071-100073, r100077, r100126, r100221)
+      (cal in r100071-100073, r100077, r100126, r100221, r106710)
 
     - Began using sandbox-exec(1) on 10.5+ to prevent commands executed using
       the 'system' procedure from writing files outside of the build directory
