@@ -10,6 +10,9 @@ Release 2.2.0 (unreleased)
     - When rebuilding an installed port, fixed the old copy being removed
       before the new copy has been built. (jmr in r106668)
 
+    - Support deleting selected files and directories before creating a pkg.
+      (blair in r105575)
+
     - Remove unsupported xpkg package type, xar-based format with XML.
       (afb in r105002)
 
