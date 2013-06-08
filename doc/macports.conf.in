@@ -166,21 +166,21 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # Proxies. These have no default values. The analagous environment
 # variables are "http_proxy", "HTTPS_PROXY", "FTP_PROXY", and
 # "RSYNC_PROXY".
-#proxy_http         	hostname:12345
-#proxy_https        	hostname:12345
-#proxy_ftp          	hostname:12345
-#proxy_rsync        	hostname:12345
+#proxy_http         	proxy1:12345
+#proxy_https        	proxy2:67890
+#proxy_ftp          	proxy3:02139
+#proxy_rsync        	proxy4:11377
 
 # Comma-delimited list of hosts that MacPorts should not access through
 # the HTTP, HTTPS, and FTP proxies. This does not apply to rsync, and it
 # has no default value.
-#proxy_skip         	internal1, internal2, internal3
+#proxy_skip         	host1, host2, host3
 
 # Space-delimited lists of download hosts that MacPorts should not use
 # and that MacPorts should prefer, respectively, overriding the usual
 # ping time checks. These have no default values.
-#host_blacklist     	badhost1.org badhost2.org
-#preferred_hosts    	preferredhost1.org preferredhost2.org
+#host_blacklist     	badhost1 badhost2
+#preferred_hosts    	preferredhost1 preferredhost2
 
 # Whether MacPorts should automatically run rev-upgrade after upgrading
 # ports.
