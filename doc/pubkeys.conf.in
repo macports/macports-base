@@ -1,10 +1,15 @@
-# Downloaded archives will only be used if they can be verified by a public
-# key listed here. Use full paths, one per line.
+# $Id$
+
+# MacPorts system-wide public key configuration file.
+
+# Downloaded archives will only be used if they can be verified by one
+# of the public keys listed here. Use absolute paths, one per line.
 
 @prefix_expanded@/share/macports/macports-pubkey.pem
 
-# To distribute archives of your own, you need a key pair generated like so:
-# openssl genrsa -des3 -out privkey.pem 2048
-# openssl rsa -in privkey.pem -pubout -out pubkey.pem
-# Then sign the archives like this:
-# openssl dgst -ripemd160 -sign privkey.pem -out archive.tbz2.rmd160 archive.tbz2
+# To distribute archives of your own, generate a key pair:
+#   openssl genrsa -des3 -out privkey.pem 2048
+#   openssl rsa -in privkey.pem -pubout -out pubkey.pem
+#
+# And sign the archives:
+#   openssl dgst -ripemd160 -sign privkey.pem -out archive.tbz2.rmd160 archive.tbz2
