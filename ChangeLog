@@ -4,14 +4,29 @@
 ###
 
 Release 2.2.0 (unreleased)
+    - Fixed ports sometimes being incorrectly cleaned after the unarchive
+      target is run with newer archives. (jmr in r106717)
+
+    - When rebuilding an installed port, fixed the old copy being removed
+      before the new copy has been built. (jmr in r106668)
+
     - Remove unsupported xpkg package type, xar-based format with XML.
       (afb in r105002)
+
+    - Workaround for some OS commands hanging on 10.8 when started from a root
+      login shell. (#34221, jeremyhu in r104118)
+
+    - TMPDIR is now set to ${workpath}/.tmp while building ports, to avoid
+      problems with using /tmp. (#37834, ryandesign in r103518)
 
     - Remove unimplemented 'port submit', remove XAR source packages.
       (cal in r103400)
 
-    - Remove dependency_libs information from libtool libraries (.la).
-      (#38010, jmr in r102945)
+    - Remove dependency_libs information from libtool libraries (.la) in order
+      to prevent overlinking. (#38010, jmr in r102945)
+
+    - Setting configure.compiler will now automatically add a dependency if
+      the chosen compiler is provided by a port. (#32542, cal in r102932)
 
     - Add 'port space --total' which displays the grand total only.
       (raimue in r102248)
@@ -28,6 +43,8 @@ Release 2.2.0 (unreleased)
     - Began using sandbox-exec(1) on 10.5+ to prevent commands executed using
       the 'system' procedure from writing files outside of the build directory
       and selected other locations like /tmp. (jmr in r98156, r98193, etc.)
+
+    - Added ability to sync ports tree with git (jeremyhu in r92410)
 
 Release 2.1.3 (2013-01-31 by jmr)
     - Fixed a bug where a certain order of starting and aborting a build,
