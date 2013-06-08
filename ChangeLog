@@ -13,6 +13,9 @@ Release 2.2.0 (unreleased)
     - Remove unsupported xpkg package type, xar-based format with XML.
       (afb in r105002)
 
+    - Support pattern matching in compiler.blacklist.
+      (larryv in r104174, r104178)
+
     - Workaround for some OS commands hanging on 10.8 when started from a root
       login shell. (#34221, jeremyhu in r104118)
 
