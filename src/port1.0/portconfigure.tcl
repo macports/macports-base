@@ -447,7 +447,7 @@ proc portconfigure::get_compiler_fallback {} {
         return $default_compilers
     } elseif {$xcodeversion == "none" || $xcodeversion == ""} {
         return {cc}
-    } elseif {[vercmp $xcodeversion 4.6] >= 0} {
+    } elseif {[vercmp $xcodeversion 4.7] >= 0} {
         return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.2}
     } elseif {[vercmp $xcodeversion 4.2] >= 0} {
         return {clang llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.2}
