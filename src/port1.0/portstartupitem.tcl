@@ -64,7 +64,7 @@
 #       - for launchd, generate log messages inside daemondo
 #       - for systemstarter, generate log messages in our generated script
 #
-#   startupitem.autoload    yes/no
+#   startupitem.autostart   yes/no
 #       Automatically load the startupitem after activating. Defaults to no.
 #
 
@@ -126,7 +126,8 @@ proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform \
            startupitem.name startupitem.requires startupitem.init \
            startupitem.start startupitem.stop startupitem.restart startupitem.executable \
-           startupitem.pidfile startupitem.logfile startupitem.logevents
+           startupitem.pidfile startupitem.logfile startupitem.logevents \
+           startupitem.autostart
     
     set scriptdir ${prefix}/etc/startup
     
@@ -388,14 +389,22 @@ RunService "$1"
     close ${para}
     
     # Emit some information for the user
-    ui_notice "###########################################################"
-    ui_notice "# A startup item has been generated that will aid in"
-    ui_notice "# starting ${subport} with SystemStarter. It is disabled"
-    ui_notice "# by default. Add the following line to /etc/hostconfig"
-    ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
-    ui_notice "#"
-    ui_notice "# ${uppername}=-YES-"
-    ui_notice "###########################################################"
+    if {[tbool startupitem.autostart]} {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with SystemStarter. It will be"
+        ui_notice "# started automatically on activation."
+        ui_notice "###########################################################"
+    } else {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with SystemStarter. It is disabled"
+        ui_notice "# by default. Add the following line to /etc/hostconfig"
+        ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
+        ui_notice "#"
+        ui_notice "# ${uppername}=-YES-"
+        ui_notice "###########################################################"
+    }
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
@@ -403,7 +412,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
            startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
            startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable \
            startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
-           startupitem.install
+           startupitem.install startupitem.autostart
 
     set scriptdir ${prefix}/etc/startup
     
@@ -624,14 +633,25 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     }
     
     # Emit some information for the user
-    ui_notice "###########################################################"
-    ui_notice "# A startup item has been generated that will aid in"
-    ui_notice "# starting ${subport} with launchd. It is disabled"
-    ui_notice "# by default. Execute the following command to start it,"
-    ui_notice "# and to cause it to launch at startup:"
-    ui_notice "#"
-    ui_notice "# sudo port load ${subport}"
-    ui_notice "###########################################################"
+    if {[tbool startupitem.autostart]} {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with launchd. It will be enabled"
+        ui_notice "# automatically on activation. Execute the following"
+        ui_notice "# command to manually _disable_ it:"
+        ui_notice "#"
+        ui_notice "# sudo port unload ${subport}"
+        ui_notice "###########################################################"
+    } else {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with launchd. It is disabled"
+        ui_notice "# by default. Execute the following command to start it,"
+        ui_notice "# and to cause it to launch at startup:"
+        ui_notice "#"
+        ui_notice "# sudo port load ${subport}"
+        ui_notice "###########################################################"
+    }
 }
 
 proc portstartupitem::startupitem_create {args} {
