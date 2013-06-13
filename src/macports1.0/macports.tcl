@@ -252,7 +252,7 @@ proc macports::ui_init {priority args} {
     } catch * {
         interp alias {} ui_$priority {} ui_message $priority $prefix {}
         foreach phase $phases {
-            interp alias {} ui_${priority}_${phase} {} ui_message $priority $prefix $phase
+            interp alias {} ui_${priority}_$phase {} ui_message $priority $prefix $phase
         }
     }
 }
@@ -332,13 +332,13 @@ proc puts {args} {
 # find a binary either in a path defined at MacPorts' configuration time
 # or in the PATH environment variable through macports::binaryInPath (fallback)
 proc macports::findBinary {prog {autoconf_hint {}}} {
-    if {${autoconf_hint} ne {} && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
+    if {$autoconf_hint ne {} && [file executable $autoconf_hint]} {
+        return $autoconf_hint
     } else {
-        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} result] == 0} {
-            return ${cmd_path}
+        if {[catch {set cmd_path [macports::binaryInPath $prog]} result] == 0} {
+            return $cmd_path
         } else {
-            return -code error "${result} or at its MacPorts configuration time location, did you move it?"
+            return -code error "$result or at its MacPorts configuration time location, did you move it?"
         }
     }
 }
@@ -465,19 +465,19 @@ proc macports::set_developer_dir {name1 name2 op} {
             foreach xcode $installed_xcodes {
                 set vers [exec $mdls -raw -name kMDItemVersion $xcode]
                 if {$vers eq "(null)"} { set vers "unknown" }
-                if {[_is_valid_developer_dir "${xcode}/Contents/Developer"]} {
+                if {[_is_valid_developer_dir "$xcode/Contents/Developer"]} {
                     # Though xcode-select shipped with xcode 4.3 supports and encourages
                     # direct use of the app path, older xcode-select does not.
                     # Specify the Contents/Developer directory if it exists
-                    ui_error "    sudo xcode-select -switch ${xcode}/Contents/Developer # version ${vers}"
+                    ui_error "    sudo xcode-select -switch $xcode/Contents/Developer # version $vers"
                 } elseif {[vercmp $vers 4.3] >= 0} {
                     # Future proofing: fall back to the app-path only for xcode >= 4.3, since Contents/Developer doesn't exist
-                    ui_error "    sudo xcode-select -switch ${xcode} # version ${vers}"
-                } elseif {[_is_valid_developer_dir "${xcode}/../.."]} {
+                    ui_error "    sudo xcode-select -switch $xcode # version $vers"
+                } elseif {[_is_valid_developer_dir "$xcode/../.."]} {
                     # Older xcode (< 4.3) is below the developer directory
-                    ui_error "    sudo xcode-select -switch [file normalize ${xcode}/../..] # version ${vers}"
+                    ui_error "    sudo xcode-select -switch [file normalize $xcode/../..] # version $vers"
                 } else {
-                    ui_error "    # malformed Xcode at ${xcode}, version ${vers}"
+                    ui_error "    # malformed Xcode at $xcode, version $vers"
                 }
             }
         } else {
@@ -507,7 +507,7 @@ proc macports::_is_valid_developer_dir {dir} {
 
     # Verify that the directory has some key subdirectories
     foreach subdir {Library usr} {
-        if {![file isdirectory "${dir}/${subdir}"]} {
+        if {![file isdirectory "$dir/$subdir"]} {
             return 0
         }
     }
@@ -537,7 +537,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # Initialize ui_*
-    foreach priority ${macports::ui_priorities} {
+    foreach priority $macports::ui_priorities {
         macports::ui_init $priority
     }
 
@@ -605,10 +605,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
     } elseif {[info exists env(SUDO_USER)] && $os_platform eq "darwin"} {
         set macports::user_home [exec dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d ' ' -f 2]
-        set macports::macports_user_dir [file join ${macports::user_home} [string range $macports::autoconf::macports_user_dir 2 end]]
+        set macports::macports_user_dir [file join $macports::user_home [string range $macports::autoconf::macports_user_dir 2 end]]
     } elseif {[exec id -u] != 0 && $os_platform eq "darwin"} {
         set macports::user_home [exec dscl -q . -read /Users/[exec id -un] NFSHomeDirectory | cut -d ' ' -f 2]
-        set macports::macports_user_dir [file join ${macports::user_home} [string range $macports::autoconf::macports_user_dir 2 end]]
+        set macports::macports_user_dir [file join $macports::user_home [string range $macports::autoconf::macports_user_dir 2 end]]
     } else {
         # Otherwise define the user directory as a directory that will never exist
         set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
@@ -617,13 +617,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Configure the search path for configuration files
     set conf_files {}
-    lappend conf_files "${macports_conf_path}/macports.conf"
+    lappend conf_files "$macports_conf_path/macports.conf"
     if { [file isdirectory $macports_user_dir] } {
-        lappend conf_files "${macports_user_dir}/macports.conf"
+        lappend conf_files "$macports_user_dir/macports.conf"
     }
     if {[info exists env(PORTSRC)]} {
         set PORTSRC $env(PORTSRC)
-        lappend conf_files ${PORTSRC}
+        lappend conf_files $PORTSRC
     }
 
     # Process all configuration files we find on conf_files list
@@ -644,7 +644,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # Process per-user only settings
-    set per_user "${macports_user_dir}/user.conf"
+    set per_user "$macports_user_dir/user.conf"
     if {[file exists $per_user]} {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
@@ -659,7 +659,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
+        return -code error "sources_conf must be set in $macports_conf_path/macports.conf or in your $macports_user_dir/macports.conf file"
     }
     set fd [open $sources_conf r]
     while {[gets $fd line] >= 0} {
@@ -728,8 +728,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # pubkeys.conf
     set macports::archivefetch_pubkeys {}
-    if {[file isfile [file join ${macports_conf_path} pubkeys.conf]]} {
-        set fd [open [file join ${macports_conf_path} pubkeys.conf] r]
+    if {[file isfile [file join $macports_conf_path pubkeys.conf]]} {
+        set fd [open [file join $macports_conf_path pubkeys.conf] r]
         while {[gets $fd line] >= 0} {
             set line [string trim $line]
             if {![regexp {^[\ \t]*#.*$|^$} $line]} {
@@ -742,7 +742,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {![info exists portdbpath]} {
-        return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
+        return -code error "portdbpath must be set in $macports_conf_path/macports.conf or in your $macports_user_dir/macports.conf"
     }
     if {![file isdirectory $portdbpath]} {
         if {![file exists $portdbpath]} {
@@ -797,14 +797,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists macports::global_options(ports_binary_only)]
         && ![info exists macports::global_options(ports_source_only)]
         && [info exists macports::buildfromsource]} {
-        if {${macports::buildfromsource} eq "never"} {
+        if {$macports::buildfromsource eq "never"} {
             set macports::global_options(ports_binary_only) yes
             set temp_options(ports_binary_only) yes
-        } elseif {${macports::buildfromsource} eq "always"} {
+        } elseif {$macports::buildfromsource eq "always"} {
             set macports::global_options(ports_source_only) yes
             set temp_options(ports_source_only) yes
-        } elseif {${macports::buildfromsource} ne "ifneeded"} {
-            ui_warn "'buildfromsource' set to unknown value '${macports::buildfromsource}', using 'ifneeded' instead"
+        } elseif {$macports::buildfromsource ne "ifneeded"} {
+            ui_warn "'buildfromsource' set to unknown value '$macports::buildfromsource', using 'ifneeded' instead"
         }
     }
 
@@ -850,17 +850,17 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set rsync_options "-rtzv --delete-after"
     }
 
-    set portsharepath ${prefix}/share/macports
+    set portsharepath $prefix/share/macports
     if {![file isdirectory $portsharepath]} {
         return -code error "Data files directory '$portsharepath' must exist"
     }
 
     if {![info exists libpath]} {
-        set libpath "${prefix}/share/macports/Tcl"
+        set libpath "$prefix/share/macports/Tcl"
     }
 
     if {![info exists binpath]} {
-        set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin"
+        set env(PATH) "$prefix/bin:$prefix/sbin:/bin:/sbin:/usr/bin:/usr/sbin"
     } else {
         set env(PATH) "$binpath"
     }
@@ -956,8 +956,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     if {![info exists macports::global_options(ports_rev-upgrade_id-loadcmd-check)]
          && [info exists macports::revupgrade_check_id_loadcmds]} {
-        set macports::global_options(ports_rev-upgrade_id-loadcmd-check) ${macports::revupgrade_check_id_loadcmds}
-        set temp_options(ports_rev-upgrade_id-loadcmd-check) ${macports::revupgrade_check_id_loadcmds}
+        set macports::global_options(ports_rev-upgrade_id-loadcmd-check) $macports::revupgrade_check_id_loadcmds
+        set temp_options(ports_rev-upgrade_id-loadcmd-check) $macports::revupgrade_check_id_loadcmds
     }
 
     if {![info exists macports::sandbox_enable]} {
@@ -979,7 +979,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         COLUMNS LINES
     }
     if {[info exists extra_env]} {
-        set keepenvkeys [concat ${keepenvkeys} ${extra_env}]
+        set keepenvkeys [concat $keepenvkeys $extra_env]
     }
 
     if {[file isdirectory $libpath]} {
@@ -1043,7 +1043,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {[getuid] == 0 && $os_major >= 11 && $os_platform eq "darwin" &&
-            [file isfile "${macports::user_home}/Library/Preferences/com.apple.dt.Xcode.plist"]} {
+            [file isfile "$macports::user_home/Library/Preferences/com.apple.dt.Xcode.plist"]} {
         macports::copy_xcode_plist $env(HOME)
     }
 
@@ -1104,22 +1104,22 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # add ccache to environment
-    set env(CCACHE_DIR) ${macports::ccache_dir}
+    set env(CCACHE_DIR) $macports::ccache_dir
 
     # load cached ping times
     if {[catch {
-        set pingfile [open ${macports::portdbpath}/pingtimes r]
+        set pingfile [open $macports::portdbpath/pingtimes r]
         array set macports::ping_cache [gets $pingfile]
         close $pingfile
     }]} { array set macports::ping_cache {} }
     # set up arrays of blacklisted and preferred hosts
     if {[info exists macports::host_blacklist]} {
-        foreach host ${macports::host_blacklist} {
+        foreach host $macports::host_blacklist {
             set macports::host_blacklisted($host) 1
         }
     }
     if {[info exists macports::preferred_hosts]} {
-        foreach host ${macports::preferred_hosts} {
+        foreach host $macports::preferred_hosts {
             set macports::host_preferred($host) 1
         }
     }
@@ -1128,7 +1128,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     _mports_load_quickindex
 
     if {![info exists macports::ui_options(ports_no_old_index_warning)]} {
-        set default_source_url [lindex ${sources_default} 0]
+        set default_source_url [lindex $sources_default 0]
         if {[macports::getprotocol $default_source_url] eq "file" || [macports::getprotocol $default_source_url] eq "rsync"} {
             set default_portindex [macports::getindex $default_source_url]
             if {[file exists $default_portindex] && [clock seconds] - [file mtime $default_portindex] > 1209600} {
@@ -1161,7 +1161,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 proc mportshutdown {} {
     # save ping times
     global macports::ping_cache macports::portdbpath
-    if {[file writable ${macports::portdbpath}]} {
+    if {[file writable $macports::portdbpath]} {
         catch {
             foreach host [array names ping_cache] {
                 # don't save expired entries
@@ -1169,7 +1169,7 @@ proc mportshutdown {} {
                     lappend pinglist_fresh $host $ping_cache($host)
                 }
             }
-            set pingfile [open ${macports::portdbpath}/pingtimes w]
+            set pingfile [open $macports::portdbpath/pingtimes w]
             puts $pingfile $pinglist_fresh
             close $pingfile
         }
@@ -1181,22 +1181,22 @@ proc mportshutdown {} {
 # link plist for xcode 4.3's benefit
 proc macports::copy_xcode_plist {target_homedir} {
     global macports::user_home macports::macportsuser
-    set user_plist "${user_home}/Library/Preferences/com.apple.dt.Xcode.plist"
-    set target_dir "${target_homedir}/Library/Preferences"
-    file delete -force "${target_dir}/com.apple.dt.Xcode.plist"
+    set user_plist "$user_home/Library/Preferences/com.apple.dt.Xcode.plist"
+    set target_dir "$target_homedir/Library/Preferences"
+    file delete -force "$target_dir/com.apple.dt.Xcode.plist"
     if {[file isfile $user_plist]} {
-        if {![file isdirectory "${target_dir}"]} {
-            if {[catch {file mkdir "${target_dir}"} result]} {
-                ui_warn "Failed to create Library/Preferences in ${target_homedir}: $result"
+        if {![file isdirectory "$target_dir"]} {
+            if {[catch {file mkdir "$target_dir"} result]} {
+                ui_warn "Failed to create Library/Preferences in $target_homedir: $result"
                 return
             }
         }
-        if {[file writable ${target_dir}] && [catch {
-            ui_debug "Copying $user_plist to ${target_dir}"
+        if {[file writable $target_dir] && [catch {
+            ui_debug "Copying $user_plist to $target_dir"
             file copy -force $user_plist $target_dir
-            file attributes "${target_dir}/com.apple.dt.Xcode.plist" -owner $macportsuser -permissions 0644
+            file attributes "$target_dir/com.apple.dt.Xcode.plist" -owner $macportsuser -permissions 0644
         } result]} {
-            ui_warn "Failed to copy com.apple.dt.Xcode.plist to ${target_dir}: $result"
+            ui_warn "Failed to copy com.apple.dt.Xcode.plist to $target_dir: $result"
         }
     }
 }
@@ -1233,10 +1233,10 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias set_phase set_phase
 
     # instantiate the UI call-backs
-    foreach priority ${macports::ui_priorities} {
+    foreach priority $macports::ui_priorities {
         $workername alias ui_$priority ui_$priority
-        foreach phase ${macports::port_phases} {
-            $workername alias ui_${priority}_${phase} ui_${priority}_${phase}
+        foreach phase $macports::port_phases {
+            $workername alias ui_${priority}_$phase ui_${priority}_$phase
         }
 
     }
@@ -1404,8 +1404,8 @@ proc macports::fetch_port {url {local 0}} {
     # check if this is a binary archive or just the port dir
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
-    set qflag ${macports::autoconf::tar_q}
-    set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
+    set qflag $macports::autoconf::tar_q
+    set cmdline "$tarcmd $tarflags${qflag}xOf \"$fetchfile\" +CONTENTS"
     ui_debug "$cmdline"
     if {![catch {set contents [eval exec $cmdline]}]} {
         set binary 1
@@ -1413,7 +1413,7 @@ proc macports::fetch_port {url {local 0}} {
         # get the portname from the contents file
         foreach line [split $contents "\n"] {
             if {[lindex $line 0] eq "@name"} {
-                # actually ${name}-${version}_${revision}
+                # actually $name-${version}_$revision
                 set portname [lindex $line 1]
             }
         }
@@ -1428,7 +1428,7 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +PORTFILE > Portfile"
+        set cmdline "$tarcmd $tarflags${qflag}xOf \"$fetchfile\" +PORTFILE > Portfile"
     } else {
         set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
     }
@@ -1443,7 +1443,7 @@ proc macports::fetch_port {url {local 0}} {
 
 proc macports::getprotocol {url} {
     if {[regexp {(?x)([^:]+)://.+} $url match protocol] == 1} {
-        return ${protocol}
+        return $protocol
     } else {
         return -code error "Can't parse url $url"
     }
@@ -1456,7 +1456,7 @@ proc macports::getprotocol {url} {
 proc macports::getportdir {url {destdir "."}} {
     global macports::extracted_portdirs
     set protocol [macports::getprotocol $url]
-    switch ${protocol} {
+    switch $protocol {
         file {
             set path [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
             if {![file isfile $path]} {
@@ -1501,7 +1501,7 @@ proc macports::getportresourcepath {url {path {}} {fallback yes}} {
 
     set protocol [getprotocol $url]
 
-    switch -- ${protocol} {
+    switch -- $protocol {
         file {
             set proposedpath [file normalize [file join [getportdir $url] .. ..]]
         }
@@ -1528,7 +1528,7 @@ proc macports::getportresourcepath {url {path {}} {fallback yes}} {
 proc macports::getdefaultportresourcepath {{path {}}} {
     global macports::sources_default
 
-    set default_source_url [lindex ${sources_default} 0]
+    set default_source_url [lindex $sources_default 0]
     if {[getprotocol $default_source_url] eq "file"} {
         set proposedpath [getportdir $default_source_url]
     } else {
@@ -1618,12 +1618,12 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 proc mportopen_installed {name version revision variants options} {
     global macports::registry.path
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
-    set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_${revision}${variants}"]
+    set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_$revision$variants"]
     file mkdir $portfile_dir
-    set fd [open "${portfile_dir}/Portfile" w]
+    set fd [open "$portfile_dir/Portfile" w]
     puts $fd [$regref portfile]
     close $fd
-    file mtime "${portfile_dir}/Portfile" [$regref date]
+    file mtime "$portfile_dir/Portfile" [$regref date]
 
     set variations {}
     set minusvariant [lrange [split [$regref negated_variants] -] 1 end]
@@ -1635,7 +1635,7 @@ proc mportopen_installed {name version revision variants options} {
         lappend variations $v "-"
     }
     lappend options subport $name
-    return [mportopen "file://${portfile_dir}/" $options $variations]
+    return [mportopen "file://$portfile_dir/" $options $variations]
 }
 
 # mportclose_installed
@@ -1647,7 +1647,7 @@ proc mportclose_installed {mport} {
     }
     mportclose $mport
     set portfiles_dir [file join ${registry.path} registry portfiles $subport]
-    set portfile [file join $portfiles_dir "${version}_${revision}${portvariants}" Portfile]
+    set portfile [file join $portfiles_dir "${version}_$revision$portvariants" Portfile]
     file delete -force $portfile [file dirname $portfile]
     if {[llength [glob -nocomplain -directory $portfiles_dir *]] == 0} {
         file delete -force $portfiles_dir
@@ -1745,13 +1745,13 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    return [$workername eval registry_exists_for_name \${subport}]
+    return [$workername eval registry_exists_for_name \$subport]
 }
 
 # Determine if a port is active
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {![catch {set reslist [$workername eval registry_active \${subport}]}] && [llength $reslist] > 0} {
+    if {![catch {set reslist [$workername eval registry_active \$subport]}] && [llength $reslist] > 0} {
         set i [lindex $reslist 0]
         set name [lindex $i 0]
         set version [lindex $i 1]
@@ -1821,7 +1821,7 @@ proc _mporterrorifconflictsinstalled {mport} {
         [llength $portinfo(conflicts)] > 0} {
         ui_debug "Checking for conflicts against [_mportkey $mport subport]"
         foreach conflictport $portinfo(conflicts) {
-            if {[_mportispresent $mport port:${conflictport}]} {
+            if {[_mportispresent $mport port:$conflictport]} {
                 lappend conflictlist $conflictport
             }
         }
@@ -1829,14 +1829,14 @@ proc _mporterrorifconflictsinstalled {mport} {
         ui_debug "[_mportkey $mport subport] has no conflicts"
     }
 
-    if {[llength ${conflictlist}] != 0} {
+    if {[llength $conflictlist] != 0} {
         if {[macports::global_option_isset ports_force]} {
-            ui_warn "Force option set; installing $portinfo(name) despite conflicts with: ${conflictlist}"
+            ui_warn "Force option set; installing $portinfo(name) despite conflicts with: $conflictlist"
         } else {
             if {![macports::ui_isset ports_debug]} {
                 ui_msg {}
             }
-            return -code error "Can't install $portinfo(name) because conflicting ports are installed: ${conflictlist}"
+            return -code error "Can't install $portinfo(name) because conflicting ports are installed: $conflictlist"
         }
     }
 }
@@ -1853,7 +1853,7 @@ proc _mportexec {target mport} {
         ![catch {$workername eval check_supported_archs} result] && $result == 0 &&
         ![catch {$workername eval eval_targets $target} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
-        if {[string equal ${macports::portautoclean} "yes"]} {
+        if {[string equal $macports::portautoclean "yes"]} {
             # Make sure we are back in the port path before clean
             # otherwise if the current directory had been changed to
             # inside the port,  the next port may fail when trying to
@@ -1980,7 +1980,7 @@ proc mportexec {mport target} {
     }
 
     set clean 0
-    if {[string equal ${macports::portautoclean} "yes"] && ([string equal $target "install"] || [string equal $target "activate"])} {
+    if {[string equal $macports::portautoclean "yes"] && ([string equal $target "install"] || [string equal $target "activate"])} {
         # If we're doing an install, check if we should clean after
         set clean 1
     }
@@ -2200,7 +2200,7 @@ proc mportsync {{optionslist {}}} {
                 set git_cmd {}
                 catch {set git_cmd [macports::findBinary git]}
                 if {$svn_cmd ne {} && ([file exists $portdir/.svn] || ![catch {exec $svn_cmd info $portdir > /dev/null 2>@1}])} {
-                    set svn_commandline "$svn_cmd update --non-interactive ${portdir}"
+                    set svn_commandline "$svn_cmd update --non-interactive $portdir"
                     ui_debug $svn_commandline
                     if {
                         [catch {
@@ -2273,7 +2273,7 @@ proc mportsync {{optionslist {}}} {
                     set exclude_option "'--exclude=/PortIndex*'"
                 }
                 # Do rsync fetch
-                set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${exclude_option} ${source} ${destdir}"
+                set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $exclude_option $source $destdir"
                 ui_debug $rsync_commandline
                 if {[catch {system $rsync_commandline}]} {
                     ui_error "Synchronization of the local ports tree failed doing rsync"
@@ -2284,18 +2284,18 @@ proc mportsync {{optionslist {}}} {
                 if {$is_tarball} {
                     # verify signature for tarball
                     global macports::archivefetch_pubkeys
-                    set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${exclude_option} ${source}.rmd160 ${destdir}"
+                    set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $exclude_option $source.rmd160 $destdir"
                     ui_debug $rsync_commandline
                     if {[catch {system $rsync_commandline}]} {
                         ui_error "Synchronization of the ports tree signature failed doing rsync"
                         incr numfailed
                         continue
                     }
-                    set tarball "${destdir}/[file tail $source]"
-                    set signature "${tarball}.rmd160"
+                    set tarball "$destdir/[file tail $source]"
+                    set signature "$tarball.rmd160"
                     set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
                     set verified 0
-                    foreach pubkey ${macports::archivefetch_pubkeys} {
+                    foreach pubkey $macports::archivefetch_pubkeys {
                         if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball} result]} {
                             set verified 1
                             ui_debug "successful verification with key $pubkey"
@@ -2313,8 +2313,8 @@ proc mportsync {{optionslist {}}} {
 
                     # extract tarball and move into place
                     set tar [macports::findBinary tar $macports::autoconf::tar_path]
-                    file mkdir ${destdir}/tmp
-                    set tar_cmd "$tar -C ${destdir}/tmp -xf ${tarball}"
+                    file mkdir $destdir/tmp
+                    set tar_cmd "$tar -C $destdir/tmp -xf $tarball"
                     ui_debug $tar_cmd
                     if {[catch {system $tar_cmd}]} {
                         ui_error "Failed to extract ports tree from tarball!"
@@ -2323,15 +2323,15 @@ proc mportsync {{optionslist {}}} {
                     }
                     # save the local PortIndex data
                     if {[file isfile $indexfile]} {
-                        file copy -force $indexfile ${destdir}/
-                        file rename -force $indexfile ${destdir}/tmp/ports/
-                        if {[file isfile ${indexfile}.quick]} {
-                            file rename -force ${indexfile}.quick ${destdir}/tmp/ports/
+                        file copy -force $indexfile $destdir/
+                        file rename -force $indexfile $destdir/tmp/ports/
+                        if {[file isfile $indexfile.quick]} {
+                            file rename -force $indexfile.quick $destdir/tmp/ports/
                         }
                     }
-                    file delete -force ${destdir}/ports
-                    file rename ${destdir}/tmp/ports ${destdir}/ports
-                    file delete -force ${destdir}/tmp
+                    file delete -force $destdir/ports
+                    file rename $destdir/tmp/ports $destdir/ports
+                    file delete -force $destdir/tmp
                 }
 
                 set needs_portindex 1
@@ -2344,8 +2344,8 @@ proc mportsync {{optionslist {}}} {
                     } else {
                         set index_source $source
                     }
-                    set remote_indexfile "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
-                    set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} $remote_indexfile ${destdir}"
+                    set remote_indexfile "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_$macports::os_arch/PortIndex"
+                    set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $remote_indexfile $destdir"
                     ui_debug $rsync_commandline
                     if {[catch {system $rsync_commandline}]} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
@@ -2356,11 +2356,11 @@ proc mportsync {{optionslist {}}} {
                             set ok 0
                             set needs_portindex 1
                             # verify signature for PortIndex
-                            set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${remote_indexfile}.rmd160 ${destdir}"
+                            set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $remote_indexfile.rmd160 $destdir"
                             ui_debug $rsync_commandline
                             if {![catch {system $rsync_commandline}]} {
-                                foreach pubkey ${macports::archivefetch_pubkeys} {
-                                    if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex} result]} {
+                                foreach pubkey $macports::archivefetch_pubkeys {
+                                    if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $destdir/PortIndex.rmd160 $destdir/PortIndex} result]} {
                                         set ok 1
                                         set needs_portindex 0
                                         ui_debug "successful verification with key $pubkey"
@@ -2372,7 +2372,7 @@ proc mportsync {{optionslist {}}} {
                                 }
                                 if {$ok} {
                                     # move PortIndex into place
-                                    file rename -force ${destdir}/PortIndex ${destdir}/ports/
+                                    file rename -force $destdir/PortIndex $destdir/ports/
                                 }
                             }
                         }
@@ -2429,7 +2429,7 @@ proc mportsync {{optionslist {}}} {
                     }
 
                     set tar [macports::findBinary tar $macports::autoconf::tar_path]
-                    if { [catch { system "cd $destdir/.. && $tar ${verboseflag} ${extflag} -xf $filename" } error] } {
+                    if { [catch { system "cd $destdir/.. && $tar $verboseflag $extflag -xf $filename" } error] } {
                         ui_error "Extracting $source failed ($error)"
                         incr numfailed
                         continue
@@ -2439,9 +2439,9 @@ proc mportsync {{optionslist {}}} {
                         ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                     }
 
-                    set platindex "PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
-                    if {[file isfile ${destdir}/${platindex}] && [file isfile ${destdir}/${platindex}.quick]} {
-                        file rename -force "${destdir}/${platindex}" "${destdir}/${platindex}.quick" $destdir
+                    set platindex "PortIndex_${macports::os_platform}_${macports::os_major}_$macports::os_arch/PortIndex"
+                    if {[file isfile $destdir/$platindex] && [file isfile $destdir/$platindex.quick]} {
+                        file rename -force "$destdir/$platindex" "$destdir/${platindex}.quick" $destdir
                     }
 
                     file delete $tarpath
@@ -2449,8 +2449,8 @@ proc mportsync {{optionslist {}}} {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
                     file mkdir [file dirname $indexfile]
-                    curl fetch ${source}/PortIndex $indexfile
-                    curl fetch ${source}/PortIndex.quick ${indexfile}.quick
+                    curl fetch $source/PortIndex $indexfile
+                    curl fetch $source/PortIndex.quick $indexfile.quick
                 }
             }
             default {
@@ -2463,7 +2463,7 @@ proc mportsync {{optionslist {}}} {
             if {![info exists options(no_reindex)]} {
                 global macports::prefix
                 set indexdir [file dirname [macports::getindex $source]]
-                if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
+                if {[catch {system "$macports::prefix/bin/portindex $indexdir"}]} {
                     ui_error "updating PortIndex for $source failed"
                 }
             }
@@ -2550,9 +2550,9 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                                 }
                             }
                             if {[info exists portinfo(portarchive)]} {
-                                set porturl ${source_url}/$portinfo(portarchive)
+                                set porturl $source_url/$portinfo(portarchive)
                             } elseif {[info exists portinfo(portdir)]} {
-                                set porturl ${source_url}/$portinfo(portdir)
+                                set porturl $source_url/$portinfo(portdir)
                             }
                             if {[info exists porturl]} {
                                 lappend line porturl $porturl
@@ -2634,9 +2634,9 @@ proc mportlookup {name} {
                         }
                     }
                     if {[info exists portinfo(portarchive)]} {
-                        set porturl ${source_url}/$portinfo(portarchive)
+                        set porturl $source_url/$portinfo(portarchive)
                     } elseif {[info exists portinfo(portdir)]} {
-                        set porturl ${source_url}/$portinfo(portdir)
+                        set porturl $source_url/$portinfo(portdir)
                     }
                     if {[info exists porturl]} {
                         lappend line porturl $porturl
@@ -2707,9 +2707,9 @@ proc mportlistall {args} {
                             }
                         }
                         if {[info exists portinfo(portdir)]} {
-                            set porturl ${source_url}/$portinfo(portdir)
+                            set porturl $source_url/$portinfo(portdir)
                         } elseif {[info exists portinfo(portarchive)]} {
-                            set porturl ${source_url}/$portinfo(portarchive)
+                            set porturl $source_url/$portinfo(portarchive)
                         }
                         if {[info exists porturl]} {
                             lappend line porturl $porturl
@@ -2751,20 +2751,20 @@ proc _mports_load_quickindex {args} {
         # chop off any tags
         set source [lindex $source 0]
         set index [macports::getindex $source]
-        if {![file exists ${index}]} {
+        if {![file exists $index]} {
             incr sourceno
             continue
         }
-        if {![file exists ${index}.quick]} {
+        if {![file exists $index.quick]} {
             ui_warn "No quick index file found, attempting to generate one for source: $source"
-            if {[catch {set quicklist [mports_generate_quickindex ${index}]}]} {
+            if {[catch {set quicklist [mports_generate_quickindex $index]}]} {
                 incr sourceno
                 continue
             }
         }
         # only need to read the quick index file if we didn't just update it
         if {![info exists quicklist]} {
-            if {[catch {set fd [open ${index}.quick r]} result]} {
+            if {[catch {set fd [open $index.quick r]} result]} {
                 ui_warn "Can't open quick index file for source: $source"
                 incr sourceno
                 continue
@@ -2784,7 +2784,7 @@ proc _mports_load_quickindex {args} {
 }
 
 proc mports_generate_quickindex {index} {
-    if {[catch {set indexfd [open ${index} r]} result] || [catch {set quickfd [open ${index}.quick w]} result]} {
+    if {[catch {set indexfd [open $index r]} result] || [catch {set quickfd [open $index.quick w]} result]} {
         ui_warn "Can't open index file: $index"
         return -code error
     } else {
@@ -2796,7 +2796,7 @@ proc mports_generate_quickindex {index} {
                     continue
                 }
                 set name [lindex $line 0]
-                append quicklist "[string tolower $name] ${offset}\n"
+                append quicklist "[string tolower $name] $offset\n"
 
                 set len [lindex $line 1]
                 read $indexfd $len
@@ -2849,7 +2849,7 @@ proc mportclose {mport} {
 
 proc _mportkey {mport key} {
     set workername [ditem_key $mport workername]
-    return [$workername eval "return \$${key}"]
+    return [$workername eval "return \$$key"]
 }
 
 # mportdepends builds the list of mports which the given port depends on.
@@ -2911,12 +2911,12 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             # get the portname that satisfies the depspec
             set dep_portname [$workername eval _get_dep_port $depspec]
             # skip port/archs combos we've already seen, and ones with the same port but less archs than ones we've seen (or noarch)
-            set seenkey "${dep_portname},[join $required_archs ,]"
+            set seenkey "$dep_portname,[join $required_archs ,]"
             set seen 0
             if {[info exists port_seen($seenkey)]} {
                 set seen 1
             } else {
-                set prev_seenkeys [array names port_seen ${dep_portname},*]
+                set prev_seenkeys [array names port_seen $dep_portname,*]
                 set nrequired [llength $required_archs]
                 foreach key $prev_seenkeys {
                     set key_archs [lrange [split $key ,] 1 end]
@@ -3025,10 +3025,10 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 set depport_provides "[ditem_key $depport provides]"
                 ditem_append_unique $mport requires $depport_provides
                 # record actual archs we ended up getting
-                set port_seen(${dep_portname},[join [macports::_mport_archs $depport] ,]) $depport_provides
+                set port_seen($dep_portname,[join [macports::_mport_archs $depport] ,]) $depport_provides
             } elseif {$present && $dep_portname ne {}} {
                 # record actual installed archs
-                set port_seen(${dep_portname},[join [macports::_active_archs $dep_portname] ,]) 0
+                set port_seen($dep_portname,[join [macports::_active_archs $dep_portname] ,]) 0
             }
         }
     }
@@ -3222,14 +3222,14 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
 
     # are we syncing a tarball? (implies detached signature)
     set is_tarball 0
-    if {[string range ${rsync_dir} end-3 end] eq ".tar"} {
+    if {[string range $rsync_dir end-3 end] eq ".tar"} {
         set is_tarball 1
-        set mp_source_path [file join $portdbpath sources ${rsync_server} [file dirname ${rsync_dir}]]
+        set mp_source_path [file join $portdbpath sources $rsync_server [file dirname $rsync_dir]]
     } else {
         if {[string index $rsync_dir end] ne "/"} {
             append rsync_dir "/"
         }
-        set mp_source_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}]
+        set mp_source_path [file join $portdbpath sources $rsync_server $rsync_dir]
     }
     # create the path to the to be downloaded sources if it doesn't exist
     if {![file exists $mp_source_path]} {
@@ -3239,21 +3239,21 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
 
     # sync the MacPorts sources
     ui_msg "$macports::ui_prefix Updating MacPorts base sources using rsync"
-    if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_source_path" } result ] } {
+    if { [catch { system "$rsync_path $rsync_options rsync://$rsync_server/$rsync_dir $mp_source_path" } result ] } {
        return -code error "Error synchronizing MacPorts sources: $result"
     }
 
     if {$is_tarball} {
         # verify signature for tarball
         global macports::archivefetch_pubkeys
-        if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir}.rmd160 $mp_source_path" } result ] } {
+        if { [catch { system "$rsync_path $rsync_options rsync://$rsync_server/$rsync_dir.rmd160 $mp_source_path" } result ] } {
             return -code error "Error synchronizing MacPorts source signature: $result"
         }
         set openssl [findBinary openssl $macports::autoconf::openssl_path]
-        set tarball "${mp_source_path}/[file tail $rsync_dir]"
-        set signature "${tarball}.rmd160"
+        set tarball "$mp_source_path/[file tail $rsync_dir]"
+        set signature "$tarball.rmd160"
         set verified 0
-        foreach pubkey ${macports::archivefetch_pubkeys} {
+        foreach pubkey $macports::archivefetch_pubkeys {
             if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball} result]} {
                 set verified 1
                 ui_debug "successful verification with key $pubkey"
@@ -3269,17 +3269,17 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
 
         # extract tarball and move into place
         set tar [macports::findBinary tar $macports::autoconf::tar_path]
-        file mkdir ${mp_source_path}/tmp
-        set tar_cmd "$tar -C ${mp_source_path}/tmp -xf ${tarball}"
+        file mkdir $mp_source_path/tmp
+        set tar_cmd "$tar -C $mp_source_path/tmp -xf $tarball"
         ui_debug $tar_cmd
         if {[catch {system $tar_cmd}]} {
             return -code error "Failed to extract MacPorts sources from tarball!"
         }
-        file delete -force ${mp_source_path}/base
-        file rename ${mp_source_path}/tmp/base ${mp_source_path}/base
-        file delete -force ${mp_source_path}/tmp
+        file delete -force $mp_source_path/base
+        file rename $mp_source_path/tmp/base $mp_source_path/base
+        file delete -force $mp_source_path/tmp
         # set the final extracted source path
-        set mp_source_path ${mp_source_path}/base
+        set mp_source_path $mp_source_path/base
     }
 
     # echo current MacPorts version
@@ -3328,11 +3328,11 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
             ui_msg "$macports::ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
 
             # get installation user/group and permissions
-            set owner [file attributes ${prefix} -owner]
-            set group [file attributes ${prefix} -group]
-            set perms [string range [file attributes ${prefix} -permissions] end-3 end]
+            set owner [file attributes $prefix -owner]
+            set group [file attributes $prefix -group]
+            set perms [string range [file attributes $prefix -permissions] end-3 end]
             if {$tcl_platform(user) ne "root" && ![string equal $tcl_platform(user) $owner]} {
-                return -code error "User $tcl_platform(user) does not own ${prefix} - try using sudo"
+                return -code error "User $tcl_platform(user) does not own $prefix - try using sudo"
             }
             ui_debug "Permissions OK"
 
@@ -3367,7 +3367,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
 
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as $owner:$group; permissions $perms; Tcl-Package in $tclpackage\n"
-            if { [catch { system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1" } result] } {
+            if { [catch { system "cd $mp_source_path && $cc_arg./configure $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1" } result] } {
                 return -code error "Error installing new MacPorts base: $result"
             }
             if {[info exists updatestatus]} {
@@ -3525,7 +3525,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                     return $result
                 }
                 # we just installed it, so mark it done in the cache
-                set depscache(port:${portname}) 1
+                set depscache(port:$portname) 1
                 mportclose $mport
             } else {
                 # dependency is satisfied by something other than the named port
@@ -3542,7 +3542,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
     } else {
         # we'll now take care of upgrading it, so we can add it to the cache
-        set depscache(port:${portname}) 1
+        set depscache(port:$portname) 1
     }
 
     # set version_in_tree and revision_in_tree
@@ -3585,10 +3585,10 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # output version numbers
     ui_debug "epoch: in tree: $epoch_in_tree installed: $epoch_installed"
-    ui_debug "$portname ${version_in_tree}_${revision_in_tree} exists in the ports tree"
-    ui_debug "$portname ${version_installed}_${revision_installed} $variant_installed is the latest installed"
+    ui_debug "$portname ${version_in_tree}_$revision_in_tree exists in the ports tree"
+    ui_debug "$portname ${version_installed}_$revision_installed $variant_installed is the latest installed"
     if {$anyactive} {
-        ui_debug "$portname ${version_active}_${revision_active} $variant_active is active"
+        ui_debug "$portname ${version_active}_$revision_active $variant_active is active"
         # save existing variant for later use
         set oldvariant $variant_active
         set regref [registry::open_entry $portname $version_active $revision_active $variant_active $epoch_active]
@@ -3623,7 +3623,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     set minusvariant [lrange [split $oldnegatedvariant -] 1 end]
     set plusvariant [lrange [split $oldvariant +] 1 end]
-    ui_debug "Merging existing variants '${oldvariant}${oldnegatedvariant}' into variants"
+    ui_debug "Merging existing variants '$oldvariant$oldnegatedvariant' into variants"
     set oldvariantlist [list]
     foreach v $plusvariant {
         lappend oldvariantlist $v "+"
@@ -3671,7 +3671,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {![info exists porturl]} {
             set porturl file://./
         }
-        set depscache(port:${newname}) 1
+        set depscache(port:$newname) 1
     } else {
         set newname $portname
     }
@@ -3724,12 +3724,12 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         } else {
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
                 if {[llength $variationslist] > 0} {
-                    ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
+                    ui_warn "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
                 } else {
-                    ui_debug "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\"."
+                    ui_debug "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\"."
                 }
             } else {
-                ui_debug "No need to upgrade! $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}"
+                ui_debug "No need to upgrade! $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree"
             }
             set will_install no
         }
@@ -3773,8 +3773,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if { [llength deplist] > 0 } {
                 foreach dep $deplist {
                     set mpname [lindex $dep 2]
-                    if {![llength [array get depscache port:${mpname}]]} {
-                        set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
+                    if {![llength [array get depscache port:$mpname]]} {
+                        set status [macports::_upgrade $mpname port:$mpname $variationslist [array get options] depscache]
                         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                             catch {mportclose $mport}
                             return $status
@@ -3835,19 +3835,19 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # are we installing an existing version due to force or epoch override?
     if {$already_installed
         && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
-         ui_debug "Uninstalling $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
+         ui_debug "Uninstalling $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants)"
         # we have to force the uninstall in case of dependents
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
-        set existing_epoch [lindex [lindex [registry::installed $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)] 0] 5]
+        set existing_epoch [lindex [lindex [registry::installed $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants)] 0] 5]
         set newregref [registry::open_entry $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) $existing_epoch]
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
+            ui_msg "Skipping uninstall $newname @${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants) (dry run)"
         } elseif {![registry::run_target $newregref uninstall [array get options]]
                   && [catch {registry_uninstall::uninstall $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
+            ui_error "Uninstall $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants) failed: $result"
             catch {mportclose $mport}
             return 1
         }
@@ -3865,13 +3865,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
+            ui_msg "Skipping deactivate $portname @${version_active}_$revision_active$variant_active (dry run)"
         } elseif {![catch {registry::active $portname}] &&
                   ![registry::run_target $regref deactivate [array get options]]
                   && [catch {portimage::deactivate $portname $version_active $revision_active $variant_active [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Deactivating $portname @${version_active}_${revision_active}${variant_active} failed: $result"
+            ui_error "Deactivating $portname @${version_active}_$revision_active$variant_active failed: $result"
             catch {mportclose $mport}
             return 1
         }
@@ -3888,13 +3888,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     if {$is_dryrun eq "yes"} {
         if {$anyactive} {
-            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
+            ui_msg "Skipping deactivate $portname @${version_active}_$revision_active$variant_active (dry run)"
         }
-        ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
+        ui_msg "Skipping activate $newname @${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants) (dry run)"
     } elseif {[catch {set result [mportexec $mport activate]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
+        ui_error "Couldn't activate $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants): $result"
         catch {mportclose $mport}
         return 1
     }
@@ -3919,8 +3919,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if { [llength deplist] > 0 } {
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
-                if {![llength [array get depscache port:${mpname}]]} {
-                    set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
+                if {![llength [array get depscache port:$mpname]]} {
+                    set status [macports::_upgrade $mpname port:$mpname $variationslist [array get options] depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                         catch {mportclose $mport}
                         return $status
@@ -3939,17 +3939,17 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 continue
             }
             set epoch [lindex $i 5]
-            ui_debug "Uninstalling $portname ${version}_${revision}${variant}"
+            ui_debug "Uninstalling $portname ${version}_$revision$variant"
             set regref [registry::open_entry $portname $version $revision $variant $epoch]
             if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
+                ui_msg "Skipping uninstall $portname @${version}_$revision$variant (dry run)"
             } elseif {![registry::run_target $regref uninstall $optionslist]
                       && [catch {registry_uninstall::uninstall $portname $version $revision $variant $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
                 if {$result ne "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
-                    ui_error "Uninstall $portname @${version}_${revision}${variant} failed: $result"
+                    ui_error "Uninstall $portname @${version}_$revision$variant failed: $result"
                     catch {mportclose $mport}
                     return 1
                 }
@@ -3996,7 +3996,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [$parentworker eval _get_dep_port $i]
-                if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
+                if {![llength [array get depscache port:$d]] && ![llength [array get depscache $i]]} {
                     if {$d ne {}} {
                         set dspec port:$d
                     } else {
@@ -4142,12 +4142,12 @@ proc macports::gettmpdir {args} {
 # check if the system we're on can run code of the given architecture
 proc macports::arch_runnable {arch} {
     global macports::os_major macports::os_arch macports::os_platform
-    if {${macports::os_platform} eq "darwin"} {
-        if {${macports::os_major} >= 11 && [string first "ppc" $arch] == 0} {
+    if {$macports::os_platform eq "darwin"} {
+        if {$macports::os_major >= 11 && [string first "ppc" $arch] == 0} {
             return no
-        } elseif {${macports::os_arch} eq "i386" && $arch eq "ppc64"} {
+        } elseif {$macports::os_arch eq "i386" && $arch eq "ppc64"} {
             return no
-        } elseif {${macports::os_major} <= 8 && $arch eq "x86_64"} {
+        } elseif {$macports::os_major <= 8 && $arch eq "x86_64"} {
             return no
         }
     }
@@ -4236,12 +4236,12 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 if {$returncode == $machista::EMAGIC} {
                     # not a Mach-O file
                     # ignore silently, these are only static libs anyway
-                    #ui_debug "Error parsing file ${bpath}: [machista::strerror $returncode]"
+                    #ui_debug "Error parsing file $bpath: [machista::strerror $returncode]"
                 } else {
                     if {$fancy_output} {
                         ui_msg {}
                     }
-                    ui_warn "Error parsing file ${bpath}: [machista::strerror $returncode]"
+                    ui_warn "Error parsing file $bpath: [machista::strerror $returncode]"
                 }
                 continue;
             }
@@ -4263,7 +4263,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 if {$fancy_output} {
                                     ui_msg {}
                                 }
-                                ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
+                                ui_warn "ID load command in $bpath, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
                             } elseif {![file exists $idloadcmdpath]} {
                                 set port [registry::entry owner $bpath]
                                 if {$port ne {}} {
@@ -4274,7 +4274,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                 if {$fancy_output} {
                                     ui_msg {}
                                 }
-                                ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
+                                ui_warn "ID load command in $bpath, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
                                 ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                             } else {
 
@@ -4291,7 +4291,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     if {$fancy_output} {
                                         ui_msg {}
                                     }
-                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file $idloadcmdpath, which is a different file"
+                                    ui_warn "ID load command in $bpath, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file $idloadcmdpath, which is a different file"
                                     ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                                 }
                             }
@@ -4393,7 +4393,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         set broken_ports [lsort -unique $broken_ports]
 
-        if {${macports::revupgrade_mode} eq "rebuild"} {
+        if {$macports::revupgrade_mode eq "rebuild"} {
             # don't try to rebuild ports that don't exist in the tree
             set temp_broken_ports {}
             foreach port $broken_ports {
@@ -4439,7 +4439,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         unset temp_broken_ports
 
-        if {${macports::revupgrade_mode} ne "rebuild"} {
+        if {$macports::revupgrade_mode ne "rebuild"} {
             ui_msg "$macports::ui_prefix Found [llength $broken_ports] broken port(s):"
             foreach port $broken_ports {
                 ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
@@ -4671,7 +4671,7 @@ proc macports::get_archive_sites_conf_values {} {
         set archive_sites_conf_values {}
         set all_names {}
         array set defaults {applications_dir /Applications/MacPorts prefix /opt/local type tbz2}
-        set conf_file "${macports_conf_path}/archive_sites.conf"
+        set conf_file "$macports_conf_path/archive_sites.conf"
         set conf_options {applications_dir frameworks_dir name prefix type urls}
         if {[file isfile $conf_file]} {
             set fd [open $conf_file r]
@@ -4686,7 +4686,7 @@ proc macports::get_archive_sites_conf_values {} {
                             if {$option eq "urls"} {
                                 set processed_urls {}
                                 foreach url $trimmedval {
-                                    lappend processed_urls ${url}:nosubdir
+                                    lappend processed_urls $url:nosubdir
                                 }
                                 lappend archive_sites_conf_values portfetch::mirror_sites::sites($cur_name) $processed_urls
                                 set sites($cur_name) $processed_urls
