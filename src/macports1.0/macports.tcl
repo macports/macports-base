@@ -4103,7 +4103,7 @@ proc mportselect {command group {version {}}} {
                         ui_debug "ln -sf $src $tgt"
                     }
                 }
-                set i [expr {$i+1}]
+                incr i
             }
 
             # Update the selected version.
