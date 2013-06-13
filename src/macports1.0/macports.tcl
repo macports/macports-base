@@ -1405,7 +1405,7 @@ proc macports::fetch_port {url {local 0}} {
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag $macports::autoconf::tar_q
-    set cmdline "$tarcmd $tarflags${qflag}xOf \"$fetchfile\" +CONTENTS"
+    set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
     ui_debug "$cmdline"
     if {![catch {set contents [eval exec $cmdline]}]} {
         set binary 1
@@ -1428,7 +1428,7 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline "$tarcmd $tarflags${qflag}xOf \"$fetchfile\" +PORTFILE > Portfile"
+        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +PORTFILE > Portfile"
     } else {
         set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
     }
@@ -1618,7 +1618,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 proc mportopen_installed {name version revision variants options} {
     global macports::registry.path
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
-    set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_$revision$variants"]
+    set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_${revision}$variants"]
     file mkdir $portfile_dir
     set fd [open "$portfile_dir/Portfile" w]
     puts $fd [$regref portfile]
@@ -1647,7 +1647,7 @@ proc mportclose_installed {mport} {
     }
     mportclose $mport
     set portfiles_dir [file join ${registry.path} registry portfiles $subport]
-    set portfile [file join $portfiles_dir "${version}_$revision$portvariants" Portfile]
+    set portfile [file join $portfiles_dir "${version}_${revision}$portvariants" Portfile]
     file delete -force $portfile [file dirname $portfile]
     if {[llength [glob -nocomplain -directory $portfiles_dir *]] == 0} {
         file delete -force $portfiles_dir
@@ -3623,7 +3623,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     set minusvariant [lrange [split $oldnegatedvariant -] 1 end]
     set plusvariant [lrange [split $oldvariant +] 1 end]
-    ui_debug "Merging existing variants '$oldvariant$oldnegatedvariant' into variants"
+    ui_debug "Merging existing variants '${oldvariant}$oldnegatedvariant' into variants"
     set oldvariantlist [list]
     foreach v $plusvariant {
         lappend oldvariantlist $v "+"
@@ -3835,19 +3835,19 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # are we installing an existing version due to force or epoch override?
     if {$already_installed
         && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
-         ui_debug "Uninstalling $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants)"
+         ui_debug "Uninstalling $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
         # we have to force the uninstall in case of dependents
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
-        set existing_epoch [lindex [lindex [registry::installed $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants)] 0] 5]
+        set existing_epoch [lindex [lindex [registry::installed $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)] 0] 5]
         set newregref [registry::open_entry $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) $existing_epoch]
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping uninstall $newname @${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants) (dry run)"
+            ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
         } elseif {![registry::run_target $newregref uninstall [array get options]]
                   && [catch {registry_uninstall::uninstall $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants) failed: $result"
+            ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
             catch {mportclose $mport}
             return 1
         }
@@ -3865,13 +3865,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping deactivate $portname @${version_active}_$revision_active$variant_active (dry run)"
+            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"
         } elseif {![catch {registry::active $portname}] &&
                   ![registry::run_target $regref deactivate [array get options]]
                   && [catch {portimage::deactivate $portname $version_active $revision_active $variant_active [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Deactivating $portname @${version_active}_$revision_active$variant_active failed: $result"
+            ui_error "Deactivating $portname @${version_active}_${revision_active}$variant_active failed: $result"
             catch {mportclose $mport}
             return 1
         }
@@ -3888,13 +3888,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     if {$is_dryrun eq "yes"} {
         if {$anyactive} {
-            ui_msg "Skipping deactivate $portname @${version_active}_$revision_active$variant_active (dry run)"
+            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"
         }
-        ui_msg "Skipping activate $newname @${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants) (dry run)"
+        ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
     } elseif {[catch {set result [mportexec $mport activate]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Couldn't activate $newname ${version_in_tree}_$revision_in_tree$portinfo(canonical_active_variants): $result"
+        ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
         catch {mportclose $mport}
         return 1
     }
@@ -3939,17 +3939,17 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 continue
             }
             set epoch [lindex $i 5]
-            ui_debug "Uninstalling $portname ${version}_$revision$variant"
+            ui_debug "Uninstalling $portname ${version}_${revision}$variant"
             set regref [registry::open_entry $portname $version $revision $variant $epoch]
             if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping uninstall $portname @${version}_$revision$variant (dry run)"
+                ui_msg "Skipping uninstall $portname @${version}_${revision}$variant (dry run)"
             } elseif {![registry::run_target $regref uninstall $optionslist]
                       && [catch {registry_uninstall::uninstall $portname $version $revision $variant $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
                 if {$result ne "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
-                    ui_error "Uninstall $portname @${version}_$revision$variant failed: $result"
+                    ui_error "Uninstall $portname @${version}_${revision}$variant failed: $result"
                     catch {mportclose $mport}
                     return 1
                 }
