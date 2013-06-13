@@ -259,7 +259,7 @@ proc macports::ui_init {priority args} {
 
 # Default implementation of ui_prefix
 proc macports::ui_prefix_default {priority} {
-    switch $priority {
+    switch -- $priority {
         debug {
             return "DEBUG: "
         }
@@ -280,7 +280,7 @@ proc macports::ui_prefix_default {priority} {
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
 proc macports::ui_channels_default {priority} {
-    switch $priority {
+    switch -- $priority {
         debug {
             if {[ui_isset ports_debug]} {
                 return {stderr}
@@ -1456,7 +1456,7 @@ proc macports::getprotocol {url} {
 proc macports::getportdir {url {destdir "."}} {
     global macports::extracted_portdirs
     set protocol [macports::getprotocol $url]
-    switch $protocol {
+    switch -- $protocol {
         file {
             set path [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
             if {![file isfile $path]} {
@@ -1795,7 +1795,7 @@ proc _mportispresent {mport depspec} {
         ui_debug "Didn't find receipt, going to depspec regex for: $portname"
         set workername [ditem_key $mport workername]
         set type [lindex [split $depspec :] 0]
-        switch $type {
+        switch -- $type {
             lib { return [$workername eval _libtest $depspec] }
             bin { return [$workername eval _bintest $depspec] }
             path { return [$workername eval _pathtest $depspec] }
@@ -2419,7 +2419,7 @@ proc mportsync {{optionslist {}}} {
                     }
 
                     set extflag {}
-                    switch $extension {
+                    switch -- $extension {
                         {tar.gz} {
                             set extflag "-z"
                         }
@@ -2512,7 +2512,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             set target $portinfo($field)
                         }
 
-                        switch $matchstyle {
+                        switch -- $matchstyle {
                             exact {
                                 set matchres [expr {0 == ( $case_sensitive eq "yes" ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )}]
                             }
@@ -2529,7 +2529,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             if {$easy} {
                                 array set portinfo $line
                             }
-                            switch $protocol {
+                            switch -- $protocol {
                                 rsync {
                                     # Rsync files are local
                                     set source_url "file://[macports::getsourcepath $source]"
@@ -2616,7 +2616,7 @@ proc mportlookup {name} {
 
                     array set portinfo $line
 
-                    switch $protocol {
+                    switch -- $protocol {
                         rsync {
                             set source_url "file://[macports::getsourcepath $source]"
                         }
@@ -2689,7 +2689,7 @@ proc mportlistall {args} {
 
                         array set portinfo $line
 
-                        switch $protocol {
+                        switch -- $protocol {
                             rsync {
                                 set source_url "file://[macports::getsourcepath $source]"
                             }
@@ -3168,7 +3168,7 @@ proc macports::_target_needs_deps {target} {
 
 # Determine dependency types required for target
 proc macports::_deptypes_for_target {target workername} {
-    switch $target {
+    switch -- $target {
         fetch       -
         checksum    { return "depends_fetch" }
         extract     -
