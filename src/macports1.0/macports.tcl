@@ -358,7 +358,7 @@ proc macports::binaryInPath {prog} {
 # deferred option processing
 proc macports::getoption {name} {
     global macports::$name
-    return [expr $$name]
+    return [set $name]
 }
 
 # deferred and on-need extraction of xcodeversion and xcodebuildcmd.
@@ -1131,7 +1131,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set default_source_url [lindex ${sources_default} 0]
         if {[macports::getprotocol $default_source_url] eq "file" || [macports::getprotocol $default_source_url] eq "rsync"} {
             set default_portindex [macports::getindex $default_source_url]
-            if {[file exists $default_portindex] && [expr [clock seconds] - [file mtime $default_portindex]] > 1209600} {
+            if {[file exists $default_portindex] && [clock seconds] - [file mtime $default_portindex] > 1209600} {
                 ui_warn "port definitions are more than two weeks old, consider updating them by running 'port selfupdate'."
             }
         }
@@ -1165,7 +1165,7 @@ proc mportshutdown {} {
         catch {
             foreach host [array names ping_cache] {
                 # don't save expired entries
-                if {[expr [clock seconds] - [lindex $ping_cache($host) 1]] < 86400} {
+                if {[clock seconds] - [lindex $ping_cache($host) 1] < 86400} {
                     lappend pinglist_fresh $host $ping_cache($host)
                 }
             }
@@ -2336,7 +2336,7 @@ proc mportsync {{optionslist {}}} {
 
                 set needs_portindex 1
                 # now sync the index if the local file is missing or older than a day
-                if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400
+                if {![file isfile $indexfile] || [clock seconds] - [file mtime $indexfile] > 86400
                       || [info exists options(no_reindex)]} {
                     if {$is_tarball} {
                         # chop ports.tar off the end
@@ -4651,7 +4651,7 @@ proc macports::get_pingtime {host} {
         return 1
     } elseif {[info exists ping_cache($host)]} {
         # expire entries after 1 day
-        if {[expr [clock seconds] - [lindex $ping_cache($host) 1]] <= 86400} {
+        if {[clock seconds] - [lindex $ping_cache($host) 1] <= 86400} {
             return [lindex $ping_cache($host) 0]
         }
     }
