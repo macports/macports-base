@@ -702,7 +702,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {[info exists variants_conf]} {
-        if {[file exist $variants_conf]} {
+        if {[file exists $variants_conf]} {
             set fd [open $variants_conf r]
             while {[gets $fd line] >= 0} {
                 set line [string trimright $line]
