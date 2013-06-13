@@ -595,7 +595,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set macosx_version {}
     if {$os_platform eq "darwin"} {
         # This will probably break when Apple changes versioning
-        set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
+        set macosx_version [expr {10.0 + ($os_major - 4) / 10.0}]
     }
 
     # Ensure that the macports user directory (i.e. ~/.macports) exists if HOME is defined.
@@ -628,7 +628,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Process all configuration files we find on conf_files list
     foreach file $conf_files {
-        if [file exists $file] {
+        if {[file exists $file]} {
             set portconf $file
             set fd [open $file r]
             while {[gets $fd line] >= 0} {
@@ -645,7 +645,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Process per-user only settings
     set per_user "${macports_user_dir}/user.conf"
-    if [file exists $per_user] {
+    if {[file exists $per_user]} {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
             if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
@@ -1458,7 +1458,7 @@ proc macports::getportdir {url {destdir "."}} {
     set protocol [macports::getprotocol $url]
     switch ${protocol} {
         file {
-            set path [file normalize [string range $url [expr [string length $protocol] + 3] end]]
+            set path [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
             if {![file isfile $path]} {
                 return $path
             } else {
@@ -1771,7 +1771,7 @@ proc _portnameactive {portname} {
     if {[catch {set reslist [registry::active $portname]}]} {
         return 0
     } else {
-        return [expr [llength $reslist] > 0]
+        return [expr {[llength $reslist] > 0}]
     }
 }
 
@@ -2514,14 +2514,14 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 
                         switch $matchstyle {
                             exact {
-                                set matchres [expr 0 == ( {$case_sensitive eq "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )]
+                                set matchres [expr {0 == ( $case_sensitive eq "yes" ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )}]
                             }
                             glob {
-                                set matchres [expr {$case_sensitive eq "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]]
+                                set matchres [expr {$case_sensitive eq "yes" ? [string match $pattern $target] : [string match -nocase $pattern $target]}]
                             }
                             regexp -
                             default {
-                                set matchres [expr {$case_sensitive eq "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]]
+                                set matchres [expr {$case_sensitive eq "yes" ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]}]
                             }
                         }
 
@@ -3748,7 +3748,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)] && !$is_revupgrade} {
         # the last arg is because we might have to build from source if a rebuild is being forced
-        set status [_upgrade_dependencies portinfo depscache variationslist options [expr $will_build && $already_installed]]
+        set status [_upgrade_dependencies portinfo depscache variationslist options [expr {$will_build && $already_installed}]]
         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
             catch {mportclose $mport}
             return $status
@@ -4103,7 +4103,7 @@ proc mportselect {command group {version {}}} {
                         ui_debug "ln -sf $src $tgt"
                     }
                 }
-                set i [expr $i+1]
+                set i [expr {$i+1}]
             }
 
             # Update the selected version.
@@ -4170,7 +4170,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
     set files [registry::file search active 1 binary -null]
     set files_count [llength $files]
-    set fancy_output [expr ![macports::ui_isset ports_debug] && [isatty stdout]]
+    set fancy_output [expr {![macports::ui_isset ports_debug] && [isatty stdout]}]
     if {$files_count > 0} {
         registry::write {
             try {
@@ -4179,7 +4179,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 foreach f $files {
                     if {$fancy_output} {
                         if {$files_count < 10000 || $i % 10 == 1 || $i == $files_count} {
-                            ui_msg -nonewline "\r$macports::ui_prefix Updating database of binaries: [expr ($i * 1000 / $files_count) / 10.0]%"
+                            ui_msg -nonewline "\r$macports::ui_prefix Updating database of binaries: [expr {($i * 1000 / $files_count) / 10.0}]%"
                             flush stdout
                         }
                     }
@@ -4220,7 +4220,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         foreach b $binaries {
             if {$fancy_output} {
                 if {$binary_count < 10000 || $i % 10 == 1 || $i == $binary_count} {
-                    ui_msg -nonewline "\r$macports::ui_prefix Scanning binaries for linking errors: [expr ($i * 1000 / $binary_count) / 10.0]%"
+                    ui_msg -nonewline "\r$macports::ui_prefix Scanning binaries for linking errors: [expr {($i * 1000 / $binary_count) / 10.0}]%"
                     flush stdout
                 }
             }
@@ -4431,7 +4431,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 if {$fancy_output} {
                     ui_error "Please run port -d -y rev-upgrade and use the output to report a bug."
                 }
-                error "Port $portname still broken after rebuilding [expr $broken_port_counts($portname) - 1] time(s)"
+                error "Port $portname still broken after rebuilding [expr {$broken_port_counts($portname) - 1}] time(s)"
             } elseif {$broken_port_counts($portname) > 1 && [global_option_isset ports_binary_only]} {
                 error "Port $portname still broken after reinstalling -- can't rebuild due to binary-only mode"
             }
