@@ -778,7 +778,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Check command line override for autoclean
     if {[info exists macports::global_options(ports_autoclean)]} {
-        if {![string equal $macports::global_options(ports_autoclean) $portautoclean]} {
+        if {$macports::global_options(ports_autoclean) ne $portautoclean} {
             set macports::portautoclean $macports::global_options(ports_autoclean)
         }
     }
@@ -789,7 +789,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     # Check command line override for trace
     if {[info exists macports::global_options(ports_trace)]} {
-        if {![string equal $macports::global_options(ports_trace) $porttrace]} {
+        if {$macports::global_options(ports_trace) ne $porttrace} {
             set macports::porttrace $macports::global_options(ports_trace)
         }
     }
@@ -822,7 +822,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         global macports::portverbose
     }
     if {[info exists macports::ui_options(ports_verbose)]} {
-        if {![string equal $macports::ui_options(ports_verbose) $portverbose]} {
+        if {$macports::ui_options(ports_verbose) ne $portverbose} {
             set macports::portverbose $macports::ui_options(ports_verbose)
         }
     }
@@ -1853,7 +1853,7 @@ proc _mportexec {target mport} {
         ![catch {$workername eval check_supported_archs} result] && $result == 0 &&
         ![catch {$workername eval eval_targets $target} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
-        if {[string equal $macports::portautoclean "yes"]} {
+        if {$macports::portautoclean eq "yes"} {
             # Make sure we are back in the port path before clean
             # otherwise if the current directory had been changed to
             # inside the port,  the next port may fail when trying to
@@ -1980,7 +1980,7 @@ proc mportexec {mport target} {
     }
 
     set clean 0
-    if {[string equal $macports::portautoclean "yes"] && ([string equal $target "install"] || [string equal $target "activate"])} {
+    if {$macports::portautoclean eq "yes" && ($target eq "install" || $target eq "activate")} {
         # If we're doing an install, check if we should clean after
         set clean 1
     }
@@ -3331,7 +3331,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
             set owner [file attributes $prefix -owner]
             set group [file attributes $prefix -group]
             set perms [string range [file attributes $prefix -permissions] end-3 end]
-            if {$tcl_platform(user) ne "root" && ![string equal $tcl_platform(user) $owner]} {
+            if {$tcl_platform(user) ne "root" && $tcl_platform(user) ne $owner} {
                 return -code error "User $tcl_platform(user) does not own $prefix - try using sudo"
             }
             ui_debug "Permissions OK"
@@ -3412,7 +3412,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         ui_error "$portname is not installed"
         return 3
     }
-    if {![string match {} $depscachename]} {
+    if {$depscachename ne {}} {
         upvar $depscachename depscache
     } else {
         array set depscache {}
@@ -3439,7 +3439,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     global macports::global_variations
     array set options $optionslist
 
-    if {![string match {} $depscachename]} {
+    if {$depscachename ne {}} {
         upvar $depscachename depscache
     }
 
