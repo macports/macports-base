@@ -620,7 +620,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Configure the search path for configuration files
     set conf_files {}
     lappend conf_files "${macports_conf_path}/macports.conf"
-    if { [file isdirectory $macports_user_dir] } {
+    if {[file isdirectory $macports_user_dir]} {
         lappend conf_files "${macports_user_dir}/macports.conf"
     }
     if {[info exists env(PORTSRC)]} {
@@ -2431,7 +2431,7 @@ proc mportsync {{optionslist {}}} {
                     }
 
                     set tar [macports::findBinary tar $macports::autoconf::tar_path]
-                    if { [catch {system "cd ${destdir}/.. && $tar $verboseflag $extflag -xf $filename"} error]} {
+                    if {[catch {system "cd ${destdir}/.. && $tar $verboseflag $extflag -xf $filename"} error]} {
                         ui_error "Extracting $source failed ($error)"
                         incr numfailed
                         continue
@@ -3645,7 +3645,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # We wait until now so that existing variants for this port
     # override global variations
     foreach {variation value} $globalvarlist {
-        if {![info exists variations($variation)] } {
+        if {![info exists variations($variation)]} {
             set variations($variation) $value
         }
     }
@@ -3705,7 +3705,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         && ![info exists options(ports_upgrade_force)]} {
         if {$portname ne $newname} {
             ui_debug "ignoring versions, installing replacement port"
-        } elseif { $epoch_installed < $epoch_in_tree && $version_installed != $version_in_tree} {
+        } elseif {$epoch_installed < $epoch_in_tree && $version_installed != $version_in_tree} {
             set build_override 1
             ui_debug "epoch override ... upgrading!"
         } elseif {[info exists options(ports_upgrade_enforce-variants)] && $options(ports_upgrade_enforce-variants) eq "yes"
