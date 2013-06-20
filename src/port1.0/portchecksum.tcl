@@ -264,6 +264,10 @@ proc portchecksum::checksum_main {args} {
                 foreach {type sum} $portfile_checksums {
                     set calculated_sum [calc_$type $fullpath]
                     lappend sums [format "%-8s%s" $type $calculated_sum]
+
+		    # Used for regression testing
+                    ui_debug "[format [msgcat::mc "Calculated (%s) is %s"] $type $calculated_sum]"
+
                     if {[string equal $sum $calculated_sum]} {
                         ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
                     } else {
