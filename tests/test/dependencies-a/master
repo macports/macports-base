@@ -1,0 +1,17 @@
+--->  Computing dependencies for dependencies-a
+--->  Dependencies to be installed: dependencies-b
+--->  Fetching distfiles for dependencies-b
+--->  Verifying checksums for dependencies-b
+--->  Extracting dependencies-b
+--->  Configuring dependencies-b
+--->  Building dependencies-b
+--->  Staging dependencies-b into destroot
+--->  Installing dependencies-b @1_0
+--->  Activating dependencies-b @1_0
+--->  Cleaning dependencies-b
+--->  Fetching distfiles for dependencies-a
+--->  Verifying checksums for dependencies-a
+--->  Extracting dependencies-a
+--->  Configuring dependencies-a
+--->  Building dependencies-a
+--->  Testing dependencies-a
