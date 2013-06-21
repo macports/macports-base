@@ -127,11 +127,11 @@ options configure.m32 configure.m64 configure.march configure.mtune
 default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
-options configure.optflags
-options configure.cflags configure.cxxflags configure.objcflags
-options configure.cppflags configure.ldflags configure.libs
-options configure.fflags configure.f90flags configure.fcflags
-options configure.classpath
+options configure.optflags \
+        configure.cflags configure.cxxflags configure.objcflags \
+        configure.cppflags configure.ldflags configure.libs \
+        configure.fflags configure.f90flags configure.fcflags \
+        configure.classpath
 # compiler flags section
 default configure.optflags  {-Os}
 default configure.cflags    {${configure.optflags}}
@@ -146,9 +146,9 @@ default configure.fcflags   {${configure.optflags}}
 default configure.classpath {}
 
 # tools section
-options configure.perl configure.python configure.ruby
-options configure.install configure.awk configure.bison
-options configure.pkg_config configure.pkg_config_path
+options configure.perl configure.python configure.ruby \
+        configure.install configure.awk configure.bison \
+        configure.pkg_config configure.pkg_config_path
 default configure.perl              {}
 default configure.python            {}
 default configure.ruby              {}
@@ -167,9 +167,9 @@ foreach tool {cc cxx objc f77 f90 fc} {
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
 
-options configure.universal_archs configure.universal_args
-options configure.universal_cflags configure.universal_cxxflags
-options configure.universal_cppflags configure.universal_ldflags
+options configure.universal_archs configure.universal_args \
+        configure.universal_cflags configure.universal_cxxflags \
+        configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
@@ -590,7 +590,11 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
 # Some of the compilers we use are provided by MacPorts itself; ensure we
 # automatically add a dependency when needed
 proc portconfigure::add_automatic_compiler_dependencies {} {
-    global configure.compiler
+    global configure.compiler configure.compiler.add_deps
+
+    if {!${configure.compiler.add_deps}} {
+        return
+    }
 
     # The default value requires substitution before use.
     set compiler [subst ${configure.compiler}]
@@ -617,16 +621,19 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
 }
 # Register the above procedure as a callback after Portfile evaluation
 port::register_callback portconfigure::add_automatic_compiler_dependencies
+# and an option to turn it off if required
+options configure.compiler.add_deps
+default configure.compiler.add_deps yes
 
 proc portconfigure::configure_main {args} {
     global [info globals]
-    global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
-    global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
-    global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison
-    global configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot
-    global configure.march configure.mtune
-    global os.platform os.major
+    global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf \
+           configure.env configure.pipe configure.libs configure.classpath configure.universal_args \
+           configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \
+           configure.pkg_config configure.pkg_config_path \
+           configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot \
+           configure.march configure.mtune \
+           os.platform os.major
     foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }

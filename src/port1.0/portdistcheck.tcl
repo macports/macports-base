@@ -53,10 +53,8 @@ options distcheck.type
 default distcheck.type moddate
 
 proc portdistcheck::distcheck_main {args} {
-    global distcheck.type
-    global fetch.type
-    global fetch.ignore_sslcert
-    global subport portpath
+    global distcheck.type fetch.type fetch.ignore_sslcert \
+           subport portpath
 
     set port_moddate [file mtime ${portpath}/Portfile]
 

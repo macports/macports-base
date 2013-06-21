@@ -233,8 +233,7 @@ proc porttrace::delete_slave {} {
 # Private.
 # Slave method to read a line from the trace.
 proc porttrace::slave_read_line {chan} {
-    global ports_list trace_filemap sandbox_violation_list workpath
-    global env
+    global ports_list trace_filemap sandbox_violation_list workpath env
 
     while 1 {
         # We should never get EOF, actually.

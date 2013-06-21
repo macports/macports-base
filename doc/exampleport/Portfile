@@ -7,88 +7,88 @@
 # PortSystem <version>
 # where version is the version of the ports system your port relies upon.
 # This can NOT be commented out.
-PortSystem 1.0
+PortSystem          1.0
 
 # The name of the port
-name		glib2
+name                glib2
 
 # Its version information
-version	      2.12.11
+version             2.12.11
 
 # Supported and tested platforms
-platforms	darwin
+platforms           darwin
 
 # Categories and identifying keywords
-categories	devel
+categories          devel
 
 # Email address(es) of the port's Maintainer(s)
-maintainers	ryandesign@macports.org
+maintainers ryandesign@macports.org
 
 # A short description of this port
-description	Library with data structure functions and other constructs
+description         Library with data structure functions and other constructs
 
 # A long description, with more details
-long_description      Glib is a library which includes support routines for \
-		      C, such as lists, trees, hashes, memory allocation, and \
-		      many other things.
+long_description    Glib is a library which includes support routines for \
+                    C, such as lists, trees, hashes, memory allocation, and \
+                    many other things.
 
 # Homepage for the port:
-homepage	http://www.gtk.org/
+homepage            http://www.gtk.org/
 
 # Master download sites for port's distribution file(s)
-master_sites	ftp://ftp.gtk.org/pub/glib/2.12 \
-		gnome:sources/glib/2.12
+master_sites        ftp://ftp.gtk.org/pub/glib/2.12 \
+                    gnome:sources/glib/2.12
 
 # Name of the distribution file, minus extract suffix (see below)
-distname	glib-${version}
+distname            glib-${version}
 
 # (Optional) Explicitly set suffix (default: .tar.gz)
-#extract.suffix	.tar.bz2
+#extract.suffix      .tar.bz2
 
 # (Optional) Use bzip2 instead of gzip for uncompressing distribution file
-use_bzip2	yes
+use_bzip2           yes
 
 # List of checksums for files to be fetched
 # <file name> <checksum type> <checksum>
-checksums	${distname}${extract.suffix} md5 077a9917b673a9a0bc63f351786dde24 \
-		${distname}${extract.suffix} sha1 02d344295ddaeafeec6bc6824b71e12bbf1b0394 \
-		${distname}${extract.suffix} rmd160 8680d27e630643e6653d88537907d06e3ba6e91a
+checksums   ${distname}${extract.suffix} md5 077a9917b673a9a0bc63f351786dde24 \
+        ${distname}${extract.suffix} sha1 02d344295ddaeafeec6bc6824b71e12bbf1b0394 \
+        ${distname}${extract.suffix} rmd160 8680d27e630643e6653d88537907d06e3ba6e91a
 
 # Any patches which should be applied after extracting this port.  These
-
 # should go in the files/ subdirectory of the port.
-patchfiles	patch-glib-2.0.pc.in patch-glib__gutils.c
+patchfiles          patch-glib-2.0.pc.in \
+                    patch-glib__gutils.c
 
 # Dependencies are defined by three settings:
-#    depends_lib:	installed at build time and at install time
-#    depends_run:	installed at install time
-#    depends_build:	installed at build time
+#    depends_lib:   installed at build time and at install time
+#    depends_run:   installed at install time
+#    depends_build: installed at build time
 #
 #    These options accept a list of depspecs. Depspecs are ':' delimited three
 #    value lists of type:match:portname. The following types are supported:
 #
-#	lib	- The lib type requires the match argument in the
-#		    format <libraryname>.<major version>
-#	bin	- The bin type requires the match argument to be the full
-#		    executable name
-#	<path>  - If a full path is specified as the type, the math argument
-#		    must be a complete regexp.
-#	portname must be the name of a valid port to build and install
-#	if the depspec is not matched.
-#	An alternative dependency depspec is the port:<portname> syntax,
-#	used when you want to insure the given dependency is satisfied
-#	exclusively by MacPorts.
-depends_build	    port:pkgconfig
-depends_lib	    port:gettext
+#   lib - The lib type requires the match argument in the
+#           format <libraryname>.<major version>
+#   bin - The bin type requires the match argument to be the full
+#           executable name
+#   <path>  - If a full path is specified as the type, the math argument
+#           must be a complete regexp.
+#   portname must be the name of a valid port to build and install
+#   if the depspec is not matched.
+#   An alternative dependency depspec is the port:<portname> syntax,
+#   used when you want to insure the given dependency is satisfied
+#   exclusively by MacPorts.
+depends_build       port:pkgconfig
+depends_lib         port:gettext
 
 # The type of configuration script this port uses.
-#configure.type     gnu
+#configure.type      gnu
 
 # A list of configuration time arguments you might want to pass to the configure script:
-configure.args   --mandir=${prefix}/share/man
+configure.args      --mandir=${prefix}/share/man
 
 # The directory name of the subdirectory of work/ where this port extracts
-#worksrcdir	glib
+#worksrcdir          glib
 
 # Alternative ways to build the port, packed as 'variants'
 variant puredarwin { depends_run bin:perl:perl5.8 }

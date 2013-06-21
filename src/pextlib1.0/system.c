@@ -80,11 +80,11 @@ struct linebuf {
 static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char **profilestr)
 {
     Tcl_Obj *tcl_result;
-    int supported;
+    int active;
     int len;
 
-    tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_supported", NULL, TCL_GLOBAL_ONLY);
-    if (!tcl_result || Tcl_GetBooleanFromObj(interp, tcl_result, &supported) != TCL_OK || !supported) {
+    tcl_result = Tcl_GetVar2Ex(interp, "portsandbox_active", NULL, TCL_GLOBAL_ONLY);
+    if (!tcl_result || Tcl_GetBooleanFromObj(interp, tcl_result, &active) != TCL_OK || !active) {
         return 0;
     }
 

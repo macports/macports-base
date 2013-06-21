@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004 - 2012 The MacPorts Project
+# Copyright (c) 2004 - 2013 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -93,7 +93,8 @@ proc portarchivefetch::filter_sites {} {
         if {$missing} {
             continue
         }
-        if {$portfetch::mirror_sites::archive_prefix($site) == $prefix &&
+        if {$portfetch::mirror_sites::sites($site) ne {} &&
+            $portfetch::mirror_sites::archive_prefix($site) == $prefix &&
             $portfetch::mirror_sites::archive_frameworks_dir($site) == $frameworks_dir &&
             $portfetch::mirror_sites::archive_applications_dir($site) == $applications_dir &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
@@ -152,10 +153,10 @@ proc portarchivefetch::checkfiles {urls} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc portarchivefetch::fetchfiles {args} {
-    global archivefetch.fulldestpath UI_PREFIX
-    global archivefetch.user archivefetch.password archivefetch.use_epsv \
-           archivefetch.ignore_sslcert
-    global portverbose ports_binary_only
+    global archivefetch.fulldestpath UI_PREFIX \
+           archivefetch.user archivefetch.password archivefetch.use_epsv \
+           archivefetch.ignore_sslcert \
+           portverbose ports_binary_only
     variable archivefetch_urls
     variable ::portfetch::urlmap
 

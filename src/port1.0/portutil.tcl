@@ -1,5 +1,4 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# portutil.tcl
 # $Id$
 #
 # Copyright (c) 2002-2003 Apple Inc.
@@ -258,8 +257,8 @@ proc get_deprecated_options {} {
 }
 
 ##
-# Mark an option as deprecate
-# If it is set or accessed, it will be mapped it to the new option
+# Mark an option as deprecated
+# If it is set or accessed, it will be mapped to the new option
 #
 # @param option name of the option
 # @param newoption name of a superseding option
@@ -915,7 +914,7 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global env worksrcpath macosx_version
+    global env workpath worksrcpath macosx_version
     set extended 0
     set suppress 0
     set oldlocale_exists 0
@@ -962,12 +961,18 @@ proc reinplace {args}  {
     set pattern [lindex $args 0]
     set files [lrange $args 1 end]
 
+    if {[file isdirectory ${workpath}/.tmp]} {
+        set tempdir ${workpath}/.tmp
+    } else {
+        set tempdir /tmp
+    }
+
     foreach file $files {
         # if $file is an absolute path already, file join will just return the
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
 
-        if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+        if {[catch {set tmpfile [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "reinplace: $error"
@@ -1828,6 +1833,25 @@ proc write_statefile {class name fd} {
     flush $fd
 }
 
+# Change the value of an existing statefile key
+# caller must call open_statefile after this
+proc update_statefile {class name path} {
+    set fd [open $path r]
+    while {[gets $fd line] >= 0} {
+        if {[lindex $line 0] != "${class}:"} {
+            lappend lines $line
+        }
+    }
+    close $fd
+    # truncate
+    set fd [open $path w]
+    puts $fd "$class: $name"
+    foreach line $lines {
+        puts $fd $line
+    }
+    close $fd
+}
+
 ##
 # Check that recorded selection of variants match the current selection
 #
@@ -2207,8 +2231,7 @@ proc variant_new {name} {
 }
 
 proc handle_default_variants {option action {value ""}} {
-    global PortInfo
-    global variations
+    global PortInfo variations
     switch -regex $action {
         set|append {
             # Retrieve the information associated with each variant.
@@ -2446,7 +2469,7 @@ proc supportedArchiveTypes {} {
 
 # return path to a downloaded or installed archive for this port
 proc find_portarchive_path {} {
-    global portdbpath subport version revision portvariants
+    global portdbpath subport version revision portvariants force_archive_refresh
     set installed 0
     if {[registry_exists $subport $version $revision $portvariants]} {
         set installed 1
@@ -2454,7 +2477,7 @@ proc find_portarchive_path {} {
     set archiverootname [file rootname [get_portimage_name]]
     foreach unarchive.type [supportedArchiveTypes] {
         set fullarchivename "${archiverootname}.${unarchive.type}"
-        if {$installed} {
+        if {$installed && ![tbool force_archive_refresh]} {
             set fullarchivepath [file join $portdbpath software $subport $fullarchivename]
         } else {
             set fullarchivepath [file join $portdbpath incoming/verified $fullarchivename]
@@ -2531,6 +2554,89 @@ proc archiveTypeIsSupported {type} {
         }
     }
     return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
+}
+
+# return the specified piece of metadata from the +CONTENTS file in the given archive
+proc extract_archive_metadata {archive_location archive_type metadata_type} {
+    set qflag ${portutil::autoconf::tar_q}
+    set raw_contents ""
+
+    switch -- $archive_type {
+        xar -
+        cpgz -
+        cpio {
+            set twostep 1
+            global workpath
+            if {[file isdirectory ${workpath}/.tmp]} {
+                set tempdir [mkdtemp ${workpath}/.tmp/portarchiveXXXXXXXX]
+            } else {
+                set tempdir [mkdtemp /tmp/portarchiveXXXXXXXX]
+            }
+        }
+    }
+
+    switch -- $archive_type {
+        tbz -
+        tbz2 {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $archive_location ./+CONTENTS]
+        }
+        tgz {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $archive_location ./+CONTENTS]
+        }
+        tar {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location ./+CONTENTS]
+        }
+        txz {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary xz ""] ./+CONTENTS]
+        }
+        tlz {
+            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $archive_location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
+        }
+        xar {
+            system -W ${tempdir} "[findBinary xar ${portutil::autoconf::xar_path}] -xf $archive_location +CONTENTS"
+        }
+        zip {
+            set raw_contents [exec [findBinary unzip ${portutil::autoconf::unzip_path}] -p $archive_location +CONTENTS]
+        }
+        cpgz {
+            system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rzf $archive_location +CONTENTS"
+        }
+        cpio {
+            system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rf $archive_location +CONTENTS"
+        }
+    }
+    if {[info exists twostep]} {
+        set fd [open "${tempdir}/+CONTENTS"]
+        set raw_contents [read $fd]
+        close $fd
+        file delete -force $tempdir
+    }
+    if {$metadata_type == "contents"} {
+        set contents {}
+        set ignore 0
+        set sep [file separator]
+        foreach line [split $raw_contents \n] {
+            if {$ignore} {
+                set ignore 0
+                continue
+            }
+            if {[string index $line 0] != "@"} {
+                lappend contents "${sep}${line}"
+            } elseif {$line == "@ignore"} {
+                set ignore 1
+            }
+        }
+        return $contents
+    } elseif {$metadata_type == "portname"} {
+        foreach line [split $raw_contents \n] {
+            if {[lindex $line 0] == "@portname"} {
+                return [lindex $line 1]
+            }
+        }
+        return ""
+    } else {
+        return -code error "unknown metadata_type: $metadata_type"
+    }
 }
 
 #
@@ -2952,12 +3058,12 @@ proc _check_xcode_version {} {
             10.7 {
                 set min 4.1
                 set ok 4.1
-                set rec 4.5.2
+                set rec 4.6.2
             }
             default {
                 set min 4.4
                 set ok 4.4
-                set rec 4.5.2
+                set rec 4.6.2
             }
         }
         if {$xcodeversion == "none"} {

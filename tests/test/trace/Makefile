@@ -17,7 +17,7 @@ test:
 	@rm -f /tmp/hello-trace
 	@rm -f link-trace
 	@ln -s /usr/include/unistd.h /tmp/link-trace2
-	@PORTSRC=$(PORTSRC) $(bindir)/port -t test > output 2>&1 || (cat output; exit 1)
+	@-PORTSRC=$(PORTSRC) $(bindir)/port -t test > output 2>&1 || (cat output; exit 1)
 	@rm -f link-trace
 	@rm -f /tmp/link-trace2
 	@rm -f delete-trace

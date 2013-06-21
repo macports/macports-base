@@ -323,9 +323,9 @@ proc portfetch::bzrfetch {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc portfetch::cvsfetch {args} {
-    global workpath cvs.env cvs.cmd cvs.args cvs.post_args
-    global cvs.root cvs.date cvs.tag cvs.method cvs.password
-    global patch_sites patchfiles filespath
+    global workpath cvs.env cvs.cmd cvs.args cvs.post_args \
+           cvs.root cvs.date cvs.tag cvs.method cvs.password
+           patch_sites patchfiles filespath
 
     set cvs.args "${cvs.method} ${cvs.args}"
     if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
@@ -420,8 +420,8 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global worksrcpath patchfiles
-    global git.url git.branch git.sha1 git.cmd
+    global worksrcpath patchfiles \
+           git.url git.branch git.sha1 git.cmd
 
     set options "-q"
     if {[string length ${git.branch}] == 0} {
@@ -476,9 +476,9 @@ proc portfetch::hgfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated distfile
 proc portfetch::fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX
-    global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
-    global fallback_mirror_site portverbose usealtworkpath altprefix
+    global distpath all_dist_files UI_PREFIX \
+           fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
+           fallback_mirror_site portverbose usealtworkpath altprefix
     variable fetch_urls
     variable urlmap
 

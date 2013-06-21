@@ -54,8 +54,8 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-    global UI_PREFIX subport version revision portvariants
-    global prefix registry_open registry.path
+    global UI_PREFIX subport version revision portvariants \
+           prefix registry_open registry.path
     ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $subport $version $revision $portvariants]"
     
     # start gsoc08-privileges
@@ -74,24 +74,6 @@ proc portinstall::install_start {args} {
 
     # create any users and groups needed by the port
     handle_add_users
-}
-
-# fake some info for a list of files to match the format
-# used for contents in the flat registry
-# This list is a 6-tuple of the form:
-# 0: file path
-# 1: uid
-# 2: gid
-# 3: mode
-# 4: size
-# 5: md5 checksum information
-proc portinstall::_fake_fileinfo_for_index {flist} {
-    global 
-	set rval [list]
-	foreach file $flist {
-		lappend rval [list $file [getuid] [getgid] 0644 0 "MD5 ($fname) NONE"]
-	}
-	return $rval
 }
 
 proc portinstall::create_archive {location archive.type} {
@@ -317,60 +299,7 @@ proc portinstall::create_archive {location archive.type} {
 }
 
 proc portinstall::extract_contents {location type} {
-    set qflag ${portutil::autoconf::tar_q}
-    switch -- $type {
-        tbz -
-        tbz2 {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOj${qflag}f $location ./+CONTENTS]
-        }
-        tgz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xOz${qflag}f $location ./+CONTENTS]
-        }
-        tar {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location ./+CONTENTS]
-        }
-        txz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary xz ""] ./+CONTENTS]
-        }
-        tlz {
-            set raw_contents [exec [findBinary tar ${portutil::autoconf::tar_path}] -xO${qflag}f $location --use-compress-program [findBinary lzma ""] ./+CONTENTS]
-        }
-        xar {
-            system "cd ${workpath} && [findBinary xar ${portutil::autoconf::xar_path}] -xf $location +CONTENTS"
-            set twostep 1
-        }
-        zip {
-            set raw_contents [exec [findBinary unzip ${portutil::autoconf::unzip_path}] -p $location +CONTENTS]
-        }
-        cpgz {
-            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rzf $location +CONTENTS"
-            set twostep 1
-        }
-        cpio {
-            system "cd ${workpath} && [findBinary pax ${portutil::autoconf::pax_path}] -rf $location +CONTENTS"
-            set twostep 1
-        }
-    }
-    if {[info exists twostep]} {
-        set fd [open "${workpath}/+CONTENTS"]
-        set raw_contents [read $fd]
-        close $fd
-    }
-    set contents {}
-    set ignore 0
-    set sep [file separator]
-    foreach line [split $raw_contents \n] {
-        if {$ignore} {
-            set ignore 0
-            continue
-        }
-        if {[string index $line 0] != "@"} {
-            lappend contents "${sep}${line}"
-        } elseif {$line == "@ignore"} {
-            set ignore 1
-        }
-    }
-    return $contents
+    return [extract_archive_metadata $location $type contents]
 }
 
 proc portinstall::install_main {args} {
@@ -453,33 +382,4 @@ proc portinstall::install_main {args} {
 
     _cd $oldpwd
     return 0
-}
-
-# apparent usage of pkg_uninstall variable in the (flat) registry
-# the Portfile needs to define a procedure
-# proc pkg_uninstall {portname portver} {
-#     body of proc
-# }
-# which gets stored above in the receipt's pkg_uninstall property
-# this is then called by the portuninstall procedure
-# note that the portuninstall procedure is not called within
-# the context of the portfile so many usual port variables do not exist
-# e.g. destroot/workpath/filespath
- 
-# this procedure encodes the pkg_uninstall body so that it can be stored in the
-# the receipt file
-proc portinstall::proc_disasm {pname} {
-    set p "proc "
-    append p $pname " {"
-    set space ""
-    foreach arg [info args $pname] {
-        if {[info default $pname $arg value]} {
-            append p "$space{" [list $arg $value] "}"
-        } else {
-            append p $space $arg
-        }
-        set space " "
-    }
-    append p "} {" [string map { \n \\n } [info body $pname] ] " }"
-    return $p
 }

@@ -522,15 +522,27 @@ To just remove the work files, use the
 This is the default when no flag is given.
 To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
-To remove the work files, distribution files and logs, pass
-.Fl -all .
-To remove log files for certain port, pass
+To remove any archives of a port that remain in the temporary download directory, pass
+.Fl -archive .
+(This does not remove archives from the installed location.)
+To remove the log files for a port, pass
 .Fl -logs .
+To remove the work files, distribution files, temporary archives and logs, pass
+.Fl -all .
 For example:
 .Pp
 .Dl "port clean --dist vim"
 .Dl "port clean --logs vim"
 .Pp
+To remove only certain version(s) of a port's temporary archives (
+.Ar version
+is any valid UNIX glob pattern), you can use:
+.Pp
+.Dl "port clean --archive vim 6.2.114"
+.Pp
+or:
+.Pp
+.Dl "port clean --archive vim '6.*'"
 .Ss log
 Parses and shows log files for
 .Ar portname .

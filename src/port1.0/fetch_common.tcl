@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004 - 2012 The MacPorts Project
+# Copyright (c) 2004 - 2013 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -84,8 +84,8 @@ proc portfetch::assemble_url {site distfile} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
-    global UI_PREFIX name dist_subdir
-    global global_mirror_site fallback_mirror_site
+    global UI_PREFIX name dist_subdir \
+           global_mirror_site fallback_mirror_site
 
     if {[file exists $mirrorfile]} {
         source $mirrorfile
@@ -343,6 +343,6 @@ proc portfetch::get_urls {} {
 proc portfetch::check_dns {} {
     # check_broken_dns returns true at most once, so we don't have to worry about spamming this message
     if {[check_broken_dns]} {
-        ui_warn "Your DNS server(s) incorrectly claim to know the address of nonexistent hosts. This may cause checksum mismatches for some ports."
+        ui_warn "Your DNS servers incorrectly claim to know the address of nonexistent hosts. This may cause checksum mismatches for some ports."
     }
 }

@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # $Id$
 #
-# Copyright (c) 2012 The MacPorts Project
+# Copyright (c) 2012-2013 The MacPorts Project
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -33,8 +33,9 @@ package provide portsandbox 1.0
 namespace eval portsandbox {
 }
 
-options portsandbox_supported portsandbox_profile
+options portsandbox_supported portsandbox_active portsandbox_profile
 default portsandbox_supported {[file executable $portutil::autoconf::sandbox_exec_path]}
+default portsandbox_active {[expr $portsandbox_supported && $sandbox_enable]}
 default portsandbox_profile {}
 
 # set up a suitable profile to pass to sandbox-exec, based on the target

@@ -64,6 +64,9 @@
 #       - for launchd, generate log messages inside daemondo
 #       - for systemstarter, generate log messages in our generated script
 #
+#   startupitem.autostart   yes/no
+#       Automatically load the startupitem after activating. Defaults to no.
+#
 
 package provide portstartupitem 1.0
 package require portutil 1.0
@@ -74,10 +77,10 @@ namespace eval portstartupitem {
 set_ui_prefix
 
 proc portstartupitem::startupitem_create_rcng {args} {
-    global prefix destroot os.platform
-    global startupitem.name startupitem.requires
-    global startupitem.start startupitem.stop startupitem.restart
-    global startupitem.type
+    global prefix destroot os.platform \
+           startupitem.name startupitem.requires \
+           startupitem.start startupitem.stop startupitem.restart \
+           startupitem.type
 
     set scriptdir ${destroot}${prefix}/etc/rc.d
 
@@ -120,10 +123,11 @@ proc portstartupitem::startupitem_create_rcng {args} {
 }
 
 proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform
-    global startupitem.name startupitem.requires startupitem.init
-    global startupitem.start startupitem.stop startupitem.restart startupitem.executable
-    global startupitem.pidfile startupitem.logfile startupitem.logevents
+    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform \
+           startupitem.name startupitem.requires startupitem.init \
+           startupitem.start startupitem.stop startupitem.restart startupitem.executable \
+           startupitem.pidfile startupitem.logfile startupitem.logevents \
+           startupitem.autostart
     
     set scriptdir ${prefix}/etc/startup
     
@@ -385,22 +389,30 @@ RunService "$1"
     close ${para}
     
     # Emit some information for the user
-    ui_notice "###########################################################"
-    ui_notice "# A startup item has been generated that will aid in"
-    ui_notice "# starting ${subport} with SystemStarter. It is disabled"
-    ui_notice "# by default. Add the following line to /etc/hostconfig"
-    ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
-    ui_notice "#"
-    ui_notice "# ${uppername}=-YES-"
-    ui_notice "###########################################################"
+    if {[tbool startupitem.autostart]} {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with SystemStarter. It will be"
+        ui_notice "# started automatically on activation."
+        ui_notice "###########################################################"
+    } else {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with SystemStarter. It is disabled"
+        ui_notice "# by default. Add the following line to /etc/hostconfig"
+        ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
+        ui_notice "#"
+        ui_notice "# ${uppername}=-YES-"
+        ui_notice "###########################################################"
+    }
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target
-    global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
-    global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
-    global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
-    global startupitem.install
+    global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target \
+           startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
+           startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable \
+           startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
+           startupitem.install startupitem.autostart
 
     set scriptdir ${prefix}/etc/startup
     
@@ -621,19 +633,29 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     }
     
     # Emit some information for the user
-    ui_notice "###########################################################"
-    ui_notice "# A startup item has been generated that will aid in"
-    ui_notice "# starting ${subport} with launchd. It is disabled"
-    ui_notice "# by default. Execute the following command to start it,"
-    ui_notice "# and to cause it to launch at startup:"
-    ui_notice "#"
-    ui_notice "# sudo port load ${subport}"
-    ui_notice "###########################################################"
+    if {[tbool startupitem.autostart]} {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with launchd. It will be enabled"
+        ui_notice "# automatically on activation. Execute the following"
+        ui_notice "# command to manually _disable_ it:"
+        ui_notice "#"
+        ui_notice "# sudo port unload ${subport}"
+        ui_notice "###########################################################"
+    } else {
+        ui_notice "###########################################################"
+        ui_notice "# A startup item has been generated that will aid in"
+        ui_notice "# starting ${subport} with launchd. It is disabled"
+        ui_notice "# by default. Execute the following command to start it,"
+        ui_notice "# and to cause it to launch at startup:"
+        ui_notice "#"
+        ui_notice "# sudo port load ${subport}"
+        ui_notice "###########################################################"
+    }
 }
 
 proc portstartupitem::startupitem_create {args} {
-    global UI_PREFIX
-    global startupitem.type os.platform
+    global UI_PREFIX startupitem.type os.platform
     
     set startupitem.type [string tolower ${startupitem.type}]
     

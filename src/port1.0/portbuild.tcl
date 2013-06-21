@@ -2,7 +2,7 @@
 # portbuild.tcl
 # $Id$
 #
-# Copyright (c) 2007 - 2012 The MacPorts Project
+# Copyright (c) 2007 - 2013 The MacPorts Project
 # Copyright (c) 2002 - 2004 Apple Inc.
 # All rights reserved.
 #
@@ -43,11 +43,11 @@ namespace eval portbuild {
 }
 
 # define options
-options build.asroot
-options build.jobs
-options build.target
-options build.type
-options use_parallel_build
+options build.asroot \
+        build.jobs \
+        build.target \
+        build.type \
+        use_parallel_build
 commands build
 # defaults
 default build.asroot no
@@ -66,6 +66,10 @@ set_ui_prefix
 # ${build.type} == bsd, ensures bsdmake is present by adding a bin:-style
 # dependency.
 proc portbuild::add_automatic_buildsystem_dependencies {} {
+    global build.type.add_deps
+    if {!${build.type.add_deps}} {
+        return
+    }
     if {[option build.type] == "bsd" && [option os.platform] == "darwin"} {
         ui_debug "build.type is BSD, adding bin:bsdmake:bsdmake build dependency"
         depends_build-delete bin:bsdmake:bsdmake
@@ -79,6 +83,9 @@ proc portbuild::add_automatic_buildsystem_dependencies {} {
 }
 # Register the above procedure as a callback after Portfile evaluation
 port::register_callback portbuild::add_automatic_buildsystem_dependencies
+# and an option to turn it off if required
+options build.type.add_deps
+default build.type.add_deps yes
 
 proc portbuild::build_getmaketype {args} {
     if {[option build.type] == "default"} {

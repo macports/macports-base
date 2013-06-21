@@ -2,7 +2,7 @@
 # portsrpm.tcl
 # $Id$
 #
-# Copyright (c) 2007, 2009, 2011 The MacPorts Project
+# Copyright (c) 2007, 2009, 2011, 2013 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -59,8 +59,10 @@ proc portsrpm::srpm_main {args} {
 }
 
 proc portsrpm::srpm_pkg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix categories maintainers description long_description homepage epoch portpath distfiles
-	global os.platform os.arch os.version os.major
+    global UI_PREFIX package.destpath portdbpath destpath workpath distpath \
+           prefix categories maintainers description long_description \
+           homepage epoch portpath distfiles os.platform os.arch os.version \
+           os.major
 
     set fetch_urls {}
     portfetch::checkfiles fetch_urls

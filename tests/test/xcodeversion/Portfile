@@ -21,7 +21,7 @@ destroot    {
 test {
     # rpm-vercomp is now deprecated, change it here too when removed
     # from all ports and base (but keep this test here, meanwhile...)
-    # rpm-vercomp removed from ports r89810, from base r89911
+    # rpm-vercomp removed from ports r89810, from base r89811
     if {$xcodeversion != "" && [vercmp $xcodeversion 2.1] >= 0} {
         ui_msg "xcodeversion >= 2.1"
     } else {

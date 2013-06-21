@@ -59,7 +59,7 @@ proc portactivate::activate_start {args} {
 }
 
 proc portactivate::activate_main {args} {
-    global env subport version revision portvariants user_options PortInfo
+    global env subport version revision portvariants user_options PortInfo startupitem.autostart UI_PREFIX
 
     registry_activate $subport $version $revision $portvariants [array get user_options]
 
@@ -95,6 +95,14 @@ proc portactivate::activate_main {args} {
             }
         }
         ui_notice ""
+    }
+
+    if {[tbool startupitem.autostart]} {
+        ui_notice "$UI_PREFIX [format [msgcat::mc "Loading %s"] [option subport]]"
+        if {[eval_targets "load"]} {
+            ui_error [format [msgcat::mc "Failed to load %s"] [option subport]]
+            return 1
+        }
     }
 
     return 0
