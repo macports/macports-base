@@ -8,11 +8,16 @@ proc load_variables {} {
     global autoconf
     global bindir
     global datadir
+    global portsrc
+    global pwd
 
     if { [file exists $autoconf] == 0 } {
         puts "$autoconf does not exist."
         exit 1
     }
+
+    set aux [expr [string length [pwd]] - 20]
+    set pwd [string range [pwd] 0 [expr [string last "/" [pwd] $aux] - 1]]
 
     set line [get_line $autoconf "prefix"]
     set prefix [lrange [split $line " "] 1 1]
@@ -22,17 +27,17 @@ proc load_variables {} {
 
     set bindir $prefix/$bin/
     set datadir $prefix/share
+    set portsrc $pwd/test-macports.conf
 
-    #TO DO: Add PORTSRC var
 }
 
 # Sets initial directories
 proc set_dir {} {
     global datadir
-    set path [pwd]
+    global pwd
 
     file delete -force /tmp/macports-tests/
-    file delete -force PortIndex PortIndex.quick
+    file delete -force $pwd/PortIndex $pwd/PortIndex.quick
 
     file mkdir /tmp/macports-tests/ports
     file mkdir /tmp/macports-tests/opt/local/etc/macports/
@@ -42,39 +47,54 @@ proc set_dir {} {
     file mkdir /tmp/macports-tests/opt/local/var/macports/build/
 
     file link -symbolic /tmp/macports-tests/opt/local/share/macports $datadir/macports
-    file link -symbolic /tmp/macports-tests/ports/test $path/test
+    file link -symbolic /tmp/macports-tests/ports/test $pwd/test
 }
 
 # Run portindex
 proc port_index {} {
-  global bindir
+    global bindir
+    global datadir
+    global pwd
 
-  set cmd "portindex"
+    # Move up 2 level to run portindex.
+    set path [pwd]
+    cd ../..
 
-  file copy sources.conf /tmp/macports-tests/opt/local/etc/macports/
-  set result [exec $bindir$cmd 2>&1]
-  file copy PortIndex PortIndex.quick /tmp/macports-tests/ports/
+    set cmd "portindex"
+
+    set result [eval exec $bindir$cmd 2>@1]
+
+    file copy $pwd/sources.conf /tmp/macports-tests/opt/local/etc/macports/
+    file copy $pwd/PortIndex $pwd/PortIndex.quick /tmp/macports-tests/ports/
+
+    cd $path
 }
 
 # Executes port clean.
 proc port_clean {} {
     global bindir
+    global datadir
+    global portsrc
 
-    set args "clean"
+    set env "env PORTSRC=${portsrc}"
     set cmd "port"
+    set args "clean"
 
-    set result [eval exec $bindir$cmd $args]]
+    set result [eval exec $env $bindir$cmd $args 2>@1]
 }
 
 # Runs the portfile.
 proc port_run {} {
     global bindir
+    global datadir
+    global portsrc
 
+    set env "env PORTSRC=${portsrc}"
+    set cmd "port"
     set args "-d test"
     set output "output"
-    set cmd "port"
 
-    set result [catch {eval exec $bindir$cmd $args >&output} ]
+    set result [catch {eval exec $env $bindir$cmd $args >&output} ]
     return $result
 }
 
