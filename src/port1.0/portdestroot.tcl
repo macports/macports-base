@@ -70,7 +70,7 @@ default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""
 default destroot.violate_mtree no
-default destroot.delete_la_files no
+default destroot.delete_la_files {${delete_la_files}}
 
 default startupitem.autostart   no
 default startupitem.executable  ""
