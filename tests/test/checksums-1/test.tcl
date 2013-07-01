@@ -7,10 +7,17 @@ set file "output"
 set dir "work"
 set path [file dirname [file normalize $argv0]]
 
+# Initial setup
+load_variables $path
+set_dir
+port_index
+port_clean $path
+port_run $path
+
 # Useful procs
 proc get_md5 {filename} {
     global path
-    set md5 "debug: calculated (md5)"
+    set md5 "debug: calculated (md5)*"
 
     set line [get_line $path/$filename $md5]
     set result [lrange [split $line " "] 4 4]
@@ -21,7 +28,7 @@ proc get_md5 {filename} {
 
 proc get_sha {filename} {
     global path
-    set sha "debug: calculated (sha1)"
+    set sha "debug: calculated (sha1)*"
 
     set line [get_line $path/$filename $sha]
     set result [lrange [split $line " "] 4 4]
@@ -32,18 +39,13 @@ proc get_sha {filename} {
 
 proc get_rmd {filename} {
     global path
-    set sha "debug: calculated (rmd160)"
+    set sha "debug: calculated (rmd160)*"
 
     set line [get_line $path/$filename $sha]
     set result [lrange [split $line " "] 4 4]
 
     return $result
 }
-
-# Initial setup
-load_variables $path
-port_clean $path
-port_run $path
 
 # Test cases
 test md5_checksum {

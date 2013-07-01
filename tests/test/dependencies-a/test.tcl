@@ -12,12 +12,12 @@ proc dep-a {} {
     global path
 
     load_variables $path
-    set_dir $path
+    set_dir
     port_index
     port_clean $path
     port_run $path
 
-    set err "error"
+    set err "error*"
     set line [get_line $file $err]
     return $line
 }

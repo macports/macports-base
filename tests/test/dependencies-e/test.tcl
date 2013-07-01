@@ -12,12 +12,12 @@ proc dep-e {} {
     global path
 
     load_variables $path
-    set_dir $path
+    set_dir
     port_index
     port_clean $path
     port_run $path
 
-    set err "error: dependency 'docbook-xml-4.1.2' not found"
+    set err "error: dependency 'docbook-xml-4.1.2' not found*"
     set line [get_line $file $err]
     return $line
 }
