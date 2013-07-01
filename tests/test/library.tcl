@@ -113,6 +113,30 @@ proc port_run {pwd} {
     return $result
 }
 
+# Installs new portfile.
+proc port_install {} {
+    global bindir
+    global portsrc
+
+    set env "env PORTSRC=${portsrc}"
+    set cmd "port"
+    set args "install"
+
+    set result [eval exec $env $bindir$cmd $args > output 2>@1]
+}
+
+# Uninstalls portfile.
+proc port_uninstall {} {
+    global bindir
+    global portsrc
+
+    set env "env PORTSRC=${portsrc}"
+    set cmd "port"
+    set args "uninstall"
+
+    set result [eval exec $env $bindir$cmd $args > output 2>@1]
+}
+
 # Returns the line containint a given string
 # from a given file, or -1 if nothing is found.
 proc get_line {filename lookup} {
