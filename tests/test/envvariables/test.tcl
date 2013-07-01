@@ -16,12 +16,16 @@ port_clean $path
 proc envvar_test {} {
     global file
     global path
+    global portsrc
+    global bindir
 
-    # Make helping script
+    # Build helping script
     set fp [open script.sh w+]
-    puts $fp "export ENVA=A; export ENVB=B; \
-    export PORTSRC=/Volumes/Other/gsoc/macports-all/branches/gsoc13-tests/tests/test-macports.conf; \
-    /opt/macports-test/bin/port test"
+    puts -nonewline $fp "export ENVA=A; export ENVB=B; export PORTSRC="
+    puts -nonewline $fp $portsrc
+    puts -nonewline $fp "; "
+    puts -nonewline $fp $bindir
+    puts -nonewline $fp "port test"
     close $fp
 
     exec sh script.sh > output
@@ -44,4 +48,5 @@ removeFile script.sh
 removeFile $file
 removeDirectory $dir
 
+cleanup
 cleanupTests
