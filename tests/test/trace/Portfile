@@ -1,33 +1,50 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # $Id$
 
-PortSystem 1.0
-name		trace
-version		1
-categories	test
-maintainers	pguyot@kallisys.net
-description	Test port for -t
-homepage	http://www.macports.org/
-platforms	darwin
+PortSystem          1.0
+name                trace
+version             1
+categories          test
+maintainers         pguyot@kallisys.net
+description         Test port for -t
+homepage            http://www.macports.org/
+platforms           darwin
 
-long_description ${description}
+long_description    ${description}
 
 distfiles
-use_configure no
-build		{}
-destroot	{
-	system "touch ${destroot}${prefix}/lib/${name}"
+use_configure       no
+build {}
+destroot {
+    system "touch ${destroot}${prefix}/lib/${name}"
 }
 
 test {
-	catch {system "touch create-trace"}
-	catch {system "rm delete-trace"}
-	system "touch /tmp/hello-trace"
-	system "rm /tmp/hello-trace"
-	system "ln -s /usr/include/ link-trace"
-	system "rm /tmp/link-trace2"
-	catch {system "mkdir mkdir-trace"}
-	catch {system "rmdir rmdir-trace"}
-	catch {system "mv rename-trace rename-new-trace"}
-	catch {system "DYLD_INSERT_LIBRARIES= touch create-trace-modenv"}
-	system "mkdir -p /usr/bin"
+    proc fails {operation} {
+        if {![catch $operation]} {
+            ui_error "Operation ${operation} succeeded although it should have failed!"
+            error "test failure"
+        }
+    }
+    # the port directory is outside of the sandbox; make sure files can't be
+    # created, deleted or symlinked into place here
+    fails {system "touch ../tracetesttmp/create-trace"}
+    fails {system "rm ../tracetesttmp/delete-trace"}
+    fails {system "ln -s /usr/include/ ../tracetesttmp/link-trace"}
+    # we also don't want mkdir or rmdir here
+    fails {system "mkdir ../tracetesttmp/mkdir-trace"}
+    fails {system "rmdir ../tracetesttmp/rmdir-trace"}
+    # renaming should also be prohibited
+    fails {system "mv ../tracetesttmp/rename-trace ../tracetesttmp/rename-new-trace"}
+
+    # test access to /tmp
+    system "touch /tmp/hello-trace"
+    system "rm /tmp/hello-trace"
+    system "rm /tmp/link-trace2"
+
+    # overwriting DYLD_INSERT_LIBRARIES should not allow escaping the sandbox (due to env restoring)
+    fails {system "DYLD_INSERT_LIBRARIES= touch ../tracetesttmp/create-trace-modenv"}
+
+    # if the directories already exist, mkdir -p should succeed.
+    system "mkdir -p /usr/bin"
 }
