@@ -5,7 +5,7 @@ source [file dirname $argv0]/../library.tcl
 
 set file "output"
 set dir "work"
-set path [file dirname $argv0]
+set path [file dirname [file normalize $argv0]]
 
 # Useful procs
 proc get_md5 {filename} {
@@ -41,9 +41,9 @@ proc get_rmd {filename} {
 }
 
 # Initial setup
-load_variables
-port_clean [file dirname $argv0]
-port_run [file dirname $argv0]
+load_variables $path
+port_clean $path
+port_run $path
 
 # Test cases
 test md5_checksum {
