@@ -16,18 +16,20 @@ proc load_variables {pwd} {
         exit 1
     }
 
-    set aux [expr [string length $pwd] - 20]
-    set cpwd [string range $pwd 0 [expr [string last "/" $pwd $aux] - 1]]
+    set aux [expr [string last "/" $pwd [string length $pwd]]]
+    set aux2 [expr [string last "/" $pwd $aux-1]]
+    set cpwd [string range $pwd 0 $aux2]
 
-    set line [get_line $autoconf "prefix"]
+    set line [get_line $autoconf "prefix*"]
     set prefix [lrange [split $line " "] 1 1]
 
-    set line [get_line $autoconf "bindir"]
+    set line [get_line $autoconf "bindir*"]
     set bin [lrange [split $line "/"] 1 1]
 
     set bindir $prefix/$bin/
     set datadir $prefix/share
     set portsrc $cpwd/test-macports.conf
+
 }
 
 proc cleanup {} {
@@ -38,7 +40,7 @@ proc cleanup {} {
 }
 
 # Sets initial directories
-proc set_dir {pwd} {
+proc set_dir {} {
     global datadir
     global cpwd
 
@@ -119,7 +121,7 @@ proc get_line {filename lookup} {
     while {[gets $fp line] != -1} {
         set line [string tolower $line]
 
-        if {[string first $lookup $line 0] != -1} {
+        if {[string match $lookup $line] != 0} {
             close $fp
             return $line
         }
