@@ -1,5 +1,7 @@
 set autoconf [file dirname $argv0]/../../../Mk/macports.autoconf.mk
 
+eval ::tcltest::configure $::argv
+
 # Set of procs used for testing.
 
 # Sets $bindir variable from macports.autoconf.mk
@@ -16,9 +18,7 @@ proc load_variables {pwd} {
         exit 1
     }
 
-    set aux [expr [string last "/" $pwd [string length $pwd]]]
-    set aux2 [expr [string last "/" $pwd $aux-1]]
-    set cpwd [string range $pwd 0 $aux2]
+    set cpwd [file join {*}[lrange [file split $pwd] 0 end-2]]/
 
     set line [get_line $autoconf "prefix*"]
     set prefix [lrange [split $line " "] 1 1]
