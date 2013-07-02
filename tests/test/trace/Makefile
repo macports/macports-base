@@ -11,7 +11,7 @@ $(bindir)/port:
 test:
 	@PORTSRC=$(PORTSRC) $(bindir)/port clean > /dev/null
 	@mkdir -p ../tracetesttmp
-	@chown $(RUNUSR) ../tracetesttmp
+	@chown $(RUNUSR) ../tracetesttmp || true
 	@sudo -u $(RUNUSR) touch ../tracetesttmp/delete-trace
 	@sudo -u $(RUNUSR) touch ../tracetesttmp/rename-trace
 	@sudo -u $(RUNUSR) mkdir -p ../tracetesttmp/rmdir-trace
@@ -29,3 +29,8 @@ test:
 	else \
 		rm -f difference output.sed; \
 	fi
+
+clean::
+	@PORTSRC=$(PORTSRC) $(bindir)/port clean >/dev/null
+	@rm -f output output.sed difference
+	@rm -rf ../tracetesttmp
