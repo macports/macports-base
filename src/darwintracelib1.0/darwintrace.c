@@ -350,11 +350,119 @@ static inline char* const* __darwintrace_restore_env(char* const envp[]) {
 	return theCopy;
 }
 
-static void ask_for_filemap()
-{
-	filemap=exchange_with_port("filemap\t", sizeof("filemap\t"), 1);
-	if(filemap==(char*)-1)
-		filemap=0;
+/*
+ * Data structures and functions to iterate over the filemap received from
+ * tracelib code.
+ */
+/**
+ * \c filemap_iterator_t is an (opaque) iterator type that keeps the state
+ * required to iterate through the filemap. Create a new filemap_iterator_t on
+ * stack, initialize it using \c __darwintrace_filemap_iterator_init and pass
+ * it to \c __darwintrace_filemap_iter to iterate over the filemap.
+ */
+typedef struct filemap_iterator {
+	char *next;
+} filemap_iterator_t;
+
+/**
+ * Initialize a given \c filemap_iterator_t. Calling this function again will
+ * rewind the iterator.
+ *
+ * \param[in] it pointer to the iterator to be initialized
+ */
+__attribute__((always_inline))
+static inline void __darwintrace_filemap_iterator_init(filemap_iterator_t *it) {
+	it->next = filemap;
+}
+
+/**
+ * Iterate through the filemap passed from tracelib code. Call this multiple
+ * times with the same iterator object until it returns \c NULL to iterate
+ * through the filemap.
+ *
+ * \param[out] command location for the command specified for this filemap
+ *                     entry
+ * \param[out] replacement location for a replacement path, if any. This field
+ *                         is only valid if the command field indicates
+ *                         a replacement path is being used.
+ * \param[in]  it pointer to a \c filemap_iterator_t keeping the state of this
+ *                iteration
+ * \return string containing the path this filemap entry corresponds to, or \c
+ *         NULL if the end of the filemap was reached
+ */
+__attribute__((always_inline))
+static inline char *__darwintrace_filemap_iter(char *command, char **replacement, filemap_iterator_t *it) {
+	enum { PATH, COMMAND, REPLACEPATH, DONE } state = PATH;
+	char *t;
+	char *path;
+	
+	if (it == NULL || it->next == NULL || *it->next == '\0') {
+		return NULL;
+	}
+
+	path = t = it->next;
+
+	/* advance the cursor: if the number after the string is not 1, there's no
+	 * path behind it and we can advance by strlen(t) + 3. If it is 1, make
+	 * sure to skip the path, too.
+	 */
+	state = PATH;
+	while (state != DONE) {
+		switch (state) {
+			case DONE:
+				fprintf(stderr, "darwintrace: illegal state in dfa in " __FILE__ ":%d\n", __LINE__);
+				abort();
+				break;
+			case PATH:
+				if (!*t) {
+					state = COMMAND;
+				}
+				break;
+			case COMMAND:
+				*command = *t;
+				if (*t == 1) {
+					state = REPLACEPATH;
+					*replacement = t + 1;
+				} else {
+					state = DONE;
+					/* the byte after the status code is 0, if the status
+					 * code isn't 1 */
+					t++;
+				}
+				break;
+			case REPLACEPATH:
+				if (!*t) {
+					state = DONE;
+				}
+				break;
+		}
+		t++;
+	}
+
+	it->next = t;
+	return path;
+}
+
+/**
+ * Request sandbox boundaries from tracelib (the MacPorts base-controlled side
+ * of the trace setup) and store it.
+ */
+static void __darwintrace_get_filemap() {
+	filemap = exchange_with_port("filemap\t", sizeof("filemap\t"), 1);
+	if (filemap == (char*) -1)
+		filemap = 0;
+
+#	if 0
+	if (DARWINTRACE_DEBUG_OUTPUT) {
+		filemap_iterator_t it;
+		char *path, *replacement, command;
+
+		for (__darwintrace_filemap_iterator_init(&it);
+				(path = __darwintrace_filemap_iter(&command, &replacement, &it));) {
+			debug_printf("filemap: {cmd=%d, path=%-120s, replacement=%s}\n", command, path, (command == 1) ? replacement : "-");
+		}
+	}
+#	endif
 }
 
 __attribute__((always_inline))
@@ -383,7 +491,7 @@ static inline void __darwintrace_setup() {
 			strncpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
 			if (connect(sock, (struct sockaddr*)&sun, strlen(__env_darwintrace_log) + 1 + sizeof(sun.sun_family)) != -1) {
 				__darwintrace_fd = sock;
-				ask_for_filemap();
+				__darwintrace_get_filemap();
 			} else {
 				debug_printf("connect failed: %s\n", strerror(errno));
 				abort();
@@ -422,22 +530,22 @@ static inline void __darwintrace_log_op(const char* op, const char* path, int fd
 	char logbuffer[BUFFER_SIZE];
 
 	do {
-#ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
-		if ((fd > 0) && (DARWINTRACE_LOG_FULL_PATH
-			|| (strncmp(path, "/.vol/", 6) == 0))) {
-			if(fcntl(fd, F_GETPATH, somepath) == -1) {
-				/* getpath failed. use somepath instead */
-				strlcpy(somepath, path, sizeof(somepath));
+#		ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
+		if ((fd > 0) && (DARWINTRACE_LOG_FULL_PATH || (strncmp(path, "/.vol/", 6) == 0))) {
+			if (fcntl(fd, F_GETPATH, somepath) != -1) {
 				break;
 			}
 		}
-#endif
-		if (path[0] != '/') {
-			int len;
-			(void) getcwd(somepath, sizeof(somepath));
-			len = strlen(somepath);
-			somepath[len++] = '/';
-			strlcpy(&somepath[len], path, sizeof(somepath) - len);
+#		endif
+
+		if (*path != '/') {
+			if (!getcwd(somepath, sizeof(somepath))) {
+				perror("darwintrace: getcwd");
+				abort();
+			}
+
+			strlcat(somepath, "/", sizeof(somepath));
+			strlcat(somepath, path, sizeof(somepath));
 			break;
 		}
 
@@ -600,39 +708,37 @@ static char * exchange_with_port(const char * buf, size_t len, int answer) {
 	}
 }
 
-#define DARWINTRACE_STATUS_PATH    ((char) 0)
-#define DARWINTRACE_STATUS_COMMAND ((char) 1)
-#define DARWINTRACE_STATUS_DONE    ((char) 2)
-
 /*
  * return 1 if path (once normalized) is in sandbox or redirected, 0 otherwise.
  */
 __attribute__((always_inline))
 static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
-	char *t, *p, *_;
+	char *t, *_;
 	char *strpos, *normpos;
 	char lpath[MAXPATHLEN];
 	char normalizedpath[MAXPATHLEN];
+	filemap_iterator_t filemap_it;
+	char command;
+	char *replacementpath;
 	
 	__darwintrace_setup();
 	
 	if (!filemap)
 		return 1;
 	
-	if (*path=='/') {
-		p = strcpy(lpath, path);
+	if (*path == '/') {
+		strcpy(lpath, path);
 	} else {
 		if (getcwd(lpath, MAXPATHLEN - 1) == NULL) {
-			fprintf(stderr, "darwintrace: getcwd: %s, path was: %s\n", strerror(errno), path);
+			perror("darwintrace: getcwd");
 			abort();
 		}
-		strcat(lpath, "/");
-		strcat(lpath, path);
+		strlcat(lpath, "/", MAXPATHLEN);
+		strlcat(lpath, path, MAXPATHLEN);
 	}
-	p = lpath;
 
 	normalizedpath[0] = '\0';
-	strpos = p + 1;
+	strpos = lpath + 1;
 	normpos = normalizedpath;
 	for (;;) {
 		char *curpos = strsep(&strpos, "/");
@@ -657,6 +763,7 @@ static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) 
 			/* remove last component by overwriting the slash with \0, update normpos */
 			*lastSep = '\0';
 			normpos = lastSep;
+			continue;
 		}
 		/* default case: standard path, copy */
 		strcat(normpos, "/");
@@ -667,9 +774,8 @@ static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) 
 		strcat(normalizedpath, "/");
 	}
 
-	for (t = filemap; *t;) {
-		char state;
-		
+	for (__darwintrace_filemap_iterator_init(&filemap_it);
+			(t = __darwintrace_filemap_iter(&command, &replacementpath, &filemap_it));) {
 		if (__darwintrace_pathbeginswith(normalizedpath, t)) {
 			/* move t to the integer describing how to handle this match */
 			t += strlen(t) + 1;
@@ -692,37 +798,17 @@ static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) 
 					return 1;
 				case 2:
 					/* ask the socket whether this file is OK */
-					return ask_for_dependency(normalizedpath);
+					if (ask_for_dependency(normalizedpath)) {
+						return 1;
+					} else {
+						__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
+						return 0;
+					}
 				default:
 					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
 					abort();
 			}
 		}
-
-		/* advance the cursor: if the number after the string is not 1, there's
-		 * no path behind it and we can advance by strlen(t) + 3. If it is 1,
-		 * make sure to skip the path, too.
-		 */
-		state = DARWINTRACE_STATUS_PATH;
-		while (state != DARWINTRACE_STATUS_DONE) {
-			switch (state) {
-				case DARWINTRACE_STATUS_PATH:
-					if (!*t) {
-						state = DARWINTRACE_STATUS_COMMAND;
-					}
-					break;
-				case DARWINTRACE_STATUS_COMMAND:
-					if (*t == 1) {
-						state = DARWINTRACE_STATUS_PATH;
-						t++;
-					} else {
-						state = DARWINTRACE_STATUS_DONE;
-					}
-					break;
-			}
-			t++;
-		}
-		t++;
 	}
 
 	__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
