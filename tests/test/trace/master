@@ -4,9 +4,9 @@
 --->  Configuring trace
 --->  Building trace
 --->  Testing trace
-Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace
-Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace-modenv
-Warning: A creation/deletion/modification was attempted outside sandbox: PWD/delete-trace
-Warning: A creation/deletion/modification was attempted outside sandbox: PWD/mkdir-trace
-Warning: A creation/deletion/modification was attempted outside sandbox: PWD/rename-trace
-Warning: A creation/deletion/modification was attempted outside sandbox: PWD/rmdir-trace
+Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/create-trace
+Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/create-trace-modenv
+Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/delete-trace
+Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/mkdir-trace
+Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/rename-trace
+Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/rmdir-trace
