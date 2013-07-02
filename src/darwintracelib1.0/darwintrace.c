@@ -382,7 +382,6 @@ static inline void __darwintrace_setup() {
 			sun.sun_family = AF_UNIX;
 			strncpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
 			if (connect(sock, (struct sockaddr*)&sun, strlen(__env_darwintrace_log) + 1 + sizeof(sun.sun_family)) != -1) {
-				debug_printf("connect successful, socket %d in pid %d\n", sock, __darwintrace_pid);
 				__darwintrace_fd = sock;
 				ask_for_filemap();
 			} else {
@@ -449,11 +448,9 @@ static inline void __darwintrace_log_op(const char* op, const char* path, int fd
 	/* clean the path. */
 	__darwintrace_cleanup_path(somepath);
 
-	size = snprintf(logbuffer, sizeof(logbuffer),
-		"%s\t%s",
-		op, somepath);
+	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, somepath);
 
-	exchange_with_port(logbuffer, size+1, 0);
+	exchange_with_port(logbuffer, size + 1, 0);
 	
 	return;
 }
@@ -463,22 +460,22 @@ static inline void __darwintrace_log_op(const char* op, const char* path, int fd
  */
 static inline void __darwintrace_cleanup_path(char *path) {
 	size_t pathlen;
-#ifdef __APPLE__
+#	ifdef __APPLE__
 	size_t rsrclen;
-#endif
+#	endif
 	size_t i, shiftamount;
 	enum { SAWSLASH, NOTHING } state = NOTHING;
 
 	/* if this is a foo/..namedfork/rsrc, strip it off */
 	pathlen = strlen(path);
 	/* ..namedfork/rsrc is only on OS X */
-#ifdef __APPLE__
+#	ifdef __APPLE__
 	rsrclen = strlen(_PATH_RSRCFORKSPEC);
 	if (pathlen > rsrclen && 0 == strcmp(path + pathlen - rsrclen, _PATH_RSRCFORKSPEC)) {
 		path[pathlen - rsrclen] = '\0';
 		pathlen -= rsrclen;
 	}
-#endif
+#	endif
 
 	/* for each position in string (including terminal \0), check if we're in
 	 * a run of multiple slashes, and only emit the first one */
@@ -665,7 +662,6 @@ static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) 
 		strcat(normpos, "/");
 		normpos++;
 		strcat(normpos, curpos);
-		debug_printf("path %s, processing entry %s, normalized %s\n", path, curpos, normalizedpath);
 	}
 	if (*normalizedpath == '\0') {
 		strcat(normalizedpath, "/");
