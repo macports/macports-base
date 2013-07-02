@@ -958,7 +958,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::revupgrade_mode rebuild
     }
     if {![info exists macports::delete_la_files]} {
-        set macports::delete_la_files no
+        if {$os_platform eq "darwin" && $os_major >= 13} {
+            set macports::delete_la_files yes
+        } else {
+            set macports::delete_la_files no
+        }
     }
     if {![info exists macports::global_options(ports_rev-upgrade_id-loadcmd-check)]
          && [info exists macports::revupgrade_check_id_loadcmds]} {
