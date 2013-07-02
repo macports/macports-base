@@ -80,13 +80,34 @@ proc porttrace::trace_start {workpath} {
             # /Library/Caches/com.apple.Xcode
             # $CCACHE_DIR
             # $HOMEDIR/.ccache
-            set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/var/empty:/private/var/empty:/dev:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:${portpath}:${distpath}"
+            set trace_sandbox [list]
+            lappend trace_sandbox $workpath
+            lappend trace_sandbox $portpath
+            lappend trace_sandbox $distpath
+            lappend trace_sandbox "/tmp"
+            lappend trace_sandbox "/private/tmp"
+            lappend trace_sandbox "/var/tmp"
+            lappend trace_sandbox "/private/var/tmp"
+            lappend trace_sandbox "/var/empty"
+            lappend trace_sandbox "/private/var/empty"
+            lappend trace_sandbox "/dev"
+            lappend trace_sandbox "/etc/passwd"
+            lappend trace_sandbox "/etc/groups"
+            lappend trace_sandbox "/etc/localtime"
+            lappend trace_sandbox "/Library/Caches/com.apple.Xcode"
+            lappend trace_sandbox "$env(HOME)/.ccache"
             if {[info exists env(TMPDIR)]} {
-                set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
+                lappend trace_sandbox $env(TMPDIR)
             }
             if {[info exists env(CCACHE_DIR)]} {
-                set trace_sandboxbounds "${trace_sandboxbounds}:$env(CCACHE_DIR)"
+                lappend trace_sandbox $env(CCACHE_DIR)
             }
+
+            ui_debug "Tracelib Sandbox is:"
+            foreach sandbox $trace_sandbox {
+                ui_debug "\t$sandbox"
+            }
+            set trace_sandboxbounds [join $trace_sandbox :]
             tracelib setsandbox $trace_sandboxbounds
         }
     }
