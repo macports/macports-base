@@ -300,6 +300,7 @@ static void send_file_map(int sock)
 			}
 		}else
 			append_allow("/", 0);
+		append_allow("", 0);
 		filemap_end=t;
 		#undef append_allow
 	}
