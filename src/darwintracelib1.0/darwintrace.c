@@ -136,14 +136,14 @@ size_t strlcpy(char* dst, const char* src, size_t size)
 /*
  * Prototypes.
  */
-inline int __darwintrace_strbeginswith(const char* str, const char* prefix);
+static inline int __darwintrace_strbeginswith(const char* str, const char* prefix);
 static inline int __darwintrace_pathbeginswith(const char* str, const char* prefix);
-inline void __darwintrace_log_op(const char* op, const char* path, int fd);
-void __darwintrace_copy_env() __attribute__((constructor));
-inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
-inline char* const* __darwintrace_restore_env(char* const envp[]);
+static inline void __darwintrace_log_op(const char* op, const char* path, int fd);
+static void __darwintrace_copy_env() __attribute__((constructor));
+static inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
+static inline char* const* __darwintrace_restore_env(char* const envp[]);
 static inline void __darwintrace_setup();
-inline void __darwintrace_cleanup_path(char *path);
+static inline void __darwintrace_cleanup_path(char *path);
 static char * exchange_with_port(const char * buf, size_t len, int answer);
 
 static int __darwintrace_fd = -2;
@@ -254,7 +254,7 @@ void __darwintrace_copy_env() {
  *
  * If the value is NULL, return NULL.
  */
-inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) {
+static inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) {
 	char* theResult = NULL;
 	if (varValue) {
 		int theSize = strlen(varName) + strlen(varValue) + 2;
@@ -273,7 +273,7 @@ inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) 
  * library was loaded and modifies it if it doesn't.
  */
 __attribute__((always_inline))
-inline char* const* __darwintrace_restore_env(char* const envp[]) {
+static inline char* const* __darwintrace_restore_env(char* const envp[]) {
 	/* allocate the strings. */
 	/* we don't care about the leak here because we're going to call execve,
      * which, if it succeeds, will get rid of our heap */
@@ -417,7 +417,7 @@ static inline void __darwintrace_setup() {
  * fd:			a fd to the file, or 0 if we don't have any.
  */
 __attribute__((always_inline))
-inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
+static inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
 	int size;
 	char somepath[MAXPATHLEN];
 	char logbuffer[BUFFER_SIZE];
@@ -461,7 +461,7 @@ inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
 /* remap resource fork access to the data fork.
  * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
  */
-inline void __darwintrace_cleanup_path(char *path) {
+static inline void __darwintrace_cleanup_path(char *path) {
 	size_t pathlen;
 #ifdef __APPLE__
 	size_t rsrclen;
