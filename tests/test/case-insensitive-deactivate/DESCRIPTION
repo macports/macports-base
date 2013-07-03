@@ -1,0 +1,10 @@
+This test checks for case-insensitive port names. From Portfile.in it
+generates a Portfile which is installed with a lowercase name (casesensitive)
+and uninstalled with a CamelCase name (CaseSensitivE). The install/uninstall
+is verified by the existance/absence of the '/tmp/macports-tests/opt/local/var/test/case'
+file.
+
+There are 2 test cases. One to install a port and the other to uninstall.
+
+See ticket #11759,
+https://trac.macports.org/ticket/11759

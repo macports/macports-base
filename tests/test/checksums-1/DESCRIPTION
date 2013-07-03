@@ -1,0 +1,7 @@
+This test evaluates the checksum values of an empty file against the expected
+ones. These are taken from the output of the 'port -d test' command, by
+searching a line that beging with the string "debug: calculated".
+
+There are 3 test cases, one for each checksum used. The port command must
+return the calculated checksums in debug mode, with the form: "DEBUG:
+Calculated (_checksum-name_) " for the test to work.
