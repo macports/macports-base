@@ -197,6 +197,12 @@ int debug_printf(const char *format, ...) {
 static inline int __darwintrace_pathbeginswith(const char* str, const char* prefix) {
 	char s;
 	char p;
+
+	// '/' is the allow all wildcard
+	if (strcmp(prefix, "/") == 0) {
+		return 1;
+	}
+
 	do {
 		s = *str++;
 		p = *prefix++;
@@ -801,8 +807,8 @@ static inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) 
 					if (ask_for_dependency(normalizedpath)) {
 						return 1;
 					} else {
-						__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
-						return 0;
+						/* try to find another entry allowing this access */
+						continue;
 					}
 				default:
 					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
