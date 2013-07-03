@@ -3,8 +3,9 @@ namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
 
-set file "output"
-set dir "work"
+makeFile "" "Portfile"
+makeFile "" $output_file
+makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 set testfile "/tmp/macports-tests/opt/local/var/test/case"
@@ -45,27 +46,20 @@ proc test_not_exists {} {
     }
 }
 
+
 # Test cases.
 test file_installed {
     Regression test for file installed correctly.
-} -constraints {
-    root
 } -body {
     test_exists
 } -result "Port installed."
 
 test file_uninstalled {
     Regression test for file uninstalled correctly.
-} -constraints {
-    root
 } -body {
     test_not_exists
 } -result "Port uninstalled."
 
-# remove output file and print results
-removeFile Portfile
-removeFile $file
-removeDirectory $dir
 
 cleanup
 cleanupTests
