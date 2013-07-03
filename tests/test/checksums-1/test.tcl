@@ -3,8 +3,8 @@ namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
 
-set file "output"
-set dir "work"
+makeFile "" $output_file
+makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 # Initial setup
@@ -13,6 +13,7 @@ set_dir
 port_index
 port_clean $path
 port_run $path
+
 
 # Useful procs
 proc get_md5 {filename} {
@@ -25,7 +26,6 @@ proc get_md5 {filename} {
     return $result
 }
 
-
 proc get_sha {filename} {
     global path
     set sha "debug: calculated (sha1)*"
@@ -35,7 +35,6 @@ proc get_sha {filename} {
 
     return $result
 }
-
 
 proc get_rmd {filename} {
     global path
@@ -47,36 +46,28 @@ proc get_rmd {filename} {
     return $result
 }
 
+
 # Test cases
 test md5_checksum {
     Regression test for MD5 Checksum.
-} -constraints {
-    root
 } -body {
-    get_md5 $file
+    get_md5 $output_file
 } -result "d41d8cd98f00b204e9800998ecf8427e"
 
 
 test sha1_checksum {
     Regression test for SHA1 Checksum.
-} -constraints {
-    root
 } -body {
-    get_sha $file
+    get_sha $output_file
 } -result "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 
 
 test rmd160_checksum {
     Regression test for RMD160 Checksum.
-} -constraints {
-    root
 } -body {
-    get_rmd $file
+    get_rmd $output_file
 } -result "9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 
-# remove output file and print results
-removeFile $file
-removeDirectory $dir
-
+cleanup
 cleanupTests
