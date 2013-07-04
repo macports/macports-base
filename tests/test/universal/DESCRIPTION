@@ -1,0 +1,7 @@
+This test checks the handling of the universal variant in MacPorts base.
+Every port should have an universal variant unless 'universal_variant no' is
+specified.
+
+There are 2 test cases. One for universal variant set and another for no
+universal variant. For each test a specific Portfile is generated from the
+Port.in file.
