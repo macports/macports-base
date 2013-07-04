@@ -2,6 +2,9 @@ set autoconf [file dirname $argv0]/../../../Mk/macports.autoconf.mk
 
 eval ::tcltest::configure $::argv
 
+set output_file "output"
+set work_dir "work"
+
 # Set of procs used for testing.
 
 # Sets $bindir variable from macports.autoconf.mk
@@ -18,7 +21,7 @@ proc load_variables {pwd} {
         exit 1
     }
 
-    set cpwd [file join {*}[lrange [file split $pwd] 0 end-2]]/
+    set cpwd [eval file join {*}[lrange [file split $pwd] 0 end-2]]/
 
     set line [get_line $autoconf "prefix*"]
     set prefix [lrange [split $line " "] 1 1]
@@ -151,4 +154,22 @@ proc get_line {filename lookup} {
         }
     }
     return -1
+}
+
+# This proc contains all the steps necesary
+# to install a port and save the output to a file.
+# Needed for the majority of regression tests.
+proc initial_setup {} {
+    global output_file
+    global work_dir
+    global path
+
+    makeFile "" $output_file
+    makeDirectory $work_dir
+
+    load_variables $path
+    set_dir
+    port_index
+    port_clean $path
+    port_run $path
 }
