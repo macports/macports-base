@@ -65,7 +65,13 @@ proc portsandbox::set_profile {target} {
             set allow_dirs [list $distpath]
         }
         pkg {
-            set allow_dirs [list ${package.destpath}]
+            if {${os.major} == 12} {
+                # FIXME: fails on Mountain Lion with the current profile
+                set portsandbox_profile ""
+                return
+            } else {
+                set allow_dirs [list ${package.destpath}]
+            }
         }
         rpm -
         srpm {
