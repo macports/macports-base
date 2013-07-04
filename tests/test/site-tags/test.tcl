@@ -3,12 +3,12 @@ namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
 
-set file "output"
-set dir "work"
+makeFile "" $output_file
+makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 proc sitetag {} {
-    global file
+    global output_file
     global path
 
     load_variables $path
@@ -18,20 +18,20 @@ proc sitetag {} {
     port_run $path
 
     set err "error*"
-    set line [get_line $file $err]
-    return $line
+    set line [get_line $output_file $err]
+    if {$line == -1} {
+        return "No errors found."
+    } else {
+        return "Errors found in the output file."
+    }
 }
 
 test site-tags {
     Regression test for site-tags.
-} -constraints {
-    root
 } -body {
     sitetag
-} -result -1
+} -result "No errors found."
 
-removeFile $file
-removeDirectory $dir
 
 cleanup
 cleanupTests

@@ -1,0 +1,4 @@
+This test checks if MacPorts can fetch files from different URLs for the
+specified tags.
+
+There is 1 test case that looks for errors in the output file.
