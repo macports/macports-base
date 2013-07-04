@@ -1,0 +1,3 @@
+Trace is currently a broken test. It is intended for a feature called trace
+mode that was broken for a while now. It creates a virtual sandbox by a 
+mechanism known from Linux as library LD_PRELOADing.
