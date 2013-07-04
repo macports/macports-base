@@ -1,0 +1,4 @@
+This test checks fetching using svn and downloading of patchfiles from
+the URL given by patch_sites.
+
+There is 1 test case which looks for errors in the output file.
