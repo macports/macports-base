@@ -80,22 +80,22 @@ proc porttrace::trace_start {workpath} {
             # /Library/Caches/com.apple.Xcode
             # $CCACHE_DIR
             # $HOMEDIR/.ccache
-            set trace_sandbox [list]
-            lappend trace_sandbox $workpath
-            lappend trace_sandbox $portpath
-            lappend trace_sandbox $distpath
-            lappend trace_sandbox "/tmp"
-            lappend trace_sandbox "/private/tmp"
-            lappend trace_sandbox "/var/tmp"
-            lappend trace_sandbox "/private/var/tmp"
-            lappend trace_sandbox "/var/empty"
-            lappend trace_sandbox "/private/var/empty"
-            lappend trace_sandbox "/dev"
-            lappend trace_sandbox "/etc/passwd"
-            lappend trace_sandbox "/etc/groups"
-            lappend trace_sandbox "/etc/localtime"
-            lappend trace_sandbox "/Library/Caches/com.apple.Xcode"
-            lappend trace_sandbox "$env(HOME)/.ccache"
+            set trace_sandbox [list \
+            $workpath \
+            $portpath \
+            $distpath \
+            /tmp \
+            /private/tmp \
+            /var/tmp \
+            /private/var/tmp \
+            /var/empty \
+            /private/var/empty \
+            /dev \
+            /etc/passwd \
+            /etc/groups \
+            /etc/localtime \
+            /Library/Caches/com.apple.Xcode \
+            "$env(HOME)/.ccache"]
             if {[info exists env(TMPDIR)]} {
                 lappend trace_sandbox $env(TMPDIR)
             }
