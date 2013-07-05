@@ -111,36 +111,63 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
  * Input:
  *  /dev/null:/dev/tty:/tmp
  * In variable;
- * /dev/null\0/dev/tty\0/tmp\0\0
+ *  /dev/null\0/dev/tty\0/tmp\0\0
  */
 static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int len;
-    char *t;
+    char *src, *dst;
+    enum { NORMAL, ESCAPE } state = NORMAL;
 
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
         return TCL_ERROR;
     }
 
-    len = strlen(Tcl_GetString(objv[2])) + 2;
-    sandbox = (char *)malloc(len);
+    src = Tcl_GetString(objv[2]);
+    len = strlen(src) + 2;
+    sandbox = malloc(len);
     if (!sandbox) {
         Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
         return TCL_ERROR;
     }
-    memset(sandbox, 0, len);
-    strlcpy(sandbox, Tcl_GetString(objv[2]), len);
-    for (t = sandbox; (t = strchr(t + 1, ':'));) {
-        /* : -> \0 */
-        if (t[-1] != '\\') {
-            *t = 0;
-        } else
-            /* \: -> : */
-            /* TODO \\: -> \: */
-        {
-            memmove(t - 1, t, strlen(t));
+    for (dst = sandbox; *src != '\0'; src++) {
+        switch (*src) {
+            case '\\':
+                if (state == ESCAPE) {
+                    /* double backslash, turn into single backslash (note
+                     * C strings use \ as escape char, too! */
+                    *dst++ = '\\';
+                    state = NORMAL;
+                } else {
+                    /* hit a backslash, assume this is an escape sequence */
+                    state = ESCAPE;
+                }
+                break;
+            case ':':
+                if (state == ESCAPE) {
+                    /* : was escaped, keep literally */
+                    *dst++ = ':';
+                    state = NORMAL;
+                } else {
+                    /* : -> \0, unless it has been escaped */
+                    *dst++ = '\0';
+                }
+                break;
+            default:
+                if (state == ESCAPE) {
+                    /* unknown escape sequence, free buffer and raise an error */
+                    free(sandbox);
+                    Tcl_SetResult(interp, "unknown escape sequence", TCL_STATIC);
+                    return TCL_ERROR;
+                }
+                /* otherwise: copy the char */
+                *dst++ = *src;
+                break;
         }
     }
+    /* add two \0 to mark the end */
+    *dst++ = '\0';
+    *dst = '\0';
 
     return TCL_OK;
 }
