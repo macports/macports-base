@@ -448,23 +448,23 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {$xcodeversion == "none" || $xcodeversion == ""} {
         return {cc}
     } elseif {[vercmp $xcodeversion 4.6] >= 0} {
-        return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.2}
+        return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
     } elseif {[vercmp $xcodeversion 4.2] >= 0} {
-        return {clang llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.2}
+        return {clang llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
-        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.2 apple-gcc-4.2}
+        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.3 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 3.2] >= 0} {
         if {$macosx_deployment_target == "10.4"} {
             # It's not the deployment target that is the issue, it's the
             # 10.4u SDK which base chooses if the deployment_target is set
             return {gcc-4.0}
         } else {
-            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.2 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
+            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
         }
     } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-        return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.2}
+        return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
     } else {
-        return {gcc-4.0 apple-gcc-4.2 gcc-3.3 macports-clang-3.2}
+        return {gcc-4.0 apple-gcc-4.2 gcc-3.3 macports-clang-3.3}
     }
 }
 
