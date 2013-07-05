@@ -175,7 +175,7 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 /*
  * Is there more data? (return 1 if more data in socket, 0 otherwise)
  */
-static char can_I_recv_more(int sock) {
+static char data_available(int sock) {
     struct timeval tv;
     fd_set fdr;
     tv.tv_sec  = 0;
@@ -210,7 +210,7 @@ static char process_line(int sock) {
             {
                 char *end_of_t = t + strlen(t);
                 *end_of_t = ' ';
-                for (; can_I_recv_more(sock);) {
+                for (; data_available(sock);) {
                     if (recv(sock, end_of_t, 1, 0) != 1) {
                         ui_warn("recv failed");
                         return 0;
