@@ -447,9 +447,6 @@ static void __darwintrace_get_filemap() {
 	 * filemap == NULL */
 	free(filemap);
 	filemap = __send("filemap\t", sizeof("filemap\t"), 1);
-	if (filemap == (char *) - 1) {
-		filemap = 0;
-	}
 
 #if DARWINTRACE_DEBUG
 	for (__darwintrace_filemap_iterator_init(&it);
