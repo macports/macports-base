@@ -328,13 +328,6 @@ if test "$with_included_tclthread" = "yes"; then
 	patch -p0 < src/thread2.6.diff
 fi
 
-AH_TEMPLATE([TRACE_SDK], [SDK for SDK redirect in tracelib])
-AC_ARG_WITH(
-	trace-sdk,
-	AS_HELP_STRING([--with-trace-sdk=SDK],
-		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
-	[test -d ${DEVELOPER_DIR}/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
-
 # Allows building of shared libraries
 SC_ENABLE_SHARED
 

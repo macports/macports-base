@@ -72,21 +72,14 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 
 static char *name;
 static char *sandbox;
-static char *filemap, * filemap_end;
+static char *filemap, *filemap_end;
 static char *depends;
 static int sock = -1;
 static int enable_fence = 0;
 static Tcl_Interp *interp;
 static pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int cleanuping = 0;
-static char *sdk =
-#ifdef TRACE_SDK
-    /*"MacOSX10.4u.sdk"*/
-    TRACE_SDK
-#else
-    0
-#endif
-    ;
+static char *sdk = NULL;
 
 static void send_file_map(int sock);
 static void dep_check(int sock, const char *path);

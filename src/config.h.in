@@ -264,9 +264,6 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* SDK for SDK redirect in tracelib */
-#undef TRACE_SDK
-
 /* Attribute to mark unused variables */
 #undef UNUSED
 

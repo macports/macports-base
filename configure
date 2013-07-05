@@ -840,7 +840,6 @@ with_curlprefix
 with_sqlite3prefix
 with_tcl_sqlite3
 with_included_tclthread
-with_trace_sdk
 enable_shared
 '
       ac_precious_vars='build_alias
@@ -1525,8 +1524,6 @@ Optional Packages:
   --with-tcl-sqlite3=DIR  directory for Tcl sqlite3 (default /usr/lib/sqlite3)
   --with-included-tclthread
                           install included Thread package.
-  --with-trace-sdk=SDK    SDK for redirection in trace lib (for example
-                          MacOSX10.4u.sdk)
 
 Some influential environment variables:
   CC          C compiler command
@@ -10003,17 +10000,6 @@ subdirs="$subdirs src/thread2.6"
 	# Patch thread package (so thread2.6 is the vanilla distribution directory)
 	patch -p0 < src/thread2.6.diff
 fi
-
-
-
-# Check whether --with-trace-sdk was given.
-if test "${with_trace_sdk+set}" = set; then :
-  withval=$with_trace_sdk; test -d ${DEVELOPER_DIR}/SDKs/$withval && cat >>confdefs.h <<_ACEOF
-#define TRACE_SDK "${withval}"
-_ACEOF
-
-fi
-
 
 # Allows building of shared libraries
 
