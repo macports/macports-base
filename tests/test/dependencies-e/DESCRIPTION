@@ -1,0 +1,4 @@
+This test checks whether unknown dependencies correctly fail. There should be
+an error saying that the requested dependencies do not exist.
+
+There is 1 test case.

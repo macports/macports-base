@@ -1,0 +1,4 @@
+This test makes sure a dependency added in a variant block
+(this is selected as default variant) is considered.
+
+There is 1 test case.

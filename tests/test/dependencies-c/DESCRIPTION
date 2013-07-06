@@ -1,0 +1,4 @@
+This test does the same as dependencies-a, but due to the transitive
+nature of dependencies, also tests what dependencies-a has already tested.
+
+There is 1 test case.

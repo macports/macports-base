@@ -3,35 +3,27 @@ namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
 
-set file "output"
-set dir "work"
+makeFile "" $output_file
+makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 proc dep-c {} {
-    global file
     global path
+    global output_file
 
-    load_variables $path
-    set_dir
-    port_index
-    port_clean $path
-    port_run $path
+    initial_setup
 
     set err "error*"
-    set line [get_line $file $err]
+    set line [get_line $output_file $err]
     return $line
 }
 
 test dependencies-c {
     Regression test for dependencies-c.
-} -constraints {
-    root
 } -body {
     dep-c
 } -result -1
 
-cleanup
-removeFile $file
-removeDirectory $dir
 
+cleanup
 cleanupTests
