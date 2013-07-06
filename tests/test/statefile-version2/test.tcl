@@ -25,8 +25,8 @@ proc statefile_v2 {} {
     return $line
 }
 
-test envvariables {
-    Regression test for statefile-version1.
+test statefile-v2 {
+    Regression test for statefile-version2.
 } -body {
     statefile_v2
 } -result "--->  staging statefile-version2 into destroot"
