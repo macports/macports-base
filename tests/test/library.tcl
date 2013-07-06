@@ -21,7 +21,7 @@ proc load_variables {pwd} {
         exit 1
     }
 
-    set cpwd [eval file join {*}[lrange [file split $pwd] 0 end-2]]/
+    set cpwd [eval file join {*}[lrange [file split $pwd] 0 end-2]]
 
     set line [get_line $autoconf "prefix*"]
     set prefix [lrange [split $line " "] 1 1]
@@ -126,6 +126,35 @@ proc port_install {} {
     set args "install"
 
     set result [eval exec $env $bindir$cmd $args > output 2>@1]
+}
+
+# Run configure command.
+proc port_config {pwd} {
+    global path
+    global bindir
+    global portsrc
+
+    set env "env PORTSRC=${portsrc}"
+    set cmd "port"
+    set args "configure"
+
+    set result [eval exec $env $bindir$cmd $args 2>@1]
+}
+
+# Run desroot command.
+proc port_desroot {pwd} {
+    global path
+    global bindir
+    global portsrc
+    global work_dir
+    global output_file
+
+    set env "env PORTSRC=${portsrc}"
+    set cmd "port"
+    set args "destroot"
+
+    file copy -force $path/statefile $work_dir/.macports.statefile-unknown-version.state
+    set result [eval exec $env $bindir$cmd $args >$output_file 2>@1]
 }
 
 # Uninstalls portfile.
