@@ -16,19 +16,29 @@ port_config $path
 port_desroot $path
 port_clean $path
 
-proc statefile_v1 {} {
+proc statefile_v1 {warn} {
     global path
     global output_file
 
-    set msg "*staging*destroot*"
+    if {[string compare $warn "no"]} {
+        set msg "*discarding previous state*"
+    } else {
+        set msg "*staging*destroot*"
+    }
     set line [get_line $path/$output_file $msg]
     return $line
 }
 
-test envvariables {
+test warning_check {
     Regression test for statefile-version1.
 } -body {
-    statefile_v1
+    statefile_v1 yes
+} -result "-1"
+
+test output_check {
+    Regression test for statefile-version1.
+} -body {
+    statefile_v1 no
 } -result "--->  staging statefile-version1 into destroot"
 
 
