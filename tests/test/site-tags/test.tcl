@@ -11,11 +11,7 @@ proc sitetag {} {
     global output_file
     global path
 
-    load_variables $path
-    set_dir
-    port_index
-    port_clean $path
-    port_run $path
+    initial_setup
 
     set err "error*"
     set line [get_line $output_file $err]
