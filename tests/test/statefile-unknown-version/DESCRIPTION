@@ -1,0 +1,5 @@
+This test checks that version 3 is not accepted. MacPorts keeps track 
+of the build process (and which steps have been completed) in a statefile.
+
+There are 2 test cases, one for the warnings and another that checks for the
+staging into destroot.
