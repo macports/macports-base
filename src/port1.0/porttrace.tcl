@@ -323,7 +323,7 @@ proc porttrace::slave_init {fifo p_workpath} {
     set sandbox_violation_list {}
     tracelib setname $fifo
 
-    if [catch {tracelib opensocket} err] {
+    if {[catch {tracelib opensocket} err]} {
         global errorInfo
         ui_warn "Error in tracelib: $err"
         ui_debug "Backtrace: $errorInfo"
@@ -331,7 +331,7 @@ proc porttrace::slave_init {fifo p_workpath} {
 }
 
 proc porttrace::slave_run {} {
-    if [catch {tracelib run} err] {
+    if {[catch {tracelib run} err]} {
         global errorInfo
         ui_warn "Error in tracelib: $err"
         ui_debug "Backtrace: $errorInfo"
