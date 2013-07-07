@@ -206,13 +206,13 @@ static int process_line(int sock) {
         } else if (ret == 0) {
             /* this usually means the socket was closed by the remote side */
         } else {
-            fprintf(stderr, "tracelib: partial data received: expected %zd, but got %zd on socket %d\n", sizeof(len), ret, sock);
+            fprintf(stderr, "tracelib: partial data received: expected %ld, but got %ld on socket %d\n", (unsigned long) sizeof(len), (unsigned long) ret, sock);
         }
         return 0;
     }
 
     if (len > BUFSIZE - 1) {
-        fprintf(stderr, "tracelib: transfer too large: %zd bytes sent, but buffer holds %zd on socket %d\n", len, BUFSIZE - 1, sock);
+        fprintf(stderr, "tracelib: transfer too large: %ld bytes sent, but buffer holds %d on socket %d\n", (unsigned long) len, (int) (BUFSIZE - 1), sock);
         return 0;
     }
 
@@ -220,7 +220,7 @@ static int process_line(int sock) {
         if (ret < 0) {
             perror("tracelib: recv");
         } else {
-            fprintf(stderr, "tracelib: partial data received: expected %zd, but got %zd on socket %d\n", len, ret, sock);
+            fprintf(stderr, "tracelib: partial data received: expected %ld, but got %ld on socket %d\n", (unsigned long) len, (unsigned long) ret, sock);
         }
         return 0;
     }
@@ -326,6 +326,7 @@ static void sandbox_violation(int sock UNUSED, const char *path) {
 
 static void dep_check(int sock, char *path) {
     char *port = 0;
+    char *t;
     reg_registry *reg;
     reg_entry entry;
     reg_error error;
@@ -354,7 +355,7 @@ static void dep_check(int sock, char *path) {
     }
 
     /* check our list of dependencies */
-    for (char *t = depends; *t; t += strlen(t) + 1) {
+    for (t = depends; *t; t += strlen(t) + 1) {
         if (strcmp(t, port) == 0) {
             free(port);
             answer(sock, "+");
@@ -540,6 +541,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
 
     while (sock != -1 && !cleanuping) {
         int keventstatus;
+        int i;
 
         /* run kevent(2) until new activity is available */
         do {
@@ -552,7 +554,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
             }
         } while (keventstatus == 0);
 
-        for (int i = 0; i < keventstatus; ++i) {
+        for (i = 0; i < keventstatus; ++i) {
             /* the control socket has activity – we might have a new
              * connection. We use a copy of sock here, because sock might have
              * been set to -1 by the close command */
