@@ -163,7 +163,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # variables to MacPorts.)
 #proxy_override_env 	no
 
-# Proxies. These have no default values. The analagous environment
+# Proxies. These have no default values. The analogous environment
 # variables are "http_proxy", "HTTPS_PROXY", "FTP_PROXY", and
 # "RSYNC_PROXY".
 #proxy_http         	proxy1:12345
