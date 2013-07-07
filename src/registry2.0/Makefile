@@ -18,7 +18,7 @@ pkgIndex.tcl: $(SRCS)
 CFLAGS+=	${SQLITE3_CFLAGS}
 LIBS+=	${SQLITE3_LIBS}
 ifeq ($(shell uname), Darwin)
-	SHLIB_LDFLAGS+= -install_name ${datadir}/macports/Tcl/registry2.0/${SHLIB_NAME}
+	SHLIB_LDFLAGS+= -install_name @loader_path/../registry2.0/${SHLIB_NAME}
 endif
 
 .PHONY: test
