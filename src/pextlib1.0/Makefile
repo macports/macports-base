@@ -3,7 +3,7 @@ OBJS= \
 	fs-traverse.o strcasecmp.o vercomp.o filemap.o base32cmd.o \
 	sha1cmd.o curl.o rmd160cmd.o sha256cmd.o readline.o uid.o \
 	tracelib.o tty.o readdir.o pipe.o flock.o \
-	system.o mktemp.o realpath.o
+	system.o mktemp.o realpath.o ../registry2.0/registry${SHLIB_SUFFIX}
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/pextlib1.0
 
@@ -12,6 +12,9 @@ include ../../Mk/macports.tea.mk
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
+ifeq ($(shell uname), Darwin)
+	SHLIB_LDFLAGS+= -install_name ${datadir}/macports/Tcl/pextlib1.0/${SHLIB_NAME}
+endif
 
 .PHONY: test
 

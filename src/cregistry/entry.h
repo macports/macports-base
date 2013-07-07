@@ -62,6 +62,7 @@ int reg_entry_imaged(reg_registry* reg, const char* name, const char* version,
 int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
         reg_error* errPtr);
 
+sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path);
 int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
         reg_error* errPtr);
 

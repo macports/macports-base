@@ -1,10 +1,10 @@
 TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
 			cregistry \
+			registry2.0 \
 			macports1.0 \
 			port1.0 \
 			package1.0 \
 			pextlib1.0 \
-			registry2.0 \
 			darwintracelib1.0 \
 			machista1.0
 SUBDIR=		${TCLPKG} port programs

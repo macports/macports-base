@@ -37,20 +37,25 @@
 #include <config.h>
 #endif
 
-#include <string.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <pthread.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/event.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/types.h>
-#include <sys/select.h>
 #include <sys/un.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <pthread.h>
-#include <limits.h>
+#include <unistd.h>
+
+#include <cregistry/entry.h>
+#include <registry2.0/registry.h>
+
 #include "tracelib.h"
 
 #ifndef HAVE_STRLCPY
@@ -75,6 +80,7 @@ static char *sandbox;
 static char *filemap, *filemap_end;
 static char *depends;
 static int sock = -1;
+static int kq = -1;
 static int enable_fence = 0;
 static Tcl_Interp *interp;
 static pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -82,13 +88,25 @@ static int cleanuping = 0;
 static char *sdk = NULL;
 
 static void send_file_map(int sock);
-static void dep_check(int sock, const char *path);
+static void dep_check(int sock, char *path);
 static void sandbox_violation(int sock, const char *path);
 static void ui_warn(const char *format, ...);
+#if 0
 static void ui_info(const char *format, ...);
+#endif
 static void ui_error(const char *format, ...);
 
-#define MAX_SOCKETS ((FD_SETSIZE)-1)
+#define MAX_SOCKETS (1024)
+#define BUFSIZE     (1024)
+
+static void answer_s(int sock, const char *buf, size_t size) {
+    send(sock, &size, sizeof(size), 0);
+    send(sock, buf, size, 0);
+}
+
+static void answer(int sock, const char *buf) {
+    answer_s(sock, buf, strlen(buf));
+}
 
 static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     if (objc != 3) {
@@ -105,13 +123,14 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
     return TCL_OK;
 }
 
-/*
- * Save sandbox path into memory and prepare it for checks.
- * For now it just change : to \0, and add last \0
+/**
+ * Save sandbox boundaries to memory and format them for darwintrace. This
+ * means changing : to \0 (with \ being an escape char).
+ *
  * Input:
- *  /dev/null:/dev/tty:/tmp
+ *  /dev/null:/dev/tty:/tmp\:
  * In variable;
- *  /dev/null\0/dev/tty\0/tmp\0\0
+ *  /dev/null\0/dev/tty\0/tmp:\0\0
  */
 static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int len;
@@ -172,81 +191,63 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
     return TCL_OK;
 }
 
-/*
- * Is there more data? (return 1 if more data in socket, 0 otherwise)
- */
-static char data_available(int sock) {
-    struct timeval tv;
-    fd_set fdr;
-    tv.tv_sec  = 0;
-    tv.tv_usec = 0;
-
-    FD_ZERO(&fdr);
-    FD_SET(sock, &fdr);
-    return select(sock + 1, &fdr, 0, 0, &tv) == 1;
-}
-
-/*
+/**
  * receive line from socket, parse it and send answer
  */
-static char process_line(int sock) {
-    char *t, buf[1024] = {0}, *f, *next_t;
-    int len;
+static int process_line(int sock) {
+    char *f;
+    char buf[BUFSIZE];
+    size_t len;
+    ssize_t ret;
 
-    if ((len = recv(sock, buf, sizeof(buf) - 1, 0)) == -1) {
+    if ((ret = recv(sock, &len, sizeof(len), MSG_WAITALL)) != sizeof(len)) {
+        if (ret < 0) {
+            perror("tracelib: recv");
+        } else if (ret == 0) {
+            /* this usually means the socket was closed by the remote side */
+        } else {
+            fprintf(stderr, "tracelib: partial data received: expected %zd, but got %zd on socket %d\n", sizeof(len), ret, sock);
+        }
         return 0;
     }
-    if (!len) {
+
+    if (len > BUFSIZE - 1) {
+        fprintf(stderr, "tracelib: transfer too large: %zd bytes sent, but buffer holds %zd on socket %d\n", len, BUFSIZE - 1, sock);
         return 0;
     }
 
+    if ((ret = recv(sock, buf, len, MSG_WAITALL)) != (ssize_t) len) {
+        if (ret < 0) {
+            perror("tracelib: recv");
+        } else {
+            fprintf(stderr, "tracelib: partial data received: expected %zd, but got %zd on socket %d\n", len, ret, sock);
+        }
+        return 0;
+    }
     buf[len] = '\0';
 
-    for (t = buf; *t && t - buf < (int)sizeof(buf); t = next_t) {
-        next_t = t + strlen(t) + 1;
-        if (next_t == buf + sizeof(buf) && len == sizeof(buf) - 1) {
-            memmove(buf, t, next_t - t);
-            t = buf;
-            {
-                char *end_of_t = t + strlen(t);
-                *end_of_t = ' ';
-                for (; data_available(sock);) {
-                    if (recv(sock, end_of_t, 1, 0) != 1) {
-                        ui_warn("recv failed");
-                        return 0;
-                    }
-                    if (*end_of_t++ == '\0') {
-                        break;
-                    }
-                }
-            }
-        }
-
-        f = strchr(t, '\t');
-        if (!f) {
-            ui_warn("malformed command %s", t);
-            break;
-        }
-
-        /* Replace \t with \0 */
-        *f = '\0';
-        /* Advance pointer to arguments */
-        f++;
-
-        if (!strcmp(t, "filemap")) {
-            send_file_map(sock);
-        } else if (!strcmp(t, "sandbox_violation")) {
-            sandbox_violation(sock, f);
-        } else if (!strcmp(t, "dep_check")) {
-            dep_check(sock, f);
-        } else if (!strcmp(t, "execve")) {
-            /* ====================== */
-            /* = TODO: do something = */
-            /* ====================== */
-        } else {
-            ui_warn("unknown command %s (%s)", t, f);
-        }
+    f = strchr(buf, '\t');
+    if (!f) {
+        fprintf(stderr, "tracelib: malformed command '%s' from socket %d\n", buf, sock);
+        return 0;
     }
+
+    /* Replace \t with \0 */
+    *f = '\0';
+    /* Advance pointer to arguments */
+    f++;
+
+    if (strcmp(buf, "filemap") == 0) {
+        send_file_map(sock);
+    } else if (strcmp(buf, "sandbox_violation") == 0) {
+        sandbox_violation(sock, f);
+    } else if (strcmp(buf, "dep_check") == 0) {
+        dep_check(sock, f);
+    } else {
+        fprintf(stderr, "tracelib: unexpected command %s (%s)\n", buf, f);
+        return 0;
+    }
+
     return 1;
 }
 
@@ -323,54 +324,46 @@ static void sandbox_violation(int sock UNUSED, const char *path) {
     Tcl_UnsetVar(interp, "path", 0);
 }
 
-static void dep_check(int sock, const char *path) {
+static void dep_check(int sock, char *path) {
     char *port = 0;
-    size_t len = 1;
-    char resolution = '!';
-    int tcl_retval;
+    reg_registry *reg;
+    reg_entry entry;
+    reg_error error;
 
-    Tcl_SetVar(interp, "path", path, 0);
-    /* FIXME: Use C registry API */
-    tcl_retval = Tcl_Eval(interp, "registry::file_registered $path");
-    port = strdup(Tcl_GetStringResult(interp));
-    if (!port) {
-        ui_warn("dep_check: memory allocation failed");
+    if (NULL == (reg = registry_for(interp, reg_attached))) {
+        ui_error(Tcl_GetStringResult(interp));
+        /* send unexpected output to make the build fail */
+        answer(sock, "#");
+    }
+
+    /* find the port id */
+    entry.reg = reg;
+    entry.proc = NULL;
+    entry.id = reg_entry_owner_id(reg, path);
+    if (entry.id == 0) {
+        /* file isn't known to MacPorts */
+        answer(sock, "?");
         return;
     }
-    if (tcl_retval != TCL_OK) {
-        ui_error("failed to run registry::file_registered \"%s\": %s", path, port);
-    }
-    Tcl_UnsetVar(interp, "path", 0);
 
-    if (tcl_retval == TCL_OK && (*port != '0' || port[1])) {
-        char *t;
-
-        t = depends;
-        for (; *t; t += strlen(t) + 1) {
-            /* fprintf(stderr, "trace: %s =?= %s\n", t, port); */
-            if (!strcmp(t, port)) {
-                resolution = '+';
-                break;
-            }
-        }
+    /* find the port's name to compare with out list */
+    if (!reg_entry_propget(&entry, "name", &port, &error)) {
+        /* send unexpected output to make the build fail */
+        ui_error(error.description);
+        answer(sock, "#");
     }
 
-    if (resolution != '+') {
-        if (*port == '0' && !port[1]) {
-            ui_info("trace: access denied to %s (*unknown*)", path);
-        } else {
-            ui_info("trace: access denied to %s (%s)", path, port);
+    /* check our list of dependencies */
+    for (char *t = depends; *t; t += strlen(t) + 1) {
+        if (strcmp(t, port) == 0) {
+            free(port);
+            answer(sock, "+");
+            return;
         }
     }
 
     free(port);
-
-    if (send(sock, &len, sizeof(len), 0) == -1) {
-        ui_warn("tracelib send failed");
-    }
-    if (send(sock, &resolution, 1, 0) == -1) {
-        ui_warn("tracelib send failed");
-    }
+    answer(sock, "!");
 }
 
 static void ui_msg(const char *severity, const char *format, va_list va) {
@@ -396,6 +389,7 @@ static void ui_warn(const char *format, ...) {
     va_end(va);
 }
 
+#if 0
 static void ui_info(const char *format, ...) {
     va_list va;
 
@@ -403,6 +397,7 @@ static void ui_info(const char *format, ...) {
     ui_msg("info", format, va);
     va_end(va);
 }
+#endif
 
 static void ui_error(const char *format, ...) {
     va_list va;
@@ -415,13 +410,10 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     struct sockaddr_un sun;
     struct rlimit rl;
 
+    cleanuping = 0;
+
     pthread_mutex_lock(&sock_mutex);
-    if (cleanuping) {
-        pthread_mutex_unlock(&sock_mutex);
-        return 0;
-    }
-    sock = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sock == -1) {
+    if (-1 == (sock = socket(PF_LOCAL, SOCK_STREAM, 0))) {
         Tcl_SetErrno(errno);
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "socket: ", (char *) Tcl_PosixError(interp), NULL);
@@ -448,100 +440,200 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
         }
     }
 
-
     sun.sun_family = AF_UNIX;
     strlcpy(sun.sun_path, name, sizeof(sun.sun_path));
-    if (bind(sock, (struct sockaddr *)&sun, sizeof(sun)) == -1) {
+    sun.sun_len = SUN_LEN(&sun);
+
+    if (-1 == (bind(sock, (struct sockaddr *) &sun, sun.sun_len))) {
         Tcl_SetErrno(errno);
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "bind: ", (char *) Tcl_PosixError(interp), NULL);
+        close(sock);
+        sock = -1;
         return TCL_ERROR;
     }
 
-    if (listen(sock, 5) == -1) {
+    if (-1 == listen(sock, 32)) {
         Tcl_SetErrno(errno);
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "listen: ", (char *) Tcl_PosixError(interp), NULL);
+        close(sock);
+        sock = -1;
         return TCL_ERROR;
     }
 
     return TCL_OK;
 }
 
+/* create this on heap rather than stack, due to its rather large size */
+static struct kevent res_kevents[MAX_SOCKETS];
+static int TracelibRunCmd(Tcl_Interp *in) {
+    struct kevent kev;
+    int flags;
+    int oldsock;
 
-static int TracelibRunCmd(Tcl_Interp *in UNUSED) {
-    int max_fd, max_used, socks[MAX_SOCKETS];
-    fd_set fdr;
-    int i;
+    if (-1 == (kq = kqueue())) {
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(in);
+        Tcl_AppendResult(in, "kqueue: ", (char *) Tcl_PosixError(in), NULL);
+        return TCL_ERROR;
+    }
 
-    max_used = 0;
-    max_fd = sock;
+    pthread_mutex_lock(&sock_mutex);
+    if (sock != -1) {
+        oldsock = sock;
 
-    for (; sock != -1 && !cleanuping;) {
-        FD_ZERO(&fdr);
-        FD_SET(sock, &fdr);
-        for (i = 0; i < max_used; ++i) {
-            FD_SET(socks[i], &fdr);
+        /* mark listen socket non-blocking in order to prevent a race condition
+         * that would occur between kevent(2) and accept(2), if a incoming
+         * connection is aborted before it is accepted. Using a non-blocking
+         * accept(2) prevents the problem.*/
+        flags = fcntl(oldsock, F_GETFL, 0);
+        if (-1 == fcntl(oldsock, F_SETFL, flags | O_NONBLOCK)) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "fcntl(F_SETFL, += O_NONBLOCK): ", (char *) Tcl_PosixError(in), NULL);
+            return TCL_ERROR;
         }
 
-        if (select(max_fd + 1, &fdr, 0, 0, 0) < 1) {
-            continue;
+        /* register the listen socket in the kqueue */
+        EV_SET(&kev, oldsock, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
+        if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+            close(kq);
+            return TCL_ERROR;
         }
-        if (sock == -1) {
-            break;
+        /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
+         * always be returned. When a filter is successfully added, the data field
+         * will be zero. */
+        if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+            Tcl_SetErrno(kev.data);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+            close(kq);
+            return TCL_ERROR;
         }
-        if (FD_ISSET(sock, &fdr)) {
-            int s;
-            s = accept(sock, 0, 0);
 
-            if (s == -1) {
+        /* wait for the user event on the listen socket, as sent by CloseCmd as
+         * deathpill */
+        EV_SET(&kev, oldsock, EVFILT_USER, EV_ADD | EV_RECEIPT, 0, 0, NULL);
+        if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+            close(kq);
+            return TCL_ERROR;
+        }
+        /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
+         * always be returned. When a filter is successfully added, the data field
+         * will be zero. */
+        if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+            Tcl_SetErrno(kev.data);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+            close(kq);
+            return TCL_ERROR;
+        }
+    }
+    pthread_mutex_unlock(&sock_mutex);
+
+    while (sock != -1 && !cleanuping) {
+        int keventstatus;
+
+        /* run kevent(2) until new activity is available */
+        do {
+            if (-1 == (keventstatus = kevent(kq, NULL, 0, res_kevents, MAX_SOCKETS, NULL))) {
+                Tcl_SetErrno(errno);
+                Tcl_ResetResult(in);
+                Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+                close(kq);
+                return TCL_ERROR;
+            }
+        } while (keventstatus == 0);
+
+        for (int i = 0; i < keventstatus; ++i) {
+            /* the control socket has activity – we might have a new
+             * connection. We use a copy of sock here, because sock might have
+             * been set to -1 by the close command */
+            if ((int) res_kevents[i].ident == oldsock) {
+                int s;
+
+                /* handle error conditions */
+                if ((res_kevents[i].flags & (EV_ERROR | EV_EOF)) > 0) {
+                    if (cleanuping) {
+                        break;
+                    }
+                    Tcl_ResetResult(in);
+                    Tcl_SetResult(in, "control socket closed", NULL);
+                    close(kq);
+                    return TCL_ERROR;
+                }
+
+                /* else: new connection attempt(s) */
+                for (;;) {
+                    if (-1 == (s = accept(sock, NULL, NULL))) {
+                        if (cleanuping) {
+                            break;
+                        }
+                        if (errno == EWOULDBLOCK) {
+                            break;
+                        }
+                        Tcl_SetErrno(errno);
+                        Tcl_ResetResult(in);
+                        Tcl_AppendResult(in, "accept: ", (char *) Tcl_PosixError(in), NULL);
+                        close(kq);
+                        return TCL_ERROR;
+                    }
+
+                    flags = fcntl(s, F_GETFL, 0);
+                    if (-1 == fcntl(s, F_SETFL, flags & ~O_NONBLOCK)) {
+                        ui_warn("tracelib: couldn't mark socket as blocking");
+                        close(s);
+                        continue;
+                    }
+
+                    /* register the new socket in the kqueue */
+                    EV_SET(&kev, s, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
+                    if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
+                        ui_warn("tracelib: error adding socket to kqueue");
+                        close(s);
+                        continue;
+                    }
+                    /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
+                     * always be returned. When a filter is successfully added, the data field
+                     * will be zero. */
+                    if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+                        ui_warn("tracelib: error adding socket to kqueue");
+                        close(s);
+                        continue;
+                    }
+                }
+
                 if (cleanuping) {
                     break;
-                } else {
-                    ui_warn("tracelib: accept return -1 (errno: %d)", errno);
                 }
-                /* failed sometimes and i dunno why*/
-                continue;
-            }
-            /* Temporary solution, it's better to regenerate this variable in each iteration, because when closing socket we'll get it too high */
-            if (s > max_fd) {
-                max_fd = s;
-            }
-            for (i = 0; i < max_used; ++i)
-                if (!socks[i]) {
-                    socks[i] = s;
-                    break;
-                }
-            if (i == max_used) {
-                if (max_used == MAX_SOCKETS - 1) {
-                    ui_warn("There is no place to store socket");
-                    close(s);
-                } else {
-                    socks[max_used++] = s;
-                }
-            }
-        }
-
-        for (i = 0; i < max_used; ++i) {
-            if (!socks[i]) {
-                continue;
-            }
-            if (FD_ISSET(socks[i], &fdr)) {
-                if (!process_line(socks[i])) {
-                    close(socks[i]);
-                    socks[i] = 0;
-                    continue;
+            } else {
+                /* if the socket is to be closed, or */
+                if ((res_kevents[i].flags & (EV_EOF | EV_ERROR)) > 0
+                    /* new data is available, and its processing tells us to
+                     * close the socket */
+                    || (!process_line(res_kevents[i].ident))) {
+                    /* an error occured or process_line suggested closing this
+                     * socket */
+                    close(res_kevents[i].ident);
+                    /* closing the socket will automatically remove it from the
+                     * kqueue :) */
                 }
             }
         }
     }
 
-    for (i = 0; i < max_used; ++i) {
-        if (socks[i]) {
-            close(socks[i]);
-            socks[i] = 0;
-        }
-    }
+    /* NOTE: We aren't necessarily closing all client sockets here! */
+    pthread_mutex_lock(&sock_mutex);
+    close(kq);
+    kq = -1;
+    pthread_mutex_unlock(&sock_mutex);
 
     return TCL_OK;
 }
@@ -568,17 +660,30 @@ static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
     }
     enable_fence = 0;
 #undef safe_free
-    cleanuping = 0;
     return TCL_OK;
 }
 
-static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
+static int TracelibCloseSocketCmd(Tcl_Interp *interp) {
     cleanuping = 1;
     pthread_mutex_lock(&sock_mutex);
     if (sock != -1) {
+        int oldsock = sock;
         /*shutdown(sock, SHUT_RDWR);*/
         close(sock);
         sock = -1;
+
+        if (kq != -1) {
+            int ret;
+            struct kevent kev;
+            EV_SET(&kev, oldsock, EVFILT_USER, 0, NOTE_TRIGGER, 0, NULL);
+            if (-1 == (ret = kevent(kq, &kev, 1, NULL, 0, NULL))) {
+                Tcl_SetErrno(errno);
+                Tcl_ResetResult(interp);
+                Tcl_AppendResult(interp, "kevent: ", (char *) Tcl_PosixError(interp), NULL);
+                pthread_mutex_unlock(&sock_mutex);
+                return TCL_ERROR;
+            }
+        }
     }
     pthread_mutex_unlock(&sock_mutex);
     return TCL_OK;

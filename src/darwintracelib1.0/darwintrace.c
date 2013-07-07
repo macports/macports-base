@@ -64,6 +64,7 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,16 +113,12 @@ static inline int __darwintrace_strbeginswith(const char *str, const char *prefi
 static inline int __darwintrace_pathbeginswith(const char *str, const char *prefix);
 static inline void __darwintrace_log_op(const char *op, const char *path, int fd);
 static void __darwintrace_copy_env() __attribute__((constructor));
+static void __darwintrace_setup_tls() __attribute__((constructor));
 static inline char *__darwintrace_alloc_env(const char *varName, const char *varValue);
 static inline char *const *__darwintrace_restore_env(char *const envp[]);
 static inline void __darwintrace_setup();
 static inline void __darwintrace_cleanup_path(char *path);
 static char *__send(const char *buf, size_t len, int answer);
-
-/**
- * Communication socket to the macports process, or NULL.
- */
-static FILE *__darwintrace_sock = NULL;
 
 /**
  * PID of the process darwintrace was last used in. This is used to detect
@@ -130,6 +127,13 @@ static FILE *__darwintrace_sock = NULL;
  * same socket.
  */
 static pid_t __darwintrace_pid = (pid_t) - 1;
+
+/**
+ * pthread_key_ts for the pthread_t returned by pthread_self() and the
+ * darwintrace socket to ensure the socket is only used from a single thread.
+ */
+static pthread_key_t tid_key;
+static pthread_key_t sock_key;
 
 /**
  * Helper variable containing the number of the darwintrace socket, iff the
@@ -197,6 +201,56 @@ __attribute__((format(printf, 1, 2))) static inline void debug_printf(const char
 #else
 #   define debug_printf(...)
 #endif
+
+/**
+ * Setup method called as constructor to set up thread-local storage for the
+ * thread id and the darwintrace socket.
+ */
+static void __darwintrace_setup_tls() {
+	if (0 != (errno = pthread_key_create(&tid_key, NULL))) {
+		perror("darwintrace: pthread_key_create");
+		abort();
+	}
+	if (0 != (errno = pthread_key_create(&sock_key, NULL))) {
+		perror("darwintrace: pthread_key_create");
+		abort();
+	}
+}
+
+/**
+ * Convenience getter function for the thread-local darwintrace socket
+ */
+static inline FILE *__darwintrace_sock() {
+	return (FILE *) pthread_getspecific(sock_key);
+}
+
+/**
+ * Convenience getter function for the thread ID
+ */
+static inline pthread_t __darwintrace_tid() {
+	return (pthread_t) pthread_getspecific(tid_key);
+}
+
+/**
+ * Convenience setter function for the thread-local darwintrace socket
+ */
+static inline void __darwintrace_sock_set(FILE *stream) {
+	if (0 != (errno = pthread_setspecific(sock_key, stream))) {
+		perror("darwintrace: pthread_setspecific");
+		abort();
+	}
+}
+
+/**
+ * Convenience setter function for the thread-local darwintrace socket
+ */
+static inline void __darwintrace_tid_set() {
+	if (0 != (errno = pthread_setspecific(tid_key, pthread_self()))) {
+		perror("darwintrace: pthread_setspecific");
+		abort();
+	}
+}
+
 
 /**
  * Return 0 if str doesn't begin with prefix, 1 otherwise. Note that this is
@@ -438,17 +492,29 @@ static inline char *__darwintrace_filemap_iter(char *command, char **replacement
  * of the trace setup) and store it.
  */
 static void __darwintrace_get_filemap() {
-#if DARWINTRACE_DEBUG
+	char *newfilemap;
+#if DARWINTRACE_DEBUG && 0
 	filemap_iterator_t it;
 	char *path, *replacement, command;
 #endif
 
-	/* if this is called multiple times, free the old value; on first call,
-	 * filemap == NULL */
-	free(filemap);
-	filemap = __send("filemap\t", sizeof("filemap\t"), 1);
+	/*
+	 * ensure we have a filemap present; this might be called simultanously
+	 * from multiple threads and needs to work without leaking and in a way
+	 * that ensures a filemap has been set before any of the calls return. We
+	 * achieve that by using non-blocking synchronization. Blocking
+	 * synchronization might be a bad idea, because we never know where this
+	 * code is actually called in an application.
+	 */
+	newfilemap = NULL;
+	do {
+		free(newfilemap);
+		if (filemap != NULL)
+			break;
+		newfilemap = __send("filemap\t", strlen("filemap\t"), 1);
+	} while (!__sync_bool_compare_and_swap(&filemap, NULL, newfilemap));
 
-#if DARWINTRACE_DEBUG
+#if DARWINTRACE_DEBUG && 0
 	for (__darwintrace_filemap_iterator_init(&it);
 	        (path = __darwintrace_filemap_iter(&command, &replacement, &it));) {
 		debug_printf("filemap: {cmd=%d, path=%-120s, replacement=%s}\n", command, path, (command == 1) ? replacement : "-");
@@ -457,20 +523,18 @@ static void __darwintrace_get_filemap() {
 }
 
 /**
- * Close the stream at location \c *stream and set \c stream to \c NULL. Since
- * this uses \c fclose(3), which internally calls \c close(2), which is
- * intercepted by this library and this library prevents closing the socket to
- * MacPorts, we use \c __darwintrace_close_sock to allow closing specific FDs.
- *
- * \param[inout] stream pointer to a stream to be closed. Will be set to \c
- *                      NULL.
+ * Close the darwintrace socket and set it to \c NULL. Since this uses \c
+ * fclose(3), which internally calls \c close(2), which is intercepted by this
+ * library and this library prevents closing the socket to MacPorts, we use \c
+ * __darwintrace_close_sock to allow closing specific FDs.
  */
-static inline void __darwintrace_close(FILE **stream) {
-	if (stream && *stream) {
-		__darwintrace_close_sock = fileno(*stream);
-		fclose(*stream);
-		*stream = NULL;
+static inline void __darwintrace_close() {
+	FILE *dtsock = __darwintrace_sock();
+	if (dtsock) {
+		__darwintrace_close_sock = fileno(dtsock);
+		fclose(dtsock);
 		__darwintrace_close_sock = -1;
+		pthread_setspecific(sock_key, NULL);
 	}
 }
 
@@ -484,18 +548,34 @@ static inline void __darwintrace_setup() {
 	/**
 	 * Check whether this is a child process and we've inherited the socket. We
 	 * want to avoid race conditions with our parent process when communicating
-	 * with tracelib and thus re-open all sockets, if that's the case.
+	 * with tracelib and thus re-open all sockets, if that's the case. Note
+	 * this also applies to threads within the same process, since we really
+	 * want to avoid mixing up the results from two calls in different threads
+	 * when reading from the socket.
 	 */
-	if (__darwintrace_pid != (pid_t) - 1 && __darwintrace_pid != getpid()) {
-		__darwintrace_close(&__darwintrace_sock);
-		__darwintrace_pid = (pid_t) - 1;
+
+	/*
+	 * if the PID changed, close the current socket (which will force the
+	 * following code to re-open it).
+	 */
+	if (__darwintrace_pid != (pid_t) -1 && __darwintrace_pid != getpid()) {
+		__darwintrace_close();
+		__darwintrace_pid = (pid_t) -1;
 	}
 
-	if (__darwintrace_pid == (pid_t) - 1) {
+	/*
+	 * We don't need to watch for TID changes, because each thread has thread
+	 * local storage for the socket that will contain NULL when the socket has
+	 * not been initialized.
+	 */
+
+	if (__darwintrace_sock() == NULL) {
 		int sock;
+		FILE *stream;
 		struct sockaddr_un sun;
 
 		__darwintrace_pid = getpid();
+		__darwintrace_tid_set();
 		if (__env_darwintrace_log == NULL) {
 			fprintf(stderr, "darwintrace: trace library loaded, but DARWINTRACE_LOG not set\n");
 			abort();
@@ -519,10 +599,13 @@ static inline void __darwintrace_setup() {
 			abort();
 		}
 
-		if (NULL == (__darwintrace_sock = fdopen(sock, "a+"))) {
+		if (NULL == (stream = fdopen(sock, "a+"))) {
 			perror("darwintrace: fdopen");
 			abort();
 		}
+
+		/* store FILE * into thread local storage for the socket */
+		__darwintrace_sock_set(stream);
 
 		/* request sandbox bounds */
 		__darwintrace_get_filemap();
@@ -570,7 +653,7 @@ static inline void __darwintrace_log_op(const char *op, const char *path, int fd
 	__darwintrace_cleanup_path(somepath);
 
 	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, somepath);
-	__send(logbuffer, size + 1, 0);
+	__send(logbuffer, size, 0);
 }
 
 /**
@@ -647,10 +730,10 @@ static int dependency_check(char *path) {
 	}
 
 	len = snprintf(buffer, sizeof(buffer), "dep_check\t%s", path);
-	if (len + 1 > sizeof(buffer)) {
+	if (len > sizeof(buffer)) {
 		len = sizeof(buffer) - 1;
 	}
-	p = __send(buffer, len + 1, 1);
+	p = __send(buffer, len, 1);
 	if (!p) {
 		fprintf(stderr, "darwintrace: dependency check failed for %s\n", path);
 		abort();
@@ -667,7 +750,7 @@ static int dependency_check(char *path) {
 			result = -1;
 			break;
 		default:
-			fprintf(stderr, "darwintrace: unexpected answer from tracelib: %c", *p);
+			fprintf(stderr, "darwintrace: unexpected answer from tracelib: '%c' (0x%x)\n", *p, *p);
 			abort();
 			break;
 	}
@@ -685,8 +768,9 @@ static int dependency_check(char *path) {
  * \param[in]  size number of bytes to read from the socket
  */
 static void frecv(void *restrict buf, size_t size) {
-	if (1 != fread(buf, size, 1, __darwintrace_sock)) {
-		if (ferror(__darwintrace_sock)) {
+	FILE *stream = __darwintrace_sock();
+	if (1 != fread(buf, size, 1, stream)) {
+		if (ferror(stream)) {
 			perror("darwintrace: fread");
 		} else {
 			fprintf(stderr, "darwintrace: fread: end-of-file\n");
@@ -703,15 +787,16 @@ static void frecv(void *restrict buf, size_t size) {
  * \param[in] size number of bytes in the buffer
  */
 static void fsend(const void *restrict buf, size_t size) {
-	if (1 != fwrite(buf, size, 1, __darwintrace_sock)) {
-		if (ferror(__darwintrace_sock)) {
+	FILE *stream = __darwintrace_sock();
+	if (1 != fwrite(buf, size, 1, stream)) {
+		if (ferror(stream)) {
 			perror("darwintrace: fwrite");
 		} else {
 			fprintf(stderr, "darwintrace: fwrite: end-of-file\n");
 		}
 		abort();
 	}
-	fflush(__darwintrace_sock);
+	fflush(stream);
 }
 
 /**
@@ -726,6 +811,7 @@ static void fsend(const void *restrict buf, size_t size) {
  *         answer was not requested, \c NULL.
  */
 static char *__send(const char *buf, size_t len, int answer) {
+	fsend(&len, sizeof(len));
 	fsend(buf, len);
 
 	if (!answer) {
@@ -938,10 +1024,6 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 	 */
 	if (lstat(path, &sb) == 0) {
 		int fd;
-		if (S_ISLNK(sb.st_mode)) {
-			/* for symlinks, print both */
-			__darwintrace_log_op("execve", path, 0);
-		}
 
 		fd = open(path, O_RDONLY, 0);
 		if (fd > 0) {
@@ -953,9 +1035,6 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 				errno = ENOENT;
 				return -1;
 			}
-
-			/* once we have an open fd, if a full path was requested, do it */
-			__darwintrace_log_op("execve", path, fd);
 
 			/* read the file for the interpreter */
 			bytes_read = read(fd, buffer, MAXPATHLEN);
@@ -978,17 +1057,15 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 						break;
 					}
 				}
-				/* we have liftoff */
-				if (interp && interp[0] != '\0') {
-					__darwintrace_log_op("execve", interp, 0);
-				}
 			}
+
+			/* TODO check the iterpreter against the sandbox */
 			close(fd);
 		}
 	}
 
 	/* our variables won't survive exec, clean up */
-	__darwintrace_close(&__darwintrace_sock);
+	__darwintrace_close();
 	__darwintrace_pid = (pid_t) - 1;
 
 	/* call the original execve function, but fix the environment if required. */
@@ -1003,8 +1080,9 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
  * descriptor */
 int close(int fd) {
 #define close(x) syscall(SYS_close, (x))
-	if (__darwintrace_sock) {
-		int dtsock = fileno(__darwintrace_sock);
+	FILE *stream = __darwintrace_sock();
+	if (stream) {
+		int dtsock = fileno(stream);
 		if (fd == dtsock && dtsock != __darwintrace_close_sock) {
 			errno = EBADF;
 			return -1;
@@ -1018,25 +1096,28 @@ int close(int fd) {
 /* if darwintrace has been initialized, trap attempts to dup2 over our file descriptor */
 int dup2(int filedes, int filedes2) {
 #define dup2(x, y) syscall(SYS_dup2, (x), (y))
+	FILE *stream = __darwintrace_sock();
 
 	debug_printf("dup2(%d, %d)\n", filedes, filedes2);
-	if (__darwintrace_sock && filedes2 == fileno(__darwintrace_sock)) {
+	if (stream && filedes2 == fileno(stream)) {
 		/* if somebody tries to close our file descriptor, just move it out of
 		 * the way. Make sure it doesn't end up as stdin/stdout/stderr, though!
 		 * */
 		int new_darwintrace_fd;
+		FILE *new_stream;
 
-		if (-1 == (new_darwintrace_fd = fcntl(fileno(__darwintrace_sock), F_DUPFD, STDOUT_FILENO + 1))) {
+		if (-1 == (new_darwintrace_fd = fcntl(fileno(stream), F_DUPFD, STDOUT_FILENO + 1))) {
 			/* if duplicating fails, do not allow overwriting either! */
 			return -1;
 		}
 
-		debug_printf("moving __darwintrace FD from %d to %d\n", fileno(__darwintrace_sock), new_darwintrace_fd);
-		__darwintrace_close(&__darwintrace_sock);
-		if (NULL == (__darwintrace_sock = fdopen(new_darwintrace_fd, "a+"))) {
+		debug_printf("moving __darwintrace FD from %d to %d\n", fileno(stream), new_darwintrace_fd);
+		__darwintrace_close();
+		if (NULL == (new_stream = fdopen(new_darwintrace_fd, "a+"))) {
 			perror("darwintrace: fdopen");
 			abort();
 		}
+		__darwintrace_sock_set(new_stream);
 	}
 
 	return dup2(filedes, filedes2);
