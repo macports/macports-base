@@ -21,6 +21,18 @@ set test_suite {
 }
 set arguments ""
 set test_name ""
+set color_out ""
+set tcl ""
+set err ""
+
+# Get tclsh path.
+set autoconf ../Mk/macports.autoconf.mk
+set fp [open $autoconf r]
+while {[gets $fp line] != -1} {
+    if {[string match "TCLSH*" $line] != 0} {
+        set tcl [lrange [split $line " "] 1 1]
+    }
+}
 
 proc print_help {arg} {
     if { $arg == "tests" } {
@@ -32,6 +44,7 @@ proc print_help {arg} {
         puts "Usage: tclsh test.tcl \[-debug level\] \[-t test\] \[-l\]\n"
         puts "  -debug LVL : sets the level of printed debug info \[0-3\]"
         puts "  -t TEST    : run a specific test"
+        puts "  -nocolor   : disable color output (for automatic testing)"
         puts "  -l         : print the list of available tests"
         puts "  -h, -help  : print this message\n"
     }
@@ -67,6 +80,8 @@ foreach arg $argv {
     } elseif { $arg == "-l" } {
         print_help tests
         exit 0
+    } elseif { $arg == "-nocolor" } {
+        set color_out "no"
     }
 }
 
@@ -75,27 +90,40 @@ foreach arg $argv {
 if { $test_name != ""} {
     cd test/$test_name
 
-    set result [eval exec tclsh test.tcl $arguments]
+    set result [eval exec $tcl test.tcl $arguments]
     puts $result
 
 } else {
     foreach test $test_suite {
         cd test/$test
     
-        set result [eval exec tclsh test.tcl $arguments]
+        set result [eval exec $tcl test.tcl $arguments]
         set total [lrange [split $result "\t"] 2 2]
         set pass [lrange [split $result "\t"] 4 4]
-        set fail [lrange [split $result "\t"] 8 8]
+        set skip [lrange [split $result "\t"] 6 6]
+        set fail [lrange [split $result "\t\n"] 8 8]
+
+        # Check for errors.
+        if { $fail != 0 || $skip != 0 } {
+            set err "yes"
+        }
 
         set out ""
-        if { $fail != 0 } {
+        if { ($fail != 0 || $skip != 0) && $color_out == "" } {
             # Color failed tests.
-            append out "\x1b\[1;31mTotal:" $total " Passed:" $pass " Failed:" $fail "  \x1b\[0m" $test
+            append out "\x1b\[1;31mTotal:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  \x1b\[0m" $test
         } else {
-            append out "Total:" $total " Passed:" $pass " Failed:" $fail "  " $test
+            append out "Total:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  " $test
         }
         puts $out
     
         cd ../..
     }
+}
+
+# Set return value
+if {$err != ""} {
+    return 1
+} else {
+    return 0
 }
