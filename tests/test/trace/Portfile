@@ -37,8 +37,7 @@ failed!"
     fails {system "mkdir ../tracetesttmp/mkdir-trace"}
     fails {system "rmdir ../tracetesttmp/rmdir-trace"}
     # renaming should also be prohibited
-    fails {system "mv ../tracetesttmp/rename-trace
-../tracetesttmp/rename-new-trace"}
+    fails {system "mv ../tracetesttmp/rename-trace ../tracetesttmp/rename-new-trace"}
 
     # test access to /tmp
     system "touch /tmp/hello-trace"
@@ -47,8 +46,7 @@ failed!"
 
     # overwriting DYLD_INSERT_LIBRARIES should not allow escaping the sandbox
     # (due to env restoring)
-    fails {system "DYLD_INSERT_LIBRARIES= touch
-../tracetesttmp/create-trace-modenv"}
+    fails {system "DYLD_INSERT_LIBRARIES= touch ../tracetesttmp/create-trace-modenv"}
 
     # if the directories already exist, mkdir -p should succeed.
     system "mkdir -p /usr/bin"
