@@ -1416,7 +1416,6 @@ proc target_run {ditem} {
 
                         test        -
                         destroot    -
-                        install     -
                         dmg         -
                         pkg         -
                         portpkg     -
@@ -1425,8 +1424,13 @@ proc target_run {ditem} {
                         srpm        -
                         dpkg        -
                         mdmg        -
-                        activate    -
                         ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
+
+                        # install may be run given an archive, which means
+                        # depends_fetch, _extract, _build dependencies have
+                        # never been installed
+                        activate    -
+                        install     { set deptypes "depends_lib depends_run" }
                     }
 
                     # Gather the dependencies for deptypes
