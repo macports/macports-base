@@ -1,5 +1,4 @@
 set autoconf [file dirname $argv0]/../../../Mk/macports.autoconf.mk
-
 eval ::tcltest::configure $::argv
 
 set output_file "output"
@@ -112,6 +111,25 @@ proc port_run {pwd} {
     set output "output"
 
     set result [catch {eval exec $env $bindir$cmd $args >&output} ]
+    cd $back
+    return $result
+}
+
+# Runs port trace.
+proc port_trace {pwd} {
+    global bindir
+    global datadir
+    global portsrc
+
+    set back [pwd]
+    cd $pwd
+
+    set env "env PORTSRC=${portsrc}"
+    set cmd "port"
+    set args "-t test"
+    set output "output"
+
+    set result [catch {eval exec $env $bindir$cmd $args >&output 2>@1} ]
     cd $back
     return $result
 }

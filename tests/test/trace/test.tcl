@@ -15,26 +15,19 @@ proc test_trace {} {
     port_index
     port_clean $path
 
-    makeFile "" delete-trace
-    makeFile "" rename-trace
-    makeDirectory rmdir-trace
+    exec mkdir ../tracetesttmp
+    exec chown macports ../tracetesttmp
+    exec sudo -u macports touch  ../tracetesttmp/delete-trace
+    exec sudo -u macports touch ../tracetesttmp/rename-trace
+    exec sudo -u macports mkdir ../tracetesttmp/rmdir-trace
+    file delete -force /tmp/hello-trace
     file link -symbolic /tmp/link-trace2 /usr/include/unistd.h
+    exec chown -h macports /tmp/link-trace2
 
-    file delete -force create-trace
-    file delete -force create-trace-modenv
-    file delete -force mkdir-trace
-    file delete -force /tmp/hello-trace
-    file delete -force link-trace
+    port_trace $path
     
-    port_run $path
-    
-    file delete -force link-trace
-    file delete -force rename-new-trace
-    file delete -force create-trace
-    file delete -force create-trace-modenv
-    file delete -force mkdir-trace
+    file delete -force /tmp/link-trace2
     file delete -force /tmp/hello-trace
-    file delete -force /tmp/link-trace
 }
 
 test trace {
