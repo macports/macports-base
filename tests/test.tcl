@@ -15,6 +15,7 @@ set test_suite {
     statefile-version2-invalid
     statefile-version2-outdated
     svn-and-patchsites
+    trace
     universal
     variants
     xcodeversion
@@ -102,6 +103,7 @@ if { $test_name != ""} {
         set pass [lrange [split $result "\t"] 4 4]
         set skip [lrange [split $result "\t"] 6 6]
         set fail [lrange [split $result "\t\n"] 8 8]
+        set errmsg [lrange [split $result "\n"] 2 2]
 
         # Check for errors.
         if { $fail != 0 || $skip != 0 } {
@@ -115,15 +117,22 @@ if { $test_name != ""} {
         } else {
             append out "Total:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  " $test
         }
+
+        # Print results and constrints for auto-skipped tests.
         puts $out
+        if { $skip != 0 } {
+            set out "    Constraint: "
+            append out [string trim $errmsg "\t {}"]
+            puts $out
+        }
     
         cd ../..
     }
 }
 
-# Set return value
+# Return 1 if errors were found.
 if {$err != ""} {
-    return 1
-} else {
-    return 0
+    exit 1
 }
+
+return 0
