@@ -169,11 +169,13 @@ foreach tool {cc cxx objc f77 f90 fc} {
 
 options configure.universal_archs configure.universal_args \
         configure.universal_cflags configure.universal_cxxflags \
+        configure.universal_objcflags \
         configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_objcflags   {${configure.universal_cflags}}
 default configure.universal_cppflags    {}
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 

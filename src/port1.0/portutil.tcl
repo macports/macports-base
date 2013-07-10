@@ -3012,7 +3012,7 @@ proc get_canonical_archflags {{tool cc}} {
     if {![variant_exists universal] || ![variant_isset universal]} {
         return [option configure.${tool}_archflags]
     } else {
-        if {$tool == "cc" || $tool == "objc"} {
+        if {$tool == "cc"} {
             set tool c
         }
         return [option configure.universal_${tool}flags]
