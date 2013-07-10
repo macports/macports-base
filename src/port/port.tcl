@@ -3066,7 +3066,15 @@ proc action_uninstall { action portlist opts } {
 
     foreachport $portlist {
         if {![registry::entry_exists_for_name $portname]} {
-            ui_info "$portname is already uninstalled"
+            # if the code path arrives here the port either isn't installed, or
+            # it doesn't exist at all. We can't be sure, but we can check the
+            # portindex whether a port by that name exists (in which case not
+            # uninstalling it is probably no problem). If there is no port by
+            # that name, alert the user in case of typos.
+            ui_info "$portname is not installed"
+            if {[catch {set res [mportlookup $portname]} result] || [llength $res] == 0} {
+                ui_warn "no such port: $portname, skipping uninstall"
+            }
             continue
         }
         set composite_version [composite_version $portversion [array get variations]]
