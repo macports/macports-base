@@ -92,7 +92,7 @@ proc port_clean {pwd} {
     set cmd "port"
     set args "clean"
 
-    set result [eval exec $env $bindir$cmd $args 2>@1]
+    set result [catch {eval exec $env $bindir$cmd $args 2>@1} ]
     cd $back
 }
 
@@ -143,7 +143,7 @@ proc port_install {} {
     set cmd "port"
     set args "install"
 
-    set result [eval exec $env $bindir$cmd $args > output 2>@1]
+    set result [catch {eval exec $env $bindir$cmd $args > output 2>@1} ]
 }
 
 # Run configure command.
@@ -156,7 +156,7 @@ proc port_config {pwd} {
     set cmd "port"
     set args "configure"
 
-    set result [eval exec $env $bindir$cmd $args 2>@1]
+    set result [catch {eval exec $env $bindir$cmd $args 2>@1} ]
 }
 
 # Run desroot command.
@@ -172,7 +172,7 @@ proc port_desroot {pwd} {
     set args "destroot"
 
     file copy -force $path/statefile $work_dir/.macports.statefile-unknown-version.state
-    set result [eval exec $env $bindir$cmd $args >$output_file 2>@1]
+    set result [catch {eval exec $env $bindir$cmd $args >$output_file 2>@1} ]
 }
 
 # Uninstalls portfile.
@@ -184,7 +184,7 @@ proc port_uninstall {} {
     set cmd "port"
     set args "uninstall"
 
-    set result [eval exec $env $bindir$cmd $args > output 2>@1]
+    set result [catch {eval exec $env $bindir$cmd $args > output 2>@1} ]
 }
 
 # Returns the line containint a given string
