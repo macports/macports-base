@@ -11,7 +11,6 @@ load_variables $path
 set_dir
 port_index
 port_config $path
-file copy -force $path/statefile $work_dir/.macports.statefile-unknown-version.state
 port_desroot $path
 port_clean $path
 
