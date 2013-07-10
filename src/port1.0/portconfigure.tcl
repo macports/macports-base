@@ -128,23 +128,24 @@ default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
 options configure.optflags \
-        configure.cflags configure.cxxflags configure.objcflags configure.objcxxflags \
+        configure.cflags configure.cxxflags \
+        configure.objcflags configure.objcxxflags \
         configure.cppflags configure.ldflags configure.libs \
         configure.fflags configure.f90flags configure.fcflags \
         configure.classpath
 # compiler flags section
-default configure.optflags  {-Os}
-default configure.cflags    {${configure.optflags}}
-default configure.cxxflags  {${configure.optflags}}
-default configure.objcflags {${configure.optflags}}
+default configure.optflags      {-Os}
+default configure.cflags        {${configure.optflags}}
+default configure.cxxflags      {${configure.optflags}}
+default configure.objcflags     {${configure.optflags}}
 default configure.objcxxflags   {${configure.optflags}}
-default configure.cppflags  {-I${prefix}/include}
-default configure.ldflags   {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
-default configure.libs      {}
-default configure.fflags    {${configure.optflags}}
-default configure.f90flags  {${configure.optflags}}
-default configure.fcflags   {${configure.optflags}}
-default configure.classpath {}
+default configure.cppflags      {-I${prefix}/include}
+default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
+default configure.libs          {}
+default configure.fflags        {${configure.optflags}}
+default configure.f90flags      {${configure.optflags}}
+default configure.fcflags       {${configure.optflags}}
+default configure.classpath     {}
 
 # tools section
 options configure.perl configure.python configure.ruby \
@@ -300,7 +301,7 @@ proc portconfigure::configure_get_archflags {tool} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
         if {[arch_flag_supported ${configure.compiler}] &&
-            ($tool == "cc" || $tool == "cxx" || $tool == "objc" || $tool == "objcxx")
+            [regexp {^(?:cc|cxx|objc|objcxx)$} $tool]
         } then {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
@@ -506,26 +507,26 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     # Tcl 8.4's switch doesn't support -matchvar.
     if {[regexp {^gcc(-3\.3|-4\.0|-4\.2)?$} $compiler -> suffix]} {
         switch $type {
-            cc   -
-            objc { return [find_developer_tool "gcc${suffix}"] }
-            cxx  -
-            objcxx { return [find_developer_tool "g++${suffix}"] }
-            cpp  { return [find_developer_tool "cpp${suffix}"] }
+            cc      -
+            objc    { return [find_developer_tool "gcc${suffix}"] }
+            cxx     -
+            objcxx  { return [find_developer_tool "g++${suffix}"] }
+            cpp     { return [find_developer_tool "cpp${suffix}"] }
         }
     } elseif {[regexp {^llvm-gcc-4\.2$} $compiler]} {
         switch $type {
-            cc   -
-            objc { return [find_developer_tool llvm-gcc-4.2] }
-            cxx  -
-            objcxx { return [find_developer_tool llvm-g++-4.2] }
-            cpp  { return [find_developer_tool llvm-cpp-4.2] }
+            cc      -
+            objc    { return [find_developer_tool llvm-gcc-4.2] }
+            cxx     -
+            objcxx  { return [find_developer_tool llvm-g++-4.2] }
+            cpp     { return [find_developer_tool llvm-cpp-4.2] }
         }
     } elseif {[regexp {^clang$} $compiler]} {
         switch $type {
-            cc   -
-            objc { return [find_developer_tool clang] }
-            cxx  -
-            objcxx {
+            cc      -
+            objc    { return [find_developer_tool clang] }
+            cxx     -
+            objcxx  {
                 set clangpp [find_developer_tool clang++]
                 if {[file executable $clangpp]} {
                     return $clangpp
@@ -535,67 +536,67 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
     } elseif {[regexp {^apple-gcc(-4\.0|-4\.2)$} $compiler -> suffix]} {
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/gcc-apple${suffix} }
-            cxx  -
-            objcxx {
+            cc      -
+            objc    { return ${prefix}/bin/gcc-apple${suffix} }
+            cxx     -
+            objcxx  {
                 if {$suffix == "-4.2"} {
                     return ${prefix}/bin/g++-apple${suffix}
                 }
             }
-            cpp  { return ${prefix}/bin/cpp-apple${suffix} }
+            cpp     { return ${prefix}/bin/cpp-apple${suffix} }
         }
     } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
         if {[string length $suffix]} {
             set suffix "-mp${suffix}"
         }
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/gcc${suffix} }
-            cxx  -
-            objcxx { return ${prefix}/bin/g++${suffix} }
-            cpp  { return ${prefix}/bin/cpp${suffix} }
-            fc   -
-            f77  -
-            f90  { return ${prefix}/bin/gfortran${suffix} }
+            cc      -
+            objc    { return ${prefix}/bin/gcc${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/g++${suffix} }
+            cpp     { return ${prefix}/bin/cpp${suffix} }
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/gfortran${suffix} }
         }
     } elseif {[regexp {^macports-llvm-gcc-4\.2$} $compiler]} {
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/llvm-gcc-4.2 }
-            cxx  -
-            objcxx { return ${prefix}/bin/llvm-g++-4.2 }
-            cpp  { return ${prefix}/bin/llvm-cpp-4.2 }
+            cc      -
+            objc    { return ${prefix}/bin/llvm-gcc-4.2 }
+            cxx     -
+            objcxx  { return ${prefix}/bin/llvm-g++-4.2 }
+            cpp     { return ${prefix}/bin/llvm-cpp-4.2 }
         }
     } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
         if {[string length $suffix]} {
             set suffix "-mp${suffix}"
         }
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/clang${suffix} }
-            cxx  -
-            objcxx { return ${prefix}/bin/clang++${suffix} }
+            cc      -
+            objc    { return ${prefix}/bin/clang${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/clang++${suffix} }
         }
     } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> infix]} {
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/dragonegg${infix}-gcc }
-            cxx  -
-            objcxx { return ${prefix}/bin/dragonegg${infix}-g++ }
-            cpp  { return ${prefix}/bin/dragonegg${infix}-cpp }
-            fc   -
-            f77  -
-            f90  { return ${prefix}/bin/dragonegg${infix}-gfortran }
+            cc      -
+            objc    { return ${prefix}/bin/dragonegg${infix}-gcc }
+            cxx     -
+            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
+            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp }
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran }
         }
     }
     # Fallbacks
     switch $type {
-        cc   -
-        objc { return [find_developer_tool cc] }
-        cxx  -
-        objcxx { return [find_developer_tool c++] }
-        cpp  { return [find_developer_tool cpp] }
+        cc      -
+        objc    { return [find_developer_tool cc] }
+        cxx     -
+        objcxx  { return [find_developer_tool c++] }
+        cpp     { return [find_developer_tool cpp] }
     }
     return ""
 }
