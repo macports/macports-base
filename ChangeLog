@@ -28,8 +28,9 @@ Release 2.2.0 (unreleased)
     - Remove unimplemented 'port submit', remove XAR source packages.
       (cal in r103400)
 
-    - Remove dependency_libs information from libtool libraries (.la) in order
-      to prevent overlinking. (#38010, jmr in r102945)
+    - Prevent overlinking by removing dependency_libs information from
+      GNU Libtool (.la) files or by deleting the files entirely.
+      (#38010; jmr in r102945; jeremyhu in r107465, r107527)
 
     - Setting configure.compiler will now automatically add a dependency if
       the chosen compiler is provided by a port. (#32542, cal in r102932)
