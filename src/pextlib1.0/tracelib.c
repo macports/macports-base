@@ -42,6 +42,7 @@
 #include <limits.h>
 #include <pthread.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,15 +105,43 @@ static void ui_error(const char *format, ...);
 #define MAX_SOCKETS (1024)
 #define BUFSIZE     (1024)
 
-static void answer_s(int sock, const char *buf, size_t size) {
+/**
+ * send a buffer \c buf with the given length \c size to the socket \c sock, by
+ * using the communication protocol between darwintrace and tracelib (i.e., by
+ * prefixing the code with a uint32_t containing the length of the message)
+ *
+ * \param[in] sock the socket to send to
+ * \param[in] buf the buffer to send, should contain at least \c size bytes
+ * \param[in] size the number of bytes in \c buf
+ */
+static void answer_s(int sock, const char *buf, uint32_t size) {
     send(sock, &size, sizeof(size), 0);
     send(sock, buf, size, 0);
 }
 
+/**
+ * send a '\0'-terminated string given in \c buf to the socket \c by using the
+ * communication protocol between darwintrace and tracelib. See \c answer_s for
+ * details.
+ *
+ * \param[in] sock the socket to send to
+ * \param[in] buf the string to send; must be \0-terminated
+ */
 static void answer(int sock, const char *buf) {
-    answer_s(sock, buf, strlen(buf));
+    answer_s(sock, buf, (uint32_t) strlen(buf));
 }
 
+/**
+ * Sets the path of the tracelib unix socket where darwintrace should attempt
+ * to connect to. This path should be specific to the port being installed.
+ * Different sockets should be used for different ports (and maybe even
+ * phases).
+ *
+ * \param[inout] interp the Tcl interpreter
+ * \param[in] objc the number of parameters
+ * \param[in] the parameters
+ * \return a Tcl return code
+ */
 static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
@@ -136,6 +165,11 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
  *  /dev/null:/dev/tty:/tmp\:
  * In variable;
  *  /dev/null\0/dev/tty\0/tmp:\0\0
+ *
+ * \param[inout] interp the Tcl interpreter
+ * \param[in] objc the number of parameters
+ * \param[in] the parameters
+ * \return a Tcl return code
  */
 static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int len;
@@ -197,7 +231,13 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 }
 
 /**
- * receive line from socket, parse it and send answer
+ * Receive line from socket, parse it and send an answer, if necessary. The
+ * caller should ensure that data is available for reading from the given
+ * socket. This method will block until a complete message has been read.
+ *
+ * \param[in] sock the socket to communicate with
+ * \return 1, if the communication was successful, 0 in case of errors and/or
+ *         when the socket should be closed
  */
 static int process_line(int sock) {
     char *f;
@@ -256,6 +296,12 @@ static int process_line(int sock) {
     return 1;
 }
 
+/**
+ * Construct an in-memory representation of the sandbox file map and send it to
+ * the socket indicated by \c sock.
+ *
+ * \param[in] sock the socket to send the sandbox bounds to
+ */
 static void send_file_map(int sock) {
     if (!filemap) {
         char *t, * _;
@@ -323,12 +369,36 @@ static void send_file_map(int sock) {
     }
 }
 
+/**
+ * Process a sandbox violation reported by darwintrace. Calls back up to Tcl to
+ * run a callback with the reported violation path.
+ *
+ * \param[in] sock socket reporting the violation; unused.
+ * \param[in] path the offending path to be passed to the callback
+ */
 static void sandbox_violation(int sock UNUSED, const char *path) {
     Tcl_SetVar(interp, "path", path, 0);
     Tcl_Eval(interp, "slave_add_sandbox_violation $path");
     Tcl_UnsetVar(interp, "path", 0);
 }
 
+/**
+ * Check whether a path is in the transitive hull of dependencies of the port
+ * currently being installed and send the result of the query back to the
+ * socket.
+ *
+ * Sends one of the following characters as return code to the socket:
+ *  - #: in case of errors. Not handled by the darwintrace code, which will
+ *       lead to an error and the termination of the processing that sent the
+ *       request causing this error.
+ *  - ?: if the file isn't known to MacPorts (i.e., not registered to any port)
+ *  - +: if the file was installed by a dependency and access should be granted
+ *  - !: if the file was installed by a MacPorts port which is not in the
+ *       transitive hull of dependencies and access should be denied.
+ *
+ * \param[in] sock the socket to answer to
+ * \param[in] path the path to return the dependency information for
+ */
 static void dep_check(int sock, char *path) {
     char *port = 0;
     char *t;
