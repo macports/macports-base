@@ -738,10 +738,9 @@ proc portconfigure::configure_main {args} {
 
         # add extra flags that are conditional on whether we're building universal
         if {[variant_exists universal] && [variant_isset universal]} {
-            foreach flags {CFLAGS OBJCFLAGS} {
-                append_list_to_environment_value configure $flags ${configure.universal_cflags}
-            }
+            append_list_to_environment_value configure "CFLAGS" ${configure.universal_cflags}
             append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
+            append_list_to_environment_value configure "OBJCFLAGS" ${configure.universal_objcflags}
             append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
             append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval configure.pre_args-append ${configure.universal_args}
