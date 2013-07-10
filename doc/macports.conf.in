@@ -100,8 +100,8 @@ universal_archs     	@UNIVERSAL_ARCHS@
 
 # Delete GNU Libtool .la files from new port installations. If set to
 # "no", MacPorts keeps the files but purges them of dependency
-# information. Defaults to "yes" on OS X 10.9 and later and "no"
-# otherwise.
+# information to prevent overlinking. Defaults to "yes" on OS X 10.9 and
+# later and "no" otherwise.
 #delete_la_files    	no
 
 # Automatically execute "clean" after "install" of ports.
