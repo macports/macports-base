@@ -81,6 +81,11 @@ static char *filemap, *filemap_end;
 static char *depends;
 static int sock = -1;
 static int kq = -1;
+#ifndef EVFILT_USER
+/* if EVFILT_USER isn't available (< 10.6), use the self-pipe trick to return
+ * from the blocking kqueue(2) call by writing a byte to the pipe */
+static int selfpipe[2];
+#endif
 static int enable_fence = 0;
 static Tcl_Interp *interp;
 static pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -472,6 +477,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
     struct kevent kev;
     int flags;
     int oldsock;
+    int opensockcount = 0;
 
     if (-1 == (kq = kqueue())) {
         Tcl_SetErrno(errno);
@@ -516,6 +522,48 @@ static int TracelibRunCmd(Tcl_Interp *in) {
             return TCL_ERROR;
         }
 
+
+#       ifndef EVFILT_USER
+        /* on systems that don't have EVFILT_USER, use the self-pipe trick to
+         * trigger returning from kevent(2) when tracelib closesocket is
+         * called. */
+        if (-1 == pipe(selfpipe)) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "pipe: ", (char *) Tcl_PosixError(in), NULL);
+            return TCL_ERROR;
+        }
+
+        /* mark the write side of the pipe non-blocking */
+        flags = fcntl(selfpipe[1], F_GETFL, 0);
+        if (-1 == fcntl(selfpipe[1], F_SETFL, flags | O_NONBLOCK)) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "fcntl(F_SETFL, += O_NONBLOCK): ", (char *) Tcl_PosixError(in), NULL);
+            return TCL_ERROR;
+        }
+
+        /* wait for the user event on the listen socket, as sent by CloseCmd as
+         * deathpill */
+        EV_SET(&kev, selfpipe[0], EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
+        if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+            close(kq);
+            return TCL_ERROR;
+        }
+        /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
+         * always be returned. When a filter is successfully added, the data field
+         * will be zero. */
+        if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+            Tcl_SetErrno(kev.data);
+            Tcl_ResetResult(in);
+            Tcl_AppendResult(in, "kevent: ", (char *) Tcl_PosixError(in), NULL);
+            close(kq);
+            return TCL_ERROR;
+        }
+#       else /* ifndef EVFILT_USER */
         /* wait for the user event on the listen socket, as sent by CloseCmd as
          * deathpill */
         EV_SET(&kev, oldsock, EVFILT_USER, EV_ADD | EV_RECEIPT, 0, 0, NULL);
@@ -536,6 +584,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
             close(kq);
             return TCL_ERROR;
         }
+#       endif /* ifndef EVFILT_USER */
     }
     pthread_mutex_unlock(&sock_mutex);
 
@@ -555,6 +604,18 @@ static int TracelibRunCmd(Tcl_Interp *in) {
         } while (keventstatus == 0);
 
         for (i = 0; i < keventstatus; ++i) {
+#           ifndef EVFILT_USER
+            /* handle traffic on the selfpipe */
+            if ((int) res_kevents[i].ident == selfpipe[0]) {
+                pthread_mutex_lock(&sock_mutex);
+                close(selfpipe[0]);
+                close(selfpipe[1]);
+                selfpipe[0] = -1;
+                selfpipe[1] = -1;
+                pthread_mutex_unlock(&sock_mutex);
+                break;
+            }
+#           endif
             /* the control socket has activity – we might have a new
              * connection. We use a copy of sock here, because sock might have
              * been set to -1 by the close command */
@@ -610,6 +671,8 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                         close(s);
                         continue;
                     }
+
+                    opensockcount++;
                 }
 
                 if (cleanuping) {
@@ -626,12 +689,16 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                     close(res_kevents[i].ident);
                     /* closing the socket will automatically remove it from the
                      * kqueue :) */
+                    opensockcount--;
                 }
             }
         }
     }
 
     /* NOTE: We aren't necessarily closing all client sockets here! */
+    if (opensockcount > 0) {
+        fprintf(stderr, "tracelib: %d open sockets will leak at end of runcmd\n", opensockcount);
+    }
     pthread_mutex_lock(&sock_mutex);
     close(kq);
     kq = -1;
@@ -665,16 +732,18 @@ static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
     return TCL_OK;
 }
 
-static int TracelibCloseSocketCmd(Tcl_Interp *interp) {
+static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
+    /* interp might be UNUSED on systems without EVFILT_USER */
     cleanuping = 1;
     pthread_mutex_lock(&sock_mutex);
     if (sock != -1) {
         int oldsock = sock;
         /*shutdown(sock, SHUT_RDWR);*/
-        close(sock);
+        close(oldsock);
         sock = -1;
 
         if (kq != -1) {
+#           ifdef EVFILT_USER
             int ret;
             struct kevent kev;
             EV_SET(&kev, oldsock, EVFILT_USER, 0, NOTE_TRIGGER, 0, NULL);
@@ -685,6 +754,13 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp) {
                 pthread_mutex_unlock(&sock_mutex);
                 return TCL_ERROR;
             }
+#           else /* ifdef EVFILT_USER */
+            /* We know the pipes have been created because kq != -1 and we have
+             * the lock. We don't have to check for errors, because none should
+             * occur but when the pipe is full, which we wouldn't care about.
+             * */
+            write(selfpipe[1], "!", 1);
+#           endif /* ifdef EVFILT_USER */
         }
     }
     pthread_mutex_unlock(&sock_mutex);
