@@ -3,6 +3,14 @@
 # $Id$
 ###
 
+Release 2.2.1 (unreleased)
+    - Add "macports-dragonegg-X.Y-gcc-A.B" as valid configure.compiler
+      values. (larryv in r108040)
+
+    - Add configure.objcxx, configure.objcxxflags,
+      configure.universal_objcxxflags, and configure.universal_objcflags
+      options. (#38512, larryv in r107973, r107976, r107987)
+
 Release 2.2.0 (unreleased)
     - Fixed ports sometimes being incorrectly cleaned after the unarchive
       target is run with newer archives. (jmr in r106717)
