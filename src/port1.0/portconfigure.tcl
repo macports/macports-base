@@ -207,37 +207,35 @@ default compiler.whitelist      {}
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
-    global UI_PREFIX configure.compiler
-    
+    global UI_PREFIX
+
     ui_notice "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option subport]]"
 
-    set name ""
-    switch -exact ${configure.compiler} {
-        cc { set name "System cc" }
-        gcc { set name "System GCC" }
-        gcc-3.3 { set name "Mac OS X GCC 3.3" }
-        gcc-4.0 { set name "Mac OS X GCC 4.0" }
-        gcc-4.2 { set name "Mac OS X GCC 4.2" }
-        llvm-gcc-4.2 { set name "Mac OS X LLVM-GCC 4.2" }
-        clang { set name "Mac OS X Clang" }
-        apple-gcc-4.0 { set name "MacPorts Apple GCC 4.0" }
-        apple-gcc-4.2 { set name "MacPorts Apple GCC 4.2" }
-        macports-gcc     { set name "MacPorts GCC (port select)" }
-        macports-llvm-gcc-4.2 { set name "MacPorts LLVM-GCC 4.2" }
-        macports-clang { set name "MacPorts Clang (port select)" }
-        default {
-            if {[regexp {macports-clang-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts Clang ${major}.${minor}"
-            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts DragonEgg ${major}.${minor}"
-            } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts GCC ${major}.${minor}"
-            } else {
-                return -code error "Invalid value for configure.compiler: ${configure.compiler}"
-            }
+    set compiler [option configure.compiler]
+    set valid_compilers {
+        {^apple-gcc-(4\.[02])$}                 {MacPorts Apple GCC %s}
+        {^cc$}                                  {System cc}
+        {^clang$}                               {Xcode Clang}
+        {^gcc$}                                 {System GCC}
+        {^gcc-(3\.3|4\.[02])$}                  {Xcode GCC %s}
+        {^llvm-gcc-4\.2$}                       {Xcode LLVM-GCC 4.2}
+        {^macports-clang$}                      {MacPorts Clang (port select}
+        {^macports-clang-(\d+\.\d+)$}           {MacPorts Clang %s}
+        {^macports-dragonegg-(\d+\.\d+)$}       {MacPorts DragonEgg %s}
+        {^macports-gcc$}                        {MacPorts GCC (port select)}
+        {^macports-gcc-(\d+\.\d+)$}             {MacPorts GCC %s}
+        {^macports-llvm-gcc-4\.2$}              {MacPorts LLVM-GCC 4.2}
+    }
+    foreach {re fmt} $valid_compilers {
+        if {[set matches [regexp -inline $re $compiler]] ne {}} {
+            set compiler_name [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
+            break
         }
     }
-    ui_debug "Using compiler '$name'"
+    if {![info exists compiler_name]} {
+        return -code error "Invalid value for configure.compiler: $compiler"
+    }
+    ui_debug "Using compiler '$compiler_name'"
 
     # Additional ccache directory setup
     global configure.ccache ccache_dir ccache_size macportsuser
@@ -505,7 +503,32 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         set compiler ${configure.compiler}
     }
     # Tcl 8.4's switch doesn't support -matchvar.
-    if {[regexp {^gcc(-3\.3|-4\.0|-4\.2)?$} $compiler -> suffix]} {
+    if {[regexp {^apple-gcc(-4\.[02])$} $compiler -> suffix]} {
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/gcc-apple${suffix} }
+            cxx     -
+            objcxx  {
+                if {$suffix == "-4.2"} {
+                    return ${prefix}/bin/g++-apple${suffix}
+                }
+            }
+            cpp     { return ${prefix}/bin/cpp-apple${suffix} }
+        }
+    } elseif {[regexp {^clang$} $compiler]} {
+        switch $type {
+            cc      -
+            objc    { return [find_developer_tool clang] }
+            cxx     -
+            objcxx  {
+                set clangpp [find_developer_tool clang++]
+                if {[file executable $clangpp]} {
+                    return $clangpp
+                }
+                return [find_developer_tool llvm-g++-4.2]
+            }
+        }
+    } elseif {[regexp {^gcc(-3\.3|-4\.[02])?$} $compiler -> suffix]} {
         switch $type {
             cc      -
             objc    { return [find_developer_tool "gcc${suffix}"] }
@@ -521,33 +544,29 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objcxx  { return [find_developer_tool llvm-g++-4.2] }
             cpp     { return [find_developer_tool llvm-cpp-4.2] }
         }
-    } elseif {[regexp {^clang$} $compiler]} {
-        switch $type {
-            cc      -
-            objc    { return [find_developer_tool clang] }
-            cxx     -
-            objcxx  {
-                set clangpp [find_developer_tool clang++]
-                if {[file executable $clangpp]} {
-                    return $clangpp
-                }
-                return [find_developer_tool llvm-g++-4.2]
-            }
+    } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
+        if {$suffix ne {}} {
+            set suffix "-mp${suffix}"
         }
-    } elseif {[regexp {^apple-gcc(-4\.0|-4\.2)$} $compiler -> suffix]} {
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/gcc-apple${suffix} }
+            objc    { return ${prefix}/bin/clang${suffix} }
             cxx     -
-            objcxx  {
-                if {$suffix == "-4.2"} {
-                    return ${prefix}/bin/g++-apple${suffix}
-                }
-            }
-            cpp     { return ${prefix}/bin/cpp-apple${suffix} }
+            objcxx  { return ${prefix}/bin/clang++${suffix} }
+        }
+    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> infix]} {
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/dragonegg${infix}-gcc }
+            cxx     -
+            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
+            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp }
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran }
         }
     } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
-        if {[string length $suffix]} {
+        if {$suffix ne {}} {
             set suffix "-mp${suffix}"
         }
         switch $type {
@@ -567,27 +586,6 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cxx     -
             objcxx  { return ${prefix}/bin/llvm-g++-4.2 }
             cpp     { return ${prefix}/bin/llvm-cpp-4.2 }
-        }
-    } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
-        if {[string length $suffix]} {
-            set suffix "-mp${suffix}"
-        }
-        switch $type {
-            cc      -
-            objc    { return ${prefix}/bin/clang${suffix} }
-            cxx     -
-            objcxx  { return ${prefix}/bin/clang++${suffix} }
-        }
-    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> infix]} {
-        switch $type {
-            cc      -
-            objc    { return ${prefix}/bin/dragonegg${infix}-gcc }
-            cxx     -
-            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
-            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp }
-            fc      -
-            f77     -
-            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran }
         }
     }
     # Fallbacks
