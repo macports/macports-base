@@ -42,6 +42,9 @@
 #if HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
+
+#include <stdint.h>
+
 #if defined(_DARWIN_FEATURE_64_BIT_INODE) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE)
 /* The architecture we're building for has multiple versions of stat.
    We need to undo sys/cdefs.h changes for _DARWIN_FEATURE_64_BIT_INODE */
@@ -118,7 +121,7 @@ static inline char *__darwintrace_alloc_env(const char *varName, const char *var
 static inline char *const *__darwintrace_restore_env(char *const envp[]);
 static inline void __darwintrace_setup();
 static inline void __darwintrace_cleanup_path(char *path);
-static char *__send(const char *buf, size_t len, int answer);
+static char *__send(const char *buf, uint32_t len, int answer);
 
 /**
  * PID of the process darwintrace was last used in. This is used to detect
@@ -511,7 +514,7 @@ static void __darwintrace_get_filemap() {
 		free(newfilemap);
 		if (filemap != NULL)
 			break;
-		newfilemap = __send("filemap\t", strlen("filemap\t"), 1);
+		newfilemap = __send("filemap\t", (uint32_t) strlen("filemap\t"), 1);
 	} while (!__sync_bool_compare_and_swap(&filemap, NULL, newfilemap));
 
 #if DARWINTRACE_DEBUG && 0
@@ -621,7 +624,7 @@ static inline void __darwintrace_setup() {
  * \param[in] fd a FD to the file, or 0, if none available
  */
 static inline void __darwintrace_log_op(const char *op, const char *path, int fd) {
-	int size;
+	uint32_t size;
 	char somepath[MAXPATHLEN];
 	char logbuffer[BUFFER_SIZE];
 
@@ -715,7 +718,7 @@ static inline void __darwintrace_cleanup_path(char *path) {
 static int dependency_check(char *path) {
 #define stat(y, z) syscall(SYS_stat, (y), (z))
 	char buffer[BUFFER_SIZE], *p;
-	size_t len;
+	uint32_t len;
 	int result = 0;
 	struct stat st;
 
@@ -810,7 +813,7 @@ static void fsend(const void *restrict buf, size_t size) {
  * \return allocated answer buffer. Callers should free this buffer. If an
  *         answer was not requested, \c NULL.
  */
-static char *__send(const char *buf, size_t len, int answer) {
+static char *__send(const char *buf, uint32_t len, int answer) {
 	fsend(&len, sizeof(len));
 	fsend(buf, len);
 
@@ -818,7 +821,7 @@ static char *__send(const char *buf, size_t len, int answer) {
 		return NULL;
 	}
 
-	size_t recv_len = 0;
+	uint32_t recv_len = 0;
 	char *recv_buf;
 
 	frecv(&recv_len, sizeof(recv_len));
