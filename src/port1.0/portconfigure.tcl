@@ -213,18 +213,20 @@ proc portconfigure::configure_start {args} {
 
     set compiler [option configure.compiler]
     set valid_compilers {
-        {^apple-gcc-(4\.[02])$}                 {MacPorts Apple GCC %s}
-        {^cc$}                                  {System cc}
-        {^clang$}                               {Xcode Clang}
-        {^gcc$}                                 {System GCC}
-        {^gcc-(3\.3|4\.[02])$}                  {Xcode GCC %s}
-        {^llvm-gcc-4\.2$}                       {Xcode LLVM-GCC 4.2}
-        {^macports-clang$}                      {MacPorts Clang (port select}
-        {^macports-clang-(\d+\.\d+)$}           {MacPorts Clang %s}
-        {^macports-dragonegg-(\d+\.\d+)$}       {MacPorts DragonEgg %s}
-        {^macports-gcc$}                        {MacPorts GCC (port select)}
-        {^macports-gcc-(\d+\.\d+)$}             {MacPorts GCC %s}
-        {^macports-llvm-gcc-4\.2$}              {MacPorts LLVM-GCC 4.2}
+        {^apple-gcc-(4\.[02])$}             {MacPorts Apple GCC %s}
+        {^cc$}                              {System cc}
+        {^clang$}                           {Xcode Clang}
+        {^gcc$}                             {System GCC}
+        {^gcc-(3\.3|4\.[02])$}              {Xcode GCC %s}
+        {^llvm-gcc-4\.2$}                   {Xcode LLVM-GCC 4.2}
+        {^macports-clang$}                  {MacPorts Clang (port select}
+        {^macports-clang-(\d+\.\d+)$}       {MacPorts Clang %s}
+        {^macports-dragonegg-(\d+\.\d+)$}   {MacPorts DragonEgg %s}
+        {^macports-dragonegg-(\d+\.\d+)-gcc-(\d+\.\d+)$}
+            {MacPorts DragonEgg %s with GCC %s}
+        {^macports-gcc$}                    {MacPorts GCC (port select)}
+        {^macports-gcc-(\d+\.\d+)$}         {MacPorts GCC %s}
+        {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
     }
     foreach {re fmt} $valid_compilers {
         if {[set matches [regexp -inline $re $compiler]] ne {}} {
@@ -401,10 +403,10 @@ array set portconfigure::compiler_name_map {
 # Mapping from compiler names to compiler ports, for private use by
 # compiler_port_name. Do not access directly.
 set portconfigure::valid_compiler_ports {
-    {^apple-gcc-(\d+)\.(\d+)$}              {apple-gcc%s%s}
-    {^macports-clang-(\d+\.\d+)$}           {clang-%s}
-    {^macports-dragonegg-(\d+\.\d+)$}       {dragonegg-%s}
-    {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}   {%sgcc%s%s}
+    {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
+    {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
+    {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
+    {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}               {%sgcc%s%s}
 }
 
 proc portconfigure::compiler_port_name {compiler} {
@@ -556,16 +558,20 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cxx     -
             objcxx  { return ${prefix}/bin/clang++${suffix} }
         }
-    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> infix]} {
+    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)(?:-gcc(-\d+\.\d+))?$} $compiler \
+                -> infix suffix]} {
+        if {$suffix ne {}} {
+            set suffix "-mp${suffix}"
+        }
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/dragonegg${infix}-gcc }
+            objc    { return ${prefix}/bin/dragonegg${infix}-gcc${suffix} }
             cxx     -
-            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
-            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp }
+            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++${suffix} }
+            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp${suffix} }
             fc      -
             f77     -
-            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran }
+            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran${suffix} }
         }
     } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
         if {$suffix ne {}} {
