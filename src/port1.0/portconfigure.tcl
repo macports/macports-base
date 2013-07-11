@@ -398,20 +398,22 @@ array set portconfigure::compiler_name_map {
         macports-dragonegg-3.3  dragonegg-3.3
 }
 
-proc portconfigure::compiler_port_name {compiler} {
-    if {[regexp {apple-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "apple-gcc${major}${minor}"
-    } elseif {[regexp {macports-clang-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "clang-${major}.${minor}"
-    } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "dragonegg-${major}.${minor}"
-    } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "gcc${major}${minor}"
-    } elseif {[regexp {macports-llvm-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "llvm-gcc${major}${minor}"
-    }
+# Mapping from compiler names to compiler ports, for private use by
+# compiler_port_name. Do not access directly.
+set portconfigure::valid_compiler_ports {
+    {^apple-gcc-(\d+)\.(\d+)$}              {apple-gcc%s%s}
+    {^macports-clang-(\d+\.\d+)$}           {clang-%s}
+    {^macports-dragonegg-(\d+\.\d+)$}       {dragonegg-%s}
+    {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}   {%sgcc%s%s}
+}
 
-    return ""
+proc portconfigure::compiler_port_name {compiler} {
+    foreach {re fmt} $portconfigure::valid_compiler_ports {
+        if {[set matches [regexp -inline $re $compiler]] ne {}} {
+            return [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
+        }
+    }
+    return {}
 }
 
 proc portconfigure::compiler_is_port {compiler} {
