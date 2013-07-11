@@ -242,7 +242,7 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 static int process_line(int sock) {
     char *f;
     char buf[BUFSIZE];
-    size_t len;
+    uint32_t len;
     ssize_t ret;
 
     if ((ret = recv(sock, &len, sizeof(len), MSG_WAITALL)) != sizeof(len)) {
@@ -362,11 +362,7 @@ static void send_file_map(int sock) {
 #       undef append_allow
     }
 
-    {
-        size_t s = filemap_end - filemap;
-        send(sock, &s, sizeof(s), 0);
-        send(sock, filemap, s, 0);
-    }
+    answer_s(sock, filemap, filemap_end - filemap);
 }
 
 /**
