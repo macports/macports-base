@@ -77,7 +77,7 @@ proc portconfigure::add_build_dep { type dep } {
         ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == $option_defaults(${type}.cmd)) ||
         (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == "${type}")
         )} {
-            eval depends_build-append $dep
+            eval [linsert $dep 0 depends_build-append]
     }
 }
 
@@ -97,14 +97,14 @@ proc portconfigure::set_configure_type {option action args} {
             autoreconf.cmd  -
             automake.cmd    -
             autoconf.cmd {
-                eval depends_build-delete $configure_map(autoconf)
+                eval [linsert $configure_map(autoconf) 0 depends_build-delete]
             }
             xmkmf.cmd {
-                depends_build-delete $configure_map(xmkmf)
+                eval [linsert $configure_map(xmkmf) 0 depends_build-delete]
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    depends_build-append $configure_map(xmkmf)
+                    eval [linsert $configure_map(xmkmf) 0 depends_build-append]
                 }
             }
             default {
@@ -765,7 +765,7 @@ proc portconfigure::configure_main {args} {
             append_list_to_environment_value configure "OBJCXXFLAGS" ${configure.universal_objcxxflags}
             append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
             append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
-            eval configure.pre_args-append ${configure.universal_args}
+            eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
         } else {
             foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS objcxx OBJCXXFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS ld LDFLAGS} {
                 append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
