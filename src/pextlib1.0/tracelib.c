@@ -59,6 +59,8 @@
 
 #include "tracelib.h"
 
+#include "strlcat.h"
+
 #ifndef HAVE_STRLCPY
 /* Define strlcpy if it's not available. */
 size_t strlcpy(char *dst, const char *src, size_t size);

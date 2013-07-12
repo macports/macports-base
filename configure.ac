@@ -243,7 +243,7 @@ AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h 
 INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
-AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile clearenv sysctlbyname])
+AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname])
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation

@@ -96,6 +96,8 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 }
 #endif
 
+#include "../pextlib1.0/strlcat.c"
+
 /* global variables (only checked when setup is first called)
  * DARWINTRACE_LOG
  *    path to the log file (no logging happens if it's unset).
