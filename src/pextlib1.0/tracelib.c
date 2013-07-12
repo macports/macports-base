@@ -46,7 +46,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if HAVE_SYS_EVENT_H
 #include <sys/event.h>
+#endif
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -538,9 +540,13 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     return TCL_OK;
 }
 
+#if HAVE_KQUEUE
 /* create this on heap rather than stack, due to its rather large size */
 static struct kevent res_kevents[MAX_SOCKETS];
+#endif
+
 static int TracelibRunCmd(Tcl_Interp *in) {
+#if HAVE_KQUEUE
     struct kevent kev;
     int flags;
     int oldsock;
@@ -772,6 +778,10 @@ static int TracelibRunCmd(Tcl_Interp *in) {
     pthread_mutex_unlock(&sock_mutex);
 
     return TCL_OK;
+#else
+    Tcl_SetResult(in, "tracelib not supported on this platform", TCL_STATIC);
+    return TCL_ERROR;
+#endif
 }
 
 static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {

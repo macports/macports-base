@@ -238,12 +238,12 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
-	sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
+	sys/event.h sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
-AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname])
+AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname kqueue])
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
