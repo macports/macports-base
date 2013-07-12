@@ -514,9 +514,8 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
 
     sun.sun_family = AF_UNIX;
     strlcpy(sun.sun_path, name, sizeof(sun.sun_path));
-    sun.sun_len = SUN_LEN(&sun);
 
-    if (-1 == (bind(sock, (struct sockaddr *) &sun, sun.sun_len))) {
+    if (-1 == (bind(sock, (struct sockaddr *) &sun, sizeof(sun)))) {
         Tcl_SetErrno(errno);
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "bind: ", (char *) Tcl_PosixError(interp), NULL);
