@@ -848,21 +848,14 @@ proc append_list_to_environment_value {command key vallist} {
     }
 }
 
-# Build the environment as a string.
-# Remark: this method is only used for debugging purposes.
+# Return a string representation of the specified environment, for
+# debugging purposes.
 proc environment_array_to_string {environment_array} {
     upvar 1 ${environment_array} env_array
-
-    set theString ""
     foreach {key value} [array get env_array] {
-        if {$theString == ""} {
-            set theString "$key='$value'"
-        } else {
-            set theString "${theString} $key='$value'"
-        }
+        lappend env_list $key='$value'
     }
-
-    return $theString
+    return [join $env_list]
 }
 
 ########### Distname utility functions ###########
