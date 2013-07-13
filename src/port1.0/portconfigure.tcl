@@ -190,15 +190,9 @@ options configure.ccache configure.distcc configure.pipe configure.cc \
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-default configure.cc            {[portconfigure::configure_get_compiler cc]}
-default configure.cxx           {[portconfigure::configure_get_compiler cxx]}
-default configure.cpp           {[portconfigure::configure_get_compiler cpp]}
-default configure.objc          {[portconfigure::configure_get_compiler objc]}
-default configure.objcxx        {[portconfigure::configure_get_compiler objcxx]}
-default configure.f77           {[portconfigure::configure_get_compiler f77]}
-default configure.f90           {[portconfigure::configure_get_compiler f90]}
-default configure.fc            {[portconfigure::configure_get_compiler fc]}
-default configure.javac         {[portconfigure::configure_get_compiler javac]}
+foreach tool {cc cxx objc objcxx cpp f77 f90 fc javac} {
+    default configure.$tool     "\[portconfigure::configure_get_compiler $tool\]"
+}
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 default compiler.fallback       {[portconfigure::get_compiler_fallback]}
 default compiler.blacklist      {}
