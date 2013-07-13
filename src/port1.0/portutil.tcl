@@ -818,34 +818,19 @@ proc parse_environment {command} {
     }
 }
 
-# Append to the value in the parsed environment.
-# Leave the environment untouched if the value is empty.
-proc append_to_environment_value {command key value} {
-    global ${command}.env_array
+# Append one or more items to the key in the parsed environment.
+proc append_to_environment_value {command key args} {
+    upvar #0 ${command}.env_array($key) env_key
+    foreach value $args {
+        if {$value eq {}} {
+            continue
+        }
+        # Parse out any delimiters. Is this even necessary anymore?
+        regexp {^(['"])(.*)\1$} $value -> delim value
 
-    if {[string length $value] == 0} {
-        return
+        lappend env_key $value
     }
-
-    # Parse out any delimiter.
-    set append_value $value
-    if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
-        set append_value $matchedValue
-    }
-
-    if {[info exists ${command}.env_array($key)]} {
-        set original_value [set ${command}.env_array($key)]
-        set ${command}.env_array($key) "${original_value} ${append_value}"
-    } else {
-        set ${command}.env_array($key) $append_value
-    }
-}
-
-# Append several items to a value in the parsed environment.
-proc append_list_to_environment_value {command key vallist} {
-    foreach {value} $vallist {
-        append_to_environment_value ${command} $key $value
-    }
+    catch {set env_key [join $env_key]}
 }
 
 # Return a string representation of the specified environment, for

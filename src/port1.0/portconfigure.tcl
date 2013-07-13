@@ -676,13 +676,13 @@ proc portconfigure::configure_main {args} {
 
     if {[tbool use_xmkmf]} {
         parse_environment xmkmf
-        append_list_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
+        append_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
         }
 
         parse_environment xmkmf
-        append_list_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
+        append_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] "make Makefiles" $result]"
         }
@@ -692,82 +692,82 @@ proc portconfigure::configure_main {args} {
 
         # Set pre-compiler filter to use (ccache/distcc), if any.
         if {[tbool configure.ccache] && [tbool configure.distcc]} {
-            set filter "ccache "
-            append_list_to_environment_value configure "CCACHE_PREFIX" "distcc"
+            set filter ccache
+            append_to_environment_value configure "CCACHE_PREFIX" "distcc"
         } elseif {[tbool configure.ccache]} {
-            set filter "ccache "
+            set filter ccache
         } elseif {[tbool configure.distcc]} {
-            set filter "distcc "
+            set filter distcc
         } else {
             set filter ""
         }
         
         # Set flags controlling the kind of compiler output.
         if {[tbool configure.pipe]} {
-            set output "-pipe "
+            set output -pipe
         } else {
             set output ""
         }
 
         # Append configure flags.
-        append_list_to_environment_value configure "CC" ${filter}${configure.cc}
-        append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
-        append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
-        append_list_to_environment_value configure "OBJCXX" ${filter}${configure.objcxx}
-        append_list_to_environment_value configure "FC" ${configure.fc}
-        append_list_to_environment_value configure "F77" ${configure.f77}
-        append_list_to_environment_value configure "F90" ${configure.f90}
-        append_list_to_environment_value configure "JAVAC" ${configure.javac}
-        append_list_to_environment_value configure "CFLAGS" ${output}${configure.cflags}
-        append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
-        append_list_to_environment_value configure "CXXFLAGS" ${output}${configure.cxxflags}
-        append_list_to_environment_value configure "OBJCFLAGS" ${output}${configure.objcflags}
-        append_list_to_environment_value configure "OBJCXXFLAGS" ${output}${configure.objcxxflags}
-        append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
-        append_list_to_environment_value configure "LIBS" ${configure.libs}
-        append_list_to_environment_value configure "FFLAGS" ${output}${configure.fflags}
-        append_list_to_environment_value configure "F90FLAGS" ${output}${configure.f90flags}
-        append_list_to_environment_value configure "FCFLAGS" ${output}${configure.fcflags}
-        append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
-        append_list_to_environment_value configure "PERL" ${configure.perl}
-        append_list_to_environment_value configure "PYTHON" ${configure.python}
-        append_list_to_environment_value configure "RUBY" ${configure.ruby}
-        append_list_to_environment_value configure "INSTALL" ${configure.install}
-        append_list_to_environment_value configure "AWK" ${configure.awk}
-        append_list_to_environment_value configure "BISON" ${configure.bison}
-        append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
-        append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+        append_to_environment_value configure "CC" ${filter} ${configure.cc}
+        append_to_environment_value configure "CXX" ${filter} ${configure.cxx}
+        append_to_environment_value configure "OBJC" ${filter} ${configure.objc}
+        append_to_environment_value configure "OBJCXX" ${filter} ${configure.objcxx}
+        append_to_environment_value configure "FC" ${configure.fc}
+        append_to_environment_value configure "F77" ${configure.f77}
+        append_to_environment_value configure "F90" ${configure.f90}
+        append_to_environment_value configure "JAVAC" ${configure.javac}
+        append_to_environment_value configure "CFLAGS" ${output} ${configure.cflags}
+        append_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
+        append_to_environment_value configure "CXXFLAGS" ${output} ${configure.cxxflags}
+        append_to_environment_value configure "OBJCFLAGS" ${output} ${configure.objcflags}
+        append_to_environment_value configure "OBJCXXFLAGS" ${output} ${configure.objcxxflags}
+        append_to_environment_value configure "LDFLAGS" ${configure.ldflags}
+        append_to_environment_value configure "LIBS" ${configure.libs}
+        append_to_environment_value configure "FFLAGS" ${output} ${configure.fflags}
+        append_to_environment_value configure "F90FLAGS" ${output} ${configure.f90flags}
+        append_to_environment_value configure "FCFLAGS" ${output} ${configure.fcflags}
+        append_to_environment_value configure "CLASSPATH" ${configure.classpath}
+        append_to_environment_value configure "PERL" ${configure.perl}
+        append_to_environment_value configure "PYTHON" ${configure.python}
+        append_to_environment_value configure "RUBY" ${configure.ruby}
+        append_to_environment_value configure "INSTALL" ${configure.install}
+        append_to_environment_value configure "AWK" ${configure.awk}
+        append_to_environment_value configure "BISON" ${configure.bison}
+        append_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
+        append_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
 
         # https://trac.macports.org/ticket/34221
         if {${os.platform} == "darwin" && ${os.major} == 12} {
-            append_list_to_environment_value configure "__CFPREFERENCES_AVOID_DAEMON" 1
+            append_to_environment_value configure "__CFPREFERENCES_AVOID_DAEMON" 1
         }
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
         if {${configure.sdkroot} != ""} {
             foreach flags {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
-                append_list_to_environment_value configure $flags "-isysroot ${configure.sdkroot}"
+                append_to_environment_value configure $flags -isysroot ${configure.sdkroot}
             }
-            append_list_to_environment_value configure "LDFLAGS" "-Wl,-syslibroot,${configure.sdkroot}"
+            append_to_environment_value configure "LDFLAGS" -Wl,-syslibroot,${configure.sdkroot}
         }
 
         # add extra flags that are conditional on whether we're building universal
         if {[variant_exists universal] && [variant_isset universal]} {
-            append_list_to_environment_value configure "CFLAGS" ${configure.universal_cflags}
-            append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
-            append_list_to_environment_value configure "OBJCFLAGS" ${configure.universal_objcflags}
-            append_list_to_environment_value configure "OBJCXXFLAGS" ${configure.universal_objcxxflags}
-            append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
-            append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
+            append_to_environment_value configure "CFLAGS" ${configure.universal_cflags}
+            append_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
+            append_to_environment_value configure "OBJCFLAGS" ${configure.universal_objcflags}
+            append_to_environment_value configure "OBJCXXFLAGS" ${configure.universal_objcxxflags}
+            append_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
+            append_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
         } else {
             foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS objcxx OBJCXXFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS ld LDFLAGS} {
-                append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
+                append_to_environment_value configure $flags [set configure.${tool}_archflags]
                 if {${configure.march} != {}} {
-                    append_list_to_environment_value configure $flags "-march=${configure.march}"
+                    append_to_environment_value configure $flags -march=${configure.march}
                 }
                 if {${configure.mtune} != {}} {
-                    append_list_to_environment_value configure $flags "-mtune=${configure.mtune}"
+                    append_to_environment_value configure $flags -mtune=${configure.mtune}
                 }
             }
         }
