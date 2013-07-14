@@ -597,9 +597,8 @@ static inline void __darwintrace_setup() {
 		}
 		sun.sun_family = AF_UNIX;
 		strlcpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
-		sun.sun_len = SUN_LEN(&sun) + 1;
 
-		if (-1 == (connect(sock, (struct sockaddr *) &sun, sun.sun_len))) {
+		if (-1 == (connect(sock, (struct sockaddr *) &sun, sizeof(sun)))) {
 			perror("darwintrace: connect");
 			abort();
 		}
