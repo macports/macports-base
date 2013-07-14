@@ -250,7 +250,7 @@ static inline void __darwintrace_sock_set(FILE *stream) {
  * Convenience setter function for the thread-local darwintrace socket
  */
 static inline void __darwintrace_tid_set() {
-	if (0 != (errno = pthread_setspecific(tid_key, pthread_self()))) {
+	if (0 != (errno = pthread_setspecific(tid_key, (const void *) pthread_self()))) {
 		perror("darwintrace: pthread_setspecific");
 		abort();
 	}
