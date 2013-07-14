@@ -250,7 +250,7 @@ static inline void __darwintrace_sock_set(FILE *stream) {
  * Convenience setter function for the thread-local darwintrace socket
  */
 static inline void __darwintrace_tid_set() {
-	if (0 != (errno = pthread_setspecific(tid_key, (const void *) pthread_self()))) {
+	if (0 != (errno = pthread_setspecific(tid_key, pthread_self()))) {
 		perror("darwintrace: pthread_setspecific");
 		abort();
 	}
@@ -597,8 +597,9 @@ static inline void __darwintrace_setup() {
 		}
 		sun.sun_family = AF_UNIX;
 		strlcpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
+		sun.sun_len = SUN_LEN(&sun) + 1;
 
-		if (-1 == (connect(sock, (struct sockaddr *) &sun, sizeof(sun)))) {
+		if (-1 == (connect(sock, (struct sockaddr *) &sun, sun.sun_len))) {
 			perror("darwintrace: connect");
 			abort();
 		}
@@ -636,9 +637,6 @@ static inline void __darwintrace_log_op(const char *op, const char *path, int fd
 				break;
 			}
 		}
-#		else
-		/* mark parameter as used */
-		(void)fd;
 #       endif
 
 		if (*path != '/') {
@@ -668,17 +666,17 @@ static inline void __darwintrace_log_op(const char *op, const char *path, int fd
  * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
  */
 static inline void __darwintrace_cleanup_path(char *path) {
-#   ifdef __APPLE__
 	size_t pathlen;
+#   ifdef __APPLE__
 	size_t rsrclen;
 #   endif
 	char *dst, *src;
 	enum { SAWSLASH, NOTHING } state = NOTHING;
 
-#   ifdef __APPLE__
-	/* ..namedfork/rsrc is only on OS X */
 	/* if this is a foo/..namedfork/rsrc, strip it off */
 	pathlen = strlen(path);
+	/* ..namedfork/rsrc is only on OS X */
+#   ifdef __APPLE__
 	rsrclen = strlen(_PATH_RSRCFORKSPEC);
 	if (pathlen > rsrclen && 0 == strcmp(path + pathlen - rsrclen, _PATH_RSRCFORKSPEC)) {
 		path[pathlen - rsrclen] = '\0';
@@ -1064,10 +1062,9 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 						break;
 					}
 				}
-
-				/* TODO check the iterpreter against the sandbox */
-				(void) interp;
 			}
+
+			/* TODO check the iterpreter against the sandbox */
 			close(fd);
 		}
 	}

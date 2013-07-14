@@ -4,7 +4,7 @@ INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/darwintrace1.0
 
 include ../../Mk/macports.autoconf.mk
 
-CFLAGS+= -fPIC -Wno-deprecated-declarations -std=c99 -D_XOPEN_SOURCE=500 -D_GNU_SOURCE
+CFLAGS+= -fPIC -Wno-deprecated-declarations -std=c99
 CFLAGS_PEDANTIC=
 
 all:: ${SHLIB_NAME}
