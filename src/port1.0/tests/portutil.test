@@ -1,0 +1,500 @@
+package require tcltest 2
+namespace import tcltest::*
+
+source ../../macports1.0/macports_fastload.tcl
+
+package require macports 1.0
+package require registry2
+package require Pextlib 1.0
+package require macports_dlist 1.0
+package require macports_util 1.0
+package require msgcat
+package require porttrace 1.0
+mportinit
+
+global os_platform macosx_version
+set os_platform darwin
+set macosx_version 10.8
+set os_version 11
+set os_arch i386
+set portpath ./Portfile
+set portbuildpath ./build
+
+proc getportbuildpath {id {portname ""}} {
+    global portdbpath
+    regsub {://} $id {.} port_path
+    regsub -all {/} $port_path {_} port_path
+    return [file join $portdbpath build $port_path $portname]
+}
+
+proc getportworkpath_from_buildpath {portbuildpath} {
+    return [file join $portbuildpath work]
+}
+
+proc getportworkpath_from_portdir {portpath {portname ""}} {
+    return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
+}
+
+source ../portutil.tcl
+source ../portmain.tcl
+
+
+# Create a filesystem hierarchy based on the given specification
+# The mtree spec consists of name/type pairings, where type can be
+# one of directory, file or link. If type is link, it must be a
+# two-element list containing the path as the second element
+proc mtree {root spec} {
+    foreach {entry typelist} $spec {
+        set type [lindex $typelist 0]
+        set link [lindex $typelist 1]
+        set file [file join $root $entry]
+        switch $type {
+            directory {
+                file mkdir $file
+            }
+            file {
+                # touch
+                close [open $file w]
+            }
+            link {
+                # file link doesn't let you link to files that don't exist
+                # so lets farm out to /bin/ln
+                exec /bin/ln -sf $link $file
+            }
+            default {
+                return -code return "Unknown file map type: $typelist"
+            }
+        }
+    }
+}
+
+
+test option {
+    Option unit test. Tcl 'set' functionality.
+} -body {
+    if {[option MP macports] != "macports"} {return "FAIL: var not set correctly"}
+    if {$MP != "macports"} {return "FAIL: var not set"}
+    return "Option successful."
+} -result "Option successful."
+
+
+test exists {
+    Exists unit test. Checks for existance of a Portfile option.
+} -body {
+    set vara a
+    if {[exists vara] != 1} {return "FAIL: option exists but not detected"}
+    if {[exists varb] != 0} {return "FAIL: option detected although missing"}
+    return "Exists successful."
+} -result "Exists successful."
+
+
+test handle_option {
+    Handle_option unit test.
+} -body {
+    set user_options {varb varc}
+    if {[handle_option vara a] != "a"} {return "FAIL: unable to set var"}
+    if {[handle_option varb b] != "b"} {return "FAIL: failed to ser var"}
+    return "Handle_option successful."
+} -result "Handle_option successful."
+
+
+# test handle_option-append
+# test handle_option-delete
+# test handle_option-strsed
+# test handle_option-replace
+# test options
+# test options::export
+# test options_export
+# test handle_deprecated_option
+# test get_deprecated_options
+# test option_deprecate
+# test option_proc
+# test option_proc_trace
+# test commands
+# test command_string
+# test command_exec
+# test default
+# test default_check
+# test handle_option_string
+# test variant
+# test variant_isset
+# test variant_set
+# test variant_remove_ditem
+# test variant_exists
+# test load_variant_desc_file
+# test variant_desc
+# test platform
+# test subport
+
+# test parse_environment
+# test append_to_environment_value
+# test append_list_to_environment_value
+# test environment_array_to_string
+# test getdisttag
+# test getdistname
+
+
+test tbool {
+    Tbool unit test. Check if variable is in calling namespace.
+} -setup {
+    namespace eval bool {
+        set vara "yes"
+	set varb no
+    }
+} -body {
+    namespace eval bool {
+        if {[tbool vara] == 0} { return "FAIL: var not true" }
+	if {[tbool varb] != 0} { return "FAIL: var not false" }
+	if {[tbool var] != 0} { return "FAIL: var should not be here" }
+	return "tbool successful."
+    }
+
+} -result "tbool successful."
+
+
+test ldelete {
+    Ldelete unit test. Remove one value from list.
+} -setup {
+    set list {a b a}
+    set empty {}
+} -body {
+    if {[ldelete $list b] != {a a}} { return "FAIL: element not deleted" }
+    if {[ldelete $list a] != {b a}} { return "FAIL: first element not removed" }
+    if {[ldelete $empty a] != {}} { return "FAIL: list was empty" }
+    return "ldelete successful."
+
+} -result "ldelete successful."
+
+
+test reinplace {
+    Reinplace  unit test. "Sed in place" functionality.
+} -setup {
+    set root "/tmp/macports-portutil-reinplace"
+    file delete -force $root
+
+    set workpath $root
+    set worksrcpath $root
+    set file $root/file
+    source ../port_autoconf.tcl
+
+    file mkdir $root
+    set fs [open $file w+]
+    puts $fs "Macports reinplace unit test?"
+    close $fs
+
+    set second $root/dir
+    file mkdir $second
+    file copy -force $root/file $second/file
+
+} -body {
+    reinplace s/Macports/MacPorts/1 $file
+    catch {set f [open $file r]}
+    set cont [read -nonewline $f]
+    if { $cont != "MacPorts reinplace unit test?" } {
+	return "FAIL: reinplace no args."
+    }
+    close $f
+
+    reinplace -E s/test?/testing/1 $file
+    catch {set f [open $file r]}
+    set cont [read -nonewline $f]
+    if { $cont != "MacPorts reinplace unit testing?" } {
+	return "FAIL: reinplace (-E) extended regex."
+    }
+    close $f
+
+    reinplace -W $second s/Macports/MP/1 file
+    catch {set f [open $second/file r]}
+    set cont [read -nonewline $f]
+    if { $cont != "MP reinplace unit test?" } {
+	return "FAIL: reinplace (-W) relative path."
+    }
+    close $f
+
+    reinplace -n s/unit/testing/1 $file
+    catch {set f [open $file r]}
+    set cont [read -nonewline $f]
+    if { $cont != "" } {
+	return "FAIL: reinplace (-n) suppress output."
+    }
+    close $f
+
+    return "Reinplace successful."
+
+} -cleanup {
+    file delete -force $root
+} -result "Reinplace successful."
+
+
+test delete {
+    Delete unit test.
+} -setup {
+    set root "/tmp/macports-portutil-delete"
+    file delete -force $root
+
+    try {
+        mtree $root {
+            a               directory
+            a/a             file
+            a/b             file
+            a/c             directory
+            a/c/a           file
+            a/c/b           {link ../b}
+            a/c/c           {link ../../b}
+            a/c/d           directory
+            a/c/d/a         file
+            a/c/d/b         directory
+            a/c/d/c         file
+            a/d             file
+            b               directory
+            b/a             file
+            b/b             {link q}
+            b/c             directory
+            b/c/a           file
+            b/c/b           file
+            b/d             file
+        }
+    }
+
+} -body {
+    delete $root/a/c/b
+    if {[file exists $root/a/c/b] || ![file exists $root/a/b]} {
+        return "FAIL: delete with single args."
+    }
+
+    delete $root/a $root/b
+    if {[file exists $root/a] || [file exists $root/b]} {
+        return "FAIL: delete with multiple args.""
+    }
+    return "Files deleted."
+
+} -cleanup {
+    file delete -force $root
+} -result "Files deleted."
+
+
+test touch {
+    Touch unit test.
+} -setup {
+    set root "/tmp/macports-portutil-touch"
+    file delete -force $root
+} -body {
+    touch -c $root
+    if {[file exists $root]} { return "FAIL: touch unsuccessful" }
+
+    touch $root
+    if {![file exists $root]} { return "FAIL: touch unsuccessful" }
+
+    # touch -a -t 199912010001.01 $root
+   
+    return "Files successfully touched."
+} -cleanup {
+    file delete -force $root
+} -result "Files successfully touched."
+
+
+test ln {
+    ln unit test.
+} -setup {
+    set root "/tmp/macports-portutil-ln"
+    file delete -force $root
+    file mkdir $root
+} -body {
+    close [open $root/a w]
+    ln -s a $root/b
+    if {[catch {file type $root/b}]} { return "FAIL: symlink not created." }
+    if {[file type $root/b] ne "link"} { return "FAIL: expected link." }
+
+    close [open $root/c w]
+    if {![catch {ln -s c $root/b}]} { return "FAIL: ln not created." }
+
+    ln -s -f c $root/b
+    if {[catch {file type $root/b}] || [file type $root/b] ne "link"} {
+        return "FAIL: ln failed."
+    }
+    file delete $root/b
+
+    ln $root/a $root/b
+    if {[catch {file type $root/b}] || [file type $root/b] ne "file"} {
+         return "FAIL: ln failed."
+     }
+    file delete $root/b
+
+    file mkdir $root/dir
+    ln -s dir $root/b
+    ln -s a $root/b
+    if {[catch {file type $root/dir/a}] || [file type $root/dir/a] ne "link"} {
+	return "FAIL: directory ln failed."
+    }
+    file delete $root/dir/a
+
+    ln -s -f -h a $root/b
+    if {[catch {file type $root/b}] || [file type $root/b] ne "link" || [file readlink $root/b] ne "a"} {
+	return "FAIL: readlink error."
+    }
+
+    cd $root/dir
+    ln -s ../c
+    if {[catch {file type $root/dir/c}] || [file type $root/dir/c] ne "link"} {
+	return "FAIL: ln failed."
+    }
+    
+    ln -s foobar $root/d
+    if {[catch {file type $root/d}] || [file type $root/d] ne "link" || [file readlink $root/d] ne "foobar"} {
+	return "FAIL: readlink error."
+    }
+
+    ln -s -f -h z $root/dir
+    if {[catch {file type $root/dir/z}] || [file type $root/dir/z] ne "link"} {
+	return "FAIL: ln failed."
+    }
+        
+    ln -sf q $root/dir
+    if {[catch {file type $root/dir/q}] || [file type $root/dir/q] ne "link"} {
+	return "FAIL: error combined ln flags."
+    }
+
+    return "Files successfully linked."
+} -cleanup {
+    file delete -force $root
+} -result "Files successfully linked."
+
+
+test makeuserproc {
+    asda
+} -setup {
+    global MP
+    set MP macports
+} -body {
+    set res [catch {makeuserproc test-proc "\{ puts \$MP \}" }]
+    return $res
+} -result "0"
+
+
+# test backup
+# test lipo
+
+
+test unobscure_maintainers {
+    Unobscure maintainers unit test.
+} -body {
+    set list { port }
+    if { [unobscure_maintainers $list] != "port@macports.org" } {
+	return "FAIL: invalid maintainer name"
+    }
+    set list { google.com:port }
+    if { [unobscure_maintainers $list] != "port@google.com" } {
+	return "FAIL: invalid maintainer name"
+    }
+
+    set list { port@google.com }
+    if { [unobscure_maintainers $list] != "port@google.com" } {
+	return "FAIL: invalid maintainer name"
+    }
+
+    return "unobscure_maintainers successful."
+
+} -result "unobscure_maintainers successful."
+
+
+# test target_run
+
+
+test recursive_collect_deps {
+    Recursive dependency search for portname.
+} -setup {
+    global deps
+    set deps {}
+## invalid command name "registry_active"
+##  recursive_collect_deps giggle $deps
+} -body {
+} -result ""
+
+
+test eval_targets {
+    Evaluate targets unit test.
+} -setup {
+    puts $subport
+
+
+    if {[eval_variants variations] != 0} {
+	mportclose $mport
+	error "Error evaluating variants"
+    }
+
+    foreach {n val} [array get PortInfo] {
+	puts $n
+	puts $val
+    }
+
+    puts $targets
+    set epoch $PortInfo(epoch)
+    set revision $PortInfo(revision)
+
+    eval_targets destroot
+} -body {
+} -result ""
+
+
+# test get_statefile_value
+# test check_statefile
+# test write_statefile
+# test check_statefile_variants
+
+# test choose_variants
+# test variant_run
+# test canonicalize_variants
+# test eval_variants
+# test check_variants
+# test universal_setup
+
+# test target_new
+# test target_provides
+# test target_requires
+# test target_uses
+# test target_deplist
+# test target_prerun
+# test target_postrun
+# test target_runtype
+# test target_state
+# test target_init
+
+# test variant_new
+# test handle_default_variants
+# test handle_add_users
+# test adduser
+# test addgroup
+# test dirSize
+# test set_ui_prefix
+# test PortGroup
+# test get_portimage_name
+# test get_portimage_path
+# test supportedArchiveTypes
+# test find_portarchie_path
+# test archiveTypeIsSupported
+# test extract_archive_metadata
+
+# test merge_lipo
+# test merge_cpp
+# test merge_file
+# test merge
+# test quotemeta
+# test chown
+# test chownAsRoot
+# test fileAttrsAsRoot
+# test elevateToRoot
+# test dropPrivileges
+# test validate_macportsuser
+
+# test _libtest
+# test _bintest
+# test _pathtest
+# test _get_dep_port
+# test get_canonical_archs
+# test get_canonical_archflags
+# test check_supported_archs
+# test _check_xcode_version
+# test _archive_available
+
+
+cleanupTests
