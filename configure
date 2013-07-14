@@ -661,6 +661,7 @@ TCL_VERSION
 READLINE_LIBS
 MD5_LIBS
 READLINK_IS_NOT_P1003_1A
+ac_cv_func_strlcat
 CPP
 UNIVERSAL_ARCHS
 MPFRAMEWORKSDIR
@@ -8812,6 +8813,8 @@ fi
 done
 
 
+
+
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if readlink conforms to POSIX 1003.1a" >&5
 $as_echo_n "checking if readlink conforms to POSIX 1003.1a... " >&6; }
 
@@ -10093,7 +10096,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/base.mtree doc/prefix.mtree doc/macosx.mtree doc/macports.conf doc/pubkeys.conf portmgr/freebsd/Makefile src/Makefile src/machista1.0/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry2.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/freebsd/Makefile setupenv.bash src/Makefile src/machista1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_fastload.tcl src/pextlib1.0/Makefile src/port1.0/port_autoconf.tcl src/programs/Makefile src/registry2.0/registry_autoconf.tcl"
 
 
 ac_config_files="$ac_config_files src/pkg_mkindex.sh"
@@ -10795,19 +10798,20 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;
     "doc/base.mtree") CONFIG_FILES="$CONFIG_FILES doc/base.mtree" ;;
-    "doc/prefix.mtree") CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
     "doc/macosx.mtree") CONFIG_FILES="$CONFIG_FILES doc/macosx.mtree" ;;
     "doc/macports.conf") CONFIG_FILES="$CONFIG_FILES doc/macports.conf" ;;
+    "doc/prefix.mtree") CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
     "doc/pubkeys.conf") CONFIG_FILES="$CONFIG_FILES doc/pubkeys.conf" ;;
     "portmgr/freebsd/Makefile") CONFIG_FILES="$CONFIG_FILES portmgr/freebsd/Makefile" ;;
+    "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/machista1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/machista1.0/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
-    "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
-    "src/registry2.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry2.0/registry_autoconf.tcl" ;;
-    "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
     "src/macports1.0/macports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_fastload.tcl" ;;
-    "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
+    "src/pextlib1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/pextlib1.0/Makefile" ;;
+    "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
+    "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
+    "src/registry2.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry2.0/registry_autoconf.tcl" ;;
     "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

@@ -244,6 +244,8 @@ INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
 AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname kqueue])
+AC_SUBST(ac_cv_func_strlcat)
+
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
@@ -385,19 +387,20 @@ AC_CONFIG_FILES([
 	Makefile
 	Mk/macports.autoconf.mk
 	doc/base.mtree
-	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf
+	doc/prefix.mtree
 	doc/pubkeys.conf
 	portmgr/freebsd/Makefile
+	setupenv.bash
 	src/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
-	src/port1.0/port_autoconf.tcl
-	src/registry2.0/registry_autoconf.tcl
-	src/programs/Makefile
 	src/macports1.0/macports_fastload.tcl
-	setupenv.bash
+	src/pextlib1.0/Makefile
+	src/port1.0/port_autoconf.tcl
+	src/programs/Makefile
+	src/registry2.0/registry_autoconf.tcl
 ])
 
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
