@@ -3,8 +3,7 @@
 SRCS = registry.tcl registry_autoconf.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portimage.tcl portuninstall.tcl
 OBJS = registry.o util.o \
 	entry.o entryobj.o \
-	file.o fileobj.o \
-	../cregistry/cregistry.a
+	file.o fileobj.o
 	#graph.o graphobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}
@@ -16,7 +15,7 @@ include ../../Mk/macports.tea.mk
 pkgIndex.tcl: $(SRCS)
 
 CFLAGS+=	${SQLITE3_CFLAGS}
-LIBS+=	${SQLITE3_LIBS}
+LIBS+=	${SQLITE3_LIBS} ../cregistry/cregistry.a
 ifeq ($(shell uname), Darwin)
 	SHLIB_LDFLAGS+= -install_name @loader_path/../registry2.0/${SHLIB_NAME}
 endif
