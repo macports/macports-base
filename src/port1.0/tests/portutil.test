@@ -3,8 +3,12 @@ namespace import tcltest::*
 
 source ../../macports1.0/macports_fastload.tcl
 
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
 package require macports 1.0
-package require registry2
+package require registry 1.0
+package require registry2 2.0
 package require Pextlib 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
@@ -12,31 +16,46 @@ package require msgcat
 package require porttrace 1.0
 mportinit
 
-global os_platform macosx_version
-set os_platform darwin
-set macosx_version 10.8
-set os_version 11
-set os_arch i386
-set portpath ./Portfile
-set portbuildpath ./build
+proc init {} {
+    global macports::registry.path
 
-proc getportbuildpath {id {portname ""}} {
-    global portdbpath
-    regsub {://} $id {.} port_path
-    regsub -all {/} $port_path {_} port_path
-    return [file join $portdbpath build $port_path $portname]
+    set db_path [file join ${registry.path} registry registry.db]
+    set db_exists [file exists $db_path]
+    #registry::active
 }
 
-proc getportworkpath_from_buildpath {portbuildpath} {
-    return [file join $portbuildpath work]
-}
+proc init_eval_targets {} {
+    global os_platform os_version os_arch macosx_version pwd
+    global version mport portpath portbuildpath
 
-proc getportworkpath_from_portdir {portpath {portname ""}} {
-    return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
-}
+    set os_platform darwin
+    set macosx_version 10.8
+    set os_version 11
+    set os_arch i386
+    set portpath ./Portfile
+    set portbuildpath ./build
 
-source ../portutil.tcl
-source ../portmain.tcl
+    file copy -force $pwd/Portfile /tmp/
+    set mport [mportopen file://.]
+    
+    proc getportbuildpath {id {portname ""}} {
+	global portdbpath
+	regsub {://} $id {.} port_path
+	regsub -all {/} $port_path {_} port_path
+	return [file join $portdbpath build $port_path $portname]
+    }
+    
+    proc getportworkpath_from_buildpath {portbuildpath} {
+	return [file join $portbuildpath work]
+    }
+    
+    proc getportworkpath_from_portdir {portpath {portname ""}} {
+	return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
+    }
+    
+    source $pwd/../portutil.tcl
+    source $pwd/../portmain.tcl
+}
 
 
 # Create a filesystem hierarchy based on the given specification
@@ -91,18 +110,58 @@ test exists {
 test handle_option {
     Handle_option unit test.
 } -body {
-    set user_options {varb varc}
     if {[handle_option vara a] != "a"} {return "FAIL: unable to set var"}
-    if {[handle_option varb b] != "b"} {return "FAIL: failed to ser var"}
     return "Handle_option successful."
+
 } -result "Handle_option successful."
 
 
-# test handle_option-append
-# test handle_option-delete
-# test handle_option-strsed
-# test handle_option-replace
-# test options
+test handle_option-append {
+    Handle_option append unit test.
+} -body {
+    set user_options {vara varb}
+    handle_option-append user_options varc
+    if {[lsearch $user_options varc] < 0} {return "FAIL: var not appended"}
+    if {[lsearch $user_options vard] >= 0} {return "FAIL: unappended var found"}
+    return "Handle_option-append successful."
+
+} -result "Handle_option-append successful."
+
+
+test handle_option-delete {
+    Handle_option delete unit test.
+} -body {
+    set user_options {vara varb}
+    handle_option-delete user_options varb
+    if {[lsearch $user_options varb] > 0} {return "FAIL: var not deleted"}
+    if {[lsearch $user_options vara] < 0} {return "FAIL: var not found"}
+    return "Handle_option-delete successful."
+    
+} -result "Handle_option-delete successful."
+
+
+test handle_option-strsed {
+    Handle_option strsed unit test.
+} -body {
+    set user_options {u1 u2}
+    array set option_procs {o1 1 o2 2}
+    #handle_option-strsed 0 a b c
+    #puts $user_options
+
+} -result ""
+
+
+# test handle_option-replace # deprecated
+
+
+test options {
+    Options unit test.
+} -body {
+    options date
+    puts [catch {info procs date}]
+} -result ""
+
+
 # test options::export
 # test options_export
 # test handle_deprecated_option
@@ -361,7 +420,7 @@ test ln {
 
 
 test makeuserproc {
-    asda
+    Make user proc unit test.
 } -setup {
     global MP
     set MP macports
@@ -403,10 +462,12 @@ test unobscure_maintainers {
 test recursive_collect_deps {
     Recursive dependency search for portname.
 } -setup {
+    init
     global deps
     set deps {}
-## invalid command name "registry_active"
-##  recursive_collect_deps giggle $deps
+    namespace eval registry {
+    #recursive_collect_deps fondu $deps
+    }
 } -body {
 } -result ""
 
@@ -414,26 +475,33 @@ test recursive_collect_deps {
 test eval_targets {
     Evaluate targets unit test.
 } -setup {
-    puts $subport
+    init_eval_targets
 
-
+    # sets up PortInfo array
     if {[eval_variants variations] != 0} {
 	mportclose $mport
 	error "Error evaluating variants"
     }
 
-    foreach {n val} [array get PortInfo] {
-	puts $n
-	puts $val
-    }
-
-    puts $targets
     set epoch $PortInfo(epoch)
     set revision $PortInfo(revision)
 
-    eval_targets destroot
+    # messy work just to get $version
+    set workername [ditem_key $mport workername]
+
 } -body {
-} -result ""
+    if {[$workername eval eval_targets pre-patch] != 1} {
+	return "FAIL: invalid target detected"
+    }
+    if {[$workername eval eval_targets destroot] != 0} {
+	return "FAIL: valid target not detected"
+    }
+    return "Eval_targets successful."
+
+} -cleanup {
+    mportclose $mport
+
+} -result "Eval_targets successful."
 
 
 # test get_statefile_value
