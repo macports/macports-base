@@ -20,6 +20,8 @@ ifeq ($(shell uname), Darwin)
 	SHLIB_LDFLAGS+= -install_name @loader_path/../registry2.0/${SHLIB_NAME}
 endif
 
+${SHLIB_NAME}: ../cregistry/cregistry.a
+
 .PHONY: test
 
 test:: ${SHLIB_NAME}
