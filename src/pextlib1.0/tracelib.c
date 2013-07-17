@@ -932,7 +932,7 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         }
     }
 #else /* __APPLE__ */
-    Tcl_SetResult(in, "tracelib not supported on this platform", TCL_STATIC);
+    Tcl_SetResult(interp, "tracelib not supported on this platform", TCL_STATIC);
     result = TCL_ERROR;
 #endif /* __APPLE__ */
 
