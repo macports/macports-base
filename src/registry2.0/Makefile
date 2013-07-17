@@ -17,7 +17,7 @@ pkgIndex.tcl: $(SRCS)
 CFLAGS+=	${SQLITE3_CFLAGS}
 LIBS+=	${SQLITE3_LIBS} ../cregistry/cregistry.a
 ifeq ($(shell uname), Darwin)
-	SHLIB_LDFLAGS+= -install_name @loader_path/../registry2.0/${SHLIB_NAME}
+SHLIB_LDFLAGS+= -install_name @loader_path/../registry2.0/${SHLIB_NAME}
 endif
 
 ${SHLIB_NAME}: ../cregistry/cregistry.a
