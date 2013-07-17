@@ -5,9 +5,12 @@ TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
 			port1.0 \
 			package1.0 \
 			pextlib1.0 \
-			darwintracelib1.0 \
 			machista1.0
 SUBDIR=		${TCLPKG} port programs
+
+ifeq ($(shell uname),Darwin)
+TCLPKG+= darwintracelib1.0
+endif
 
 all::
 
