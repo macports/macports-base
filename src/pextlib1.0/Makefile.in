@@ -5,7 +5,7 @@ OBJS= \
 	tracelib.o tty.o readdir.o pipe.o flock.o system.o \
 	mktemp.o realpath.o
 ifneq (@ac_cv_func_strlcat@,yes)
-	OBJS+=strlcat.o
+OBJS+=strlcat.o
 endif
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
@@ -15,12 +15,12 @@ include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
-LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS} ../registry2.0/registry${SHLIB_SUFFIX}
+LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
 ifeq ($(shell uname), Darwin)
-	SHLIB_LDFLAGS+= -install_name ${datadir}/macports/Tcl/pextlib1.0/${SHLIB_NAME}
-endif
-
+LIBS+= ../registry2.0/registry${SHLIB_SUFFIX}
+SHLIB_LDFLAGS+= -install_name ${datadir}/macports/Tcl/pextlib1.0/${SHLIB_NAME}
 ${SHLIB_NAME}: ../registry2.0/registry${SHLIB_SUFFIX}
+endif
 
 .PHONY: test
 
