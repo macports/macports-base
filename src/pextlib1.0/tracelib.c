@@ -63,6 +63,7 @@
 
 #include "strlcat.h"
 
+#ifdef __APPLE__
 #ifndef HAVE_STRLCPY
 /* Define strlcpy if it's not available. */
 size_t strlcpy(char *dst, const char *src, size_t size);
@@ -877,6 +878,7 @@ static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
     filemap = 0;
     return TCL_OK;
 }
+#endif /* __APPLE__ */
 
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int result = TCL_OK;
@@ -899,6 +901,7 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         return TCL_ERROR;
     }
 
+#ifdef __APPLE__
     result = Tcl_GetIndexFromObj(interp, objv[1], options, "option", 0, (int *)&current_option);
     if (result == TCL_OK) {
         switch (current_option) {
@@ -928,6 +931,10 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
                 break;
         }
     }
+#else /* __APPLE__ */
+    Tcl_SetResult(in, "tracelib not supported on this platform", TCL_STATIC);
+    result = TCL_ERROR;
+#endif /* __APPLE__ */
 
     return result;
 }
