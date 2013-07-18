@@ -2988,14 +2988,18 @@ proc get_canonical_archs {} {
 # returns the flags that should be passed to the compiler to choose arch(s)
 proc get_canonical_archflags {{tool cc}} {
     if {![variant_exists universal] || ![variant_isset universal]} {
-        set opt configure.${tool}_archflags
+        if {[catch {option configure.${tool}_archflags} flags]} {
+            return -code error "archflags do not exist for tool '$tool'"
+        }
     } else {
         if {$tool == "cc"} {
             set tool c
         }
-        set opt configure.universal_${tool}flags
+        if {[catch {option configure.universal_${tool}flags} flags]} {
+            return -code error "universal archflags do not exist for tool '$tool'"
+        }
     }
-    return [expr {[catch {option $opt} flags] ? {} : $flags}]
+    return $flags
 }
 
 # check that the selected archs are supported

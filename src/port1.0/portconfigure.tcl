@@ -742,7 +742,9 @@ proc portconfigure::configure_main {args} {
         # add extra flags that are conditional on whether we're building universal
         eval [linsert [get_canonical_archflags cc] 0 append_to_environment_value configure CFLAGS]
         foreach tool {cxx objc objcxx cpp f77 f90 fc ld} {
-            set flags [get_canonical_archflags $tool]
+            if {[catch {get_canonical_archflags $tool} flags]} {
+                continue
+            }
             set env_var [string toupper $tool]FLAGS
             eval [linsert $flags 0 append_to_environment_value configure $env_var]
         }
