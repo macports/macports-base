@@ -828,9 +828,9 @@ proc append_to_environment_value {command key args} {
         # Parse out any delimiters. Is this even necessary anymore?
         regexp {^(['"])(.*)\1$} $value -> delim value
 
-        lappend env_key $value
+        append env_key " $value"
     }
-    catch {set env_key [join $env_key]}
+    catch {set env_key [string trimleft $env_key]}
 }
 
 # Return a string representation of the specified environment, for
