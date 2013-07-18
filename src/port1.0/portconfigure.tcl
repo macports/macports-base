@@ -701,42 +701,30 @@ proc portconfigure::configure_main {args} {
         } else {
             set filter ""
         }
-        
+        foreach env_var {CC CXX OBJC OBJCXX} {
+            append_to_environment_value configure $env_var $filter
+        }
+
         # Set flags controlling the kind of compiler output.
         if {[tbool configure.pipe]} {
             set output -pipe
         } else {
             set output ""
         }
+        foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS} {
+            append_to_environment_value configure $env_var $output
+        }
 
         # Append configure flags.
-        append_to_environment_value configure "CC" ${filter} ${configure.cc}
-        append_to_environment_value configure "CXX" ${filter} ${configure.cxx}
-        append_to_environment_value configure "OBJC" ${filter} ${configure.objc}
-        append_to_environment_value configure "OBJCXX" ${filter} ${configure.objcxx}
-        append_to_environment_value configure "FC" ${configure.fc}
-        append_to_environment_value configure "F77" ${configure.f77}
-        append_to_environment_value configure "F90" ${configure.f90}
-        append_to_environment_value configure "JAVAC" ${configure.javac}
-        append_to_environment_value configure "CFLAGS" ${output} ${configure.cflags}
-        append_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
-        append_to_environment_value configure "CXXFLAGS" ${output} ${configure.cxxflags}
-        append_to_environment_value configure "OBJCFLAGS" ${output} ${configure.objcflags}
-        append_to_environment_value configure "OBJCXXFLAGS" ${output} ${configure.objcxxflags}
-        append_to_environment_value configure "LDFLAGS" ${configure.ldflags}
-        append_to_environment_value configure "LIBS" ${configure.libs}
-        append_to_environment_value configure "FFLAGS" ${output} ${configure.fflags}
-        append_to_environment_value configure "F90FLAGS" ${output} ${configure.f90flags}
-        append_to_environment_value configure "FCFLAGS" ${output} ${configure.fcflags}
-        append_to_environment_value configure "CLASSPATH" ${configure.classpath}
-        append_to_environment_value configure "PERL" ${configure.perl}
-        append_to_environment_value configure "PYTHON" ${configure.python}
-        append_to_environment_value configure "RUBY" ${configure.ruby}
-        append_to_environment_value configure "INSTALL" ${configure.install}
-        append_to_environment_value configure "AWK" ${configure.awk}
-        append_to_environment_value configure "BISON" ${configure.bison}
-        append_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
-        append_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+        foreach env_var { \
+            CC CXX OBJC OBJCXX FC F77 F90 JAVAC \
+            CFLAGS CPPFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS \
+            FFLAGS F90FLAGS FCFLAGS LDFLAGS LIBS CLASSPATH \
+            PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG PKG_CONFIG_PATH \
+        } {
+            set value [option configure.[string tolower $env_var]]
+            eval [linsert $value 0 append_to_environment_value configure $env_var]
+        }
 
         # https://trac.macports.org/ticket/34221
         if {${os.platform} == "darwin" && ${os.major} == 12} {
@@ -745,29 +733,28 @@ proc portconfigure::configure_main {args} {
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
         if {${configure.sdkroot} != ""} {
-            foreach flags {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
-                append_to_environment_value configure $flags -isysroot ${configure.sdkroot}
+            foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
+                append_to_environment_value configure $env_var -isysroot ${configure.sdkroot}
             }
             append_to_environment_value configure "LDFLAGS" -Wl,-syslibroot,${configure.sdkroot}
         }
 
         # add extra flags that are conditional on whether we're building universal
+        eval [linsert [get_canonical_archflags cc] 0 append_to_environment_value configure CFLAGS]
+        foreach tool {cxx objc objcxx cpp f77 f90 fc ld} {
+            set flags [get_canonical_archflags $tool]
+            set env_var [string toupper $tool]FLAGS
+            eval [linsert $flags 0 append_to_environment_value configure $env_var]
+        }
         if {[variant_exists universal] && [variant_isset universal]} {
-            append_to_environment_value configure "CFLAGS" ${configure.universal_cflags}
-            append_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
-            append_to_environment_value configure "OBJCFLAGS" ${configure.universal_objcflags}
-            append_to_environment_value configure "OBJCXXFLAGS" ${configure.universal_objcxxflags}
-            append_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
-            append_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
         } else {
-            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS objcxx OBJCXXFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS ld LDFLAGS} {
-                append_to_environment_value configure $flags [set configure.${tool}_archflags]
+            foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS LDFLAGS} {
                 if {${configure.march} != {}} {
-                    append_to_environment_value configure $flags -march=${configure.march}
+                    append_to_environment_value configure $env_var -march=${configure.march}
                 }
                 if {${configure.mtune} != {}} {
-                    append_to_environment_value configure $flags -mtune=${configure.mtune}
+                    append_to_environment_value configure $env_var -mtune=${configure.mtune}
                 }
             }
         }
