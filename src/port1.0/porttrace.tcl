@@ -40,7 +40,7 @@ namespace eval porttrace {
 }
 
 proc porttrace::trace_start {workpath} {
-    global os.platform
+    global os.platform developer_dir
     if {${os.platform} == "darwin"} {
         if {[catch {package require Thread} error]} {
             ui_warn "trace requires Tcl Thread package ($error)"
@@ -87,13 +87,16 @@ proc porttrace::trace_start {workpath} {
             /tmp \
             /private/tmp \
             /var/tmp \
+            /var/folders \
             /private/var/tmp \
             /var/empty \
             /private/var/empty \
+            /private/var/folders \
             /dev \
             /etc/passwd \
             /etc/groups \
             /etc/localtime \
+            [file normalize ${developer_dir}/../..] \
             /Library/Caches/com.apple.Xcode \
             "$env(HOME)/.ccache"]
             if {[info exists env(TMPDIR)]} {
