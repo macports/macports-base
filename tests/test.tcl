@@ -99,11 +99,13 @@ if { $test_name != ""} {
         cd test/$test
     
         set result [eval exec $tcl test.tcl $arguments]
-        set total [lrange [split $result "\t"] 2 2]
-        set pass [lrange [split $result "\t"] 4 4]
-        set skip [lrange [split $result "\t"] 6 6]
-        set fail [lrange [split $result "\t\n"] 8 8]
-        set errmsg [lrange [split $result "\n"] 2 2]
+        set lastline [lindex [split $result "\n"] end]
+        set splitresult [split $lastline "\t"]
+        set total  [lindex $splitresult 2]
+        set pass   [lindex $splitresult 4]
+        set skip   [lindex $splitresult 6]
+        set fail   [lindex $splitresult 8]
+        set errmsg [lindex $splitresult 2]
 
         # Check for errors.
         if { $fail != 0 || $skip != 0 } {
