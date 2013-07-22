@@ -1,0 +1,89 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+package provide portinstall 1.0
+mportinit
+
+source ../portactivate.tcl
+source ../portinstall.tcl
+source ../portdestroot.tcl
+
+
+test activate_start {
+    Activate start unit test.
+    Requires root for setting euid.
+} -body {
+    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
+
+    set prefix /opt/local
+    seteuid 333
+    if {[catch {portactivate::activate_start args}] != 1} {
+	return "FAIL: couldn't elevate privileges"
+    }
+    seteuid 0
+    if {[catch {portactivate::activate_start args}] != 0} {
+	return "FAIL: couldn't elevate privileges"
+    }
+    return "Activate_start successful."
+} -result "Activate_start successful."
+
+
+test activate_main {
+    Activate main unit test.
+} -setup {
+    global os_platform os_version os_arch macosx_version pwd
+    global version mport portpath portbuildpath
+
+    set os_platform darwin
+    set macosx_version 10.8
+    set os_version 11
+    set os_arch i386
+    set portpath .
+    set portbuildpath ./build
+
+    file copy -force $pwd/Portfile /tmp/
+    set mport [mportopen file://.]
+
+    proc getportbuildpath {id {portname ""}} {
+	global portdbpath
+	regsub {://} $id {.} port_path
+	regsub -all {/} $port_path {_} port_path
+	return [file join $portdbpath build $port_path $portname]
+    }
+
+    proc getportworkpath_from_buildpath {portbuildpath} {
+	return [file join $portbuildpath work]
+    }
+
+    proc getportworkpath_from_portdir {portpath {portname ""}} {
+	return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
+    }
+
+    source $pwd/../portmain.tcl
+
+    # sets up PortInfo array
+    if {[eval_variants variations] != 0} {
+	mportclose $mport
+	error "Error evaluating variants"
+    }
+
+    # set $version var
+    set workername [ditem_key $mport workername]
+
+    # run destroot
+    # $workername eval portdestroot::destroot_start
+
+    # create archive (install port)
+    set portdbpath dbpath
+    $workername eval portinstall::install_main
+
+} -body {
+    [$workername eval portactivate::activate_main args]
+
+} -result ""
+
+cleanupTests
