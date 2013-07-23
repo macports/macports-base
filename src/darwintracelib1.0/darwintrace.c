@@ -1462,7 +1462,7 @@ int access(const char *path, int amode) {
 
 	debug_printf("access(%s, %d)\n", path, amode);
 
-	if (-1 == (result = lstat(path, &st))) {
+	if (-1 == lstat(path, &st)) {
 		return -1;
 	}
 
