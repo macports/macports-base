@@ -108,6 +108,8 @@ tag URL. For instance:
 
 And finally we tag the entire directory as release_2_0_0-archive:
 
+FIXME: this doesn't seem to work any more. The base subdir in the tag ends up being from trunk.
+
  cd ../../
  svn cp -m "commit-message" release_2.0.0-archive https://svn.macports.org/repository/macports/tags/release_2_0_0-archive
 
