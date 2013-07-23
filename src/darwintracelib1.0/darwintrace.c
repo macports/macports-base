@@ -723,8 +723,6 @@ static int dependency_check(char *path) {
 	int result = 0;
 	struct stat st;
 
-	debug_printf("dependency_check: %s\n", path);
-
 	if (-1 == stat(path, &st)) {
 		return 1;
 	}
@@ -758,6 +756,8 @@ static int dependency_check(char *path) {
 			abort();
 			break;
 	}
+
+	debug_printf("dependency_check: %s returned %d\n", path, result);
 
 	free(p);
 	return result;
@@ -1027,18 +1027,16 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 	 * and "gcc" are contributors
 	 */
 	if (lstat(path, &sb) == 0) {
-		int fd;
+		if (!__darwintrace_is_in_sandbox(path, NULL)) {
+			errno = ENOENT;
+			return -1;
+		}
 
-		fd = open(path, O_RDONLY, 0);
+#if		0
+		int fd = open(path, O_RDONLY, 0);
 		if (fd > 0) {
 			char buffer[MAXPATHLEN + 1];
 			ssize_t bytes_read;
-
-			if (!__darwintrace_is_in_sandbox(path, NULL)) {
-				close(fd);
-				errno = ENOENT;
-				return -1;
-			}
 
 			/* read the file for the interpreter */
 			bytes_read = read(fd, buffer, MAXPATHLEN);
@@ -1066,6 +1064,7 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 			/* TODO check the iterpreter against the sandbox */
 			close(fd);
 		}
+#endif
 	}
 
 	/* our variables won't survive exec, clean up */
@@ -1454,4 +1453,25 @@ int getdirentries(int fd, char *buf, int nbytes, long *basep) {
 	return sz;
 #undef getdirentries
 }
+
+int access(const char *path, int amode) {
+#define access(x, y) syscall(SYS_access, (x), (y))
+	char newpath[MAXPATHLEN];
+
+	debug_printf("access(%s, %d)\n", path, amode);
+
+	*newpath = '\0';
+	if (!__darwintrace_is_in_sandbox(path, newpath)) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	if (*newpath) {
+		return access(newpath, amode);
+	}
+
+	return access(path, amode);
+#undef access
+}
+
 #endif /* __APPLE__ */
