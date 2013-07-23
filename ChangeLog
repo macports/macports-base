@@ -11,7 +11,7 @@ Release 2.2.1 (unreleased)
       configure.universal_objcxxflags, and configure.universal_objcflags
       options. (#38512, larryv in r107973, r107976, r107987)
 
-Release 2.2.0 (unreleased)
+Release 2.2.0 (2013-07-23 by jmr)
     - Fixed ports sometimes being incorrectly cleaned after the unarchive
       target is run with newer archives. (jmr in r106717)
 
