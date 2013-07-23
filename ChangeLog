@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 2.2.0 (unreleased)
+Release 2.2.0 (2013-07-23 by jmr)
     - Fixed ports sometimes being incorrectly cleaned after the unarchive
       target is run with newer archives. (jmr in r106717)
 
