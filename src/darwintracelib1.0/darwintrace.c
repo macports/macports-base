@@ -912,10 +912,6 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath) {
 		strcat(normalizedpath, "/");
 	}
 
-	if (strcmp("/", normalizedpath) == 0) {
-		/* always allow '/' */
-		return 1;
-	}
 	for (__darwintrace_filemap_iterator_init(&filemap_it);
 	        (t = __darwintrace_filemap_iter(&command, &replacementpath, &filemap_it));) {
 		if (__darwintrace_pathbeginswith(normalizedpath, t)) {
@@ -1460,9 +1456,19 @@ int getdirentries(int fd, char *buf, int nbytes, long *basep) {
 
 int access(const char *path, int amode) {
 #define access(x, y) syscall(SYS_access, (x), (y))
+#define lstat(path, sb) syscall(SYS_lstat, path, sb)
+	struct stat st;
 	char newpath[MAXPATHLEN];
 
 	debug_printf("access(%s, %d)\n", path, amode);
+
+	if (-1 == (result = lstat(path, &st))) {
+		return -1;
+	}
+
+	if (S_ISDIR(st.st_mode)) {
+		return access(path, amode);
+	}
 
 	*newpath = '\0';
 	if (!__darwintrace_is_in_sandbox(path, newpath)) {
@@ -1475,6 +1481,7 @@ int access(const char *path, int amode) {
 	}
 
 	return access(path, amode);
+#undef lstat
 #undef access
 }
 
