@@ -912,6 +912,10 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath) {
 		strcat(normalizedpath, "/");
 	}
 
+	if (strcmp("/", normalizedpath) == 0) {
+		/* always allow '/' */
+		return 1;
+	}
 	for (__darwintrace_filemap_iterator_init(&filemap_it);
 	        (t = __darwintrace_filemap_iter(&command, &replacementpath, &filemap_it));) {
 		if (__darwintrace_pathbeginswith(normalizedpath, t)) {
