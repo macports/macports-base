@@ -8,6 +8,7 @@ package require macports 1.0
 mportinit
 
 source ../portclean.tcl
+source ../port_autoconf.tcl
 
 proc getportlogpath {id {portname ""}} {
     global macports::portdbpath
@@ -115,6 +116,8 @@ test clean_dist {
 test clean_work {
     Clean work unit test.
 } -body {
+    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
+
     set usealtworkpath no
     set altprefix $pwd/prefix
     set portpath portpath
@@ -157,6 +160,8 @@ test clean_work {
 test clean_logs {
     Clean logs unit test.
 } -body {
+    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
+
     set portpath $pwd/portpath
     set logpath [getportlogpath $portpath]
     set subport $logpath/subport
@@ -190,8 +195,10 @@ test clean_archive {
     close [open $portdbpath/incoming/subport-1_0.0.0.0.TMP w+]
 
     # create zip
-    #close [open $pwd/+CONTENTS w+] 
-    #exec zip $portdbpath/incoming/subport-2_0.0.0.0.zip $pwd/+CONTENTS
+    set fd [open $pwd/+CONTENTS w+]
+    puts $fd "@portname subport"
+    close $fd
+    exec zip $portdbpath/incoming/subport-2_0.0.0.0.zip +CONTENTS
 
     close stderr
     portclean::clean_archive
@@ -203,12 +210,16 @@ test clean_archive {
     if {![file exists $portdbpath/incoming/test.clean]} {
 	return "FAIL: removed unrelated file"
     }
+    if {[file exists $portdbpath/incoming/subport-2_0.0.0.0.zip]} {
+	return "FAIL: zip archive not removed"
+    }
 
     return "Clean archive successful."
 
 } -cleanup {
+    file delete -force $pwd/+CONTENTS
     file delete -force $portdbpath
-    file delete -force $pwd/file2
+    file delete -force $pwd/file7
 
 } -result "Clean archive successful."
 
