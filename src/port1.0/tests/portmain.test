@@ -1,0 +1,47 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+mportinit
+
+# Set testing vars
+set os_platform darwin
+set macosx_version 10.8
+set os_version 11
+set os_arch i386
+set portpath .
+set portbuildpath ./build
+
+proc getportworkpath_from_buildpath {portbuildpath} {
+    return [file join $portbuildpath work]
+}
+
+source ../portmain.tcl
+
+
+test get_default_subport {
+    Get default subport unit test.
+} -body {
+    set portpath path/port/subport
+    if {[portmain::get_default_subport] != "subport"} {
+	return "FAIL: wrong subport"
+    }
+    return "Get default subport successful."
+} -result "Get default subport successful."
+
+
+test get_subbuildpath {
+    Get subbuildpath unit test.
+} -body {
+    set portpath path/port/subport
+    if {[portmain::get_subbuildpath] != "./build/subport"} {
+	return "FAIL: wrong subbuildpath"
+    }
+    return "Get subbuild path successful."
+} -result "Get subbuild path successful."
+
+
+cleanupTests
