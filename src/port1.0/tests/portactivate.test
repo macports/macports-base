@@ -9,8 +9,90 @@ package provide portinstall 1.0
 mportinit
 
 source ../portactivate.tcl
+source ../portdeactivate.tcl
 source ../portinstall.tcl
 source ../portdestroot.tcl
+source ../port_autoconf.tcl
+source ../../registry2.0/portimage.tcl
+
+proc registry_exists {name version {revision 0} {variants ""}} {
+        global macports::registry.format
+        return [${macports::registry.format}::entry_exists $name $version $revision $variants]
+}
+
+proc findBinary {prog {autoconf_hint ""}} {
+    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
+        return ${autoconf_hint}
+    } else {
+        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} t] ==
+
+            return ${cmd_path}
+        } else {
+            return -code error "${result} or at its MacPorts guration time tion, did you move it?"
+        }
+    }
+}
+
+proc uninstall_main {args} {
+    global subport version revision portvariants user_options
+    registry_uninstall::uninstall $subport $version $revision $portvariants [array get user_options]
+    return 0
+}
+
+proc registry_deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
+    global UI_PREFIX macports::registry.path registry_open
+    array set options $optionslist
+
+    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
+        set force 1
+    } else {
+        set force 0
+    }
+    if {![info exists registry_open]} {
+        registry::open [::file join ${macports::registry.path} registry registry.db]
+        set registry_open yes
+    }
+
+    if { [string equal $name ""] } {
+        throw registry::image-error "Registry error: Please specify the name of the port."
+    }
+    set ilist [registry::entry installed $name]
+
+    if { [llength $ilist] == 1 } {
+        set requested [lindex $ilist 0]
+    } else {
+        throw registry::image-error "Image error: port ${name} is not active."
+    }
+    # set name again since the one we were passed may not have had the correct case
+    set name [$requested name]
+    set specifier "[$requested version]_[$requested revision][$requested variants]"
+
+    if {$version != "" && ($version != [$requested version] ||
+        ($revision != "" && ($revision != [$requested revision] || $variants != [$requested variants])))} {
+        set v $version
+        if {$revision != ""} {
+            append v _${revision}${variants}
+        }
+        return -code error "Active version of $name is not $v but ${specifier}."
+    }
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
+
+    if { ![string equal [$requested installtype] "image"] } {
+        return -code error "Image error: ${name} @${specifier} not installed as an image."
+    }
+    # this shouldn't be possible
+    if { [$requested state] != "installed" } {
+        return -code error "Image error: ${name} @${specifier} is not active."
+    }
+
+    if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
+        registry::check_dependents $requested $force "deactivate"
+    }
+
+    _deactivate_contents $requested [$requested files] $force
+    $requested state imaged
+}
 
 
 test activate_start {
@@ -35,15 +117,29 @@ test activate_start {
 test activate_main {
     Activate main unit test.
 } -setup {
+    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
+
     global os_platform os_version os_arch macosx_version pwd
     global version mport portpath portbuildpath
 
-    set os_platform darwin
+    set os.platform darwin
     set macosx_version 10.8
     set os_version 11
     set os_arch i386
-    set portpath .
-    set portbuildpath ./build
+    set os.major 10
+    set supported_archs {}
+    set configure.build_arch build_arch
+    set portarchivetype tgz
+
+    set subport fondu
+    set version 3.0
+    set create $pwd/create
+    set portbuildpath $pwd
+    set destpath $pwd/work/destroot
+    set portpath $pwd
+    set portdbpath $pwd/dbpath
+    set portbuildpath $pwd
+    set destpath $pwd/work/destroot
 
     file copy -force $pwd/Portfile /tmp/
     set mport [mportopen file://.]
@@ -75,15 +171,33 @@ test activate_main {
     set workername [ditem_key $mport workername]
 
     # run destroot
-    # $workername eval portdestroot::destroot_start
+    $workername eval eval_targets destroot
 
-    # create archive (install port)
-    set portdbpath dbpath
-    $workername eval portinstall::install_main
+    # portinstall setup
+    interp alias {} _cd {} cd
+    set macosx_deployment_target $pwd/deploy_target
+    file mkdir $pwd/$subport
+    file link -symbolic $pwd/$subport/work $pwd/work
+
+    if {[catch {portinstall::install_main}] != 0} {
+        return "FAIL: cannot install port"
+    }
+
+    set res [catch {portdeactivate::deactivate_main}]
+    puts $res
+    #if {[catch {portdeactivate::deactivate_main}] != 0} {
+    #    return "FAIL: cannot deactivate port"
+    #}
 
 } -body {
-    [$workername eval portactivate::activate_main args]
+    puts ###
+    puts [catch {portactivate::activate_main}]
 
+} -cleanup {
+    set res [uninstall_main]
+
+    file delete -force $pwd/$subport/work
+    file delete -force $pwd/$subport
 } -result ""
 
 cleanupTests
