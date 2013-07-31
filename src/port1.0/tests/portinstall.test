@@ -41,7 +41,7 @@ proc run_destroot {} {
     set os_platform darwin
     set os.platform darwin
     set macosx_version 10.8
-    set os_version 11
+    set os_version 12
     set os_arch i386
     set os.major 10
     set supported_archs {}
@@ -119,7 +119,7 @@ test create_archive {
 
     set os.platform darwin
     set macosx_version 10.8
-    set os_version 11
+    set os_version 12
     set os_arch i386
     set os.major 10
     set supported_archs {}
@@ -174,7 +174,7 @@ test install_main {
 
     set os.platform darwin
     set macosx_version 10.8
-    set os_version 11
+    set os_version 12
     set os_arch i386
     set os.major 10
     set supported_archs {}
