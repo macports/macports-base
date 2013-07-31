@@ -38,7 +38,7 @@ test load_main {
     set startupitem.location test
     set startupitem.plist files/file.plist
 
-    if {[portload::load_main] != 0} {
+    if {[portload::load_main] != ""} {
 	return "FAIL: unable to load plist"
     }
     return "Load successful."
