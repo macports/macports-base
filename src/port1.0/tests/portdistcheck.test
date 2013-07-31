@@ -11,17 +11,14 @@ source ../portdistcheck.tcl
 
 proc getdefaultportresourcepath {{path ""}} {
     global macports::sources_default
-
     set default_source_url [lindex ${sources_default} 0]
     if {[getprotocol $default_source_url] == "file"} {
         set proposedpath [getportdir $default_source_url]
     } else {
         set proposedpath [getsourcepath $default_source_url]
     }
-
     # append requested path
     set proposedpath [file join $proposedpath _resources $path]
-
     return $proposedpath
 }
 
@@ -35,22 +32,17 @@ proc getprotocol {url} {
 
 proc getsourcepath {url} {
     global macports::portdbpath
-
     set source_path [split $url ://]
-
     if {[_source_is_snapshot $url]} {
         # daily snapshot tarball
         return [file join $portdbpath sources [join [lrange $source_path 3 end-1] /] ports]
     }
-
     return [file join $portdbpath sources [lindex $source_path 3] [lindex $source_path 4] [lindex $source_path 5]]
 }
 
 proc getportresourcepath {url {path ""} {fallback yes}} {
     global macports::sources_default
-
     set protocol [getprotocol $url]
-
     switch -- ${protocol} {
         file {
             set proposedpath [file normalize [file join [getportdir $url] .. ..]]
@@ -59,21 +51,18 @@ proc getportresourcepath {url {path ""} {fallback yes}} {
             set proposedpath [getsourcepath $url]
         }
     }
-
     # append requested path
     set proposedpath [file join $proposedpath _resources $path]
-
     if {$fallback == "yes" && ![file exists $proposedpath]} {
         return [getdefaultportresourcepath $path]
     }
-
     return $proposedpath
 }
 
 
 test distcheck_main {
     Distcheck main unit test.
-} -body {
+} -setup {
     set portpath $pwd
     set filespath $pwd/files
 
@@ -82,9 +71,13 @@ test distcheck_main {
     set distname fondu_src-060102
     set porturl "http://fondu.sourceforge.net/"
     set master_sites "http://fondu.sourceforge.net/"
+    set extract.suffix .tgz
 
-    set res [portdistcheck::distcheck_main]
-    puts $res
+} -body {
+    close stderr
+    if {[catch {portdistcheck::distcheck_main}] != 0} {
+	return "FAIL: unable to download or check file"
+    }
 
     return "Distcheck main successful."
 } -result "Distcheck main successful."
