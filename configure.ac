@@ -80,7 +80,7 @@ fi
 case "$XCODE_VERSION" in
   1.*|2.[[0-1]]*)
     AC_MSG_WARN([This version of Xcode Tools is not supported])
-    AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
+    AC_MSG_WARN([Please upgrade at https://developer.apple.com/downloads/])
     ;;
   2.[[2-3]]*|3.[[0]]*)
     AC_MSG_WARN([This version of Xcode Tools is out of date])
