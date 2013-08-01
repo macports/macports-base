@@ -3006,8 +3006,8 @@ case "$XCODE_VERSION" in
   1.*|2.[0-1]*)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of Xcode Tools is not supported" >&5
 $as_echo "$as_me: WARNING: This version of Xcode Tools is not supported" >&2;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please upgrade at http://connect.apple.com/" >&5
-$as_echo "$as_me: WARNING: Please upgrade at http://connect.apple.com/" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please upgrade at https://developer.apple.com/downloads/" >&5
+$as_echo "$as_me: WARNING: Please upgrade at https://developer.apple.com/downloads/" >&2;}
     ;;
   2.[2-3]*|3.[0]*)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of Xcode Tools is out of date" >&5
