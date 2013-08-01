@@ -161,26 +161,26 @@ test activate_main {
     set mport [mportopen file://.]
 
     proc getportbuildpath {id {portname ""}} {
-	global portdbpath
-	regsub {://} $id {.} port_path
-	regsub -all {/} $port_path {_} port_path
-	return [file join $portdbpath build $port_path $portname]
+    global portdbpath
+    regsub {://} $id {.} port_path
+    regsub -all {/} $port_path {_} port_path
+    return [file join $portdbpath build $port_path $portname]
     }
 
     proc getportworkpath_from_buildpath {portbuildpath} {
-	return [file join $portbuildpath work]
+    return [file join $portbuildpath work]
     }
 
     proc getportworkpath_from_portdir {portpath {portname ""}} {
-	return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
+    return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
     }
 
     source $pwd/../portmain.tcl
 
     # sets up PortInfo array
     if {[eval_variants variations] != 0} {
-	mportclose $mport
-	error "Error evaluating variants"
+    mportclose $mport
+    error "Error evaluating variants"
     }
 
     # set $version var
@@ -191,7 +191,7 @@ test activate_main {
 
     # portinstall setup
     interp alias {} _cd {} cd
-    set macosx_deployment_target $pwd/deploy_target
+    set macosx_deployment_target ""
     file mkdir $pwd/$subport
     file link -symbolic $pwd/$subport/work $pwd/work
 
@@ -199,21 +199,16 @@ test activate_main {
         return "FAIL: cannot install port"
     }
 
-    set res [catch {portdeactivate::deactivate_main}]
-    puts $res
-    #if {[catch {portdeactivate::deactivate_main}] != 0} {
-    #    return "FAIL: cannot deactivate port"
-    #}
-
+    if {[catch {portdeactivate::deactivate_main}] != 0} {
+        return "FAIL: cannot deactivate port"
+    }
 } -body {
-    puts ###
-    puts [catch {portactivate::activate_main}]
-
+    return [catch {portactivate::activate_main}]
 } -cleanup {
     set res [uninstall_main]
 
     file delete -force $pwd/$subport/work
     file delete -force $pwd/$subport
-} -result ""
+} -result 0
 
 cleanupTests
