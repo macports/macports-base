@@ -168,19 +168,19 @@ test activate_main {
     }
 
     proc getportworkpath_from_buildpath {portbuildpath} {
-    return [file join $portbuildpath work]
+        return [file join $portbuildpath work]
     }
 
     proc getportworkpath_from_portdir {portpath {portname ""}} {
-    return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
+        return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
     }
 
     source $pwd/../portmain.tcl
 
     # sets up PortInfo array
     if {[eval_variants variations] != 0} {
-    mportclose $mport
-    error "Error evaluating variants"
+        mportclose $mport
+        error "Error evaluating variants"
     }
 
     # set $version var
