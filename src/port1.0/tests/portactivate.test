@@ -4,100 +4,102 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+source ../../macports1.0/macports_fastload.tcl
 package require macports 1.0
-package provide portinstall 1.0
 
 array set ui_options {}
 #set ui_options(ports_debug)   yes
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
-source ../portactivate.tcl
-source ../portdeactivate.tcl
-source ../portinstall.tcl
-source ../portdestroot.tcl
-source ../port_autoconf.tcl
-source ../../registry2.0/portimage.tcl
+##
+# This is basically a copy of macports::worker_init, but without using
+# sub-interpreters
+proc macports_worker_init {} {
+    interp alias {} _cd {} cd
 
-proc registry_exists {name version {revision 0} {variants ""}} {
-        global macports::registry.format
-        return [${macports::registry.format}::entry_exists $name $version $revision $variants]
-}
+    proc PortSystem {version} {
+        package require port $version
+    }
 
-proc findBinary {prog {autoconf_hint ""}} {
-    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
-    } else {
-        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} t] ==
+    # Clearly separate slave interpreters and the master interpreter.
+    interp alias {} mport_exec      {} mportexec
+    interp alias {} mport_open      {} mportopen
+    interp alias {} mport_close     {} mportclose
+    interp alias {} mport_lookup    {} mportlookup
+    interp alias {} mport_info      {} mportinfo
 
-            return ${cmd_path}
-        } else {
-            return -code error "${result} or at its MacPorts guration time tion, did you move it?"
+    # Export some utility functions defined here.
+    interp alias {} macports_create_thread          {} macports::create_thread
+    interp alias {} getportworkpath_from_buildpath  {} macports::getportworkpath_from_buildpath
+    interp alias {} getportresourcepath             {} macports::getportresourcepath
+    interp alias {} getportlogpath                  {} macports::getportlogpath
+    interp alias {} getdefaultportresourcepath      {} macports::getdefaultportresourcepath
+    interp alias {} getprotocol                     {} macports::getprotocol
+    interp alias {} getportdir                      {} macports::getportdir
+    interp alias {} findBinary                      {} macports::findBinary
+    interp alias {} binaryInPath                    {} macports::binaryInPath
+
+    # New Registry/Receipts stuff
+    interp alias {} registry_new                    {} registry::new_entry
+    interp alias {} registry_open                   {} registry::open_entry
+    interp alias {} registry_write                  {} registry::write_entry
+    interp alias {} registry_prop_store             {} registry::property_store
+    interp alias {} registry_prop_retr              {} registry::property_retrieve
+    interp alias {} registry_exists                 {} registry::entry_exists
+    interp alias {} registry_exists_for_name        {} registry::entry_exists_for_name
+    interp alias {} registry_activate               {} portimage::activate
+    interp alias {} registry_deactivate             {} portimage::deactivate
+    interp alias {} registry_deactivate_composite   {} portimage::deactivate_composite
+    interp alias {} registry_uninstall              {} registry_uninstall::uninstall
+    interp alias {} registry_register_deps          {} registry::register_dependencies
+    interp alias {} registry_fileinfo_for_index     {} registry::fileinfo_for_index
+    interp alias {} registry_fileinfo_for_file      {} registry::fileinfo_for_file
+    interp alias {} registry_bulk_register_files    {} registry::register_bulk_files
+    interp alias {} registry_active                 {} registry::active
+    interp alias {} registry_file_registered        {} registry::file_registered
+    interp alias {} registry_port_registered        {} registry::port_registered
+    interp alias {} registry_list_depends           {} registry::list_depends
+
+    # deferred options processing.
+    interp alias {} getoption {} macports::getoption
+
+    # ping cache
+    interp alias {} get_pingtime {} macports::get_pingtime
+    interp alias {} set_pingtime {} macports::set_pingtime
+
+    # archive_sites.conf handling
+    interp alias {} get_archive_sites_conf_values {} macports::get_archive_sites_conf_values
+
+    foreach opt $macports::portinterp_options {
+        if {![info exists $opt]} {
+            global macports::$opt
+        }
+        if {[info exists $opt]} {
+            set system_options($opt) $opt
+            set ::$opt $opt
         }
     }
-}
 
-proc uninstall_main {args} {
-    global subport version revision portvariants user_options
-    registry_uninstall::uninstall $subport $version $revision $portvariants [array get user_options]
-    return 0
-}
-
-proc registry_deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global UI_PREFIX macports::registry.path registry_open
-    array set options $optionslist
-
-    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
-        set force 1
-    } else {
-        set force 0
-    }
-    if {![info exists registry_open]} {
-        registry::open [::file join ${macports::registry.path} registry registry.db]
-        set registry_open yes
-    }
-
-    if { [string equal $name ""] } {
-        throw registry::image-error "Registry error: Please specify the name of the port."
-    }
-    set ilist [registry::entry installed $name]
-
-    if { [llength $ilist] == 1 } {
-        set requested [lindex $ilist 0]
-    } else {
-        throw registry::image-error "Image error: port ${name} is not active."
-    }
-    # set name again since the one we were passed may not have had the correct case
-    set name [$requested name]
-    set specifier "[$requested version]_[$requested revision][$requested variants]"
-
-    if {$version != "" && ($version != [$requested version] ||
-        ($revision != "" && ($revision != [$requested revision] || $variants != [$requested variants])))} {
-        set v $version
-        if {$revision != ""} {
-            append v _${revision}${variants}
+    foreach opt $macports::portinterp_deferred_options {
+        global macports::$opt
+        # define the trace hook.
+        proc trace_$opt {name1 name2 op} {
+            trace remove variable ::$opt read ::trace_$opt
+            global $opt
+            set $opt [getoption $opt]
         }
-        return -code error "Active version of $name is not $v but ${specifier}."
+        # next access will actually define the variable.
+        trace add variable ::$opt read ::trace_$opt
+        # define some value now
+        set $opt "?"
     }
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
-
-    if { ![string equal [$requested installtype] "image"] } {
-        return -code error "Image error: ${name} @${specifier} not installed as an image."
-    }
-    # this shouldn't be possible
-    if { [$requested state] != "installed" } {
-        return -code error "Image error: ${name} @${specifier} is not active."
-    }
-
-    if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
-        registry::check_dependents $requested $force "deactivate"
-    }
-
-    _deactivate_contents $requested [$requested files] $force
-    $requested state imaged
 }
 
+macports_worker_init
+
+package require port 1.0
+package require registry 1.0
 
 test activate_start {
     Activate start unit test.
@@ -135,80 +137,40 @@ test activate_main {
 } -setup {
     if {[getuid] != 0} {return "FAIL: not root, skipping test"}
 
-    global os_platform os_version os_arch macosx_version pwd
-    global version mport portpath portbuildpath
-
-    set os.platform darwin
-    set macosx_version 10.8
-    set os_version 11
-    set os_arch i386
-    set os.major 10
-    set supported_archs {}
-    set configure.build_arch build_arch
-    set portarchivetype tgz
-
-    set subport fondu
-    set version 3.0
-    set create $pwd/create
-    set portbuildpath $pwd
     set destpath $pwd/work/destroot
-    set portpath $pwd
+    set portbuildpath $pwd
     set portdbpath $pwd/dbpath
-    set portbuildpath $pwd
-    set destpath $pwd/work/destroot
+    set portpath $pwd
 
-    file copy -force $pwd/Portfile /tmp/
+    #file copy -force $pwd/Portfile /tmp/
     set mport [mportopen file://.]
-
-    proc getportbuildpath {id {portname ""}} {
-    global portdbpath
-    regsub {://} $id {.} port_path
-    regsub -all {/} $port_path {_} port_path
-    return [file join $portdbpath build $port_path $portname]
-    }
-
-    proc getportworkpath_from_buildpath {portbuildpath} {
-        return [file join $portbuildpath work]
-    }
-
-    proc getportworkpath_from_portdir {portpath {portname ""}} {
-        return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
-    }
-
-    source $pwd/../portmain.tcl
-
-    # sets up PortInfo array
-    if {[eval_variants variations] != 0} {
-        mportclose $mport
-        error "Error evaluating variants"
-    }
 
     # set $version var
     set workername [ditem_key $mport workername]
 
-    # run destroot
-    $workername eval eval_targets destroot
-
     # portinstall setup
     interp alias {} _cd {} cd
-    set macosx_deployment_target ""
-    file mkdir $pwd/$subport
-    file link -symbolic $pwd/$subport/work $pwd/work
 
-    if {[catch {portinstall::install_main}] != 0} {
-        return "FAIL: cannot install port"
-    }
+    # hide all output. Deactivate this for debugging!
+    set oldchannels [array get macports::channels]
+    set macports::channels(msg)    {}
+    set macports::channels(notice) {}
 
-    if {[catch {portdeactivate::deactivate_main}] != 0} {
-        return "FAIL: cannot deactivate port"
+    if {0 != [$workername eval eval_targets install]} {
+        return "FAIL: install failed"
     }
 } -body {
-    return [catch {portactivate::activate_main}]
+    return [$workername eval portactivate::activate_main]
 } -cleanup {
-    set res [uninstall_main]
+    if {0 != [$workername eval eval_targets uninstall]} {
+        return "FAIL: uninstall failed"
+    }
+    if {0 != [$workername eval eval_targets clean]} {
+        return "FAIL: clean failed"
+    }
+    array set macports::channels $oldchannels
 
-    file delete -force $pwd/$subport/work
-    file delete -force $pwd/$subport
+    mportclose $mport
 } -result 0
 
 cleanupTests
