@@ -370,30 +370,6 @@ proc portconfigure::arch_flag_supported {compiler} {
     return [regexp {^gcc-4|llvm|apple|clang} $compiler]
 }
 
-# maps compiler names to the port that provides them
-# TODO: Remove this after 2.2 is released and ports aren't referring to it.
-array set portconfigure::compiler_name_map {
-        apple-gcc-4.0           apple-gcc40
-        apple-gcc-4.2           apple-gcc42
-        macports-gcc-4.2        gcc42
-        macports-gcc-4.3        gcc43
-        macports-gcc-4.4        gcc44
-        macports-gcc-4.5        gcc45
-        macports-gcc-4.6        gcc46
-        macports-gcc-4.7        gcc47
-        macports-gcc-4.8        gcc48
-        macports-llvm-gcc-4.2   llvm-gcc42
-        macports-clang-2.9      clang-2.9
-        macports-clang-3.0      clang-3.0
-        macports-clang-3.1      clang-3.1
-        macports-clang-3.2      clang-3.2
-        macports-clang-3.3      clang-3.3
-        macports-dragonegg-3.0  dragonegg-3.0
-        macports-dragonegg-3.1  dragonegg-3.1
-        macports-dragonegg-3.2  dragonegg-3.2
-        macports-dragonegg-3.3  dragonegg-3.3
-}
-
 # Mapping from compiler names to compiler ports, for private use by
 # compiler_port_name. Do not access directly.
 set portconfigure::valid_compiler_ports {
