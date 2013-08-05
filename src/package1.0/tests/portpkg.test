@@ -1,0 +1,65 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+mportinit
+package require portmpkg 1.0
+package require portpkg 1.0
+source ./library.tcl
+macports_worker_init
+
+
+test pkg_main {
+    Port pkg main unit test.
+} -setup {
+    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global subport version revision package.flat maintainers description categories
+    global supported_archs porturl
+    env_init
+
+    file mkdir $destpath
+    close [open $destpath/fondu-1_060102_1.pkg w+]
+
+    set contents_dir $destpath/fondu-1_060102_1.mpkg/Contents/
+    set packages_dir $destpath/fondu-1_060102_1.mpkg/Contents/Packages
+    set res_dir $destpath/fondu-1_060102_1.mpkg/Contents/Resources
+
+} -body {
+    if {[portmpkg::mpkg_main] != 0} {
+	return "FAIL: cannot create pkg"
+    }
+    if {![file exists $contents_dir/PkgInfo]} {
+	return "FAIL: missing PkgInfo file"
+    }
+    if {![file exists $contents_dir/Info.plist]} {
+	return "FAIL: missing Info.plist file"
+    }
+
+    if {![file exists $res_dir]} {
+	return "FAIL: missing Resources dir"
+    }
+    if {![file exists $res_dir/Description.plist]} {
+	return "FAIL: missing Description.plist file"
+    }
+    if {![file exists $res_dir/Welcome.html]} {
+	return "FAIL: missing Welcome.html file"
+    }
+    if {![file exists $res_dir/background.tiff]} {
+	return "FAIL: missing background.tiff file"
+    }
+
+    if {![file exists $packages_dir/fondu-1_060102_1.pkg]} {
+	return "FAIL: missing pkg file"
+    }
+    return "Package pkg successful."
+
+} -cleanup {
+    file delete -force $destpath
+
+} -result "Package pkg successful."
+
+
+cleanupTests

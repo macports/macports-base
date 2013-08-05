@@ -1,0 +1,69 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+mportinit
+package require portarchivefetch 1.0
+source ./library.tcl
+macports_worker_init
+
+source ../portarchivefetch.tcl
+
+test filter_sites {
+    Filter sites unit test.
+} -setup {
+    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global subport version revision package.flat maintainers description categories
+    global supported_archs portname porturl portdbpath portpath workpath distname filespath license
+    env_init
+
+    set portvariants {var1}
+    set master_sites "http://fondu.sourceforge.net/"
+
+    #array set portfetch::mirror_sites::sites {
+#	"http://aaa.bbb.ccc/ddd/eee/file.zip" aaa
+    #}
+    #set portfetch::mirror_sites::archive_type tgz
+    #set portfetch::mirror_sites::archive_prefix file
+
+} -body {
+    if {[catch {portarchivefetch::filter_sites}] != 0} {
+	return "FAIL: couldn't fetch file"
+    }
+
+    return "Filter sites successful."
+} -result "Filter sites successful."
+
+
+test checkarchivefiles {
+    Check archive files unit test.
+} -body {
+    set urls {www.a.com www.b.com}
+    set all_archive_files ""
+    set archivefetch.fulldestpath $pwd/path
+    set archive_sites {site1:zip site2:tgz}
+
+    if {[catch {portarchivefetch::checkarchivefiles $urls}] != 0} {
+	return "FAIL: cannot run checkarchivefiles"
+    }
+    if {[lindex $all_archive_files 0] != "fondu-060102_1var1.darwin_9.noarch.zip"} {
+	return "FAIL: invalid archive file name"
+    }
+    if {[lindex $all_archive_files 1] != "fondu-060102_1var1.darwin_9.noarch.tgz"} {
+	return "FAIL: invalid archive file name"
+    }
+    return "Check archive files successful."
+} -result "Check archive files successful."
+
+
+# test get_full_archive_sites_path
+# test checkfiles
+# test fetchfiles
+# test archivefetch_start
+# test archivefetch_main
+
+
+cleanupTests
