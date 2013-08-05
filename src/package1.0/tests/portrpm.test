@@ -13,22 +13,22 @@ macports_worker_init
 
 test rpm_main {
     Rpm pkg unit test.
+} -constraints {
+    ![catch {exec which rpmbuild}]
 } -setup {
-    if {[catch {exec which rpmbuild}] != 0} {
-	return "FAIL: missing rpm package. try 'port install rpm'"
-    }
-
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs portname porturl portdbpath workpath license
     env_init
 
-    file mkdir $workpath
-    file mkdir $portdbpath
-
 } -body {
-    set res [portrpm::rpm_main]
+    set mport [mportopen file://.]
+    set workername [ditem_key $mport workername]
+
+    set res [$workername eval eval_targets rpm]
     puts $res
+
+    #if {![file exists /opt/local/src/macports/RPMS/x86_64/fondu-060102-1.x86_64.rpm]} {}
 
     return "Rpm pkg successful."
 } -result "Rpm pkg successful."
