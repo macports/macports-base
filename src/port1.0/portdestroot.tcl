@@ -49,11 +49,12 @@ namespace eval portdestroot {
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask \
         destroot.violate_mtree destroot.asroot destroot.delete_la_files \
-        startupitem.create startupitem.requires startupitem.init \
-        startupitem.name startupitem.start startupitem.stop startupitem.restart \
-        startupitem.type startupitem.executable \
-        startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
-        startupitem.uniquename startupitem.plist startupitem.location startupitem.install
+        startupitem.autostart startupitem.create startupitem.executable \
+        startupitem.init startupitem.install startupitem.location \
+        startupitem.logevents startupitem.logfile startupitem.name \
+        startupitem.netchange startupitem.pidfile startupitem.plist \
+        startupitem.requires startupitem.restart startupitem.start \
+        startupitem.stop startupitem.type startupitem.uniquename
 commands destroot
 
 # Set defaults

@@ -64,6 +64,9 @@
 #       - for launchd, generate log messages inside daemondo
 #       - for systemstarter, generate log messages in our generated script
 #
+#   startupitem.autoload    yes/no
+#       Automatically load the startupitem after activating. Defaults to no.
+#
 
 package provide portstartupitem 1.0
 package require portutil 1.0
