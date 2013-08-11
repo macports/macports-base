@@ -1,0 +1,296 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+mportinit
+
+
+source ../macports.tcl
+
+
+test ui_isset {
+    Ui is set unit test.
+} -body {
+    namespace eval macports {
+	array set ui_options { test yes }
+    }
+    if {[macports::ui_isset test] != 1} {
+	return "FAIL: set option not detected"
+    }
+    if {[macports::ui_isset port] != 0} {
+	return "FAIL: unset option detected"
+    }
+    return "ui_isset successful."
+} -result "ui_isset successful."
+
+
+test global_option_isset {
+    Global option is set unit test.
+} -body {
+    namespace eval macports {
+	array set global_options { test yes }
+    }
+    if {[macports::global_option_isset test] != 1} {
+	return "FAIL: set option not detected"
+    }
+    if {[macports::global_option_isset port] != 0} {
+	return "FAIL: unset option detected"
+    }
+    return "Global option isset successful."
+} -result "Global option isset successful."
+
+
+test init_logging {
+    Init logging unit test.
+} -constraints {
+    root
+} -body {
+    set mport [mportopen file://.]
+    if {[macports::init_logging $mport] != 0} {
+	return "FAIL: incorrect channels"
+    }
+    if {$macports::channels(any) != "stdout debuglog"} {
+	return "FAIL: incorrect channels(any)"
+    }
+    if {$macports::channels(debug) != "debuglog"} {
+	return "FAIL: incorrect channels(debug)"
+    }
+    return "Init logging successful."
+} -result "Init logging successful."
+
+
+test ch_logging {
+    Channel logging unit test. Assumes main.log filename.
+} -constraints {
+    root
+} -setup {
+    set portname [_mportkey $mport subport]
+    set portpath [_mportkey $mport portpath]
+    set logname [macports::getportlogpath $portpath $portname]
+    file delete -force $logname
+
+    set mport [mportopen file://.]
+
+} -body {
+    if {[macports::ch_logging $mport] != 0} {
+	return "FAIL: channels not set"
+    }
+    if {![file exists $logname]} {
+	return "FAIL: logname dir missing"
+    }
+    if {![file exists $logname/main.log]} {
+	return "FAIL: main.log missing"
+    }
+    return "Channel logging successful."
+
+} -result "Channel logging successful."
+
+
+test push_log {
+    Push log unit test.
+} -constraints {
+    root
+} -body {
+    set mport [mportopen file://.]
+
+    set ::logenabled 1
+    if {[catch {macports::push_log $mport}] != 0} {
+	return "FAIL: cannot push log"
+    }
+    if {[lindex $::logstack 0] != [list $::debuglog $::debuglogname]} {
+	return "FAIL: incorrect logstack"
+    }
+    return "Push log successful."
+} -result "Push log successful."
+
+
+# test pop_log
+# test set_phase
+# test ui_message
+# test ui_init
+# test ui_prefix_default
+# test ui_channels_default
+# test ui_warn_once
+# test puts
+
+
+test findBinary {
+    Find binary unit test.
+} -body {
+    if {[macports::findBinary pwd ls] != "/bin/pwd"} {
+	return "FAIL: wrong binary"
+    }
+    if {[macports::findBinary pwd /bin/ls] != "/bin/ls"} {
+	return "FAIL: wrong binary"
+    }
+    return "Find binary successful."
+} -result "Find binary successful."
+
+
+test binaryInPath {
+    Binary in path unit test.
+} -body {
+    if {[catch {macports::binaryInPath zz}] != 1} {
+	return "FAIL: invalid binary found"
+    }
+    if {[macports::binaryInPath ls] != "/bin/ls"} {
+	return "FAIL: wrong binary found"
+    }
+    return "Binary in path successful."
+} -result "Binary in path successful."
+
+
+# test getoption
+
+
+test setxcodeinfo {
+    Set XCode info unit test.
+} -constraints {
+    root
+} -body {
+    unset macports::xcodeversion
+
+    if {[macports::setxcodeinfo a b c] != ""} {
+	return "FAIL: xcode binary not found"
+    }
+    if {![info exists macports::xcodeversion]} {
+	return "FAIL: xcodeversion unset"
+    }
+    return "Set XCode version successful."
+} -result "Set XCode version successful."
+
+
+test set_developer_dir {
+    Set developer dir unit test. Tests only for correct xcode-select dir.
+} -constraints {
+    root
+} -body {
+    unset macports::developer_dir
+
+    if {[macports::set_developer_dir a b c] != ""} {
+	return "FAIL: cannot set dev dir"
+    }
+    if {![info exists macports::developer_dir]} {
+	return "FAIL: developer_dir var no set"
+    }
+    return "Set developer dir successful."
+} -result "Set developer dir successful."
+
+
+test _is_valid_developer_dir {
+    Check valid dev dir unit test.
+} -body {
+    set macports::set_developer /Applications/Xcode.app/Contents/Developer
+    if {[macports::_is_valid_developer_dir $macports::developer_dir] != 1} {
+	return "FAIL: valid dir not detected"
+    }
+    return "Valid dev dir successful."
+} -result "Valid dev dir successful."
+
+
+# test mportinit
+
+
+test mportshutdown {
+    Mport shutdown unit test.
+} -setup {
+    unset macports::ping_cache
+
+    set time [expr [clock seconds] - 86100]
+    set time_exp [expr [clock seconds] - 87000]
+    set macports::portdbpath $pwd/portdbpath
+    set macports::ping_cache(host1) [list test $time]
+    set macports::ping_cache(host2) [list test $time_exp]
+
+    file mkdir $macports::portdbpath
+    close [open $macports::portdbpath/pingtimes w+]
+} -body {
+    if {[mportshutdown] != ""} {
+	return "FAIL: errors occured"
+    }
+
+    set res ""
+    append res "host1 \{test " $time "\}"
+    set fd [open $macports::portdbpath/pingtimes r]
+
+    if {[gets $fd] != $res} {
+	return "FAIL: wrong value saved"
+    }
+    close $fd
+    return "Mportshutdown successful."
+
+} -cleanup {
+    file delete -force $macports::portdbpath
+} -result "Mportshutdown successful."
+
+
+test copy_xcode_plist {
+    Copy xcode plist unit test.
+} -constraints {
+    root
+} -body {
+    set target $pwd/target
+
+    if {[macports::copy_xcode_plist $target] != ""} {
+	return "FAIL: cannot copy xcode plist"
+    }
+    if {![file exists $target/Library/Preferences/com.apple.dt.Xcode.plist]} {
+	return "FAIL: missing plist file"
+    }
+    return "Copy xcode plist successful."
+    puts $res
+} -cleanup {
+    file delete -force $target
+} -result "Copy xcode plist successful."
+
+
+test worker_init {
+    Worker init unit test.
+} -body {
+} -result ""
+
+
+test crate_thread {
+    Create thread unit test.
+} -body {
+    unset macports::portinterp_options
+    set macports::portinterp_options {a b}
+
+    set res [macports::create_thread]
+    if {![string match "tid0x*" $res]} {
+	return "FAIL: cannot create thread"
+    }
+    return "Create thread successful."
+} -result "Create thread successful."
+
+
+# test get_tar_flags
+
+
+test fetch_port {
+    Fetch port unit test.
+} -body {
+    set portdbpath $pwd/portdbpath
+    set url "http://packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2"
+
+    set res [macports::fetch_port $url 0]
+    puts $res
+} -cleanup {
+    file delete -force $portdbpath
+} -result ""
+
+
+test getprotocol {
+    Get protocol unit test.
+} -body {
+    if {[macports::getprotocol http://www.macports.org] != "http"} {
+	return "FAIL: wrong protocol"
+    }
+    return "Get protocol successful."
+} -result "Get protocol successful."
+
+
+cleanupTests
