@@ -1428,7 +1428,7 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +PORTFILE > Portfile"
+        set cmdline "$tarcmd ${tarflags}${qflag}xOf ..\"$fetchfile\" +PORTFILE > Portfile"
     } else {
         set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
     }
@@ -1554,14 +1554,11 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     # Look for an already-open MPort with the same URL.
     # if found, return the existing reference and bump the refcount.
     if {$nocache != ""} {
-puts #
         set mport {}
     } else {
-puts ##
         set mport [dlist_match_multi $macports::open_mports [list porturl $porturl variations $variations options $options]]
     }
     if {$mport != {}} {
-puts ###
         # just in case more than one somehow matches
         set mport [lindex $mport 0]
         set refcnt [ditem_key $mport refcnt]
