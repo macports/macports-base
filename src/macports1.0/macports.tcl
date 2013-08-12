@@ -324,7 +324,7 @@ proc ui_warn_once {id msg} {
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
-rename puts tcl::puts
+# rename puts tcl::puts
 proc puts {args} {
     catch "tcl::puts $args"
 }
@@ -1405,7 +1405,7 @@ proc macports::fetch_port {url {local 0}} {
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag ${macports::autoconf::tar_q}
-    set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
+    set cmdline "$tarcmd ${tarflags}${qflag}xOf ..\"$fetchfile\" +CONTENTS"
     ui_debug "$cmdline"
     if {![catch {set contents [eval exec $cmdline]}]} {
         set binary 1
@@ -1554,11 +1554,14 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     # Look for an already-open MPort with the same URL.
     # if found, return the existing reference and bump the refcount.
     if {$nocache != ""} {
+puts #
         set mport {}
     } else {
+puts ##
         set mport [dlist_match_multi $macports::open_mports [list porturl $porturl variations $variations options $options]]
     }
     if {$mport != {}} {
+puts ###
         # just in case more than one somehow matches
         set mport [lindex $mport 0]
         set refcnt [ditem_key $mport refcnt]
