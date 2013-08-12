@@ -1405,7 +1405,7 @@ proc macports::fetch_port {url {local 0}} {
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag ${macports::autoconf::tar_q}
-    set cmdline "$tarcmd ${tarflags}${qflag}xOf ..\"$fetchfile\" +CONTENTS"
+    set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
     ui_debug "$cmdline"
     if {![catch {set contents [eval exec $cmdline]}]} {
         set binary 1
