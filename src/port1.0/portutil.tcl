@@ -1448,7 +1448,7 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
-                        set result [catch {$pre $targetname} errstr]
+                        set result [catch {eval $pre $targetname} errstr]
                         # Save variables in order to re-throw the same error code.
                         set errcode $::errorCode
                         set errinfo $::errorInfo
@@ -1458,7 +1458,7 @@ proc target_run {ditem} {
 
                 if {$result == 0} {
                     ui_debug "Executing $targetname ($portname)"
-                    set result [catch {$procedure $targetname} errstr]
+                    set result [catch {eval $procedure $targetname} errstr]
                     # Save variables in order to re-throw the same error code.
                     set errcode $::errorCode
                     set errinfo $::errorInfo
@@ -1467,7 +1467,7 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
-                        set result [catch {$post $targetname} errstr]
+                        set result [catch {eval $post $targetname} errstr]
                         # Save variables in order to re-throw the same error code.
                         set errcode $::errorCode
                         set errinfo $::errorInfo
@@ -1478,7 +1478,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem postrun] && $result == 0} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
-                    set result [catch {$postrun $targetname} errstr]
+                    set result [catch {eval $postrun $targetname} errstr]
                     # Save variables in order to re-throw the same error code.
                     set errcode $::errorCode
                     set errinfo $::errorInfo
