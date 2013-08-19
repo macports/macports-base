@@ -3565,9 +3565,12 @@ proc action_search { action portlist opts } {
         }
         switch -- $opt {
             exact -
-            glob -
-            regex {
+            glob {
                 set filter_matchstyle $opt
+                continue
+            }
+            regex {
+                set filter_matchstyle regexp
                 continue
             }
             case-sensitive {
@@ -3607,7 +3610,7 @@ proc action_search { action portlist opts } {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
-            if {[catch {eval set matches \[mportsearch \$searchstring $filter_case $matchstyle $opt\]} result]} {
+            if {[catch {eval set matches \[mportsearch \$searchstring $filter_case \$matchstyle $opt\]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "search for name $portname failed: $result" 1 status
