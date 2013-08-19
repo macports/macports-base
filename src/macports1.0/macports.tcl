@@ -3463,10 +3463,16 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set is_revupgrade no
     if {[info exists options(ports_revupgrade)] && $options(ports_revupgrade)} {
         set is_revupgrade yes
+        # unset revupgrade options so we can upgrade dependencies with the same
+        # $options without also triggering a rebuild there, see #40150
+        unset options(ports_revupgrade)
     }
     set is_revupgrade_second_run no
     if {[info exists options(ports_revupgrade_second_run)] && $options(ports_revupgrade_second_run)} {
         set is_revupgrade_second_run yes
+        # unset revupgrade options so we can upgrade dependencies with the same
+        # $options without also triggering a rebuild there, see #40150
+        unset options(ports_revupgrade_second_run)
     }
 
     # check if the port is in tree
@@ -3730,7 +3736,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         } elseif {$is_revupgrade} {
             ui_debug "rev-upgrade override ... upgrading!"
             # in the first run of rev-upgrade, only activate possibly already existing files and check for missing dependencies
-            set will_install yes
+            # do nothing, just prevent will_install being set to no below
         } else {
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
                 if {[llength $variationslist] > 0} {
@@ -3756,9 +3762,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     # first upgrade dependencies
-    if {![info exists options(ports_nodeps)] && !$is_revupgrade} {
+    if {![info exists options(ports_nodeps)]} {
         # the last arg is because we might have to build from source if a rebuild is being forced
-        set status [_upgrade_dependencies portinfo depscache variationslist options [expr {$will_build && $already_installed}]]
+        set status [_upgrade_dependencies portinfo depscache variationslist options [expr {$will_build && $already_installed && !$is_revupgrade}]]
         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
             catch {mportclose $mport}
             return $status
@@ -4542,11 +4548,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             if {![info exists depscache(port:$portname)]} {
                 # set rev-upgrade options and nodeps if this is not the first run
                 set my_options(ports_revupgrade) yes
-                unset -nocomplain my_options(ports_nodeps)
                 unset -nocomplain my_options(ports_revupgrade_second_run)
                 if {$broken_port_counts($portname) > 1} {
                     set my_options(ports_revupgrade_second_run) yes
-                    set my_options(ports_nodeps) yes
                     # build from source only until the buildbot has some method of rev-upgrade, too
                     set my_options(ports_source_only) yes
                 }
