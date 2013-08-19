@@ -2210,7 +2210,13 @@ proc mportsync {{optionslist {}}} {
                         continue
                     }
                 } elseif {$git_cmd ne {} && [file exists ${portdir}/.git]} {
-                    set git_commandline "pushd $portdir ; $git_cmd pull --rebase ; popd"
+                    # determine what type of git repository this is
+                    if {![catch {exec sh -c "$git_cmd --git-dir=${portdir}/.git config --local --get svn-remote.svn.url"} result]} {
+                        set git_action "svn rebase"
+                    } else {
+                        set git_action "pull --rebase"
+                    }
+                    set git_commandline "$git_cmd --git-dir=${portdir}/.git --work-tree=${portdir} $git_action"
                     ui_debug $git_commandline
                     if {
                         [catch {
@@ -2229,7 +2235,7 @@ proc mportsync {{optionslist {}}} {
                         }]
                     } {
                         ui_debug $::errorInfo
-                        ui_error "Synchronization of the local ports tree failed doing a git pull --rebase"
+                        ui_error "Synchronization of the local ports tree failed doing a git update"
                         incr numfailed
                         continue
                     }
