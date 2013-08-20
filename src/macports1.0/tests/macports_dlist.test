@@ -52,13 +52,19 @@ test dlist_delete {
     Dlist delete unit test.
 } -setup {
     set mport [mportopen file://.]
+    set dlist [list]
+    lappend dlist $mport
 } -body {
-    #puts [ditem_key $mport provides]
-    #dlist_delete $mport provides
-    #puts [ditem_key $mport provides]
+    if {[dlist_delete dlist $mport] != ""} {
+	return "FAIL: cannot run dlist_delete"
+    }
+    if {$dlist != ""} {
+	return "FAIL: port not removed from list"
+    }
+    return "Dlist delete successful."
 } -cleanup {
     mportclose $mport
-} -result ""
+} -result "Dlist delete successful."
 
 
 test dlist_has_pending {
