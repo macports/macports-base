@@ -121,25 +121,34 @@ test lunshift {
 
 test throw {
     Throw unit test.
-} -body {
+} -setup {
     proc test_proc {arg} {
-	catch {
-	    throw $arg
-	}
+	catch {throw $arg} res
+	return $res
     }
-    if {[test_proc ""] != 1} {
+} -body {
+    if {[test_proc {7 msg info}] != "error: 7 msg info"} {
+	return "FAIL: wrong error returneed"
+    }
+    if {[catch {test_proc ""}] != 0} {
 	return "FAIL: wrong value returned"
     }
-    #puts [catch {test_proc {7 "msg" "info"}}]
     return "throw successful."
 } -result "throw successful."
 
 
 test try {
     Try unit test.
+} -setup {
+    proc test_proc {} {try {return 7} catch * {return 6}}
+    proc test_proc2 {} {try {error "msg" "info" 3} catch * {return 6}}
 } -body {
-    #puts [catch {try {return 7} catch * {return 6}}]
-    #puts [catch {try {error "msg" "info" 3} catch * {return 6}}]
+    if {[test_proc] != 7} {
+	return "FAIL: try clause not working"
+    }
+    if {[test_proc2] != 6} {
+	reutrn "FAIL: catch clause not working"
+    }
     if {[catch {try}] != 1} {
 	return "FAIL: no args err not detected"
     }
