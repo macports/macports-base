@@ -1437,7 +1437,7 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +PORTFILE > Portfile"
+        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"../$fetchfile\" +PORTFILE > Portfile"
     } else {
         set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
     }
