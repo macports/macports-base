@@ -4,12 +4,12 @@
 ###
 
 Release 2.2.1 (unreleased)
-    - Add "macports-dragonegg-X.Y-gcc-A.B" as valid configure.compiler
-      values. (larryv in r108040)
+    - Provide choice of GCC version when compiling with DragonEgg.
+      (larryv in r108040)
 
-    - Add configure.objcxx, configure.objcxxflags,
-      configure.universal_objcxxflags, and configure.universal_objcflags
-      options. (#38512, larryv in r107973, r107976, r107987)
+    - Add Portfile options for setting OBJCXX, OBJCXXFLAGS, and
+      universal architecture flags in OBJCFLAGS.
+      (#38512, larryv in r107973, r107976, r107987)
 
     - Add support for autostarting tasks with startupitems after installing.
       Useful for the certsync port. (#35474, cal in r106810, 109245)
