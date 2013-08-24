@@ -1353,6 +1353,11 @@ proc target_run {ditem} {
 
             # otherwise execute the task.
             if {$skipped == 0} {
+                # cd somewhere readable in tracemode to avoid error, e.g. with
+                # find. Make sure to use a path that also exists when executing
+                # Portfiles from registry, i.e., _not_ $workpath.
+                set oldpwd [pwd]
+                _cd $portdbpath
                 # change current phase shown in log
                 set_phase $target
 
@@ -1496,6 +1501,7 @@ proc target_run {ditem} {
                     # End of trace.
                     porttrace::trace_stop
                 }
+                _cd $oldpwd
             }
         }
         if {[exists copy_log_files]} {
