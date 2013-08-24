@@ -81,11 +81,18 @@ if { $test_name != ""} {
 
     foreach test $test_suite {
         set result [eval exec $tcl $test $arguments]
-        set total [lrange [split $result "\t"] 2 2]
-        set pass [lrange [split $result "\t"] 4 4]
-        set skip [lrange [split $result "\t"] 6 6]
-        set fail [lrange [split $result "\t\n"] 8 8]
-        set errmsg [lrange [split $result "\n"] 2 2]
+	set lastline [lindex [split $result "\n"] end]
+
+	if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
+	    set lastline [lindex [split $result "\n"] 0]
+	    set errmsg [lindex [split $result "\n"] 2]
+	}
+
+	set splitresult [split $lastline "\t"]
+        set total [lindex $splitresult 2]
+        set pass [lindex $splitresult 4]
+        set skip [lindex $splitresult 6]
+        set fail [lindex $splitresult 8]
 
 	# Format output
 	if {$total < 10} { set total "0${total}"}
@@ -94,9 +101,7 @@ if { $test_name != ""} {
 	if {$fail < 10} { set fail "0${fail}"}
 
         # Check for errors.
-        if { $fail != 0 || $skip != 0 } {
-            set err "yes"
-        }
+        if { $fail != 0 } { set err "yes" }
 
         set out ""
         if { ($fail != 0 || $skip != 0) && $color_out == "" } {
@@ -113,12 +118,14 @@ if { $test_name != ""} {
             append out [string trim $errmsg "\t {}"]
             puts $out
         }
+	if { $fail != 0 } {
+	    set end [expr [string first $test $result 0] - 1]
+	    puts [string range $result 0 $end]
+	}
     }
 }
 
 # Return 1 if errors were found.
-if {$err != ""} {
-    exit 1
-}
+if {$err != ""} { exit 1 }
 
 return 0
