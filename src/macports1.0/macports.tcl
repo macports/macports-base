@@ -324,7 +324,7 @@ proc ui_warn_once {id msg} {
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
-# rename puts tcl::puts
+rename puts tcl::puts
 proc puts {args} {
     catch "tcl::puts $args"
 }
@@ -1428,7 +1428,7 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline "$tarcmd ${tarflags}${qflag}xOf ..\"$fetchfile\" +PORTFILE > Portfile"
+        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"../$fetchfile\" +PORTFILE > Portfile"
     } else {
         set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
     }
