@@ -1393,30 +1393,53 @@ proc macports::get_tar_flags {suffix} {
     }
 }
 
+##
+# Extracts a Portfile from a tarball pointed to by the given \a url to a path
+# in \c $portdbpath and returns its path.
+#
+# @param url URL pointing to a tarball containing either a file named \c
+#            Portfile at the root level -- in which case the tarball is
+#            extracted completely, --  or a file named \c +CONTENTS at the root
+#            level (i.e., the archive is a valid MacPorts binary archive), in
+#            which case the Portfile is extracted from the file \c +PORTFILE
+#            and put in a separate directory.
+# @param local one, if the URL is local, zero otherwise
+# @return a path to a directory containing the Portfile, or an error code
 proc macports::fetch_port {url {local 0}} {
-    global macports::portdbpath
+    global macports::portdbpath macports::ui_prefix macports::portverbose
+
     set fetchdir [file join $portdbpath portdirs]
     file mkdir $fetchdir
     if {![file writable $fetchdir]} {
         return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
+
     if {$local} {
         set fetchfile $url
     } else {
+        ui_msg "$macports::ui_prefix Fetching port $url"
         set fetchfile [file tail $url]
-        if {[catch {curl fetch $url [file join $fetchdir $fetchfile]} result]} {
+        set verboseflag {}
+        if {$macports::portverbose eq {yes}} {
+            set verboseflag -v
+        }
+        if {[catch {eval curl fetch $verboseflag {$url} {[file join $fetchdir $fetchfile]}} result]} {
             return -code error "Port remote fetch failed: $result"
         }
     }
+
     set oldpwd [pwd]
     cd $fetchdir
-    # check if this is a binary archive or just the port dir
+
+    # check if this is a binary archive or just the port dir by checking
+    # whether the file "+CONTENTS" exists.
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag $macports::autoconf::tar_q
     set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
     ui_debug $cmdline
     if {![catch {set contents [eval exec $cmdline]}]} {
+        # the file is probably a valid binary archive
         set binary 1
         ui_debug "getting port name from binary archive"
         # get the portname from the contents file
@@ -1427,9 +1450,13 @@ proc macports::fetch_port {url {local 0}} {
             }
         }
         ui_debug "port name is '$portname'"
+
+        # create a correctly-named directory and put the Portfile there
         file mkdir $portname
         cd $portname
     } else {
+        # the file is not a valid binary archive, assume it's an archive just
+        # containing Portfile and the files directory
         set binary 0
         set portname [file rootname $fetchfile]
     }
@@ -1443,8 +1470,15 @@ proc macports::fetch_port {url {local 0}} {
     }
     ui_debug $cmdline
     if {[catch {eval exec $cmdline} result]} {
+        # clean up the archive, we don't need it anymore
+        file delete [file join $fetchdir $fetchfile]
+
+        cd $oldpwd
         return -code error "Port extract failed: $result"
     }
+
+    # clean up the archive, we don't need it anymore
+    file delete [file join $fetchdir $fetchfile]
 
     cd $oldpwd
     return [file join $fetchdir $portname]
@@ -1459,19 +1493,42 @@ proc macports::getprotocol {url} {
 }
 
 ##
-# Return the directory where the port identified by the given \c url is
-# located. This used to be called with remote URLs, but this feature (and
-# a formerly existing second parameter) has been removed in MacPorts 2.3. Only
-# called with file:// port URLs at the moment.
+# Return the directory where the port identified by the given \a url is
+# located. Can be called with either local paths (starting with \c file://), or
+# local or remote URLs pointing to a tarball that will be extracted.
 #
 # @param url URL identifying the port to be installed
 # @return normalized path to the port's directory, or error when called with an
-#         unsupported protocl
+#         unsupported protocol, or if the tarball pointed to by \a url didn't
+#         contain a Portfile.
 proc macports::getportdir {url} {
+    global macports::extracted_portdirs
+
     set protocol [macports::getprotocol $url]
     switch -- $protocol {
         file {
-            return [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
+            set path [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
+            if {![file isfile $path]} {
+                # the URL points to a local directory
+                return $path
+            } else {
+                # the URL points to a local tarball that (hopefully) contains a Portfile
+                # create a local dir for the extracted port, but only once
+                if {![info exists macports::extracted_portdirs($url)]} {
+                    set macports::extracted_portdirs($url) [macports::fetch_port $path 1]
+                }
+                return $macports::extracted_portdirs($url)
+            }
+        }
+        https -
+        http -
+        ftp {
+            # the URL points to a remote tarball that (hopefully) contains a Portfile
+            # create a local dir for the extracted port, but only once
+            if {![info exists macports::extracted_portdirs($url)]} {
+                set macports::extracted_portdirs($url) [macports::fetch_port $url 0]
+            }
+            return $macports::extracted_portdirs($url)
         }
         default {
             return -code error "Unsupported protocol $protocol"
@@ -1535,12 +1592,27 @@ proc macports::getdefaultportresourcepath {{path {}}} {
 }
 
 
-# mportopen
-# Opens a MacPorts portfile specified by a URL.  The Portfile is
-# opened with the given list of options and variations.  The result
-# of this function should be treated as an opaque handle to a
-# MacPorts Portfile.
-
+##
+# Opens a MacPorts portfile specified by a URL. The URL can be local (starting
+# with file://), or remote (http, https, or ftp). In the local case, the URL
+# can point to a directory containing a Portfile, or to a tarball in the format
+# detailed below. In the remote case, the URL must point to a tarball. The
+# Portfile is opened with the given list of options and variations. The result
+# of this function should be treated as an opaque handle to a MacPorts
+# Portfile.
+#
+# @param porturl URL to the directory of the port to be opened. Can the path to
+#                a local directory, or an URL (both remote and local) pointing
+#                to a tarball that
+#                \li either contains a \c Portfile and possible a \c files
+#                    directory, or
+#                \li is a MacPorts binary archive, where the Portfile is in
+#                    a file called \c +PORTFILE.
+# @param options an optional array (in list format) of options
+# @param variations an optional array (ist list format) of variations, passed
+#                   to \c eval_variants after running the Portfile
+# @param nocache a non-empty string, if port information caching should be
+#                avoided.
 proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     global macports::portdbpath macports::portconf macports::open_mports auto_path
 
@@ -1560,6 +1632,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
         return $mport
     }
 
+    # Will download if remote and extract if tarball.
     set portpath [macports::getportdir $porturl]
     ui_debug "Changing to port directory: $portpath"
     cd $portpath
@@ -2863,7 +2936,7 @@ proc mportinfo {mport} {
 }
 
 proc mportclose {mport} {
-    global macports::open_mports
+    global macports::open_mports macports::extracted_portdirs
     set refcnt [ditem_key $mport refcnt]
     incr refcnt -1
     ditem_key $mport refcnt $refcnt
@@ -2873,6 +2946,18 @@ proc mportclose {mport} {
         # the hack in _mportexec might have already deleted the worker
         if {[interp exists $workername]} {
             interp delete $workername
+        }
+        set porturl [ditem_key $mport porturl]
+        if {[info exists macports::extracted_portdirs($porturl)]} {
+            # TODO port.tcl calls mportopen multiple times on the same port to
+            # determine a number of attributes and will close the port after
+            # each call. $macports::extracted_portdirs($porturl) will however
+            # stay set, which means it will not be extracted twice. We could
+            # (1) unset $macports::extracted_portdirs($porturl), which would
+            # lead to downloading the port multiple times, or (2) fix the
+            # port.tcl code to delay mportclose until the end.
+            #ui_debug "Removing temporary port directory $macports::extracted_portdirs($porturl)"
+            #file delete -force $macports::extracted_portdirs($porturl)
         }
         ditem_delete $mport
     }
