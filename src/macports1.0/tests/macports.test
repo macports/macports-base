@@ -9,6 +9,22 @@ source ../macports_test_autoconf.tcl
 source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
 
+# use custom macports.conf and sources.conf
+makeDirectory $pwd/tmpdir
+makeDirectory $pwd/tmpdir/share
+makeDirectory $pwd/tmpdir/var/macports/registry
+set fd [open $pwd/tmpdir/macports.conf w+]
+puts $fd "portdbpath $pwd/tmpdir/var/macports"
+puts $fd "prefix $pwd/tmpdir"
+puts $fd "variants_conf $pwd/tmpdir/variants.conf"
+puts $fd "sources_conf $pwd/sources.conf"
+puts $fd "applications_dir $pwd/tmpdir/Applications"
+puts $fd "frameworks_dir $pwd/tmpdir/Library/Frameworks"
+close $fd
+set env(PORTSRC) $pwd/tmpdir/macports.conf
+file link -symbolic $pwd/tmpdir/share/macports $macports::autoconf::prefix/share/macports
+close [open $pwd/tmpdir/variants.conf w+]
+
 # Debug options
 array set ui_options {}
 #set ui_options(ports_debug)   yes
