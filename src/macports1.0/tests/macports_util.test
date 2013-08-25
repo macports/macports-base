@@ -1,7 +1,10 @@
 package require tcltest 2
 namespace import tcltest::*
 
+source ../macports_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
+
 
 test method_wrap {
     Method wrap unit test.
@@ -30,7 +33,6 @@ test ldindex {
     Ldindex unit test.
 } -body {
     set list {0 1 2 3}
-
     if {[ldindex list 1] != 1} {
 	return "FAIL: element not poped"
     }

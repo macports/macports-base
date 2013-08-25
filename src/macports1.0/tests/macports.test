@@ -5,8 +5,11 @@ eval ::tcltest::configure $::argv
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
-# Debug options
+source ../macports_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
+
+# Debug options
 array set ui_options {}
 #set ui_options(ports_debug)   yes
 #set ui_options(ports_verbose) yes
@@ -41,6 +44,36 @@ proc findBinary {prog {autoconf_hint ""}} {
         }
     }
 }
+
+
+
+test mportclose {
+    Mport close unit test.
+} -body {
+    set mport [mportopen file://.]
+    if {[catch {mportclose $mport}] != 0} {
+	return "FAIL: cannot run mportclose"
+    }
+    if {[ditem_key $mport workername] != ""} {
+	return "FAIL: port not closed"
+    }
+    return "Mport close successful."
+} -result "Mport close successful."
+
+
+test mportinfo {
+    Mport info uni test.
+} -setup {
+    set mport [mportopen file://.]
+} -body {
+    set res [mportinfo $mport]
+    if {[lindex $res 2] != "canonical_active_variants"} {
+	return "FAIL: cannot get ::PortInfo"
+    }
+    return "Mport info successful."
+} -cleanup {
+    mportclose $mport
+} -result "Mport info successful."
 
 
 test mportopen_installed {
@@ -172,8 +205,9 @@ test init_logging {
     Init logging unit test.
 } -constraints {
     root
-} -body {
+} -setup {
     set mport [mportopen file://.]
+} -body {
     if {[macports::init_logging $mport] != 0} {
 	return "FAIL: incorrect channels"
     }
@@ -183,8 +217,9 @@ test init_logging {
     if {$macports::channels(debug) != "debuglog"} {
 	return "FAIL: incorrect channels(debug)"
     }
-    mportclose $mport
     return "Init logging successful."
+} -cleanup {
+    mportclose $mport
 } -result "Init logging successful."
 
 
@@ -221,9 +256,9 @@ test push_log {
     Push log unit test.
 } -constraints {
     root
-} -body {
+} -setup {
     set mport [mportopen file://.]
-
+} -body {
     set ::logenabled 1
     if {[catch {macports::push_log $mport}] != 0} {
 	return "FAIL: cannot push log"
@@ -231,8 +266,9 @@ test push_log {
     if {[lindex $::logstack 0] != [list $::debuglog $::debuglogname]} {
 	return "FAIL: incorrect logstack"
     }
-    mportclose $mport
     return "Push log successful."
+} -cleanup {
+    mportclose $mport
 } -result "Push log successful."
 
 
@@ -422,21 +458,7 @@ test crate_thread {
 
 
 # test get_tar_flags
-
-
-test fetch_port {
-    Fetch port unit test.
-} -body {
-    set macports::portdbpath $pwd/portdbpath
-    set url "http://packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2"
-
-    #if {[macports::fetch_port $url 0] != "${macports::portdbpath}/portdirs/fondu-060102_1"} {
-	#return "FAIL: cannot fetch archive"
-    #}
-    return "Fetch port successful."
-} -cleanup {
-    file delete -force $macports::portdbpath
-} -result "Fetch port successful."
+# test fetch_port
 
 
 test getprotocol {
@@ -449,19 +471,7 @@ test getprotocol {
 } -result "Get protocol successful."
 
 
-test getportdir {
-    Get port dir unit test.
-} -body {
-    set macports::portdbpath $pwd/portdbpath
-    set url "http://packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2"
-
-    #if {[macports::getportdir $url .] != "${macports::portdbpath}/portdirs/fondu-060102_1"} {
-	#return "FAIL: wrong path"
-    #}
-    return "Get port dir successful."
-} -cleanup {
-    file delete -force $macports::portdbpath
-} -result "Get port dir successful."
+# test getportdir
 
 
 test getportresourcepath {
@@ -585,8 +595,11 @@ test mporttraverse {
 # test mportlistall
 # test _mports_load_quickindex
 # test mports_generate_quickindex
-# test mportinfo
-# test mportclose
+
+
+
+
+
 
 # test _mportkey
 # test mportdepends
