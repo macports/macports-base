@@ -84,8 +84,8 @@ if { $test_name != ""} {
 	set lastline [lindex [split $result "\n"] end]
 
 	if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
-	    set lastline [lindex [split $result "\n"] 0]
-	    set errmsg [lindex [split $result "\n"] 2]
+	    set lastline [lindex [split $result "\n"] end-2]
+	    set errmsg [lindex [split $result "\n"] end]
 	}
 
 	set splitresult [split $lastline "\t"]
