@@ -1501,7 +1501,9 @@ proc target_run {ditem} {
                     # End of trace.
                     porttrace::trace_stop
                 }
-                _cd $oldpwd
+                # $oldpwd is deleted while uninstalling a port, changing back
+                # _will_ fail
+                catch {_cd $oldpwd}
             }
         }
         if {[exists copy_log_files]} {
