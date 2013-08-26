@@ -520,8 +520,10 @@ test getdefaultportresourcepath {
     if {[macports::getdefaultportresourcepath $path] != "${pwd}/_resources/${path}"} {
 	return "FAIL: wrong file res path"
     }
+
     set macports::sources_default http://$pwd
-    set right_path $pwd/portdbpath/sources/Volumes/Other/_resources/test/path
+    set default_source_url [lindex ${macports::sources_default} 0]
+    set right_path [macports::getsourcepath $default_source_url]/_resources/test/path
     if {[macports::getdefaultportresourcepath $path] != $right_path} {
 	return "FAIL: wrong http res path"
     }
