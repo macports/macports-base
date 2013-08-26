@@ -459,7 +459,7 @@ test worker_init {
 } -result "Worker init successful."
 
 
-test crate_thread {
+test create_thread {
     Create thread unit test.
 } -body {
     unset macports::portinterp_options
