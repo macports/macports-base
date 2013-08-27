@@ -384,6 +384,12 @@ proc command_exec {command args} {
         }
     }
 
+    set dir [option ${varprefix}.dir]
+    if {![file exists ${dir}]} {
+        ui_debug "Creating ${varprefix} directory: ${dir}"
+        file mkdir ${dir}
+    }
+
     global ${varprefix}.env ${varprefix}.env_array ${varprefix}.nice env macosx_version
 
     # Set the environment.
