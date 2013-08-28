@@ -70,3 +70,6 @@
 
  *  All other files (documentation, etc) SHOULD NOT use a modeline as it
     is probably meant for human consumption.
+
+ -  When adding new features, always add test cases.
+    See "https://trac.macports.org/wiki/Tests".
