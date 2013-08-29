@@ -46,7 +46,6 @@ namespace eval portbuild {
 options build.asroot \
         build.jobs \
         build.target \
-        build.type \
         use_parallel_build
 commands build
 # defaults
