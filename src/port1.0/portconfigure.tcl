@@ -136,9 +136,9 @@ options configure.optflags \
 # compiler flags section
 default configure.optflags      {-Os}
 default configure.cflags        {${configure.optflags}}
-default configure.cxxflags      {[portconfigure::choose_default_cxxflags]}
+default configure.cxxflags      {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
-default configure.objcxxflags   {[portconfigure::choose_default_cxxflags]}
+default configure.objcxxflags   {${configure.optflags}}
 default configure.cppflags      {-I${prefix}/include}
 default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
 default configure.libs          {}
@@ -257,21 +257,6 @@ proc portconfigure::configure_start {args} {
             }
         }
     }
-}
-
-# internal function to choose the default configure.cxxflags and configure.objcxxflags
-proc portconfigure::choose_default_cxxflags {} {
-    global cxx_stdlib
-    global configure.optflags
-    global configure.cxx
-
-    set flags ${configure.optflags}
-
-    if {${cxx_stdlib} != "" && [string match *clang* ${configure.cxx}]} {
-        append flags " -stdlib=${cxx_stdlib}"
-    }
-
-    return ${flags}
 }
 
 # internal function to choose the default configure.build_arch and
@@ -639,7 +624,7 @@ proc portconfigure::configure_main {args} {
            configure.pkg_config configure.pkg_config_path \
            configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot \
            configure.march configure.mtune \
-           os.platform os.major
+           os.platform os.major cxx_stdlib
     foreach tool {cc cxx objc objcxx f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
@@ -704,6 +689,15 @@ proc portconfigure::configure_main {args} {
         }
         foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS} {
             append_to_environment_value configure $env_var $output
+        }
+
+        # Add C++ standard library, if requested. Set up here to allow
+        # ${configure.cxxflags} and ${configure.objcxxflags} to override.
+        if {[info exists cxx_stdlib] && $cxx_stdlib ne {} &&
+            [string match *clang* [option configure.cxx]]
+        } then {
+            append_to_environment_value configure CXXFLAGS -stdlib=$cxx_stdlib
+            append_to_environment_value configure OBJCXXFLAGS -stdlib=$cxx_stdlib
         }
 
         # Append configure flags.
