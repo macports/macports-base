@@ -136,9 +136,9 @@ options configure.optflags \
 # compiler flags section
 default configure.optflags      {-Os}
 default configure.cflags        {${configure.optflags}}
-default configure.cxxflags      {${configure.optflags}}
+default configure.cxxflags      {[portconfigure::choose_default_cxxflags]}
 default configure.objcflags     {${configure.optflags}}
-default configure.objcxxflags   {${configure.optflags}}
+default configure.objcxxflags   {[portconfigure::choose_default_cxxflags]}
 default configure.cppflags      {-I${prefix}/include}
 default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
 default configure.libs          {}
@@ -257,6 +257,21 @@ proc portconfigure::configure_start {args} {
             }
         }
     }
+}
+
+# internal function to choose the default configure.cxxflags and configure.objcxxflags
+proc portconfigure::choose_default_cxxflags {} {
+    global cxx_stdlib
+    global configure.optflags
+    global configure.cxx
+
+    set flags ${configure.optflags}
+
+    if {${cxx_stdlib} != "" && [string match *clang* ${configure.cxx}]} {
+        append flags " -stdlib=${cxx_stdlib}"
+    }
+
+    return ${flags}
 }
 
 # internal function to choose the default configure.build_arch and
