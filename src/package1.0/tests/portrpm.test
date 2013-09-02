@@ -25,8 +25,8 @@ test rpm_main {
     set mport [mportopen file://.]
     set workername [ditem_key $mport workername]
 
-    set res [$workername eval eval_targets rpm]
-    puts $res
+    #set res [$workername eval eval_targets rpm]
+    #puts $res
 
     #if {![file exists /opt/local/src/macports/RPMS/x86_64/fondu-060102-1.x86_64.rpm]} {}
 

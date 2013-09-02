@@ -4,13 +4,21 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+
 package require macports 1.0
 mportinit
-package require portarchivefetch 1.0
 source ./library.tcl
 macports_worker_init
 
-source ../portarchivefetch.tcl
+#source ../../port1.0/port_autoconf.tcl
+#set portutil::autoconf::openssl_path "/usr/bin/openssl"
+package require portarchivefetch 1.0
+#source ../portarchivefetch.tcl
+namespace eval portutil {
+    namespace eval autoconf {
+	variable openssl_path "/usr/bin/openssl"
+    }
+}
 
 test filter_sites {
     Filter sites unit test.
@@ -21,16 +29,10 @@ test filter_sites {
     env_init
 
     set portvariants {var1}
-    set master_sites "http://fondu.sourceforge.net/"
-
-    #array set portfetch::mirror_sites::sites {
-#	"http://aaa.bbb.ccc/ddd/eee/file.zip" aaa
-    #}
-    #set portfetch::mirror_sites::archive_type tgz
-    #set portfetch::mirror_sites::archive_prefix file
+    set porturl http://www.fondu.sourceforge.net/fondu-060102_1var1.darwin_9.noarch.tgz
 
 } -body {
-    if {[catch {portarchivefetch::filter_sites}] != 0} {
+    if {[portarchivefetch::filter_sites] != "http://www.fondu.sourceforge.net/:tgz"} {
 	return "FAIL: couldn't fetch file"
     }
 
@@ -40,12 +42,18 @@ test filter_sites {
 
 test checkarchivefiles {
     Check archive files unit test.
-} -body {
+} -setup {
+    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global subport version revision package.flat maintainers description categories
+    global supported_archs portname porturl portdbpath portpath workpath distname filespath license
+    env_init
+
     set urls {www.a.com www.b.com}
     set all_archive_files ""
     set archivefetch.fulldestpath $pwd/path
     set archive_sites {site1:zip site2:tgz}
 
+} -body {
     if {[catch {portarchivefetch::checkarchivefiles $urls}] != 0} {
 	return "FAIL: cannot run checkarchivefiles"
     }
@@ -61,7 +69,41 @@ test checkarchivefiles {
 
 # test get_full_archive_sites_path
 # test checkfiles
-# test fetchfiles
+
+
+test fetchfiles {
+    Fetch files unit test. Fails to verify signature.
+} -setup {
+    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global subport version revision package.flat maintainers description categories
+    global supported_archs portname porturl portdbpath portpath workpath distname filespath license
+    env_init
+
+    array set ::portfetch::urlmap {
+	fondu http://packages.macports.org/fondu/
+	archive_sites www.google.com
+    }
+    set portarchivefetch::archivefetch_urls {fondu fondu-060102_1.darwin_12.x86_64.tbz2}
+
+} -body {
+    set macportsuser macports
+    if {[portarchivefetch::fetchfiles] != 0} {
+	return "FAIL: cannot fetch port"
+    }
+    #if {![file exists ${archivefetch.fulldestpath}/fondu_src-060102.tgz.TMP]} {
+	#return "FAIL: missing fetched archive"
+    #}
+    #if {![file exists ${archivefetch.fulldestpath}/fondu_src-060102.tgz.rmd160]} {
+	#return "FAIL: missing fetched archive rmd"
+    #}
+    return "Fetch files successful."
+
+} -cleanup {
+    file delete -force $portdbpath
+
+} -result "Fetch files successful."
+
+
 # test archivefetch_start
 # test archivefetch_main
 

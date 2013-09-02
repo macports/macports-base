@@ -16,6 +16,8 @@ macports_worker_init
 
 test main {
     Port dpkg main unit test.
+} -constraints {
+    [catch {exec which dpkg-deb}] == 0
 } -setup {
     set os.platform darwin
     set os.major 10
@@ -36,10 +38,6 @@ test main {
 
 
 } -body {
-    if {[catch {exec which dpkg-deb}] != 0} {
-	return "FAIL: dpkg package missing. Try 'port install dpkg'."
-    }
-
     if {[catch {portdpkg::main}] != 0} {
 	return "FAIL: cannot create dmg"
     }

@@ -17,6 +17,7 @@ clean::
 distclean:: clean
 
 test::
+	$(TCLSH) ./tests/test.tcl -nocolor
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}

@@ -27,10 +27,12 @@ test srpm_main {
     file mkdir $portdbpath
 
 } -body {
-    set res [portsrpm::srpm_main]
-    puts $res
+    #set res [portsrpm::srpm_main]
 
     return "Srpm pkg successful."
+} -cleanup {
+    file delete -force $workpath
+    file delete -force $portdbpath
 } -result "Srpm pkg successful."
 
 
