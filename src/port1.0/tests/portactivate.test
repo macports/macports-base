@@ -4,7 +4,8 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
-    set portdbpath /opt/local/var/macports
+source ../../macports1.0/macports_fastload.tcl
+set portdbpath /opt/local/var/macports
 
 package require macports 1.0
 
