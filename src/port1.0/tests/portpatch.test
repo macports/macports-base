@@ -1,0 +1,69 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+mportinit
+
+source ../portpatch.tcl
+source ../port_autoconf.tcl
+
+proc findBinary {prog {autoconf_hint ""}} {
+    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
+        return ${autoconf_hint}
+    } else {
+        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} t] ==
+
+            return ${cmd_path}
+        } else {
+            return -code error "${result} or at its MacPorts guration time , did you move it?"
+        }
+    }
+}
+
+
+test build_getpatchtype {
+    Get patch type unit test.
+} -body {
+    set res [portpatch::build_getpatchtype]
+    if {$res != $portutil::autoconf::patch_path} {
+	return "FAIL: wrong path"
+    }
+    return "Get patch type successful."
+} -result "Get patch type successful."
+
+
+test patch_main {
+    Patch main unit test.
+} -body {
+    set macosx_version 12
+
+    set subport fondu
+    set filespath $pwd/files
+    set distpath $pwd/dist
+    set usealtworkpath no
+    set altprefix prefix
+    set patchfiles {file1.Z}
+
+    set workpath $pwd/work
+    set worksrcpath $workpath/src
+    set compiler.cpath /usr/bin/gcc
+    set compiler.library_path /usr/lib
+    set macosx_deployment_target $pwd/deploy_target
+
+    file mkdir $filespath
+    close [open $filespath/file1.Z w+]
+    close [open $filespath/file2.Z w+]
+
+    set res [portpatch::patch_main]
+    puts $res
+
+    return "Get patch type successful."
+} -cleanup {
+    file delete -force $filespath
+} -result "Get patch type successful."
+
+
+cleanupTests

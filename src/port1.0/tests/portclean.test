@@ -33,9 +33,9 @@ proc findBinary {prog {autoconf_hint ""}} {
 
 test clean_start {
     Clean start unit test.
+} -constraints {
+    root
 } -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
     set prefix /opt/local
     seteuid 333
     if {[catch {clean_start args}] != 1} {
@@ -115,9 +115,9 @@ test clean_dist {
 
 test clean_work {
     Clean work unit test.
+} -constraints {
+    root
 } -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
     set usealtworkpath no
     set altprefix $pwd/prefix
     set portpath portpath
@@ -159,9 +159,9 @@ test clean_work {
 
 test clean_logs {
     Clean logs unit test.
+} -constraints {
+    root
 } -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
     set portpath $pwd/portpath
     set logpath [getportlogpath $portpath]
     set subport $logpath/subport

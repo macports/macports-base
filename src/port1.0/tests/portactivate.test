@@ -4,7 +4,8 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
-source ../../macports1.0/macports_fastload.tcl
+    set portdbpath /opt/local/var/macports
+
 package require macports 1.0
 
 array set ui_options {}
@@ -104,9 +105,9 @@ package require registry 1.0
 test activate_start {
     Activate start unit test.
     Requires root for setting euid.
+} -constraints {
+    root
 } -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
     # file writable $prefix is used to determine whether privilege escalation
     # is needed, so set prefix to a directory unwritable for this user
     set prefix /usr/bin
@@ -134,12 +135,10 @@ test activate_start {
 
 test activate_main {
     Activate main unit test.
+} -constraints {
+    root
 } -setup {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
     set destpath $pwd/work/destroot
-    set portbuildpath $pwd
-    set portdbpath $pwd/dbpath
     set portpath $pwd
 
     #file copy -force $pwd/Portfile /tmp/
@@ -156,11 +155,14 @@ test activate_main {
     set macports::channels(msg)    {}
     set macports::channels(notice) {}
 
-    if {0 != [$workername eval eval_targets install]} {
-        return "FAIL: install failed"
-    }
+    #set res [portdeactivate::deactivate_main]
+    #if {[catch {portdeactivate::deactivate_main}] != 0} {
+    #    return "FAIL: cannot deactivate port"
+    #}
+
 } -body {
-    return [$workername eval portactivate::activate_main]
+    #puts [catch {portactivate::activate_main}]
+
 } -cleanup {
     if {0 != [$workername eval eval_targets uninstall]} {
         return "FAIL: uninstall failed"
