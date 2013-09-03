@@ -503,6 +503,10 @@ static void __darwintrace_get_filemap() {
 	char *path, *replacement, command;
 #endif
 
+#if __GNUC__ && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 2))
+#error Please build with gcc-4.2 or later
+#endif
+
 	/*
 	 * ensure we have a filemap present; this might be called simultanously
 	 * from multiple threads and needs to work without leaking and in a way
