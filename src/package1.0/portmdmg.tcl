@@ -71,7 +71,7 @@ proc portmdmg::package_mdmg {portname portepoch portversion portrevision} {
     set mpkgpath [portmpkg::mpkg_path $portname $portepoch $portversion $portrevision]
 
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s version %s is up-to-date"] ${portname} ${portversion}]"
         return 0
     }
 

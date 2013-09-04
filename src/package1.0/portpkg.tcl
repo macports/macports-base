@@ -125,7 +125,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
 
     set pkgpath "${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg"
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s_%s_%s is up-to-date"] ${portname} ${portepoch} ${portversion} ${portrevision}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s version %s_%s_%s is up-to-date"] ${portname} ${portepoch} ${portversion} ${portrevision}]"
         return 0
     }
 

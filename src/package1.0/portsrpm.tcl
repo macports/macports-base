@@ -83,7 +83,7 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
             set rpmpath "$dir/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
                 ui_debug "$rpmpath"
-                ui_msg "$UI_PREFIX [format [msgcat::mc "SRPM package for %s-%s is up-to-date"] ${portname} ${portversion}]"
+                ui_msg "$UI_PREFIX [format [msgcat::mc "SRPM package for %s version %s is up-to-date"] ${portname} ${portversion}]"
                 return 0
             }
         }

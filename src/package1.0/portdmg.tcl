@@ -71,7 +71,7 @@ proc portdmg::package_dmg {portname portversion portrevision} {
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s version %s is up-to-date"] ${portname} ${portversion}]"
         return 0
     }
 
