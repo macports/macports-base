@@ -99,7 +99,7 @@ proc portpkg::pkg_start {args} {
 proc portpkg::pkg_main {args} {
     global subport epoch version revision UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s_%s_%s"] ${subport} ${epoch} ${version} ${revision}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s version %s_%s_%s"] ${subport} ${epoch} ${version} ${revision}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
         elevateToRoot "pkg"
