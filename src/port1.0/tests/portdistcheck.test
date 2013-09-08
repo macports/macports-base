@@ -4,60 +4,18 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+source ../../macports1.0/macports_fastload.tcl
 package require macports 1.0
-mportinit
 
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
 source ../portdistcheck.tcl
 
-proc getdefaultportresourcepath {{path ""}} {
-    global macports::sources_default
-    set default_source_url [lindex ${sources_default} 0]
-    if {[getprotocol $default_source_url] == "file"} {
-        set proposedpath [getportdir $default_source_url]
-    } else {
-        set proposedpath [getsourcepath $default_source_url]
-    }
-    # append requested path
-    set proposedpath [file join $proposedpath _resources $path]
-    return $proposedpath
-}
-
-proc getprotocol {url} {
-    if {[regexp {(?x)([^:]+)://.+} $url match protocol] == 1} {
-        return ${protocol}
-    } else {
-        return -code error "Can't parse url $url"
-    }
-}
-
-proc getsourcepath {url} {
-    global macports::portdbpath
-    set source_path [split $url ://]
-    if {[_source_is_snapshot $url]} {
-        # daily snapshot tarball
-        return [file join $portdbpath sources [join [lrange $source_path 3 end-1] /] ports]
-    }
-    return [file join $portdbpath sources [lindex $source_path 3] [lindex $source_path 4] [lindex $source_path 5]]
-}
-
-proc getportresourcepath {url {path ""} {fallback yes}} {
-    global macports::sources_default
-    set protocol [getprotocol $url]
-    switch -- ${protocol} {
-        file {
-            set proposedpath [file normalize [file join [getportdir $url] .. ..]]
-        }
-        default {
-            set proposedpath [getsourcepath $url]
-        }
-    }
-    # append requested path
-    set proposedpath [file join $proposedpath _resources $path]
-    if {$fallback == "yes" && ![file exists $proposedpath]} {
-        return [getdefaultportresourcepath $path]
-    }
-    return $proposedpath
-}
+macports_worker_init
 
 
 test distcheck_main {
@@ -66,17 +24,22 @@ test distcheck_main {
     set portpath $pwd
     set filespath $pwd/files
 
-    set name fondu
-    set subport fondu
-    set distname fondu_src-060102
-    set porturl "http://fondu.sourceforge.net/"
-    set master_sites "http://fondu.sourceforge.net/"
-    set extract.suffix .tgz
+    set name cocot
+    set subport $name
+    set distname cocot-20080315
+    set porturl "http://distfiles.macports.org/cocot/"
+    set master_sites $porturl
+    set extract.suffix .tar.bz2
 
 } -body {
-    close stderr
-    if {[catch {portdistcheck::distcheck_main}] != 0} {
-	return "FAIL: unable to download or check file"
+	set fetch.type standard
+	set distcheck.type moddate
+    if {[portdistcheck::distcheck_main] != ""} {
+		return "FAIL: unable to download or check file, type moddate"
+    }
+	set distcheck.type filesize
+    if {[portdistcheck::distcheck_main] != ""} {
+		return "FAIL: unable to download or check file, type filesize"
     }
 
     return "Distcheck main successful."
