@@ -4451,6 +4451,17 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         continue;
                     }
 
+                    if {(${filepath} == "/usr/lib/libstdc++.6.dylib" && ${macports::cxx_stdlib} == "libc++") ||
+                        (${filepath} == "/usr/lib/libc++.1.dylib" && ${macports::cxx_stdlib} == "libstdc++")} {
+
+                        ui_info "Incorrect C++ linkage against ${filepath} (referenced from $bpath)"
+                        ui_debug "Marking $bpath as broken"
+                        lappend broken_files $bpath
+
+                        set loadcommand [$loadcommand cget -next]
+                        continue;
+                    }
+
                     set libresultlist [machista::parse_file $handle $filepath]
                     set libreturncode [lindex $libresultlist 0]
                     set libresult     [lindex $libresultlist 1]
