@@ -51,11 +51,11 @@ default configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
-default autoreconf.pre_args {-vi}
+default autoreconf.pre_args {{--install --verbose}}
 default autoconf.dir        {${worksrcpath}}
-default autoconf.pre_args   {-v}
+default autoconf.pre_args   {--verbose}
 default automake.dir        {${worksrcpath}}
-default automake.pre_args   {-v}
+default automake.pre_args   {--verbose}
 default xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
