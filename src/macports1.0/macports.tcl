@@ -2290,14 +2290,14 @@ proc mportsync {{optionslist {}}} {
                         incr numfailed
                         continue
                     }
-                } elseif {$git_cmd ne {} && [file exists ${portdir}/.git]} {
+                } elseif {$git_cmd ne {} && ![catch {exec sh -c "cd ${portdir} && $git_cmd rev-parse --is-inside-work-tree"} result]} {
                     # determine what type of git repository this is
-                    if {![catch {exec sh -c "$git_cmd --git-dir=${portdir}/.git config --local --get svn-remote.svn.url"} result]} {
+                    if {![catch {exec sh -c "cd ${portdir} && $git_cmd config --local --get svn-remote.svn.url"} result]} {
                         set git_action "svn rebase"
                     } else {
                         set git_action "pull --rebase"
                     }
-                    set git_commandline "$git_cmd --git-dir=${portdir}/.git --work-tree=${portdir} $git_action"
+                    set git_commandline "pushd $portdir ; $git_cmd $git_action ; popd"
                     ui_debug $git_commandline
                     if {
                         [catch {
