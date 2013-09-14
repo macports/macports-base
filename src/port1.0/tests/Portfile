@@ -37,4 +37,6 @@ post-destroot {
     eval xinstall -m 644 [glob ${worksrcpath}/*.1] ${destroot}${prefix}/share/man/man1/
 }
 
-test.run		yes
+test {
+    file delete -force $worksrcpath/README
+}
