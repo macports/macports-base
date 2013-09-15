@@ -40,7 +40,7 @@ test patch_main {
     set distpath $pwd/dist
     set usealtworkpath yes
     set altprefix prefix
-    set patchfiles {file1.bz2}
+    set patchfiles {file.diff}
 
     set workpath $pwd/work
     set worksrcpath $workpath/src
@@ -49,14 +49,9 @@ test patch_main {
     set macosx_deployment_target $pwd/deploy_target
 
     file mkdir $filespath
-    set fd [open $pwd/file w+]
-    puts $fd "--- README	2005-08-25 23:49:29.000000000 +0300\n+++ \
-	    README.bk	2013-09-08 18:38:42.000000000 +0300 \n@@ -1,4 +1,3 @@ \n\
-	    -BUILDING FONDU \n   Just type:\n    $ configure\n    $ make"
+    set fd [open $filespath/file.diff w+]
+    puts $fd "first line should get to the workpath"
     close $fd
-    if {[catch {exec tar cjf files/file1.bz2 file}]} {
-	return "FAIL: cannot create test patch"
-    }
 
     set mport [mportopen file://.]
     set workername [ditem_key $mport workername]
@@ -65,10 +60,7 @@ test patch_main {
     if {[$workername eval eval_targets patch]} {
 	return "FAIL: cannot run patch"
     }
-    if {![file exists $pwd/work/fondu-060102/README.bk]} {
-	return "FAIL: missing patched file"
-    }
-    if {![file exists $pwd/work/fondu-060102/README.diff]} {
+    if {![file exists $pwd/work/fondu-060102/test_patch]} {
 	return "FAIL: missing patched file"
     }
 
@@ -76,7 +68,6 @@ test patch_main {
 
 } -cleanup {
     file delete -force $filespath
-    file delete -force $pwd/file
     file delete -force $pwd/work
 
 } -result "Patch successful."
