@@ -402,6 +402,7 @@ AC_CONFIG_FILES([
 	src/macports1.0/macports_autoconf.tcl
 	src/macports1.0/macports_test_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
+	src/port1.0/port_test_autoconf.tcl
 	src/registry2.0/registry_autoconf.tcl
 	src/programs/Makefile
 	src/macports1.0/macports_fastload.tcl

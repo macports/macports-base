@@ -4,36 +4,22 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+source ../port_test_autoconf.tcl
+#source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
-mportinit
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
 
 source ../portinstall.tcl
 source ../../registry2.0/portuninstall.tcl
 source ../port_autoconf.tcl
 
-proc registry_exists {name version {revision 0} {variants ""}} {
-        global macports::registry.format
-        return [${macports::registry.format}::entry_exists $name $version $revision $variants]
-}
-
-proc findBinary {prog {autoconf_hint ""}} {
-    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
-    } else {
-        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} t] ==
-
-            return ${cmd_path}
-        } else {
-            return -code error "${result} or at its MacPorts guration time tion, did you move it?"
-        }
-    }
-}
-
-proc uninstall_main {args} {
-    global subport version revision portvariants user_options
-    registry_uninstall::uninstall $subport $version $revision $portvariants [array get user_options]
-    return 0
-}
 
 proc run_destroot {} {
     global pwd os_platform os_version os_arch
@@ -92,21 +78,31 @@ proc run_destroot {} {
     $workername eval eval_targets destroot
 }
 
+# Set env vars
+set os.platform darwin
+set macosx_version 10.8
+set os_version 12
+set os_arch i386
+set os.major 10
+set supported_archs {}
+set configure.build_arch build_arch
+set portarchivetype tgz
+
+set subport fondu
+set version 3.0
+set revision 2
+
 
 test install_start {
     Install start unit test.
-} -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
-    set subport subport
-    set version 1.0
-    set revision 2
+} -setup {  
     set portvariants {var1}
     set prefix prefix
     set add_users no
 
+} -body {
     if {[catch {portinstall::install_start}] != 0} {
-	return "FAIL: problem with install start"
+		return "FAIL: problem with install start"
     }
     return "Install start successful."
 } -result "Install start successful."
@@ -114,49 +110,57 @@ test install_start {
 
 test create_archive {
     Create archive unit test.
+} -constraints {
+	root
+} -setup {
+	set destpath $pwd/work/destroot
+	set portbuildpath $pwd
+	set portdbpath $pwd/dbpath
+	set portpath $pwd
+	set create $pwd/create
+	
+	# destroot setup
+    file mkdir $pwd/$subport
+    file copy -force $pwd/Portfile /tmp/
+    set mport [mportopen file://.]
+	
+    # set $version var
+    set workername [ditem_key $mport workername]
+
+    # run destroot
+    if {[$workername eval eval_targets destroot] != 0} {
+		return "FAIL: destroot failed"
+	}
+
+	# portinstall setup
+	interp alias {} _cd {} cd
+
+	# hide all output. Deactivate this for debugging!
+	set oldchannels [array get macports::channels]
+	set macports::channels(msg)    {}
+	set macports::channels(notice) {}
+
+	if {[$workername eval eval_targets install] != 0} {
+		return "FAIL: port install failed"
+	}
+
 } -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
-    set os.platform darwin
-    set macosx_version 10.8
-    set os_version 12
-    set os_arch i386
-    set os.major 10
-    set supported_archs {}
-    set configure.build_arch build_arch
-    set portarchivetype tgz
-
-    set subport fondu
-    set version 3.0
-    set create $pwd/create
-    set portbuildpath $pwd
-    set destpath $pwd/work/destroot
-    set portpath $pwd
-    set portdbpath $pwd/dbpath
-    set portbuildpath $pwd
-    set destpath $pwd/work/destroot
-
-    run_destroot
-
-    # portinstall setup
-    interp alias {} _cd {} cd
-    set macosx_deployment_target $pwd/deploy_target
-    file link -symbolic $pwd/$subport/work $pwd/work
-
-    if {[catch {portinstall::install_main}] != 0} {
-	return "FAIL: cannot install port"
-    }
-
+	puts [portinstall::create_archive $create tgz]
     if {[catch {portinstall::create_archive $create tgz}] != 0} {
-	return "FAIL: cannot create archive"
+		return "FAIL: cannot create archive"
     }
     return "Create archive successful."
 
 } -cleanup {
-    set res [uninstall_main]
+	if {[$workername eval eval_targets uninstall] != 0} {
+    	return "FAIL: uninstall failed"
+	}
+	if {[$workername eval eval_targets clean] != 0} {
+    	return "FAIL: clean failed"
+	}
+	array set macports::channels $oldchannels
+	mportclose $mport
 
-    file delete -force $create
-    file delete -force $pwd/$subport/work
     file delete -force $pwd/$subport
     file delete -force $portdbpath
     file delete -force $pwd/work
@@ -169,21 +173,10 @@ test create_archive {
 
 test install_main {
     Install main unit test.
-} -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
-    set os.platform darwin
-    set macosx_version 10.8
-    set os_version 12
-    set os_arch i386
-    set os.major 10
-    set supported_archs {}
-    set configure.build_arch build_arch
-    set portarchivetype tgz
-
-    set subport fondu
-    set version 3.0
-
+} -constraints {
+	root
+	
+} -setup {
     set portpath $pwd
     set portdbpath $pwd/dbpath
     set portbuildpath $pwd
@@ -196,16 +189,24 @@ test install_main {
     set macosx_deployment_target $pwd/deploy_target
     file link -symbolic $pwd/$subport/work $pwd/work
 
+} -body {
     if {[portinstall::install_main] != 0} {
-	return "FAIL: cannot install port"
+		return "FAIL: cannot install port"
     }
     return "Install main successful."
 
 } -cleanup {
-    set res [uninstall_main]
+	if {[$workername eval eval_targets uninstall] != 0} {
+    	return "FAIL: uninstall failed"
+	}
+	if {[$workername eval eval_targets clean] != 0} {
+    	return "FAIL: clean failed"
+	}
+	array set macports::channels $oldchannels
+
+	mportclose $mport
 
     file delete -force $pwd/$subport/work
-    file delete -force $pwd/$subport
     file delete -force $portdbpath
     file delete -force $pwd/work
 

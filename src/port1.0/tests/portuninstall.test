@@ -4,36 +4,21 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
-mportinit
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
 
 source ../portinstall.tcl
 source ../../registry2.0/portuninstall.tcl
 source ../port_autoconf.tcl
-
-proc registry_exists {name version {revision 0} {variants ""}} {
-        global macports::registry.format
-        return [${macports::registry.format}::entry_exists $name $version $revision $variants]
-}
-
-proc findBinary {prog {autoconf_hint ""}} {
-    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
-    } else {
-        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} t] ==
-
-            return ${cmd_path}
-        } else {
-            return -code error "${result} or at its MacPorts guration time tion, did you move it?"
-        }
-    }
-}
-
-proc uninstall_main {args} {
-    global subport version revision portvariants user_options
-    registry_uninstall::uninstall $subport $version $revision $portvariants [array get user_options]
-    return 0
-}
 
 proc run_destroot {} {
     global pwd os_platform os_version os_arch
@@ -98,9 +83,10 @@ proc run_destroot {} {
 
 test uninstall_main {
     Uninstall main unit test.
-} -body {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
+} -constraints {
+	root
 
+} -setup {
     set os.platform darwin
     set macosx_version 10.8
     set os_version 11
@@ -126,16 +112,16 @@ test uninstall_main {
     file link -symbolic $pwd/$subport/work $pwd/work
 
     if {[portinstall::install_main] != 0} {
-	return "FAIL: cannot install port"
+		return "FAIL: cannot install port"
     }
 
+} -body {
     if {[uninstall_main] != 0} {
-	return "FAIL: cannot uninstall port"
+		return "FAIL: cannot uninstall port"
     }
     return "Uninstall main successful."
 
 } -cleanup {
-    file delete -force $pwd/$subport/work
     file delete -force $pwd/$subport
     file delete -force $portdbpath
     file delete -force $pwd/work

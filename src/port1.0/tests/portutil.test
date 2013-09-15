@@ -6,7 +6,18 @@ source ../../macports1.0/macports_fastload.tcl
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
 package require registry 1.0
 package require registry2 2.0
 package require Pextlib 1.0
@@ -14,19 +25,6 @@ package require macports_dlist 1.0
 package require macports_util 1.0
 package require msgcat
 package require porttrace 1.0
-mportinit
-
-proc findBinary {prog {autoconf_hint ""}} {
-    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
-    } else {
-        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} t] == 0} {
-            return ${cmd_path}
-        } else {
-            return -code error "${result} or at its MacPorts guration time location, did you move it?"
-        }
-    }
-}
 
 proc init {} {
     global macports::registry.path
@@ -75,8 +73,6 @@ proc init_eval_targets {} {
     
     source $pwd/../portutil.tcl
     source $pwd/../portmain.tcl
-
-
 
     #variant provides code requires aaa
 }
@@ -535,11 +531,17 @@ test eval_targets {
     Evaluate targets unit test.
 } -setup {
     init_eval_targets
+	set patchfiles {file.diff}
+
+	file mkdir $filespath
+    set fd [open $filespath/file.diff w+]
+    puts $fd "first line should get to the workpath"
+    close $fd
 
     # sets up PortInfo array
     if {[eval_variants variations] != 0} {
-	mportclose $mport
-	error "Error evaluating variants"
+		mportclose $mport
+		error "Error evaluating variants"
     }
 
     set epoch $PortInfo(epoch)
@@ -549,16 +551,12 @@ test eval_targets {
     set workername [ditem_key $mport workername]
 
 } -body {
-    # skip known warnings
-    close stderr
-
-    if {[$workername eval eval_targets pre-patch] != 1} {
-	return "FAIL: invalid target detected"
+    if {[$workername eval eval_targets macport] != 1} {
+		return "FAIL: invalid target detected"
     }
     if {[$workername eval eval_targets destroot] != 0} {
-	return "FAIL: valid target not detected"
+		return "FAIL: valid target not detected"
     }
-    errorChannel [open /dev/null w]
     return "Eval_targets successful."
 
 } -cleanup {
@@ -781,7 +779,7 @@ test dirSize {
     file mkdir $pwd/test.dir
     file copy -force $pwd/statefile $pwd/test.dir
     if {[dirSize $pwd/test.dir] != 155} {
-	return "FAIL: wrong dir size"
+		return "FAIL: wrong dir size"
     }
     return "Directory size calculated successfully."
 
@@ -817,7 +815,7 @@ test get_portimage_name {
 
     set res [get_portimage_name]
     if {$res != "testport-1.0_0.darwin_10.no.tgz"} {
-	return "FAIL: invalid portimage_name"
+		return "FAIL: invalid portimage_name"
     }
     return "Get portimage_name successful."
 } -result "Get portimage_name successful."
@@ -831,7 +829,7 @@ test get_portimage_path {
 
     set res [get_portimage_path]
     if {$res != "dbpath/software/subport/subport-1.0_0.darwin_10.no.tgz"} {
-	return "FAIL: invalid portimage_path"
+		return "FAIL: invalid portimage_path"
     }
     return "Get portimage_path successful."
 } -result "Get portimage_path successful."

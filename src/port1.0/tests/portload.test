@@ -4,8 +4,14 @@ namespace import tcltest::*
 set pwd [file normalize $argv0]
 set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
 
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
-mportinit
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
 
 source ../portload.tcl
 source ../port_autoconf.tcl
@@ -13,9 +19,10 @@ source ../port_autoconf.tcl
 
 test load_main {
     Load main unit test.
+} -constraints {
+	root
+	
 } -setup {
-    if {[getuid] != 0} {return "FAIL: not root, skipping test"}
-
     set path /Library/test/files
     file mkdir $path
 
@@ -39,7 +46,7 @@ test load_main {
     set startupitem.plist files/file.plist
 
     if {[portload::load_main] != ""} {
-	return "FAIL: unable to load plist"
+		return "FAIL: unable to load plist"
     }
     return "Load successful."
 
