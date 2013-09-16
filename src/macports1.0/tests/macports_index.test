@@ -19,7 +19,7 @@ test get_path {
     set url "http://www.macports.org"
 
     if {[macports::index::get_path $url] != "${macports::portdbpath}/sources/http.www.macports.org"} {
-	return "FAIL: wrong path"
+	   return "FAIL: wrong path"
     }
     return "Get path successful."
 } -result "Get path successful."
