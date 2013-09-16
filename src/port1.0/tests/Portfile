@@ -26,16 +26,16 @@ checksums               md5 e20861beacddc1ab392bef7813641bf8
 extract.suffix          .tgz
 distfiles               [suffix ${name}_src-${version}]
 
-patchfiles		file.diff
+patchfiles
 
 patch {
     foreach patch $patchfiles {
-	set fd [open ${portpath}/files/${patch} r]
-	set var [gets $fd]
-	close $fd
-	set fd [open ${workpath}/${distname}/test_patch w+]
-	puts $fd $var
-	close $fd
+        set fd [open ${portpath}/files/${patch} r]
+        set var [gets $fd]
+        close $fd
+        set fd [open ${workpath}/${distname}/test_patch w+]
+        puts $fd $var
+        close $fd
     }
 }
 
