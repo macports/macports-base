@@ -43,7 +43,6 @@ test patch_main {
     set distpath $pwd/dist
     set usealtworkpath yes
     set altprefix prefix
-    set patchfiles {file.diff}
 
     set workpath $pwd/work
     set worksrcpath $workpath/src
@@ -58,13 +57,14 @@ test patch_main {
 
     set mport [mportopen file://.]
     set workername [ditem_key $mport workername]
+    $workername eval "set patchfiles {file.diff}"
 
 } -body {
     if {[$workername eval eval_targets patch]} {
-	   return "FAIL: cannot run patch"
+        return "FAIL: cannot run patch"
     }
     if {![file exists $pwd/work/fondu-060102/test_patch]} {
-	   return "FAIL: missing patched file"
+        return "FAIL: missing patched file"
     }
     return "Patch successful."
 
