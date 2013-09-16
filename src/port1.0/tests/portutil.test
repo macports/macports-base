@@ -519,7 +519,7 @@ test eval_targets {
     set workername [ditem_key $mport workername]
 
 } -body {
-    if {[$workername eval eval_targets macport] != 1} {
+    if {[$workername eval catch {eval_targets macport}] != 1} {
 		return "FAIL: invalid target detected"
     }
     if {[$workername eval eval_targets checksum] != 0} {
