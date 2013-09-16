@@ -67,17 +67,6 @@ proc macports_worker_init {} {
         }
     }
 
-    foreach opt $macports::portinterp_deferred_options {
-        global macports::$opt
-        # define the trace hook.
-        proc trace_$opt {name1 name2 op} {
-            trace remove variable ::$opt read ::trace_$opt
-            global $opt
-            set $opt [getoption $opt]
-        }
-        # next access will actually define the variable.
-        trace add variable ::$opt read ::trace_$opt
-        # define some value now
-        set $opt "?"
-    }
+	# We don't need to handle portinterp_deferred_options, they're
+	# automatically handled correctly.
 }
