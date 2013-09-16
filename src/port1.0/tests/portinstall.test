@@ -117,7 +117,7 @@ test create_archive {
 	set portbuildpath $pwd
 	set portdbpath $pwd/dbpath
 	set portpath $pwd
-	set create $pwd/create
+	set create /dev/null
 
 	# destroot setup
     file mkdir $pwd/$subport
@@ -145,8 +145,7 @@ test create_archive {
 	}
 
 } -body {
-	puts [portinstall::create_archive $create tgz]
-    if {[catch {portinstall::create_archive $create tgz}] != 0} {
+    if {[catch {$workername eval portinstall::create_archive $create tgz}] != 0} {
 		return "FAIL: cannot create archive"
     }
     return "Create archive successful."
