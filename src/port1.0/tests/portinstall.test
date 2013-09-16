@@ -20,64 +20,6 @@ source ../portinstall.tcl
 source ../../registry2.0/portuninstall.tcl
 source ../port_autoconf.tcl
 
-
-proc run_destroot {} {
-    global pwd os_platform os_version os_arch
-
-    set os_platform darwin
-    set os.platform darwin
-    set macosx_version 10.8
-    set os_version 12
-    set os_arch i386
-    set os.major 10
-    set supported_archs {}
-    set configure.build_arch build_arch
-    set portarchivetype tgz
-
-    set subport fondu
-    set version 3.0
-
-    set portpath $pwd
-    set portdbpath $pwd/dbpath
-    set portbuildpath $pwd
-    set destpath $pwd/work/destroot
-
-
-    # destroot setup
-    file mkdir $pwd/$subport
-    file copy -force $pwd/Portfile /tmp/
-    set mport [mportopen file://.]
-
-    proc getportbuildpath {id {portname ""}} {
-        global portdbpath
-        regsub {://} $id {.} port_path
-        regsub -all {/} $port_path {_} port_path
-        return [file join $portdbpath build $port_path $portname]
-    }
-
-    proc getportworkpath_from_buildpath {portbuildpath} {
-        return [file join $portbuildpath work]
-    }
-
-    proc getportworkpath_from_portdir {portpath {portname ""}} {
-        return [getportworkpath_from_buildpath [getportbuildpath $portpath tname]]
-    }
-
-    source $pwd/../portmain.tcl
-
-    # sets up PortInfo array
-    if {[eval_variants variations] != 0} {
-        mportclose $mport
-        error "Error evaluating variants"
-    }
-
-    # set $version var
-    set workername [ditem_key $mport workername]
-
-    # run destroot
-    $workername eval eval_targets destroot
-}
-
 # Set env vars
 set os.platform darwin
 set macosx_version 10.8
@@ -176,20 +118,45 @@ test install_main {
 	root
 
 } -setup {
+	set workpath $pwd/work
     set portpath $pwd
     set portdbpath $pwd/dbpath
     set portbuildpath $pwd
     set destpath $pwd/work/destroot
+	set portvariants {+var1}
+	
+	set epoch i386
+	set compiler.cpath /usr/bin/gcc
+	set compiler.library_path /usr/lib
 
-    run_destroot
+	# destroot setup
+    file mkdir $pwd/$subport
+    file copy -force $pwd/Portfile /tmp/
+    set mport [mportopen file://.]
 
-    # portinstall setup
-    interp alias {} _cd {} cd
-    set macosx_deployment_target $pwd/deploy_target
-    file link -symbolic $pwd/$subport/work $pwd/work
+    if {[eval_variants variations] != 0} {
+        mportclose $mport
+        error "Error evaluating variants"
+    }
+
+    # set $version var
+    set workername [ditem_key $mport workername]
+
+    # run destroot
+    if {[$workername eval eval_targets destroot] != 0} {
+		return "FAIL: destroot failed"
+	}
+
+	# portinstall setup
+	interp alias {} _cd {} cd
+
+	# hide all output. Deactivate this for debugging!
+	set oldchannels [array get macports::channels]
+	set macports::channels(msg)    {}
+	set macports::channels(notice) {}
 
 } -body {
-    if {[portinstall::install_main] != 0} {
+    if {[$workername eval eval_targets install] != 0} {
 		return "FAIL: cannot install port"
     }
     return "Install main successful."
@@ -205,7 +172,7 @@ test install_main {
 
 	mportclose $mport
 
-    file delete -force $pwd/$subport/work
+    file delete -force $pwd/$subport
     file delete -force $portdbpath
     file delete -force $pwd/work
 
