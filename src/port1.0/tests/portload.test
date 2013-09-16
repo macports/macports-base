@@ -21,7 +21,7 @@ test load_main {
     Load main unit test.
 } -constraints {
 	root
-	
+
 } -setup {
     set path /Library/test/files
     file mkdir $path

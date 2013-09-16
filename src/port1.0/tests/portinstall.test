@@ -95,7 +95,7 @@ set revision 2
 
 test install_start {
     Install start unit test.
-} -setup {  
+} -setup {
     set portvariants {var1}
     set prefix prefix
     set add_users no
@@ -118,12 +118,12 @@ test create_archive {
 	set portdbpath $pwd/dbpath
 	set portpath $pwd
 	set create $pwd/create
-	
+
 	# destroot setup
     file mkdir $pwd/$subport
     file copy -force $pwd/Portfile /tmp/
     set mport [mportopen file://.]
-	
+
     # set $version var
     set workername [ditem_key $mport workername]
 
@@ -175,7 +175,7 @@ test install_main {
     Install main unit test.
 } -constraints {
 	root
-	
+
 } -setup {
     set portpath $pwd
     set portdbpath $pwd/dbpath
