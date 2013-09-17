@@ -123,7 +123,7 @@ char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
  * @param [in] query_len length of the query (or -1 for automatic)
  * @param [out] objects  the objects selected
  * @param [in] fn        a function to convert sqlite3_stmts to the desired type
- * @param [inout] data   data passed along to the cast function
+ * @param [in,out] castcalldata data passed along to the cast function
  * @param [in] del       a function to delete the desired type of object
  * @param [out] errPtr   on error, a description of the error that occurred
  * @return               the number of objects if success; negative if failure
