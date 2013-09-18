@@ -65,7 +65,7 @@ test make_dependency_list {
     set version 060102
     set revision 1
 } -body {
-    if {[portdpkg::make_dependency_list $subport] != ""} {
+    if {[portdpkg::make_dependency_list $subport] != "fondu/060102"} {
 		return "FAIL: could not make dependency list"
     }
     return "Make dependency list successful."
