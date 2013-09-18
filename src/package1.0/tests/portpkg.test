@@ -23,7 +23,7 @@ package require portpkg 1.0
 test pkg_main {
     Port pkg main unit test.
 } -constraints {
-	root
+    root
 } -setup {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
@@ -37,25 +37,25 @@ test pkg_main {
     set packages_dir $destpath/fondu-1_060102_1.mpkg/Contents/Packages
     set res_dir $destpath/fondu-1_060102_1.mpkg/Contents/Resources
 
-	set mport [mportopen file://.]
+    set mport [mportopen file://.]
     set workername [ditem_key $mport workername]
 
 } -body {
     if {[$workername eval eval_targets pkg] != 0} {
-		return "FAIL: cannot create pkg"
+        return "FAIL: cannot create pkg. Maybe should update ports tree ?"
     }
 
     if {![file exists $pwd/work/fondu-060102_1.pkg]} {
-		return "FAIL: missing pkg file"
+        return "FAIL: missing pkg file"
     }
 
     return "Package pkg successful."
 
 } -cleanup {
-	mportclose $mport
+    mportclose $mport
     file delete -force $destpath
-	file delete -force $pwd/work
-	
+    file delete -force $pwd/work
+    
 } -result "Package pkg successful."
 
 
