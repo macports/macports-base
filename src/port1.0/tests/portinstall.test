@@ -37,6 +37,8 @@ set revision 2
 
 test install_start {
     Install start unit test.
+} -constraints {
+    root
 } -setup {
     set portvariants {var1}
     set prefix prefix
