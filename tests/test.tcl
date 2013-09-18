@@ -100,17 +100,20 @@ if { $test_name != ""} {
     
         set result [eval exec $tcl test.tcl $arguments]
         set lastline [lindex [split $result "\n"] end]
+
+        if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
+            set lastline [lindex [split $result "\n"] end-2]
+            set errmsg [lindex [split $result "\n"] end]
+        }
+
         set splitresult [split $lastline "\t"]
-        set total  [lindex $splitresult 2]
-        set pass   [lindex $splitresult 4]
-        set skip   [lindex $splitresult 6]
-        set fail   [lindex $splitresult 8]
-        set errmsg [lindex $splitresult 2]
+        set total [lindex $splitresult 2]
+        set pass [lindex $splitresult 4]
+        set skip [lindex $splitresult 6]
+        set fail [lindex $splitresult 8]
 
         # Check for errors.
-        if { $fail != 0 || $skip != 0 } {
-            set err "yes"
-        }
+        if { $fail != 0 } { set err "yes" }
 
         set out ""
         if { ($fail != 0 || $skip != 0) && $color_out == "" } {
