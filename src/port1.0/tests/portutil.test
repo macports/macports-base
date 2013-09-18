@@ -759,14 +759,18 @@ test set_ui_prefix {
 test get_portimage_name {
     Get portimage name unit test.
 } -body {
+	set os.platform darwin
     set version 1.0
     set os.major 10
+	set revision 2
     set configure.build_arch no
     set portarchivetype tgz
     set subport testport
+	set portvariants {var1}
+	set supported_archs {}
 
     set res [get_portimage_name]
-    if {$res != "testport-1.0_0.darwin_10.no.tgz"} {
+    if {$res != "testport-1.0_2var1.darwin_10.no.tgz"} {
 		return "FAIL: invalid portimage_name"
     }
     return "Get portimage_name successful."
@@ -776,11 +780,15 @@ test get_portimage_name {
 test get_portimage_path {
     Get portimage path unit test. Calls get_portimage_name.
 } -body {
+	set os.platform darwin
     set portdbpath dbpath
     set subport subport
+	set revision 2
+	set portvariants {var1}
+	set supported_archs {}
 
     set res [get_portimage_path]
-    if {$res != "dbpath/software/subport/subport-1.0_0.darwin_10.no.tgz"} {
+    if {$res != "dbpath/software/subport/subport-1.0_2var1.darwin_10.no.tgz"} {
 		return "FAIL: invalid portimage_path"
     }
     return "Get portimage_path successful."
