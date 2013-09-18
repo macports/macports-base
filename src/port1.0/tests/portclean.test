@@ -188,9 +188,7 @@ test clean_archive {
     close $fd
     exec zip $portdbpath/incoming/subport-2_0.0.0.0.zip +CONTENTS
 
-    close stderr
     portclean::clean_archive
-    errorChannel [open /dev/null w]
 
     if {[file exists $portdbpath/incoming/subport-1_0.0.0.0.TMP]} {
 	   return "FAIL: .TMP file not removed"
@@ -207,7 +205,6 @@ test clean_archive {
 } -cleanup {
     file delete -force $pwd/+CONTENTS
     file delete -force $portdbpath
-    file delete -force $pwd/file7
 
 } -result "Clean archive successful."
 
