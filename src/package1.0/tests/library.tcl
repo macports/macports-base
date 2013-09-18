@@ -36,15 +36,18 @@ proc env_init {} {
 # sub-interpreters
 proc macports_worker_init {} {
     interp alias {} _cd {} cd
+
     proc PortSystem {version} {
         package require port $version
     }
+
     # Clearly separate slave interpreters and the master interpreter.
     interp alias {} mport_exec      {} mportexec
     interp alias {} mport_open      {} mportopen
     interp alias {} mport_close     {} mportclose
     interp alias {} mport_lookup    {} mportlookup
     interp alias {} mport_info      {} mportinfo
+
     # Export some utility functions defined here.
     interp alias {} macports_create_thread          {} macports::create_thread
     interp alias {} getportworkpath_from_buildpath  {} macports::getportworkpath_from_buildpath
@@ -55,6 +58,7 @@ proc macports_worker_init {} {
     interp alias {} getportdir                      {} macports::getportdir
     interp alias {} findBinary                      {} macports::findBinary
     interp alias {} binaryInPath                    {} macports::binaryInPath
+
     # New Registry/Receipts stuff
     interp alias {} registry_new                    {} registry::new_entry
     interp alias {} registry_open                   {} registry::open_entry
@@ -75,13 +79,17 @@ proc macports_worker_init {} {
     interp alias {} registry_file_registered        {} registry::file_registered
     interp alias {} registry_port_registered        {} registry::port_registered
     interp alias {} registry_list_depends           {} registry::list_depends
+
     # deferred options processing.
     interp alias {} getoption {} macports::getoption
+
     # ping cache
     interp alias {} get_pingtime {} macports::get_pingtime
     interp alias {} set_pingtime {} macports::set_pingtime
+
     # archive_sites.conf handling
     interp alias {} get_archive_sites_conf_values {} macports::get_archive_sites_conf_values
+
     foreach opt $macports::portinterp_options {
         if {![info exists $opt]} {
             global macports::$opt
@@ -91,17 +99,7 @@ proc macports_worker_init {} {
             set ::$opt $opt
         }
     }
-    foreach opt $macports::portinterp_deferred_options {
-        global macports::$opt
-        # define the trace hook.
-        proc trace_$opt {name1 name2 op} {
-            trace remove variable ::$opt read ::trace_$opt
-            global $opt
-            set $opt [getoption $opt]
-        }
-        # next access will actually define the variable.
-        trace add variable ::$opt read ::trace_$opt
-        # define some value now
-        set $opt "?"
-    }
+
+	# We don't need to handle portinterp_deferred_options, they're
+	# automatically handled correctly.
 }
