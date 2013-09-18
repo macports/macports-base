@@ -54,6 +54,7 @@ proc init_eval_targets {} {
 
 
     file copy -force $pwd/Portfile /tmp/
+    file attributes /tmp/Portfile -permissions a+r
     set mport [mportopen file://.]
 
     proc getportbuildpath {id {portname ""}} {
