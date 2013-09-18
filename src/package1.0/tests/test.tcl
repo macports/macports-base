@@ -81,11 +81,16 @@ if { $test_name != ""} {
 
     foreach test $test_suite {
         set result [eval exec $tcl $test $arguments]
-	set lastline [lindex [split $result "\n"] end]
+		set lastline [lindex [split $result "\n"] end]
 
 	if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
-	    set lastline [lindex [split $result "\n"] end-2]
-	    set errmsg [lindex [split $result "\n"] end]
+		if {[lrange [split $lastline "\t"] 1 1] == ""} {
+			set lastline [lindex [split $result "\n"] 0]
+	    	set errmsg [lindex [split $result "\n"] 2]
+		} else {
+	    	set lastline [lindex [split $result "\n"] end-2]
+	    	set errmsg [lindex [split $result "\n"] end]
+		}
 	}
 
 	set splitresult [split $lastline "\t"]
