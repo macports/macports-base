@@ -16,7 +16,7 @@ mportinit ui_options
 source ./library.tcl
 macports_worker_init
 
-source ../portmain.tcl
+package require portmain 1.0
 
 # Set testing vars
 set os_platform darwin
