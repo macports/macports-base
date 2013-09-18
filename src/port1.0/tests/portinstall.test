@@ -65,7 +65,6 @@ test create_archive {
 
 	# destroot setup
     file mkdir $pwd/$subport
-    file copy -force $pwd/Portfile /tmp/
     set mport [mportopen file://.]
 
     # set $version var
@@ -133,7 +132,6 @@ test install_main {
 
 	# destroot setup
     file mkdir $pwd/$subport
-    file copy -force $pwd/Portfile /tmp/
     set mport [mportopen file://.]
 
     if {[eval_variants variations] != 0} {

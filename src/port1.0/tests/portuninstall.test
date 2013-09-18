@@ -47,7 +47,6 @@ test uninstall_main {
 
 	# destroot setup
 	file mkdir $pwd/$subport
-	file copy -force $pwd/Portfile /tmp/
 	set mport [mportopen file://.]
 
 	if {[eval_variants variations] != 0} {
