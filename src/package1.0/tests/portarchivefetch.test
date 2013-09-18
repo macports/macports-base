@@ -122,7 +122,7 @@ test fetchfiles {
     array set macports::channels $oldchannels
 
     close $target_state_fd
-    file delete -force $target_state_fd
+    file delete -force $pwd/target
     mportclose $mport
     file delete -force $portdbpath
 } -result "Fetch files successful."
