@@ -16,9 +16,8 @@ mportinit ui_options
 source ./library.tcl
 macports_worker_init
 
-package require port 1.0
+package require portactivate 1.0
 package require registry 1.0
-
 
 test activate_start {
     Activate start unit test.

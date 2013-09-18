@@ -16,9 +16,8 @@ mportinit ui_options
 source ./library.tcl
 macports_worker_init
 
-source ../portclean.tcl
+package require portclean 1.0
 source ../port_autoconf.tcl
-
 
 test clean_start {
     Clean start unit test.
