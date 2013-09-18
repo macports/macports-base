@@ -166,9 +166,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     set dependencies {}
     # get deplist
     set deps [make_dependency_list $portname $packages_path]
-puts $deps
     set deps [lsort -unique $deps]
-puts $deps
     foreach dep $deps {
         set name [lindex $dep 0]
         set epoch [lindex $dep 1]
@@ -184,8 +182,6 @@ puts $deps
         }
         set mport [lindex $dep 4]
         # don't re-package ourself
-puts $name
-puts $portname
         if {$name != $portname} {
             make_one_package $name $mport
             if {${package.flat} && ${os.major} >= 10} {
