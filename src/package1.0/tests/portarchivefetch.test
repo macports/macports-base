@@ -94,7 +94,12 @@ test fetchfiles {
     set workername [ditem_key $mport workername]
     set macportsuser macports
 
+    set oldchannels [array get macports::channels]
+    set macports::channels(msg)    {}
+    set macports::channels(notice) {}
+    set macports::channels(warn)   {}
 } -body {
+
     set archivefetch.pubkeys $pwd
     if {[catch {portarchivefetch::fetchfiles}] != 0} {
         return "FAIL: cannot fetch archive"
@@ -114,11 +119,12 @@ test fetchfiles {
     return "Fetch files successful."
 
 } -cleanup {
+    array set macports::channels $oldchannels
+
     close $target_state_fd
-	file delete -force $target_state_fd
+    file delete -force $target_state_fd
     mportclose $mport
     file delete -force $portdbpath
-
 } -result "Fetch files successful."
 
 
