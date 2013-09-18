@@ -388,6 +388,7 @@ test touch {
 test ln {
     ln unit test.
 } -setup {
+    set oldpwd [pwd]
     set root "/tmp/macports-portutil-ln"
     file delete -force $root
     file mkdir $root
@@ -448,9 +449,9 @@ test ln {
     return "Files successfully linked."
 
 } -cleanup {
+    cd $oldpwd
     file delete -force $root
 } -result "Files successfully linked."
-
 
 test makeuserproc {
     Make user proc unit test.
@@ -528,6 +529,8 @@ test eval_targets {
 
 } -cleanup {
     mportclose $mport
+    file delete -force $filespath
+    file delete -force work
 
 } -result "Eval_targets successful."
 
@@ -639,6 +642,9 @@ test variant_run {
 		return "FAIL: unable to run variant name proc"
     }
     return "Variant run successful."
+} -cleanup {
+    mportclose $mport
+    file delete -force work
 } -result "Variant run successful."
 
 
