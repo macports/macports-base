@@ -22,6 +22,8 @@ package require portpkg 1.0
 
 test pkg_main {
     Port pkg main unit test.
+} -constraints {
+	root
 } -setup {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
@@ -35,38 +37,25 @@ test pkg_main {
     set packages_dir $destpath/fondu-1_060102_1.mpkg/Contents/Packages
     set res_dir $destpath/fondu-1_060102_1.mpkg/Contents/Resources
 
+	set mport [mportopen file://.]
+    set workername [ditem_key $mport workername]
+
 } -body {
-    if {[portmpkg::mpkg_main] != 0} {
-	return "FAIL: cannot create pkg"
-    }
-    if {![file exists $contents_dir/PkgInfo]} {
-	return "FAIL: missing PkgInfo file"
-    }
-    if {![file exists $contents_dir/Info.plist]} {
-	return "FAIL: missing Info.plist file"
+    if {[$workername eval eval_targets pkg] != 0} {
+		return "FAIL: cannot create pkg"
     }
 
-    if {![file exists $res_dir]} {
-	return "FAIL: missing Resources dir"
-    }
-    if {![file exists $res_dir/Description.plist]} {
-	return "FAIL: missing Description.plist file"
-    }
-    if {![file exists $res_dir/Welcome.html]} {
-	return "FAIL: missing Welcome.html file"
-    }
-    if {![file exists $res_dir/background.tiff]} {
-	return "FAIL: missing background.tiff file"
+    if {![file exists $pwd/work/fondu-060102_1.pkg]} {
+		return "FAIL: missing pkg file"
     }
 
-    if {![file exists $packages_dir/fondu-1_060102_1.pkg]} {
-	return "FAIL: missing pkg file"
-    }
     return "Package pkg successful."
 
 } -cleanup {
+	mportclose $mport
     file delete -force $destpath
-
+	file delete -force $pwd/work
+	
 } -result "Package pkg successful."
 
 
