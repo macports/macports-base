@@ -40,7 +40,7 @@ namespace eval porttrace {
 }
 
 proc porttrace::trace_start {workpath} {
-    global os.platform
+    global os.platform developer_dir
     if {${os.platform} == "darwin"} {
         if {[catch {package require Thread} error]} {
             ui_warn "trace requires Tcl Thread package ($error)"
@@ -80,13 +80,37 @@ proc porttrace::trace_start {workpath} {
             # /Library/Caches/com.apple.Xcode
             # $CCACHE_DIR
             # $HOMEDIR/.ccache
-            set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/var/empty:/private/var/empty:/dev:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:${portpath}:${distpath}"
+            set trace_sandbox [list \
+            $workpath \
+            $portpath \
+            $distpath \
+            /tmp \
+            /private/tmp \
+            /var/tmp \
+            /var/folders \
+            /private/var/tmp \
+            /var/empty \
+            /private/var/empty \
+            /private/var/folders \
+            /dev \
+            /etc/passwd \
+            /etc/groups \
+            /etc/localtime \
+            [file normalize ${developer_dir}/../..] \
+            /Library/Caches/com.apple.Xcode \
+            "$env(HOME)/.ccache"]
             if {[info exists env(TMPDIR)]} {
-                set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
+                lappend trace_sandbox $env(TMPDIR)
             }
             if {[info exists env(CCACHE_DIR)]} {
-                set trace_sandboxbounds "${trace_sandboxbounds}:$env(CCACHE_DIR)"
+                lappend trace_sandbox $env(CCACHE_DIR)
             }
+
+            ui_debug "Tracelib Sandbox is:"
+            foreach sandbox $trace_sandbox {
+                ui_debug "\t$sandbox"
+            }
+            set trace_sandboxbounds [join $trace_sandbox :]
             tracelib setsandbox $trace_sandboxbounds
         }
     }
@@ -302,7 +326,7 @@ proc porttrace::slave_init {fifo p_workpath} {
     set sandbox_violation_list {}
     tracelib setname $fifo
 
-    if [catch {tracelib opensocket} err] {
+    if {[catch {tracelib opensocket} err]} {
         global errorInfo
         ui_warn "Error in tracelib: $err"
         ui_debug "Backtrace: $errorInfo"
@@ -310,7 +334,7 @@ proc porttrace::slave_init {fifo p_workpath} {
 }
 
 proc porttrace::slave_run {} {
-    if [catch {tracelib run} err] {
+    if {[catch {tracelib run} err]} {
         global errorInfo
         ui_warn "Error in tracelib: $err"
         ui_debug "Backtrace: $errorInfo"

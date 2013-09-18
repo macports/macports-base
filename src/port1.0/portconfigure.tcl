@@ -51,9 +51,11 @@ default configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
-default autoreconf.pre_args {--install}
+default autoreconf.pre_args {{--install --verbose}}
 default autoconf.dir        {${worksrcpath}}
+default autoconf.pre_args   {--verbose}
 default automake.dir        {${worksrcpath}}
+default automake.pre_args   {--verbose}
 default xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
@@ -77,7 +79,7 @@ proc portconfigure::add_build_dep { type dep } {
         ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == $option_defaults(${type}.cmd)) ||
         (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == "${type}")
         )} {
-            eval depends_build-append $dep
+            eval [linsert $dep 0 depends_build-append]
     }
 }
 
@@ -97,14 +99,14 @@ proc portconfigure::set_configure_type {option action args} {
             autoreconf.cmd  -
             automake.cmd    -
             autoconf.cmd {
-                eval depends_build-delete $configure_map(autoconf)
+                eval [linsert $configure_map(autoconf) 0 depends_build-delete]
             }
             xmkmf.cmd {
-                depends_build-delete $configure_map(xmkmf)
+                eval [linsert $configure_map(xmkmf) 0 depends_build-delete]
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    depends_build-append $configure_map(xmkmf)
+                    eval [linsert $configure_map(xmkmf) 0 depends_build-append]
                 }
             }
             default {
@@ -128,22 +130,24 @@ default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
 options configure.optflags \
-        configure.cflags configure.cxxflags configure.objcflags \
+        configure.cflags configure.cxxflags \
+        configure.objcflags configure.objcxxflags \
         configure.cppflags configure.ldflags configure.libs \
         configure.fflags configure.f90flags configure.fcflags \
         configure.classpath
 # compiler flags section
-default configure.optflags  {-Os}
-default configure.cflags    {${configure.optflags}}
-default configure.cxxflags  {${configure.optflags}}
-default configure.objcflags {${configure.optflags}}
-default configure.cppflags  {-I${prefix}/include}
-default configure.ldflags   {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
-default configure.libs      {}
-default configure.fflags    {${configure.optflags}}
-default configure.f90flags  {${configure.optflags}}
-default configure.fcflags   {${configure.optflags}}
-default configure.classpath {}
+default configure.optflags      {-Os}
+default configure.cflags        {${configure.optflags}}
+default configure.cxxflags      {${configure.optflags}}
+default configure.objcflags     {${configure.optflags}}
+default configure.objcxxflags   {${configure.optflags}}
+default configure.cppflags      {-I${prefix}/include}
+default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
+default configure.libs          {}
+default configure.fflags        {${configure.optflags}}
+default configure.f90flags      {${configure.optflags}}
+default configure.fcflags       {${configure.optflags}}
+default configure.classpath     {}
 
 # tools section
 options configure.perl configure.python configure.ruby \
@@ -162,76 +166,78 @@ options configure.build_arch configure.ld_archflags configure.sdkroot
 default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot]}
-foreach tool {cc cxx objc f77 f90 fc} {
+foreach tool {cc cxx objc objcxx f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
 
 options configure.universal_archs configure.universal_args \
         configure.universal_cflags configure.universal_cxxflags \
+        configure.universal_objcflags configure.universal_objcxxflags \
         configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_objcflags   {${configure.universal_cflags}}
+default configure.universal_objcxxflags {${configure.universal_cxxflags}}
 default configure.universal_cppflags    {}
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
 options configure.ccache configure.distcc configure.pipe configure.cc \
-        configure.cxx configure.cpp configure.objc configure.f77 \
+        configure.cxx configure.cpp configure.objc configure.objcxx configure.f77 \
         configure.f90 configure.fc configure.javac configure.compiler \
         compiler.blacklist compiler.whitelist compiler.fallback
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-default configure.cc            {[portconfigure::configure_get_compiler cc]}
-default configure.cxx           {[portconfigure::configure_get_compiler cxx]}
-default configure.cpp           {[portconfigure::configure_get_compiler cpp]}
-default configure.objc          {[portconfigure::configure_get_compiler objc]}
-default configure.f77           {[portconfigure::configure_get_compiler f77]}
-default configure.f90           {[portconfigure::configure_get_compiler f90]}
-default configure.fc            {[portconfigure::configure_get_compiler fc]}
-default configure.javac         {[portconfigure::configure_get_compiler javac]}
+foreach tool {cc cxx objc objcxx cpp f77 f90 fc javac} {
+    default configure.$tool     "\[portconfigure::configure_get_compiler $tool\]"
+}
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 default compiler.fallback       {[portconfigure::get_compiler_fallback]}
 default compiler.blacklist      {}
 default compiler.whitelist      {}
 
+# Select a C++ STL implementation
+options configure.cxx_stdlib
+default configure.cxx_stdlib    {$cxx_stdlib}
+
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
-    global UI_PREFIX configure.compiler
-    
+    global UI_PREFIX
+
     ui_notice "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option subport]]"
 
-    set name ""
-    switch -exact ${configure.compiler} {
-        cc { set name "System cc" }
-        gcc { set name "System GCC" }
-        gcc-3.3 { set name "Mac OS X GCC 3.3" }
-        gcc-4.0 { set name "Mac OS X GCC 4.0" }
-        gcc-4.2 { set name "Mac OS X GCC 4.2" }
-        llvm-gcc-4.2 { set name "Mac OS X LLVM-GCC 4.2" }
-        clang { set name "Mac OS X Clang" }
-        apple-gcc-4.0 { set name "MacPorts Apple GCC 4.0" }
-        apple-gcc-4.2 { set name "MacPorts Apple GCC 4.2" }
-        macports-gcc     { set name "MacPorts GCC (port select)" }
-        macports-llvm-gcc-4.2 { set name "MacPorts LLVM-GCC 4.2" }
-        macports-clang { set name "MacPorts Clang (port select)" }
-        default {
-            if {[regexp {macports-clang-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts Clang ${major}.${minor}"
-            } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts DragonEgg ${major}.${minor}"
-            } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${configure.compiler} -> major minor]} {
-                set name "MacPorts GCC ${major}.${minor}"
-            } else {
-                return -code error "Invalid value for configure.compiler: ${configure.compiler}"
-            }
+    set compiler [option configure.compiler]
+    set valid_compilers {
+        {^apple-gcc-(4\.[02])$}             {MacPorts Apple GCC %s}
+        {^cc$}                              {System cc}
+        {^clang$}                           {Xcode Clang}
+        {^gcc$}                             {System GCC}
+        {^gcc-(3\.3|4\.[02])$}              {Xcode GCC %s}
+        {^llvm-gcc-4\.2$}                   {Xcode LLVM-GCC 4.2}
+        {^macports-clang$}                  {MacPorts Clang (port select}
+        {^macports-clang-(\d+\.\d+)$}       {MacPorts Clang %s}
+        {^macports-dragonegg-(\d+\.\d+)$}   {MacPorts DragonEgg %s}
+        {^macports-dragonegg-(\d+\.\d+)-gcc-(\d+\.\d+)$}
+            {MacPorts DragonEgg %s with GCC %s}
+        {^macports-gcc$}                    {MacPorts GCC (port select)}
+        {^macports-gcc-(\d+\.\d+)$}         {MacPorts GCC %s}
+        {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
+    }
+    foreach {re fmt} $valid_compilers {
+        if {[set matches [regexp -inline $re $compiler]] ne {}} {
+            set compiler_name [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
+            break
         }
     }
-    ui_debug "Using compiler '$name'"
+    if {![info exists compiler_name]} {
+        return -code error "Invalid value for configure.compiler: $compiler"
+    }
+    ui_debug "Using compiler '$compiler_name'"
 
     # Additional ccache directory setup
     global configure.ccache ccache_dir ccache_size macportsuser
@@ -295,7 +301,7 @@ proc portconfigure::configure_get_archflags {tool} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
         if {[arch_flag_supported ${configure.compiler}] &&
-            ($tool == "cc" || $tool == "cxx" || $tool == "objc")
+            [regexp {^(?:cc|cxx|objc|objcxx)$} $tool]
         } then {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
@@ -370,44 +376,22 @@ proc portconfigure::arch_flag_supported {compiler} {
     return [regexp {^gcc-4|llvm|apple|clang} $compiler]
 }
 
-# maps compiler names to the port that provides them
-# TODO: Remove this after 2.2 is released and ports aren't referring to it.
-array set portconfigure::compiler_name_map {
-        apple-gcc-4.0           apple-gcc40
-        apple-gcc-4.2           apple-gcc42
-        macports-gcc-4.2        gcc42
-        macports-gcc-4.3        gcc43
-        macports-gcc-4.4        gcc44
-        macports-gcc-4.5        gcc45
-        macports-gcc-4.6        gcc46
-        macports-gcc-4.7        gcc47
-        macports-gcc-4.8        gcc48
-        macports-llvm-gcc-4.2   llvm-gcc42
-        macports-clang-2.9      clang-2.9
-        macports-clang-3.0      clang-3.0
-        macports-clang-3.1      clang-3.1
-        macports-clang-3.2      clang-3.2
-        macports-clang-3.3      clang-3.3
-        macports-dragonegg-3.0  dragonegg-3.0
-        macports-dragonegg-3.1  dragonegg-3.1
-        macports-dragonegg-3.2  dragonegg-3.2
-        macports-dragonegg-3.3  dragonegg-3.3
+# Mapping from compiler names to compiler ports, for private use by
+# compiler_port_name. Do not access directly.
+set portconfigure::valid_compiler_ports {
+    {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
+    {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
+    {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
+    {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}               {%sgcc%s%s}
 }
 
 proc portconfigure::compiler_port_name {compiler} {
-    if {[regexp {apple-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "apple-gcc${major}${minor}"
-    } elseif {[regexp {macports-clang-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "clang-${major}.${minor}"
-    } elseif {[regexp {macports-dragonegg-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "dragonegg-${major}.${minor}"
-    } elseif {[regexp {macports-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "gcc${major}${minor}"
-    } elseif {[regexp {macports-llvm-gcc-(.*)\.(.*)} ${compiler} -> major minor]} {
-        return "llvm-gcc${major}${minor}"
+    foreach {re fmt} $portconfigure::valid_compiler_ports {
+        if {[set matches [regexp -inline $re $compiler]] ne {}} {
+            return [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
+        }
     }
-
-    return ""
+    return {}
 }
 
 proc portconfigure::compiler_is_port {compiler} {
@@ -448,23 +432,23 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {$xcodeversion == "none" || $xcodeversion == ""} {
         return {cc}
     } elseif {[vercmp $xcodeversion 4.6] >= 0} {
-        return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.2}
+        return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
     } elseif {[vercmp $xcodeversion 4.2] >= 0} {
-        return {clang llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.2}
+        return {clang llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
-        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.2 apple-gcc-4.2}
+        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.3 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 3.2] >= 0} {
         if {$macosx_deployment_target == "10.4"} {
             # It's not the deployment target that is the issue, it's the
             # 10.4u SDK which base chooses if the deployment_target is set
             return {gcc-4.0}
         } else {
-            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.2 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
+            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
         }
     } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-        return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.2}
+        return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
     } else {
-        return {gcc-4.0 apple-gcc-4.2 gcc-3.3 macports-clang-3.2}
+        return {gcc-4.0 apple-gcc-4.2 gcc-3.3 macports-clang-3.3}
     }
 }
 
@@ -499,25 +483,24 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         set compiler ${configure.compiler}
     }
     # Tcl 8.4's switch doesn't support -matchvar.
-    if {[regexp {^gcc(-3\.3|-4\.0|-4\.2)?$} $compiler -> suffix]} {
+    if {[regexp {^apple-gcc(-4\.[02])$} $compiler -> suffix]} {
         switch $type {
-            cc   -
-            objc { return [find_developer_tool "gcc${suffix}"] }
-            cxx  { return [find_developer_tool "g++${suffix}"] }
-            cpp  { return [find_developer_tool "cpp${suffix}"] }
-        }
-    } elseif {[regexp {^llvm-gcc-4\.2$} $compiler]} {
-        switch $type {
-            cc   -
-            objc { return [find_developer_tool llvm-gcc-4.2] }
-            cxx  { return [find_developer_tool llvm-g++-4.2] }
-            cpp  { return [find_developer_tool llvm-cpp-4.2] }
+            cc      -
+            objc    { return ${prefix}/bin/gcc-apple${suffix} }
+            cxx     -
+            objcxx  {
+                if {$suffix == "-4.2"} {
+                    return ${prefix}/bin/g++-apple${suffix}
+                }
+            }
+            cpp     { return ${prefix}/bin/cpp-apple${suffix} }
         }
     } elseif {[regexp {^clang$} $compiler]} {
         switch $type {
-            cc   -
-            objc { return [find_developer_tool clang] }
-            cxx  {
+            cc      -
+            objc    { return [find_developer_tool clang] }
+            cxx     -
+            objcxx  {
                 set clangpp [find_developer_tool clang++]
                 if {[file executable $clangpp]} {
                     return $clangpp
@@ -525,63 +508,77 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 return [find_developer_tool llvm-g++-4.2]
             }
         }
-    } elseif {[regexp {^apple-gcc(-4\.0|-4\.2)$} $compiler -> suffix]} {
+    } elseif {[regexp {^gcc(-3\.3|-4\.[02])?$} $compiler -> suffix]} {
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/gcc-apple${suffix} }
-            cxx  {
-                if {$suffix == "-4.2"} {
-                    return ${prefix}/bin/g++-apple${suffix}
-                }
-            }
-            cpp  { return ${prefix}/bin/cpp-apple${suffix} }
+            cc      -
+            objc    { return [find_developer_tool "gcc${suffix}"] }
+            cxx     -
+            objcxx  { return [find_developer_tool "g++${suffix}"] }
+            cpp     { return [find_developer_tool "cpp${suffix}"] }
         }
-    } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
-        if {[string length $suffix]} {
+    } elseif {[regexp {^llvm-gcc-4\.2$} $compiler]} {
+        switch $type {
+            cc      -
+            objc    { return [find_developer_tool llvm-gcc-4.2] }
+            cxx     -
+            objcxx  { return [find_developer_tool llvm-g++-4.2] }
+            cpp     { return [find_developer_tool llvm-cpp-4.2] }
+        }
+    } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
+        if {$suffix ne {}} {
             set suffix "-mp${suffix}"
         }
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/gcc${suffix} }
-            cxx  { return ${prefix}/bin/g++${suffix} }
-            cpp  { return ${prefix}/bin/cpp${suffix} }
-            fc   -
-            f77  -
-            f90  { return ${prefix}/bin/gfortran${suffix} }
+            cc      -
+            objc    { return ${prefix}/bin/clang${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/clang++${suffix} }
+        }
+    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)(?:-gcc(-\d+\.\d+))?$} $compiler \
+                -> infix suffix]} {
+        if {$suffix ne {}} {
+            set suffix "-mp${suffix}"
+        }
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/dragonegg${infix}-gcc${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++${suffix} }
+            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp${suffix} }
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran${suffix} }
+        }
+    } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
+        if {$suffix ne {}} {
+            set suffix "-mp${suffix}"
+        }
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/gcc${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/g++${suffix} }
+            cpp     { return ${prefix}/bin/cpp${suffix} }
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/gfortran${suffix} }
         }
     } elseif {[regexp {^macports-llvm-gcc-4\.2$} $compiler]} {
         switch $type {
-            cc   -
-            objc { return ${prefix}/bin/llvm-gcc-4.2 }
-            cxx  { return ${prefix}/bin/llvm-g++-4.2 }
-            cpp  { return ${prefix}/bin/llvm-cpp-4.2 }
-        }
-    } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
-        if {[string length $suffix]} {
-            set suffix "-mp${suffix}"
-        }
-        switch $type {
-            cc   -
-            objc { return ${prefix}/bin/clang${suffix} }
-            cxx  { return ${prefix}/bin/clang++${suffix} }
-        }
-    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)$} $compiler -> infix]} {
-        switch $type {
-            cc   -
-            objc { return ${prefix}/bin/dragonegg${infix}-gcc }
-            cxx  { return ${prefix}/bin/dragonegg${infix}-g++ }
-            cpp  { return ${prefix}/bin/dragonegg${infix}-cpp }
-            fc   -
-            f77  -
-            f90  { return ${prefix}/bin/dragonegg${infix}-gfortran }
+            cc      -
+            objc    { return ${prefix}/bin/llvm-gcc-4.2 }
+            cxx     -
+            objcxx  { return ${prefix}/bin/llvm-g++-4.2 }
+            cpp     { return ${prefix}/bin/llvm-cpp-4.2 }
         }
     }
     # Fallbacks
     switch $type {
-        cc   -
-        objc { return [find_developer_tool cc] }
-        cxx  { return [find_developer_tool c++] }
-        cpp  { return [find_developer_tool cpp] }
+        cc      -
+        objc    { return [find_developer_tool cc] }
+        cxx     -
+        objcxx  { return [find_developer_tool c++] }
+        cpp     { return [find_developer_tool cpp] }
     }
     return ""
 }
@@ -590,7 +587,11 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
 # Some of the compilers we use are provided by MacPorts itself; ensure we
 # automatically add a dependency when needed
 proc portconfigure::add_automatic_compiler_dependencies {} {
-    global configure.compiler
+    global configure.compiler configure.compiler.add_deps
+
+    if {!${configure.compiler.add_deps}} {
+        return
+    }
 
     # The default value requires substitution before use.
     set compiler [subst ${configure.compiler}]
@@ -617,6 +618,9 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
 }
 # Register the above procedure as a callback after Portfile evaluation
 port::register_callback portconfigure::add_automatic_compiler_dependencies
+# and an option to turn it off if required
+options configure.compiler.add_deps
+default configure.compiler.add_deps yes
 
 proc portconfigure::configure_main {args} {
     global [info globals]
@@ -625,12 +629,12 @@ proc portconfigure::configure_main {args} {
            configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \
            configure.pkg_config configure.pkg_config_path \
            configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot \
-           configure.march configure.mtune \
+           configure.march configure.mtune configure.cxx_stdlib \
            os.platform os.major
-    foreach tool {cc cxx objc f77 f90 fc ld} {
+    foreach tool {cc cxx objc objcxx f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
-    foreach flags {cflags cppflags cxxflags objcflags ldflags fflags f90flags fcflags} {
+    foreach flags {cflags cppflags cxxflags objcflags objcxxflags ldflags fflags f90flags fcflags} {
         global configure.${flags} configure.universal_${flags}
     }
     
@@ -654,13 +658,13 @@ proc portconfigure::configure_main {args} {
 
     if {[tbool use_xmkmf]} {
         parse_environment xmkmf
-        append_list_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
+        append_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
         }
 
         parse_environment xmkmf
-        append_list_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
+        append_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] "make Makefiles" $result]"
         }
@@ -670,82 +674,79 @@ proc portconfigure::configure_main {args} {
 
         # Set pre-compiler filter to use (ccache/distcc), if any.
         if {[tbool configure.ccache] && [tbool configure.distcc]} {
-            set filter "ccache "
-            append_list_to_environment_value configure "CCACHE_PREFIX" "distcc"
+            set filter ccache
+            append_to_environment_value configure "CCACHE_PREFIX" "distcc"
         } elseif {[tbool configure.ccache]} {
-            set filter "ccache "
+            set filter ccache
         } elseif {[tbool configure.distcc]} {
-            set filter "distcc "
+            set filter distcc
         } else {
             set filter ""
         }
-        
+        foreach env_var {CC CXX OBJC OBJCXX} {
+            append_to_environment_value configure $env_var $filter
+        }
+
         # Set flags controlling the kind of compiler output.
         if {[tbool configure.pipe]} {
-            set output "-pipe "
+            set output -pipe
         } else {
             set output ""
         }
+        foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS} {
+            append_to_environment_value configure $env_var $output
+        }
 
         # Append configure flags.
-        append_list_to_environment_value configure "CC" ${filter}${configure.cc}
-        append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
-        append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
-        append_list_to_environment_value configure "FC" ${configure.fc}
-        append_list_to_environment_value configure "F77" ${configure.f77}
-        append_list_to_environment_value configure "F90" ${configure.f90}
-        append_list_to_environment_value configure "JAVAC" ${configure.javac}
-        append_list_to_environment_value configure "CFLAGS" ${output}${configure.cflags}
-        append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
-        append_list_to_environment_value configure "CXXFLAGS" ${output}${configure.cxxflags}
-        append_list_to_environment_value configure "OBJCFLAGS" ${output}${configure.objcflags}
-        append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
-        append_list_to_environment_value configure "LIBS" ${configure.libs}
-        append_list_to_environment_value configure "FFLAGS" ${output}${configure.fflags}
-        append_list_to_environment_value configure "F90FLAGS" ${output}${configure.f90flags}
-        append_list_to_environment_value configure "FCFLAGS" ${output}${configure.fcflags}
-        append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
-        append_list_to_environment_value configure "PERL" ${configure.perl}
-        append_list_to_environment_value configure "PYTHON" ${configure.python}
-        append_list_to_environment_value configure "RUBY" ${configure.ruby}
-        append_list_to_environment_value configure "INSTALL" ${configure.install}
-        append_list_to_environment_value configure "AWK" ${configure.awk}
-        append_list_to_environment_value configure "BISON" ${configure.bison}
-        append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
-        append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+        foreach env_var { \
+            CC CXX OBJC OBJCXX FC F77 F90 JAVAC \
+            CFLAGS CPPFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS \
+            FFLAGS F90FLAGS FCFLAGS LDFLAGS LIBS CLASSPATH \
+            PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG PKG_CONFIG_PATH \
+        } {
+            set value [option configure.[string tolower $env_var]]
+            eval [linsert $value 0 append_to_environment_value configure $env_var]
+        }
 
         # https://trac.macports.org/ticket/34221
         if {${os.platform} == "darwin" && ${os.major} == 12} {
-            append_list_to_environment_value configure "__CFPREFERENCES_AVOID_DAEMON" 1
+            append_to_environment_value configure "__CFPREFERENCES_AVOID_DAEMON" 1
         }
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
         if {${configure.sdkroot} != ""} {
-            foreach flags {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS} {
-                append_list_to_environment_value configure $flags "-isysroot ${configure.sdkroot}"
+            foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
+                append_to_environment_value configure $env_var -isysroot ${configure.sdkroot}
             }
-            append_list_to_environment_value configure "LDFLAGS" "-Wl,-syslibroot,${configure.sdkroot}"
+            append_to_environment_value configure "LDFLAGS" -Wl,-syslibroot,${configure.sdkroot}
         }
 
         # add extra flags that are conditional on whether we're building universal
-        if {[variant_exists universal] && [variant_isset universal]} {
-            foreach flags {CFLAGS OBJCFLAGS} {
-                append_list_to_environment_value configure $flags ${configure.universal_cflags}
+        eval [linsert [get_canonical_archflags cc] 0 append_to_environment_value configure CFLAGS]
+        foreach tool {cxx objc objcxx cpp f77 f90 fc ld} {
+            if {[catch {get_canonical_archflags $tool} flags]} {
+                continue
             }
-            append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
-            append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
-            append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
-            eval configure.pre_args-append ${configure.universal_args}
+            set env_var [string toupper $tool]FLAGS
+            eval [linsert $flags 0 append_to_environment_value configure $env_var]
+        }
+        if {[variant_exists universal] && [variant_isset universal]} {
+            eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
         } else {
-            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS ld LDFLAGS} {
-                append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
+            foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS LDFLAGS} {
                 if {${configure.march} != {}} {
-                    append_list_to_environment_value configure $flags "-march=${configure.march}"
+                    append_to_environment_value configure $env_var -march=${configure.march}
                 }
                 if {${configure.mtune} != {}} {
-                    append_list_to_environment_value configure $flags "-mtune=${configure.mtune}"
+                    append_to_environment_value configure $env_var -mtune=${configure.mtune}
                 }
             }
+        }
+
+        # Add flags to specify C++ STL implementation
+        if {${configure.cxx_stdlib} ne {} && [string match *clang* [option configure.cxx]]} {
+            append_to_environment_value configure CXXFLAGS -stdlib=${configure.cxx_stdlib}
+            append_to_environment_value configure OBJCXXFLAGS -stdlib=${configure.cxx_stdlib}
         }
 
         # Execute the command (with the new environment).

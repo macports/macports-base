@@ -15,7 +15,7 @@ TESTS = ./tests/libmachista-test
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
-CFLAGS+= -fPIC -std=c99 -pedantic
+CFLAGS+= -fPIC
 
 ${SWIG_SRCS}:: ${SWIG_IFACE}
 ifdef SWIG

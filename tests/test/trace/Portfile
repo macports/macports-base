@@ -1,5 +1,4 @@
-# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil;
-# c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # $Id$
 
 PortSystem          1.0
@@ -23,8 +22,7 @@ destroot {
 test {
     proc fails {operation} {
         if {![catch $operation]} {
-            ui_error "Operation ${operation} succeeded although it should have
-failed!"
+            ui_error "Operation ${operation} succeeded although it should have failed!"
             error "test failure"
         }
     }
@@ -44,8 +42,7 @@ failed!"
     system "rm /tmp/hello-trace"
     system "rm /tmp/link-trace2"
 
-    # overwriting DYLD_INSERT_LIBRARIES should not allow escaping the sandbox
-    # (due to env restoring)
+    # overwriting DYLD_INSERT_LIBRARIES should not allow escaping the sandbox (due to env restoring)
     fails {system "DYLD_INSERT_LIBRARIES= touch ../tracetesttmp/create-trace-modenv"}
 
     # if the directories already exist, mkdir -p should succeed.

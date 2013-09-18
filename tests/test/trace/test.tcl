@@ -23,17 +23,18 @@ proc test_trace {} {
 
 
     makeDirectory ../tracetesttmp
-    exec chown $user ../tracetesttmp
+    file attributes ../tracetesttmp -owner $user
     exec sudo -u $user touch  ../tracetesttmp/delete-trace
     exec sudo -u $user touch ../tracetesttmp/rename-trace
     exec sudo -u $user mkdir ../tracetesttmp/rmdir-trace
     file delete -force /tmp/hello-trace
+    file attributes /usr/include/unistd.h -owner $user
     file link -symbolic /tmp/link-trace2 /usr/include/unistd.h
     exec chown -h $user /tmp/link-trace2
 
     port_trace $path
     
-    file delete -force /tmp/link-trace2
+    #file delete -force /tmp/link-trace2
     file delete -force /tmp/hello-trace
 
     set err "error*"

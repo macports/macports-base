@@ -97,7 +97,7 @@ static int reg_stmt_to_file(void* userdata, void** file, void* stmt,
  *
  * @param [in] reg      registry to open entry in
  * @param [in] id       port id in the dabatase
- * @param [in] path     file path in the database
+ * @param [in] name     file path in the database
  * @param [out] errPtr  on error, a description of the error that occures
  * @return              the file if success, NULL if failure
  */

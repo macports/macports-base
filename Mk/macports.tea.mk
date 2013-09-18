@@ -10,7 +10,7 @@
 
 all:: ${SHLIB_NAME} pkgIndex.tcl
 
-$(SHLIB_NAME):: ${OBJS}
+$(SHLIB_NAME): ${OBJS}
 	${SHLIB_LD} ${OBJS} -o ${SHLIB_NAME} ${TCL_STUB_LIB_SPEC} ${SHLIB_LDFLAGS} ${LIBS}
 
 pkgIndex.tcl: $(SHLIB_NAME)

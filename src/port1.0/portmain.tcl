@@ -101,8 +101,8 @@ default epoch 0
 default license unknown
 default distname {${name}-${version}}
 default worksrcdir {$distname}
-default filespath {[file join $portpath $filesdir]}
-default worksrcpath {[file join $workpath $worksrcdir]}
+default filespath {[file join $portpath [join $filesdir]]}
+default worksrcpath {[file join $workpath [join $worksrcdir]]}
 # empty list means all archs are supported
 default supported_archs {}
 default depends_skip_archcheck {}

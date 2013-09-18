@@ -55,7 +55,7 @@
  * @param [in] versionA first version string, i.e. "1.4.1"
  * @param [in] lengthA  length of first version string, or -1 to use strlen
  * @param [in] versionB second version string, i.e. "1.4.2"
- * @param [in] lengthA  length of second version string, or -1 to use strlen
+ * @param [in] lengthB  length of second version string, or -1 to use strlen
  * @return              -1 if A < B; 0 if A = B; 1 if A > B
  */
 static int vercmp (const char *versionA, int lengthA, const char *versionB,

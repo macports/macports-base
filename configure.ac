@@ -32,7 +32,7 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-1]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-3]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
@@ -80,7 +80,7 @@ fi
 case "$XCODE_VERSION" in
   1.*|2.[[0-1]]*)
     AC_MSG_WARN([This version of Xcode Tools is not supported])
-    AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
+    AC_MSG_WARN([Please upgrade at https://developer.apple.com/downloads/])
     ;;
   2.[[2-3]]*|3.[[0]]*)
     AC_MSG_WARN([This version of Xcode Tools is out of date])
@@ -238,12 +238,14 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
-	sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
+	sys/event.h sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
-AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile clearenv sysctlbyname])
+AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname kqueue])
+AC_SUBST(ac_cv_func_strlcat)
+
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
@@ -328,13 +330,6 @@ if test "$with_included_tclthread" = "yes"; then
 	patch -p0 < src/thread2.6.diff
 fi
 
-AH_TEMPLATE([TRACE_SDK], [SDK for SDK redirect in tracelib])
-AC_ARG_WITH(
-	trace-sdk,
-	AS_HELP_STRING([--with-trace-sdk=SDK],
-		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
-	[test -d ${DEVELOPER_DIR}/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
-
 # Allows building of shared libraries
 SC_ENABLE_SHARED
 
@@ -392,22 +387,23 @@ AC_CONFIG_FILES([
 	Makefile
 	Mk/macports.autoconf.mk
 	doc/base.mtree
-	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf
+	doc/prefix.mtree
 	doc/pubkeys.conf
 	portmgr/freebsd/Makefile
+	setupenv.bash
 	src/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/macports1.0/macports_test_autoconf.tcl
+	src/macports1.0/macports_fastload.tcl
+	src/package1.0/package_test_autoconf.tcl
+	src/pextlib1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/port1.0/port_test_autoconf.tcl
-	src/package1.0/package_test_autoconf.tcl
-	src/registry2.0/registry_autoconf.tcl
 	src/programs/Makefile
-	src/macports1.0/macports_fastload.tcl
-	setupenv.bash
+	src/registry2.0/registry_autoconf.tcl
 ])
 
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])

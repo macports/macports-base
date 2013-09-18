@@ -93,7 +93,8 @@ proc portarchivefetch::filter_sites {} {
         if {$missing} {
             continue
         }
-        if {$portfetch::mirror_sites::archive_prefix($site) == $prefix &&
+        if {$portfetch::mirror_sites::sites($site) ne {} &&
+            $portfetch::mirror_sites::archive_prefix($site) == $prefix &&
             $portfetch::mirror_sites::archive_frameworks_dir($site) == $frameworks_dir &&
             $portfetch::mirror_sites::archive_applications_dir($site) == $applications_dir &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {

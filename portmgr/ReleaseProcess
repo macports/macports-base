@@ -108,6 +108,8 @@ tag URL. For instance:
 
 And finally we tag the entire directory as release_2_0_0-archive:
 
+FIXME: this doesn't seem to work any more. The base subdir in the tag ends up being from trunk.
+
  cd ../../
  svn cp -m "commit-message" release_2.0.0-archive https://svn.macports.org/repository/macports/tags/release_2_0_0-archive
 
@@ -235,6 +237,7 @@ Once the release has been posted, notification of the release should be sent/pos
  * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: rhwood@)
  * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
  * [http://twitter.com/macports twitter] (submitter: raimue@)
+ * [https://plus.google.com/communities/110287630398071712872 Google+ Community] (submitter: raimue@)
  * (Where else?)
 
 

@@ -172,7 +172,7 @@ proc port_desroot {pwd} {
     set args "destroot"
 
     file copy -force $path/statefile $work_dir/.macports.statefile-unknown-version.state
-    if { [exec whoami] == "root" } {
+    if { [exec id -u] == 0 } {
         exec chown macports $work_dir/.macports.statefile-unknown-version.state
     }
     set result [catch {eval exec $env $bindir$cmd $args >$output_file 2>@1} ]

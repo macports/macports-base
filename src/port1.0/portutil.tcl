@@ -384,6 +384,12 @@ proc command_exec {command args} {
         }
     }
 
+    set dir [option ${varprefix}.dir]
+    if {![file exists ${dir}]} {
+        ui_debug "Creating ${varprefix} directory: ${dir}"
+        file mkdir ${dir}
+    }
+
     global ${varprefix}.env ${varprefix}.env_array ${varprefix}.nice env macosx_version
 
     # Set the environment.
@@ -818,51 +824,29 @@ proc parse_environment {command} {
     }
 }
 
-# Append to the value in the parsed environment.
-# Leave the environment untouched if the value is empty.
-proc append_to_environment_value {command key value} {
-    global ${command}.env_array
+# Append one or more items to the key in the parsed environment.
+proc append_to_environment_value {command key args} {
+    upvar #0 ${command}.env_array($key) env_key
+    foreach value $args {
+        if {$value eq {}} {
+            continue
+        }
+        # Parse out any delimiters. Is this even necessary anymore?
+        regexp {^(['"])(.*)\1$} $value -> delim value
 
-    if {[string length $value] == 0} {
-        return
+        append env_key " $value"
     }
-
-    # Parse out any delimiter.
-    set append_value $value
-    if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
-        set append_value $matchedValue
-    }
-
-    if {[info exists ${command}.env_array($key)]} {
-        set original_value [set ${command}.env_array($key)]
-        set ${command}.env_array($key) "${original_value} ${append_value}"
-    } else {
-        set ${command}.env_array($key) $append_value
-    }
+    catch {set env_key [string trimleft $env_key]}
 }
 
-# Append several items to a value in the parsed environment.
-proc append_list_to_environment_value {command key vallist} {
-    foreach {value} $vallist {
-        append_to_environment_value ${command} $key $value
-    }
-}
-
-# Build the environment as a string.
-# Remark: this method is only used for debugging purposes.
+# Return a string representation of the specified environment, for
+# debugging purposes.
 proc environment_array_to_string {environment_array} {
     upvar 1 ${environment_array} env_array
-
-    set theString ""
     foreach {key value} [array get env_array] {
-        if {$theString == ""} {
-            set theString "$key='$value'"
-        } else {
-            set theString "${theString} $key='$value'"
-        }
+        lappend env_list $key='$value'
     }
-
-    return $theString
+    return [join $env_list]
 }
 
 ########### Distname utility functions ###########
@@ -1375,6 +1359,11 @@ proc target_run {ditem} {
 
             # otherwise execute the task.
             if {$skipped == 0} {
+                # cd somewhere readable in tracemode to avoid error, e.g. with
+                # find. Make sure to use a path that also exists when executing
+                # Portfiles from registry, i.e., _not_ $workpath.
+                set oldpwd [pwd]
+                _cd $portdbpath
                 # change current phase shown in log
                 set_phase $target
 
@@ -1416,7 +1405,6 @@ proc target_run {ditem} {
 
                         test        -
                         destroot    -
-                        install     -
                         dmg         -
                         pkg         -
                         portpkg     -
@@ -1425,8 +1413,13 @@ proc target_run {ditem} {
                         srpm        -
                         dpkg        -
                         mdmg        -
-                        activate    -
                         ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
+
+                        # install may be run given an archive, which means
+                        # depends_fetch, _extract, _build dependencies have
+                        # never been installed
+                        activate    -
+                        install     { set deptypes "depends_lib depends_run" }
                     }
 
                     # Gather the dependencies for deptypes
@@ -1466,7 +1459,7 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
-                        set result [catch {$pre $targetname} errstr]
+                        set result [catch {eval $pre $targetname} errstr]
                         # Save variables in order to re-throw the same error code.
                         set errcode $::errorCode
                         set errinfo $::errorInfo
@@ -1476,7 +1469,7 @@ proc target_run {ditem} {
 
                 if {$result == 0} {
                     ui_debug "Executing $targetname ($portname)"
-                    set result [catch {$procedure $targetname} errstr]
+                    set result [catch {eval $procedure $targetname} errstr]
                     # Save variables in order to re-throw the same error code.
                     set errcode $::errorCode
                     set errinfo $::errorInfo
@@ -1485,7 +1478,7 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
-                        set result [catch {$post $targetname} errstr]
+                        set result [catch {eval $post $targetname} errstr]
                         # Save variables in order to re-throw the same error code.
                         set errcode $::errorCode
                         set errinfo $::errorInfo
@@ -1496,7 +1489,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem postrun] && $result == 0} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
-                    set result [catch {$postrun $targetname} errstr]
+                    set result [catch {eval $postrun $targetname} errstr]
                     # Save variables in order to re-throw the same error code.
                     set errcode $::errorCode
                     set errinfo $::errorInfo
@@ -1514,6 +1507,9 @@ proc target_run {ditem} {
                     # End of trace.
                     porttrace::trace_stop
                 }
+                # $oldpwd is deleted while uninstalling a port, changing back
+                # _will_ fail
+                catch {_cd $oldpwd}
             }
         }
         if {[exists copy_log_files]} {
@@ -1831,6 +1827,25 @@ proc write_statefile {class name fd} {
     seek $fd 0 end
     puts $fd "$class: $name"
     flush $fd
+}
+
+# Change the value of an existing statefile key
+# caller must call open_statefile after this
+proc update_statefile {class name path} {
+    set fd [open $path r]
+    while {[gets $fd line] >= 0} {
+        if {[lindex $line 0] != "${class}:"} {
+            lappend lines $line
+        }
+    }
+    close $fd
+    # truncate
+    set fd [open $path w]
+    puts $fd "$class: $name"
+    foreach line $lines {
+        puts $fd $line
+    }
+    close $fd
 }
 
 ##
@@ -2220,8 +2235,9 @@ proc handle_default_variants {option action {value ""}} {
                 set PortInfo(vinfo) {}
             }
             array set vinfo $PortInfo(vinfo)
-
+puts $value
             foreach v $value {
+		puts $v
                 if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant] && ![info exists variations($variant)]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
@@ -2987,13 +3003,18 @@ proc get_canonical_archs {} {
 # returns the flags that should be passed to the compiler to choose arch(s)
 proc get_canonical_archflags {{tool cc}} {
     if {![variant_exists universal] || ![variant_isset universal]} {
-        return [option configure.${tool}_archflags]
+        if {[catch {option configure.${tool}_archflags} flags]} {
+            return -code error "archflags do not exist for tool '$tool'"
+        }
     } else {
-        if {$tool == "cc" || $tool == "objc"} {
+        if {$tool == "cc"} {
             set tool c
         }
-        return [option configure.universal_${tool}flags]
+        if {[catch {option configure.universal_${tool}flags} flags]} {
+            return -code error "universal archflags do not exist for tool '$tool'"
+        }
     }
+    return $flags
 }
 
 # check that the selected archs are supported
@@ -3039,12 +3060,12 @@ proc _check_xcode_version {} {
             10.7 {
                 set min 4.1
                 set ok 4.1
-                set rec 4.5.2
+                set rec 4.6.2
             }
             default {
                 set min 4.4
                 set ok 4.4
-                set rec 4.5.2
+                set rec 4.6.2
             }
         }
         if {$xcodeversion == "none"} {

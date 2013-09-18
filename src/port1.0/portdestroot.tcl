@@ -49,11 +49,12 @@ namespace eval portdestroot {
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask \
         destroot.violate_mtree destroot.asroot destroot.delete_la_files \
-        startupitem.create startupitem.requires startupitem.init \
-        startupitem.name startupitem.start startupitem.stop startupitem.restart \
-        startupitem.type startupitem.executable \
-        startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
-        startupitem.uniquename startupitem.plist startupitem.location startupitem.install
+        startupitem.autostart startupitem.create startupitem.executable \
+        startupitem.init startupitem.install startupitem.location \
+        startupitem.logevents startupitem.logfile startupitem.name \
+        startupitem.netchange startupitem.pidfile startupitem.plist \
+        startupitem.requires startupitem.restart startupitem.start \
+        startupitem.stop startupitem.type startupitem.uniquename
 commands destroot
 
 # Set defaults
@@ -69,24 +70,25 @@ default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""
 default destroot.violate_mtree no
-default destroot.delete_la_files no
+default destroot.delete_la_files {${delete_la_files}}
 
-default startupitem.name        {${subport}}
-default startupitem.uniquename  {org.macports.${startupitem.name}}
-default startupitem.plist       {${startupitem.uniquename}.plist}
-default startupitem.location    LaunchDaemons
+default startupitem.autostart   no
+default startupitem.executable  ""
 default startupitem.init        ""
+default startupitem.install     {$system_options(startupitem_install)}
+default startupitem.location    LaunchDaemons
+default startupitem.logevents   no
+default startupitem.logfile     ""
+default startupitem.name        {${subport}}
+default startupitem.netchange   no
+default startupitem.pidfile     ""
+default startupitem.plist       {${startupitem.uniquename}.plist}
+default startupitem.requires    ""
+default startupitem.restart     ""
 default startupitem.start       ""
 default startupitem.stop        ""
-default startupitem.restart     ""
-default startupitem.requires    ""
-default startupitem.executable  ""
 default startupitem.type        {$system_options(startupitem_type)}
-default startupitem.pidfile     ""
-default startupitem.logfile     ""
-default startupitem.logevents   no
-default startupitem.netchange   no
-default startupitem.install     {$system_options(startupitem_install)}
+default startupitem.uniquename  {org.macports.${startupitem.name}}
 
 set_ui_prefix
 

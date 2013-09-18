@@ -1,3 +1,5 @@
+/* # -*- coding: utf-8; mode: c; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=c:et:sw=4:ts=4:sts=4
+ */
 /*
  * tracelib.h
  * $Id$
@@ -16,7 +18,7 @@
  * 3. Neither the name of the MacPorts Team nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -40,24 +42,24 @@
  * Command to handle trace lib
  *
  * It is *NOT* thread safe
- * 
+ *
  * Syntax:
- *  	tracelib setname name
- *			- return path of unix socket
- *		tracelib run
- *			- run select, create a socket
- *		tracelib clean
- *			- cleanup everything
- * 		tracelib setsandbox
- *			- set sandbox bounds
- *  	tracelib closesocket
- *			- close socket. This makes main thread to quit from it's loop
- *		tracelib setdeps
- * 			- set deps for current port
- * 		tracelib enablefence
- *			- enable dep/sandbox checking
+ *      tracelib setname name
+ *          - return path of unix socket
+ *      tracelib run
+ *          - run select, create a socket
+ *      tracelib clean
+ *          - cleanup everything
+ *      tracelib setsandbox
+ *          - set sandbox bounds
+ *      tracelib closesocket
+ *          - close socket. This makes main thread to quit from it's loop
+ *      tracelib setdeps
+ *          - set deps for current port
+ *      tracelib enablefence
+ *          - enable dep/sandbox checking
  */
-int TracelibCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int TracelibCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 #endif
-		/* _PEXTLIB_TRACELIB_H */
+/* _PEXTLIB_TRACELIB_H */

@@ -278,6 +278,7 @@ proc portunarchive::unarchive_finish {args} {
         file copy -force $plus_state $statefile
         file mtime $statefile [clock seconds]
         chownAsRoot $statefile
+        update_statefile checksum [sha256 file [option portpath]/Portfile] $statefile
         set newstate 1
     } else {
         # fake it

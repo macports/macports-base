@@ -662,7 +662,7 @@ int *range;
 
 	    if (need > 0){
 		more_space(need);
-		strncpy(new_str + new_pos, str, need);
+		memmove(new_str + new_pos, str, need);
 		new_pos += need;
 	    }
 
@@ -756,7 +756,7 @@ int *range;
      *
      */
     more_space(str_len);
-    (void) strcpy(new_str + new_pos, str);
+    (void) memmove(new_str + new_pos, str, strlen(str) + 1);
     RETURN(new_str);
 }
 
