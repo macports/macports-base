@@ -120,6 +120,7 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
 
     #set sourcespath ${prefix}/src/macports/SOURCES
     set sourcespath "`rpm --eval %{_sourcedir}`"
+puts $sourcespath
 
     system "cp -p ${portpath}/Portfile ${sourcespath}/$portname-Portfile"
     if {[info exists ${portpath}/files]} {

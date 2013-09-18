@@ -101,6 +101,8 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
     }
 
     set specpath ${workpath}/${portname}.spec
+puts ###
+puts $specpath
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage categories maintainers} {
         if {![info exists $variable]} {
