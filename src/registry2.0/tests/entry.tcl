@@ -7,11 +7,12 @@ proc main {pextlibname} {
     load $pextlibname
 
     # totally lame that file delete won't do it
-	eval exec rm -f [glob -nocomplain test.db*]
+    eval exec rm -f [glob -nocomplain test.db*]
 
     # can't create registry in some brain-dead place or in protected place
     test_throws {registry::open /some/brain/dead/place} registry::cannot-init
-    test_throws {registry::open /etc/macports_test_prot~} registry::cannot-init
+    # This would actually work when testing with sudo :(
+    #test_throws {registry::open /etc/macports_test_prot~} registry::cannot-init
 
     # can't use registry before it's opened
     test_throws {registry::write {}} registry::misuse
