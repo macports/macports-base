@@ -93,6 +93,7 @@ proc macports_worker_init {} {
     foreach opt $macports::portinterp_options {
         if {![info exists $opt]} {
             global macports::$opt
+            set ::$opt macports::$opt
         }
         if {[info exists $opt]} {
             set system_options($opt) $opt
@@ -100,6 +101,6 @@ proc macports_worker_init {} {
         }
     }
 
-	# We don't need to handle portinterp_deferred_options, they're
-	# automatically handled correctly.
+    # We don't need to handle portinterp_deferred_options, they're
+    # automatically handled correctly.
 }
