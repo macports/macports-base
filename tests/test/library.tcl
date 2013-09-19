@@ -20,7 +20,7 @@ proc load_variables {pwd} {
         exit 1
     }
 
-    set cpwd [eval file join {*}[lrange [file split $pwd] 0 end-2]]
+    set cpwd [file dirname [file dirname $pwd]]
 
     set line [get_line $autoconf "prefix*"]
     set prefix [lrange [split $line " "] 1 1]

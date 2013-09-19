@@ -1,8 +1,7 @@
 package require tcltest 2
 namespace import tcltest::*
 
-set pwd [file normalize $argv0]
-set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+set pwd [file dirname [file normalize $argv0]]
 
 package require macports 1.0
 mportinit
