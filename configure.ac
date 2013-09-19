@@ -94,11 +94,11 @@ case "$XCODE_VERSION" in
 esac
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC([clang cc gcc])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_OBJC
+AC_PROG_OBJC([clang cc gcc])
 
 AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
 AC_PATH_PROG(BZIP2, [bzip2], [])
