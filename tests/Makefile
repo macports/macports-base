@@ -10,3 +10,5 @@ test::
 	$(TCLSH) test.tcl -nocolor
 
 clean::
+
+distclean:: clean
