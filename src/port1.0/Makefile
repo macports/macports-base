@@ -23,7 +23,7 @@ clean::
 	rm -f pkgIndex.tcl
 
 distclean:: clean
-	rm -f port_autoconf.tcl
+	rm -f port_autoconf.tcl port_test_autoconf.tcl
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}

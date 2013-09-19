@@ -19,7 +19,7 @@ test::
 	$(TCLSH) ./tests/test.tcl -nocolor
 
 distclean:: clean
-	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
+	rm -f macports_autoconf.tcl macports_fastload.tcl macports_test_autoconf.tcl ${SHLIB_NAME}
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}

@@ -15,6 +15,7 @@ clean::
 	rm -f pkgIndex.tcl
 
 distclean:: clean
+	rm -f package_test_autoconf.tcl
 
 test::
 	-$(prefix)/bin/port sync
