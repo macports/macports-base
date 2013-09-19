@@ -17,9 +17,7 @@ clean::
 distclean:: clean
 
 test::
-ifeq ($(shell id -u),0)
-	$(prefix)/bin/port sync
-endif
+	-$(prefix)/bin/port sync
 	$(TCLSH) ./tests/test.tcl -nocolor
 
 install:: all
