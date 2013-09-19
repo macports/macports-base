@@ -173,7 +173,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     case -1: /* error */
         Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
         return TCL_ERROR;
-        break;
+        /*NOTREACHED*/
     case 0: /* child */
         close(fdset[0]);
 
@@ -189,7 +189,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
         /* change scheduling priority if requested */
         if (oniceval != INT_MAX) {
-            if (setpriority(PRIO_PROCESS, getpid(), oniceval) != 0) {
+            if (setpriority(PRIO_PROCESS, (id_t)getpid(), oniceval) != 0) {
                 /* ignore failure, just continue */
             }
         }
@@ -226,7 +226,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             execve("/bin/sh", args, environ);
         }
         _exit(1);
-        break;
+        /*NOTREACHED*/
     default: /* parent */
         break;
     }
@@ -241,7 +241,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     if (pdes) {
         while ((buf = fgetln(pdes, &linelen)) != NULL) {
             char *sbuf;
-            int slen;
+            size_t slen;
     
             /*
              * Allocate enough space to insert a terminating
