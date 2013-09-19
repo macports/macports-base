@@ -1,0 +1,182 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+source ../portinstall.tcl
+source ../../registry2.0/portuninstall.tcl
+source ../port_autoconf.tcl
+
+# Set env vars
+set os.platform darwin
+set macosx_version 10.8
+set os_version 12
+set os_arch i386
+set os.major 10
+set supported_archs {}
+set configure.build_arch build_arch
+set portarchivetype tgz
+
+set subport fondu
+set version 3.0
+set revision 2
+
+
+test install_start {
+    Install start unit test.
+} -constraints {
+    root
+} -setup {
+    set portvariants {var1}
+    set prefix prefix
+    set add_users no
+
+} -body {
+    if {[catch {portinstall::install_start}] != 0} {
+		return "FAIL: problem with install start"
+    }
+    return "Install start successful."
+} -result "Install start successful."
+
+
+test create_archive {
+    Create archive unit test.
+} -constraints {
+	root
+} -setup {
+	set destpath $pwd/work/destroot
+	set portbuildpath $pwd
+	set portdbpath $pwd/dbpath
+	set portpath $pwd
+	set create /dev/null
+
+	# destroot setup
+    file mkdir $pwd/$subport
+    set mport [mportopen file://.]
+
+    # set $version var
+    set workername [ditem_key $mport workername]
+
+    # run destroot
+    if {[$workername eval eval_targets destroot] != 0} {
+		return "FAIL: destroot failed"
+	}
+
+	# portinstall setup
+	interp alias {} _cd {} cd
+
+	# hide all output. Deactivate this for debugging!
+	set oldchannels [array get macports::channels]
+	set macports::channels(msg)    {}
+	set macports::channels(notice) {}
+
+	if {[$workername eval eval_targets install] != 0} {
+		return "FAIL: port install failed"
+	}
+
+} -body {
+    if {[catch {$workername eval portinstall::create_archive $create tgz}] != 0} {
+		return "FAIL: cannot create archive"
+    }
+    return "Create archive successful."
+
+} -cleanup {
+	if {[$workername eval eval_targets uninstall] != 0} {
+    	return "FAIL: uninstall failed"
+	}
+	if {[$workername eval eval_targets clean] != 0} {
+    	return "FAIL: clean failed"
+	}
+	array set macports::channels $oldchannels
+	mportclose $mport
+
+    file delete -force $pwd/$subport
+    file delete -force $portdbpath
+    file delete -force $pwd/work
+
+} -result "Create archive successful."
+
+
+# test extract_contents
+
+
+test install_main {
+    Install main unit test.
+} -constraints {
+	root
+
+} -setup {
+	set workpath $pwd/work
+    set portpath $pwd
+    set portdbpath $pwd/dbpath
+    set portbuildpath $pwd
+    set destpath $pwd/work/destroot
+	set portvariants {+var1}
+	
+	set epoch i386
+	set compiler.cpath /usr/bin/gcc
+	set compiler.library_path /usr/lib
+
+	# destroot setup
+    file mkdir $pwd/$subport
+    set mport [mportopen file://.]
+
+    if {[eval_variants variations] != 0} {
+        mportclose $mport
+        error "Error evaluating variants"
+    }
+
+    # set $version var
+    set workername [ditem_key $mport workername]
+
+    # run destroot
+    if {[$workername eval eval_targets destroot] != 0} {
+		return "FAIL: destroot failed"
+	}
+
+	# portinstall setup
+	interp alias {} _cd {} cd
+
+	# hide all output. Deactivate this for debugging!
+	set oldchannels [array get macports::channels]
+	set macports::channels(msg)    {}
+	set macports::channels(notice) {}
+
+} -body {
+    if {[$workername eval eval_targets install] != 0} {
+		return "FAIL: cannot install port"
+    }
+    return "Install main successful."
+
+} -cleanup {
+	if {[$workername eval eval_targets uninstall] != 0} {
+    	return "FAIL: uninstall failed"
+	}
+	if {[$workername eval eval_targets clean] != 0} {
+    	return "FAIL: clean failed"
+	}
+	array set macports::channels $oldchannels
+
+	mportclose $mport
+
+    file delete -force $pwd/$subport
+    file delete -force $portdbpath
+    file delete -force $pwd/work
+
+} -result "Install main successful."
+
+
+cleanupTests

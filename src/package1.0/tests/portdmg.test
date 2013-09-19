@@ -1,0 +1,59 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../package_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+source ../portdmg.tcl
+source ../../port1.0/port_autoconf.tcl
+
+
+# test dmg_main
+
+
+test package_dmg {
+    Package dmg unit test.
+} -setup {
+    set os.major 10
+    set os.arch i386
+
+    set subport fondu
+    set version 060102
+    set revision 1
+    set package.destpath $pwd/pkg
+    set UI_PREFIX >
+
+    file mkdir $pwd/pkg
+    close [open $pwd/pkg/fondu-060102.pkg w+]
+
+} -body {
+    if {[portdmg::dmg_main] != 0} {
+	return "FAIL: cannot create dmg"
+    }
+    if {![file exists $pwd/pkg/fondu-060102-1.dmg]} {
+	return "FAIL: missing .dmg file"
+    }
+    if {![file exists $pwd/pkg/fondu-060102-1/fondu-060102.pkg]} {
+	return "FAIL: invalid package.destpath"
+    }
+    return "Package dmg successful."
+
+} -cleanup {
+    file delete -force $pwd/pkg
+
+} -result "Package dmg successful."
+
+
+cleanupTests

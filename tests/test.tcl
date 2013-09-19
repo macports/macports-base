@@ -1,0 +1,143 @@
+set test_suite {
+    case-insensitive-deactivate
+    checksums-1
+    dependencies-a
+    dependencies-b
+    dependencies-c
+    dependencies-d
+    dependencies-e
+    envvariables
+    site-tags
+    statefile-unknown-version
+    statefile-version1
+    statefile-version1-outdated
+    statefile-version2
+    statefile-version2-invalid
+    statefile-version2-outdated
+    svn-and-patchsites
+    trace
+    universal
+    variants
+    xcodeversion
+}
+set arguments ""
+set test_name ""
+set color_out ""
+set tcl ""
+set err ""
+
+# Get tclsh path.
+set autoconf ../Mk/macports.autoconf.mk
+set fp [open $autoconf r]
+while {[gets $fp line] != -1} {
+    if {[string match "TCLSH*" $line] != 0} {
+        set tcl [lrange [split $line " "] 1 1]
+    }
+}
+
+proc print_help {arg} {
+    if { $arg == "tests" } {
+        puts "The list of abailable tests is:"
+        foreach test $::test_suite {
+            puts [puts -nonewline "  "]$test
+        }
+    } else {
+        puts "Usage: tclsh test.tcl \[-debug level\] \[-t test\] \[-l\]\n"
+        puts "  -debug LVL : sets the level of printed debug info \[0-3\]"
+        puts "  -t TEST    : run a specific test"
+        puts "  -nocolor   : disable color output (for automatic testing)"
+        puts "  -l         : print the list of available tests"
+        puts "  -h, -help  : print this message\n"
+    }
+}
+
+# Process args
+foreach arg $argv {
+    if { $arg == "-h" || $arg == "-help" } {
+        print_help ""
+        exit 0
+    } elseif { $arg == "-debug" } {
+        set index [expr [lsearch $argv $arg] + 1]
+        set level [lindex $argv $index]
+        if { $level >= 0 && $level <= 3 } {
+            append arguments "-debug " $level
+        } else {
+            puts "Invalid debug level."
+            exit 1
+        }
+    } elseif { $arg == "-t" } {
+        set index [expr [lsearch $argv $arg] + 1]
+        set test_name [lindex $argv $index]
+        set no 0
+        foreach test $test_suite {
+            if { $test_name != $test } {
+                set no [expr $no + 1]
+            }
+        }
+        if { $no == [llength $test_suite] } {
+            print_help tests
+            exit 1
+        }
+    } elseif { $arg == "-l" } {
+        print_help tests
+        exit 0
+    } elseif { $arg == "-nocolor" } {
+        set color_out "no"
+    }
+}
+
+
+# Run tests
+if { $test_name != ""} {
+    cd test/$test_name
+
+    set result [eval exec $tcl test.tcl $arguments]
+    puts $result
+
+} else {
+    foreach test $test_suite {
+        cd test/$test
+    
+        set result [eval exec $tcl test.tcl $arguments]
+        set lastline [lindex [split $result "\n"] end]
+
+        if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
+            set lastline [lindex [split $result "\n"] end-2]
+            set errmsg [lindex [split $result "\n"] end]
+        }
+
+        set splitresult [split $lastline "\t"]
+        set total [lindex $splitresult 2]
+        set pass [lindex $splitresult 4]
+        set skip [lindex $splitresult 6]
+        set fail [lindex $splitresult 8]
+
+        # Check for errors.
+        if { $fail != 0 } { set err "yes" }
+
+        set out ""
+        if { ($fail != 0 || $skip != 0) && $color_out == "" } {
+            # Color failed tests.
+            append out "\x1b\[1;31mTotal:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  \x1b\[0m" $test
+        } else {
+            append out "Total:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  " $test
+        }
+
+        # Print results and constrints for auto-skipped tests.
+        puts $out
+        if { $skip != 0 } {
+            set out "    Constraint: "
+            append out [string trim $errmsg "\t {}"]
+            puts $out
+        }
+    
+        cd ../..
+    }
+}
+
+# Return 1 if errors were found.
+if {$err != ""} {
+    exit 1
+}
+
+return 0

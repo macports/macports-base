@@ -1,0 +1,4 @@
+This test checks the Xcode version. MacPorts needs at least Xcode 2.1.
+
+There are 2 test cases, one for the Xcode version and another to check the
+xcodebuild path.

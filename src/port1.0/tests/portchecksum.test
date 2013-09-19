@@ -1,0 +1,141 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+package require macports 1.0
+mportinit
+
+source ../portchecksum.tcl
+
+
+test parse_checksum {
+    Parse checksum unit test.
+} -body {
+    set all_dist_files {file file2}
+    set checksums_str {file md5 1111 file2 sha1 3333}
+
+    set res [portchecksum::parse_checksums $checksums_str]
+    if {$res != "yes"} {return "FAIL: error in checksum parse"}
+    if {$checksums_array(file) != "md5 1111"} {
+	   return "FAIL: invalid file options"
+    }
+    if {$checksums_array(file2) != "sha1 3333"} {
+	   return "FAIL: invalid file options"
+    }
+    return "Parse checksum successful."
+} -result "Parse checksum successful."
+
+
+test calc_md5 {
+    Calculate md5 unit test. Based on a file it creates.
+} -body {
+    set fd [open $pwd/file w+]
+    puts $fd "test.file"
+    close $fd
+
+    set res [portchecksum::calc_md5 $pwd/file]
+    if {$res != "9f70ecc1095ff10df81be6b5f218328d"} {
+	   return "FAIL: unexpected md5"
+    }
+    return "Calc md5 successful."
+
+} -cleanup {
+    file delete -force $pwd/file
+} -result "Calc md5 successful."
+
+
+test calc_sha1 {
+    Calculate sha1 unit test.
+} -body {
+    set fd [open $pwd/file w+]
+    puts $fd "test.file"
+    close $fd
+
+    set res [portchecksum::calc_sha1 $pwd/file]
+    if {$res != "5560df60ff202ca8b8c3dcf51ad650b78e859261"} {
+	   return "FAIL: unexpected sha1"
+    }
+    return "Calc sha1 successful."
+
+} -cleanup {
+    file delete -force $pwd/file
+} -result "Calc sha1 successful."
+
+
+test calc_rmd160 {
+    Calculate rmd160 unit test.
+} -body {
+    set fd [open $pwd/file w+]
+    puts $fd "test.file"
+    close $fd
+
+    set res [portchecksum::calc_rmd160 $pwd/file]
+    if {$res != "5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6"} {
+	   return "FAIL: unexpected rmd160"
+    }
+    return "Calc rmd160 successful."
+
+} -cleanup {
+    file delete -force $pwd/file
+} -result "Calc rmd160 successful."
+
+
+test calc_sha256 {
+    Calculate sha256 unit test.
+} -body {
+    set fd [open $pwd/file w+]
+    puts $fd "test.file"
+    close $fd
+
+    set res [portchecksum::calc_sha256 $pwd/file]
+    if {$res != "2f686816f2a80e8efcc4ef40ac4e898d27ce4205a61ee422d56f8c5e8b46612e"} {
+	   return "FAIL: unexpected sha1"
+    }
+    return "Calc sha256 successful."
+
+} -cleanup {
+    file delete -force $pwd/file
+} -result "Calc sha256 successful."
+
+
+# test checksum_start
+
+
+test checksum_main {
+    Checksum main unit test. Checks for empty files.
+} -body {
+    set all_dist_files {file file2}
+    set checksum.skip yes
+
+    if {[portchecksum::checksum_main] != 0} {
+	   return "FAIL: checksum not skipped"
+    }
+
+    set checksum.skip no
+    set distpath $pwd/dpath
+    set usealtworkpath no
+    set altprefix prefix
+
+    file mkdir $distpath
+    close [open $distpath/file w]
+    close [open $distpath/file2 w]
+    array set checksums_array {
+	   file {md5 d41d8cd98f00b204e9800998ecf8427e}
+	   file2 {sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709}
+    }
+
+    if {[portchecksum::checksum_main] != 0} {
+	   return "FAIL: incorrect checksum"
+    }
+    return "Checksum main successful."
+
+} -cleanup {
+    file delete -force $distpath
+    file delete -force file
+    file delete -force file2
+} -result "Checksum main successful."
+
+
+cleanupTests

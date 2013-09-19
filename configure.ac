@@ -396,9 +396,12 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
+	src/macports1.0/macports_test_autoconf.tcl
 	src/macports1.0/macports_fastload.tcl
+	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
 	src/port1.0/port_autoconf.tcl
+	src/port1.0/port_test_autoconf.tcl
 	src/programs/Makefile
 	src/registry2.0/registry_autoconf.tcl
 ])

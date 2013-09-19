@@ -1,0 +1,60 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ../portload.tcl
+source ../port_autoconf.tcl
+
+
+test load_main {
+    Load main unit test.
+} -constraints {
+	root
+
+} -setup {
+    set path /Library/test/files
+    file mkdir $path
+
+    # Create dummy plist
+    set fd [open $path/file.plist w+]
+    puts $fd "\<?xml version=\"1.0\" encoding=\"UTF-8\"?\>"
+    puts $fd "\<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"\>"
+    puts $fd "\<plist version=\"1.0\"\>"
+    puts $fd "\<dict\>"
+    puts $fd "\<key\>Label\</key\>"
+    puts $fd "\<string\>org.test.load\</string\>"
+    puts $fd "\<key\>ProgramArguments\</key\>"
+    puts $fd "\<array\>\<string\>/bin/ls\</string\>\</array\>"
+    puts $fd "\</dict\>"
+    puts $fd "\</plist\>"
+    close $fd
+
+} -body {
+    set launchctl_path ${portutil::autoconf::launchctl_path}
+    set startupitem.location test
+    set startupitem.plist files/file.plist
+
+    if {[portload::load_main] != ""} {
+		return "FAIL: unable to load plist"
+    }
+    return "Load successful."
+
+} -cleanup {
+    exec $launchctl_path unload -w $path 2>@stderr
+    file delete -force /Library/test
+
+} -result "Load successful."
+
+
+cleanupTests

@@ -1,0 +1,5 @@
+This test checks that a non-outdated statefile version doesn't trigger a
+rebuild.
+
+There are 2 test cases, one that makes sure the statefile doesn't get
+discarded and another that looks for staging into destroot.

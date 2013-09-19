@@ -1,0 +1,4 @@
+This test checks the 'port -t' command which creates a virtual sandbox by a 
+mechanism known from Linux as library LD_PRELOADing.
+
+There is 1 test case, which looks for errors in the output file.

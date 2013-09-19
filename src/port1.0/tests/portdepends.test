@@ -1,0 +1,38 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ../portdepends.tcl
+
+
+test validate_depends_options {
+    Validate depends unit test.
+} -body {
+    set res [catch {portdepends::validate_depends_options target set {lib:test.val:value}}]
+    if {$res != 0} {return "FAIL: value lib:test.val:value not accepted"}
+    set res [catch {portdepends::validate_depends_options target set {bin:test.val:value}}]
+    if {$res != 0} {return "FAIL: value bin:test.val:value not accepted"}
+    set res [catch {portdepends::validate_depends_options target set {path:test:value}}]
+    if {$res != 0} {return "FAIL: value path:test:value not accepted"}
+    set res [catch {portdepends::validate_depends_options target set {port:test3}}]
+    if {$res != 0} {return "FAIL: value port:test3 not accepted"}
+    set res [catch {portdepends::validate_depends_options target set {lib:test}}]
+    if {$res != 1} {return "FAIL: invalid options lib:test accepted"}
+    return "Validate depends successful."
+} -result "Validate depends successful."
+
+# test validate_depends_options_new
+
+
+cleanupTests

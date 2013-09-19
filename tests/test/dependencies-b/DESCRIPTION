@@ -1,0 +1,4 @@
+This test does nothing. (or: ensures a port without dependencies really
+doesn't have any)
+
+There is 1 test case.

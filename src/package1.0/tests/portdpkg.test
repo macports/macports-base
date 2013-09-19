@@ -1,0 +1,75 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../package_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+source ../portdpkg.tcl
+source ../../port1.0/port_autoconf.tcl
+
+
+test main {
+    Port dpkg main unit test.
+} -constraints { ![catch {exec which dpkg-deb}]
+
+} -setup {
+    set os.platform darwin
+    set os.major 10
+    set os.arch i386
+    set epoch 1
+
+    set destpath $pwd/pkg
+    set configure.build_arch build_arch
+    set package.destpath $pwd/pkg
+
+    set subport fondu
+    set version 060102
+    set revision 1
+    set maintainers {test@macports.org}
+    set description test.description
+    set categories test
+    set supported_archs noarch
+
+
+} -body {
+    if {[catch {portdpkg::main}] != 0} {
+		return "FAIL: cannot create dmg"
+    }
+    if {![file exists $pwd/pkg/fondu_060102-1_all.deb]} {
+		return "FAIL: missing .deb file"
+    }
+    return "Package deb successful."
+
+} -cleanup {
+    file delete -force $pwd/pkg
+
+} -result "Package deb successful."
+
+
+test make_dependency_list {
+    Make dependency list unit test.
+} -setup {
+    set subport fondu
+    set version 060102
+    set revision 1
+} -body {
+    if {[portdpkg::make_dependency_list $subport] != "fondu/060102"} {
+		return "FAIL: could not make dependency list"
+    }
+    return "Make dependency list successful."
+} -result "Make dependency list successful."
+
+
+cleanupTests

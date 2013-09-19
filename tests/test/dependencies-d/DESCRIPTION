@@ -1,0 +1,4 @@
+This test checks for an invalid dependency specification. The "depends" option
+tested in this test apparently was never implemented.
+
+There is 1 test case.

@@ -1,0 +1,55 @@
+# $Id: Portfile 85472 2011-10-14 01:52:18Z dports@macports.org $
+
+PortSystem              1.0
+
+name                    fondu
+version                 060102
+revision                1
+platforms               darwin
+categories              print
+license                 BSD
+maintainers             nomaintainer
+homepage                http://fondu.sourceforge.net/
+master_sites            http://fondu.sourceforge.net/
+
+description             A set of programs to interconvert between Mac font \
+                        formats and pfb, ttf, otf and bdf files on UNIX.
+
+long_description        Dealing with Mac fonts is hard on other operating \
+                        systems because Mac fonts are stored in the resource \
+                        fork, and other operating systems do not support \
+                        this concept. Fondu will extract the resource fork \
+                        from either a MacBinary file or a BinHex file. Ufond \
+                        will create a resource fork inside a MacBinary file.
+
+checksums               md5 e20861beacddc1ab392bef7813641bf8
+extract.suffix          .tgz
+distfiles               [suffix ${name}_src-${version}]
+
+patchfiles
+
+patch {
+    foreach patch $patchfiles {
+        set fd [open ${portpath}/files/${patch} r]
+        set var [gets $fd]
+        close $fd
+        set fd [open ${workpath}/${distname}/test_patch w+]
+        puts $fd $var
+        close $fd
+    }
+}
+
+post-patch {
+    reinplace "s|^CFLAGS = -g \$(WFLAGS)|CFLAGS = -g \$(WFLAGS) ${configure.cppflags} ${configure.cflags} ${configure.ldflags} [get_canonical_archflags]|g" ${worksrcpath}/Makefile.in
+}
+
+configure.args          --bindir=${prefix}/bin \
+                        --mandir=${prefix}/share/man
+
+post-destroot {
+    eval xinstall -m 644 [glob ${worksrcpath}/*.1] ${destroot}${prefix}/share/man/man1/
+}
+
+test {
+    file delete -force $worksrcpath/README
+}

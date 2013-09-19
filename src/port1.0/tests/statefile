@@ -1,0 +1,6 @@
+version: 3
+target: org.macports.fetch
+target: org.macports.checksum
+target: org.macports.extract
+target: org.macports.patch
+target: org.macports.configure

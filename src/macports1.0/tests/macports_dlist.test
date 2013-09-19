@@ -1,0 +1,215 @@
+package require tcltest 2
+namespace import tcltest::*
+
+source ../macports_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+# Debug options
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ../macports_dlist.tcl
+
+
+test dlist_match_multi {
+    Dlist match multi unit test.
+} -setup {
+    set mport [mportopen file://.]
+    set crit {
+	   provides fondu
+	   porturl file://.
+    }
+    set crit2 { provides fondu2 }
+
+} -body {
+    if {[dlist_match_multi $mport $crit] != $mport} {
+	   return "FAIL: correct dlist not matched"
+    }
+    if {[dlist_match_multi $mport $crit2] != ""} {
+	   return "FAIL: incorrect dlist matched"
+    }
+    return "dlist match successful."
+} -cleanup {
+    mportclose $mport
+} -result "dlist match successful."
+
+
+test dlist_search {
+    Dlist search unit test.
+} -setup {
+    set mport [mportopen file://.]
+} -body {
+    if {[dlist_search $mport provides fondu] != $mport} {
+	   return "FAIL: matching item not found"
+    }
+    if {[dlist_search $mport provides fondu2] != ""} {
+	   return "FAIL: wrong item detected"
+    }
+    return "dlist successful."
+} -cleanup {
+    mportclose $mport
+} -result "dlist successful."
+
+
+test dlist_delete {
+    Dlist delete unit test.
+} -setup {
+    set mport [mportopen file://.]
+    set dlist [list]
+    lappend dlist $mport
+} -body {
+    if {[dlist_delete dlist $mport] != ""} {
+	   return "FAIL: cannot run dlist_delete"
+    }
+    if {$dlist != ""} {
+	   return "FAIL: port not removed from list"
+    }
+    return "Dlist delete successful."
+} -cleanup {
+    mportclose $mport
+} -result "Dlist delete successful."
+
+
+test dlist_has_pending {
+    Dlist has pending unit test.
+} -setup {
+    set mport [mportopen file://.]
+} -body {
+    if {[dlist_has_pending $mport fondu] != 1} {
+	   return "FAIL: not detected"
+    }
+    if {[dlist_has_pending $mport provides] != 0} {
+	   return "FAIL: incorrect detected"
+    }
+    return "dlist pending successful."
+} -cleanup {
+    mportclose $mport
+} -result "dlist pending successful."
+
+
+test dlist_count_unmet {
+    Dlist count unmet unit test.
+} -setup {
+    set mport [mportopen file://.]
+    array set statusdict {
+	   vara 0
+	   varb 0
+	   varc 1
+    }
+    set tokens {vara varb vard}
+} -body {
+    if {[dlist_count_unmet $mport statusdict $tokens] != 3} {
+	   return "FAIL: wrong unmet number"
+    }
+    return "count unmet successful."
+} -cleanup {
+    mportclose $mport
+} -result "count unmet successful."
+
+
+# test ditem_create
+# test ditem_delete
+
+
+test ditem_key {
+    Ditem key unit test.
+} -setup {
+    set mport [mportopen file://.]
+} -body {
+    if {[ditem_key $mport {provides}] != "fondu"} {
+	   return "FAIL: wrong key value"
+    }
+    if {[ditem_key $mport {wants}] != ""} {
+	   return "FAIL: wrong key detected"
+    }
+    return "ditem key successful."
+} -cleanup {
+    mportclose $mport
+} -result "ditem key successful."
+
+
+# test ditem_append
+# test ditem_append_unique
+# test ditem_contains
+
+
+test dlist_append_dependents {
+    Dlist append dependents unit test.
+} -setup {
+    set mport [mportopen file://.]
+    set result {fondu2}
+} -body {
+    if {[dlist_append_dependents $mport provides $result] != {fondu2 provides}} {
+	   return "FAIL: wrong depends"
+    }
+    return "Append depends successful."
+} -cleanup {
+    mportclose $mport
+} -result "Append depends successful."
+
+
+test dlist_get_next {
+    Dlist get next unit test.
+} -setup {
+    set mport [mportopen file://.]
+    set dict {fondu}
+} -body {
+    if {[dlist_get_next $mport $dict] != $mport} {
+	   return "FAIL: wrong dlist"
+    }
+    return "dlist get next successful."
+} -cleanup {
+    mportclose $mport
+} -result "dlist get next successful."
+
+
+test dlist_eval {
+    Dlist eval unit test.
+} -setup {
+    set mport [mportopen file://.]
+    proc cond {arg} {
+	   if {[string match "ditem_*" $arg] != 0} {
+            return 0
+	   } else {
+            return 1
+	   }
+    }
+    proc handler {arg} {}
+} -body {
+    if {[dlist_eval $mport cond handler] != ""} {
+	   return "FAIL: wrong value returned"
+    }
+    return "dlist eval successful."
+} -cleanup {
+    mportclose $mport
+} -result "dlist eval successful."
+
+
+# test ditem_create
+# test ditem_delete
+# test ditem_key
+# test ditem_append
+# test ditem_append_unique
+
+
+test ditem_contains {
+    Ditem contains unit test.
+} -setup {
+    set mport [mportopen file://.]
+} -body {
+    if {[ditem_contains $mport provides] != 1} {
+	   return "FAIL: valid key not detected"
+    }
+    if {[ditem_contains $mport wants] != 0} {
+	   return "FAIL: invalid key detected"
+    }
+    return "ditem contains successful."
+} -cleanup {
+    mportclose $mport
+} -result "ditem contains successful."
+
+
+cleanupTests

@@ -1,0 +1,5 @@
+This test checks that statefile version 2 without checksum field will cause a
+warning message. MacPorts should never deal with a broken statefile.
+
+There are 2 test cases, one that ensures a warning message gets thrown and
+another that ensures staging into destroot.

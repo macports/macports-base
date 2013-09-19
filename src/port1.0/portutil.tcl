@@ -2235,8 +2235,9 @@ proc handle_default_variants {option action {value ""}} {
                 set PortInfo(vinfo) {}
             }
             array set vinfo $PortInfo(vinfo)
-
+puts $value
             foreach v $value {
+		puts $v
                 if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant] && ![info exists variations($variant)]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {

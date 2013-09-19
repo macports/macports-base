@@ -1,0 +1,4 @@
+This test checks that an outdated statefile will cause a fresh build.
+
+There are 2 test cases, one that ensures the statefile gets discarded and another
+that ensures staging into destroot.

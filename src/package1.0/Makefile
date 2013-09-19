@@ -17,6 +17,10 @@ clean::
 distclean:: clean
 
 test::
+ifeq ($(shell id -u),0)
+	$(prefix)/bin/port sync
+endif
+	$(TCLSH) ./tests/test.tcl -nocolor
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}

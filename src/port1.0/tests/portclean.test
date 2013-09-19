@@ -1,0 +1,212 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../port_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+package require portclean 1.0
+source ../port_autoconf.tcl
+
+test clean_start {
+    Clean start unit test.
+} -constraints {
+    root
+} -body {
+    set prefix /opt/local
+    seteuid 333
+    if {[catch {clean_start args}] != 1} {
+	   return "FAIL: couldn't elevate privileges"
+    }
+    seteuid 0
+    return "Clean_start successful."
+} -result "Clean_start successful."
+
+
+# test clean_main
+
+
+test clean_dist {
+    Clean distfiles unit test.
+} -body {
+    set usealtworkpath no
+    set ports_force yes
+    set portdbpath $pwd/dbpath
+    set altprefix /tmp/altprefix
+    set dist_subdir subdir
+    set name subdir_name
+    set distpath $pwd/distpath
+    lappend distfiles $distpath/dist_file
+    lappend distfiles $distpath/dist_file2
+    set patchpath $pwd/patchpath
+    lappend patchfiles $patchpath/patch_file
+    lappend patchfiles $patchpath/patch_file2
+
+    # create files
+    file mkdir $distpath
+    close [open $distpath/dist_file w+]
+    close [open $distpath/dist_file2 w+]
+    file mkdir $altprefix$distpath
+    close [open $altprefix$distpath/dist_file2 w+]
+    file mkdir $portdbpath/distfiles/$dist_subdir
+    close [open $portdbpath/distfiles/$dist_subdir/subdir_file w+]
+    close [open $portdbpath/distfiles/$dist_subdir/subdir_$name w+]
+
+    # create patch files
+    file mkdir $patchpath
+    close [open $patchpath/patch_file2 w+]
+    file mkdir $altprefix$patchpath
+    close [open $altprefix$patchpath/patch_file2 w+]
+
+    portclean::clean_dist
+
+    if {[file exists $distpath/dist_file]} {
+	   return "FAIL: distfile not removed"
+    }
+    if {[file exists $distpath/dist_file2]} {
+	   return "FAIL: distfile not removed"
+    }
+    if {[file exists $altprefix$distpath/dist_file2]} {
+	   return "FAIL: alt distfile not removed"
+    }
+    if {[file exists $patchpath/patch_file2]} {
+	   return "FAIL: patchfile not removed"
+    }
+    if {[file exists $altprefix$patchpath/patch_file2]} {
+	   return "FAIL: alt patchfile not removed"
+    }
+    if {[file exists $portdbpath/distfiles/$dist_subdir]} {
+	   return "FAIL: distfiles dir not removed"
+    }
+
+    return "Clean distfiles successful."
+
+} -cleanup {
+    file delete -force $distpath
+    file delete -force $portdbpath
+    file delete -force $patchpath
+    file delete -force $altprefix
+
+} -result "Clean distfiles successful."
+
+
+test clean_work {
+    Clean work unit test.
+} -constraints {
+    root
+} -body {
+    set usealtworkpath no
+    set altprefix $pwd/prefix
+    set portpath portpath
+    set subbuildpath /subbuild
+    set worksymlink $pwd/symlink
+
+    # create files
+    file mkdir $subbuildpath
+    close [open $subbuildpath/test.work w+]
+    file mkdir $altprefix/subbuild
+    close [open $altprefix/subbuild/test.work w+]
+    close [open $altprefix/$portpath w+]
+    file link -symbolic $worksymlink $subbuildpath
+
+    portclean::clean_work
+
+    if {[file exists $subbuildpath]} {
+	   return "FAIL: buildpath not removed"
+    }
+    if {[file exists $altprefix/subbuild]} {
+	   return "FAIL: subbuild not removed"
+    }
+    if {[file exists $worksymlink]} {
+	   return "FAIL: symlink not removed"
+    }
+    if {[file exists $altprefix$portpath]} {
+	   return "FAIL: port dir in alt prefix not removed"
+    }
+
+    return "Clean work successful."
+
+} -cleanup {
+    file delete -force $subbuildpath
+    file delete -force $altprefix
+    file delete -force $worksymlink
+
+} -result "Clean work successful."
+
+
+test clean_logs {
+    Clean logs unit test.
+} -constraints {
+    root
+} -body {
+    set portpath $pwd/portpath
+    set logpath [getportlogpath $portpath]
+    set subport $logpath/subport
+
+    # create files
+    file mkdir $subport
+    close [open $subport/test.log w+]
+
+    portclean::clean_logs
+
+    if {[file exists $subport]} {
+	   return "FAIL: log dir not removed"
+    }
+    return "Clean logs successful."
+
+} -cleanup {
+    file delete -force $portpath
+    file delete -force $subport
+
+} -result "Clean logs successful."
+
+
+test clean_archive {
+    Clean archive unit test.
+} -body {
+    set subport subport
+    set portdbpath $pwd/dbpath
+
+    file mkdir $portdbpath/incoming
+    close [open $portdbpath/incoming/test.clean w+]
+    close [open $portdbpath/incoming/subport-1_0.0.0.0.TMP w+]
+
+    # create zip
+    set fd [open $pwd/+CONTENTS w+]
+    puts $fd "@portname subport"
+    close $fd
+    exec zip $portdbpath/incoming/subport-2_0.0.0.0.zip +CONTENTS
+
+    portclean::clean_archive
+
+    if {[file exists $portdbpath/incoming/subport-1_0.0.0.0.TMP]} {
+	   return "FAIL: .TMP file not removed"
+    }
+    if {![file exists $portdbpath/incoming/test.clean]} {
+	   return "FAIL: removed unrelated file"
+    }
+    if {[file exists $portdbpath/incoming/subport-2_0.0.0.0.zip]} {
+	   return "FAIL: zip archive not removed"
+    }
+
+    return "Clean archive successful."
+
+} -cleanup {
+    file delete -force $pwd/+CONTENTS
+    file delete -force $portdbpath
+
+} -result "Clean archive successful."
+
+
+cleanupTests

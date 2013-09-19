@@ -1,0 +1,84 @@
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file normalize $argv0]
+set pwd [eval file join {*}[lrange [file split $pwd] 0 end-1]]
+
+source ../package_test_autoconf.tcl
+source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+package require portmpkg 1.0
+package require portpkg 1.0
+
+
+test mpkg_main {
+    Port mpkg main unit test.
+} -setup {
+    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global subport version revision package.flat maintainers description categories
+    global supported_archs porturl
+    env_init
+
+    file mkdir $destpath
+    close [open $destpath/fondu-1_060102_1.pkg w+]
+
+} -body {
+    if {[portmpkg::mpkg_main] != 0} {
+		return "FAIL: cannot create pkg"
+    }
+    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/PkgInfo]} {
+		return "FAIL: missing PkgInfo file"
+    }
+    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Info.plist]} {
+		return "FAIL: missing Info.plist file"
+    }
+    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Resources]} {
+		return "FAIL: missing Resources dir"
+    }
+    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Packages/fondu-1_060102_1.pkg]} {
+		return "FAIL: missing pkg file"
+    }
+    return "Package mpkg successful."
+
+} -cleanup {
+    file delete -force $destpath
+
+} -result "Package mpkg successful."
+
+
+test make_dependency_list {
+    Make dependency list unit test.
+} -setup {
+    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global subport version revision package.flat maintainers description categories
+    global supported_archs porturl
+    env_init
+
+    set destination $pwd/destination
+} -body {
+    set res [portmpkg::make_dependency_list $subport $destination]
+    if { $res != "{fondu 0 060102 1 ditem_4}" } {
+		return "FAIL: invalid dependency list"
+    }
+    return "Dependency list successful."
+
+} -result "Dependency list successful."
+
+
+# Covered by mpkg_main
+# test make_one_package
+# test epoch_namestr
+# test revision_namestr
+# test package_mpkg
+
+
+cleanupTests

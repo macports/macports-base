@@ -16,8 +16,7 @@ endif
 pkgIndex.tcl: $(SRCS)
 
 test::
-	${TCLSH} tests/macports_dlist.tcl
-	${TCLSH} tests/macports_util.tcl
+	$(TCLSH) ./tests/test.tcl -nocolor
 
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
