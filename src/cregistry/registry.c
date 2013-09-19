@@ -189,19 +189,6 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         }
     }
     /* can_write is still true if one of the stat calls succeeded */
-    if (can_write) {
-        if (sb.st_uid == getuid()) {
-            if (!(sb.st_mode & S_IWUSR)) {
-                can_write = 0;
-            }
-        } else if (sb.st_gid == getgid()) {
-            if (!(sb.st_mode & S_IWGRP)) {
-                can_write = 0;
-            }
-        } else if (!(sb.st_mode & S_IWOTH) && getuid() != 0) {
-            can_write = 0;
-        }
-    }
     if (initialized || can_write) {
         sqlite3_stmt* stmt = NULL;
         char* query = sqlite3_mprintf("ATTACH DATABASE '%q' AS registry", path);
