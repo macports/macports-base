@@ -1,11 +1,20 @@
+# This Makefile will only be run on Darwin systems; we can safely use
+# Apple-specifics here
 OBJS=		darwintrace.o
 SHLIB_NAME=	darwintrace${SHLIB_SUFFIX}
 INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/darwintrace1.0
 
 include ../../Mk/macports.autoconf.mk
 
-CFLAGS+= -fPIC -Wno-deprecated-declarations
+# Yes, we know having $ signs in identifiers is not a very good idea; in the
+# case of darwintrace we still need them, though.
 CFLAGS_PEDANTIC=
+# The /l?stat64/ functions are deprecated sind 10.6. We know that, but still
+# want to use them anyway.
+# Build darwintrace for universal archs so support all binaries this system can
+# run.
+CFLAGS+= -fPIC -Wno-deprecated-declarations ${UNIVERSAL_ARCHFLAGS}
+SHLIB_LDFLAGS+=${UNIVERSAL_ARCHFLAGS}
 
 all:: ${SHLIB_NAME}
 
