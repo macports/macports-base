@@ -19,17 +19,17 @@ test dlist_match_multi {
 } -setup {
     set mport [mportopen file://.]
     set crit {
-	   provides fondu
-	   porturl file://.
+       provides fondu
+       porturl file://.
     }
     set crit2 { provides fondu2 }
 
 } -body {
     if {[dlist_match_multi $mport $crit] != $mport} {
-	   return "FAIL: correct dlist not matched"
+       return "FAIL: correct dlist not matched"
     }
     if {[dlist_match_multi $mport $crit2] != ""} {
-	   return "FAIL: incorrect dlist matched"
+       return "FAIL: incorrect dlist matched"
     }
     return "dlist match successful."
 } -cleanup {
@@ -43,10 +43,10 @@ test dlist_search {
     set mport [mportopen file://.]
 } -body {
     if {[dlist_search $mport provides fondu] != $mport} {
-	   return "FAIL: matching item not found"
+       return "FAIL: matching item not found"
     }
     if {[dlist_search $mport provides fondu2] != ""} {
-	   return "FAIL: wrong item detected"
+       return "FAIL: wrong item detected"
     }
     return "dlist successful."
 } -cleanup {
@@ -62,10 +62,10 @@ test dlist_delete {
     lappend dlist $mport
 } -body {
     if {[dlist_delete dlist $mport] != ""} {
-	   return "FAIL: cannot run dlist_delete"
+       return "FAIL: cannot run dlist_delete"
     }
     if {$dlist != ""} {
-	   return "FAIL: port not removed from list"
+       return "FAIL: port not removed from list"
     }
     return "Dlist delete successful."
 } -cleanup {
@@ -79,10 +79,10 @@ test dlist_has_pending {
     set mport [mportopen file://.]
 } -body {
     if {[dlist_has_pending $mport fondu] != 1} {
-	   return "FAIL: not detected"
+       return "FAIL: not detected"
     }
     if {[dlist_has_pending $mport provides] != 0} {
-	   return "FAIL: incorrect detected"
+       return "FAIL: incorrect detected"
     }
     return "dlist pending successful."
 } -cleanup {
@@ -95,14 +95,14 @@ test dlist_count_unmet {
 } -setup {
     set mport [mportopen file://.]
     array set statusdict {
-	   vara 0
-	   varb 0
-	   varc 1
+       vara 0
+       varb 0
+       varc 1
     }
     set tokens {vara varb vard}
 } -body {
     if {[dlist_count_unmet $mport statusdict $tokens] != 3} {
-	   return "FAIL: wrong unmet number"
+       return "FAIL: wrong unmet number"
     }
     return "count unmet successful."
 } -cleanup {
@@ -120,10 +120,10 @@ test ditem_key {
     set mport [mportopen file://.]
 } -body {
     if {[ditem_key $mport {provides}] != "fondu"} {
-	   return "FAIL: wrong key value"
+       return "FAIL: wrong key value"
     }
     if {[ditem_key $mport {wants}] != ""} {
-	   return "FAIL: wrong key detected"
+       return "FAIL: wrong key detected"
     }
     return "ditem key successful."
 } -cleanup {
@@ -143,7 +143,7 @@ test dlist_append_dependents {
     set result {fondu2}
 } -body {
     if {[dlist_append_dependents $mport provides $result] != {fondu2 provides}} {
-	   return "FAIL: wrong depends"
+       return "FAIL: wrong depends"
     }
     return "Append depends successful."
 } -cleanup {
@@ -158,7 +158,7 @@ test dlist_get_next {
     set dict {fondu}
 } -body {
     if {[dlist_get_next $mport $dict] != $mport} {
-	   return "FAIL: wrong dlist"
+       return "FAIL: wrong dlist"
     }
     return "dlist get next successful."
 } -cleanup {
@@ -171,16 +171,16 @@ test dlist_eval {
 } -setup {
     set mport [mportopen file://.]
     proc cond {arg} {
-	   if {[string match "ditem_*" $arg] != 0} {
+       if {[string match "ditem_*" $arg] != 0} {
             return 0
-	   } else {
+       } else {
             return 1
-	   }
+       }
     }
     proc handler {arg} {}
 } -body {
     if {[dlist_eval $mport cond handler] != ""} {
-	   return "FAIL: wrong value returned"
+       return "FAIL: wrong value returned"
     }
     return "dlist eval successful."
 } -cleanup {
@@ -201,10 +201,10 @@ test ditem_contains {
     set mport [mportopen file://.]
 } -body {
     if {[ditem_contains $mport provides] != 1} {
-	   return "FAIL: valid key not detected"
+       return "FAIL: valid key not detected"
     }
     if {[ditem_contains $mport wants] != 0} {
-	   return "FAIL: invalid key detected"
+       return "FAIL: invalid key detected"
     }
     return "ditem contains successful."
 } -cleanup {
