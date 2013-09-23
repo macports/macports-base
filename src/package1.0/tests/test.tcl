@@ -72,7 +72,7 @@ foreach arg $argv {
 
 # Run tests
 if { $test_name != ""} {
-    set result [eval exec $tcl $test_name $arguments]
+    set result [eval exec $tcl $test_name $arguments 2>@stderr]
     puts $result
 
 } else {

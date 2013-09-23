@@ -91,14 +91,14 @@ foreach arg $argv {
 if { $test_name != ""} {
     cd test/$test_name
 
-    set result [eval exec $tcl test.tcl $arguments]
+    set result [eval exec $tcl test.tcl $arguments 2>@stderr]
     puts $result
 
 } else {
     foreach test $test_suite {
         cd test/$test
     
-        set result [eval exec $tcl test.tcl $arguments]
+        set result [eval exec $tcl test.tcl $arguments 2>@stderr]
         set lastline [lindex [split $result "\n"] end]
 
         if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
