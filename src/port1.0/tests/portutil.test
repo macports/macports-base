@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 package require tcltest 2
 namespace import tcltest::*
 
@@ -55,18 +57,18 @@ proc init_eval_targets {} {
     set mport [mportopen file://.]
 
     proc getportbuildpath {id {portname ""}} {
-		global portdbpath
-		regsub {://} $id {.} port_path
-		regsub -all {/} $port_path {_} port_path
-		return [file join $portdbpath build $port_path $portname]
+        global portdbpath
+        regsub {://} $id {.} port_path
+        regsub -all {/} $port_path {_} port_path
+        return [file join $portdbpath build $port_path $portname]
     }
 
     proc getportworkpath_from_buildpath {portbuildpath} {
-		return [file join $portbuildpath work]
+        return [file join $portbuildpath work]
     }
 
     proc getportworkpath_from_portdir {portpath {portname ""}} {
-		return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
+        return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
     }
 
     source $pwd/../portutil.tcl
@@ -158,10 +160,10 @@ test handle_option-delete {
 test handle_option-strsed {
     Handle_option strsed unit test.
 } -body {
-	unset user_options
+    unset user_options
     array set user_options { opt options }
     if {[handle_option-strsed opt b] != ""} {return "FAIL: invalid result"}
-	return "Handle_option-strsed successful."
+    return "Handle_option-strsed successful."
 } -result "Handle_option-strsed successful."
 
 
@@ -284,7 +286,7 @@ test reinplace {
     catch {set f [open $file r]}
     set cont [read -nonewline $f]
     if { $cont != "MacPorts reinplace unit test?" } {
-		return "FAIL: reinplace no args."
+        return "FAIL: reinplace no args."
     }
     close $f
 
@@ -292,7 +294,7 @@ test reinplace {
     catch {set f [open $file r]}
     set cont [read -nonewline $f]
     if { $cont != "MacPorts reinplace unit testing?" } {
-		return "FAIL: reinplace (-E) extended regex."
+        return "FAIL: reinplace (-E) extended regex."
     }
     close $f
 
@@ -300,7 +302,7 @@ test reinplace {
     catch {set f [open $second/file r]}
     set cont [read -nonewline $f]
     if { $cont != "MP reinplace unit test?" } {
-		return "FAIL: reinplace (-W) relative path."
+        return "FAIL: reinplace (-W) relative path."
     }
     close $f
 
@@ -308,7 +310,7 @@ test reinplace {
     catch {set f [open $file r]}
     set cont [read -nonewline $f]
     if { $cont != "" } {
-		return "FAIL: reinplace (-n) suppress output."
+        return "FAIL: reinplace (-n) suppress output."
     }
     close $f
 
@@ -416,34 +418,34 @@ test ln {
     ln -s dir $root/b
     ln -s a $root/b
     if {[catch {file type $root/dir/a}] || [file type $root/dir/a] ne "link"} {
-		return "FAIL: directory ln failed."
+        return "FAIL: directory ln failed."
     }
     file delete $root/dir/a
 
     ln -s -f -h a $root/b
     if {[catch {file type $root/b}] || [file type $root/b] ne "link" || [file readlink $root/b] ne "a"} {
-		return "FAIL: readlink error."
+        return "FAIL: readlink error."
     }
 
     cd $root/dir
     ln -s ../c
     if {[catch {file type $root/dir/c}] || [file type $root/dir/c] ne "link"} {
-		return "FAIL: ln failed."
+        return "FAIL: ln failed."
     }
 
     ln -s foobar $root/d
     if {[catch {file type $root/d}] || [file type $root/d] ne "link" || [file readlink $root/d] ne "foobar"} {
-		return "FAIL: readlink error."
+        return "FAIL: readlink error."
     }
 
     ln -s -f -h z $root/dir
     if {[catch {file type $root/dir/z}] || [file type $root/dir/z] ne "link"} {
-		return "FAIL: ln failed."
+        return "FAIL: ln failed."
     }
 
     ln -sf q $root/dir
     if {[catch {file type $root/dir/q}] || [file type $root/dir/q] ne "link"} {
-		return "FAIL: error combined ln flags."
+        return "FAIL: error combined ln flags."
     }
     return "Files successfully linked."
 
@@ -475,16 +477,16 @@ test unobscure_maintainers {
 } -body {
     set list { port }
     if { [unobscure_maintainers $list] != "port@macports.org" } {
-		return "FAIL: invalid maintainer name"
+        return "FAIL: invalid maintainer name"
     }
     set list { google.com:port }
     if { [unobscure_maintainers $list] != "port@google.com" } {
-		return "FAIL: invalid maintainer name"
+        return "FAIL: invalid maintainer name"
     }
 
     set list { port@google.com }
     if { [unobscure_maintainers $list] != "port@google.com" } {
-		return "FAIL: invalid maintainer name"
+        return "FAIL: invalid maintainer name"
     }
     return "unobscure_maintainers successful."
 } -result "unobscure_maintainers successful."
@@ -498,17 +500,17 @@ test eval_targets {
     Evaluate targets unit test.
 } -setup {
     init_eval_targets
-	set patchfiles {file.diff}
+    set patchfiles {file.diff}
 
-	file mkdir $filespath
+    file mkdir $filespath
     set fd [open $filespath/file.diff w+]
     puts $fd "first line should get to the workpath"
     close $fd
 
     # sets up PortInfo array
     if {[eval_variants variations] != 0} {
-		mportclose $mport
-		error "Error evaluating variants"
+        mportclose $mport
+        error "Error evaluating variants"
     }
 
     set epoch $PortInfo(epoch)
@@ -519,10 +521,10 @@ test eval_targets {
 
 } -body {
     if {[$workername eval catch {eval_targets macport}] != 1} {
-		return "FAIL: invalid target detected"
+        return "FAIL: invalid target detected"
     }
     if {[$workername eval eval_targets checksum] != 0} {
-		return "FAIL: valid target not detected"
+        return "FAIL: valid target not detected"
     }
     return "Eval_targets successful."
 
@@ -542,7 +544,7 @@ test get_statefile_value {
 
     set res [catch {get_statefile_value target $fd result}]
     if {$res != 0 || $result != "org.macports.fetch"} {
-		return "FAIL: invalid value"
+        return "FAIL: invalid value"
     }
     return "Get statefile value successful."
 } -result "Get statefile value successful."
@@ -581,15 +583,15 @@ test check_statefile_variants {
     Check statefile unit test.
 } -setup {
     array set variations {
-	target org.macports.fetch
-	target org.macports.checksum
+    target org.macports.fetch
+    target org.macports.checksum
     }
     array set oldvariations {
-	target org.macports.fetch
-	target org.macports.checksum
+    target org.macports.fetch
+    target org.macports.checksum
     }
     array set oldvariations_fail {
-	target org.macports.patch
+    target org.macports.patch
     }
     set fd [open $pwd/statefile r]
 
@@ -615,15 +617,15 @@ test choose_variants {
 } -body {
     set res [choose_variants $mport variations]
     if {[lindex $res 1] != "" && [lindex $res 0] != "ditem_1"} {
-		return "FAIL: invalid variations"
+        return "FAIL: invalid variations"
     }
     set res [choose_variants $mport variations_neg]
     if {[lindex $res 0] != "" && [lindex $res 1] != "ditem_1"} {
-		return "FAIL: invalid variations"
+        return "FAIL: invalid variations"
     }
     set res [choose_variants $mport variations_not]
     if {[lindex $res 0] != "" && [lindex $res 1] != ""} {
-		return "FAIL: invalid variations"
+        return "FAIL: invalid variations"
     }
     return "Choose variant successful."
 } -result "Choose variant successful."
@@ -632,13 +634,13 @@ test choose_variants {
 test variant_run {
     Variant run unit test. Executes proc with same name as variant.
 } -setup {
-	proc variant-var {} { set var test }
+    proc variant-var {} { set var test }
     set ditem [variant_new var]
     set name [ditem_key $ditem name]
 
 } -body {
     if {[catch {variant_run $ditem}] != 0} {
-		return "FAIL: unable to run variant name proc"
+        return "FAIL: unable to run variant name proc"
     }
     return "Variant run successful."
 } -cleanup {
@@ -652,10 +654,10 @@ test canonicalize_variants {
 } -body {
     set arr {c + b - d +}
     if {[canonicalize_variants $arr +] != "+c+d"} {
-		return "FAIL: incorrect string"
+        return "FAIL: incorrect string"
     }
     if {[canonicalize_variants $arr -] != "-b"} {
-		return "FAIL: incorrect string"
+        return "FAIL: incorrect string"
     }
     return "Canonicalize variants successful."
 } -result "Canonicalize variants successful."
@@ -672,7 +674,7 @@ test universal_setup {
     set ditem [variant_new new-variant]
 
     if {[catch {universal_setup}] != 0} {
-		return "FAIL: universal variant not set"
+        return "FAIL: universal variant not set"
     }
     return "Universal_setup successful."
 } -result "Universal_setup successful."
@@ -696,7 +698,7 @@ test variant_new {
 } -body {
     set ditem [variant_new new-variant]
     if {[ditem_key $ditem name] != "new-variant"} {
-		return "FAIL: error building new variant"
+        return "FAIL: error building new variant"
     }
     return "Variant new successful."
 } -result "Variant new successful."
@@ -706,16 +708,16 @@ test handle_default_variants {
     Handle default variants unit test.
 } -body {
     array set variations {
-		target.run org.macports.checksum
+        target.run org.macports.checksum
     }
 
     set res [handle_default_variants target set {+org -org2}]
 
     if {[lindex $PortInfo(vinfo) 0] != "org" || [lindex $PortInfo(vinfo) 1] != "is_default +"} {
-		return "FAIL: default variant not set"
+        return "FAIL: default variant not set"
     }
     if {[lindex $PortInfo(vinfo) 2] != "org2" || [lindex $PortInfo(vinfo) 3] != "is_default -"} {
-		return "FAIL: nondefault variant not set"
+        return "FAIL: nondefault variant not set"
     }
 
     return "Handle default variant successful."
@@ -736,7 +738,7 @@ test dirSize {
     file mkdir $pwd/test.dir
     file copy -force $pwd/statefile $pwd/test.dir
     if {[dirSize $pwd/test.dir] != 155} {
-		return "FAIL: wrong dir size"
+        return "FAIL: wrong dir size"
     }
     return "Directory size calculated successfully."
 
@@ -751,6 +753,7 @@ test set_ui_prefix {
     set env(UI_PREFIX) MacPorts
     set_ui_prefix
     if {$UI_PREFIX != "MacPorts"} {return "FAIL: incorrect prefix"}
+
     unset env(UI_PREFIX)
     set_ui_prefix
     if {$UI_PREFIX != "---> "} {return "FAIL; default prefix not set"}
@@ -764,19 +767,19 @@ test set_ui_prefix {
 test get_portimage_name {
     Get portimage name unit test.
 } -body {
-	set os.platform darwin
+    set os.platform darwin
     set version 1.0
     set os.major 10
-	set revision 2
+    set revision 2
     set configure.build_arch no
     set portarchivetype tgz
     set subport testport
-	set portvariants {var1}
-	set supported_archs {}
+    set portvariants {var1}
+    set supported_archs {}
 
     set res [get_portimage_name]
     if {$res != "testport-1.0_2var1.darwin_10.no.tgz"} {
-		return "FAIL: invalid portimage_name"
+        return "FAIL: invalid portimage_name"
     }
     return "Get portimage_name successful."
 } -result "Get portimage_name successful."
@@ -785,16 +788,16 @@ test get_portimage_name {
 test get_portimage_path {
     Get portimage path unit test. Calls get_portimage_name.
 } -body {
-	set os.platform darwin
+    set os.platform darwin
     set portdbpath dbpath
     set subport subport
-	set revision 2
-	set portvariants {var1}
-	set supported_archs {}
+    set revision 2
+    set portvariants {var1}
+    set supported_archs {}
 
     set res [get_portimage_path]
     if {$res != "dbpath/software/subport/subport-1.0_2var1.darwin_10.no.tgz"} {
-		return "FAIL: invalid portimage_path"
+        return "FAIL: invalid portimage_path"
     }
     return "Get portimage_path successful."
 } -result "Get portimage_path successful."
@@ -807,15 +810,15 @@ test supportedArchiveTypes {
     set archives [supportedArchiveTypes]
 
     foreach archive $archives {
-		if {$archive == "xar" && ![file exists ${portutil::autoconf::xar_path}]} {
-	    	return "FAIL: xar detected but inexistent"
-		}
-		if {$archive == "zip" && ![file exists ${portutil::autoconf::zip_path}]} {
-	    	return "FAIL: zip detected but inexistent"
-		}
-		if {$archive == "cpio" && ![file exists ${portutil::autoconf::cpio_path}]} {
-	    	return "FAIL: cpio detected but inexistent"
-		}
+        if {$archive == "xar" && ![file exists ${portutil::autoconf::xar_path}]} {
+            return "FAIL: xar detected but inexistent"
+        }
+        if {$archive == "zip" && ![file exists ${portutil::autoconf::zip_path}]} {
+            return "FAIL: zip detected but inexistent"
+        }
+        if {$archive == "cpio" && ![file exists ${portutil::autoconf::cpio_path}]} {
+            return "FAIL: cpio detected but inexistent"
+        }
     }
     return "Supported archives successful."
 } -result "Supported archives successful."

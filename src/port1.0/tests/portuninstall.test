@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 package require tcltest 2
 namespace import tcltest::*
 
@@ -12,12 +14,11 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
-source ./library.tcl
-macports_worker_init
-
-source ../portinstall.tcl
+package require portinstall 1.0
 source ../../registry2.0/portuninstall.tcl
 source ../port_autoconf.tcl
+source ./library.tcl
+macports_worker_init
 
 set subport fondu
 set version 3.0
@@ -30,60 +31,60 @@ set revision 2
 test uninstall_main {
     Uninstall main unit test.
 } -constraints {
-	root
+    root
 
 } -setup {
-	set workpath $pwd/work
-	set portpath $pwd
-	set portdbpath $pwd/dbpath
-	set portbuildpath $pwd
-	set destpath $pwd/work/destroot
-	set portvariants {+var1}
+    set workpath $pwd/work
+    set portpath $pwd
+    set portdbpath $pwd/dbpath
+    set portbuildpath $pwd
+    set destpath $pwd/work/destroot
+    set portvariants {+var1}
 
-	set epoch i386
-	set compiler.cpath /usr/bin/gcc
-	set compiler.library_path /usr/lib
+    set epoch i386
+    set compiler.cpath /usr/bin/gcc
+    set compiler.library_path /usr/lib
 
-	# destroot setup
-	file mkdir $pwd/$subport
-	set mport [mportopen file://.]
+    # destroot setup
+    file mkdir $pwd/$subport
+    set mport [mportopen file://.]
 
-	if {[eval_variants variations] != 0} {
-    	mportclose $mport
-    	error "Error evaluating variants"
-	}
+    if {[eval_variants variations] != 0} {
+        mportclose $mport
+        error "Error evaluating variants"
+    }
 
-	# set $version var
-	set workername [ditem_key $mport workername]
+    # set $version var
+    set workername [ditem_key $mport workername]
 
-	# run destroot
-	if {[$workername eval eval_targets destroot] != 0} {
-		return "FAIL: destroot failed"
-	}
+    # run destroot
+    if {[$workername eval eval_targets destroot] != 0} {
+        return "FAIL: destroot failed"
+    }
 
-	# portinstall setup
-	interp alias {} _cd {} cd
+    # portinstall setup
+    interp alias {} _cd {} cd
 
-	# hide all output. Deactivate this for debugging!
-	set oldchannels [array get macports::channels]
-	set macports::channels(msg)    {}
-	set macports::channels(notice) {}
-	
-	if {[$workername eval eval_targets install] != 0} {
-		return "FAIL: cannot install port"
+    # hide all output. Deactivate this for debugging!
+    set oldchannels [array get macports::channels]
+    set macports::channels(msg)    {}
+    set macports::channels(notice) {}
+    
+    if {[$workername eval eval_targets install] != 0} {
+        return "FAIL: cannot install port"
     }
 
 } -body {
-	if {[$workername eval eval_targets uninstall] != 0} {
-		return "FAIL: uninstall failed"
-	}
+    if {[$workername eval eval_targets uninstall] != 0} {
+        return "FAIL: uninstall failed"
+    }
     return "Uninstall main successful."
 
 } -cleanup {
-	if {[$workername eval eval_targets clean] != 0} {
-    	return "FAIL: clean failed"
-	}
-	
+    if {[$workername eval eval_targets clean] != 0} {
+        return "FAIL: clean failed"
+    }
+    
     file delete -force $pwd/$subport
     file delete -force $portdbpath
     file delete -force $pwd/work

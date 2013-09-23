@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 package require tcltest 2
 namespace import tcltest::*
 
@@ -12,11 +14,11 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
+package require portclean 1.0
+source ../port_autoconf.tcl
 source ./library.tcl
 macports_worker_init
 
-package require portclean 1.0
-source ../port_autoconf.tcl
 
 test clean_start {
     Clean start unit test.
@@ -26,7 +28,7 @@ test clean_start {
     set prefix /opt/local
     seteuid 333
     if {[catch {clean_start args}] != 1} {
-	   return "FAIL: couldn't elevate privileges"
+       return "FAIL: couldn't elevate privileges"
     }
     seteuid 0
     return "Clean_start successful."
@@ -71,22 +73,22 @@ test clean_dist {
     portclean::clean_dist
 
     if {[file exists $distpath/dist_file]} {
-	   return "FAIL: distfile not removed"
+       return "FAIL: distfile not removed"
     }
     if {[file exists $distpath/dist_file2]} {
-	   return "FAIL: distfile not removed"
+       return "FAIL: distfile not removed"
     }
     if {[file exists $altprefix$distpath/dist_file2]} {
-	   return "FAIL: alt distfile not removed"
+       return "FAIL: alt distfile not removed"
     }
     if {[file exists $patchpath/patch_file2]} {
-	   return "FAIL: patchfile not removed"
+       return "FAIL: patchfile not removed"
     }
     if {[file exists $altprefix$patchpath/patch_file2]} {
-	   return "FAIL: alt patchfile not removed"
+       return "FAIL: alt patchfile not removed"
     }
     if {[file exists $portdbpath/distfiles/$dist_subdir]} {
-	   return "FAIL: distfiles dir not removed"
+       return "FAIL: distfiles dir not removed"
     }
 
     return "Clean distfiles successful."
@@ -122,16 +124,16 @@ test clean_work {
     portclean::clean_work
 
     if {[file exists $subbuildpath]} {
-	   return "FAIL: buildpath not removed"
+       return "FAIL: buildpath not removed"
     }
     if {[file exists $altprefix/subbuild]} {
-	   return "FAIL: subbuild not removed"
+       return "FAIL: subbuild not removed"
     }
     if {[file exists $worksymlink]} {
-	   return "FAIL: symlink not removed"
+       return "FAIL: symlink not removed"
     }
     if {[file exists $altprefix$portpath]} {
-	   return "FAIL: port dir in alt prefix not removed"
+       return "FAIL: port dir in alt prefix not removed"
     }
 
     return "Clean work successful."
@@ -160,7 +162,7 @@ test clean_logs {
     portclean::clean_logs
 
     if {[file exists $subport]} {
-	   return "FAIL: log dir not removed"
+       return "FAIL: log dir not removed"
     }
     return "Clean logs successful."
 
@@ -190,13 +192,13 @@ test clean_archive {
     portclean::clean_archive
 
     if {[file exists $portdbpath/incoming/subport-1_0.0.0.0.TMP]} {
-	   return "FAIL: .TMP file not removed"
+       return "FAIL: .TMP file not removed"
     }
     if {![file exists $portdbpath/incoming/test.clean]} {
-	   return "FAIL: removed unrelated file"
+       return "FAIL: removed unrelated file"
     }
     if {[file exists $portdbpath/incoming/subport-2_0.0.0.0.zip]} {
-	   return "FAIL: zip archive not removed"
+       return "FAIL: zip archive not removed"
     }
 
     return "Clean archive successful."
