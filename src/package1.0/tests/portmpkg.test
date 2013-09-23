@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 package require tcltest 2
 namespace import tcltest::*
 
@@ -12,11 +14,10 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
-source ./library.tcl
-macports_worker_init
-
 package require portmpkg 1.0
 package require portpkg 1.0
+source ./library.tcl
+macports_worker_init
 
 
 test mpkg_main {
@@ -32,19 +33,19 @@ test mpkg_main {
 
 } -body {
     if {[portmpkg::mpkg_main] != 0} {
-		return "FAIL: cannot create pkg"
+        return "FAIL: cannot create pkg"
     }
     if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/PkgInfo]} {
-		return "FAIL: missing PkgInfo file"
+        return "FAIL: missing PkgInfo file"
     }
     if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Info.plist]} {
-		return "FAIL: missing Info.plist file"
+        return "FAIL: missing Info.plist file"
     }
     if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Resources]} {
-		return "FAIL: missing Resources dir"
+        return "FAIL: missing Resources dir"
     }
     if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Packages/fondu-1_060102_1.pkg]} {
-		return "FAIL: missing pkg file"
+        return "FAIL: missing pkg file"
     }
     return "Package mpkg successful."
 
@@ -66,7 +67,7 @@ test make_dependency_list {
 } -body {
     set res [portmpkg::make_dependency_list $subport $destination]
     if { $res != "{fondu 0 060102 1 ditem_4}" } {
-		return "FAIL: invalid dependency list"
+        return "FAIL: invalid dependency list"
     }
     return "Dependency list successful."
 

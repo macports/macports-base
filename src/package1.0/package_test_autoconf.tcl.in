@@ -35,3 +35,7 @@ namespace eval macports::autoconf {
     variable macports_tcl_dir "@macports_tcl_dir@"
     variable prefix "@prefix@"
 }
+
+namespace eval portutil::autoconf {
+    variable hdiutil_path "@HDIUTIL@"
+}

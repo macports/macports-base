@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil;  c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 package require tcltest 2
 namespace import tcltest::*
 
@@ -12,11 +14,9 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
+package require portdmg 1.0
 source ./library.tcl
 macports_worker_init
-
-source ../portdmg.tcl
-source ../../port1.0/port_autoconf.tcl
 
 
 # test dmg_main
@@ -39,13 +39,13 @@ test package_dmg {
 
 } -body {
     if {[portdmg::dmg_main] != 0} {
-	return "FAIL: cannot create dmg"
+        return "FAIL: cannot create dmg"
     }
     if {![file exists $pwd/pkg/fondu-060102-1.dmg]} {
-	return "FAIL: missing .dmg file"
+        return "FAIL: missing .dmg file"
     }
     if {![file exists $pwd/pkg/fondu-060102-1/fondu-060102.pkg]} {
-	return "FAIL: invalid package.destpath"
+        return "FAIL: invalid package.destpath"
     }
     return "Package dmg successful."
 
