@@ -663,6 +663,7 @@ MD5_LIBS
 READLINK_IS_NOT_P1003_1A
 ac_cv_func_strlcat
 CPP
+UNIVERSAL_ARCHFLAGS
 UNIVERSAL_ARCHS
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
@@ -8133,10 +8134,16 @@ fi
     esac
   fi
 
+  UNIVERSAL_ARCHFLAGS=
+  for arch in $UNIVERSAL_ARCHS; do
+    UNIVERSAL_ARCHFLAGS="$UNIVERSAL_ARCHFLAGS -arch $arch"
+  done
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Universal CPU architectures" >&5
 $as_echo_n "checking for Universal CPU architectures... " >&6; }
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $UNIVERSAL_ARCHS" >&5
 $as_echo "$UNIVERSAL_ARCHS" >&6; }
+
 
 
 
