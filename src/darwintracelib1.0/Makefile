@@ -9,7 +9,7 @@ include ../../Mk/macports.autoconf.mk
 # Yes, we know having $ signs in identifiers is not a very good idea; in the
 # case of darwintrace we still need them, though.
 CFLAGS_PEDANTIC=
-# The /l?stat64/ functions are deprecated sind 10.6. We know that, but still
+# The /l?stat64/ functions are deprecated since 10.6. We know that, but still
 # want to use them anyway.
 # Build darwintrace for universal archs so support all binaries this system can
 # run.
