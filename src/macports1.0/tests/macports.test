@@ -464,8 +464,31 @@ test create_thread {
 } -result "Create thread successful."
 
 
-# test get_tar_flags
-# test fetch_port
+test get_tar_flags {
+    Get tar flags unit test.
+} -body {
+    if {[macports::get_tar_flags .tbz2] != "-j"} {
+	return "FAIL: wrong flaga (-j)"
+    }
+    if {[macports::get_tar_flags .tgz] != "-z"} {
+	return "FAIL: wrong flaga (-z)"
+    }
+    return "Get tar flags successful."
+} -result "Get tar flags successful."
+
+
+test fetch_port {
+    Fetch port unit test.
+} -body {
+    set url http://packages.macports.org/fondu/fondu-060102_1.darwin_10.x86_64.tbz2
+    set res [macports::fetch_port $url]
+    if {$res != "${pwd}/portdbpath/portdirs/fondu-060102_1"} {
+	return "FAIL: cannot fetch port"
+    }
+    return "Fetch port successful."
+} -cleanup {
+    file delete -force $pwd/portdbpath
+} -result "Fetch port successful."
 
 
 test getprotocol {
@@ -478,7 +501,26 @@ test getprotocol {
 } -result "Get protocol successful."
 
 
-# test getportdir
+test getportdir {
+    Get port directory unit test.
+} -setup {
+    close [open $pwd/local_file w+]
+} -body {
+    set url http://fondu.sourceforge.net/fondu_src-060102.tgz
+    set res [macports::getportdir $url]
+    if {$res != "${pwd}/portdbpath/portdirs/fondu_src-060102"} {
+	return "FAIL: invalid port directory"
+    }
+
+    set url file://${pwd}/local_file
+    if {[macports::getportdir $url] != "${pwd}/local_file"} {
+	return "FAIL: invalid local port directory"
+    }
+    return "Get port dir successful."
+} -cleanup {
+    file delete -force $pwd/portdbpath
+    file delete -force $pwd/local_file
+} -result "Get port dir successful."
 
 
 test getportresourcepath {
