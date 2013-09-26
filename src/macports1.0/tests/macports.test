@@ -10,6 +10,9 @@ source ../macports_test_autoconf.tcl
 source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
 
+# clean leftovers from interrupted tests
+file delete -force $pwd/tmpdir
+
 # use custom macports.conf and sources.conf
 makeDirectory $pwd/tmpdir
 makeDirectory $pwd/tmpdir/share
@@ -44,8 +47,9 @@ macports_worker_init
 
 test mportclose {
     Mport close unit test.
-} -body {
+} -setup {
     set mport [mportopen file://.]
+} -body {
     if {[catch {mportclose $mport}] != 0} {
        return "FAIL: cannot run mportclose"
     }
@@ -53,6 +57,8 @@ test mportclose {
        return "FAIL: port not closed"
     }
     return "Mport close successful."
+} -cleanup {
+    catch {mportclose $mport}
 } -result "Mport close successful."
 
 
@@ -255,8 +261,8 @@ test push_log {
     root
 } -setup {
     set mport [mportopen file://.]
-} -body {
     set ::logenabled 1
+} -body {
     if {[catch {macports::push_log $mport}] != 0} {
        return "FAIL: cannot push log"
     }
@@ -305,16 +311,24 @@ test binaryInPath {
 } -result "Binary in path successful."
 
 
-# test getoption
+test getoption {
+    Get option unit test.
+} -body {
+    set macports::test macports
+    if {[macports::getoption test] != "macports"} {
+	return "FAIL: cannot get option"
+    }
+    return "Get option successful."
+} -result "Get option successful."
 
 
 test setxcodeinfo {
     Set XCode info unit test.
 } -constraints {
     root
-} -body {
+} -setup {
     unset macports::xcodeversion
-
+} -body {
     if {[macports::setxcodeinfo a b c] != ""} {
        return "FAIL: xcode binary not found"
     }
