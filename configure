@@ -2949,7 +2949,7 @@ $as_echo "$MACOSX_VERSION" >&6; }
 fi
 
 case "$MACOSX_VERSION" in
-  10.0*|10.1*|10.2*|10.3*)
+  10.0*|10.1|10.1.*|10.2*|10.3*)
     as_fn_error $? "This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/" "$LINENO" 5
     ;;
@@ -8125,6 +8125,9 @@ fi
 
   if test "x$UNIVERSAL_ARCHS" = "x"; then
     case "$MACOSX_VERSION" in
+      10.1[0-9]*)
+        UNIVERSAL_ARCHS="x86_64 i386"
+        ;;
       10.[0-5]*)
         UNIVERSAL_ARCHS="i386 ppc"
         ;;

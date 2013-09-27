@@ -28,7 +28,7 @@ if test "x$SW_VERS" != "x"; then
 fi
 
 case "$MACOSX_VERSION" in
-  10.0*|10.1*|10.2*|10.3*)
+  10.0*|10.1|10.1.*|10.2*|10.3*)
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
