@@ -3,6 +3,10 @@
 # $Id$
 ###
 
+Release 2.3 (unreleased)
+    - Add -prepend command for options (similar to existing -append
+      command) (#40655, ryandesign in r111990)
+
 Release 2.2.1 (unreleased)
     - Provide choice of GCC version when compiling with DragonEgg.
       (larryv in r108040)
