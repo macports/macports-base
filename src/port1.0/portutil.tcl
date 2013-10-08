@@ -114,6 +114,23 @@ proc handle_option-append {option args} {
 }
 
 ##
+# Handle option-prepend
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-prepend {option args} {
+    global $option user_options option_procs
+
+    if {![info exists user_options($option)]} {
+        if {[info exists $option]} {
+            set $option [concat $args [set $option]]
+        } else {
+            set $option $args
+        }
+    }
+}
+
+##
 # Handle option-delete
 #
 # @param option name of the option
@@ -188,6 +205,7 @@ proc options {args} {
     foreach option $args {
         interp alias {} $option {} handle_option $option
         interp alias {} $option-append {} handle_option-append $option
+        interp alias {} $option-prepend {} handle_option-prepend $option
         interp alias {} $option-delete {} handle_option-delete $option
         interp alias {} $option-strsed {} handle_option-strsed $option
         interp alias {} $option-replace {} handle_option-replace $option
