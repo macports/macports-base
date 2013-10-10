@@ -204,7 +204,7 @@ proc portlint::lint_main {args} {
             set require_after "PortSystem"
         }
         if {[string match "PortGroup*" $line]} {
-            regexp {PortGroup\s+([a-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
+            regexp {PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
@@ -271,7 +271,7 @@ proc portlint::lint_main {args} {
     
             if {!$hashline
                     && ![regexp {^\s*PortSystem|^\s*PortGroup|^\s*version} $line]
-                    && ![regexp {^\s*[a-z0-9]+\.setup} $line]
+                    && ![regexp {^\s*[A-Za-z0-9_]+\.setup} $line]
                     && [string first [option version] $line] != -1} {
                 ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
                 incr warnings
