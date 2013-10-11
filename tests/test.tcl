@@ -37,7 +37,7 @@ while {[gets $fp line] != -1} {
 
 proc print_help {arg} {
     if { $arg == "tests" } {
-        puts "The list of abailable tests is:"
+        puts "The list of available tests is:"
         foreach test $::test_suite {
             puts [puts -nonewline "  "]$test
         }
