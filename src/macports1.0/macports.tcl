@@ -3166,11 +3166,15 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
     # Loop on the depports.
     if {$recurseDeps} {
+        # Dep ports should be installed (all dependencies must be satisfied).
         foreach depport $depPorts {
-            # Sub ports should be installed (all dependencies must be satisfied).
-            set res [mportdepends $depport {} $recurseDeps $skipSatisfied 1]
-            if {$res != 0} {
-                return $res
+            # Any of these may have been closed by a previous recursive call
+            # and replaced by a universal version. This is fine, just skip.
+            if {[ditem_key $depport] ne {}} {
+                set res [mportdepends $depport {} $recurseDeps $skipSatisfied 1]
+                if {$res != 0} {
+                    return $res
+                }
             }
         }
     }
