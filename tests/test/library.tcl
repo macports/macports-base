@@ -61,6 +61,8 @@ proc port_index {} {
     # Move up 2 level to run portindex.
     set path [pwd]
     cd ../..
+    # Avoid warning about ports tree being old
+    exec sh -c {touch */*/Portfile}
 
     exec ${bindir}/portindex 2>@1
 
