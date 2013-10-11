@@ -8,8 +8,7 @@ makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 proc sitetag {} {
-    global output_file
-    global path
+    global output_file path
 
     initial_setup
 

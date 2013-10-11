@@ -20,8 +20,7 @@ port_desroot $path
 port_clean $path
 
 proc statefile_v2 {arg} {
-    global path
-    global output_file
+    global path output_file
 
     if {[string compare $arg "no"]} {
         set msg "*discarding previous state*"

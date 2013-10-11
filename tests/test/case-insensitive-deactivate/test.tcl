@@ -17,9 +17,7 @@ set_dir
 port_index
 
 proc test_exists {} {
-    global path
-    global testfile
-    global testport1
+    global path testfile testport1
 
     exec sed "s/@name@/$testport1/" $path/Portfile.in > Portfile
     port_install
@@ -32,9 +30,7 @@ proc test_exists {} {
 }
 
 proc test_not_exists {} {
-    global path
-    global testfile
-    global testport2
+    global path testfile testport2
 
     exec sed "s/@name@/$testport2/" $path/Portfile.in > Portfile
     port_uninstall

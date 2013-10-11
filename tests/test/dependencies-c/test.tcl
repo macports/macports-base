@@ -8,8 +8,7 @@ makeDirectory $work_dir
 set path [file dirname [file normalize $argv0]]
 
 proc dep-c {} {
-    global path
-    global output_file
+    global path output_file
 
     initial_setup
 

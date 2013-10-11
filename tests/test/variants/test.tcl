@@ -7,8 +7,7 @@ set path [file dirname [file normalize $argv0]]
 initial_setup
 
 proc var_check {} {
-    global output_file
-    global path
+    global output_file path
 
     set var "utopia variant*"
     set line [get_line $path/$output_file $var]

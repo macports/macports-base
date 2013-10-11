@@ -10,8 +10,7 @@ set path [file dirname [file normalize $argv0]]
 initial_setup
 
 proc get_checksum {type} {
-    global path
-    global output_file
+    global path output_file
 
     append string "debug: calculated (" $type ")*"
     set line [get_line $path/$output_file $string]

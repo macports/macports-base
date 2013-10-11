@@ -14,10 +14,7 @@ set_dir
 port_index
 
 proc univ_test {opt} {
-    global output_file
-    global path
-    global portsrc
-    global bindir
+    global output_file path portsrc bindir
 
     # Modify Porfile.in for variants.
     if {[string compare $opt "yes"]} {
@@ -30,8 +27,7 @@ proc univ_test {opt} {
     port_clean $path
 
     # Build helping string
-    append string "export PORTSRC=" $portsrc "; "
-    append string $bindir "port info --variants"
+    set string "export PORTSRC=${portsrc} ; ${bindir}/port info --variants"
 
     exec sh -c $string > output 2>@1
     set var "variants:*"

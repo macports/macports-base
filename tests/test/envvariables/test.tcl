@@ -15,15 +15,12 @@ port_index
 port_clean $path
 
 proc envvar_test {} {
-    global output_file
-    global path
-    global portsrc
-    global bindir
+    global output_file path portsrc bindir
 
     # Build helping string
-    append string "export ENVA=A; export ENVB=B; "
-    append string "export PORTSRC=" $portsrc "; "
-    append string $bindir "port test"
+    set string "export ENVA=A; export ENVB=B; "
+    append string "export PORTSRC=${portsrc}; "
+    append string "${bindir}/port test"
 
     exec sh -c $string > output
     set line [get_line $path/$output_file "a"]

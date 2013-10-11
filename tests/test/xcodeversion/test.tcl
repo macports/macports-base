@@ -7,8 +7,7 @@ set path [file dirname [file normalize $argv0]]
 initial_setup
 
 proc xcode_ver {} {
-    global output_file
-    global path
+    global output_file path
 
     set xcode "xcodeversion*"
     set line [get_line $path/$output_file $xcode]
@@ -16,8 +15,7 @@ proc xcode_ver {} {
 }
 
 proc xcode_binpath {} {
-    global output_file
-    global path
+    global output_file path
 
     set xcode "xcodebuildcmd*"
     set line [get_line $path/$output_file $xcode]

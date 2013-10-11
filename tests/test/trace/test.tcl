@@ -10,9 +10,7 @@ set path [file dirname [file normalize $argv0]]
 load_variables $path
 
 proc test_trace {} {
-    global path
-    global autoconf
-    global output_file
+    global path autoconf output_file
 
     set line [get_line $autoconf "runusr*"]
     set user [lrange [split $line " "] 1 1]
