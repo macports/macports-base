@@ -597,7 +597,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
     set macosx_version {}
     if {$os_platform eq {darwin}} {
-        set macosx_version [exec sw_vers -productVersion]
+        # This will probably break when Apple changes versioning
+        set macosx_version 10.[expr {$os_major - 4}]
     }
 
     # Ensure that the macports user directory (i.e. ~/.macports) exists if HOME is defined.
