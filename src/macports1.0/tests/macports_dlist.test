@@ -112,27 +112,10 @@ test dlist_count_unmet {
 } -result "count unmet successful."
 
 
+# These just call the procs in macports_dlist namespace
 # test ditem_create
 # test ditem_delete
-
-
-test ditem_key {
-    Ditem key unit test.
-} -setup {
-    set mport [mportopen file://.]
-} -body {
-    if {[ditem_key $mport {provides}] != "fondu"} {
-       return "FAIL: wrong key value"
-    }
-    if {[ditem_key $mport {wants}] != ""} {
-       return "FAIL: wrong key detected"
-    }
-    return "ditem key successful."
-} -cleanup {
-    mportclose $mport
-} -result "ditem key successful."
-
-
+# test ditem_key
 # test ditem_append
 # test ditem_append_unique
 # test ditem_contains
@@ -190,11 +173,77 @@ test dlist_eval {
 } -result "dlist eval successful."
 
 
-# test ditem_create
-# test ditem_delete
-# test ditem_key
-# test ditem_append
-# test ditem_append_unique
+test ditem_create {
+    Ditem create unit test.
+} -body {
+    set res [macports_dlist::ditem_create]
+    if {[string match "ditem_*" $res] == 0} {
+	return "FAIL: ditem not created"
+    }
+    if {[info exists macports_dlist::$res] != 1} {
+	return "FAIL: array not set"
+    }
+    return "Create ditem successful."
+} -result "Create ditem successful."
+
+
+test ditem_delete {
+    Ditem delete unit test.
+} -body {
+    set res [macports_dlist::ditem_create]
+    set res [macports_dlist::ditem_delete $res]
+    if {[info exists macports_dlist::$res] != 0} {
+	return "FAIL: array not deleted"
+    }
+    return "Ditem delete successful."
+} -result "Ditem delete successful."
+
+
+test ditem_key {
+    Ditem key unit test.
+} -setup {
+    set res [macports_dlist::ditem_create]
+    macports_dlist::ditem_key $res macports test
+} -body {
+    if {[array get macports_dlist::$res macports] != "macports test"} {
+	return "FAIL ditem key not set"
+    }
+    return "Ditem key successful."
+} -cleanup {
+    macports_dlist::ditem_delete $res
+} -result "Ditem key successful."
+
+
+test ditem_append {
+    Ditem append unit test.
+} -setup {
+    set res [macports_dlist::ditem_create]
+    macports_dlist::ditem_key $res macports test
+    macports_dlist::ditem_append $res macports test2
+} -body {
+    if {[array get macports_dlist::$res macports] != "macports {test test2}"} {
+	return "FAIL: ditem key not appended"
+    }
+    return "Ditem key append successful."
+} -cleanup {
+    macports_dlist::ditem_delete $res
+} -result "Ditem key append successful."
+
+
+test ditem_append_unique {
+    Ditem append unique unit test.
+} -setup {
+    set res [macports_dlist::ditem_create]
+    macports_dlist::ditem_key $res macports test
+    macports_dlist::ditem_append_unique $res macports test
+} -body {
+    if {[array get macports_dlist::$res macports] != "macports test"} {
+	return "FAIL: ditem key not unique"
+    }
+    return "Ditem append unique successful."
+} -cleanup {
+    macports_dlist::ditem_delete $res
+} -result "Ditem append unique successful."
 
 
 test ditem_contains {
