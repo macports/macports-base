@@ -275,13 +275,148 @@ test push_log {
 } -result "Push log successful."
 
 
-# test pop_log
-# test set_phase
-# test ui_message
+test pop_log {
+    Pop log unit test.
+} -setup {
+    set ::logenabled 1
+    set ::logstack [open $pwd/logstack w+]
+    set ::debuglog [open $pwd/log w+]
+    set mport [mportopen file://.]
+    if {[catch {macports::push_log $mport}] != 0} {
+       return "FAIL: cannot push log"
+    }
+} -body {
+    macports::pop_log
+    if {$::debuglog != $::logstack} {
+	return "FAIL: cannot pop log"
+    }
+    return "Pop log successful."
+} -cleanup {
+    unset ::logenabled
+    unset ::logstack
+    unset ::debuglog
+    mportclose $mport
+    file delete -force $pwd/log
+    file delete -force $pwd/logstack
+} -result "Pop log successful."
+
+
+test set_phase {
+    Set phase unit test.
+} -body {
+    set res [set_phase test]
+    if {$macports::current_phase != "test"} {
+	return "FAIL: phase not set"
+    }
+    return "Set phase successful."
+} -result "Set phase successful."
+
+
+test ui_message {
+    UI message unit test.
+} -setup {
+    set fd [open $pwd/message w+]
+    set fd2 [open $pwd/log w+]
+    set macports::channels(0) $fd
+    set macports::channels(debuglog) $fd2
+    set macports::current_phase test
+    set ::debuglog $fd2
+} -body {
+    set res [ui_message 0 prefix phase args]
+    close $fd
+    close $fd2
+    set fd2 [open $pwd/message r]
+    set line [read $fd2]
+    if {$line != "prefixargs\n"} {
+	return "FAIL: wrong message"
+    }
+    close $fd2
+
+    set fd [open $pwd/message w+]
+    set fd2 [open $pwd/log w+]
+    set res [ui_message debuglog prefix phase -nonewline arg]
+    close $fd
+    close $fd2
+    set fd2 [open $pwd/log r]
+    set line [read $fd2]
+    if {$line != "prefixarg"} {
+	return "FAIL: wrong message"
+    }
+    close $fd2
+
+    return "UI message successful."
+} -cleanup {
+    file delete -force $pwd/log
+    file delete -force $pwd/message
+} -result "UI message successful."
+
+
 # test ui_init
-# test ui_prefix_default
-# test ui_channels_default
-# test ui_warn_once
+
+
+test ui_prefix_default {
+    UI prefix default unit test.
+} -body {
+    if {[macports::ui_prefix_default debug] ne {DEBUG: }} {
+	return "FAIL: wrong prefix"
+    }
+    if {[macports::ui_prefix_default error] ne {Error: }} {
+	return "FAIL: wrong prefix"
+    }
+    if {[macports::ui_prefix_default warn] ne {Warning: }} {
+	return "FAIL: wrong prefix"
+    }
+    if {[macports::ui_prefix_default default] ne {}} {
+	return "FAIL: wrong prefix"
+    }
+    return "UI prefix default successful."
+} -result "UI prefix default successful."
+
+
+test ui_channels_default {
+    UI channels default unit test.
+} -setup {
+    set macports::ui_options(ports_debug) yes
+    set macports::ui_options(ports_verbose) yes
+    set macports::ui_options(ports_quiet) yes
+} -body {
+    if {[macports::ui_channels_default debug] ne {stderr}} {
+	return "FAIL: stderr not set"
+    }
+    if {[macports::ui_channels_default info] ne {stdout}} {
+	return "FAIL: stdout not set"
+    }
+    if {[macports::ui_channels_default notice] ne {}} {
+	return "FAIL: channel not set"
+    }
+    if {[macports::ui_channels_default msg] ne {stdout}} {
+	return "FAIL: channel not set"
+    }
+    if {[macports::ui_channels_default warn] ne {stderr}} {
+	return "FAIL: channel not set"
+    }
+    if {[macports::ui_channels_default error] ne {stderr}} {
+	return "FAIL: channel not set"
+    }
+    if {[macports::ui_channels_default default] ne {stdout}} {
+	return "FAIL: channel not set"
+    }
+    return "UI channels default successful."
+} -result "UI channels default successful."
+
+
+test ui_warn_once {
+    UI warn once unit test.
+} -body {
+    set res [ui_warn_once 0 test]
+    if {$macports::warning_done(0) != 1} {
+	return "FAIL: warning flag not set"
+    }
+    return "UI warn once successful."
+} -result "UI warn once successful."
+
+
+# Replace puts to catch errors 
 # test puts
 
 
