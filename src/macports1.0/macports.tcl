@@ -964,7 +964,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
     if {![info exists macports::cxx_stdlib]} {
-        if {$os_platform eq "darwin" && $os_major < 13} {
+        if {$os_platform eq "darwin" && $os_major >= 13} {
+            set macports::cxx_stdlib libc++
+        } elseif {$os_platform eq "darwin"} {
             set macports::cxx_stdlib libstdc++
         } else {
             set macports::cxx_stdlib {}
