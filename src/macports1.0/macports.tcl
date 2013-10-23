@@ -3890,7 +3890,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)]} {
         # the last arg is because we might have to build from source if a rebuild is being forced
-        set status [_upgrade_dependencies portinfo depscache variationslist options [expr {$will_build && $already_installed && !$is_revupgrade}]]
+        set status [_upgrade_dependencies portinfo depscache variationslist options [expr {$will_build && $already_installed}]]
         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
             catch {mportclose $mport}
             return $status
@@ -4678,16 +4678,23 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         array set depscache {}
         set status 0
         array set my_options [array get macports::global_options]
+        set my_options(ports_revupgrade) yes
         foreach port $topsort_ports {
             set portname [$port name]
             if {![info exists depscache(port:$portname)]} {
-                # set rev-upgrade options and nodeps if this is not the first run
-                set my_options(ports_revupgrade) yes
-                unset -nocomplain my_options(ports_revupgrade_second_run)
+                unset -nocomplain my_options(ports_revupgrade_second_run) \
+                                  my_options(ports_source_only) \
+                                  my_options(ports_nodeps)
                 if {$broken_port_counts($portname) > 1} {
                     set my_options(ports_revupgrade_second_run) yes
                     # build from source only until the buildbot has some method of rev-upgrade, too
                     set my_options(ports_source_only) yes
+
+                    if {$broken_port_counts($portname) > 2} {
+                        # runtime deps are upgraded the first time, build deps 
+                        # the second, so none left to do the third time
+                        set my_options(ports_nodeps) yes
+                    }
                 }
 
                 # call macports::upgrade with ports_revupgrade option to rebuild the port
