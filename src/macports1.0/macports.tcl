@@ -3821,6 +3821,11 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     array set interp_options [array get options]
     set interp_options(ports_requested) $requestedflag
     set interp_options(subport) $newname
+    # Mark this port to be rebuilt from source if this isn't the first time it
+    # was flagged as broken by rev-uprgade
+    if {$is_revupgrade_second_run} {
+        set interp_options(ports_source_only) yes
+    }
 
     if {[catch {set mport [mportopen $porturl [array get interp_options] [array get variations]]} result]} {
         global errorInfo
@@ -4683,12 +4688,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             set portname [$port name]
             if {![info exists depscache(port:$portname)]} {
                 unset -nocomplain my_options(ports_revupgrade_second_run) \
-                                  my_options(ports_source_only) \
                                   my_options(ports_nodeps)
                 if {$broken_port_counts($portname) > 1} {
                     set my_options(ports_revupgrade_second_run) yes
-                    # build from source only until the buildbot has some method of rev-upgrade, too
-                    set my_options(ports_source_only) yes
 
                     if {$broken_port_counts($portname) > 2} {
                         # runtime deps are upgraded the first time, build deps 
