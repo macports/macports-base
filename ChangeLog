@@ -3,6 +3,24 @@
 # $Id$
 ###
 
+Release 2.2.1 (unreleased)
+    - Fixed a problem where dependency calculation could sometimes fail for
+      ports that only support 32-bit architectures when the configured
+      build_arch is 64-bit and dependencies thus need to be +universal
+      (#40721, jmr in r112067)
+
+    - Fixed a potential crash in the strsed procedure (toby in r110985)
+
+    - Provide choice of GCC version when compiling with DragonEgg.
+      (larryv in r108040)
+
+    - Add Portfile options for setting OBJCXX, OBJCXXFLAGS, and
+      universal architecture flags in OBJCFLAGS.
+      (#38512, larryv in r107973, r107976, r107987)
+
+    - Add support for autostarting tasks with startupitems after installing.
+      Useful for the certsync port. (#35474, cal in r106810, 109245)
+
 Release 2.2.0 (2013-07-23 by jmr)
     - Fixed ports sometimes being incorrectly cleaned after the unarchive
       target is run with newer archives. (jmr in r106717)
