@@ -116,6 +116,7 @@ CFTimeInterval      restartHysteresis   = 5.0;      // Default hysteresis is 5 s
 int				    restartWait		   	= 3;      	// Default wait during restart is 3 seconds
 
 
+__printflike(1, 2)
 void
 LogMessage(const char* fmt, ...)
 {
