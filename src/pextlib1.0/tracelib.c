@@ -99,11 +99,11 @@ static char *sdk = NULL;
 static void send_file_map(int sock);
 static void dep_check(int sock, char *path);
 static void sandbox_violation(int sock, const char *path);
-static void ui_warn(const char *format, ...);
+static void ui_warn(const char *format, ...) __printflike(1, 2);
 #if 0
-static void ui_info(const char *format, ...);
+static void ui_info(const char *format, ...) __printflike(1, 2);
 #endif
-static void ui_error(const char *format, ...);
+static void ui_error(const char *format, ...) __printflike(1, 2);
 
 #define MAX_SOCKETS (1024)
 #define BUFSIZE     (1024)
@@ -406,7 +406,7 @@ static void dep_check(int sock, char *path) {
     reg_error error;
 
     if (NULL == (reg = registry_for(interp, reg_attached))) {
-        ui_error(Tcl_GetStringResult(interp));
+        ui_error("%s", Tcl_GetStringResult(interp));
         /* send unexpected output to make the build fail */
         answer(sock, "#");
     }
@@ -424,7 +424,7 @@ static void dep_check(int sock, char *path) {
     /* find the port's name to compare with out list */
     if (!reg_entry_propget(&entry, "name", &port, &error)) {
         /* send unexpected output to make the build fail */
-        ui_error(error.description);
+        ui_error("%s", error.description);
         answer(sock, "#");
     }
 
@@ -441,6 +441,7 @@ static void dep_check(int sock, char *path) {
     answer(sock, "!");
 }
 
+__printflike(2, 0)
 static void ui_msg(const char *severity, const char *format, va_list va) {
     char buf[1024], tclcmd[32];
 
@@ -456,6 +457,7 @@ static void ui_msg(const char *severity, const char *format, va_list va) {
 
 }
 
+__printflike(1, 2)
 static void ui_warn(const char *format, ...) {
     va_list va;
 
@@ -465,6 +467,7 @@ static void ui_warn(const char *format, ...) {
 }
 
 #if 0
+__printflike(1, 2)
 static void ui_info(const char *format, ...) {
     va_list va;
 
@@ -474,6 +477,7 @@ static void ui_info(const char *format, ...) {
 }
 #endif
 
+__printflike(1, 2)
 static void ui_error(const char *format, ...) {
     va_list va;
     va_start(va, format);
