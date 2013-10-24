@@ -10,6 +10,13 @@ Release 2.3 (unreleased)
       PortGroup name (#40733, ryandesign in r112064)
 
 Release 2.2.1 (unreleased)
+    - Fixed a problem where dependency calculation could sometimes fail for
+      ports that only support 32-bit architectures when the configured
+      build_arch is 64-bit and dependencies thus need to be +universal
+      (#40721, jmr in r112067)
+
+    - Fixed a potential crash in the strsed procedure (toby in r110985)
+
     - Provide choice of GCC version when compiling with DragonEgg.
       (larryv in r108040)
 
