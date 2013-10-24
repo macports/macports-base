@@ -3822,7 +3822,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set interp_options(ports_requested) $requestedflag
     set interp_options(subport) $newname
     # Mark this port to be rebuilt from source if this isn't the first time it
-    # was flagged as broken by rev-uprgade
+    # was flagged as broken by rev-upgrade
     if {$is_revupgrade_second_run} {
         set interp_options(ports_source_only) yes
     }
