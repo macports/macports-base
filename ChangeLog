@@ -9,7 +9,7 @@ Release 2.3 (unreleased)
     - Fix incorrect lint messages when an uppercase letter is used in a
       PortGroup name (#40733, ryandesign in r112064)
 
-Release 2.2.1 (unreleased)
+Release 2.2.1 (2013-10-26 by jmr)
     - Fixed a problem where dependency calculation could sometimes fail for
       ports that only support 32-bit architectures when the configured
       build_arch is 64-bit and dependencies thus need to be +universal
