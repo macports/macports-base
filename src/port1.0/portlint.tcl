@@ -272,6 +272,7 @@ proc portlint::lint_main {args} {
             if {!$hashline
                     && ![regexp {^\s*PortSystem|^\s*PortGroup|^\s*version} $line]
                     && ![regexp {^\s*[A-Za-z0-9_]+\.setup} $line]
+                    && ![regexp {^\s*license} $line]
                     && [string first [option version] $line] != -1} {
                 ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
                 incr warnings
