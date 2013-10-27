@@ -111,8 +111,6 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 #define DARWINTRACE_DEBUG (0)
 #endif
 
-static inline int __darwintrace_strbeginswith(const char *str, const char *prefix);
-static inline int __darwintrace_pathbeginswith(const char *str, const char *prefix);
 static inline void __darwintrace_log_op(const char *op, const char *path, int fd);
 static void __darwintrace_copy_env() __attribute__((constructor));
 static void __darwintrace_setup_tls() __attribute__((constructor));
@@ -254,16 +252,16 @@ static inline void __darwintrace_tid_set() {
 }
 
 /**
- * Return 0 if str doesn't begin with prefix, 1 otherwise. Note that this is
- * not a simple string comparison, but works on a path component level.
+ * Return false if str doesn't begin with prefix, true otherwise. Note that
+ * this is not a simple string comparison, but works on a path component level.
  * A prefix of /var/tmp will not match a string of /var/tmpfoo.
  */
-static inline int __darwintrace_pathbeginswith(const char *str, const char *prefix) {
+static inline bool __darwintrace_pathbeginswith(const char *str, const char *prefix) {
 	char s;
 	char p;
 
 	/* '/' is the allow all wildcard */
-	if (strcmp(str, "/") == 0) {
+	if (str[0] == '\0' || (str[0] == '/' && str[1] == '\0')) {
 		return 1;
 	}
 
@@ -271,20 +269,20 @@ static inline int __darwintrace_pathbeginswith(const char *str, const char *pref
 		s = *str++;
 		p = *prefix++;
 	} while (p && (p == s));
-	return (p == 0 && (s == '/' || s == '\0'));
+	return (p == '\0' && (s == '/' || s == '\0'));
 }
 
 /**
- * Return 0 if str doesn't begin with prefix, 1 otherwise.
+ * Return false if str doesn't begin with prefix, true otherwise.
  */
-static inline int __darwintrace_strbeginswith(const char *str, const char *prefix) {
+static inline bool __darwintrace_strbeginswith(const char *str, const char *prefix) {
 	char s;
 	char p;
 	do {
 		s = *str++;
 		p = *prefix++;
 	} while (p && (p == s));
-	return (p == 0);
+	return (p == '\0');
 }
 
 /*
