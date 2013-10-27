@@ -3076,12 +3076,17 @@ proc _check_xcode_version {} {
             10.7 {
                 set min 4.1
                 set ok 4.1
-                set rec 4.6.2
+                set rec 4.6.3
             }
-            default {
+            10.8 {
                 set min 4.4
                 set ok 4.4
-                set rec 4.6.2
+                set rec 4.6.3
+            }
+            default {
+                set min 5.0.1
+                set ok 5.0.1
+                set rec 5.0.1
             }
         }
         if {$xcodeversion == "none"} {

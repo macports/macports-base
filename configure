@@ -2953,13 +2953,13 @@ case "$MACOSX_VERSION" in
     as_fn_error $? "This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/" "$LINENO" 5
     ;;
-  10.4.[0-9]|10.4.10|10.5.[0-7]|10.6.[0-7]|10.7.[0-4]|10.8.[0-3])
+  10.4.[0-9]|10.4.10|10.5.[0-7]|10.6.[0-7]|10.7.[0-4]|10.8.[0-4])
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of Mac OS X is out of date" >&5
 $as_echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
 $as_echo "$as_me: WARNING: Please run Software Update to update it" >&2;}
     ;;
-  10.4*|10.5*|10.6*|10.7*|10.8*)
+  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*)
         ;;
   *)
     ;;
