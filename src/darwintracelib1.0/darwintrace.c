@@ -102,10 +102,6 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 /* global variables (only checked when setup is first called)
  * DARWINTRACE_LOG
  *    path to the log file (no logging happens if it's unset).
- * DARWINTRACE_SANDBOX_BOUNDS
- *    : separated allowed paths for the creation of files.
- *    \: -> :
- *    \\ -> \
  */
 
 /*
@@ -267,7 +263,7 @@ static inline int __darwintrace_pathbeginswith(const char *str, const char *pref
 	char p;
 
 	/* '/' is the allow all wildcard */
-	if (strcmp(prefix, "/") == 0) {
+	if (strcmp(str, "/") == 0) {
 		return 1;
 	}
 
