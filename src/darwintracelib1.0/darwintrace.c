@@ -111,7 +111,7 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 #define DARWINTRACE_DEBUG (0)
 #endif
 
-static inline void __darwintrace_log_op(const char *op, const char *path, int fd);
+static inline void __darwintrace_log_op(const char *op, const char *path);
 static void __darwintrace_copy_env() __attribute__((constructor));
 static void __darwintrace_setup_tls() __attribute__((constructor));
 static inline char *__darwintrace_alloc_env(const char *varName, const char *varValue);
@@ -910,12 +910,12 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, b
 							 * access anyway, but report a sandbox violation.
 							 * TODO find a better solution */
 							if (report)
-								__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
+								__darwintrace_log_op("sandbox_violation", normalizedpath);
 							return 1;
 						case 0:
 							/* file belongs to a foreign port, deny access */
 							if (report)
-								__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
+								__darwintrace_log_op("sandbox_violation", normalizedpath);
 							return 0;
 					}
 				default:
@@ -926,7 +926,7 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, b
 	}
 
 	if (report)
-		__darwintrace_log_op("sandbox_violation", normalizedpath, 0);
+		__darwintrace_log_op("sandbox_violation", normalizedpath);
 	return 0;
 }
 
