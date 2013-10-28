@@ -873,8 +873,8 @@ static inline bool __darwintrace_is_in_sandbox(const char *path, char *newpath, 
 		strcpy(normpos, curpos);
 	}
 	if (*normalizedpath == '\0') {
-		*normalizedpath++ = '/';
-		*normalizedpath++ = '\0';
+		normalizedpath[0] = '/';
+		normalizedpath[1] = '\0';
 	}
 
 	/* Iterate over the sandbox bounds and try to find a directive matching this path */
