@@ -851,10 +851,10 @@ static inline bool __darwintrace_is_in_sandbox(const char *path, char *newpath, 
 		} else if (*curpos == '\0') {
 			/* empty entry, ignore */
 			continue;
-		} else if (strcmp(curpos, ".") == 0) {
+		} else if (curpos[0] == '.' && curpos[1] == '\0') {
 			/* no-op directory, ignore */
 			continue;
-		} else if (strcmp(curpos, "..") == 0) {
+		} else if (curpos[0] == '.' && curpos[1] == '.' && curpos[2] == '\0') {
 			/* walk up one directory */
 			char *lastSep = strrchr(normalizedpath, '/');
 			if (lastSep == NULL) {
@@ -869,12 +869,12 @@ static inline bool __darwintrace_is_in_sandbox(const char *path, char *newpath, 
 			continue;
 		}
 		/* default case: standard path, copy */
-		strcat(normpos, "/");
-		normpos++;
-		strcat(normpos, curpos);
+		*normpos++ = '/';
+		strcpy(normpos, curpos);
 	}
 	if (*normalizedpath == '\0') {
-		strcat(normalizedpath, "/");
+		*normalizedpath++ = '/';
+		*normalizedpath++ = '\0';
 	}
 
 	/* Iterate over the sandbox bounds and try to find a directive matching this path */
