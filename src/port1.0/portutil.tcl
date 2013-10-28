@@ -997,7 +997,7 @@ proc reinplace {args}  {
         if {$suppress} {
             lappend cmdline -n
         }
-        set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
+        set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd 2>@stderr]]
         if {$locale != ""} {
             set env(LC_CTYPE) $locale
         }
@@ -1397,14 +1397,19 @@ proc target_run {ditem} {
                 if {($result ==0
                   && [info exists ports_trace]
                   && $ports_trace == "yes"
-                  && $target != "clean")} {
+                  && $target ne "clean"
+                  && $target ne "uninstall")} {
+                    # uninstall will open a portfile from registry and call
+                    # deactivate and uninstall there; if we enable trace mode
+                    # for the first level the two trace threads will conflict
+                    # and cause a deadlock.
                     porttrace::trace_start $workpath
 
                     # Enable the fence to prevent any creation/modification
                     # outside the sandbox.
-                    if {$target != "activate"
-                      && $target != "archive"
-                      && $target != "install"} {
+                    if {$target ne "activate"
+                      && $target ne "archive"
+                      && $target ne "install"} {
                         porttrace::trace_enable_fence
                     }
 
@@ -1516,7 +1521,8 @@ proc target_run {ditem} {
                 # Check dependencies & file creations outside workpath.
                 if {[info exists ports_trace]
                   && $ports_trace == "yes"
-                  && $target!="clean"} {
+                  && $target ne "clean"
+                  && $target ne "uninstall"} {
 
                     tracelib closesocket
 
