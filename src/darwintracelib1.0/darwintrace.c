@@ -622,14 +622,16 @@ static inline void __darwintrace_setup() {
  * \param[in] path the (not necessarily absolute) path to send to tracelib
  * \param[in] fd a FD to the file, or 0, if none available
  */
-static inline void __darwintrace_log_op(const char *op, const char *path, int fd) {
+static inline void __darwintrace_log_op(const char *op, const char *path) {
 	uint32_t size;
 	char pathbuf[MAXPATHLEN];
 	char logbuffer[BUFFER_SIZE];
 	const char *realpath;
 
 	do {
+#		if 0
 #       ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
+		/* TODO Use getattrlist(2) ATTR_CMN_NAME to get this */
 		if ((fd > 0) && (strncmp(path, "/.vol/", 6) == 0)) {
 			if (fcntl(fd, F_GETPATH, pathbuf) != -1) {
 				realpath = pathbuf;
@@ -637,6 +639,7 @@ static inline void __darwintrace_log_op(const char *op, const char *path, int fd
 			}
 		}
 #       endif
+#		endif
 
 		if (*path != '/') {
 			if (!getcwd(pathbuf, sizeof(pathbuf))) {
