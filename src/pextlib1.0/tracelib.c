@@ -774,7 +774,6 @@ static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
     cleanuping = 1;
     pthread_mutex_lock(&sock_mutex);
     if (sock != -1) {
-        /* shutdown(sock, SHUT_RDWR);*/
         close(sock);
         sock = -1;
     }
@@ -798,9 +797,7 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
     cleanuping = 1;
     pthread_mutex_lock(&sock_mutex);
     if (sock != -1) {
-        int oldsock = sock;
-        /*shutdown(sock, SHUT_RDWR);*/
-        close(oldsock);
+        close(sock);
         sock = -1;
 
         if (kq != -1) {
