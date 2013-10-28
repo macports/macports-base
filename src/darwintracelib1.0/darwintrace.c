@@ -117,7 +117,6 @@ static void __darwintrace_setup_tls() __attribute__((constructor));
 static inline char *__darwintrace_alloc_env(const char *varName, const char *varValue);
 static inline char *const *__darwintrace_restore_env(char *const envp[]);
 static inline void __darwintrace_setup();
-static inline void __darwintrace_cleanup_path(char *path);
 static char *__send(const char *buf, uint32_t len, int answer);
 
 /**
@@ -625,83 +624,38 @@ static inline void __darwintrace_setup() {
  */
 static inline void __darwintrace_log_op(const char *op, const char *path, int fd) {
 	uint32_t size;
-	char somepath[MAXPATHLEN];
+	char pathbuf[MAXPATHLEN];
 	char logbuffer[BUFFER_SIZE];
+	const char *realpath;
 
 	do {
 #       ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
 		if ((fd > 0) && (strncmp(path, "/.vol/", 6) == 0)) {
-			if (fcntl(fd, F_GETPATH, somepath) != -1) {
+			if (fcntl(fd, F_GETPATH, pathbuf) != -1) {
+				realpath = pathbuf;
 				break;
 			}
 		}
 #       endif
 
 		if (*path != '/') {
-			if (!getcwd(somepath, sizeof(somepath))) {
+			if (!getcwd(pathbuf, sizeof(pathbuf))) {
 				perror("darwintrace: getcwd");
 				abort();
 			}
 
-			strlcat(somepath, "/", sizeof(somepath));
-			strlcat(somepath, path, sizeof(somepath));
+			strlcat(pathbuf, "/", sizeof(pathbuf));
+			strlcat(pathbuf, path, sizeof(pathbuf));
+			realpath = pathbuf;
 			break;
 		}
 
 		/* otherwise, just copy the original path. */
-		strlcpy(somepath, path, sizeof(somepath));
+		realpath = path;
 	} while (0);
 
-	/* clean the path. */
-	__darwintrace_cleanup_path(somepath);
-
-	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, somepath);
+	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, realpath);
 	__send(logbuffer, size, 0);
-}
-
-/**
- * remap resource fork access to the data fork.
- * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
- */
-static inline void __darwintrace_cleanup_path(char *path) {
-	size_t pathlen;
-#   ifdef __APPLE__
-	size_t rsrclen;
-#   endif
-	char *dst, *src;
-	enum { SAWSLASH, NOTHING } state = NOTHING;
-
-	/* if this is a foo/..namedfork/rsrc, strip it off */
-	pathlen = strlen(path);
-	/* ..namedfork/rsrc is only on OS X */
-#   ifdef __APPLE__
-	rsrclen = strlen(_PATH_RSRCFORKSPEC);
-	if (pathlen > rsrclen && 0 == strcmp(path + pathlen - rsrclen, _PATH_RSRCFORKSPEC)) {
-		path[pathlen - rsrclen] = '\0';
-		pathlen -= rsrclen;
-	}
-#   endif
-
-	/* for each position in string, check if we're in a run of multiple
-	 * slashes, and only emit the first one */
-	for (src = path, dst = path; *src; src++) {
-		if (state == SAWSLASH) {
-			if (*src == '/') {
-				/* consume it */
-				continue;
-			}
-			state = NOTHING;
-		} else {
-			if (*src == '/') {
-				state = SAWSLASH;
-			}
-		}
-		if (dst != src) {
-			// if dst == src, avoid the copy operation
-			*dst = *src;
-		}
-		dst++;
-	}
 }
 
 /**
