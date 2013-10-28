@@ -810,7 +810,7 @@ static char *__send(const char *buf, uint32_t len, int answer) {
  *                   reading a directory.
  * \return 1, if the file is within sandbox bounds, 0, if access should be denied
  */
-static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, bool report) {
+static inline bool __darwintrace_is_in_sandbox(const char *path, char *newpath, bool report) {
 	char *t, *_;
 	char *strpos, *normpos;
 	char lpath[MAXPATHLEN];
@@ -822,7 +822,7 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, b
 	__darwintrace_setup();
 
 	if (!filemap) {
-		return 1;
+		return true;
 	}
 
 	/* Make sure the path is absolute. */
@@ -885,10 +885,10 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, b
 			t += strlen(t) + 1;
 			switch (*t) {
 				case FILEMAP_ALLOW:
-					return 1;
+					return true;
 				case FILEMAP_REDIR:
 					if (!newpath) {
-						return 0;
+						return false;
 					}
 					/* the redirected path starts right after the byte telling
 					 * us we should redirect */
@@ -899,24 +899,24 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, b
 						*_++ = '/';
 					}
 					strcpy(_, normalizedpath);
-					return 1;
+					return true;
 				case FILEMAP_ASK:
 					/* ask the socket whether this file is OK */
 					switch (dependency_check(normalizedpath)) {
 						case 1:
-							return 1;
+							return true;
 						case -1:
 							/* if the file isn't known to MacPorts, allow
 							 * access anyway, but report a sandbox violation.
 							 * TODO find a better solution */
 							if (report)
 								__darwintrace_log_op("sandbox_violation", normalizedpath);
-							return 1;
+							return true;
 						case 0:
 							/* file belongs to a foreign port, deny access */
 							if (report)
 								__darwintrace_log_op("sandbox_violation", normalizedpath);
-							return 0;
+							return false;
 					}
 				default:
 					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
@@ -927,7 +927,7 @@ static inline int __darwintrace_is_in_sandbox(const char *path, char *newpath, b
 
 	if (report)
 		__darwintrace_log_op("sandbox_violation", normalizedpath);
-	return 0;
+	return false;
 }
 
 /* wrapper for open(2) preventing opening files outside the sandbox */
