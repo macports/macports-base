@@ -2445,6 +2445,7 @@ proc PortGroup {group version} {
 
     if {[file exists $groupFile]} {
         uplevel "source $groupFile"
+        ui_debug "Sourcing PortGroup $group $version from $groupFile"
     } else {
         ui_warn "PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
     }
