@@ -89,6 +89,9 @@
 /* Define if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
 
+/* Define to 1 if you have the <libkern/OSAtomic.h> header file. */
+#undef HAVE_LIBKERN_OSATOMIC_H
+
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
@@ -124,6 +127,15 @@
 
 /* Define to 1 if you have the <openssl/sha.h> header file. */
 #undef HAVE_OPENSSL_SHA_H
+
+/* Define to 1 if you have the `OSAtomicCompareAndSwap32' function. */
+#undef HAVE_OSATOMICCOMPAREANDSWAP32
+
+/* Define to 1 if you have the `OSAtomicCompareAndSwap64' function. */
+#undef HAVE_OSATOMICCOMPAREANDSWAP64
+
+/* Define to 1 if you have the `OSAtomicCompareAndSwapPtr' function. */
+#undef HAVE_OSATOMICCOMPAREANDSWAPPTR
 
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H

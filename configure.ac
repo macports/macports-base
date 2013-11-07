@@ -238,12 +238,12 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
-	sys/event.h sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
+	sys/event.h sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h libkern/OSAtomic.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
-AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname kqueue])
+AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname kqueue OSAtomicCompareAndSwapPtr OSAtomicCompareAndSwap64 OSAtomicCompareAndSwap32])
 AC_SUBST(ac_cv_func_strlcat)
 
 MP_CHECK_READLINK_IS_P1003_1A
