@@ -40,7 +40,7 @@ namespace eval porttrace {
 }
 
 proc porttrace::trace_start {workpath} {
-    global os.platform developer_dir
+    global os.platform developer_dir macportsuser
     if {${os.platform} == "darwin"} {
         if {[catch {package require Thread} error]} {
             ui_warn "trace requires Tcl Thread package ($error)"
@@ -87,17 +87,25 @@ proc porttrace::trace_start {workpath} {
             /tmp \
             /private/tmp \
             /var/tmp \
-            /var/folders \
             /private/var/tmp \
+            /var/folders \
+            /private/var/folders \
             /var/empty \
             /private/var/empty \
-            /private/var/folders \
+            /var/run \
+            /private/var/run \
+            /var/db/xcode_select_link \
+            /private/var/db/xcode_select_link \
+            /var/db/mds \
+            /private/var/db/mds \
+            [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist] \
+            "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist" \
+            /Library/Caches/com.apple.Xcode \
             /dev \
             /etc/passwd \
             /etc/groups \
             /etc/localtime \
             [file normalize ${developer_dir}/../..] \
-            /Library/Caches/com.apple.Xcode \
             "$env(HOME)/.ccache"]
             if {[info exists env(TMPDIR)]} {
                 lappend trace_sandbox $env(TMPDIR)
@@ -119,21 +127,7 @@ proc porttrace::trace_start {workpath} {
 # Enable the fence.
 # Only done for targets that should only happen in the sandbox.
 proc porttrace::trace_enable_fence {} {
-    global env trace_sandboxbounds
-    set env(DARWINTRACE_SANDBOX_BOUNDS) $trace_sandboxbounds
     tracelib enablefence
-}
-
-# Disable the fence.
-# Unused yet.
-proc porttrace::trace_disable_fence {} {
-    global env macosx_version
-    if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
-        unset env(DARWINTRACE_SANDBOX_BOUNDS)
-        if {$macosx_version == "10.5"} {
-            unsetenv DARWINTRACE_SANDBOX_BOUNDS
-        }
-    }
 }
 
 # Check the list of ports.
