@@ -1408,6 +1408,7 @@ proc target_run {ditem} {
                     # Enable the fence to prevent any creation/modification
                     # outside the sandbox.
                     if {$target ne "activate"
+                      && $target ne "deactivate"
                       && $target ne "archive"
                       && $target ne "install"} {
                         porttrace::trace_enable_fence
@@ -1508,15 +1509,6 @@ proc target_run {ditem} {
                         if {$result != 0} { break }
                     }
                 }
-                # Execute post-run procedure
-                if {[ditem_contains $ditem postrun] && $result == 0} {
-                    set postrun [ditem_key $ditem postrun]
-                    ui_debug "Executing $postrun"
-                    set result [catch {eval $postrun $targetname} errstr]
-                    # Save variables in order to re-throw the same error code.
-                    set errcode $::errorCode
-                    set errinfo $::errorInfo
-                }
 
                 # Check dependencies & file creations outside workpath.
                 if {[info exists ports_trace]
@@ -1531,6 +1523,17 @@ proc target_run {ditem} {
                     # End of trace.
                     porttrace::trace_stop
                 }
+
+                # Execute post-run procedure
+                if {[ditem_contains $ditem postrun] && $result == 0} {
+                    set postrun [ditem_key $ditem postrun]
+                    ui_debug "Executing $postrun"
+                    set result [catch {eval $postrun $targetname} errstr]
+                    # Save variables in order to re-throw the same error code.
+                    set errcode $::errorCode
+                    set errinfo $::errorInfo
+                }
+
                 # $oldpwd is deleted while uninstalling a port, changing back
                 # _will_ fail
                 catch {_cd $oldpwd}
