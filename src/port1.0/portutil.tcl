@@ -864,7 +864,7 @@ proc environment_array_to_string {environment_array} {
     foreach {key value} [array get env_array] {
         lappend env_list $key='$value'
     }
-    return [join $env_list]
+    return "\n[join [lsort $env_list] "\n"]"
 }
 
 ########### Distname utility functions ###########
