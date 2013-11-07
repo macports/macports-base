@@ -106,7 +106,7 @@ static void ui_info(const char *format, ...) __printflike(1, 2);
 static void ui_error(const char *format, ...) __printflike(1, 2);
 
 #define MAX_SOCKETS (1024)
-#define BUFSIZE     (1024)
+#define BUFSIZE     (4096)
 
 /**
  * send a buffer \c buf with the given length \c size to the socket \c sock, by
@@ -156,6 +156,9 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
         Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
         return TCL_ERROR;
     }
+
+    // initialize the depends field, in case we don't actually have any dependencies
+    depends = NULL;
 
     return TCL_OK;
 }
@@ -309,7 +312,7 @@ static void send_file_map(int sock) {
     if (!filemap) {
         char *t, * _;
 
-        size_t remaining = 1024;
+        size_t remaining = BUFSIZE;
         filemap = (char *)malloc(remaining);
         if (!filemap) {
             ui_warn("send_file_map: memory allocation failed");
@@ -318,10 +321,12 @@ static void send_file_map(int sock) {
         t = filemap;
 
 #       define append_allow(path, resolution) do { strlcpy(t, path, remaining); \
-            if (remaining < (strlen(t)+3)) \
+            if (remaining < (strlen(t)+3)) { \
                 remaining=0; \
-            else \
+                fprintf(stderr, "tracelib: insufficient filemap memory\n"); \
+            } else { \
                 remaining-=strlen(t)+3; \
+            } \
             t+=strlen(t)+1; \
             *t++=resolution; \
             *t++=0; \
@@ -429,7 +434,7 @@ static void dep_check(int sock, char *path) {
     }
 
     /* check our list of dependencies */
-    for (t = depends; *t; t += strlen(t) + 1) {
+    for (t = depends; t && *t; t += strlen(t) + 1) {
         if (strcmp(t, port) == 0) {
             free(port);
             answer(sock, "+");
