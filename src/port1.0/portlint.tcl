@@ -285,7 +285,16 @@ proc portlint::lint_main {args} {
                     set hashline false
             }
         }
-            
+
+        # Check for hardcoded paths
+        if {!$hashline
+                && $name != "MacPorts"
+                && [string match "*/opt/local*" $line]
+                && ![regexp {^\s*reinplace} $line]
+                && ![regexp {^\s*system.*\Wsed\W} $line]} {
+            ui_error "Line $lineno hardcodes /opt/local, use \${prefix} instead"
+        }
+
         ### TODO: more checks to Portfile syntax
 
         incr lineno
