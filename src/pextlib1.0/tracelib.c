@@ -140,9 +140,9 @@ static void answer(int sock, const char *buf) {
  * Different sockets should be used for different ports (and maybe even
  * phases).
  *
- * \param[inout] interp the Tcl interpreter
+ * \param[in,out] interp the Tcl interpreter
  * \param[in] objc the number of parameters
- * \param[in] the parameters
+ * \param[in] objv the parameters
  * \return a Tcl return code
  */
 static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -172,9 +172,9 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
  * In variable;
  *  /dev/null\0/dev/tty\0/tmp:\0\0
  *
- * \param[inout] interp the Tcl interpreter
+ * \param[in,out] interp the Tcl interpreter
  * \param[in] objc the number of parameters
- * \param[in] the parameters
+ * \param[in] objv the parameters
  * \return a Tcl return code
  */
 static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {

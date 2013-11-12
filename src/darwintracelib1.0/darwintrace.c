@@ -418,7 +418,6 @@ void __darwintrace_setup() {
  * \param[in] op the operation (sent as-is to tracelib, should be interpreted
  *               as command)
  * \param[in] path the (not necessarily absolute) path to send to tracelib
- * \param[in] fd a FD to the file, or 0, if none available
  */
 static inline void __darwintrace_log_op(const char *op, const char *path) {
 	uint32_t size;
@@ -575,7 +574,7 @@ static void fsend(const void *restrict buf, size_t size) {
  * protocol and supports reading and returning an answer.
  *
  * \param[in] buf buffer to send to tracelib
- * \param[in] size size of the buffer to send
+ * \param[in] len size of the buffer to send
  * \param[in] answer boolean indicating whether an answer is expected and
  *                   should be returned
  * \return allocated answer buffer. Callers should free this buffer. If an
