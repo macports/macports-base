@@ -49,7 +49,7 @@
  * objects of a similar nature.
  */
 char* unique_name(Tcl_Interp* interp, char* prefix, int* lower_bound) {
-    int result_size = strlen(prefix) + TCL_INTEGER_SPACE + 1;
+    size_t result_size = strlen(prefix) + TCL_INTEGER_SPACE + 1;
     char* result = malloc(result_size);
     Tcl_CmdInfo info;
     int i;
@@ -243,7 +243,7 @@ const char* string_or_null(Tcl_Obj* obj) {
 int recast(void* userdata, cast_function* fn, void* castcalldata,
         free_function* del, void*** outv, void** inv, int inc,
         reg_error* errPtr) {
-    void** result = malloc(inc*sizeof(void*));
+    void** result = malloc((size_t)inc*sizeof(void*));
     int i;
     if (!result) {
         return 0;

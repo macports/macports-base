@@ -132,7 +132,7 @@ int appendProxyInformationForKeys( CFDictionaryRef proxies, Tcl_Obj *tclList, co
                  * We are adding :<port>\0 to the end, which is up to 7
                  * bytes additional (up to 5 for the port)
                  */
-                int newLength = strlen( hostname ) + 7;
+                size_t newLength = strlen( hostname ) + 7;
                 char *hostnameAndPort = calloc( 1, newLength );
                 if( hostnameAndPort != NULL )
                 {
@@ -165,8 +165,8 @@ int appendProxyInformationForKeys( CFDictionaryRef proxies, Tcl_Obj *tclList, co
  */
 char *cfStringToCStringASCII( CFStringRef cfString )
 {
-    int strLen = CFStringGetMaximumSizeForEncoding( CFStringGetLength( cfString ), kCFStringEncodingASCII ) + 1;
-    char *cString = calloc( 1, strLen );
+    CFIndex strLen = CFStringGetMaximumSizeForEncoding( CFStringGetLength( cfString ), kCFStringEncodingASCII ) + 1;
+    char *cString = calloc( 1, (size_t)strLen );
     if( cString != NULL )
         CFStringGetCString( cfString, cString, strLen, kCFStringEncodingASCII );
 

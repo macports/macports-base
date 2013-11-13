@@ -203,7 +203,7 @@ int ExistsuserCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tc
 
     user = strdup(Tcl_GetString(objv[1]));
     if (isdigit(*(user)))
-        pwent = getpwuid(strtol(user, 0, 0));
+        pwent = getpwuid((uid_t)strtol(user, 0, 0));
     else
         pwent = getpwnam(user);
     free(user);
@@ -230,7 +230,7 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 
     group = strdup(Tcl_GetString(objv[1]));
     if (isdigit(*(group)))
-        grent = getgrgid(strtol(group, 0, 0));
+        grent = getgrgid((gid_t)strtol(group, 0, 0));
     else
         grent = getgrnam(group);
     free(group);
@@ -254,7 +254,7 @@ int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 
     cur = MIN_USABLE_UID;
 
-    while (getpwuid(cur) != NULL) {
+    while (getpwuid((uid_t)cur) != NULL) {
         cur++;
     }
 
@@ -271,7 +271,7 @@ int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 
     cur = MIN_USABLE_GID;
 
-    while (getgrgid(cur) != NULL) {
+    while (getgrgid((gid_t)cur) != NULL) {
         cur++;
     }
 
@@ -392,7 +392,7 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         for (envp = environ; *envp != NULL; envp++) {
             equals = strchr(*envp, '=');
             if (equals != NULL) {
-                len = equals - *envp;
+                len = (size_t)(equals - *envp);
                 Tcl_ListObjAppendElement(interp, tclList, Tcl_NewStringObj(*envp, len));
             }
         }

@@ -65,12 +65,12 @@ static int vercmp (const char *versionA, int lengthA, const char *versionB,
 	const char *eptrA, *eptrB;
 
     if (lengthA < 0)
-        lengthA = strlen(versionA);
+        lengthA = (int)strlen(versionA);
     if (lengthB < 0)
-        lengthB = strlen(versionB);
+        lengthB = (int)strlen(versionB);
 
 	/* if versions equal, return zero */
-	if(lengthA == lengthB && !strncmp(versionA, versionB, lengthA))
+	if(lengthA == lengthB && !strncmp(versionA, versionB, (size_t)lengthA))
 		return 0;
 
 	ptrA = versionA;
