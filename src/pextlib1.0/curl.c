@@ -69,6 +69,7 @@ int SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode);
 int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
 void CurlInit(void);
 
@@ -911,6 +912,159 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 }
 
 /**
+ * curl post postdata url
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	int theResult = TCL_OK;
+	CURL* theHandle = NULL;
+	FILE* theFile = NULL;
+
+	do {
+		const char* theURL;
+		const char* thePostData;
+		CURLcode theCurlCode;
+
+		/* check the number of parameters */
+		if (objc != 4) {
+			Tcl_WrongNumArgs(interp, 1, objv, "postdata url");
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* Retrieve the url - it is the last parameter */
+		theURL = Tcl_GetString(objv[objc - 1]);
+
+		/* Retrieve the post data - it's before the url */
+		thePostData = Tcl_GetString(objv[objc - 2]);
+		/* Open the file (dev/null) */
+		theFile = fopen( "/dev/null", "a" );
+		if (theFile == NULL) {
+			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* Create the CURL handle */
+		theHandle = curl_easy_init();
+
+		/* Setup the handle */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* Specify the POST data */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_POSTFIELDS, thePostData);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* -L option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* --max-redirs option, same default as curl command line */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_MAXREDIRS, 50);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* echo any cookies received on a redirect */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_COOKIEJAR, "/dev/null");
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* -f option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FAILONERROR, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set timeout on connections */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_CONNECTTIMEOUT, _CURL_CONNECTION_TIMEOUT);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set minimum connection speed */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_LIMIT, _CURL_MINIMUM_XFER_SPEED);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set timeout interval for connections < min xfer speed */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_TIME, _CURL_MINIMUM_XFER_TIMEOUT);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* write to the file */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_WRITEDATA, theFile);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* skip the header data */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_HEADER, 0);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* we do not want any progress */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROGRESS, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* actually perform the POST */
+		theCurlCode = curl_easy_perform(theHandle);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* close the file */
+		(void) fclose( theFile );
+		theFile = NULL;
+
+		/* clean up */
+		curl_easy_cleanup( theHandle );
+		theHandle = NULL;
+	} while (0);
+
+	if (theHandle != NULL) {
+		curl_easy_cleanup(theHandle);
+	}
+
+	if (theFile != NULL) {
+		fclose(theFile);
+	}
+
+	return theResult;
+}
+
+/**
  * curl command entry point.
  *
  * @param clientData	custom data (ignored)
@@ -928,11 +1082,12 @@ CurlCmd(
 	typedef enum {
 		kCurlFetch,
 		kCurlIsNewer,
-		kCurlGetSize
+		kCurlGetSize,
+		kCurlPost
 	} EOption;
 
 	static const char *options[] = {
-		"fetch", "isnewer", "getsize", NULL
+		"fetch", "isnewer", "getsize", "post", NULL
 	};
 	int theResult = TCL_OK;
 	EOption theOptionIndex;
@@ -963,6 +1118,9 @@ CurlCmd(
 			break;
 		case kCurlGetSize:
 			theResult = CurlGetSizeCmd(interp, objc, objv);
+			break;
+		case kCurlPost:
+			theResult = CurlPostCmd(interp, objc, objv);
 			break;
 		}
 	}
