@@ -426,6 +426,7 @@ static inline void __darwintrace_log_op(const char *op, const char *path) {
 	const char *realpath;
 
 	do {
+#if defined(__APPLE__) && defined(ATTR_CMN_FULLPATH) && 0
 		if (false && strncmp(path, "/.vol/", 6) == 0) {
 			// path in VOLFS, try to get inode -> name lookup from
 			// getattrlist(2).
@@ -450,6 +451,7 @@ static inline void __darwintrace_log_op(const char *op, const char *path) {
 				break;
 			}
 		}
+#endif
 
 		if (*path != '/') {
 			if (!getcwd(pathbuf, sizeof(pathbuf))) {
