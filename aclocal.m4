@@ -892,7 +892,7 @@ AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
 	
 ])
 
-dnl This macro ensures MP installation prefix bin/sbin paths are NOT in PATH
+dnl This macro ensures MP installation prefix paths are NOT in PATH
 dnl for configure to prevent potential problems when base/ code is updated
 dnl and ports are installed that would match needed items.
 AC_DEFUN([MP_PATH_SCAN],[
@@ -906,14 +906,17 @@ AC_DEFUN([MP_PATH_SCAN],[
 	for as_dir in $oldPATH
 	do
 		IFS=$as_save_IFS
-		if test "x$as_dir" != "x$prefix/bin" &&
-			test "x$as_dir" != "x$prefix/sbin"; then
-			if test -z "$newPATH"; then
-				newPATH=$as_dir
-			else
-				newPATH=$newPATH$PATH_SEPARATOR$as_dir
-			fi
-		fi
+		case "$as_dir" in
+			$prefix/*)
+				;;
+			*)
+				if test -z "$newPATH"; then
+					newPATH=$as_dir
+				else
+					newPATH=$newPATH$PATH_SEPARATOR$as_dir
+				fi
+				;;
+		esac
 	done
 	PATH=$newPATH; export PATH
 	AC_SUBST(PATH_CLEANED,$newPATH)
