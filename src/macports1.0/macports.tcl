@@ -600,6 +600,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macosx_version [exec sw_vers -productVersion | cut -f1,2 -d.]
     }
 
+    # Check that the current platform is the one we were configured for, otherwise need to do migration
+    if {($os_platform != $macports::autoconf::os_platform) || ($os_major != $macports::autoconf::os_major)} {
+        ui_error "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
+        ui_error "If you upgraded your OS, please follow the migration instructions: https://trac.macports.org/wiki/Migration"
+        return -code error "OS platform mismatch"
+    }
+
     # Ensure that the macports user directory (i.e. ~/.macports) exists if HOME is defined.
     # Also save $HOME for later use before replacing it with our own.
     if {[info exists env(HOME)]} {

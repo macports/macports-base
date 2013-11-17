@@ -53,4 +53,6 @@ namespace eval macports::autoconf {
     variable xar_path "@XAR@"
     variable xcode_select_path "@XCODE_SELECT@"
     variable xcodebuild_path "@XCODEBUILD@"
+    variable os_platform "@OS_PLATFORM@"
+    variable os_major "@OS_MAJOR@"
 }

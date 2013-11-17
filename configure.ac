@@ -284,6 +284,9 @@ SC_PUBLIC_TCL_HEADERS
 # Check for tclsh binary
 MP_PROG_TCLSH
 
+# Substitute Tcl platform for base compatibility check
+MP_TCL_PLATFORM
+
 # Check for Tcl package path
 MP_TCL_PACKAGE_DIR
 

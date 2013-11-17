@@ -1150,3 +1150,29 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
 ])
 
+#------------------------------------------------------------------------
+# MP_TCL_PLATFORM --
+#
+#       Export target platform and major version
+#
+# Arguments:
+#       none.
+#
+# Requires:
+#       TCLSH must be set.
+#
+# Depends:
+#       none.
+#
+# Results:
+#       Defines OS_PLATFORM and OS_MAJOR.
+#
+#------------------------------------------------------------------------
+AC_DEFUN([MP_TCL_PLATFORM],[
+        AC_MSG_CHECKING([for Tcl target platform])
+        OS_PLATFORM=`echo 'puts -nonewline [[string tolower \$tcl_platform(os)]]' | $TCLSH`
+        OS_MAJOR=`echo 'puts -nonewline [[lindex [split \$tcl_platform(osVersion) .] 0]]' | $TCLSH`
+        AC_MSG_RESULT($OS_PLATFORM $OS_MAJOR)
+        AC_SUBST(OS_PLATFORM)
+        AC_SUBST(OS_MAJOR)
+])
