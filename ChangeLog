@@ -13,6 +13,9 @@ Release 2.3 (unreleased)
     - In debug output, sort environment variables and print one per line
       (#40703, ryandesign in r113037)
 
+    - Error out on a platform mismatch and refer to migration instructions
+      (raimue in r113478)
+
 Release 2.2.1 (2013-10-26 by jmr)
     - Fixed a problem where dependency calculation could sometimes fail for
       ports that only support 32-bit architectures when the configured
