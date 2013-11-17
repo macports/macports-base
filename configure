@@ -3019,7 +3019,7 @@ $as_echo "$as_me: WARNING: This version of Xcode Tools is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please consider upgrading as some ports fail compiling" >&5
 $as_echo "$as_me: WARNING: Please consider upgrading as some ports fail compiling" >&2;}
     ;;
-  2.*|3.*|4.*)
+  2.*|3.*|4.*|5.*)
         ;;
   *)
     ;;
