@@ -6,8 +6,10 @@
 Release 2.3 (unreleased)
     - Add -prepend command for options (similar to existing -append
       command) (#40655, ryandesign in r111990)
+
     - Fix incorrect lint messages when an uppercase letter is used in a
       PortGroup name (#40733, ryandesign in r112064)
+
     - In debug output, sort environment variables and print one per line
       (#40703, ryandesign in r113037)
 
