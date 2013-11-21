@@ -762,6 +762,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
         }
     }
+    # set the hidden flag on $portdbpath to avoid spotlight indexing, which
+    # might slow builds down considerably. You can avoid this by touching
+    # $portdbpath/.nohide.
+    if {![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
+        if {[catch {file attributes $portdbpath -hidden yes} result]} {
+            ui_debug "error setting hidden flag for $portdbpath: $result"
+        }
+    }
 
     set env(HOME) [file join $portdbpath home]
     set registry.path $portdbpath
