@@ -9,7 +9,7 @@ include ../../Mk/macports.autoconf.mk
 
 # Yes, we know having $ signs in identifiers is not a very good idea; in the
 # case of darwintrace we still need them, though.
-CFLAGS_PEDANTIC=
+CFLAGS_PEDANTIC+=-Wno-dollar-in-identifier-extension
 CFLAGS+= -fPIC ${UNIVERSAL_ARCHFLAGS}
 SHLIB_LDFLAGS+=${UNIVERSAL_ARCHFLAGS}
 
