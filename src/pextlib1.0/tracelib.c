@@ -63,7 +63,7 @@
 
 #include "strlcat.h"
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(EV_RECEIPT)
 #ifndef HAVE_STRLCPY
 /* Define strlcpy if it's not available. */
 size_t strlcpy(char *dst, const char *src, size_t size);
@@ -513,7 +513,7 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     if (getrlimit(RLIMIT_NOFILE, &rl) == -1) {
         ui_warn("getrlimit failed (%d), skipping setrlimit", errno);
     } else {
-#if defined(__APPLE__) && defined(OPEN_MAX)
+#ifdef OPEN_MAX
         if (rl.rlim_max > OPEN_MAX) {
             rl.rlim_max = OPEN_MAX;
         }
@@ -850,7 +850,7 @@ static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
     filemap = 0;
     return TCL_OK;
 }
-#endif /* __APPLE__ */
+#endif /* defined(__APPLE__) && defined(EV_RECEIPT) */
 
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int result = TCL_OK;
@@ -873,7 +873,7 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         return TCL_ERROR;
     }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(EV_RECEIPT)
     result = Tcl_GetIndexFromObj(interp, objv[1], options, "option", 0, (int *)&current_option);
     if (result == TCL_OK) {
         switch (current_option) {
@@ -903,10 +903,10 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
                 break;
         }
     }
-#else /* __APPLE__ */
+#else /* defined(__APPLE__) && defined(EV_RECEIPT) */
     Tcl_SetResult(interp, "tracelib not supported on this platform", TCL_STATIC);
     result = TCL_ERROR;
-#endif /* __APPLE__ */
+#endif /* defined(__APPLE__) && defined(EV_RECEIPT) */
 
     return result;
 }
