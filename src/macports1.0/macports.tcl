@@ -762,14 +762,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
         }
     }
-    # set the hidden flag on $portdbpath to avoid spotlight indexing, which
-    # might slow builds down considerably. You can avoid this by touching
-    # $portdbpath/.nohide.
-    if {$os_platform eq "darwin" && [vercmp [info tclversion] 8.5] >= 0 && ![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
-        if {[catch {file attributes $portdbpath -hidden yes} result]} {
-            ui_debug "error setting hidden flag for $portdbpath: $result"
-        }
-    }
 
     set env(HOME) [file join $portdbpath home]
     set registry.path $portdbpath
@@ -1028,6 +1020,15 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         package require machista 1.0
     } else {
         return -code error "Library directory '$libpath' must exist"
+    }
+
+    # set the hidden flag on $portdbpath to avoid spotlight indexing, which
+    # might slow builds down considerably. You can avoid this by touching
+    # $portdbpath/.nohide.
+    if {$os_platform eq "darwin" && [vercmp [info tclversion] 8.5] >= 0 && ![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
+        if {[catch {file attributes $portdbpath -hidden yes} result]} {
+            ui_debug "error setting hidden flag for $portdbpath: $result"
+        }
     }
 
     # don't keep unusable TMPDIR/TMP values
