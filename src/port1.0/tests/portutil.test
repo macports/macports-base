@@ -796,7 +796,7 @@ test get_portimage_path {
     set supported_archs {}
 
     set res [get_portimage_path]
-    if {$res != "dbpath/software/subport/subport-1.0_2var1.darwin_10.no.tgz"} {
+    if {$res != [file normalize "dbpath/software/subport/subport-1.0_2var1.darwin_10.no.tgz"]} {
         return "FAIL: invalid portimage_path"
     }
     return "Get portimage_path successful."

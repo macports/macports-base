@@ -43,7 +43,7 @@ test get_subbuildpath {
     Get subbuildpath unit test.
 } -body {
     set portpath path/port/subport
-    if {[portmain::get_subbuildpath] != "./build/subport"} {
+    if {[portmain::get_subbuildpath] != [file normalize "./build/subport"]} {
         return "FAIL: wrong subbuildpath"
     }
     return "Get subbuild path successful."
