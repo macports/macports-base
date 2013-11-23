@@ -85,7 +85,7 @@ proc portmain::get_subbuildpath {} {
     } else {
         set subdir [file tail $portpath]
     }
-    return [file join $portbuildpath $subdir]
+    return [file normalize [file join $portbuildpath $subdir]]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
 default prefix /opt/local
@@ -159,16 +159,16 @@ if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file
     # set global variable indicating to other functions to use ~/.macports as well
     set usealtworkpath yes
 
-    default worksymlink {[file join ${altprefix}${portpath} work]}
-    default distpath {[file join ${altprefix}${portdbpath} distfiles ${dist_subdir}]}
+    default worksymlink {[file normalize [file join ${altprefix}${portpath} work]]}
+    default distpath {[file normalize [file join ${altprefix}${portdbpath} distfiles ${dist_subdir}]]}
     set portbuildpath "${altprefix}${portbuildpath}"
 
     ui_debug "Going to use alternate build prefix: $altprefix"
     ui_debug "workpath = $workpath"
 } else {
     set usealtworkpath no
-    default worksymlink {[file join $portpath work]}
-    default distpath {[file join $portdbpath distfiles ${dist_subdir}]}
+    default worksymlink {[file normalize [file join $portpath work]]}
+    default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
 }
 
 # end gsoc08-privileges

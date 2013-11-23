@@ -2239,7 +2239,7 @@ proc macports::getportlogpath {id {portname {}}} {
 }
 
 proc macports::getportworkpath_from_buildpath {portbuildpath} {
-    return [file join $portbuildpath work]
+    return [file normalize [file join $portbuildpath work]]
 }
 
 proc macports::getportworkpath_from_portdir {portpath {portname {}}} {

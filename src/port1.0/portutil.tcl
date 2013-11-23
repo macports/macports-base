@@ -2473,7 +2473,7 @@ proc get_portimage_name {} {
 # return path where a newly created image/archive for this port will be stored
 proc get_portimage_path {} {
     global portdbpath subport
-    return [file join ${portdbpath} software ${subport} [get_portimage_name]]
+    return [file normalize [file join ${portdbpath} software ${subport} [get_portimage_name]]]
 }
 
 # return list of archive types that we can extract
