@@ -42,7 +42,6 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <spawn.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
@@ -50,6 +49,10 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+
+#if defined(HAVE_SPAWN_H) && defined(HAVE_POSIX_SPAWN)
+#include <spawn.h>
+#endif
 
 static void store_env() __attribute__((constructor));
 
@@ -286,6 +289,7 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 #undef execve
 }
 
+#if defined(HAVE_SPAWN_H) && defined(HAVE_POSIX_SPAWN)
 // Let's save some typing work...
 typedef int (*posix_spawn_t)(
 			pid_t *restrict,
@@ -350,3 +354,4 @@ int posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spaw
 
 	return result;
 }
+#endif
