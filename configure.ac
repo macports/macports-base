@@ -307,6 +307,9 @@ if test "x${mp_sqlite_version_ge_3003011}" = "xno"; then
 	AC_DEFINE([sqlite3_prepare_v2], [sqlite3_prepare], [define sqlite3_prepare to sqlite_prepare_v2 if the latter is not available])
 fi
 
+# check whether trace mode is supported on this platform
+MP_TRACEMODE_SUPPORT
+
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
 

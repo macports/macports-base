@@ -1176,3 +1176,57 @@ AC_DEFUN([MP_TCL_PLATFORM],[
         AC_SUBST(OS_PLATFORM)
         AC_SUBST(OS_MAJOR)
 ])
+
+#------------------------------------------------------------------------
+# MP_TRACEMODE_SUPPORT --
+#
+#       Check whether trace mode is supported on this platform
+#
+# Arguments:
+#       none.
+#
+# Requires:
+#       OS_PLATOFRM and OS_MAJOR from MP_TCL_PLATFORM.
+#
+# Depends:
+#       none.
+#
+# Results:
+#       Defines the TRACEMODE_SUPPORT substitution and the
+#       HAVE_TRACEMODE_SUPPORT macro.
+#
+#------------------------------------------------------------------------
+AC_DEFUN([MP_TRACEMODE_SUPPORT],[
+		AC_REQUIRE([MP_TCL_PLATFORM])
+
+		AC_CHECK_FUNCS([kqueue kevent])
+
+		AC_MSG_CHECKING([whether trace mode is supported on this platform])
+		if test x"${OS_PLATFORM}" != "xdarwin"; then
+			AC_MSG_RESULT([not darwin, no])
+			TRACEMODE_SUPPORT=0
+		elif test x"${ac_cv_func_kqueue}" != "xyes"; then
+			AC_MSG_RESULT([kqueue() not available, no])
+			TRACEMODE_SUPPORT=0
+		elif test x"${ac_cv_func_kevent}" != "xyes"; then
+			AC_MSG_RESULT([kevent() not available, no])
+			TRACEMODE_SUPPORT=0
+		else
+			AC_EGREP_CPP(yes_have_ev_receipt, [
+				#include <sys/types.h>
+				#include <sys/event.h>
+				#include <sys/time.h>
+				#ifdef EV_RECEIPT
+				yes_have_ev_receipt
+				#endif
+			],[
+				AC_MSG_RESULT([yes])
+				TRACEMODE_SUPPORT=1
+			],[
+				AC_MSG_RESULT([EV_RECEIPT not available, no])
+				TRACEMODE_SUPPORT=0
+			])
+		fi
+        AC_SUBST(TRACEMODE_SUPPORT)
+		AC_DEFINE_UNQUOTED([HAVE_TRACEMODE_SUPPORT], [$TRACEMODE_SUPPORT], [Platform supports tracemode.])
+])
