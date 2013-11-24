@@ -140,6 +140,9 @@
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 
+/* Define to 1 if you have the `posix_spawn' function. */
+#undef HAVE_POSIX_SPAWN
+
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
 
@@ -169,6 +172,9 @@
 
 /* Define to 1 if you have the <sha.h> header file. */
 #undef HAVE_SHA_H
+
+/* Define to 1 if you have the <spawn.h> header file. */
+#undef HAVE_SPAWN_H
 
 /* Define to 1 if you have the <sqlite3ext.h> header file. */
 #undef HAVE_SQLITE3EXT_H
