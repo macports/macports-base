@@ -1222,11 +1222,11 @@ AC_DEFUN([MP_TRACEMODE_SUPPORT],[
 			],[
 				AC_MSG_RESULT([yes])
 				TRACEMODE_SUPPORT=1
+				AC_DEFINE([HAVE_TRACEMODE_SUPPORT], [1], [Platform supports tracemode.])
 			],[
 				AC_MSG_RESULT([EV_RECEIPT not available, no])
 				TRACEMODE_SUPPORT=0
 			])
 		fi
         AC_SUBST(TRACEMODE_SUPPORT)
-		AC_DEFINE_UNQUOTED([HAVE_TRACEMODE_SUPPORT], [$TRACEMODE_SUPPORT], [Platform supports tracemode.])
 ])
