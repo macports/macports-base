@@ -8,7 +8,7 @@ TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
 			machista1.0
 SUBDIR=		${TCLPKG} port programs
 
-ifeq ($(shell uname),Darwin)
+ifeq (@TRACEMODE_SUPPORT@,1)
 TCLPKG+= darwintracelib1.0
 endif
 
