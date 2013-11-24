@@ -9851,6 +9851,9 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 $as_echo "yes" >&6; }
 				TRACEMODE_SUPPORT=1
 
+$as_echo "#define HAVE_TRACEMODE_SUPPORT 1" >>confdefs.h
+
+
 else
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: EV_RECEIPT not available, no" >&5
@@ -9861,11 +9864,6 @@ fi
 rm -f conftest*
 
 		fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_TRACEMODE_SUPPORT $TRACEMODE_SUPPORT
-_ACEOF
 
 
 
