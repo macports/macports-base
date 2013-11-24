@@ -66,6 +66,8 @@ int stat(const char *path, void *sb) {
 #undef stat
 }
 
+// Don't provide stat64 on systems that have no stat64 syscall
+#ifdef SYS_stat64
 int stat64(const char *path, void *sb) {
 #define stat64(path, sb) syscall(SYS_stat64, path, sb)
 	__darwintrace_setup();
@@ -88,6 +90,7 @@ int stat64(const char *path, void *sb) {
 int stat$INODE64(const char *path, void *sb) {
 	return stat64(path, sb);
 }
+#endif /* defined(SYS_stat64) */
 
 int lstat(const char *path, void *sb) {
 #define lstat(path, sb) syscall(SYS_lstat, path, sb)
@@ -108,6 +111,8 @@ int lstat(const char *path, void *sb) {
 #undef lstat
 }
 
+// Don't provide lstat64 on systems that have no lstat64 syscall
+#ifdef SYS_lstat64
 int lstat64(const char *path, void *sb) {
 #define lstat64(path, sb) syscall(SYS_lstat64, path, sb)
 	__darwintrace_setup();
@@ -130,3 +135,4 @@ int lstat64(const char *path, void *sb) {
 int lstat$INODE64(const char *path, void *sb) {
 	return lstat64(path, sb);
 }
+#endif /* defined(SYS_lstat64) */
