@@ -640,6 +640,7 @@ SHLIB_LD
 STLIB_LD
 INCLUDES
 subdirs
+TRACEMODE_SUPPORT
 SQLITE3_TCL_DIR
 LDFLAGS_SQLITE3
 CFLAGS_SQLITE3
@@ -9799,6 +9800,74 @@ if test "x${mp_sqlite_version_ge_3003011}" = "xno"; then
 $as_echo "#define sqlite3_prepare_v2 sqlite3_prepare" >>confdefs.h
 
 fi
+
+# check whether trace mode is supported on this platform
+
+
+
+		for ac_func in kqueue kevent
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether trace mode is supported on this platform" >&5
+$as_echo_n "checking whether trace mode is supported on this platform... " >&6; }
+		if test x"${OS_PLATFORM}" != "xdarwin"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not darwin, no" >&5
+$as_echo "not darwin, no" >&6; }
+			TRACEMODE_SUPPORT=0
+		elif test x"${ac_cv_func_kqueue}" != "xyes"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: kqueue() not available, no" >&5
+$as_echo "kqueue() not available, no" >&6; }
+			TRACEMODE_SUPPORT=0
+		elif test x"${ac_cv_func_kevent}" != "xyes"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: kevent() not available, no" >&5
+$as_echo "kevent() not available, no" >&6; }
+			TRACEMODE_SUPPORT=0
+		else
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+				#include <sys/types.h>
+				#include <sys/event.h>
+				#include <sys/time.h>
+				#ifdef EV_RECEIPT
+				yes_have_ev_receipt
+				#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes_have_ev_receipt" >/dev/null 2>&1; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+				TRACEMODE_SUPPORT=1
+
+else
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: EV_RECEIPT not available, no" >&5
+$as_echo "EV_RECEIPT not available, no" >&6; }
+				TRACEMODE_SUPPORT=0
+
+fi
+rm -f conftest*
+
+		fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_TRACEMODE_SUPPORT $TRACEMODE_SUPPORT
+_ACEOF
+
+
 
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
