@@ -237,14 +237,17 @@ MP_UNIVERSAL_OPTIONS
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
-	sys/event.h sys/sysctl.h readline/readline.h readline/history.h pwd.h sys/paths.h utime.h libkern/OSAtomic.h])
+AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h limits.h paths.h pwd.h \
+	readline/history.h readline/readline.h spawn.h sys/cdefs.h sys/event.h sys/fcntl.h sys/file.h \
+	sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
-AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy strlcat copyfile clearenv sysctlbyname kqueue OSAtomicCompareAndSwapPtr OSAtomicCompareAndSwap64 OSAtomicCompareAndSwap32])
-AC_SUBST(ac_cv_func_strlcat)
+AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 OSAtomicCompareAndSwapPtr bzero \
+	clearenv copyfile fgetln flock kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
+	strlcpy strncasecmp sysctlbyname])
+AC_SUBST([ac_cv_func_strlcat])
 
 MP_CHECK_READLINK_IS_P1003_1A
 
