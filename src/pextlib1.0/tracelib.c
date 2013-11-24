@@ -63,7 +63,7 @@
 
 #include "strlcat.h"
 
-#if defined(__APPLE__) && defined(EV_RECEIPT)
+#ifdef HAVE_TRACEMODE_SUPPORT
 #ifndef HAVE_STRLCPY
 /* Define strlcpy if it's not available. */
 size_t strlcpy(char *dst, const char *src, size_t size);
@@ -548,13 +548,10 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     return TCL_OK;
 }
 
-#if HAVE_KQUEUE
 /* create this on heap rather than stack, due to its rather large size */
 static struct kevent res_kevents[MAX_SOCKETS];
-#endif
 
 static int TracelibRunCmd(Tcl_Interp *in) {
-#if HAVE_KQUEUE
     struct kevent kev;
     int flags;
     int oldsock;
@@ -768,10 +765,6 @@ static int TracelibRunCmd(Tcl_Interp *in) {
     pthread_mutex_unlock(&sock_mutex);
 
     return TCL_OK;
-#else
-    Tcl_SetResult(in, "tracelib not supported on this platform", TCL_STATIC);
-    return TCL_ERROR;
-#endif
 }
 
 static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
@@ -850,7 +843,7 @@ static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
     filemap = 0;
     return TCL_OK;
 }
-#endif /* defined(__APPLE__) && defined(EV_RECEIPT) */
+#endif /* defined(HAVE_TRACEMODE_SUPPORT) */
 
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int result = TCL_OK;
@@ -873,7 +866,7 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         return TCL_ERROR;
     }
 
-#if defined(__APPLE__) && defined(EV_RECEIPT)
+#ifdef HAVE_TRACEMODE_SUPPORT
     result = Tcl_GetIndexFromObj(interp, objv[1], options, "option", 0, (int *)&current_option);
     if (result == TCL_OK) {
         switch (current_option) {
@@ -903,10 +896,10 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
                 break;
         }
     }
-#else /* defined(__APPLE__) && defined(EV_RECEIPT) */
+#else /* defined(HAVE_TRACEMODE_SUPPORT) */
     Tcl_SetResult(interp, "tracelib not supported on this platform", TCL_STATIC);
     result = TCL_ERROR;
-#endif /* defined(__APPLE__) && defined(EV_RECEIPT) */
+#endif /* defined(HAVE_TRACEMODE_SUPPORT) */
 
     return result;
 }
