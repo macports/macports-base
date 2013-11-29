@@ -58,7 +58,7 @@
 #if DARWINTRACE_DEBUG
 #	define debug_printf(format, ...) \
 		if (__darwintrace_stderr != NULL) { \
-			fprintf(__darwintrace_stderr, "darwintrace[%d]: " format, getpid(), __VA_ARGS__); \
+			fprintf(__darwintrace_stderr, "darwintrace[%d:%p]: " format, getpid(), (void *) pthread_self(), __VA_ARGS__); \
 			fflush(__darwintrace_stderr); \
 		}
 #else
