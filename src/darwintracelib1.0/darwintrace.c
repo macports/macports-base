@@ -707,61 +707,123 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		return true;
 	}
 
-	char *pathComponents[MAXPATHLEN / 2 + 2];
-	size_t componentIdx = 0;
+	typedef struct {
+		char *start;
+		size_t len;
+	} path_component_t;
+
+	char normPath[MAXPATHLEN];
+	normPath[0] = '/';
+	normPath[1] = '\0';
+
+	path_component_t pathComponents[MAXPATHLEN / 2 + 2];
+	size_t numComponents = 0;
 
 	// Make sure the path is absolute.
-	char cwd[MAXPATHLEN];
-	if (path == NULL) {
+	if (path == NULL || *path == '\0') {
 		// this is most certainly invalid, let the syscall deal with it
 		return true;
 	}
+
+	char *dst = NULL;
+	const char *token = NULL;
+	size_t idx;
 	if (*path != '/') {
 		// The path isn't absolute, start by populating pathcomponents with the
 		// current working directory
-		if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		if (getcwd(normPath, sizeof(normPath)) == NULL) {
 			perror("darwintrace: getcwd");
 			abort();
 		}
 
-		char *lastToken = cwd + 1;
-		char *token = NULL;
-		while (NULL != (token = strsep(&lastToken, "/"))) {
-			pathComponents[componentIdx++] = token;
-		}
-	}
+		char *writableToken = normPath + 1;
+		while ((idx = strcspn(writableToken, "/")) > 0) {
+			// found a token, tokenize and store it
+			pathComponents[numComponents].start = writableToken;
+			pathComponents[numComponents].len   = idx;
+			numComponents++;
 
-	// Copy path to a writable buffer
-	char lpath[strlen(path) + 1];
-	strcpy(lpath, path);
+			bool final = writableToken[idx] == '\0';
+			writableToken[idx] = '\0';
+			if (final) {
+				break;
+			}
+			// advance token
+			writableToken += idx + 1;
+		}
+
+		// copy path after the CWD into the buffer and normalize it
+		if (numComponents > 0) {
+			path_component_t *lastComponent = pathComponents + (numComponents - 1);
+			dst = lastComponent->start + lastComponent->len + 1;
+		} else {
+			dst = normPath + 1;
+		}
+
+		// continue parsing at the begin of path
+		token = path;
+	} else {
+		// skip leading '/'
+		dst = normPath + 1;
+		*dst = '\0';
+		token = path + 1;
+	}
 
 	/* Make sure the path is normalized. NOTE: Do _not_ use realpath(3) here.
 	 * Doing so _will_ lead to problems. This is essentially a very simple
 	 * re-implementation of realpath(3). */
-	char *lastToken = lpath;
-	char *token = NULL;
-	while (NULL != (token = strsep(&lastToken, "/"))) {
-		if (token[0] == '\0') {
+	while ((idx = strcspn(token, "/")) > 0) {
+		// found a token, process it
+
+		if (token[0] == '\0' || token[0] == '/') {
 			// empty entry, ignore
-		} else if (token[0] == '.' && token[1] == '\0') {
+		} else if (token[0] == '.' && (token[1] == '\0' || token[1] == '/')) {
 			// reference to current directory, ignore
-		} else if (token[0] == '.' && token[1] == '.' && token[2] == '\0') {
+		} else if (token[0] == '.' && token[1] == '.' && (token[2] == '\0' || token[2] == '/')) {
 			// walk up one directory, but not if it's the last one, because /.. -> /
-			if (componentIdx > 0) {
-				componentIdx--;
+			if (numComponents > 0) {
+				numComponents--;
+				if (numComponents > 0) {
+					// move dst back to the previous entry
+					path_component_t *lastComponent = pathComponents + (numComponents - 1);
+					dst = lastComponent->start + lastComponent->len + 1;
+				} else {
+					// we're at the top, move dst back to the beginning
+					dst = normPath + 1;
+				}
 			}
 		} else {
-			// default case: standard path
-			pathComponents[componentIdx++] = token;
+			// copy token to normPath buffer (and null-terminate it)
+			strlcpy(dst, token, idx + 1);
+			dst[idx] = '\0';
+			// add descriptor entry for new token
+			pathComponents[numComponents].start = dst;
+			pathComponents[numComponents].len   = idx;
+			numComponents++;
+
+			// advance destination
+			dst += idx + 1;
 		}
+
+		if (token[idx] == '\0') {
+			break;
+		}
+		token += idx + 1;
 	}
 
-	char link[MAXPATHLEN];
-	char normPath[MAXPATHLEN];
 	bool pathIsSymlink;
 	size_t loopCount = 0;
 	do {
 		pathIsSymlink = false;
+
+		// Add the slashes and the terminating \0
+		for (size_t i = 0; i < numComponents; ++i) {
+			if (i == numComponents - 1) {
+				pathComponents[i].start[pathComponents[i].len] = '\0';
+			} else {
+				pathComponents[i].start[pathComponents[i].len] = '/';
+			}
+		}
 
 		if (++loopCount >= 10) {
 			// assume cylce and let the OS deal with that (yes, this actually
@@ -769,28 +831,16 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 			break;
 		}
 
-		char *normPathPos = normPath;
-		*normPathPos = '\0';
-
-		// Build a canonical representation of the path
-		for (size_t i = 0; i < componentIdx; ++i) {
-			*normPathPos++ = '/';
-			normPathPos = stpcpy(normPathPos, pathComponents[i]);
-		}
-		if (componentIdx == 0) {
-			// path is "/"
-			*normPathPos++ = '/';
-			*normPathPos = '\0';
-		}
-
 		// Check whether the last component is a symlink; if it is, check
 		// whether it is in the sandbox, expand it and do the same thing again.
 		struct stat st;
+		//debug_printf("checking for symlink: %s\n", normPath);
 		if (lstat(normPath, &st) != -1 && S_ISLNK(st.st_mode)) {
 			if (!__darwintrace_sandbox_check(normPath, flags)) {
 				return false;
 			}
 
+			char link[MAXPATHLEN];
 			pathIsSymlink = true;
 
 			ssize_t linksize;
@@ -799,33 +849,66 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 				abort();
 			}
 			link[linksize] = '\0';
+			//debug_printf("readlink(%s) = %s\n", normPath, link);
 
 			if (*link == '/') {
 				// symlink is absolute, start fresh
-				componentIdx = 0;
+				numComponents = 0;
+				token = link + 1;
+				dst = normPath + 1;
 			} else {
 				// symlink is relative, remove last component
-				if (componentIdx > 0) {
-					componentIdx--;
+				token = link;
+				if (numComponents > 0) {
+					numComponents--;
+					if (numComponents > 0) {
+						// move dst back to the previous entry
+						path_component_t *lastComponent = pathComponents + (numComponents - 1);
+						dst = lastComponent->start + lastComponent->len + 1;
+					} else {
+						// we're at the top, move dst back to the beginning
+						dst = normPath + 1;
+					}
 				}
 			}
 
-			lastToken = link;
-			token = NULL;
-			while (NULL != (token = strsep(&lastToken, "/"))) {
-				if (token[0] == '\0') {
+			while ((idx = strcspn(token, "/")) > 0) {
+				// found a token, process it
+
+				if (token[0] == '\0' || token[0] == '/') {
 					// empty entry, ignore
-				} else if (token[0] == '.' && token[1] == '\0') {
+				} else if (token[0] == '.' && (token[1] == '\0' || token[1] == '/')) {
 					// reference to current directory, ignore
-				} else if (token[0] == '.' && token[1] == '.' && token[2] == '\0') {
+				} else if (token[0] == '.' && token[1] == '.' && (token[2] == '\0' || token[2] == '/')) {
 					// walk up one directory, but not if it's the last one, because /.. -> /
-					if (componentIdx > 0) {
-						componentIdx--;
+					if (numComponents > 0) {
+						numComponents--;
+						if (numComponents > 0) {
+							// move dst back to the previous entry
+							path_component_t *lastComponent = pathComponents + (numComponents - 1);
+							dst = lastComponent->start + lastComponent->len + 1;
+						} else {
+							// we're at the top, move dst back to the beginning
+							dst = normPath + 1;
+						}
 					}
 				} else {
-					// default case: standard path
-					pathComponents[componentIdx++] = token;
+					// copy token to normPath buffer
+					strlcpy(dst, token, idx + 1);
+					dst[idx] = '\0';
+					// add descriptor entry for new token
+					pathComponents[numComponents].start = dst;
+					pathComponents[numComponents].len   = idx;
+					numComponents++;
+
+					// advance destination
+					dst += idx + 1;
 				}
+
+				if (token[idx] == '\0') {
+					break;
+				}
+				token += idx + 1;
 			}
 		}
 	} while (pathIsSymlink);
