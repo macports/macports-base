@@ -42,6 +42,12 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#if __DARWIN_64_BIT_INO_T
+#define LSTATSYSNUM SYS_lstat64
+#else
+#define LSTATSYSNUM SYS_lstat
+#endif
+
 /**
  * Wrapper around \c mkdir(2) that prevents creation of directories outside of
  * the sandbox. Will silently do nothing and return success for directories
@@ -49,7 +55,7 @@
  */
 int mkdir(const char *path, mode_t mode) {
 #define mkdir(x,y) syscall(SYS_mkdir, (x), (y))
-#define lstat(x,y) syscall(SYS_lstat, (x), (y))
+#define lstat(x,y) syscall(LSTATSYSNUM, (x), (y))
 	__darwintrace_setup();
 
 	int result = 0;
