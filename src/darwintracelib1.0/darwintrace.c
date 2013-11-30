@@ -825,6 +825,13 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 			}
 		}
 
+		if ((flags & DT_FOLLOWSYMS) == 0) {
+			// only expand symlinks when the DT_FOLLOWSYMS flags is set;
+			// otherwise just ignore whether this path is a symlink or not to
+			// speed up readdir(3).
+			break;
+		}
+
 		if (++loopCount >= 10) {
 			// assume cylce and let the OS deal with that (yes, this actually
 			// happens in software!)

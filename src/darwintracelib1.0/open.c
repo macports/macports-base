@@ -53,7 +53,7 @@ int open(const char *path, int flags, ...) {
 	__darwintrace_setup();
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 		errno = ((flags & O_CREAT) > 0) ? EACCES : ENOENT;
 		result = -1;
 	} else {

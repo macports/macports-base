@@ -54,7 +54,7 @@ int mkdir(const char *path, mode_t mode) {
 
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_FOLLOWSYMS)) {
 		struct stat st;
 		if (-1 == lstat(path, &st) && errno == ENOENT) {
 			// directory doesn't exist yet */

@@ -52,10 +52,10 @@ int rename(const char *from, const char *to) {
 
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(from, DT_REPORT)) {
+	if (!__darwintrace_is_in_sandbox(from, DT_REPORT | DT_FOLLOWSYMS)) {
 		errno = ENOENT;
 		result = -1;
-	} else if (!__darwintrace_is_in_sandbox(to, DT_REPORT)) {
+	} else if (!__darwintrace_is_in_sandbox(to, DT_REPORT | DT_FOLLOWSYMS)) {
 		errno = EACCES;
 		result = -1;
 	} else {

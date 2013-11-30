@@ -44,10 +44,6 @@
 
 /**
  * Deny \c readlink(2) if the file is not within the sandbox bounds.
- *
- * FIXME Currently also denies reading the link if the link target does not
- * exist. To fix this, add a parameter to __darwintrace_is_in_sandbox that
- * controls whether symlinks should be followed.
  */
 #ifdef READLINK_IS_NOT_P1003_1A
 int readlink(const char *path, char *buf, int bufsiz) {
@@ -59,6 +55,8 @@ ssize_t readlink(const char *path, char *buf, size_t bufsiz) {
 
 	int result = 0;
 
+	// don't follow symlinks here; whether access to the link target is allowed
+	// or not does not matter for reading the symlink
 	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
 		errno = ENOENT;
 		result = -1;

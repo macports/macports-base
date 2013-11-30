@@ -53,7 +53,7 @@ int stat(const char *path, void *sb) {
 
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 		errno = ENOENT;
 		result = -1;
 	} else {
@@ -74,7 +74,7 @@ int stat64(const char *path, void *sb) {
 
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 		errno = ENOENT;
 		result = -1;
 	} else {
@@ -98,6 +98,7 @@ int lstat(const char *path, void *sb) {
 
 	int result = 0;
 
+	// don't follow symlinks for lstat
 	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
 		errno = ENOENT;
 		result = -1;
@@ -119,6 +120,7 @@ int lstat64(const char *path, void *sb) {
 
 	int result = 0;
 
+	// don't follow symlinks for lstat
 	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
 		errno = ENOENT;
 		result = -1;

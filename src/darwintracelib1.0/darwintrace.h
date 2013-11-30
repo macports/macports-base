@@ -66,8 +66,9 @@
 #endif
 
 enum {
-	DT_REPORT   = 1 << 0,
-	DT_ALLOWDIR = 1 << 1
+	DT_REPORT     = 1 << 0,
+	DT_ALLOWDIR   = 1 << 1,
+	DT_FOLLOWSYMS = 1 << 2
 };
 
 /**
@@ -104,6 +105,12 @@ void __darwintrace_close();
  *                    path references an existing directory. Set this for
  *                    read operations such as stat(2), omit this for operations
  *                    that modify directories like rmdir(2) and mkdir(2).
+ *                  - DT_FOLLOWSYMS: Check for and expand symlinks, while
+ *                    checking both the link name and the link target against
+ *                    the sandbox. Set this for all operations that read file
+ *                    contents or check file attributes. Omit this flag for
+ *                    operations that only list the file (or rather symlink)
+ *                    name.
  * \return \c true if the file is within sandbox bounds, \c false if access
  *         should be denied
  */

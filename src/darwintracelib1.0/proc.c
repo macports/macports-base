@@ -237,7 +237,7 @@ static inline int check_interpreter(const char *restrict path) {
 		}
 
 		/* check the iterpreter against the sandbox */
-		if (!__darwintrace_is_in_sandbox(interp, DT_REPORT | DT_ALLOWDIR)) {
+		if (!__darwintrace_is_in_sandbox(interp, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 			close(fd);
 			return ENOENT;
 		}
@@ -260,7 +260,7 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 		errno = ENOENT;
 		result = -1;
 	} else {
@@ -310,7 +310,7 @@ int posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spaw
 	static posix_spawn_t prev_posix_spawn = NULL;
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 		result = ENOENT;
 	} else {
 		int interp_result = check_interpreter(path);
