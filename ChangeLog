@@ -20,6 +20,9 @@ Release 2.3 (unreleased)
       log files, archives, base source and the default ports tree.
       (cal in r113649)
 
+    - "move" now supports case-only renames on case-insensitive filesystems
+      (#41679, ryandesign in r114167)
+
 Release 2.2.1 (2013-10-26 by jmr)
     - Fixed a problem where dependency calculation could sometimes fail for
       ports that only support 32-bit architectures when the configured

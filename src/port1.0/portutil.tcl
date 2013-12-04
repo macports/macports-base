@@ -1167,13 +1167,38 @@ proc touch {args} {
 }
 
 # copy
+# Wrapper for file copy
 proc copy {args} {
     eval file copy $args
 }
 
 # move
+# Wrapper for file rename that handles case-only renames
 proc move {args} {
-    eval file rename $args
+    set options {}
+    while {[string match -* [lindex $args 0]]} {
+        set arg [string range [lindex $args 0] 1 end]
+        set args [lreplace $args 0 0]
+        switch -- $arg {
+            force {append options -$arg}
+            - break
+            default {return -code error "move: illegal option -- $arg"}
+        }
+    }
+    if {[llength $args] == 2} {
+        set oldname [lindex $args 0]
+        set newname [lindex $args 1]
+        if {[string equal -nocase $oldname $newname] && $oldname ne $newname} {
+            # case-only rename
+            set tempdir [mkdtemp ${oldname}-XXXXXXXX]
+            set tempname $tempdir/[file tail $oldname]
+            file rename $options -- $oldname $tempname
+            file rename $options -- $tempname $newname
+            delete $tempdir
+            return
+        }
+    }
+    eval file rename $options -- $args
 }
 
 # ln
