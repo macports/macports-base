@@ -54,7 +54,7 @@
  * empirical data.  These represent "best guess" values for now.
  */
 #define _CURL_CONNECTION_TIMEOUT	((long)(30))		/* 30 seconds */
-#define _CURL_MINIMUM_XFER_SPEED	((long)1024)		/* 1Kb/sec */
+#define _CURL_MINIMUM_XFER_SPEED	((long)1024)		/* 1KB/sec */
 #define _CURL_MINIMUM_XFER_TIMEOUT	((long)(60))		/* 1 minute */
 
 /* ========================================================================= **
