@@ -343,6 +343,6 @@ proc portfetch::get_urls {} {
 proc portfetch::check_dns {} {
     # check_broken_dns returns true at most once, so we don't have to worry about spamming this message
     if {[check_broken_dns]} {
-        ui_warn "Your DNS servers incorrectly claim to know the address of nonexistent hosts. This may cause checksum mismatches for some ports. See this page for possible reasons: <https://trac.macports.org/wiki/MisbehavingServers>"
+        ui_warn "Your DNS servers incorrectly claim to know the address of nonexistent hosts. This may cause checksum mismatches for some ports. See this page for more information: <https://trac.macports.org/wiki/MisbehavingServers>"
     }
 }
