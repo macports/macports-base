@@ -4,24 +4,24 @@
 ###
 
 Release 2.3 (unreleased)
-    - Add -prepend command for options (similar to existing -append
-      command) (#40655, ryandesign in r111990)
-
-    - Fix incorrect lint messages when an uppercase letter is used in a
-      PortGroup name (#40733, ryandesign in r112064)
-
-    - In debug output, sort environment variables and print one per line
-      (#40703, ryandesign in r113037)
-
-    - Error out on a platform mismatch and refer to migration instructions
-      (raimue in r113478)
+    - "move" now supports case-only renames on case-insensitive filesystems
+      (#41679, ryandesign in r114289)
 
     - Disable spotlight indexing on build directories, distfiles, registry,
       log files, archives, base source and the default ports tree.
       (cal in r113649)
 
-    - "move" now supports case-only renames on case-insensitive filesystems
-      (#41679, ryandesign in r114289)
+    - Error out on a platform mismatch and refer to migration instructions
+      (raimue in r113478)
+
+    - In debug output, sort environment variables and print one per line
+      (#40703, ryandesign in r113037)
+
+    - Fix incorrect lint messages when an uppercase letter is used in a
+      PortGroup name (#40733, ryandesign in r112064)
+
+    - Add -prepend command for options (similar to existing -append
+      command) (#40655, ryandesign in r111990)
 
 Release 2.2.1 (2013-10-26 by jmr)
     - Fixed a problem where dependency calculation could sometimes fail for
