@@ -75,7 +75,7 @@ proc portextract::disttagclean {list} {
 }
 
 proc portextract::extract_start {args} {
-    global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_dmg
+    global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
 
@@ -103,6 +103,10 @@ proc portextract::extract_start {args} {
         option extract.cmd [binaryInPath "7za"]
         option extract.pre_args x
         option extract.post_args ""
+    } elseif {[tbool use_lzip]} {
+        option extract.cmd [binaryInPath "lzip"]
+        option extract.pre_args "-dc"
+        #option extract.post_args ""
     } elseif {[tbool use_dmg]} {
         global distname extract.cmd
         set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]

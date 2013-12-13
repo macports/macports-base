@@ -48,7 +48,7 @@ namespace eval portfetch {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg dist_subdir \
+options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision \
@@ -128,6 +128,7 @@ option_proc use_lzma  portfetch::set_extract_type
 option_proc use_xz    portfetch::set_extract_type
 option_proc use_zip   portfetch::set_extract_type
 option_proc use_7z    portfetch::set_extract_type
+option_proc use_lzip  portfetch::set_extract_type
 option_proc use_dmg   portfetch::set_extract_type
 
 option_proc fetch.type portfetch::set_fetch_type
@@ -154,6 +155,10 @@ proc portfetch::set_extract_type {option action args} {
             use_7z {
                 set extract.suffix .7z
                 depends_extract-append bin:7za:p7zip
+            }
+            use_lzip {
+                set extract.suffix .tar.lz
+                depends_extract-append bin:lzip:lzip
             }
             use_dmg {
                 set extract.suffix .dmg
