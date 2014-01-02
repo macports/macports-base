@@ -426,7 +426,7 @@ proc portconfigure::configure_get_default_compiler {args} {
 
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compilers
+    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot
     if {[info exists default_compilers]} {
         return $default_compilers
     } elseif {$xcodeversion == "none" || $xcodeversion == ""} {
@@ -438,9 +438,7 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
         return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.3 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 3.2] >= 0} {
-        if {$macosx_deployment_target == "10.4"} {
-            # It's not the deployment target that is the issue, it's the
-            # 10.4u SDK which base chooses if the deployment_target is set
+        if {[string match *10.4u* ${configure.sdkroot}]} {
             return {gcc-4.0}
         } else {
             return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
