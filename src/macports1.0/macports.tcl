@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type startupitem_install place_worksymlink xcodeversion xcodebuildcmd \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
+        applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
@@ -59,7 +59,7 @@ namespace eval macports {
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target \
+        os_arch os_endian os_version os_major os_platform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -575,6 +575,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_major \
         macports::os_platform \
         macports::macosx_version \
+        macports::macosx_sdk_version \
         macports::macosx_deployment_target \
         macports::archivefetch_pubkeys \
         macports::ping_cache \
@@ -955,6 +956,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     if {![info exists macports::macosx_deployment_target]} {
         set macports::macosx_deployment_target $macosx_version
+    }
+    if {![info exists macports::macosx_sdk_version]} {
+        set macports::macosx_sdk_version $macosx_version
     }
 
     if {![info exists macports::revupgrade_autorun]} {
