@@ -41,6 +41,7 @@
 
 #include <err.h>
 #include <string.h>
+#include <strings.h>
 
 #ifdef __MACH__
 #include <mach-o/fat.h>
@@ -530,11 +531,8 @@ void macho_destroy_handle(macho_handle_t *handle) {
 
 /* Returns string representation of the MACHO_* error code constants */
 const char *macho_strerror(int err) {
-    int num = 0;
-    while (err > 0) {
-        err >>= 1;
-        num++;
-    }
+    int num = fls(err);
+
     static char *errors[] = {
         /* 0x00 */ "Success",
         /* 0x01 */ "Error opening or reading file",
