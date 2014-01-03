@@ -339,15 +339,21 @@ static int parse_macho (macho_t *mt, macho_input_t *input) {
     mat->mat_arch = swap32(header->cputype);
 
     /* Parse the Mach-O load commands */
-    const struct load_command *cmd = macho_offset(input, header, header_size, sizeof(struct load_command));
-    if (cmd == NULL)
-        return MACHO_ERANGE;
     uint32_t ncmds = swap32(header->ncmds);
+
+    /* Setup to jump over the header on the first pass through instead of the previous command */
+    const struct load_command *cmd = (void *)header;
+    uint32_t cmdsize = header_size;
 
     /* Iterate over the load commands */
     for (uint32_t i = 0; i < ncmds; i++) {
+        /* Load the next command */
+        cmd = macho_offset(input, cmd, cmdsize, sizeof(struct load_command));
+        if (cmd == NULL)
+            return MACHO_ERANGE;
+
         /* Load the full command */
-        uint32_t cmdsize = swap32(cmd->cmdsize);
+        cmdsize = swap32(cmd->cmdsize);
         cmd = macho_read(input, cmd, cmdsize);
         if (cmd == NULL)
             return MACHO_ERANGE;
@@ -426,11 +432,6 @@ static int parse_macho (macho_t *mt, macho_input_t *input) {
             default:
                 break;
         }
-
-        /* Load the next command */
-        cmd = macho_offset(input, cmd, cmdsize, sizeof(struct load_command));
-        if (cmd == NULL)
-            return MACHO_ERANGE;
     }
 
     return MACHO_SUCCESS;
