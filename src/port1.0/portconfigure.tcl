@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # $Id$
 #
-# Copyright (c) 2007 - 2013 The MacPorts Project
+# Copyright (c) 2007 - 2014 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -446,7 +446,7 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {[vercmp $xcodeversion 3.0] >= 0} {
         return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
     } else {
-        return {gcc-4.0 apple-gcc-4.2 gcc-3.3 macports-clang-3.3}
+        return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-clang-3.3}
     }
 }
 
