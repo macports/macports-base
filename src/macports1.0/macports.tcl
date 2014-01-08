@@ -3125,17 +3125,23 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     return 1
                 } elseif {[info exists dep_portinfo(installs_libs)] && !$dep_portinfo(installs_libs)} {
                     set check_archs 0
+                    if {$skipSatisfied && $present} {
+                        set parse 0
+                    }
                 }
-                set dep_options $options
-                lappend dep_options subport $dep_portinfo(name)
-                # Figure out the depport. Check the open_mports list first, since
-                # we potentially leak mport references if we mportopen each time,
-                # because mportexec only closes each open mport once.
-                set depport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $dep_options]]
 
-                if {$depport eq {}} {
-                    # We haven't opened this one yet.
-                    set depport [mportopen $dep_portinfo(porturl) $dep_options $variations]
+                if {$parse} {
+                    set dep_options $options
+                    lappend dep_options subport $dep_portinfo(name)
+                    # Figure out the depport. Check the open_mports list first, since
+                    # we potentially leak mport references if we mportopen each time,
+                    # because mportexec only closes each open mport once.
+                    set depport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $dep_options]]
+
+                    if {$depport eq {}} {
+                        # We haven't opened this one yet.
+                        set depport [mportopen $dep_portinfo(porturl) $dep_options $variations]
+                    }
                 }
             }
 
