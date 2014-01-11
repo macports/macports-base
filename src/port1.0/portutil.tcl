@@ -970,6 +970,8 @@ proc reinplace {args}  {
     }
 
     foreach file $files {
+        global UI_PREFIX
+
         # if $file is an absolute path already, file join will just return the
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
@@ -1001,6 +1003,7 @@ proc reinplace {args}  {
         if {$locale != ""} {
             set env(LC_CTYPE) $locale
         }
+        ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] [file tail $file] $pattern]"
         ui_debug "Executing reinplace: $cmdline"
         if {[catch {eval exec $cmdline} error]} {
             global errorInfo
