@@ -3134,16 +3134,38 @@ proc _check_xcode_version {} {
             ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
         }
 
-        # Xcode 4.3 requires the command-line utilities package to be
-        # installed. 
-        if {[vercmp $xcodeversion 4.3] >= 0 ||
-            ($xcodeversion == "none" && [file exists "/Applications/Xcode.app"])} {
-            if {![file exists "/usr/bin/make"]} {
-                ui_warn "The Command Line Tools for Xcode don't appear to be installed; most ports will likely fail to build."
-                ui_warn "See http://guide.macports.org/chunked/installing.xcode.html for more information."
+        # Xcode 4.3 and above requires the command-line utilities package to be installed. 
+        if {[vercmp $xcodeversion 4.3] >= 0 || ($xcodeversion == "none" && [file exists "/Applications/Xcode.app"])} {
+            if {[vercmp $macosx_version 10.9] >= 0} {
+                # on Mavericks, /usr/bin/make might always installed as a shim into the command line tools installer.
+                # Let's check for /Library/Developer/CommandLineTools, installed by the
+                # com.apple.pkg.CLTools_Executables package.
+                set cltpath "/Library/Developer/CommandLineTools"
+            } else {
+                set cltpath "/"
+            }
+
+            # Check whether /usr/include and /usr/bin/make exist and tell users to install the command line tools, if they don't
+            if {   ![file isdirectory [file join $cltpath usr include]]
+                || ![file executable  [file join $cltpath usr bin make]]} {
+                ui_warn "The Xcode Command Line Tools don't appear to be installed; most ports will likely fail to build."
+                if {[vercmp $macosx_version 10.9] >= 0} {
+                    ui_warn "Install them by running `xcode-select --install'."
+                } else {
+                    ui_warn "You can install them from Xcode's Preferences in the Downloads section."
+                    ui_warn "See http://guide.macports.org/chunked/installing.xcode.html#installing.xcode.lion.43 for more information."
+                }
+            }
+
+            # Check whether users have agreed to the Xcode license agreement
+            catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] clang 2>@1} output
+            set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
+            if {[string match -nocase "*license*" $output]} {
+                ui_error "It seems you have not accepted the Xcode license; most ports will fail to build."
+                ui_error "Agree to the license by opening Xcode or running `sudo xcodebuild -license'."
+                return 1
             }
         }
-        
     }
     return 0
 }
