@@ -1,6 +1,6 @@
 .\" portfile.7
 .\"
-.\" Copyright (c) 2004-2013 The MacPorts Project
+.\" Copyright (c) 2004-2014 The MacPorts Project
 .\" Copyright (c) 2002-2003 Apple Inc.
 .\" All rights reserved.
 .\"
@@ -1143,7 +1143,7 @@ Flags to put in the CPPFLAGS environment variable when invoking the configure sc
 .Em optional
 .br
 .Sy Default:
-.Em -I${prefix}/include
+.Em -isystem${prefix}/include
 .It Ic configure.cxxflags
 Flags to put in the CXXFLAGS environment variable when invoking the configure script.
 .br
@@ -1167,7 +1167,7 @@ Flags to put in the LDFLAGS environment variable when invoking the configure scr
 .Em optional
 .br
 .Sy Default:
-.Em -L${prefix}/lib
+.Em -L${prefix}/lib -Wl,-headerpad_max_install_names
 .It Ic configure.fflags
 Flags to put in the FFLAGS environment variable when invoking the configure script.
 .br 
