@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -532,7 +534,17 @@ void macho_destroy_handle(macho_handle_t *handle) {
 
 /* Returns string representation of the MACHO_* error code constants */
 const char *macho_strerror(int err) {
-    int num = fls(err);
+    int num;
+#ifdef HAVE_FLS
+    num = fls(err);
+#else
+    /* Tiger compatibility, see #42186 */
+    num = 0;
+    while (err > 0) {
+        err >>= 1;
+        num++;
+    }
+#endif
 
     static char *errors[] = {
         /* 0x00 */ "Success",
