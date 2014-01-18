@@ -245,7 +245,7 @@ INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 OSAtomicCompareAndSwapPtr bzero \
-	clearenv copyfile fgetln flock kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
+	clearenv copyfile fgetln flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
 	strlcpy strncasecmp sysctlbyname])
 AC_SUBST([ac_cv_func_strlcat])
 
