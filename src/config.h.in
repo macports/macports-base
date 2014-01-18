@@ -67,6 +67,9 @@
 /* Define to 1 if you have the `flock' function. */
 #undef HAVE_FLOCK
 
+/* Define to 1 if you have the `fls' function. */
+#undef HAVE_FLS
+
 /* Define if CoreFoundation framework is available */
 #undef HAVE_FRAMEWORK_COREFOUNDATION
 
