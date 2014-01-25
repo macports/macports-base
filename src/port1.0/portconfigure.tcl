@@ -162,7 +162,8 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-options configure.build_arch configure.ld_archflags configure.sdkroot
+options configure.build_arch configure.ld_archflags \
+        configure.sdkroot
 default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot]}
@@ -328,23 +329,23 @@ proc portconfigure::configure_get_ld_archflags {args} {
 
 proc portconfigure::configure_get_sdkroot {} {
     global developer_dir macosx_sdk_version macosx_version xcodeversion os.arch os.platform
-    if {${os.platform} == "darwin" && ($macosx_sdk_version != $macosx_version
-        || (${os.arch} == "powerpc" && $macosx_version == "10.4" && [variant_exists universal] && [variant_isset universal]))} {
+    if {${os.platform} eq darwin && ($macosx_sdk_version ne $macosx_version
+        || (${os.arch} eq powerpc && $macosx_version eq 10.4 && [variant_exists universal] && [variant_isset universal]))} {
         if {[vercmp $xcodeversion 4.3] < 0} {
-            set sdks_dir "${developer_dir}/SDKs"
+            set sdks_dir ${developer_dir}/SDKs
         } else {
-            set sdks_dir "${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs"
+            set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
         }
-        if {$macosx_sdk_version == "10.4"} {
-            set sdk "${sdks_dir}/MacOSX10.4u.sdk"
+        if {$macosx_sdk_version eq 10.4} {
+            set sdk ${sdks_dir}/MacOSX10.4u.sdk
         } else {
-            set sdk "${sdks_dir}/MacOSX${macosx_sdk_version}.sdk"
+            set sdk ${sdks_dir}/MacOSX${macosx_sdk_version}.sdk
         }
         if {[file exists $sdk]} {
             return $sdk
         }
     }
-    return ""
+    return {}
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
