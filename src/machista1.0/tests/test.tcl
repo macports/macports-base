@@ -12,14 +12,14 @@ for {set i 0} {$i < $argc} {incr i} {
 	if {[lindex $rlist 0] == $machista::SUCCESS} {
 		set r [lindex $rlist 1]
 		set a [$r cget -mt_archs]
-		while {$a != "NULL"} {
+		while {$a ne "NULL"} {
 			puts "	Architecture: [$a cget -mat_arch]"
 			puts "		         install name: [$a cget -mat_install_name]"
 			puts "		      current version: [machista::format_dylib_version [$a cget -mat_version]]"
 			puts "		compatibility version: [machista::format_dylib_version [$a cget -mat_comp_version]]"
 	
 			set l [$a cget -mat_loadcmds]
-			while {$l != "NULL"} {
+			while {$l ne "NULL"} {
 				puts "			[$l cget -mlt_install_name] (current version [machista::format_dylib_version [$l cget -mlt_version]], compatibility version [machista::format_dylib_version [$l cget -mlt_comp_version]])"
 				set l [$l cget -next]
 			}
