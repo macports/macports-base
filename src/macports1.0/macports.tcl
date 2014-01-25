@@ -1536,7 +1536,7 @@ proc macports::getportdir {url} {
     set protocol [macports::getprotocol $url]
     switch -- $protocol {
         file {
-            set path [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
+            set path [file normalize [string range $url [string length $protocol]+3 end]]
             if {![file isfile $path]} {
                 # the URL points to a local directory
                 return $path
@@ -2653,7 +2653,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             } else {
                                 set compres [string compare -nocase $pattern $target]
                             }
-                            set matchres [expr 0 == $compres]
+                            set matchres [expr {0 == $compres}]
                         }
                         glob {
                             if {$case_sensitive eq yes} {
@@ -4012,7 +4012,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         # we have to force the uninstall in case of dependents
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
-        set existing_epoch [lindex [lindex [registry::installed $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)] 0] 5]
+        set existing_epoch [lindex [registry::installed $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)] 0 5]
         set newregref [registry::open_entry $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) $existing_epoch]
         if {$is_dryrun eq {yes}} {
             ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"

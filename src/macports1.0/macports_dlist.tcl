@@ -292,7 +292,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	
 	# Do a pre-run seeing if any items automagically
 	# can evaluate to true.
-	if {$testcond != ""} {
+	if {$testcond ne ""} {
 		foreach ditem $dlist {
 			if {[eval "expr \[\$testcond \$ditem\] == 1"]} {
 				foreach token [ditem_key $ditem provides] {
@@ -323,7 +323,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			if {$result == {}} { set result 0 }
 			
 			foreach token [ditem_key $ditem provides] {
-				set statusdict($token) [expr $result == 0]
+				set statusdict($token) [expr {$result == 0}]
 			}
 			
 			# Abort if we're not allowed to fail
