@@ -85,7 +85,7 @@ proc main {pextlibname} {
         # Test skipping parts of the tree
         set output [list]
         fs-traverse file $root {
-            if {[string match */a $file]} {
+            if {[string match "*/a" $file]} {
                 continue
             }
             lappend output $file
@@ -161,7 +161,7 @@ proc main {pextlibname} {
         # Test to make sure deleting files during traversal works as expected
         set output [list]
         fs-traverse file $root {
-            if {[string match */a $file]} {
+            if {[string match "*/a" $file]} {
                 # use /bin/rm because on 10.3 file delete doesn't work on directories properly
                 exec /bin/rm -rf $file
                 continue

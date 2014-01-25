@@ -18,8 +18,8 @@ proc main {pextlibname} {
 		puts {![filemap exists testmap "/foo/bar"]}
 		exit 1
 	}
-	if {[filemap get testmap "/foo/bar"] != "foobar"} {
-		puts {[filemap get testmap "/foo/bar"] != "foobar"}
+	if {[filemap get testmap "/foo/bar"] ne "foobar"} {
+		puts {[filemap get testmap "/foo/bar"] ne "foobar"}
 		exit 1
 	}
 	filemap unset testmap "/foo/bar"
@@ -116,8 +116,8 @@ proc main {pextlibname} {
 		puts [filemap get testmap2 "/foobar"]
 		exit 1
 	}
-	if {[filemap get testmap2 "/bar/bar-3"] != "somevalue"} {
-		puts {[filemap get testmap2 "/bar/bar-3"] != "somevalue"}
+	if {[filemap get testmap2 "/bar/bar-3"] ne "somevalue"} {
+		puts {[filemap get testmap2 "/bar/bar-3"] ne "somevalue"}
 		puts [filemap get testmap2 "/bar/bar-3"]
 		exit 1
 	}
