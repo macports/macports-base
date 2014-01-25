@@ -4,6 +4,9 @@
 ###
 
 Release 2.3 (unreleased)
+    - Allow ports to select a specific version of the Mac OS X SDK
+      for builds. (larryv in r116437)
+
     - Enhance the "move" Portfile builtin to support case-only renames
       on case-insensitive filesystems. (#41679, ryandesign in r114289)
 
