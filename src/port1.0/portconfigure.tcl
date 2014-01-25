@@ -378,17 +378,14 @@ proc portconfigure::arch_flag_supported {compiler} {
     return [regexp {^gcc-4|llvm|apple|clang} $compiler]
 }
 
-# Mapping from compiler names to compiler ports, for private use by
-# compiler_port_name. Do not access directly.
-set portconfigure::valid_compiler_ports {
-    {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
-    {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
-    {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
-    {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}               {%sgcc%s%s}
-}
-
 proc portconfigure::compiler_port_name {compiler} {
-    foreach {re fmt} $portconfigure::valid_compiler_ports {
+    set valid_compiler_ports {
+        {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
+        {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
+        {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
+        {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}               {%sgcc%s%s}
+    }
+    foreach {re fmt} $valid_compiler_ports {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
             return [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
         }
