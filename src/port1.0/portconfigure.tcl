@@ -163,10 +163,11 @@ default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
 options configure.build_arch configure.ld_archflags \
-        configure.sdkroot
+        configure.sdk_version configure.sdkroot
 default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
-default configure.sdkroot       {[portconfigure::configure_get_sdkroot]}
+default configure.sdk_version   {$macosx_sdk_version}
+default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
 foreach tool {cc cxx objc objcxx f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
@@ -327,19 +328,19 @@ proc portconfigure::configure_get_ld_archflags {args} {
     }
 }
 
-proc portconfigure::configure_get_sdkroot {} {
-    global developer_dir macosx_sdk_version macosx_version xcodeversion os.arch os.platform
-    if {${os.platform} eq darwin && ($macosx_sdk_version ne $macosx_version
+proc portconfigure::configure_get_sdkroot {sdk_version} {
+    global developer_dir macosx_version xcodeversion os.arch os.platform
+    if {${os.platform} eq darwin && ($sdk_version ne $macosx_version
         || (${os.arch} eq powerpc && $macosx_version eq 10.4 && [variant_exists universal] && [variant_isset universal]))} {
         if {[vercmp $xcodeversion 4.3] < 0} {
             set sdks_dir ${developer_dir}/SDKs
         } else {
             set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
         }
-        if {$macosx_sdk_version eq 10.4} {
+        if {$sdk_version eq 10.4} {
             set sdk ${sdks_dir}/MacOSX10.4u.sdk
         } else {
-            set sdk ${sdks_dir}/MacOSX${macosx_sdk_version}.sdk
+            set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
         }
         if {[file exists $sdk]} {
             return $sdk
