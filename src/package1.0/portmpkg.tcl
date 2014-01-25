@@ -91,7 +91,7 @@ proc portmpkg::make_dependency_list {portname destination} {
 
     foreach depspec $depends {
         set dep [_get_dep_port $depspec]
-        if {$dep != ""} {
+        if {$dep ne ""} {
             eval "lappend result [make_dependency_list $dep $destination]"
         }
     }
@@ -272,7 +272,7 @@ proc portmpkg::xml_escape {s} {
 proc portmpkg::mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
     set vers [split $portversion "."]
 
-    if {[string index $destination end] != "/"} {
+    if {[string index $destination end] ne "/"} {
         append destination /
     }
 

@@ -224,10 +224,10 @@ License: ${license}
 URL: ${homepage}
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Source0: ${portname}-Portfile"
-    if {$zip != ""} {
+    if {$zip ne ""} {
         puts $specfd "Source1: $zip"
     }
-    if {[expr ${epoch} != 0]} {
+    if {[expr {${epoch} != 0}]} {
 	    puts $specfd "Epoch: ${epoch}"
     }
     set first 2
@@ -238,7 +238,7 @@ Source0: ${portname}-Portfile"
         puts -nonewline $specfd "Source${count}: "
         if {![info exists $fetch_urls]} {
         foreach {url_var distfile}  ${fetch_urls} {
-            if {[string equal $distfile $file]} {
+            if {$distfile eq $file} {
                  global portfetch::$url_var master_sites
                  set site [lindex [set $url_var] 0]
                  set file [portfetch::assemble_url $site $distfile]
@@ -259,7 +259,7 @@ Source0: ${portname}-Portfile"
 	}
     }
     set wrap_description [word_wrap ${long_description} 72]
-    if {$zip != ""} {
+    if {$zip ne ""} {
         set and "-a 1"
     } else {
         set and ""

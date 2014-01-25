@@ -87,7 +87,7 @@ proc portdpkg::main {args} {
 	set controlfd [open [file join ${controlpath} control] w+]
 
 	# Size, in kilobytes, of ${destpath}
-   	set pkg_installed-size [expr [dirSize ${destpath}] / 1024]
+   	set pkg_installed-size [expr {[dirSize ${destpath}] / 1024}]
 
 	# Create debian dependency list
 	if {[info exists dependencies]} {
@@ -97,12 +97,12 @@ proc portdpkg::main {args} {
 	}
 
 	# Create dpkg version number
-	if {[expr [option epoch] != 0]} {
+	if {[expr {[option epoch] != 0}]} {
 		set pkg_version "[option epoch]:[option version]"
 	} else {
 		set pkg_version "[option version]"
 	}
-	if {[expr [option revision] != 0]} {
+	if {[expr {[option revision] != 0}]} {
 		append pkg_version "-[option revision]"
 	}
 
@@ -146,7 +146,7 @@ proc portdpkg::main {args} {
 	}
 
 	# An architecture-independent package
-	if {$supported_archs == "noarch"} {
+	if {$supported_archs eq "noarch"} {
 		set pkg_arch "all"
 	}
 

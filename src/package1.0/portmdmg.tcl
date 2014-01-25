@@ -91,13 +91,13 @@ proc portmdmg::package_mdmg {portname portepoch portversion portrevision} {
     }
 
     set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
-    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${mpkgpath} ${tmp_image}"] != ""} {
+    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${mpkgpath} ${tmp_image}"] ne ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
-    if {[system "$hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] != ""} {
+    if {[system "$hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] ne ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
-    if {[system "$hdiutil internet-enable -quiet -yes ${final_image}"] != ""} {
+    if {[system "$hdiutil internet-enable -quiet -yes ${final_image}"] ne ""} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     file delete -force "${tmp_image}"

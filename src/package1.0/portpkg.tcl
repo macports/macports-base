@@ -51,7 +51,7 @@ default package.destpath {${workpath}}
 default package.resources {${workpath}/pkg_resources}
 default package.scripts  {${workpath}/pkg_scripts}
 # Need productbuild to make flat packages really work
-default package.flat     {[expr [vercmp $macosx_deployment_target 10.6] >= 0]}
+default package.flat     {[expr {[vercmp $macosx_deployment_target 10.6] >= 0}]}
 
 set_ui_prefix
 
@@ -314,7 +314,7 @@ proc portpkg::write_description_plist {infofile portname portversion description
 
 proc portpkg::write_welcome_html {filename portname portepoch portversion portrevision long_description description homepage} {
     set fd [open ${filename} w+]
-    if {$long_description == ""} {
+    if {$long_description eq ""} {
         set long_description $description
     }
 
@@ -350,7 +350,7 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
 <font face=\"Helvetica\">${long_description}</font>
 <p>"
 
-    if {$homepage != ""} {
+    if {$homepage ne ""} {
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
@@ -366,10 +366,10 @@ proc portpkg::write_sizes_file {sizesfile pkgpath destpath} {
     if {[catch {set numFiles [llength [split [exec [findBinary lsbom $portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
-    if {[catch {set compressedSize [expr [dirSize ${pkgpath}] / 1024]} result]} {
+    if {[catch {set compressedSize [expr {[dirSize ${pkgpath}] / 1024}]} result]} {
         return -code error [format [msgcat::mc "Error determining compressed size: %s"] $result]
     }
-    if {[catch {set installedSize [expr [dirSize ${destpath}] / 1024]} result]} {
+    if {[catch {set installedSize [expr {[dirSize ${destpath}] / 1024}]} result]} {
         return -code error [format [msgcat::mc "Error determining installed size: %s"] $result]
     }
     if {[catch {set infoSize [file size ${pkgpath}/Contents/Info.plist]} result]} {
@@ -503,11 +503,11 @@ proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
             # subtracted, otherwise subtract 'a'.  Add 1 to the value
             # so that 'a' and 'A' are mapped to 1, not 0.
             if {$ord < $ord_a} {
-                set j [expr $ord - $ord_A + 1]
+                set j [expr {$ord - $ord_A + 1}]
             } else {
-                set j [expr $ord - $ord_a + 1]
+                set j [expr {$ord - $ord_a + 1}]
             }
-            set i [expr 26*$i + $j]
+            set i [expr {26*$i + $j}]
         }
         lappend vs $i
     }

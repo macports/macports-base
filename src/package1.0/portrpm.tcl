@@ -81,7 +81,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
     }
 
     set rpmbuildarch ""
-    if {$supported_archs == "noarch"} {
+    if {$supported_archs eq "noarch"} {
         set rpmbuildarch "--target noarch"
     } elseif {[variant_exists universal] && [variant_isset universal]} {
         set rpmbuildarch "--target fat"
@@ -227,7 +227,7 @@ License: ${license}
 URL: ${homepage}
 BuildRoot: ${destroot}
 AutoReq: no"
-    if {[expr ${epoch} != 0]} {
+    if {[expr {${epoch} != 0}]} {
 	    puts $specfd "Epoch: ${epoch}"
     }
     if {[llength ${dependencies}] != 0} {

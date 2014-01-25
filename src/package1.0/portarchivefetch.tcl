@@ -104,7 +104,7 @@ proc portarchivefetch::filter_sites {} {
     }
 
     # check if porturl itself points to an archive
-    if {[file rootname [file tail $porturl]] == [file rootname [get_portimage_name]] && [file extension $porturl] != ""} {
+    if {[file rootname [file tail $porturl]] eq [file rootname [get_portimage_name]] && [file extension $porturl] ne ""} {
         lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]:[string range [file extension $porturl] 1 end]
         archive.subdir
     }
@@ -186,7 +186,7 @@ proc portarchivefetch::fetchfiles {args} {
     if {${archivefetch.ignore_sslcert} != "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
-    if {$portverbose == "yes"} {
+    if {$portverbose eq "yes"} {
         lappend fetch_options "-v"
     }
     set sorted no
@@ -194,7 +194,7 @@ proc portarchivefetch::fetchfiles {args} {
     set existing_archive [find_portarchive_path]
 
     foreach {url_var archive} $archivefetch_urls {
-        if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive == ""} {
+        if {![file isfile ${archivefetch.fulldestpath}/${archive}] && $existing_archive eq ""} {
             ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $archive ${archivefetch.fulldestpath}]"
             if {![file writable ${archivefetch.fulldestpath}]} {
                 return -code error [format [msgcat::mc "%s must be writable"] ${archivefetch.fulldestpath}]
@@ -213,7 +213,7 @@ proc portarchivefetch::fetchfiles {args} {
             set failed_sites 0
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {
-                if {[string index $site end] != "/"} {
+                if {[string index $site end] ne "/"} {
                     append site "/[option archive.subdir]"
                 } else {
                     append site [option archive.subdir]
@@ -280,7 +280,7 @@ proc portarchivefetch::fetchfiles {args} {
         }
         return 0
     }
-    if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
+    if {[info exists ports_binary_only] && $ports_binary_only eq "yes"} {
         return -code error "archivefetch failed for [option subport] @[option version]_[option revision][option portvariants]"
     } else {
         return 0
