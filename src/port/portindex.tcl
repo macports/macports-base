@@ -102,12 +102,12 @@ proc pindex {portdir} {
 
         foreach availkey [array names portinfo] {
             # store list of subports for top-level ports only
-            if {![info exists keepkeys($availkey)] && $availkey != "subports"} {
+            if {![info exists keepkeys($availkey)] && $availkey ne "subports"} {
                 unset portinfo($availkey)
             }
         }
         set output [array get portinfo]
-        set len [expr [string length $output] + 1]
+        set len [expr {[string length $output] + 1}]
         puts $fd [list $portinfo(name) $len]
         puts $fd $output
         set mtime [file mtime [file join $directory $portdir Portfile]]
@@ -138,7 +138,7 @@ proc pindex {portdir} {
                     }
                 }
                 set output [array get portinfo]
-                set len [expr [string length $output] + 1]
+                set len [expr {[string length $output] + 1}]
                 puts $fd [list $portinfo(name) $len]
                 puts $fd $output
             }
@@ -146,7 +146,7 @@ proc pindex {portdir} {
     }
 }
 
-if {[expr $argc > 8]} {
+if {[expr {$argc > 8}]} {
     print_usage
     exit 1
 }
@@ -155,23 +155,23 @@ for {set i 0} {$i < $argc} {incr i} {
     set arg [lindex $argv $i]
     switch -regex -- $arg {
         {^-.+} {
-            if {$arg == "-d"} { # Turn on debug output
+            if {$arg eq "-d"} { # Turn on debug output
                 set ui_options(ports_debug) yes
-            } elseif {$arg == "-o"} { # Set output directory
+            } elseif {$arg eq "-o"} { # Set output directory
                 incr i
                 set outdir [file join [pwd] [lindex $argv $i]]
-            } elseif {$arg == "-p"} { # Set platform
+            } elseif {$arg eq "-p"} { # Set platform
                 incr i
                 set platlist [split [lindex $argv $i] _]
                 set os_platform [lindex $platlist 0]
                 set os_major [lindex $platlist 1]
                 set os_arch [lindex $platlist 2]
-                if {$os_platform == "macosx"} {
+                if {$os_platform eq "macosx"} {
                     lappend port_options os.subplatform $os_platform os.universal_supported yes
                     set os_platform darwin
                 }
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
-            } elseif {$arg == "-f"} { # Completely rebuild index
+            } elseif {$arg eq "-f"} { # Completely rebuild index
                 set full_reindex 1
             } else {
                 puts stderr "Unknown option: $arg"
@@ -249,6 +249,6 @@ file rename -force $tempportindex $outpath
 file mtime $outpath $newest
 mports_generate_quickindex $outpath
 puts "\nTotal number of ports parsed:\t$stats(total)\
-      \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\
+      \nPorts successfully parsed:\t[expr {$stats(total) - $stats(failed)}]\
       \nPorts failed:\t\t\t$stats(failed)\
       \nUp-to-date ports skipped:\t$stats(skipped)\n"
