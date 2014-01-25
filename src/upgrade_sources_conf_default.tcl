@@ -58,7 +58,7 @@ while {[gets $sourcesConfChannel line] >= 0} {
                      }
                   }
                }
-               if {$svnCmd == ""} {
+               if {$svnCmd eq ""} {
                   puts "WARNING: Unable to check svn URL for '$filepath' because no svn command could be found; please manually verify $sourcesConf!"
                   continue
                }
