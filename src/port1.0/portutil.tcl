@@ -1000,7 +1000,7 @@ proc reinplace {args}  {
             lappend cmdline -n
         }
         set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd 2>@stderr]]
-        if {$locale != ""} {
+        if {$locale ne ""} {
             set env(LC_CTYPE) $locale
         }
         ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] [file tail $file] $pattern]"
@@ -1419,7 +1419,7 @@ proc target_run {ditem} {
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]
-                  && $ports_trace == "yes"
+                  && $ports_trace eq "yes"
                   && $target ne "clean"
                   && $target ne "uninstall")} {
                     # uninstall will open a portfile from registry and call
@@ -1535,7 +1535,7 @@ proc target_run {ditem} {
 
                 # Check dependencies & file creations outside workpath.
                 if {[info exists ports_trace]
-                  && $ports_trace == "yes"
+                  && $ports_trace eq "yes"
                   && $target ne "clean"
                   && $target ne "uninstall"} {
 
@@ -3135,7 +3135,7 @@ proc _check_xcode_version {} {
         }
 
         # Xcode 4.3 and above requires the command-line utilities package to be installed. 
-        if {[vercmp $xcodeversion 4.3] >= 0 || ($xcodeversion == "none" && [file exists "/Applications/Xcode.app"])} {
+        if {[vercmp $xcodeversion 4.3] >= 0 || ($xcodeversion eq "none" && [file exists "/Applications/Xcode.app"])} {
             if {[vercmp $macosx_version 10.9] >= 0} {
                 # on Mavericks, /usr/bin/make might always installed as a shim into the command line tools installer.
                 # Let's check for /Library/Developer/CommandLineTools, installed by the
