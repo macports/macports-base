@@ -76,8 +76,8 @@ proc portconfigure::add_build_dep { type dep } {
     global ${type}.cmd option_defaults
 
     if {![info exists ${type}.cmd] || (
-        ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == $option_defaults(${type}.cmd)) ||
-        (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == "${type}")
+        ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq $option_defaults(${type}.cmd)) ||
+        (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq ${type})
         )} {
             eval [linsert $dep 0 depends_build-append]
     }
@@ -94,7 +94,7 @@ proc portconfigure::set_configure_type {option action args} {
         xmkmf       port:imake
     }
 
-    if {[string equal ${action} "set"]} {
+    if {$action eq "set"} {
         switch $option {
             autoreconf.cmd  -
             automake.cmd    -
@@ -279,9 +279,9 @@ proc portconfigure::choose_supported_archs {archs} {
     foreach arch $archs {
         if {[lsearch -exact $supported_archs $arch] != -1} {
             set add_arch $arch
-        } elseif {$arch == "x86_64" && [lsearch -exact $supported_archs "i386"] != -1} {
+        } elseif {$arch eq "x86_64" && [lsearch -exact $supported_archs "i386"] != -1} {
             set add_arch "i386"
-        } elseif {$arch == "ppc64" && [lsearch -exact $supported_archs "ppc"] != -1} {
+        } elseif {$arch eq "ppc64" && [lsearch -exact $supported_archs "ppc"] != -1} {
             set add_arch "ppc"
         } else {
             continue
@@ -301,14 +301,14 @@ proc portconfigure::configure_get_archflags {tool} {
         set flags "-m64"
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
-    } elseif {${configure.build_arch} != ""} {
+    } elseif {${configure.build_arch} ne ""} {
         if {[arch_flag_supported ${configure.compiler}] &&
             [regexp {^(?:cc|cxx|objc|objcxx)$} $tool]
         } then {
             set flags "-arch ${configure.build_arch}"
-        } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
+        } elseif {${configure.build_arch} eq "x86_64" || ${configure.build_arch} eq "ppc64"} {
             set flags "-m64"
-        } elseif {${configure.compiler} != "gcc-3.3"} {
+        } elseif {${configure.compiler} ne "gcc-3.3"} {
             set flags "-m32"
         }
     }
@@ -321,7 +321,7 @@ proc portconfigure::configure_get_archflags {tool} {
 # ld directly. So we punt and let portfiles deal with that case.
 proc portconfigure::configure_get_ld_archflags {args} {
     global configure.build_arch configure.compiler
-    if {${configure.build_arch} != "" && [arch_flag_supported ${configure.compiler}]} {
+    if {${configure.build_arch} ne "" && [arch_flag_supported ${configure.compiler}]} {
         return "-arch ${configure.build_arch}"
     } else {
         return ""
@@ -402,7 +402,7 @@ proc portconfigure::compiler_is_port {compiler} {
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
-    if {[option compiler.whitelist] != ""} {
+    if {[option compiler.whitelist] ne ""} {
         set search_list [option compiler.whitelist]
     } else {
         set search_list [option compiler.fallback]
@@ -479,7 +479,7 @@ proc portconfigure::find_developer_tool {name} {
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
     global configure.compiler prefix
-    if {$compiler == ""} {
+    if {$compiler eq ""} {
         set compiler ${configure.compiler}
     }
     # Tcl 8.4's switch doesn't support -matchvar.
@@ -489,7 +489,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objc    { return ${prefix}/bin/gcc-apple${suffix} }
             cxx     -
             objcxx  {
-                if {$suffix == "-4.2"} {
+                if {$suffix eq "-4.2"} {
                     return ${prefix}/bin/g++-apple${suffix}
                 }
             }
@@ -709,12 +709,12 @@ proc portconfigure::configure_main {args} {
         }
 
         # https://trac.macports.org/ticket/34221
-        if {${os.platform} == "darwin" && ${os.major} == 12} {
+        if {${os.platform} eq "darwin" && ${os.major} == 12} {
             append_to_environment_value configure "__CFPREFERENCES_AVOID_DAEMON" 1
         }
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
-        if {${configure.sdkroot} != ""} {
+        if {${configure.sdkroot} ne ""} {
             foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
                 append_to_environment_value configure $env_var -isysroot ${configure.sdkroot}
             }
@@ -734,10 +734,10 @@ proc portconfigure::configure_main {args} {
             eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
         } else {
             foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS LDFLAGS} {
-                if {${configure.march} != ""} {
+                if {${configure.march} ne ""} {
                     append_to_environment_value configure $env_var -march=${configure.march}
                 }
-                if {${configure.mtune} != ""} {
+                if {${configure.mtune} ne ""} {
                     append_to_environment_value configure $env_var -mtune=${configure.mtune}
                 }
             }
