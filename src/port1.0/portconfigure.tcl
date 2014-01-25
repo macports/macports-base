@@ -231,7 +231,7 @@ proc portconfigure::configure_start {args} {
         {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
     }
     foreach {re fmt} $valid_compilers {
-        if {[set matches [regexp -inline $re $compiler]] ne {}} {
+        if {[set matches [regexp -inline $re $compiler]] ne ""} {
             set compiler_name [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
             break
         }
@@ -330,14 +330,14 @@ proc portconfigure::configure_get_ld_archflags {args} {
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
     global developer_dir macosx_version xcodeversion os.arch os.platform
-    if {${os.platform} eq {darwin} && ($sdk_version ne $macosx_version
-        || (${os.arch} eq {powerpc} && $macosx_version eq {10.4} && [variant_exists universal] && [variant_isset universal]))} {
+    if {${os.platform} eq "darwin" && ($sdk_version ne $macosx_version
+        || (${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]))} {
         if {[vercmp $xcodeversion 4.3] < 0} {
             set sdks_dir ${developer_dir}/SDKs
         } else {
             set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
         }
-        if {$sdk_version eq {10.4}} {
+        if {$sdk_version eq "10.4"} {
             set sdk ${sdks_dir}/MacOSX10.4u.sdk
         } else {
             set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
@@ -389,7 +389,7 @@ set portconfigure::valid_compiler_ports {
 
 proc portconfigure::compiler_port_name {compiler} {
     foreach {re fmt} $portconfigure::valid_compiler_ports {
-        if {[set matches [regexp -inline $re $compiler]] ne {}} {
+        if {[set matches [regexp -inline $re $compiler]] ne ""} {
             return [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
         }
     }
@@ -402,7 +402,7 @@ proc portconfigure::compiler_is_port {compiler} {
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
-    if {[option compiler.whitelist] != {}} {
+    if {[option compiler.whitelist] != ""} {
         set search_list [option compiler.whitelist]
     } else {
         set search_list [option compiler.fallback]
@@ -479,7 +479,7 @@ proc portconfigure::find_developer_tool {name} {
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
     global configure.compiler prefix
-    if {$compiler == {}} {
+    if {$compiler == ""} {
         set compiler ${configure.compiler}
     }
     # Tcl 8.4's switch doesn't support -matchvar.
@@ -525,7 +525,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cpp     { return [find_developer_tool llvm-cpp-4.2] }
         }
     } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
-        if {$suffix ne {}} {
+        if {$suffix ne ""} {
             set suffix "-mp${suffix}"
         }
         switch $type {
@@ -536,7 +536,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
     } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)(?:-gcc(-\d+\.\d+))?$} $compiler \
                 -> infix suffix]} {
-        if {$suffix ne {}} {
+        if {$suffix ne ""} {
             set suffix "-mp${suffix}"
         }
         switch $type {
@@ -550,7 +550,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             f90     { return ${prefix}/bin/dragonegg${infix}-gfortran${suffix} }
         }
     } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
-        if {$suffix ne {}} {
+        if {$suffix ne ""} {
             set suffix "-mp${suffix}"
         }
         switch $type {
@@ -734,17 +734,17 @@ proc portconfigure::configure_main {args} {
             eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
         } else {
             foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS LDFLAGS} {
-                if {${configure.march} != {}} {
+                if {${configure.march} != ""} {
                     append_to_environment_value configure $env_var -march=${configure.march}
                 }
-                if {${configure.mtune} != {}} {
+                if {${configure.mtune} != ""} {
                     append_to_environment_value configure $env_var -mtune=${configure.mtune}
                 }
             }
         }
 
         # Add flags to specify C++ STL implementation
-        if {${configure.cxx_stdlib} ne {} && [string match "*clang*" [option configure.cxx]]} {
+        if {${configure.cxx_stdlib} ne "" && [string match "*clang*" [option configure.cxx]]} {
             append_to_environment_value configure CXXFLAGS -stdlib=${configure.cxx_stdlib}
             append_to_environment_value configure OBJCXXFLAGS -stdlib=${configure.cxx_stdlib}
         }
