@@ -45,19 +45,19 @@ foreach installed $ilist {
     set iepoch [lindex $installed 5]
     set iref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
     set installtype [registry::property_retrieve $iref installtype]
-    if {$installtype == "image"} {
+    if {$installtype eq "image"} {
         set location [registry::property_retrieve $iref location]
-        if {$location == "0"} {
+        if {$location == 0} {
             set location [registry::property_retrieve $iref imagedir]
         }
     } else {
         set location ""
     }
 
-    if {$location == "" || ![file isfile $location]} {
+    if {$location eq "" || ![file isfile $location]} {
         # no image archive present, so make one
         set archs [registry::property_retrieve $iref archs]
-        if {$archs == "" || $archs == "0"} {
+        if {$archs eq "" || $archs == 0} {
             set archs ${macports::os_arch}
         }
         # look for any existing archive in the old location
@@ -88,12 +88,12 @@ foreach installed $ilist {
         # compute new name and location of archive
         set archivename "${iname}-${iversion}_${irevision}${ivariants}.${macports::os_platform}_${macports::os_major}.[join $archs -].${archivetype}"
         ui_msg "Processing ${counter} of ${installed_len}: ${archivename}"
-        if {$installtype == "image"} {
+        if {$installtype eq "image"} {
             set targetdir [file dirname $location]
         } else {
             set targetdir [file join ${macports::registry.path} software ${iname}]
         }
-        if {$location == "" || ![file isdirectory $location]} {
+        if {$location eq "" || ![file isdirectory $location]} {
             set contents [$iref imagefiles]
         }
         file mkdir $targetdir
@@ -101,7 +101,7 @@ foreach installed $ilist {
 
         if {$found} {
             file rename $oldarchivefullpath $newlocation
-        } elseif {$installtype == "image" && [file isdirectory $location]} {
+        } elseif {$installtype eq "image" && [file isdirectory $location]} {
             # create archive from image dir
             system -W $location "$tarcmd -cjf $newlocation * > ${targetdir}/error.log 2>&1"
             file delete -force ${targetdir}/error.log
@@ -132,7 +132,7 @@ registry::write {
         set iref [lindex $archived 1]
         set newlocation [lindex $archived 3]
     
-        if {$installtype == "direct"} {
+        if {$installtype eq "direct"} {
             # change receipt to image
             $iref installtype image
             $iref state imaged
@@ -150,7 +150,7 @@ foreach archived $archived_list {
     incr counter
     set location [lindex $archived 2]
     ui_msg "Deleting ${counter} of ${archived_len}: ${location}"
-    if {$location != "" && [file isdirectory $location]} {
+    if {$location ne "" && [file isdirectory $location]} {
         if {[catch {file delete -force $location} result]} {
             ui_warn "Failed to delete ${location}: $result"
         }
