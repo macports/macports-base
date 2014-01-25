@@ -320,17 +320,6 @@ Value for MACOSX_DEPLOYMENT_TARGET environment variable when invoking the config
 .br
 .Sy Example:
 .Dl macosx_deployment_target 10.8
-.It Ic macosx_sdk_version
-SDK version to build against.
-.br 
-.Sy Type:
-.Em optional
-.br 
-.Sy Default:
-.Em (current OS version)
-.br
-.Sy Example:
-.Dl macosx_sdk_version 10.8
 .It Ic use_parallel_build
 If set to yes (and the user has enabled buildmakejobs in
 .Pa macports.conf
@@ -1272,6 +1261,17 @@ use the vanilla compiler suites installed via MacPorts.
 .br
 .Sy Example:
 .Dl configure.compiler llvm-gcc-4.2
+.It Ic configure.sdk_version
+Mac OS X SDK version to build against.
+.br 
+.Sy Type:
+.Em optional
+.br 
+.Sy Default:
+.Em (current OS version)
+.br
+.Sy Example:
+.Dl configure.sdk_version 10.8
 .\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
