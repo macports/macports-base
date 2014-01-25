@@ -330,14 +330,14 @@ proc portconfigure::configure_get_ld_archflags {args} {
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
     global developer_dir macosx_version xcodeversion os.arch os.platform
-    if {${os.platform} eq darwin && ($sdk_version ne $macosx_version
-        || (${os.arch} eq powerpc && $macosx_version eq 10.4 && [variant_exists universal] && [variant_isset universal]))} {
+    if {${os.platform} eq {darwin} && ($sdk_version ne $macosx_version
+        || (${os.arch} eq {powerpc} && $macosx_version eq {10.4} && [variant_exists universal] && [variant_isset universal]))} {
         if {[vercmp $xcodeversion 4.3] < 0} {
             set sdks_dir ${developer_dir}/SDKs
         } else {
             set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
         }
-        if {$sdk_version eq 10.4} {
+        if {$sdk_version eq {10.4}} {
             set sdk ${sdks_dir}/MacOSX10.4u.sdk
         } else {
             set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
