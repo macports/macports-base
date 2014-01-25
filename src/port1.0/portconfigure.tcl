@@ -246,10 +246,10 @@ proc portconfigure::configure_start {args} {
     if {${configure.ccache}} {
         # Create ccache directory with correct permissions with root privileges
         elevateToRoot "configure ccache"
-        if [catch {
+        if {[catch {
                 file mkdir ${ccache_dir}
                 file attributes ${ccache_dir} -owner ${macportsuser} -permissions 0755
-            } result] {
+            } result]} {
             ui_warn "ccache_dir ${ccache_dir} could not be created; disabling ccache: $result"
             set configure.ccache no
         }
@@ -257,9 +257,9 @@ proc portconfigure::configure_start {args} {
 
         # Initialize ccache directory with the given maximum size
         if {${configure.ccache}} {
-            if [catch {
+            if {[catch {
                 exec ccache -M ${ccache_size} >/dev/null
-            } result] {
+            } result]} {
                 ui_warn "ccache_dir ${ccache_dir} could not be initialized; disabling ccache: $result"
                 set configure.ccache no
             }
@@ -272,7 +272,7 @@ proc portconfigure::configure_start {args} {
 # universal_archs
 proc portconfigure::choose_supported_archs {archs} {
     global supported_archs
-    if {$supported_archs == ""} {
+    if {$supported_archs eq ""} {
         return $archs
     }
     set ret {}
@@ -354,7 +354,7 @@ proc portconfigure::configure_get_universal_archflags {args} {
     global configure.universal_archs
     set flags ""
     foreach arch ${configure.universal_archs} {
-        if {$flags == ""} {
+        if {$flags eq ""} {
             set flags "-arch $arch"
         } else {
             append flags " -arch $arch"
@@ -397,7 +397,7 @@ proc portconfigure::compiler_port_name {compiler} {
 }
 
 proc portconfigure::compiler_is_port {compiler} {
-    return [expr {[portconfigure::compiler_port_name ${compiler}] != ""}]
+    return [expr {[portconfigure::compiler_port_name ${compiler}] ne ""}]
 }
 
 # internal function to determine the default compiler
@@ -431,7 +431,7 @@ proc portconfigure::get_compiler_fallback {} {
     global xcodeversion macosx_deployment_target default_compilers configure.sdkroot
     if {[info exists default_compilers]} {
         return $default_compilers
-    } elseif {$xcodeversion == "none" || $xcodeversion == ""} {
+    } elseif {$xcodeversion eq "none" || $xcodeversion eq ""} {
         return {cc}
     } elseif {[vercmp $xcodeversion 5.0] >= 0} {
         return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
@@ -744,7 +744,7 @@ proc portconfigure::configure_main {args} {
         }
 
         # Add flags to specify C++ STL implementation
-        if {${configure.cxx_stdlib} ne {} && [string match *clang* [option configure.cxx]]} {
+        if {${configure.cxx_stdlib} ne {} && [string match "*clang*" [option configure.cxx]]} {
             append_to_environment_value configure CXXFLAGS -stdlib=${configure.cxx_stdlib}
             append_to_environment_value configure OBJCXXFLAGS -stdlib=${configure.cxx_stdlib}
         }

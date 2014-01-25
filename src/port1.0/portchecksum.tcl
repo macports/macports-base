@@ -82,8 +82,8 @@ proc portchecksum::parse_checksums {checksums_str} {
     set nb_checksum [llength $checksums_str]
 
     if {[llength $all_dist_files] == 1
-        && [expr $nb_checksum % 2] == 0
-        && [expr $nb_checksum / 2] <= $checksum_types_count
+        && [expr {$nb_checksum % 2}] == 0
+        && [expr {$nb_checksum / 2}] <= $checksum_types_count
         && [lsearch -exact $checksum_types [lindex $checksums_str 0]] >= 0} {
         # Convert to format #2
         set checksums_str [linsert $checksums_str 0 [lindex $all_dist_files 0]]
@@ -226,7 +226,7 @@ proc portchecksum::checksum_main {args} {
 
     # if everything is fine with the syntax, keep on and check the checksum of
     # the distfiles.
-    if {[parse_checksums $checksums_str] == "yes"} {
+    if {[parse_checksums $checksums_str] eq "yes"} {
         set distpath [option distpath]
 
         foreach distfile $all_dist_files {
@@ -268,7 +268,7 @@ proc portchecksum::checksum_main {args} {
 		    # Used for regression testing
                     ui_debug "[format [msgcat::mc "Calculated (%s) is %s"] $type $calculated_sum]"
 
-                    if {[string equal $sum $calculated_sum]} {
+                    if {$sum eq $calculated_sum} {
                         ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
                     } else {
                         ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"

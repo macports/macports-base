@@ -272,12 +272,12 @@ proc porttrace::slave_read_line {chan} {
 
         # Skip empty lines.
         if {$line_length > 0} {
-            set path_start [expr [string first "\t" $theline] + 1]
-            set op [string range $theline 0 [expr $path_start - 2]]
-            set path [string range $theline $path_start [expr $line_length - 1]]
+            set path_start [expr {[string first "\t" $theline] + 1}]
+            set op [string range $theline 0 $path_start-2]
+            set path [string range $theline $path_start $line_length-1]
 
             # open/execve
-            if {$op == "open" || $op == "execve"} {
+            if {$op eq "open" || $op eq "execve"} {
                 # Only work on files.
                 if {[file isfile $path]} {
                     # Did we process the file yet?
@@ -301,7 +301,7 @@ proc porttrace::slave_read_line {chan} {
                         catch {filemap set trace_filemap $path $port}
                     }
                 }
-            } elseif {$op == "sandbox_violation"} {
+            } elseif {$op eq "sandbox_violation"} {
                 lappend sandbox_violation_list $path
             }
         }

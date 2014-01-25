@@ -67,26 +67,26 @@ proc portclean::clean_main {args} {
         ui_warn "Only cleaning in ~/.macports; insufficient privileges for standard locations"
     }
 
-    if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
-        [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
+    if {[info exists ports_clean_all] && $ports_clean_all eq "yes" || \
+        [info exists ports_clean_dist] && $ports_clean_dist eq "yes"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option subport]]"
         clean_dist
     }
-    if {([info exists ports_clean_all] && $ports_clean_all == "yes" || \
-        [info exists ports_clean_archive] && $ports_clean_archive == "yes")
+    if {([info exists ports_clean_all] && $ports_clean_all eq "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive eq "yes")
         && !$usealtworkpath} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing temporary archives for %s"] [option subport]]"
         clean_archive
     }
-    if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
-        [info exists ports_clean_work] && $ports_clean_work == "yes" || \
-        [info exists ports_clean_archive] && $ports_clean_archive == "yes" || \
-        [info exists ports_clean_dist] && $ports_clean_dist == "yes" || \
-        !([info exists ports_clean_logs] && $ports_clean_logs == "yes")} {
+    if {[info exists ports_clean_all] && $ports_clean_all eq "yes" || \
+        [info exists ports_clean_work] && $ports_clean_work eq "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive eq "yes" || \
+        [info exists ports_clean_dist] && $ports_clean_dist eq "yes" || \
+        !([info exists ports_clean_logs] && $ports_clean_logs eq "yes")} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing work directory for %s"] [option subport]]"
          clean_work
     }
-    if {(([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no"))
+    if {(([info exists ports_clean_logs] && $ports_clean_logs eq "yes") || ($keeplogs eq "no"))
         && !$usealtworkpath} {
         clean_logs
     }
@@ -165,7 +165,7 @@ proc portclean::clean_dist {args} {
     # or if user forces us to
     set dirlist [list]
     if {$dist_subdir != $name} {
-        if {!([info exists ports_force] && $ports_force == "yes")
+        if {!([info exists ports_force] && $ports_force eq "yes")
             && [file isdirectory $distpath]
             && [llength [readdir $distpath]] > 0} {
             ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] $distpath]
@@ -291,7 +291,7 @@ proc portclean::clean_archive {args} {
             # delete anything ending in .TMP since those are incomplete and
             # thus can't be checked and aren't useful anyway.
             set archivetype [string range [file extension $path] 1 end]
-            if {[file isfile $path] && ($archivetype == "TMP"
+            if {[file isfile $path] && ($archivetype eq "TMP"
                 || [extract_archive_metadata $path $archivetype portname] == $subport)} {
                 ui_debug "Removing archive: $path"
                 if {[catch {delete $path} result]} {

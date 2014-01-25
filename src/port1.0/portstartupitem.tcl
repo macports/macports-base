@@ -231,12 +231,12 @@ proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
     puts ${item} "LOGFILE=\"${startupitem.logfile}\""
     puts ${item} "EXECUTABLE=\"${startupitem.executable}\""
     puts ${item} ""
-    puts ${item} "HAVE_STARTCMDS=[expr [llength ${startupitem.start}] ? "true" : "false"]"
-    puts ${item} "HAVE_STOPCMDS=[expr [llength ${startupitem.stop}] ? "true" : "false"]"
-    puts ${item} "HAVE_RESTARTCMDS=[expr [llength ${startupitem.restart}] ? "true" : "false"]"
+    puts ${item} "HAVE_STARTCMDS=[expr {[llength ${startupitem.start}] ? "true" : "false"}]"
+    puts ${item} "HAVE_STOPCMDS=[expr {[llength ${startupitem.stop}] ? "true" : "false"}]"
+    puts ${item} "HAVE_RESTARTCMDS=[expr {[llength ${startupitem.restart}] ? "true" : "false"}]"
     puts ${item} "DELETE_PIDFILE=${createPidFile}"
     puts ${item} "CREATE_PIDFILE=${deletePidFile}"
-    puts ${item} "LOG_EVENTS=[expr [tbool ${startupitem.logevents}] ? "true" : "false"]"
+    puts ${item} "LOG_EVENTS=[expr {[tbool ${startupitem.logevents}] ? "true" : "false"}]"
     puts ${item} ""
 
     # Emit the init lines

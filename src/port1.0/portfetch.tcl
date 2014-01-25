@@ -170,7 +170,7 @@ proc portfetch::set_extract_type {option action args} {
 proc portfetch::set_fetch_type {option action args} {
     global os.platform os.major
     if {[string equal ${action} "set"]} {
-        if {$args != "standard"} {
+        if {$args ne "standard"} {
             distfiles
         }
         switch $args {
@@ -230,7 +230,7 @@ proc portfetch::checkpatchfiles {urls} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
-                if {$distsite != ""} {
+                if {$distsite ne ""} {
                     lappend fetch_urls $distsite $file
                 } elseif {[info exists patch_sites]} {
                     lappend fetch_urls patch_sites $file
@@ -253,7 +253,7 @@ proc portfetch::checkdistfiles {urls} {
                 set distsite [getdisttag $file]
                 set file [getdistname $file]
                 lappend all_dist_files $file
-                if {$distsite != ""} {
+                if {$distsite ne ""} {
                     lappend fetch_urls $distsite $file
                 } else {
                     lappend fetch_urls master_sites $file
@@ -390,7 +390,7 @@ proc portfetch::svn_proxy_args {url} {
     }
     regexp {(.*://)?([[:alnum:].-]+)(:(\d+))?} $proxy_str - - proxy_host - proxy_port
     set ret "--config-option servers:global:http-proxy-host=${proxy_host}"
-    if {$proxy_port != ""} {
+    if {$proxy_port ne ""} {
         append ret " --config-option servers:global:http-proxy-port=${proxy_port}"
     }
     return $ret
@@ -501,7 +501,7 @@ proc portfetch::fetchfiles {args} {
     if {${fetch.remote_time} != "no"} {
         lappend fetch_options "--remote-time"
     }
-    if {$portverbose == "yes"} {
+    if {$portverbose eq "yes"} {
         lappend fetch_options "-v"
     }
     set sorted no

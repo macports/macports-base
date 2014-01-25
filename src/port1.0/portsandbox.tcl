@@ -35,7 +35,7 @@ namespace eval portsandbox {
 
 options portsandbox_supported portsandbox_active portsandbox_profile
 default portsandbox_supported {[file executable $portutil::autoconf::sandbox_exec_path]}
-default portsandbox_active {[expr $portsandbox_supported && $sandbox_enable]}
+default portsandbox_active {[expr {$portsandbox_supported && $sandbox_enable}]}
 default portsandbox_profile {}
 
 # set up a suitable profile to pass to sandbox-exec, based on the target

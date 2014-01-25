@@ -138,7 +138,7 @@ proc portlint::lint_main {args} {
             if {$nitpick} {
                 seek $f -1 end
                 set last [read $f 1]
-                if {![string match "\n" $last]} {
+                if {"\n" ne $last} {
                     ui_warn "Line $lineno has missing newline (at end of file)"
                     incr warnings
                 }
@@ -153,12 +153,12 @@ proc portlint::lint_main {args} {
             incr errors
         }
 
-        if {($require_after == "PortSystem" || $require_after == "PortGroup") && \
+        if {($require_after eq "PortSystem" || $require_after eq "PortGroup") && \
             [string match "PortGroup*" $line]} {
             set require_blank false
         }
 
-        if {$nitpick && $require_blank && ($line != "")} {
+        if {$nitpick && $require_blank && ($line ne "")} {
             ui_warn "Line $lineno should be a newline (after $require_after)"
             incr warnings
         }
@@ -228,7 +228,7 @@ proc portlint::lint_main {args} {
         if {[string match "long_description*" $line]} {
             set in_description true
         }
-        if {$in_description && ([string range $line end end] != "\\")} {
+        if {$in_description && ([string range $line end end] ne "\\")} {
             set in_description false
             #set require_blank true
             #set require_after "long_description"
@@ -245,7 +245,7 @@ proc portlint::lint_main {args} {
         
         if {[string match "platform\[ \t\]*" $line]} {
             regexp {platform\s+(?:\w+\s+(?:\w+\s+)?)?(\w+)} $line -> platform_arch
-            if {$platform_arch == "ppc"} {
+            if {$platform_arch eq "ppc"} {
                 ui_error "Arch 'ppc' in platform on line $lineno should be 'powerpc'"
                 incr errors
             }
@@ -334,7 +334,7 @@ proc portlint::lint_main {args} {
 
     foreach req_var $lint_required {
 
-        if {$req_var == "master_sites"} {
+        if {$req_var eq "master_sites"} {
             if {${fetch.type} != "standard"} {
                 ui_info "OK: $req_var not required for fetch.type ${fetch.type}"
                 continue
@@ -401,7 +401,7 @@ proc portlint::lint_main {args} {
     foreach variant $all_variants {
         set variantname [ditem_key $variant name] 
         set variantdesc [lindex [ditem_key $variant description] 0]
-        if {![info exists variantname] || $variantname == ""} {
+        if {![info exists variantname] || $variantname eq ""} {
             ui_error "Variant number $variantnumber does not have a name"
             incr errors
         } else {
@@ -414,18 +414,18 @@ proc portlint::lint_main {args} {
                 set name_ok false
             }
 
-            if {![info exists variantdesc] || $variantdesc == ""} {
+            if {![info exists variantdesc] || $variantdesc eq ""} {
                 # don't warn about missing descriptions for global variants
                 if {[lsearch -exact $local_variants $variantname] != -1 &&
-                    [variant_desc $porturl $variantname] == ""} {
+                    [variant_desc $porturl $variantname] eq ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
                     set desc_ok false
-                } elseif {$variantdesc == ""} {
+                } elseif {$variantdesc eq ""} {
                     set variantdesc "(pre-defined variant)"
                 }
             } else {
-                if {[variant_desc $porturl $variantname] != ""} {
+                if {[variant_desc $porturl $variantname] ne ""} {
                     ui_warn "Variant $variantname overrides global description"
                     incr warnings
                 }
@@ -470,7 +470,7 @@ proc portlint::lint_main {args} {
             ui_debug "$errorInfo"
             continue
         }
-        if {$res == ""} {
+        if {$res eq ""} {
             ui_error "Unknown dependency: $dep"
             incr errors
         } else {
@@ -509,19 +509,19 @@ proc portlint::lint_main {args} {
                 $addr == "openmaintainer@macports.org"} {
             ui_warn "Using full email address for no/open maintainer"
             incr warnings
-        } elseif [regexp "^(.+)@macports.org$" $addr -> localpart] {
+        } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
             ui_warn "Maintainer email address for $localpart includes @macports.org"
             incr warnings
         } elseif {$addr == "darwinports@opendarwin.org"} {
             ui_warn "Using legacy email address for no/open maintainer"
             incr warnings
-        } elseif [regexp "^(.+)@(.+)$" $addr -> localpart domain] {
+        } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {
             ui_warn "Maintainer email address should be obfuscated as $domain:$localpart"
             incr warnings
         }
     }
 
-    if {$license == "unknown"} {
+    if {$license eq "unknown"} {
         ui_warn "no license set"
         incr warnings
     } else {
@@ -547,7 +547,7 @@ proc portlint::lint_main {args} {
                         # if the last character of license name is a number or plus sign
                         # then a hyphen is missing
                         set license_end [string index $subtest end]
-                        if {[string equal "+" $license_end] || [string is integer -strict $license_end]} {
+                        if {"+" eq $license_end || [string is integer -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
                         }
                     }
@@ -601,7 +601,7 @@ proc portlint::lint_main {args} {
         set refcount  [lindex [set ${deprecated_options_name}($option)] 1]
 
         if {$refcount > 0} {
-            if {$newoption != ""} {
+            if {$newoption ne ""} {
                 ui_warn "Using deprecated option '$option', superseded by '$newoption'"
             } else {
                 ui_warn "Using deprecated option '$option'"
@@ -622,22 +622,22 @@ proc portlint::lint_main {args} {
 
     set svn_cmd ""
     catch {set svn_cmd [findBinary svn]}
-    if {$svn_cmd != "" && ([file exists $portpath/.svn] || ![catch {exec $svn_cmd info $portpath > /dev/null 2>@1}])} {
+    if {$svn_cmd ne "" && ([file exists $portpath/.svn] || ![catch {exec $svn_cmd info $portpath > /dev/null 2>@1}])} {
         ui_debug "Checking svn properties"
-        if [catch {exec $svn_cmd propget svn:keywords $portfile 2>@1} output] {
+        if {[catch {exec $svn_cmd propget svn:keywords $portfile 2>@1} output]} {
             ui_warn "Unable to check for svn:keywords property: $output"
         } else {
             ui_debug "Property svn:keywords is \"$output\", should be \"Id\""
-            if {$output != "Id"} {
+            if {$output ne "Id"} {
                 ui_error "Missing subversion property on Portfile, please execute: svn ps svn:keywords Id Portfile"
                 incr errors
             }
         }
-        if [catch {exec $svn_cmd propget svn:eol-style $portfile 2>@1} output] {
+        if {[catch {exec $svn_cmd propget svn:eol-style $portfile 2>@1} output]} {
             ui_warn "Unable to check for svn:eol-style property: $output"
         } else {
             ui_debug "Property svn:eol-style is \"$output\", should be \"native\""
-            if {$output != "native"} {
+            if {$output ne "native"} {
                 ui_error "Missing subversion property on Portfile, please execute: svn ps svn:eol-style native Portfile"
                 incr errors
             }

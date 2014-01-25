@@ -57,8 +57,8 @@ proc portdistfiles::distfiles_main {args} {
            portdbpath dist_subdir all_dist_files
     
     # give up on ports that do not provide URLs
-    if {(![info exists master_sites] || $master_sites == "{}")
-        && (![info exists patchfiles] || ![info exists patch_sites] || $patch_sites == "{}")} {
+    if {(![info exists master_sites] || $master_sites eq "{}")
+        && (![info exists patchfiles] || ![info exists patch_sites] || $patch_sites eq "{}")} {
         return 0
     }
 
@@ -81,7 +81,7 @@ proc portdistfiles::distfiles_main {args} {
         ui_msg "\[$distfile\] [file join $portdbpath distfiles $dist_subdir $distfile]"
 
         # print checksums if available
-        if {$result == "yes" && [array get checksums_array $distfile] != ""} {
+        if {$result eq "yes" && [array get checksums_array $distfile] ne ""} {
             foreach {type sum} $checksums_array($distfile) {
                 ui_msg " $type: $sum"
             }

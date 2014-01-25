@@ -58,7 +58,7 @@ proc portmirror::mirror_main {args} {
     set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
     if {![info exists mirror_filemap]
         && [info exists ports_mirror_new]
-        && $ports_mirror_new == "yes"
+        && $ports_mirror_new eq "yes"
         && [file exists $mirror_filemap_path]} {
         # Trash the map file if it existed.
         file delete -force $mirror_filemap_path

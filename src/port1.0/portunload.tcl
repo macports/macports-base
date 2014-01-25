@@ -53,7 +53,7 @@ proc portunload::unload_main {args} {
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {
-        if {[string length $launchctl_path] == 0} {
+        if {$launchctl_path eq ""} {
             return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
         } elseif {![file exists $path]} {
             return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]

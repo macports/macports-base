@@ -48,7 +48,7 @@ namespace eval portfetch::mirror_sites {
 # percent-encode all characters in str that are not unreserved in URIs
 proc portfetch::percent_encode {str} {
     set outstr ""
-    while {[string length $str] > 0} {
+    while {$str ne ""} {
         set char [string index $str 0]
         set str [string range $str 1 end]
         switch -- $char {
@@ -75,7 +75,7 @@ proc portfetch::percent_encode {str} {
 # Given a site url and the name of the distfile, assemble url and
 # return it.
 proc portfetch::assemble_url {site distfile} {
-    if {[string index $site end] != "/"} {
+    if {[string index $site end] ne "/"} {
         append site /
     }
     return "${site}[percent_encode ${distfile}]"
@@ -106,11 +106,11 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
         # tag will be after the last colon after the
         # first slash after the ://
         set lastcolon [string last : $element]
-        set aftersep [expr [string first : $element] + 3]
+        set aftersep [expr {[string first : $element] + 3}]
         set firstslash [string first / $element $aftersep]
         if {$firstslash != -1 && $firstslash < $lastcolon} {
-            set mirror_tag [string range $element [expr $lastcolon + 1] end]
-            set element [string range $element 0 [expr $lastcolon - 1]]
+            set mirror_tag [string range $element $lastcolon+1 end]
+            set element [string range $element 0 $lastcolon-1]
         } else {
             set mirror_tag ""
         }
@@ -122,9 +122,9 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
             set mirror_tag ""
         }
 
-        if {$mirror_tag == "mirror"} {
+        if {$mirror_tag eq "mirror"} {
             set thesubdir ${dist_subdir}
-        } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
+        } elseif {$subdir eq "" && $mirror_tag ne "nosubdir"} {
             set thesubdir ${name}
         } else {
             set thesubdir ${subdir}
@@ -192,10 +192,10 @@ proc portfetch::checksites {sitelists mirrorfile} {
         # add in the global, fallback and user-defined mirrors for each tag
         foreach site $site_list {
             if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag] && ![info exists extras_added($tag)]} {
-                if {$sglobal != ""} {
+                if {$sglobal ne ""} {
                     set site_list [concat $site_list [mirror_sites $sglobal $tag "" $mirrorfile]]
                 }
-                if {$sfallback != ""} {
+                if {$sfallback ne ""} {
                     set site_list [concat $site_list [mirror_sites $sfallback $tag "" $mirrorfile]]
                 }
                 if {[info exists env($senv)]} {
@@ -247,7 +247,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         }
 
         foreach site $urllist {
-            if {[string range $site 0 6] == "file://"} {
+            if {[string range $site 0 6] eq "file://"} {
                 set pingtimes(localhost) 0
                 continue
             }
@@ -299,7 +299,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
 
         set pinglist {}
         foreach site $urllist {
-            if {[string range $site 0 6] == "file://"} {
+            if {[string range $site 0 6] eq "file://"} {
                 set host localhost
             } else {
                 regexp $hostregex $site -> host

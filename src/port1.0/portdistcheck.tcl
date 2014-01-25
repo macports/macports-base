@@ -61,7 +61,7 @@ proc portdistcheck::distcheck_main {args} {
     ui_debug "Portfile modification date is [clock format $port_moddate]"
 
     set curl_options {}
-    if [tbool fetch.ignore_sslcert] {
+    if {[tbool fetch.ignore_sslcert]} {
         lappend curl_options "--ignore-ssl-cert"
     }
 
@@ -127,13 +127,13 @@ proc portdistcheck::distcheck_main {args} {
                 set size $totalsize
                 set humansize "${size}"
             } elseif {$totalsize < 1024*1024} {
-                set size [expr $totalsize / 1024.0]
+                set size [expr {$totalsize / 1024.0}]
                 set humansize [format "%.1fK" $size]
             } elseif {$totalsize < 1024*1024*1024} {
-                set size [expr $totalsize / (1024.0*1024.0)]
+                set size [expr {$totalsize / (1024.0*1024.0)}]
                 set humansize [format "%.1fM" $size]
             } else {
-                set size [expr $totalsize / (1024.0*1024.0*1024.0)]
+                set size [expr {$totalsize / (1024.0*1024.0*1024.0)}]
                 set humansize [format "%.1fG" $size]
             }
             ui_msg "$subport: $humansize"

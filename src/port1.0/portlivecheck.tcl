@@ -77,7 +77,7 @@ proc portlivecheck::livecheck_main {args} {
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
     set curl_options {}
-    if [tbool livecheck.ignore_sslcert] {
+    if {[tbool livecheck.ignore_sslcert]} {
         lappend curl_options "--ignore-ssl-cert"
     }
 
@@ -99,7 +99,7 @@ proc portlivecheck::livecheck_main {args} {
                 if {[regexp "^($available_types)(?::(\[^:\]+))?" ${master_site} _ site subdir]} {
                     set subdirs [split $subdir /]
                     if {[llength $subdirs] > 1} {
-                        if {[lindex $subdirs 0] == "project"} {
+                        if {[lindex $subdirs 0] eq "project"} {
                             set subdir [lindex $subdirs 1]
                         } else {
                             set subdir ""

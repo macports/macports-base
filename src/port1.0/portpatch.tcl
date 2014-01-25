@@ -72,7 +72,7 @@ proc portpatch::patch_main {args} {
     global UI_PREFIX usealtworkpath altprefix
 
     # First make sure that patchfiles exists and isn't stubbed out.
-    if {![exists patchfiles] || [option patchfiles] == ""} {
+    if {![exists patchfiles] || [option patchfiles] eq ""} {
         return 0
     }
 

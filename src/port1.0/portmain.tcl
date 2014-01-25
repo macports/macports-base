@@ -80,7 +80,7 @@ proc portmain::get_default_subport {} {
 default subbuildpath {[portmain::get_subbuildpath]}
 proc portmain::get_subbuildpath {} {
     global portpath portbuildpath subport
-    if {$subport != ""} {
+    if {$subport ne ""} {
         set subdir $subport
     } else {
         set subdir [file tail $portpath]
@@ -120,7 +120,7 @@ default os.arch {$os_arch}
 default os.endian {$os_endian}
 
 set macosx_version_text {}
-if {[option os.platform] == "darwin"} {
+if {[option os.platform] eq "darwin"} {
     set macosx_version_text "(Mac OS X ${macosx_version}) "
 }
 ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"
@@ -128,7 +128,7 @@ ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch
 default universal_variant {${use_configure}}
 
 # sub-platforms of darwin
-if {[option os.platform] == "darwin"} {
+if {[option os.platform] eq "darwin"} {
     if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
         default os.subplatform macosx
         # we're on Mac OS X and can therefore build universal

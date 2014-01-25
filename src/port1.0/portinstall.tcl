@@ -238,7 +238,7 @@ proc portinstall::create_archive {location archive.type} {
     array set ourvariations $PortInfo(active_variants)
     set vlist [lsort -ascii [array names ourvariations]]
     foreach v $vlist {
-        if {$ourvariations($v) == "+"} {
+        if {$ourvariations($v) eq "+"} {
             puts $fd "@portvariant +${v}"
         }
     }
@@ -263,7 +263,7 @@ proc portinstall::create_archive {location archive.type} {
     # also save the contents for our own use later
     set installPlist {}
     fs-traverse -depth fullpath $destpath {
-        if {[file type $fullpath] == "directory"} {
+        if {[file type $fullpath] eq "directory"} {
             continue
         }
         set relpath [strsed $fullpath "s|^$destpath/||"]
@@ -310,13 +310,13 @@ proc portinstall::install_main {args} {
     os.platform os.major portarchivetype installPlist
 
     set oldpwd [pwd]
-    if {$oldpwd == ""} {
+    if {$oldpwd eq ""} {
         set oldpwd $portpath
     }
 
     set location [get_portimage_path]
     set archive_path [find_portarchive_path]
-    if {$archive_path != ""} {
+    if {$archive_path ne ""} {
         set install_dir [file dirname $location]
         file mkdir $install_dir
         file rename -force $archive_path $install_dir
@@ -336,7 +336,7 @@ proc portinstall::install_main {args} {
         if {[info exists $deplist]} {
             foreach dep [set $deplist] {
                 set dep_portname [_get_dep_port $dep]
-                if {$dep_portname != ""} {
+                if {$dep_portname ne ""} {
                     lappend dep_portnames $dep_portname
                 }
             }
@@ -356,7 +356,7 @@ proc portinstall::install_main {args} {
         $regref os_major ${os.major}
         $regref archs [get_canonical_archs]
         # Trick to have a portable GMT-POSIX epoch-based time.
-        $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
+        $regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
         if {[info exists negated_variants]} {
             $regref negated_variants $negated_variants
         }
