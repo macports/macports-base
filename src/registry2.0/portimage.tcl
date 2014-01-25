@@ -66,7 +66,7 @@ variable noexec 0
 
 # takes a composite version spec rather than separate version,revision,variants
 proc activate_composite {name {v ""} {optionslist ""}} {
-    if {$v == ""} {
+    if {$v eq ""} {
         return [activate $name "" "" 0 $optionslist]
     } elseif {[registry::decode_spec $v version revision variants]} {
         return [activate $name $version $revision $variants $optionslist]
@@ -107,19 +107,19 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
         # if another version of this port is active, deactivate it first
         set current [registry::entry installed $name]
         foreach i $current {
-            if { ![string equal $specifier "[$i version]_[$i revision][$i variants]"] } {
+            if { $specifier ne "[$i version]_[$i revision][$i variants]" } {
                 lappend todeactivate $i
             }
         }
 
         # this shouldn't be possible
-        if { ![string equal [$requested installtype] "image"] } {
+        if { [$requested installtype] ne "image" } {
             return -code error "Image error: ${name} @${specifier} not installed as an image."
         }
         if {![::file isfile $location]} {
             return -code error "Image error: Can't find image file $location"
         }
-        if { [string equal [$requested state] "installed"] } {
+        if {[$requested state] eq "installed"} {
             return -code error "Image error: ${name} @${specifier} is already active."
         }
     }
@@ -137,7 +137,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
 
 # takes a composite version spec rather than separate version,revision,variants
 proc deactivate_composite {name {v ""} {optionslist ""}} {
-    if {$v == ""} {
+    if {$v eq ""} {
         return [deactivate $name "" "" 0 $optionslist]
     } elseif {[registry::decode_spec $v version revision variants]} {
         return [deactivate $name $version $revision $variants $optionslist]
@@ -162,7 +162,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         set registry_open yes
     }
 
-    if { [string equal $name ""] } {
+    if {$name eq ""} {
         throw registry::image-error "Registry error: Please specify the name of the port."
     }
     set ilist [registry::entry installed $name]
@@ -175,10 +175,10 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     set name [$requested name]
     set specifier "[$requested version]_[$requested revision][$requested variants]"
 
-    if {$version != "" && ($version != [$requested version] ||
-        ($revision != "" && ($revision != [$requested revision] || $variants != [$requested variants])))} {
+    if {$version ne "" && ($version != [$requested version] ||
+        ($revision ne "" && ($revision != [$requested revision] || $variants != [$requested variants])))} {
         set v $version
-        if {$revision != ""} {
+        if {$revision ne ""} {
             append v _${revision}${variants}
         }
         return -code error "Active version of $name is not $v but ${specifier}."
@@ -186,11 +186,11 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
 
-    if { ![string equal [$requested installtype] "image"] } {
+    if { [$requested installtype] ne "image" } {
         return -code error "Image error: ${name} @${specifier} not installed as an image."
     }
     # this shouldn't be possible
-    if { [$requested state] != "installed" } {
+    if { [$requested state] ne "installed" } {
         return -code error "Image error: ${name} @${specifier} is not active."
     }
 
@@ -207,12 +207,12 @@ proc _check_registry {name version revision variants} {
 
     set searchkeys $name
     set composite_spec ""
-    if {$version != ""} {
+    if {$version ne ""} {
         lappend searchkeys $version
         set composite_spec $version
         # restriction imposed by underlying registry API (see entry.c):
         # if a revision is specified, so must variants be
-        if {$revision != ""} {
+        if {$revision ne ""} {
             lappend searchkeys $revision $variants
             append composite_spec _${revision}${variants}
         }
@@ -226,7 +226,7 @@ proc _check_registry {name version revision variants} {
             set iversion [$i version]
             set irevision [$i revision]
             set ivariants [$i variants]
-            if { [$i state] == "installed" } {
+            if { [$i state] eq "installed" } {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
             } else {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
@@ -236,7 +236,7 @@ proc _check_registry {name version revision variants} {
     } elseif { [llength $ilist] == 1 } {
         return [lindex $ilist 0]
     }
-    if {$composite_spec != ""} {
+    if {$composite_spec ne ""} {
         set composite_spec " @${composite_spec}"
     }
     throw registry::invalid "Registry error: ${name}${composite_spec} is not installed."
@@ -469,7 +469,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                     }
                 }
 
-                if {$owner != "replaced"} {
+                if {$owner ne "replaced"} {
                     if { [string is true -strict $force] } {
                         # if we're forcing the activation, then we move any existing
                         # files to a backup file, both in the filesystem and in the
@@ -559,7 +559,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
         }
         # reactivate deactivated ports
         foreach entry [array names todeactivate] {
-            if {[$entry state] == "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
+            if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
                 activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
             }
         }
@@ -580,10 +580,10 @@ proc _deactivate_file {dstfile} {
         ui_debug "$dstfile does not exist"
         return
     }
-    if { $filetype == "link" } {
+    if { $filetype eq "link" } {
         ui_debug "deactivating link: $dstfile"
         file delete -- $dstfile
-    } elseif { $filetype == "directory" } {
+    } elseif { $filetype eq "directory" } {
         # 0 item means empty.
         if { [llength [readdir $dstfile]] == 0 } {
             variable precious_dirs
@@ -606,7 +606,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [list]
 
     foreach file $imagefiles {
-        if { [::file exists $file] || (![catch {::file type $file}] && [::file type $file] == "link") } {
+        if { [::file exists $file] || (![catch {::file type $file}] && [::file type $file] eq "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
             # Remark: paths in the registry may be not normalized.

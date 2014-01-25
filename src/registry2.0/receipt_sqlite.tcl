@@ -44,7 +44,7 @@ namespace eval receipt_sqlite {
 
 # return list of active ports, or active version of port 'name' if specified
 proc active {name} {
-    if {$name != ""} {
+    if {$name ne ""} {
         set ports [registry::entry installed $name]
     } else {
         set ports [registry::entry installed]
@@ -87,7 +87,7 @@ proc entry_exists_for_name {name} {
 #
 proc file_registered {file} {
     set port [registry::entry owner $file]
-	if {$port != ""} {
+	if {$port ne ""} {
 		return [$port name]
 	} else {
 		return 0
@@ -164,9 +164,9 @@ proc property_store {ref property value} {
 # version for example, so we don't attempt to split up the composite version
 # into its components, we just compare the whole thing.
 proc installed {{name ""} {version ""}} {
-	if { $name == "" && $version == "" } {
+	if { $name eq "" && $version eq "" } {
 	    set ports [registry::entry imaged]
-	} elseif { $name != "" && $version == ""} {
+	} elseif { $name ne "" && $version eq ""} {
 	    set ports [registry::entry imaged $name]
 	} else {
 	    set ports {}
@@ -197,7 +197,7 @@ proc list_depends {name version revision variants} {
 	set rlist [list]
 	set searchcmd "registry::entry search"
     foreach key {name version revision} {
-        if {[set $key] != ""} {
+        if {[set $key] ne ""} {
             append searchcmd " $key [set $key]"
         }
     }
@@ -221,7 +221,7 @@ proc list_dependents {name version revision variants} {
 	set rlist [list]
 	set searchcmd "registry::entry search"
     foreach key {name version revision} {
-        if {[set $key] != ""} {
+        if {[set $key] ne ""} {
             append searchcmd " $key [set $key]"
         }
     }
@@ -251,9 +251,9 @@ proc create_entry_l {proplist} {
         $regref location $props(location)
         $regref state $props(state)
         $regref installtype $props(installtype)
-        if {$props(installtype) == "image"} {
+        if {$props(installtype) eq "image"} {
             $regref map $props(imagefiles)
-            if {$props(state) == "installed"} {
+            if {$props(state) eq "installed"} {
                 if {[llength $props(imagefiles)] != [llength $props(files)]} {
                     # deal with this mess, just drop the extras...
                     set i 0

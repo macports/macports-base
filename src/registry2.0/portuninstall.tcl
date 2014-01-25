@@ -43,7 +43,7 @@ namespace eval registry_uninstall {
 
 # takes a composite version spec rather than separate version,revision,variants
 proc uninstall_composite {portname {v ""} {optionslist ""}} {
-    if {$v == ""} {
+    if {$v eq ""} {
         return [uninstall $portname "" "" 0 $optionslist]
     } elseif {[registry::decode_spec $v version revision variants]} {
         return [uninstall $portname $version $revision $variants $optionslist]
@@ -75,12 +75,12 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
 
     set searchkeys $portname
     set composite_spec ""
-    if {$version != ""} {
+    if {$version ne ""} {
         lappend searchkeys $version
         set composite_spec $version
         # restriction imposed by underlying registry API (see entry.c):
         # if a revision is specified, so must variants be
-        if {$revision != ""} {
+        if {$revision ne ""} {
             lappend searchkeys $revision $variants
             append composite_spec _${revision}${variants}
         }
@@ -92,7 +92,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
         foreach i [portlist_sortint $ilist] {
             set ispec "[$i version]_[$i revision][$i variants]"
-            if { [string equal [$i state] installed] } {
+            if {[$i state] eq "installed"} {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] [$i name] $ispec]"
             } else {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
@@ -106,7 +106,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         set variants [$port variants]
         set composite_spec "${version}_${revision}${variants}"
     } else {
-        if {$composite_spec != ""} {
+        if {$composite_spec ne ""} {
             set composite_spec " @${composite_spec}"
         }
         throw registry::invalid "Registry error: ${portname}${composite_spec} not registered as installed"
@@ -122,7 +122,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
         foreach depport [$port dependents] {
             # make sure it's still installed, since a previous dep uninstall may have removed it
-            if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
+            if {[registry::entry exists $depport] && ([$depport state] eq "imaged" || [$depport state] eq "installed")} {
                 if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $depport uninstall $optionslist]} {
                     registry_uninstall::uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $optionslist
                 }
@@ -137,7 +137,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         registry::check_dependents $port ${uninstall.force} "uninstall"
     }
     # if it's active, deactivate it
-    if { [string equal [$port state] installed] } {
+    if {[$port state] eq "installed"} {
         if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
             ui_msg "For $portname @${composite_spec}: skipping deactivate (dry run)"
         } else {

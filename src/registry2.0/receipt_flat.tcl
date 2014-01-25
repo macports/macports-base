@@ -88,7 +88,7 @@ proc get_head_entry_receipt_path {portname portversion} {
     }
 
     # Might as well bail out early if no file to match
-    if {![string length $matchfile]} {
+    if {$matchfile eq ""} {
 		return ""
     }
 
@@ -117,8 +117,8 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 	if { ![::file isdirectory $receipt_path] } {
 		set receipt_file [get_head_entry_receipt_path $name $version]
 		
-		if {![string length $receipt_file]} {
-			if { $version != "" } {
+		if {$receipt_file eq ""} {
+			if { $version ne "" } {
 				return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 			} else {
 				return -code error "Registry error: ${name} not registered as installed."
@@ -126,13 +126,13 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 		}
 		
 		# Extract the version from the path.
-		if { $version == "" } {
+		if { $version eq "" } {
 			set theFileName [::file tail $receipt_file]
 			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
 		# If version wasn't specified, find out the version number.
-		if { $version == "" } {
+		if { $version eq "" } {
 			# xxx: We really should have had the 
 			# version given to us.  How should we handle this?
 			set x [glob -nocomplain -directory ${receipt_path} *]
@@ -451,9 +451,9 @@ proc installed {{name ""} {version ""}} {
 
 	set query_path [::file join ${macports::registry.path} receipts]
 	
-	if { $name == "" } {
+	if { $name eq "" } {
 		set query_path [::file join ${query_path} *]
-		if { $version == "" } {
+		if { $version eq "" } {
 			set query_path [::file join ${query_path} *]
 		}
 		# [PG] Huh?
@@ -472,7 +472,7 @@ proc installed {{name ""} {version ""}} {
 	        }
 	    }
 		set query_path [::file join ${query_path} ${name}]
-		if { $version != "" } {
+		if { $version ne "" } {
 			set query_path [::file join ${query_path} ${version}]
 		} else {
 			set query_path [::file join ${query_path} *]
@@ -495,7 +495,7 @@ proc installed {{name ""} {version ""}} {
 	}
 
 	# append the ports in old HEAD format.
-	if { $name == "" } {
+	if { $name eq "" } {
 		set query_path [::file join ${macports::registry.path} receipts *]
 	} else {
 		set query_path [::file join ${macports::registry.path} receipts ${name}-*]
@@ -506,7 +506,7 @@ proc installed {{name ""} {version ""}} {
 
     	# Remark: these regexes do not always work.
    		set theName ""
-    	if { $name == "" } {
+    	if { $name eq "" } {
 			regexp {^(.*)-(.*)$} $theFileName match theName version
     	} else {
 			regexp "^($name)-(.*)\$" $theFileName match theName version
@@ -662,7 +662,7 @@ proc register_file {file port} {
 
 	open_file_map
 
-	if { [::file type $file] == "link" } {
+	if { [::file type $file] eq "link" } {
 		ui_debug "Adding link to file_map: $file for: $port"
 	} else {
 		ui_debug "Adding file to file_map: $file for: $port"
@@ -684,7 +684,7 @@ proc register_bulk_files {files port} {
 
 	foreach f $files {
 		set file [lindex $f 0]
-		if { [::file type $file] == "link" } {
+		if { [::file type $file] eq "link" } {
 			ui_debug "Adding link to file_map: $file for: $port"
 		} else {
 			ui_debug "Adding file to file_map: $file for: $port"
@@ -828,7 +828,7 @@ proc clean_dep_map {args} {
     set dep_map $new_map
     
     set newlen [llength $dep_map]
-    set diff [expr $oldlen - $newlen]
+    set diff [expr {$oldlen - $newlen}]
     ui_debug "New dep_map has $newlen entries"
     ui_info "Removed $diff duplicate entries from the dependency map"
 }
