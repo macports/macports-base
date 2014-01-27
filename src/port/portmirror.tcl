@@ -82,7 +82,7 @@ proc print_usage args {
     puts "Usage: $argv0"
 }
 
-if {[expr {$argc > 0}]} {
+if {$argc > 0} {
     print_usage
     exit 1
 }
