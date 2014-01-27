@@ -66,7 +66,7 @@ proc submit_ports {} {
 			db eval { select * from submitinfo where porturl=$porturl } values {
 				set none 0
 				
-				if { $values(last_mod_date) == "" || $values(last_mod_date) != $mod_date } {
+				if { $values(last_mod_date) eq "" || $values(last_mod_date) != $mod_date } {
 				
 					# The last_mod_date has changed, so just update it to provide
 					# hysteresis for file changes
@@ -118,7 +118,7 @@ proc submit_ports {} {
 			}
 			
 			# Do update or insert post processing
-			if { $post != "" } {
+			if { $post ne "" } {
 				db eval $post
 			}
 		}
