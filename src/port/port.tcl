@@ -1717,14 +1717,14 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
             set sepPos [string first "/" $opt]
             if {$sepPos >= 0} {
                 # Version terminated by "/" to disambiguate -variant from part of version
-                set portversion [string range $opt 0 $sepPos-1]
-                set opt [string range $opt $sepPos+1 end]
+                set portversion [string range $opt 0 [expr {$sepPos - 1}]]
+                set opt [string range $opt [expr {$sepPos + 1}] end]
             } else {
                 # Version terminated by "+", or else is complete
                 set sepPos [string first "+" $opt]
                 if {$sepPos >= 0} {
                     # Version terminated by "+"
-                    set portversion [string range $opt 0 $sepPos-1]
+                    set portversion [string range $opt 0 [expr {$sepPos - 1}]]
                     set opt [string range $opt $sepPos end]
                 } else {
                     # Unterminated version
@@ -1745,7 +1745,7 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
             } elseif {[regexp {^([-+])([[:alpha:]_]+[\w\.]*)} $opt match sign variant] == 1} {
                 # It's a variant
                 set portvariants($variant) $sign
-                set opt [string range $opt [string length $variant]+1 end]
+                set opt [string range $opt [expr {[string length $variant] + 1}] end]
                 set consumed 1
             } else {
                 # Not an option we recognize, so break from port option processing
@@ -1889,8 +1889,8 @@ proc action_log { action portlist opts } {
             set portdir [file split [macports::getportdir $porturl]]
             set lsize [llength $portdir]
             set portdir \
-                [file join [lindex $portdir $lsize-2] \
-                           [lindex $portdir $lsize-1]]
+                [file join [lindex $portdir [expr {$lsize - 2}]] \
+                           [lindex $portdir [expr {$lsize - 1}]]]
             if {[catch {mportsearch $portdir no exact portdir} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Portdir $portdir not found" 1 status
@@ -2854,8 +2854,8 @@ proc action_deps { action portlist opts } {
             set portdir [file split [macports::getportdir $porturl]]
             set lsize [llength $portdir]
             set portdir \
-                [file join [lindex $portdir $lsize-2] \
-                           [lindex $portdir $lsize-1]]
+                [file join [lindex $portdir [expr {$lsize - 2}]] \
+                           [lindex $portdir [expr {$lsize - 1}]]]
             if {[catch {mportsearch $portdir no exact portdir} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Portdir $portdir not found" 1 status
@@ -4647,7 +4647,7 @@ proc attempt_completion { text word start end } {
     }
 
     # Decide how to do completion based on where we are in the string
-    set prefix [string range $text 0 $start-1]
+    set prefix [string range $text 0 [expr {$start - 1}]]
     
     # If only whitespace characters preceed us, or if the
     # previous non-whitespace character was a ;, then we're
