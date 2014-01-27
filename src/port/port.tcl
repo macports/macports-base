@@ -142,7 +142,7 @@ proc fatal s {
 # @param name variable name
 # @param value constant variable value
 proc const {name args} {
-    interp alias {} $name {} _const [expr {$args}]
+    interp alias {} $name {} _const [expr $args]
 }
 
 ##
