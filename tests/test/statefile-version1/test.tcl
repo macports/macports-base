@@ -19,7 +19,7 @@ port_clean $path
 proc statefile_v1 {warn} {
     global path output_file
 
-    if {[string compare $warn "no"]} {
+    if {$warn ne "no"} {
         set msg "*discarding previous state*"
     } else {
         set msg "*staging*destroot*"

@@ -17,7 +17,7 @@ proc univ_test {opt} {
     global output_file path portsrc bindir
 
     # Modify Porfile.in for variants.
-    if {[string compare $opt "yes"]} {
+    if {$opt ne "yes"} {
         # No universal variant
         exec sed "s/@option@/universal_variant\ no/" $path/Portfile.in > Portfile
     } else {

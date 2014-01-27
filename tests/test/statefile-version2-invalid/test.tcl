@@ -18,7 +18,7 @@ port_clean $path
 proc state_v2_invalid {warn} {
     global path output_file
 
-    if {[string compare $warn "no"]} {
+    if {$warn ne "no"} {
         set msg "*warning*checksum*"
     } else {
         set msg "*staging*destroot*"

@@ -17,7 +17,7 @@ port_clean $path
 proc state_unknown {warn} {
     global path output_file
 
-    if {[string compare $warn "no"]} {
+    if {$warn ne "no"} {
         set msg "warning*"
     } else {
         set msg "*staging*destroot*"
