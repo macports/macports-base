@@ -227,7 +227,7 @@ License: ${license}
 URL: ${homepage}
 BuildRoot: ${destroot}
 AutoReq: no"
-    if {[expr {${epoch} != 0}]} {
+    if {$epoch != 0} {
 	    puts $specfd "Epoch: ${epoch}"
     }
     if {[llength ${dependencies}] != 0} {

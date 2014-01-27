@@ -227,7 +227,7 @@ Source0: ${portname}-Portfile"
     if {$zip ne ""} {
         puts $specfd "Source1: $zip"
     }
-    if {[expr {${epoch} != 0}]} {
+    if {$epoch != 0} {
 	    puts $specfd "Epoch: ${epoch}"
     }
     set first 2
