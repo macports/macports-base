@@ -109,8 +109,8 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
         set aftersep [expr {[string first : $element] + 3}]
         set firstslash [string first / $element $aftersep]
         if {$firstslash != -1 && $firstslash < $lastcolon} {
-            set mirror_tag [string range $element $lastcolon+1 end]
-            set element [string range $element 0 $lastcolon-1]
+            set mirror_tag [string range $element [expr {$lastcolon + 1}] end]
+            set element [string range $element 0 [expr {$lastcolon - 1}]]
         } else {
             set mirror_tag ""
         }
