@@ -97,12 +97,12 @@ proc portdpkg::main {args} {
 	}
 
 	# Create dpkg version number
-	if {[expr {[option epoch] != 0}]} {
+	if {[option epoch] != 0} {
 		set pkg_version "[option epoch]:[option version]"
 	} else {
 		set pkg_version "[option version]"
 	}
-	if {[expr {[option revision] != 0}]} {
+	if {[option revision] != 0} {
 		append pkg_version "-[option revision]"
 	}
 
