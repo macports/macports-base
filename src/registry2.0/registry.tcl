@@ -466,7 +466,7 @@ proc convert_to_sqlite {} {
         foreach f $contents {
             set fullpath [lindex $f 0]
             # strip image dir from start
-            if {[string range $fullpath 0 $idlen-1] == $location} {
+            if {[string range $fullpath 0 [expr {$idlen - 1}]] == $location} {
                 set path [string range $fullpath $idlen [string length $fullpath]]
             } else {
                 set path $fullpath
