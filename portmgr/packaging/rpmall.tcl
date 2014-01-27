@@ -12,14 +12,14 @@
 # modification, are permitted provided that the following conditions
 # are met:
 # 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
+#	 notice, this list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
+#	 notice, this list of conditions and the following disclaimer in the
+#	 documentation and/or other materials provided with the distribution.
 # 3. Neither the name of Apple Inc. nor the names of its contributors
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# 
+#	 may be used to endorse or promote products derived from this software
+#	 without specific prior written permission.
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -45,84 +45,84 @@ array set ui_options {}
 
 # ui_options accessor
 proc ui_isset {val} {
-    global ui_options
-    if {[info exists ui_options($val)]} {
-	if {$ui_options($val) eq "yes"} {
-	    return 1
+	global ui_options
+	if {[info exists ui_options($val)]} {
+		if {$ui_options($val) eq "yes"} {
+			return 1
+		}
 	}
-    }
-    return 0
+	return 0
 }
 
 set options(package.destpath) "/darwinports/rpms"
 
-# UI Callback 
+# UI Callback
 
 proc ui_prefix {priority} {
-    switch $priority {
-        debug {
-        	return "DEBUG: "
-        }
-        error {
-        	return "Error: "
-        }
-        warn {
-        	return "Warning: "
-        }
-        default {
-        	return ""
-        }
-    }
+	switch $priority {
+		debug {
+			return "DEBUG: "
+		}
+		error {
+			return "Error: "
+		}
+		warn {
+			return "Warning: "
+		}
+		default {
+			return ""
+		}
+	}
 }
 
 proc ui_channels {priority} {
-    global logfd
-    switch $priority {
-        debug {
-            if {[ui_isset ports_debug]} {
-            	return {stdout}
-            } else {
-            	return {}
-            }
-        }
-        info {
-			# put verbose stuff only to the log file
-            if {[ui_isset ports_verbose]} {
-                return {$logfd}
-            } else {
-                return {}
+	global logfd
+	switch $priority {
+		debug {
+			if {[ui_isset ports_debug]} {
+				return {stdout}
+			} else {
+				return {}
 			}
 		}
-        msg {
-            if {[ui_isset ports_quiet]} {
-                return {}
+		info {
+			# put verbose stuff only to the log file
+			if {[ui_isset ports_verbose]} {
+				return {$logfd}
+			} else {
+				return {}
+			}
+		}
+		msg {
+			if {[ui_isset ports_quiet]} {
+				return {}
 			} else {
 				return {stdout}
 			}
 		}
-        default {
-        	return {stdout}
-        }
-    }
+		default {
+			return {stdout}
+		}
+	}
 }
-	
+
 proc pkg_ui_log {message} {
-    global logfd
-    if {$logfd ne ""} {
-	log_message $logfd $message
-    }
+	global logfd
+	if {$logfd ne ""} {
+		log_message $logfd $message
+	}
 }
 
 proc log_message {channel message} {
-    seek $channel 0 end
-    puts $channel $message
-    flush $channel
+	seek $channel 0 end
+	puts $channel $message
+	flush $channel
 }
 
 # Recursive bottom-up approach of building a list of dependencies.
 proc get_dependencies {portname includeBuildDeps} {
 	set result {}
-	
+
 	if {[catch {set search [mportsearch "^$portname\$"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -132,7 +132,7 @@ proc get_dependencies {portname includeBuildDeps} {
 	foreach {name array} $search {
 		array set portinfo $array
 		if {![info exists portinfo(name)] ||
-			![info exists portinfo(version)] || 
+			![info exists portinfo(version)] ||
 			![info exists portinfo(categories)]} {
 			ui_error "Internal error: $name missing some portinfo keys"
 			continue
@@ -140,7 +140,7 @@ proc get_dependencies {portname includeBuildDeps} {
 		if {![info exists portinfo(revision)]} {
 			set portinfo(revision) 0
 		}
-		
+
 		set portname $portinfo(name)
 		set portversion $portinfo(version)
 		set revision $portinfo(revision)
@@ -152,13 +152,13 @@ proc get_dependencies {portname includeBuildDeps} {
 		set depends {}
 		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
 		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-		if {$includeBuildDeps ne "" && [info exists portinfo(depends_build)]} { 
+		if {$includeBuildDeps ne "" && [info exists portinfo(depends_build)]} {
 			eval "lappend depends $portinfo(depends_build)"
 		}
-		if {$includeBuildDeps ne "" && [info exists portinfo(depends_fetch)]} { 
+		if {$includeBuildDeps ne "" && [info exists portinfo(depends_fetch)]} {
 			eval "lappend depends $portinfo(depends_fetch)"
 		}
-		if {$includeBuildDeps ne "" && [info exists portinfo(depends_extract)]} { 
+		if {$includeBuildDeps ne "" && [info exists portinfo(depends_extract)]} {
 			eval "lappend depends $portinfo(depends_extract)"
 		}
 		foreach depspec $depends {
@@ -202,9 +202,9 @@ proc install_binary_if_available {dep} {
 # Standard procedures
 
 proc fatal args {
-    global argv0
-    puts stderr "$argv0: $args"
-    exit
+	global argv0
+	puts stderr "$argv0: $args"
+	exit
 }
 
 # Main
@@ -217,8 +217,8 @@ if {![file exists /usr/bin/sw_vers]} {
 }
 
 if {[catch {mportinit ui_options options variations} result]} {
-    puts "Failed to initialize ports system, $result"
-    exit 1
+	puts "Failed to initialize ports system, $result"
+	exit 1
 }
 
 package require Pextlib
@@ -229,275 +229,274 @@ if {[llength $argv] == 0} {
 }
 
 foreach pname $argv {
-
-if {[catch {set allpackages [mportsearch "^${pname}\$"]} result]} {
-	puts "port search failed: $result"
-	exit 1
-}
-
-set logpath "/darwinports/logs"
-set logfd ""
-
-foreach {name array} $allpackages {
-	array unset portinfo
-	array set portinfo $array
-
-	#ui_msg "foo $portinfo(porturl)"
-
-	# Start with verbose output off;
-	# this will prevent the repopulation of /opt/local from getting logged.
-	set ui_options(ports_verbose) no
-
-	if {![info exists portinfo(porturl)]} {
-		puts stderr "Internal error: no porturl for $name"
-		continue
-	}
-	if {![info exists portinfo(revision)]} {
-		set portinfo(revision) 0
+	if {[catch {set allpackages [mportsearch "^${pname}\$"]} result]} {
+		puts "port search failed: $result"
+		exit 1
 	}
 
-	set porturl $portinfo(porturl)
+	set logpath "/darwinports/logs"
+	set logfd ""
 
-	# this is used to short-circuit the RPM check and
-	# move on to the next package
+	foreach {name array} $allpackages {
+		array unset portinfo
+		array set portinfo $array
 
-	global exit_loop
-	set exit_loop false
+		#ui_msg "foo $portinfo(porturl)"
 
-	# Skip up-to-date packages
-	if {[regsub {^file://} $portinfo(porturl) "" portpath]} {
-		if {[info exists portinfo(name)] &&
-			[info exists portinfo(version)] &&
-			[info exists portinfo(revision)]} {
-			set portname $portinfo(name)
-			set portversion $portinfo(version)
-			set revision $portinfo(revision)
+		# Start with verbose output off;
+		# this will prevent the repopulation of /opt/local from getting logged.
+		set ui_options(ports_verbose) no
 
-			foreach dir {"/opt/local/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
-				foreach arch {"ppc" "i386" "fat"} {
-					set rpmpath "${dir}/${arch}/${portname}-${portversion}-${revision}.${arch}.rpm"
-					#ui_msg "trying ${rpmpath}"
-					if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
-						puts stderr "->    skipping ${portname}-${portversion}; package is up to date."
-						set exit_loop true
+		if {![info exists portinfo(porturl)]} {
+			puts stderr "Internal error: no porturl for $name"
+			continue
+		}
+		if {![info exists portinfo(revision)]} {
+			set portinfo(revision) 0
+		}
+
+		set porturl $portinfo(porturl)
+
+		# this is used to short-circuit the RPM check and
+		# move on to the next package
+
+		global exit_loop
+		set exit_loop false
+
+		# Skip up-to-date packages
+		if {[regsub {^file://} $portinfo(porturl) "" portpath]} {
+			if {[info exists portinfo(name)] &&
+				[info exists portinfo(version)] &&
+				[info exists portinfo(revision)]} {
+				set portname $portinfo(name)
+				set portversion $portinfo(version)
+				set revision $portinfo(revision)
+
+				foreach dir {"/opt/local/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
+					foreach arch {"ppc" "i386" "fat"} {
+						set rpmpath "${dir}/${arch}/${portname}-${portversion}-${revision}.${arch}.rpm"
+						#ui_msg "trying ${rpmpath}"
+						if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
+							puts stderr "->    skipping ${portname}-${portversion}; package is up to date."
+							set exit_loop true
+							break
+						}
+					}
+					if {${exit_loop}} {
 						break
 					}
 				}
-				if {${exit_loop}} {
-					break
+			}
+		}
+		if {${exit_loop}} {
+			continue
+		}
+
+		# Skip packages which previously failed
+		set exit_loop false
+
+		# Skip up-to-date packages
+		if {[regsub {^file://} $portinfo(porturl) "" portpath]} {
+			if {[info exists portinfo(name)] &&
+				[info exists portinfo(version)] &&
+				[info exists portinfo(revision)]} {
+				set portname $portinfo(name)
+				set portversion $portinfo(version)
+				set revision $portinfo(revision)
+
+				set logfilepath "${logpath}/${portname}.log"
+				if {[file readable ${logfilepath}] && ([file mtime ${logfilepath}] > [file mtime ${portpath}/Portfile])} {
+					puts stderr "->    skipping ${portname}-${portversion}; package failed, but has not changed."
+					set exit_loop true
 				}
 			}
 		}
-	}
-	if {${exit_loop}} {
-		continue
-	}
-	
-	# Skip packages which previously failed
-	set exit_loop false
-		
-	# Skip up-to-date packages
-	if {[regsub {^file://} $portinfo(porturl) "" portpath]} {
-		if {[info exists portinfo(name)] &&
-			[info exists portinfo(version)] &&
-			[info exists portinfo(revision)]} {
-			set portname $portinfo(name)
-			set portversion $portinfo(version)
-			set revision $portinfo(revision)
+		if {${exit_loop}} {
+			continue
+		}
 
-			set logfilepath "${logpath}/${portname}.log"
-			if {[file readable ${logfilepath}] && ([file mtime ${logfilepath}] > [file mtime ${portpath}/Portfile])} {
-				puts stderr "->    skipping ${portname}-${portversion}; package failed, but has not changed."
-				set exit_loop true
+		# Building the port:
+		# - remove /opt/local so it won't pollute the port.
+		# - re-install MacPorts.
+		# - keep distfiles outside /opt/local so we don't have to keep fetching them.
+		# - send out an email to the maintainer if any errors occurred.
+
+		set remove_files ""
+		foreach dir {"/opt/local/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
+			foreach arch {"ppc" "i386" "fat"} {
+				set remove_files "${remove_files} '${dir}/${arch}/'*.rpm"
 			}
 		}
-	}
-	if {${exit_loop}} {
-		continue
-	}
-	
-	# Building the port:
-	# - remove /opt/local so it won't pollute the port.
-	# - re-install MacPorts.
-	# - keep distfiles outside /opt/local so we don't have to keep fetching them.
-	# - send out an email to the maintainer if any errors occurred.
+		system "rpm -q --queryformat='%{name} ' -p ${remove_files} | xargs rpm -e || true"
 
-	set remove_files ""
-	foreach dir {"/opt/local/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
-		foreach arch {"ppc" "i386" "fat"} {
-			set remove_files "${remove_files} '${dir}/${arch}/'*.rpm"
+		ui_msg "->	  Removing /opt/local"
+		#unset ui_options(ports_verbose)
+		if {[catch {system "rm -Rf /opt/local"} error]} {
+			puts stderr "Internal error: $error"
 		}
-	}
-	system "rpm -q --queryformat='%{name} ' -p ${remove_files} | xargs rpm -e || true"
+		# this is bad on pure darwin  :)
+		#if {[catch {system "rm -Rf /usr/X11R6"} error]} {
+		#	puts stderr "Internal error: $error"
+		#}
+		#if {[catch {system "rm -Rf /etc/X11"} error]} {
+		#	puts stderr "Internal error: $error"
+		#}
+		#if {[catch {system "rm -Rf /etc/fonts"} error]} {
+		#	puts stderr "Internal error: $error"
+		#}
+		ui_msg "->	  Installing MacPorts"
+		if {[catch {system "cd $env(HOME)/darwinports && make && make install"} error]} {
+			puts stderr "Internal error: $error"
+		}
+		if {[catch {system "rmdir /opt/local/var/db/dports/distfiles"} error]} {
+			puts stderr "Internal error: $error"
+		}
+		if {[catch {system "ln -s /darwinports/distfiles /opt/local/var/db/dports/distfiles"} error]} {
+			puts stderr "Internal error: $error"
+		}
+		#set ui_options(ports_verbose) yes
 
-	ui_msg "->    Removing /opt/local"
-	#unset ui_options(ports_verbose)
-	if {[catch {system "rm -Rf /opt/local"} error]} {
-		puts stderr "Internal error: $error"
-	}
-	# this is bad on pure darwin  :)
-	#if {[catch {system "rm -Rf /usr/X11R6"} error]} {
-	#	puts stderr "Internal error: $error"
-	#}
-	#if {[catch {system "rm -Rf /etc/X11"} error]} {
-	#	puts stderr "Internal error: $error"
-	#}
-	#if {[catch {system "rm -Rf /etc/fonts"} error]} {
-	#	puts stderr "Internal error: $error"
-	#}
-	ui_msg "->    Installing MacPorts"
-	if {[catch {system "cd $env(HOME)/darwinports && make && make install"} error]} {
-		puts stderr "Internal error: $error"
-	}
-	if {[catch {system "rmdir /opt/local/var/db/dports/distfiles"} error]} {
-		puts stderr "Internal error: $error"
-	}
-	if {[catch {system "ln -s /darwinports/distfiles /opt/local/var/db/dports/distfiles"} error]} {
-		puts stderr "Internal error: $error"
-	}
-	#set ui_options(ports_verbose) yes
+		# If there was a log file left over from the previous pass,
+		# then the port failed with an error.  Send the log in an
+		# email to the maintainers.
+		if {$logfd ne ""} {
+			close $logfd
+			set logfd ""
+		}
+		#if {[file readable $logfilename]} {
+		#	if {[catch {system "<$logfilename /usr/sbin/sendmail -t"} error]} {
+		#		puts stderr "Internal error: $error"
+		#	}
+		#}
 
-	# If there was a log file left over from the previous pass,
-	# then the port failed with an error.  Send the log in an
-	# email to the maintainers.
-	if {$logfd ne ""} {
+		# Open the log file for writing
+		set logfd [open ${logpath}/${name}.log w]
+
+		set valid 1
+
+		set lint_errors {}
+		set portname ""
+		set portversion ""
+		set description ""
+		set category ""
+
+		if {![info exists portinfo(name)]} {
+			lappend lint_errors "missing name key"
+			set valid 0
+		} else {
+			set portname $portinfo(name)
+		}
+
+		if {![info exists portinfo(description)]} {
+			lappend lint_errors "missing description key"
+			set valid 0
+		} else {
+			set description $portinfo(description)
+		}
+
+		if {![info exists portinfo(version)]} {
+			lappend lint_errors "missing version key"
+			set valid 0
+		} else {
+			set portversion $portinfo(version)
+		}
+
+		if {![info exists portinfo(categories)]} {
+			lappend lint_errors "missing categories key"
+			set valid 0
+		} else {
+			set category [lindex $portinfo(categories) 0]
+		}
+
+		if {![info exists portinfo(maintainers)]} {
+			append lint_errors "missing maintainers key"
+			set valid 0
+			set maintainers kevin@opendarwin.org
+		} else {
+			set maintainers $portinfo(maintainers)
+		}
+
+		pkg_ui_log "To: [join $maintainers {, }]"
+		pkg_ui_log "From: donotreply@opendarwin.org"
+		pkg_ui_log "Subject: MacPorts $portinfo(name)-$portinfo(version) build failure"
+		pkg_ui_log ""
+		pkg_ui_log "The following is a transcript produced by the MacPorts automated build		 "
+		pkg_ui_log "system.  You are receiving this email because you are listed as a maintainer	"
+		pkg_ui_log "of this port, which has failed the automated packaging process.  Please update	"
+		pkg_ui_log "the port as soon as possible."
+		pkg_ui_log ""
+		pkg_ui_log ""
+		pkg_ui_log "Thank you,"
+		pkg_ui_log "The MacPorts Team"
+		pkg_ui_log ""
+		pkg_ui_log "================================================================================"
+		pkg_ui_log ""
+
+		if {!$valid} {
+			foreach error $lint_errors {
+				ui_error $error
+			}
+		}
+
+		ui_msg "-->   Packaging ${category}/${portname}-${portversion}"
+
+		foreach prebuild {"ccache" "rpm" "unzip"} {
+			if {![file exists /bin/${prebuild}] && ![file exists /usr/bin/${prebuild}]} {
+				ui_msg "--->  Pre-installing ${prebuild}"
+				if {[catch {set search [mportsearch "^${prebuild}\$"]} error]} {
+					global errorInfo
+					ui_debug "$errorInfo"
+					ui_error "Internal error: port search ${prebuild} failed: $error"
+				}
+				array set prebuildinfo [lindex $search 1]
+				set ui_options(ports_verbose) yes
+				set options(subport) ${prebuild}
+				if {[catch {set workername [mportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
+					$result == 1} {
+					global errorInfo
+					ui_debug "$errorInfo"
+					ui_error "Internal error: unable to install ${prebuild}... exiting"
+					exit 1
+				}
+				if {[catch {set result [mportexec $workername activate]} result] ||
+					$result == 1} {
+					global errorInfo
+					ui_debug "$errorInfo"
+					ui_error "installation of ${prebuild} failed: $result"
+					mportclose $workername
+					exit 1
+				}
+			}
+		}
+
+		# Turn on verbose output for the build
+		set ui_options(ports_verbose) yes
+		set options(subport) $name
+		if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result] ||
+			$result == 1} {
+			global errorInfo
+			ui_debug "$errorInfo"
+			ui_error "Internal error: unable to open port: $result"
+			continue
+		}
+		if {[catch {set result [mportexec $workername rpmpackage]} result] ||
+			$result == 1} {
+			global errorInfo
+			ui_debug "$errorInfo"
+			ui_error "port package failed: $result"
+			mportclose $workername
+			continue
+		}
+		set ui_options(ports_verbose) no
+		# Turn verbose output off after the build
+
+		mportclose $workername
+
+		# We made it to the end.  We can delete the log file.
 		close $logfd
 		set logfd ""
+		file delete ${logpath}/${name}.log
 	}
-	#if {[file readable $logfilename]} {
-	#	if {[catch {system "<$logfilename /usr/sbin/sendmail -t"} error]} {
-	#		puts stderr "Internal error: $error"
-	#	}
-	#}
-
-	# Open the log file for writing
-	set logfd [open ${logpath}/${name}.log w]
-
-	set valid 1
-
-	set lint_errors {}
-	set portname ""
-	set portversion ""
-	set description ""
-	set category ""
-
-	if {![info exists portinfo(name)]} {
-		lappend lint_errors "missing name key"
-		set valid 0
-	} else {
-		set portname $portinfo(name)
-	}
-	
-	if {![info exists portinfo(description)]} {
-		lappend lint_errors "missing description key"
-		set valid 0
-	} else {
-		set description $portinfo(description)
-	}
-	
-	if {![info exists portinfo(version)]} {
-		lappend lint_errors "missing version key"
-		set valid 0
-	} else {
-		set portversion $portinfo(version)
-	}
-	
-	if {![info exists portinfo(categories)]} {
-		lappend lint_errors "missing categories key"
-		set valid 0
-	} else {
-		set category [lindex $portinfo(categories) 0]
-	}
-	
-	if {![info exists portinfo(maintainers)]} {
-		append lint_errors "missing maintainers key"
-		set valid 0
-		set maintainers kevin@opendarwin.org
-	} else {
-		set maintainers $portinfo(maintainers)
-	}
-	
-	pkg_ui_log "To: [join $maintainers {, }]"
-	pkg_ui_log "From: donotreply@opendarwin.org"
-	pkg_ui_log "Subject: MacPorts $portinfo(name)-$portinfo(version) build failure"
-	pkg_ui_log ""
-	pkg_ui_log "The following is a transcript produced by the MacPorts automated build       "
-	pkg_ui_log "system.  You are receiving this email because you are listed as a maintainer    "
-	pkg_ui_log "of this port, which has failed the automated packaging process.  Please update  "
-	pkg_ui_log "the port as soon as possible."
-	pkg_ui_log ""
-	pkg_ui_log ""
-	pkg_ui_log "Thank you,"
-	pkg_ui_log "The MacPorts Team"
-	pkg_ui_log ""
-	pkg_ui_log "================================================================================"
-	pkg_ui_log ""
-
-	if {!$valid} {
-		foreach error $lint_errors {
-			ui_error $error
-		}
-	}
-
-	ui_msg "-->   Packaging ${category}/${portname}-${portversion}"
-
-	foreach prebuild {"ccache" "rpm" "unzip"} {
-		if {![file exists /bin/${prebuild}] && ![file exists /usr/bin/${prebuild}]} {
-			ui_msg "--->  Pre-installing ${prebuild}"
-			if {[catch {set search [mportsearch "^${prebuild}\$"]} error]} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				ui_error "Internal error: port search ${prebuild} failed: $error"
-			}
-			array set prebuildinfo [lindex $search 1]
-			set ui_options(ports_verbose) yes
-			set options(subport) ${prebuild}
-			if {[catch {set workername [mportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
-				$result == 1} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				ui_error "Internal error: unable to install ${prebuild}... exiting"
-				exit 1
-			}
-			if {[catch {set result [mportexec $workername activate]} result] ||
-				$result == 1} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				ui_error "installation of ${prebuild} failed: $result"
-				mportclose $workername
-				exit 1
-			}
-		}
-	}
-
-	# Turn on verbose output for the build
-	set ui_options(ports_verbose) yes
-	set options(subport) $name
-	if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result] ||
-		$result == 1} {
-		global errorInfo
-		ui_debug "$errorInfo"
-	    ui_error "Internal error: unable to open port: $result"
-	    continue
-	}
-	if {[catch {set result [mportexec $workername rpmpackage]} result] ||
-		$result == 1} {
-		global errorInfo
-		ui_debug "$errorInfo"
-	    ui_error "port package failed: $result"
-		mportclose $workername
-	    continue
-	}
-	set ui_options(ports_verbose) no
-	# Turn verbose output off after the build
-
-	mportclose $workername
-
-	# We made it to the end.  We can delete the log file.
-	close $logfd
-	set logfd ""
-	file delete ${logpath}/${name}.log
-}
 
 }
 # end foreach pname

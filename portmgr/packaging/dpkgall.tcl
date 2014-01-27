@@ -12,14 +12,14 @@
 # modification, are permitted provided that the following conditions
 # are met:
 # 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
+#	 notice, this list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
+#	 notice, this list of conditions and the following disclaimer in the
+#	 documentation and/or other materials provided with the distribution.
 # 3. Neither the name of Apple Inc. nor the names of its contributors
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# 
+#	 may be used to endorse or promote products derived from this software
+#	 without specific prior written permission.
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -88,20 +88,20 @@ namespace eval dpkg {
 
 # MacPorts UI Event Callbacks
 proc ui_prefix {priority} {
-    switch $priority {
-        debug {
-        	return "Debug: "
-        }
-        error {
-        	return "Error: "
-        }
-        warn {
-        	return "Warning: "
-        }
-        default {
-        	return ""
-        }
-    }
+	switch $priority {
+		debug {
+			return "Debug: "
+		}
+		error {
+			return "Error: "
+		}
+		warn {
+			return "Warning: "
+		}
+		default {
+			return ""
+		}
+	}
 }
 
 proc ui_channels {priority} {
@@ -302,7 +302,7 @@ proc main {argc argv} {
 		exit 0
 	}
 
-	# We must have dpkg by now 
+	# We must have dpkg by now
 	if {[catch {set_architecture} result]} {
 		puts "$result."
 		puts "Have you initialized the build system? Use the -i flag:"
@@ -432,16 +432,16 @@ proc main {argc argv} {
 		array set portinfo [lindex $res 1]
 
 		if {![info exists portinfo(name)] ||
-			![info exists portinfo(version)] || 
-			![info exists portinfo(revision)] || 
+			![info exists portinfo(version)] ||
+			![info exists portinfo(revision)] ||
 			![info exists portinfo(categories)]} {
 			ui_noisy_error "Internal error: $name missing some portinfo keys"
 			close $logfd
 			continue
 		}
 
-        # open correct subport
-        set options(subport) $portinfo(name)
+		# open correct subport
+		set options(subport) $portinfo(name)
 
 		# Skip un-supported ports
 		if {[info exists portinfo(platforms)] && ${anyplatform_flag} != "true"} {
@@ -555,7 +555,7 @@ proc main {argc argv} {
 		}
 
 		ui_silent "Package build for $portinfo(name) succeeded"
-		
+
 		# Into the apt repository you go!
 		copy_pkg_to_apt $portinfo(name) $portinfo(version) $portinfo(revision) [lindex $portinfo(categories) 0]
 
@@ -597,7 +597,7 @@ proc main {argc argv} {
 			}
 		}
 
-		if {[info exists newpkglist]} {		
+		if {[info exists newpkglist]} {
 			set pkglist [lsort -unique [concat $newpkglist $pkglist]]
 		}
 
@@ -694,7 +694,7 @@ proc initialize_system {args} {
 	set variations ""
 
 	foreach port [get_required_ports] {
-	    set options(subport) $port
+		set options(subport) $port
 		if {[catch {do_portexec $port [array get options] [array get variants] activate} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
@@ -718,7 +718,7 @@ proc initialize_system {args} {
 		}
 		ui_msg "Done."
 	}
-			
+
 
 	if {[catch {set_architecture} result]} {
 		puts "Fatal error: $result."
@@ -858,14 +858,14 @@ proc get_dependencies {portname {includeBuildDeps "true"}} {
 
 proc get_dependencies_recurse {portname includeBuildDeps} {
 	set result {}
-	
+
 	set res [get_portinfo $portname]
 
 	foreach {name array} $res {
 		array set portinfo $array
 		if {![info exists portinfo(name)] ||
-			![info exists portinfo(version)] || 
-			![info exists portinfo(revision)] || 
+			![info exists portinfo(version)] ||
+			![info exists portinfo(revision)] ||
 			![info exists portinfo(categories)]} {
 			ui_error "Internal error: $name missing some portinfo keys"
 			continue
@@ -877,13 +877,13 @@ proc get_dependencies_recurse {portname includeBuildDeps} {
 		set depends {}
 		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
 		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-		if {$includeBuildDeps == "true" && [info exists portinfo(depends_build)]} { 
+		if {$includeBuildDeps == "true" && [info exists portinfo(depends_build)]} {
 			eval "lappend depends $portinfo(depends_build)"
 		}
-		if {$includeBuildDeps == "true" && [info exists portinfo(depends_fetch)]} { 
+		if {$includeBuildDeps == "true" && [info exists portinfo(depends_fetch)]} {
 			eval "lappend depends $portinfo(depends_fetch)"
 		}
-		if {$includeBuildDeps == "true" && [info exists portinfo(depends_extract)]} { 
+		if {$includeBuildDeps == "true" && [info exists portinfo(depends_extract)]} {
 			eval "lappend depends $portinfo(depends_extract)"
 		}
 		foreach depspec $depends {
@@ -913,7 +913,7 @@ proc install_binary_if_available {dep} {
 	} else {
 		set verstring ${portversion}
 	}
-	
+
 	set receiptdir [file join $portprefix var db receipts ${portname} ${verstring}]
 	set pkgpath [get_pkgpath ${portname} ${portversion} ${portrevision}]
 
