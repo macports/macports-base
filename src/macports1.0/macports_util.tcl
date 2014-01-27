@@ -270,8 +270,8 @@ proc try {args} {
         foreach {elem catchBody} $catchList {
             set typeList [lshift elem]
             set match? 1
-            set typeList [lrange $typeList 0 [expr [llength $savedErrorCode] - 1]]
-            set codeList [lrange $savedErrorCode 0 [expr [llength $typeList] - 1]]
+            set typeList [lrange $typeList 0 [expr {[llength $savedErrorCode] - 1}]]
+            set codeList [lrange $savedErrorCode 0 [expr {[llength $typeList] - 1}]]
             foreach type $typeList code $codeList {
                 if {![string match $type $code]} {
                     set match? 0
