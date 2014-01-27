@@ -121,7 +121,7 @@ proc write_description_plist {infofile portname portversion description} {
 
 proc write_welcome_html {filename portname portversion long_description description homepage} {
     set fd [open ${filename} w+]
-    if {$long_description == ""} {
+    if {$long_description eq ""} {
 	set long_description $description
     }
 
@@ -137,7 +137,7 @@ puts $fd "
 <font face=\"Helvetica\">${long_description}</font>
 <p>"
 
-    if {$homepage != ""} {
+    if {$homepage ne ""} {
 	puts $fd "<font face=\"Helvetica\">${homepage}</font><p>"
     }
 
@@ -157,7 +157,7 @@ proc write_PkgInfo {infofile} {
 proc mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
 	set vers [split $portversion "."]
 	
-	if {[string index $destination end] != "/"} {
+	if {[string index $destination end] ne "/"} {
 		append destination /
 	}
 	

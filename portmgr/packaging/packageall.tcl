@@ -46,7 +46,7 @@ array set ui_options {}
 proc ui_isset {val} {
     global ui_options
     if {[info exists ui_options($val)]} {
-	if {$ui_options($val) == "yes"} {
+	if {$ui_options($val) eq "yes"} {
 	    return 1
 	}
     }
@@ -105,7 +105,7 @@ proc ui_channels {priority} {
 	
 proc pkg_ui_log {message} {
     global logfd
-    if {[string length $logfd] > 0 } {
+    if {$logfd ne ""} {
 	log_message $logfd $message
     }
 }
@@ -147,13 +147,13 @@ proc get_dependencies {portname includeBuildDeps} {
 		set depends {}
 		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
 		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-		if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} { 
+		if {$includeBuildDeps ne "" && [info exists portinfo(depends_build)]} { 
 			eval "lappend depends $portinfo(depends_build)"
 		}
-		if {$includeBuildDeps != "" && [info exists portinfo(depends_fetch)]} { 
+		if {$includeBuildDeps ne "" && [info exists portinfo(depends_fetch)]} { 
 			eval "lappend depends $portinfo(depends_fetch)"
 		}
-		if {$includeBuildDeps != "" && [info exists portinfo(depends_extract)]} { 
+		if {$includeBuildDeps ne "" && [info exists portinfo(depends_extract)]} { 
 			eval "lappend depends $portinfo(depends_extract)"
 		}
 		
@@ -298,7 +298,7 @@ foreach {name array} $res {
 	# If there was a log file left over from the previous pass,
 	# then the port failed with an error.  Send the log in an
 	# email to the maintainers.
-	if {[string length $logfd] > 0} {
+	if {$logfd ne ""} {
 		close $logfd
 		set logfd ""
 	}

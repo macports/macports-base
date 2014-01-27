@@ -106,9 +106,9 @@ proc ui_prefix {priority} {
 
 proc ui_channels {priority} {
 	global dpkg::logfd
-	if {[info exists logfd] && [string length $logfd] > 0 } {
+	if {[info exists logfd] && $logfd ne ""} {
 		return {$logfd}
-	} elseif {$message(priority) != "debug"} {
+	} elseif {$message(priority) ne "debug"} {
 		# If there's no log file, echo to stdout
 		return {stdout}
 	}
@@ -640,7 +640,7 @@ proc get_required_ports {args} {
 	set reqlist ""
 
 	foreach {binary port} $requiredports {
-		if {[find_binary $binary] == ""} {
+		if {[find_binary $binary] eq ""} {
 			lappend reqlist $port
 		}
 	}
@@ -685,7 +685,7 @@ proc initialize_system {args} {
 	set buildlist [lsort -unique $builddeps]
 
 	foreach port $builddeps {
-		if {[lsearch -exact $port $rundeps] >= 0 } {
+		if {[lsearch -exact $port $rundeps] >= 0} {
 			lappend removelist $port
 		}
 	}
