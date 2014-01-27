@@ -1536,7 +1536,7 @@ proc macports::getportdir {url} {
     set protocol [macports::getprotocol $url]
     switch -- $protocol {
         file {
-            set path [file normalize [string range $url [string length $protocol]+3 end]]
+            set path [file normalize [string range $url [expr {[string length $protocol] + 3}] end]]
             if {![file isfile $path]} {
                 # the URL points to a local directory
                 return $path
