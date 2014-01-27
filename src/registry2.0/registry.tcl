@@ -457,7 +457,7 @@ proc convert_to_sqlite {} {
         set installtype [receipt_flat::property_retrieve $iref installtype]
         lappend proplist installtype $installtype
         set location [receipt_flat::property_retrieve $iref location]
-        if {$location == "0"} {
+        if {$location == 0} {
             set location [receipt_flat::property_retrieve $iref imagedir]
         }
         set contents [receipt_flat::property_retrieve $iref contents]

@@ -288,7 +288,7 @@ proc portlint::lint_main {args} {
 
         # Check for hardcoded paths
         if {!$hashline
-                && $name != "MacPorts"
+                && $name ne "MacPorts"
                 && [string match "*/opt/local*" $line]
                 && ![regexp {^\s*reinplace} $line]
                 && ![regexp {^\s*system.*\Wsed\W} $line]} {

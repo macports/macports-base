@@ -600,7 +600,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     
     puts ${plist} "<key>Debug</key><false/>"
     puts ${plist} "<key>Disabled</key><true/>"
-    if {$macosx_deployment_target != "10.4"} {
+    if {$macosx_deployment_target != 10.4} {
         puts ${plist} "<key>KeepAlive</key><true/>"
     } else {
         puts ${plist} "<key>OnDemand</key><false/>"

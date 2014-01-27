@@ -461,7 +461,7 @@ proc command_exec {command args} {
 
     # Restore the environment.
     array unset env *
-    if {$macosx_version == "10.5"} {
+    if {$macosx_version == 10.5} {
         unsetenv *
     }
     array set env [array get saved_env]
@@ -1015,7 +1015,7 @@ proc reinplace {args}  {
                     set env(LC_CTYPE) $oldlocale
                 } else {
                     unset env(LC_CTYPE)
-                    if {$macosx_version == "10.5"} {
+                    if {$macosx_version == 10.5} {
                         unsetenv LC_CTYPE
                     }
                 }
@@ -1029,7 +1029,7 @@ proc reinplace {args}  {
                 set env(LC_CTYPE) $oldlocale
             } else {
                 unset env(LC_CTYPE)
-                if {$macosx_version == "10.5"} {
+                if {$macosx_version == 10.5} {
                     unsetenv LC_CTYPE
                 }
             }
@@ -1174,7 +1174,7 @@ proc copy {args} {
 # Wrapper for file rename that handles case-only renames
 proc move {args} {
     set options {}
-    while {[string match -* [lindex $args 0]]} {
+    while {[string match "-*" [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lreplace $args 0 0]
         switch -- $arg {
@@ -1603,7 +1603,7 @@ proc target_run {ditem} {
     set env(HOME) $savedhome
     if {[info exists env(TMPDIR)]} {
         unset env(TMPDIR)
-        if {$macosx_version == "10.5"} {
+        if {$macosx_version == 10.5} {
             unsetenv TMPDIR
         }
     }

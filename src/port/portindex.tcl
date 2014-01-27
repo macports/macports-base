@@ -39,7 +39,7 @@ proc pindex {portdir} {
            ui_options port_options save_prefix keepkeys
 
     # try to reuse the existing entry if it's still valid
-    if {$full_reindex != "1" && [info exists qindex([string tolower [file tail $portdir]])]} {
+    if {$full_reindex != 1 && [info exists qindex([string tolower [file tail $portdir]])]} {
         try {
             set mtime [file mtime [file join $directory $portdir Portfile]]
             if {$oldmtime >= $mtime} {

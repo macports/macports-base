@@ -113,11 +113,11 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     pkg_post_unarchive_deletions portpkg::language
 
     set portepoch_namestr ""
-    if {${portepoch} != "0"} {
+    if {${portepoch} != 0} {
         set portepoch_namestr "${portepoch}_"
     }
     set portrevision_namestr ""
-    if {${portrevision} != "0"} {
+    if {${portrevision} != 0} {
         set portrevision_namestr "_${portrevision}"
     }
 
@@ -319,7 +319,7 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
     }
 
     set portname [xml_escape $portname]
-    if {$portepoch != "0"} {
+    if {$portepoch != 0} {
         set portepoch [xml_escape $portepoch]
         set portepoch_str "${portepoch}_"
     } else {
@@ -327,7 +327,7 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
         set portepoch_str ""
     }
     set portversion [xml_escape $portversion]
-    if {$portrevision != "0"} {
+    if {$portrevision != 0} {
         set portrevision [xml_escape $portrevision]
         set portrevision_str "_${portrevision}"
     } else {
@@ -399,7 +399,7 @@ proc portpkg::write_package_info {infofile} {
 proc portpkg::write_distribution {dfile portname portepoch portversion portrevision} {
     global macosx_deployment_target
     set portname [xml_escape $portname]
-    if {$portepoch != "0"} {
+    if {$portepoch != 0} {
         set portepoch [xml_escape $portepoch]
         set portepoch_str "${portepoch}_"
     } else {
@@ -407,7 +407,7 @@ proc portpkg::write_distribution {dfile portname portepoch portversion portrevis
         set portepoch_str ""
     }
     set portversion [xml_escape $portversion]
-    if {$portrevision != "0"} {
+    if {$portrevision != 0} {
         set portrevision [xml_escape $portrevision]
         set portrevision_str "_${portrevision}"
     } else {

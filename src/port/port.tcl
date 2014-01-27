@@ -142,7 +142,7 @@ proc fatal s {
 # @param name variable name
 # @param value constant variable value
 proc const {name args} {
-    interp alias {} $name {} _const [expr $args]
+    interp alias {} $name {} _const [expr {$args}]
 }
 
 ##
@@ -3816,7 +3816,7 @@ proc action_portcmds { action portlist opts } {
                     # may want stuff from it as well, like TERM.
                     array unset env_save; array set env_save [array get env]
                     array unset env *
-                    if {${macports::macosx_version} == "10.5"} {
+                    if {${macports::macosx_version} == 10.5} {
                         unsetenv *
                     }
                     array set env [array get boot_env]
@@ -3847,7 +3847,7 @@ proc action_portcmds { action portlist opts } {
                     
                     # Restore internal MacPorts environment
                     array unset env *
-                    if {${macports::macosx_version} == "10.5"} {
+                    if {${macports::macosx_version} == 10.5} {
                         unsetenv *
                     }
                     array set env [array get env_save]
