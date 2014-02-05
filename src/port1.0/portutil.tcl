@@ -2363,22 +2363,74 @@ proc adduser {name args} {
 
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
-        exec $dscl . -create /Users/${name} UniqueID ${uid}
+        set failed? 0
+        try {
+            exec $dscl . -create /Users/${name} UniqueID ${uid} 2>@stderr
 
-        # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
-        # causes the user to be visible in the Users & Groups Preference Pane,
-        # and the others are just noise, so delete them.
-        # https://trac.macports.org/ticket/30168
-        exec $dscl . -delete /Users/${name} AuthenticationAuthority
-        exec $dscl . -delete /Users/${name} PasswordPolicyOptions
-        exec $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
-        exec $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
+            # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+            # causes the user to be visible in the Users & Groups Preference Pane,
+            # and the others are just noise, so delete them.
+            # https://trac.macports.org/ticket/30168
+            exec $dscl . -delete /Users/${name} AuthenticationAuthority 2>@stderr
+            exec $dscl . -delete /Users/${name} PasswordPolicyOptions 2>@stderr
+            exec $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys 2>@stderr
+            exec $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData 2>@stderr
 
-        exec $dscl . -create /Users/${name} RealName ${realname}
-        exec $dscl . -create /Users/${name} Password ${passwd}
-        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
-        exec $dscl . -create /Users/${name} NFSHomeDirectory ${home}
-        exec $dscl . -create /Users/${name} UserShell ${shell}
+            exec $dscl . -create /Users/${name} RealName ${realname} 2>@stderr
+            exec $dscl . -create /Users/${name} Password ${passwd} 2>@stderr
+            exec $dscl . -create /Users/${name} PrimaryGroupID ${gid} 2>@stderr
+            exec $dscl . -create /Users/${name} NFSHomeDirectory ${home} 2>@stderr
+            exec $dscl . -create /Users/${name} UserShell ${shell} 2>@stderr
+        } catch {{CHILDKILLED *} eCode eMessage} {
+            # the foreachs are a simple workaround for Tcl 8.4, which doesn't
+            # seem to have lassign
+            foreach {- pid sigName msg} $eCode {
+                ui_error "dscl($pid) was killed by $sigName: $msg"
+                ui_debug "dscl printed: $eMessage"
+            }
+
+            set failed? 1
+        } catch {{CHILDSTATUS *} eCode eMessage} {
+            foreach {- pid code} $eCode {
+                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_debug "dscl printed: $eMessage"
+            }
+            
+            set failed? 1
+        } catch {{POSIX *} eCode eMessage} {
+            foreach {- errName msg} {
+                ui_error "failed to execute $dscl: $errName: $msg"
+                ui_debug "dscl printed: $eMessage"
+            }
+
+            set failed? 1
+        } finally {
+            if {${failed?}} {
+                # creating the user properly failed and we're bailing out
+                # anyway, try to delete the half-created user to revert to the
+                # state before the error
+                ui_debug "Attempting to clean up failed creation of user $name"
+                try {
+                    exec $dscl . -delete /Users/${name} 2>@stderr
+                } catch {{CHILDKILLED *} eCode eMessage} {
+                    foreach {- pid sigName msg} {
+                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $name."
+                        ui_debug "dscl printed: $eMessage"
+                    }
+                } catch {{CHILDSTATUS *} eCode eMessage} {
+                    # ignoring childstatus failure, because that probably means
+                    # the first call failed and the user wasn't even created
+                } catch {{POSIX *} eCode eMessage} {
+                    foreach {- errName msg} {
+                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $name."
+                        ui_debug "dscl printed: $eMessage"
+                    }
+                }
+
+                # and raise an error to abort
+                error "dscl failed to create required user $name."
+            }
+        }
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "adduser is not implemented on ${os.platform}."
@@ -2419,11 +2471,63 @@ proc addgroup {name args} {
 
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
-        exec $dscl . -create /Groups/${name} Password ${passwd}
-        exec $dscl . -create /Groups/${name} RealName ${realname}
-        exec $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
-        if {${users} ne ""} {
-            exec $dscl . -create /Groups/${name} GroupMembership ${users}
+        set failed? 0
+        try {
+            exec $dscl . -create /Groups/${name} Password ${passwd}
+            exec $dscl . -create /Groups/${name} RealName ${realname}
+            exec $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+            if {${users} ne ""} {
+                exec $dscl . -create /Groups/${name} GroupMembership ${users}
+            }
+        } catch {{CHILDKILLED *} eCode eMessage} {
+            # the foreachs are a simple workaround for Tcl 8.4, which doesn't
+            # seem to have lassign
+            foreach {- pid sigName msg} $eCode {
+                ui_error "dscl($pid) was killed by $sigName: $msg"
+                ui_debug "dscl printed: $eMessage"
+            }
+
+            set failed? 1
+        } catch {{CHILDSTATUS *} eCode eMessage} {
+            foreach {- pid code} $eCode {
+                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_debug "dscl printed: $eMessage"
+            }
+            
+            set failed? 1
+        } catch {{POSIX *} eCode eMessage} {
+            foreach {- errName msg} {
+                ui_error "failed to execute $dscl: $errName: $msg"
+                ui_debug "dscl printed: $eMessage"
+            }
+
+            set failed? 1
+        } finally {
+            if {${failed?}} {
+                # creating the user properly failed and we're bailing out
+                # anyway, try to delete the half-created user to revert to the
+                # state before the error
+                ui_debug "Attempting to clean up failed creation of group $name"
+                try {
+                    exec $dscl . -delete /Groups/${name} 2>@stderr
+                } catch {{CHILDKILLED *} eCode eMessage} {
+                    foreach {- pid sigName msg} {
+                        ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $name."
+                        ui_debug "dscl printed: $eMessage"
+                    }
+                } catch {{CHILDSTATUS *} eCode eMessage} {
+                    # ignoring childstatus failure, because that probably means
+                    # the first call failed and the user wasn't even created
+                } catch {{POSIX *} eCode eMessage} {
+                    foreach {- errName msg} {
+                        ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $name."
+                        ui_debug "dscl printed: $eMessage"
+                    }
+                }
+
+                # and raise an error to abort
+                error "dscl failed to create required group $name."
+            }
         }
     } else {
         # XXX addgroup is only available for darwin, add more support here
