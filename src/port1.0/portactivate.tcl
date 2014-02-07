@@ -43,6 +43,7 @@ target_state ${org.macports.activate} no
 target_provides ${org.macports.activate} activate
 target_requires ${org.macports.activate} main archivefetch fetch checksum extract patch configure build destroot install
 target_prerun ${org.macports.activate} portactivate::activate_start
+target_postrun ${org.macports.activate} portactivate::activate_finish
 
 namespace eval portactivate {
 }
@@ -97,10 +98,18 @@ proc portactivate::activate_main {args} {
         ui_notice ""
     }
 
+    return 0
+}
+
+proc portactivate::activate_finish {args} {
+    global subport startupitem.autostart UI_PREFIX
+
+    # Do this _after_ activate_main, because post-activate hooks might create
+    # the files needed for this
     if {[tbool startupitem.autostart]} {
-        ui_notice "$UI_PREFIX [format [msgcat::mc "Loading %s"] [option subport]]"
+        ui_notice "$UI_PREFIX [format [msgcat::mc "Loading %s"] $subport]"
         if {[eval_targets "load"]} {
-            ui_error [format [msgcat::mc "Failed to load %s"] [option subport]]
+            ui_error [format [msgcat::mc "Failed to load %s"] $subport]
             return 1
         }
     }
