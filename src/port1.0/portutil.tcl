@@ -461,7 +461,7 @@ proc command_exec {command args} {
 
     # Restore the environment.
     array unset env *
-    if {$macosx_version == 10.5} {
+    if {$macosx_version eq "10.5"} {
         unsetenv *
     }
     array set env [array get saved_env]
@@ -1015,7 +1015,7 @@ proc reinplace {args}  {
                     set env(LC_CTYPE) $oldlocale
                 } else {
                     unset env(LC_CTYPE)
-                    if {$macosx_version == 10.5} {
+                    if {$macosx_version eq "10.5"} {
                         unsetenv LC_CTYPE
                     }
                 }
@@ -1029,7 +1029,7 @@ proc reinplace {args}  {
                 set env(LC_CTYPE) $oldlocale
             } else {
                 unset env(LC_CTYPE)
-                if {$macosx_version == 10.5} {
+                if {$macosx_version eq "10.5"} {
                     unsetenv LC_CTYPE
                 }
             }
@@ -1603,7 +1603,7 @@ proc target_run {ditem} {
     set env(HOME) $savedhome
     if {[info exists env(TMPDIR)]} {
         unset env(TMPDIR)
-        if {$macosx_version == 10.5} {
+        if {$macosx_version eq "10.5"} {
             unsetenv TMPDIR
         }
     }
@@ -3193,7 +3193,7 @@ proc check_supported_archs {} {
 proc _check_xcode_version {} {
     global os.subplatform macosx_version xcodeversion
 
-    if {${os.subplatform} == "macosx"} {
+    if {${os.subplatform} eq "macosx"} {
         switch $macosx_version {
             10.4 {
                 set min 2.0

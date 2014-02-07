@@ -172,7 +172,7 @@ proc porttrace::trace_stop {} {
         global env trace_fifo macosx_version
         foreach var {DYLD_INSERT_LIBRARIES DYLD_FORCE_FLAT_NAMESPACE DARWINTRACE_LOG DARWINTRACE_SANDBOX_BOUNDS} {
             array unset env $var
-            if {$macosx_version == 10.5} {
+            if {$macosx_version eq "10.5"} {
                 unsetenv $var
             }
         }
