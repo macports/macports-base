@@ -522,7 +522,7 @@ static int dependency_check(const char *path) {
 		default:
 			fprintf(stderr, "darwintrace: unexpected answer from tracelib: '%c' (0x%x)\n", *p, *p);
 			abort();
-			break;
+			/*NOTREACHED*/
 	}
 
 	debug_printf("dependency_check: %s returned %d\n", path, result);
