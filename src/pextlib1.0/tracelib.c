@@ -810,7 +810,7 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
     return TCL_OK;
 }
 
-static int TracelibSetDeps(Tcl_Interp *interp UNUSED, int objc, Tcl_Obj *CONST objv[]) {
+static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *t, * d;
     size_t l;
     if (objc != 3) {
