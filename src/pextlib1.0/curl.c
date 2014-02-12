@@ -63,6 +63,13 @@
 #pragma mark Definitions
 
 /* ------------------------------------------------------------------------- **
+ * Global cURL handle
+ * ------------------------------------------------------------------------- */
+/* we use a single global handle rather than creating and destroying handles to
+ * take advantage of HTTP pipelining, especially to the packages servers. */
+static CURL* theHandle = NULL;
+
+/* ------------------------------------------------------------------------- **
  * Prototypes
  * ------------------------------------------------------------------------- */
 int SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode);
@@ -115,7 +122,6 @@ int
 CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 	bool performFailed = false;
 	char theErrorString[CURL_ERROR_SIZE];
@@ -221,7 +227,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Open the file */
-		theFile = fopen( theFilePath, "w" );
+		theFile = fopen(theFilePath, "w");
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
@@ -229,7 +235,12 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Create the CURL handle */
-		theHandle = curl_easy_init();
+		if (theHandle == NULL) {
+			/* Re-use existing handle if theHandle isn't NULL */
+			theHandle = curl_easy_init();
+		}
+		/* If we're re-using a handle, the previous call did ensure to reset it
+		 * to the default state using curl_easy_reset(3) */
 
 		/* Setup the handle */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
@@ -388,7 +399,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* close the file */
-		(void) fclose( theFile );
+		(void) fclose(theFile);
 		theFile = NULL;
 
 #if LIBCURL_VERSION_NUM == 0x070d01 /* work around broken Tiger version of cURL */
@@ -405,21 +416,21 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				theResult = TCL_ERROR;
 				break;
 			}
-			theFile = fopen( theFilePath, "r");
+			theFile = fopen(theFilePath, "r");
 			if (theFile == NULL) {
 				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 				theResult = TCL_ERROR;
 				break;
 			}
-			if ( (p = fgets(buf, BUFSIZ, theFile)) != NULL) {
+			if ((p = fgets(buf, BUFSIZ, theFile)) != NULL) {
 				/* skip stray header escaping into output */
 				if (strncmp(p, "Last-Modified:", 14) != 0)
 					rewind(theFile);
 			}
-			while ( (size = fread(buf, 1, BUFSIZ, theFile)) > 0) {
+			while ((size = fread(buf, 1, BUFSIZ, theFile)) > 0) {
 				fwrite(buf, 1, size, fp);
 			}
-			(void) fclose( theFile );
+			(void) fclose(theFile);
 			theFile = NULL;
 			fclose(fp);
 			if (rename(tmp, theFilePath) != 0) {
@@ -450,10 +461,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				(effectiveURL == NULL || theCurlCode != CURLE_OK) ? "" : effectiveURL,
 				0);
 		}
-
-		/* clean up */
-		curl_easy_cleanup( theHandle );
-		theHandle = NULL;
 	} while (0);
 
 	if (performFailed) {
@@ -461,11 +468,12 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theResult = TCL_ERROR;
 	}
 
+	/* reset the connection */
 	if (theHandle != NULL) {
-		curl_easy_cleanup( theHandle );
+		curl_easy_reset(theHandle);
 	}
 	if (theFile != NULL) {
-		fclose( theFile );
+		fclose(theFile);
 	}
 
 	return theResult;
@@ -511,7 +519,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			}
 
 			optioncrsr++;
-                }
+		}
 
 		if (optioncrsr <= lastoption) {
 			/* something went wrong */
@@ -535,7 +543,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Open the file (dev/null) */
-		theFile = fopen( "/dev/null", "a" );
+		theFile = fopen("/dev/null", "a");
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
@@ -543,7 +551,12 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Create the CURL handle */
-		theHandle = curl_easy_init();
+		if (theHandle == NULL) {
+			/* Re-use existing handle if theHandle isn't NULL */
+			theHandle = curl_easy_init();
+		}
+		/* If we're re-using a handle, the previous call did ensure to reset it
+		 * to the default state using curl_easy_reset(3) */
 
 		/* Setup the handle */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
@@ -656,7 +669,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* close the file */
-		(void) fclose( theFile );
+		(void) fclose(theFile);
 		theFile = NULL;
 
 		/* check everything went fine */
@@ -676,10 +689,6 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				break;
 			}
 
-			/* clean up */
-			curl_easy_cleanup( theHandle );
-			theHandle = NULL;
-
 			/* compare this with the date provided by user */
 			if (theModDate < -1) {
 				Tcl_SetResult(interp, "Couldn't get resource modification date", TCL_STATIC);
@@ -695,8 +704,9 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 	} while (0);
 
+	/* reset the connection */
 	if (theHandle != NULL) {
-		curl_easy_cleanup(theHandle);
+		curl_easy_reset(theHandle);
 	}
 
 	if (theFile != NULL) {
@@ -763,7 +773,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theURL = Tcl_GetString(objv[objc - 1]);
 
 		/* Open the file (dev/null) */
-		theFile = fopen( "/dev/null", "a" );
+		theFile = fopen("/dev/null", "a");
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
@@ -771,7 +781,12 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Create the CURL handle */
-		theHandle = curl_easy_init();
+		if (theHandle == NULL) {
+			/* Re-use existing handle if theHandle isn't NULL */
+			theHandle = curl_easy_init();
+		}
+		/* If we're re-using a handle, the previous call did ensure to reset it
+		 * to the default state using curl_easy_reset(3) */
 
 		/* Setup the handle */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
@@ -879,7 +894,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* close the file */
-		(void) fclose( theFile );
+		(void) fclose(theFile);
 		theFile = NULL;
 
 		theFileSize = 0.0;
@@ -891,17 +906,14 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-		/* clean up */
-		curl_easy_cleanup( theHandle );
-		theHandle = NULL;
-
 		(void) snprintf(theSizeString, sizeof(theSizeString),
 			"%.0f", theFileSize);
 		Tcl_SetResult(interp, theSizeString, TCL_VOLATILE);
 	} while (0);
 
+	/* reset the connection */
 	if (theHandle != NULL) {
-		curl_easy_cleanup(theHandle);
+		curl_easy_reset(theHandle);
 	}
 
 	if (theFile != NULL) {
@@ -943,7 +955,7 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		/* Retrieve the post data - it's before the url */
 		thePostData = Tcl_GetString(objv[objc - 2]);
 		/* Open the file (dev/null) */
-		theFile = fopen( "/dev/null", "a" );
+		theFile = fopen("/dev/null", "a");
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
@@ -951,7 +963,12 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Create the CURL handle */
-		theHandle = curl_easy_init();
+		if (theHandle == NULL) {
+			/* Re-use existing handle if theHandle isn't NULL */
+			theHandle = curl_easy_init();
+		}
+		/* If we're re-using a handle, the previous call did ensure to reset it
+		 * to the default state using curl_easy_reset(3) */
 
 		/* Setup the handle */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
@@ -1045,16 +1062,13 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* close the file */
-		(void) fclose( theFile );
+		(void) fclose(theFile);
 		theFile = NULL;
-
-		/* clean up */
-		curl_easy_cleanup( theHandle );
-		theHandle = NULL;
 	} while (0);
 
+	/* reset the connection */
 	if (theHandle != NULL) {
-		curl_easy_cleanup(theHandle);
+		curl_easy_reset(theHandle);
 	}
 
 	if (theFile != NULL) {
