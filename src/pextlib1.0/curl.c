@@ -51,7 +51,7 @@
 
 /*
  * Some compiled-in constants that we may wish to change later, given more
- * empirical data.  These represent "best guess" values for now.
+ * empirical data. These represent "best guess" values for now.
  */
 #define _CURL_CONNECTION_TIMEOUT	((long)(30))		/* 30 seconds */
 #define _CURL_MINIMUM_XFER_SPEED	((long)1024)		/* 1KB/sec */
@@ -250,17 +250,17 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 #if LIBCURL_VERSION_NUM >= 0x071304 && LIBCURL_VERSION_NUM <= 0x071307
-        /* FTP_PROXY workaround for Snow Leopard */
-        if (strncmp(theURL, "ftp:", 4) == 0) {
-            char *ftp_proxy = getenv("FTP_PROXY");
-            if (ftp_proxy) {
-                theCurlCode = curl_easy_setopt(theHandle, CURLOPT_PROXY, ftp_proxy);
-                if (theCurlCode != CURLE_OK) {
-                    theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-                    break;
-                }
-            }
-        }
+		/* FTP_PROXY workaround for Snow Leopard */
+		if (strncmp(theURL, "ftp:", 4) == 0) {
+			char *ftp_proxy = getenv("FTP_PROXY");
+			if (ftp_proxy) {
+				theCurlCode = curl_easy_setopt(theHandle, CURLOPT_PROXY, ftp_proxy);
+				if (theCurlCode != CURLE_OK) {
+					theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+					break;
+				}
+			}
+		}
 #endif
 
 		/* -L option */
@@ -755,7 +755,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			}
 
 			optioncrsr++;
-                }
+		}
 
 		if (optioncrsr <= lastoption) {
 			/* something went wrong */
