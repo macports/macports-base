@@ -4790,13 +4790,72 @@ proc process_command_files { filelist } {
 }
 
 ##
+# Progress callback for generic operations executed by macports 1.0.
+#
+# @param action
+#        One of "start", "update", "intermission" or "finish", where start will
+#        be called before any number of update calls, interrupted by any number
+#        of intermission calls (called because other output is being produced),
+#        followed by one call to finish.
+# @param args
+#        A list of variadic args that differ for each action.
+#        For "start": empty.
+#        For "update": contains the arguments $cur and $total where $cur is the
+#        current number of units processed and $total is the total number of
+#        units to be processed.
+#        For "intermission": empty.
+#        For "finish": empty.
+proc port_progress_generic {action args} {
+    global _port_progress_starttime _port_progress_display_bar
+    switch -nocase -- $action {
+        start {
+            set _port_progress_starttime [clock milliseconds]
+            set _port_progress_display_bar no
+        }
+        update {
+            # the for loop is a simple hack because Tcl 8.4 doesn't have
+            # lassign
+            foreach {now total} $args {
+                if {${_port_progress_display_bar} ne yes} {
+                    # check whether we should show a progress bar for this transfer
+                    if {[expr {[clock milliseconds] - ${_port_progress_starttime}}] > 500 && ($total == 0 || [expr {$now / $total}] < 0.5)} {
+                        # wait 500ms, then, if we don't know the total or we're
+                        # not past 50% yet, display a progress bar.
+                        set _port_progress_display_bar yes
+                    }
+                }
+                if {${_port_progress_display_bar} eq yes} {
+                    set barprefix "      "
+                    if {$total != 0} {
+                        progress_bar $now $total 20 $barprefix
+                    } else {
+                        unprogress_bar $now 20 $barprefix
+                    }
+                }
+            }
+        }
+        intermission -
+        finish {
+            # erase to start of line
+            ::term::ansi::send::esol
+            # return cursor to start of line
+            puts -nonewline "\r"
+            flush stdout
+        }
+    }
+
+    return 0
+}
+
+
+##
 # Progress callback for downloads executed by macports 1.0.
 #
 # This is essentially a cURL progress callback.
 #
 # @param action
 #        One of "start", "update" or "finish", where start will be called
-#        before any number of change calls, followed by one call to finish.
+#        before any number of update calls, followed by one call to finish.
 # @param args
 #        A list of variadic args that differ for each action.
 #        For "start": contains a single argument "ul" or "dl" indicating
@@ -4826,7 +4885,7 @@ proc port_progress_download {action args} {
                     }
                 }
                 if {${_port_progress_display_bar} eq yes} {
-                    set barprefix "     "
+                    set barprefix "      "
                     if {$total != 0} {
                         set barsuffix [format "        speed: %-13s" "[bytesize $speed {} "%.1f"]/s"]
                         progress_bar $now $total 20 $barprefix $barsuffix
@@ -4865,7 +4924,7 @@ proc port_progress_download {action args} {
 proc progress_bar {current total halfwidth {prefix ""} {suffix ""}} {
     # we use 8 different states per character, so let's multiply the width by
     # 8 and map the percentage to this range
-    set percent [expr {($current * 100 / $total)}]
+    set percent [expr {(double($current) * 100 / double($total))}]
     set progress [expr {int(round(($current * $halfwidth * 8) / $total))}]
     set fullfields [expr {int($progress / 8)}]
     set remainder [expr {$progress % 8}]
@@ -5002,6 +5061,7 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
 
 if {[isatty stdout] && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
     set ui_options(progress_download) port_progress_download
+    set ui_options(progress_generic)  port_progress_generic
 }
 
 # Get arguments remaining after option processing

@@ -4351,17 +4351,22 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
     set files [registry::file search active 1 binary -null]
     set files_count [llength $files]
-    set fancy_output [expr {![macports::ui_isset ports_debug] && [isatty stdout]}]
+    set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+    if {$fancy_output} {
+        set revupgrade_progress $macports::ui_options(progress_generic)
+    }
     if {$files_count > 0} {
         registry::write {
             try {
-                ui_msg -nonewline "$macports::ui_prefix Updating database of binaries"
+                ui_msg "$macports::ui_prefix Updating database of binaries"
                 set i 1
+                if {$fancy_output} {
+                    $revupgrade_progress start
+                }
                 foreach f $files {
                     if {$fancy_output} {
-                        if {$files_count < 10000 || $i % 10 == 1 || $i == $files_count} {
-                            ui_msg -nonewline "\r$macports::ui_prefix Updating database of binaries: [expr {($i * 1000 / $files_count) / 10.0}]%"
-                            flush stdout
+                        if {$files_count < 10000 || $i % 10 == 1} {
+                            $revupgrade_progress update $i $files_count
                         }
                     }
                     set fpath [$f actual_path]
@@ -4371,7 +4376,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     if {0 != [catch {$f binary [fileIsBinary $fpath]} fileIsBinaryError]} {
                         # handle errors (e.g. file not found, permission denied) gracefully
                         if {$fancy_output} {
-                            ui_msg {}
+                            $revupgrade_progress intermission
                         }
                         ui_warn "Error determining file type of `$fpath': $fileIsBinaryError"
                         ui_warn "A file belonging to the `[[registry::entry owner $fpath] name]' port is missing or unreadable. Consider reinstalling it."
@@ -4382,14 +4387,16 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 throw
             }
         }
-        ui_msg {}
+        if {$fancy_output} {
+            $revupgrade_progress finish
+        }
     }
 
     set broken_files {};
     set binaries [registry::file search active 1 binary 1]
     set binary_count [llength $binaries]
     if {$binary_count > 0} {
-        ui_msg -nonewline "$macports::ui_prefix Scanning binaries for linking errors"
+        ui_msg "$macports::ui_prefix Scanning binaries for linking errors"
         set handle [machista::create_handle]
         if {$handle eq {NULL}} {
             error "Error creating libmachista handle"
@@ -4397,12 +4404,15 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         array unset files_warned_about
         array set files_warned_about [list]
 
+        if {$fancy_output} {
+            $revupgrade_progress start
+        }
+
         set i 1
         foreach b $binaries {
             if {$fancy_output} {
-                if {$binary_count < 10000 || $i % 10 == 1 || $i == $binary_count} {
-                    ui_msg -nonewline "\r$macports::ui_prefix Scanning binaries for linking errors: [expr {($i * 1000 / $binary_count) / 10.0}]%"
-                    flush stdout
+                if {$binary_count < 10000 || $i % 10 == 1} {
+                    $revupgrade_progress update $i $binary_count
                 }
             }
             set bpath [$b actual_path]
@@ -4420,7 +4430,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     #ui_debug "Error parsing file ${bpath}: [machista::strerror $returncode]"
                 } else {
                     if {$fancy_output} {
-                        ui_msg {}
+                        $revupgrade_progress intermission
                     }
                     ui_warn "Error parsing file ${bpath}: [machista::strerror $returncode]"
                 }
@@ -4442,7 +4452,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     set portname <unknown-port>
                                 }
                                 if {$fancy_output} {
-                                    ui_msg {}
+                                    $revupgrade_progress intermission
                                 }
                                 ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
                             } elseif {![file exists $idloadcmdpath]} {
@@ -4453,7 +4463,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     set portname <unknown-port>
                                 }
                                 if {$fancy_output} {
-                                    ui_msg {}
+                                    $revupgrade_progress intermission
                                 }
                                 ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
                                 ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
@@ -4470,7 +4480,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                         set portname <unknown-port>
                                     }
                                     if {$fancy_output} {
-                                        ui_msg {}
+                                        $revupgrade_progress intermission
                                     }
                                     ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file ${idloadcmdpath}, which is a different file"
                                     ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
@@ -4499,7 +4509,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         (${filepath} == "/usr/lib/libc++.1.dylib" && ${macports::cxx_stdlib} == "libstdc++")} {
 
                         if {$fancy_output} {
-                            ui_msg {}
+                            $revupgrade_progress intermission
                         }
                         ui_warn "${bpath} uses ${filepath} as C++ standard library although macports::cxx_stdlib is set to ${macports::cxx_stdlib}."
                     }
@@ -4510,8 +4520,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
                     if {$libreturncode != $machista::SUCCESS} {
                         if {![info exists files_warned_about($filepath)]} {
-                            if {[macports::ui_isset ports_verbose]} {
-                                ui_msg {}
+                            if {$fancy_output} {
+                                $revupgrade_progress intermission
                             }
                             ui_info "Could not open ${filepath}: [machista::strerror $libreturncode] (referenced from $bpath)"
                             set files_warned_about($filepath) yes
@@ -4533,8 +4543,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         }
 
                         if {[$loadcommand cget -mlt_version] ne [$libarchitecture cget -mat_version] && [$loadcommand cget -mlt_comp_version] > [$libarchitecture cget -mat_comp_version]} {
-                            if {[macports::ui_isset ports_verbose]} {
-                                ui_msg {}
+                            if {$fancy_output} {
+                                $revupgrade_progress intermission
                             }
                             ui_info "Incompatible library version: $bpath requires version [machista::format_dylib_version [$loadcommand cget -mlt_comp_version]] or later, but $filepath provides version [machista::format_dylib_version [$libarchitecture cget -mat_comp_version]]"
                             ui_debug "Marking $bpath as broken"
@@ -4561,7 +4571,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 set architecture [$architecture cget -next]
             }
         }
-        ui_msg {}
+        if {$fancy_output} {
+            $revupgrade_progress finish
+        }
 
         machista::destroy_handle $handle
 
