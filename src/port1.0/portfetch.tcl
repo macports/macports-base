@@ -502,7 +502,11 @@ proc portfetch::fetchfiles {args} {
         lappend fetch_options "--remote-time"
     }
     if {$portverbose eq "yes"} {
-        lappend fetch_options "-v"
+        lappend fetch_options "--progress"
+        lappend fetch_options "builtin"
+    } elseif {[llength [info commands ui_progress_download]] > 0} {
+        lappend fetch_options "--progress"
+        lappend fetch_options "ui_progress_download"
     }
     set sorted no
 

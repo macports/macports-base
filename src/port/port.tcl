@@ -34,6 +34,8 @@ exec @TCLSH@ "$0" "$@"
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+package require term::ansi::send
+
 source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
 package require macports
 package require Pextlib 1.0
@@ -155,7 +157,7 @@ proc _const value {
 
 
 # Format an integer representing bytes using given units
-proc bytesize {siz {unit {}}} {
+proc bytesize {siz {unit {}} {format {%.3f}}} {
     if {$unit == {}} {
         if {$siz > 0x40000000} {
             set unit "GiB"
@@ -193,7 +195,7 @@ proc bytesize {siz {unit {}}} {
         }
     }
     if {[expr {round($siz)}] != $siz} {
-        set siz [format {%.3f} $siz]
+        set siz [format $format $siz]
     }
     return "$siz $unit"
 }
@@ -4787,6 +4789,169 @@ proc process_command_files { filelist } {
     return $exit_status
 }
 
+##
+# Progress callback for downloads executed by macports 1.0.
+#
+# This is essentially a cURL progress callback.
+#
+# @param action
+#        One of "start", "update" or "finish", where start will be called
+#        before any number of change calls, followed by one call to finish.
+# @param args
+#        A list of variadic args that differ for each action.
+#        For "start": contains a single argument "ul" or "dl" indicating
+#        whether this is an up- or download.
+#        For "update": contains the arguments ("ul"|"dl") total now speed where
+#        ul/dl are as for start, and total, now and speed are doubles
+#        indicating the total transfer size, currently transferred amount and
+#        average speed per second in bytes.
+#        For "finish": empty.
+proc port_progress_download {action args} {
+    global _port_progress_starttime _port_progress_display_bar
+    switch -nocase -- $action {
+        start {
+            set _port_progress_starttime [clock milliseconds]
+            set _port_progress_display_bar no
+        }
+        update {
+            # the for loop is a simple hack because Tcl 8.4 doesn't have
+            # lassign
+            foreach {type total now speed} $args {
+                if {${_port_progress_display_bar} ne yes} {
+                    # check whether we should show a progress bar for this transfer
+                    if {[expr {[clock milliseconds] - ${_port_progress_starttime}}] > 500 && ($total == 0 || [expr {$now / $total}] < 0.5)} {
+                        # wait 500ms, then, if we don't know the total or we're
+                        # not past 50% yet, display a progress bar.
+                        set _port_progress_display_bar yes
+                    }
+                }
+                if {${_port_progress_display_bar} eq yes} {
+                    set barprefix "     "
+                    if {$total != 0} {
+                        set barsuffix [format "        speed: %-13s" "[bytesize $speed {} "%.1f"]/s"]
+                        progress_bar $now $total 20 $barprefix $barsuffix
+                    } else {
+                        set barsuffix [format " %-10s     speed: %-13s" [bytesize $now {} "%6.1f"] "[bytesize $speed {} "%.1f"]/s"]
+                        unprogress_bar $now 20 $barprefix $barsuffix
+                    }
+                }
+            }
+        }
+        finish {
+            # erase to start of line
+            ::term::ansi::send::esol
+            # return cursor to start of line
+            puts -nonewline "\r"
+            flush stdout
+        }
+    }
+
+    return 0
+}
+
+##
+# Draw a progress bar using unicode block drawing characters
+#
+# @param current
+#        the current progress value
+# @param total
+#        the progress value representing 100%
+# @param halfwidth
+#        the half width in characters of the progress bar
+# @param prefix
+#        prefix to be printed in front of the progress bar
+# @param suffix
+#        suffix to be printed after the progress bar
+proc progress_bar {current total halfwidth {prefix ""} {suffix ""}} {
+    # we use 8 different states per character, so let's multiply the width by
+    # 8 and map the percentage to this range
+    set percent [expr {($current * 100 / $total)}]
+    set progress [expr {int(round(($current * $halfwidth * 8) / $total))}]
+    set fullfields [expr {int($progress / 8)}]
+    set remainder [expr {$progress % 8}]
+
+    # clear the current line
+    set progressbar ""
+    for {set i 0} {$i < $fullfields} {incr i} {
+        # U+2588 FULL BLOCK doesn't match the other blocks in some fonts :/
+        # Use two half blocks instead
+        # Since we use two chars here, make sure to remove a space for each of
+        # those used!
+        append progressbar "\u258c\u258c"
+    }
+
+    if {$remainder == 0 && $fullfields < $halfwidth} {
+        append progressbar " "
+    } elseif {$remainder == 1} {
+        # U+258F LEFT ONE EIGHTH BLOCK
+        append progressbar "\u258f"
+    } elseif {$remainder == 2} {
+        # U+258E LEFT ONE QUARTER BLOCK
+        append progressbar "\u258e"
+    } elseif {$remainder == 3} {
+        # U+258D LEFT THREE EIGHTHS BLOCK
+        append progressbar "\u258d"
+    } elseif {$remainder == 4} {
+        # U+258C LEFT HALF BLOCK
+        append progressbar "\u258c"
+    } elseif {$remainder == 5} {
+        # U+258B LEFT FIVE EIGHTHS BLOCK
+        append progressbar "\u258b"
+    } elseif {$remainder == 6} {
+        # U+258A LEFT THREE QUARTERS BLOCK
+        append progressbar "\u258a"
+    } elseif {$remainder == 7} {
+        # U+2589 LEFT SEVEN EIGHTHS BLOCK
+        append progressbar "\u2589"
+    }
+
+    for {set i [expr {[string length $progressbar]}]} {$i < [expr {2 * $halfwidth}]} {incr i} {
+        append progressbar " "
+    }
+    set percentagesuffix [format " %5.1f %%" $percent]
+
+    puts -nonewline "\r${prefix}\[${progressbar}\]${percentagesuffix}${suffix}"
+    flush stdout
+}
+
+##
+# Draw a progress indicator
+#
+# @param current
+#        the number of bytes currently downloaded
+# @param halfwidth
+#        the half width in characters of the progress indicator
+# @param prefix
+#        prefix to be printed in front of the progress indicator
+# @param suffix
+#        suffix to be printed after the progress indicator
+proc unprogress_bar {current halfwidth {prefix ""} {suffix ""}} {
+    global _port_progress_unprogressbar_state
+
+    set numstates 4
+
+    if {![info exists _port_progress_unprogressbar_state]} {
+        set _port_progress_unprogressbar_state 0
+    } else {
+        set _port_progress_unprogressbar_state [expr {(${_port_progress_unprogressbar_state} + 1) % $numstates}]
+    }
+
+    # clear the current line
+    set progressbar ""
+
+    for {set i 0} {$i < [expr {2 * $halfwidth}]} {incr i} {
+        if {[expr $i % $numstates] == ${_port_progress_unprogressbar_state}} {
+            # U+2022 BULLET
+            append progressbar "\u2022"
+        } else {
+            append progressbar " "
+        }
+    }
+
+    puts -nonewline "\r${prefix}\[${progressbar}\]${suffix}"
+    flush stdout
+}
+
 
 ##########################################
 # Main
@@ -4833,6 +4998,10 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
     puts "Error: $result"
     print_usage
     exit 1
+}
+
+if {[isatty stdout] && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
+    set ui_options(progress_download) port_progress_download
 }
 
 # Get arguments remaining after option processing

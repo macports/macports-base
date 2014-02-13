@@ -1276,7 +1276,10 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
         foreach phase $macports::port_phases {
             $workername alias ui_${priority}_$phase ui_${priority}_$phase
         }
-
+    }
+    # add the UI progress call-back
+    if {[info exists macports::ui_options(progress_download)]} {
+        $workername alias ui_progress_download $macports::ui_options(progress_download)
     }
 
     $workername alias ui_prefix ui_prefix
@@ -1435,7 +1438,7 @@ proc macports::get_tar_flags {suffix} {
 # @param local one, if the URL is local, zero otherwise
 # @return a path to a directory containing the Portfile, or an error code
 proc macports::fetch_port {url {local 0}} {
-    global macports::portdbpath macports::ui_prefix macports::portverbose
+    global macports::portdbpath macports::ui_prefix macports::portverbose macports::ui_options
 
     set fetchdir [file join $portdbpath portdirs]
     file mkdir $fetchdir
@@ -1448,11 +1451,13 @@ proc macports::fetch_port {url {local 0}} {
     } else {
         ui_msg "$macports::ui_prefix Fetching port $url"
         set fetchfile [file tail $url]
-        set verboseflag {}
+        set progressflag {}
         if {$macports::portverbose eq {yes}} {
-            set verboseflag -v
+            set progressflag "--progress builtin"
+        } elseif {[info exists macports::ui_options(progress_download)]} {
+            set progressflag "--progress ${macports::ui_options(progress_download)}"
         }
-        if {[catch {eval curl fetch $verboseflag {$url} {[file join $fetchdir $fetchfile]}} result]} {
+        if {[catch {eval curl fetch $progressflag {$url} {[file join $fetchdir $fetchfile]}} result]} {
             return -code error "Port remote fetch failed: $result"
         }
     }
@@ -2262,7 +2267,8 @@ proc macports::getindex {source} {
 proc mportsync {{optionslist {}}} {
     global macports::sources macports::portdbpath macports::rsync_options \
            tcl_platform macports::portverbose macports::autoconf::rsync_path \
-           macports::autoconf::tar_path macports::autoconf::openssl_path
+           macports::autoconf::tar_path macports::autoconf::openssl_path \
+           macports::ui_options
     array set options $optionslist
     if {[info exists options(no_reindex)]} {
         upvar $options(needed_portindex_var) any_needed_portindex
@@ -2505,12 +2511,14 @@ proc mportsync {{optionslist {}}} {
 
                 file mkdir $destdir
 
-                set verboseflag {}
+                set progressflag {}
                 if {$macports::portverbose eq {yes}} {
-                    set verboseflag -v
+                    set progressflag "--progress builtin"
+                } elseif {[info exists macports::ui_options(progress_download)]} {
+                    set progressflag "--progress ${macports::ui_options(progress_download)}"
                 }
 
-                if {[catch {eval curl fetch $verboseflag {$source} {$tarpath}} error]} {
+                if {[catch {eval curl fetch $progressflag {$source} {$tarpath}} error]} {
                     ui_error "Fetching $source failed ($error)"
                     incr numfailed
                     continue
