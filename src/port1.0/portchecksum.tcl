@@ -53,13 +53,13 @@ default checksum.skip false
 set_ui_prefix
 
 # The list of the types of checksums we know.
-set checksum_types "md5 sha1 rmd160 sha256"
+set checksum_types [list md5 sha1 rmd160 sha256 size]
 
 # The number of types we know.
 set checksum_types_count [llength $checksum_types]
 
 # types to recommend if none are specified in the portfile
-set default_checksum_types {rmd160 sha256}
+set default_checksum_types [list rmd160 sha256]
 
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
@@ -183,6 +183,15 @@ proc portchecksum::calc_rmd160 {file} {
 #
 proc portchecksum::calc_sha256 {file} {
     return [sha256 file $file]
+}
+
+# calc_size
+#
+# Get the size of the given file.
+# Return the size.
+#
+proc portchecksum::calc_size {file} {
+    return [file size $file]
 }
 
 # checksum_start
