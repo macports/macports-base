@@ -597,8 +597,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Remove trailing "Endian"
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
     set macosx_version {}
-    if {$os_platform eq {darwin}} {
-        set macosx_version [exec sw_vers -productVersion | cut -f1,2 -d.]
+    if {$os_platform eq "darwin" && [file executable /usr/bin/sw_vers]} {
+        if {![catch {exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.} result]} {
+            set macosx_version $result
+        } else {
+            ui_debug "sw_vers exists but running it failed: $result"
+        }
     }
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
