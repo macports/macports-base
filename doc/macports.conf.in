@@ -60,7 +60,7 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 
 # Space-delimited list of CPU architectures to target when building
 # universal. Defaults to "i386 ppc" on OS X 10.5 and earlier and
-# "x64_64 i386" on OS X 10.6 and later.
+# "x86_64 i386" on OS X 10.6 and later.
 universal_archs     	@UNIVERSAL_ARCHS@
 
 # Use ccache, a compiler cache for C, C++, Objective-C, and
