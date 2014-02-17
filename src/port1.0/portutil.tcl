@@ -2569,7 +2569,9 @@ proc set_ui_prefix {} {
 
 # Use a specified group/version.
 proc PortGroup {group version} {
-    global porturl
+    global porturl PortInfo
+
+    lappend PortInfo(portgroups) [list $group $version]
 
     set groupFile [getportresourcepath $porturl "port1.0/group/${group}-${version}.tcl"]
 
