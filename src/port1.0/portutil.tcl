@@ -2573,6 +2573,17 @@ proc PortGroup {group version} {
 
     lappend PortInfo(portgroups) [list $group $version]
 
+    if {[info exists portutil::portgroup_search_dirs]} {
+        foreach dir $portutil::portgroup_search_dirs {
+            set groupFile ${dir}/${group}-${version}.tcl
+            if {[file exists $groupFile]} {
+                uplevel "source $groupFile"
+                ui_debug "Sourcing PortGroup $group $version from $groupFile"
+                return
+            }
+        }
+    }
+
     set groupFile [getportresourcepath $porturl "port1.0/group/${group}-${version}.tcl"]
 
     if {[file exists $groupFile]} {
