@@ -5001,8 +5001,8 @@ namespace eval portclient::progress {
         # Finally, also provide a percentage value to print behind the progress bar
         set percentage [expr {double($current) * 100 / double($total)}]
 
-        # clear the current line
-        set progressbar ""
+        # clear the current line, enable reverse video
+        set progressbar "\033\[7m"
         for {set i 0} {$i < $barInteger} {incr i} {
             # U+2588 FULL BLOCK doesn't match the other blocks in some fonts :/
             # Two half blocks work better in some fonts, but not in others (because
@@ -5010,8 +5010,10 @@ namespace eval portclient::progress {
             # worse and even just using full blocks looks ugly in a few fonts.
 
             # Use pure ASCII until somebody fixes most of the default terminal fonts :/
-            append progressbar "#"
+            append progressbar " "
         }
+        # back to normal output
+        append progressbar "\033\[0m"
 
         #switch $barRemainder {
         #    0 {
@@ -5054,7 +5056,7 @@ namespace eval portclient::progress {
         #}
 
         # Fill the progress bar with spaces
-        for {set i [string length $progressbar]} {$i < $barWidth} {incr i} {
+        for {set i $barInteger} {$i < $barWidth} {incr i} {
             append progressbar " "
         }
 
