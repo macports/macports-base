@@ -34,14 +34,21 @@ exec @TCLSH@ "$0" "$@"
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-package require term::ansi::send
+# Create a namespace for some local variables
+namespace eval portclient::progress {
+    ##
+    # Indicate whether the term::ansi::send tcllib package is available and was
+    # imported. "yes", if the package is available, "no" otherwise.
+    variable hasTermAnsiSend no
+}
+
+if {![catch {package require term::ansi::send}]} {
+    set portclient::progress::hasTermAnsiSend yes
+}
 
 source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
 package require macports
 package require Pextlib 1.0
-
-# Create a namespace for some local variables
-namespace eval portclient {}
 
 # Standard procedures
 proc print_usage {{verbose 1}} {
@@ -5158,7 +5165,9 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
     exit 1
 }
 
-if {[isatty stdout] && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
+if {[isatty stdout]
+    && $portclient::progress::hasTermAnsiSend eq yes
+    && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
     set ui_options(progress_download) portclient::progress::download
     set ui_options(progress_generic)  portclient::progress::generic
 }
