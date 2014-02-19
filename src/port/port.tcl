@@ -4893,7 +4893,7 @@ namespace eval portclient::progress {
                         if {$total != 0} {
                             progressbar $now $total [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen)}] $barPrefix
                         } else {
-                            unprogressbar $now [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen)}] $barPrefix
+                            unprogressbar [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen)}] $barPrefix
                         }
                     }
                 }
@@ -4953,7 +4953,7 @@ namespace eval portclient::progress {
                             set barSuffixLen [string length $barSuffix]
 
                             set barLen [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen - $barSuffixLen)}]
-                            unprogressbar $now $total $barLen $barPrefix $barSuffix
+                            unprogressbar $barLen $barPrefix $barSuffix
                         }
                     }
                 }
