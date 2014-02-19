@@ -456,3 +456,147 @@ int reg_vacuum(char *db_path) {
     sqlite3_close(db);
     return result;
 }
+
+/**
+ * Functions for access to the metadata table
+ */
+
+/**
+ * @param [in] reg     registry to get value from
+ * @param [in] key     metadata key to get
+ * @param [out] value  the value of the metadata
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
+int reg_get_metadata(reg_registry* reg, const char* key, char** value,
+        reg_error* errPtr) {
+    int result = 0;
+    sqlite3_stmt* stmt = NULL;
+    char* query = "SELECT value FROM registry.metadata WHERE key=?";
+    const char *text;
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK
+            && (sqlite3_bind_text(stmt, 1, key, -1, SQLITE_STATIC) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    text = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text) {
+                        *value = strdup(text);
+                        result = 1;
+                    } else {
+                        reg_sqlite_error(reg->db, errPtr, query);
+                    }
+                    break;
+                case SQLITE_DONE:
+                    errPtr->code = REG_NOT_FOUND;
+                    errPtr->description = "no such key in metadata";
+                    errPtr->free = NULL;
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+/**
+ * @param [in] reg     registry to set value in
+ * @param [in] key     metadata key to set
+ * @param [in] value   the desired value for the key
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
+int reg_set_metadata(reg_registry* reg, const char* key, const char* value,
+        reg_error* errPtr) {
+    int result = 0;
+    sqlite3_stmt* stmt = NULL;
+    char* query;
+    char *test_value;
+    int get_returnval = reg_get_metadata(reg, key, &test_value, errPtr);
+    if (get_returnval) {
+        free(test_value);
+        query = sqlite3_mprintf("UPDATE registry.metadata SET value = '%q' WHERE key='%q'",
+            value, key);
+    } else if (errPtr->code == REG_NOT_FOUND) {
+        query = sqlite3_mprintf("INSERT INTO registry.metadata (key, value) VALUES ('%q', '%q')",
+            key, value);
+    } else {
+        return get_returnval;
+    }
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    result = 1;
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_free(query);
+    return result;
+}
+
+/**
+ * @param [in] reg        the registry to delete the metadata from
+ * @param [in] key        the metadata key to delete
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_del_metadata(reg_registry* reg, const char* key, reg_error* errPtr) {
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+    char* query = "DELETE FROM registry.metadata WHERE key=?";
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 1, key, -1, SQLITE_STATIC) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    if (sqlite3_changes(reg->db) == 0) {
+                        reg_throw(errPtr, REG_INVALID, "no such metadata key");
+                        result = 0;
+                    } else {
+                        sqlite3_reset(stmt);
+                    }
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    result = 0;
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}

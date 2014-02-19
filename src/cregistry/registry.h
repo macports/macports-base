@@ -88,4 +88,8 @@ int reg_rollback(reg_registry* reg, reg_error* errPtr);
 
 int reg_vacuum(char* db_path);
 
+int reg_get_metadata(reg_registry* reg, const char* key, char** value, reg_error* errPtr);
+int reg_set_metadata(reg_registry* reg, const char* key, const char* value, reg_error* errPtr);
+int reg_del_metadata(reg_registry* reg, const char* key, reg_error* errPtr);
+
 #endif /* _CREG_H */
