@@ -264,7 +264,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
 
         /* we can't call vercmp directly because it's static, but we have
          * sql_version, which is basically an alias */
-        if (sql_version(NULL, -1, version, -1, "1.1") < 0) {
+        if (sql_version(NULL, -1, version, -1, "1.100") < 0) {
             /* we need to update to 1.1, add binary field and index to files
              * table */
             static char* version_1_1_queries[] = {
