@@ -4,7 +4,7 @@
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
- * Copyright (c) 2012 The MacPorts Project
+ * Copyright (c) 2012, 2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@ typedef struct {
     int status;
     Tcl_HashTable open_entries;
     Tcl_HashTable open_files;
+    Tcl_HashTable open_portgroups;
 } reg_registry;
 
 int reg_open(reg_registry** regPtr, reg_error* errPtr);

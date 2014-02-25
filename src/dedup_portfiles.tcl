@@ -1,0 +1,47 @@
+#!/usr/bin/env tclsh
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+# move portfiles from sqlite db to filesystem, while deduplicating
+# Takes one argument, which should be TCL_PACKAGE_DIR.
+
+source [file join [lindex $argv 0] macports1.0 macports_fastload.tcl]
+package require macports 1.0
+package require registry2 2.0
+package require Pextlib 1.0
+
+umask 022
+
+array set ui_options {ports_verbose yes}
+
+mportinit ui_options
+
+if {[registry::metadata get portfiles_update_needed] == 1} {
+    set portfiles_dir [file join ${macports::registry.path} registry portfiles]
+
+    registry::write {
+        set installed_ports [registry::entry imaged]
+        foreach portref $installed_ports {
+            set portfile_contents [$portref portfile]
+            if {$portfile_contents ne "" && $portfile_contents ne "0"} {
+                set portfile_partial_dir [file join $portfiles_dir [$portref name]-[$portref version]_[$portref revision]]
+                file mkdir $portfile_partial_dir
+                set portfile_temp_path ${portfile_partial_dir}/Portfile
+                set fd [open $portfile_temp_path w]
+                puts $fd $portfile_contents
+                close $fd
+
+                set hash_size [sha256 file $portfile_temp_path]-[file size $portfile_temp_path]
+                set portfile_dir [file join $portfile_partial_dir $hash_size]
+                file mkdir $portfile_dir
+                file rename -force $portfile_temp_path $portfile_dir
+                file mtime ${portfile_dir}/Portfile [$portref date]
+
+                $portref portfile $hash_size
+            }
+        }
+        registry::metadata del portfiles_update_needed
+    }
+}
+
+exit 0

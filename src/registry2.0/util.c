@@ -38,6 +38,7 @@
 #include "util.h"
 #include "entryobj.h"
 #include "fileobj.h"
+#include "portgroupobj.h"
 
 /**
  * Generates a unique proc name starting with prefix.
@@ -214,6 +215,29 @@ int set_file(Tcl_Interp* interp, char* name, reg_file* file,
 }
 
 /**
+ * Sets a given name to be a portgroup object.
+ *
+ * @param [in] interp  Tcl interpreter to create the portgroup within
+ * @param [in] name    name to associate the given portgroup with
+ * @param [in] portgroup    portgroup to associate with the given name
+ * @param [out] errPtr description of error if it couldn't be set
+ * @return             true if success; false if failure
+ * @see set_object
+ */
+int set_portgroup(Tcl_Interp* interp, char* name, reg_portgroup* portgroup,
+        reg_error* errPtr) {
+    if (set_object(interp, name, portgroup, "portgroup", portgroup_obj_cmd, NULL,
+                errPtr)) {
+        portgroup->proc = strdup(name);
+        if (!portgroup->proc) {
+            return 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+/**
  * Reports a sqlite3 error to Tcl.
  *
  * Queries the database for the most recent error message and sets it as the
@@ -297,6 +321,23 @@ int file_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_file* file,
     return 1;
 }
 
+int portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_portgroup* portgroup,
+        int* lower_bound, reg_error* errPtr) {
+    if (portgroup->proc == NULL) {
+        char* name = unique_name(interp, "::registry::portgroup", lower_bound);
+        if (!name) {
+            return 0;
+        }
+        if (!set_portgroup(interp, name, portgroup, errPtr)) {
+            free(name);
+            return 0;
+        }
+        free(name);
+    }
+    *obj = Tcl_NewStringObj(portgroup->proc, -1);
+    return 1;
+}
+
 int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_entry** entries, int entry_count, reg_error* errPtr) {
     int lower_bound = 0;
@@ -309,6 +350,13 @@ int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
     int lower_bound = 0;
     return recast(interp, (cast_function*)file_to_obj, &lower_bound, NULL,
             (void***)objs, (void**)files, file_count, errPtr);
+}
+
+int list_portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_portgroup** portgroups, int portgroup_count, reg_error* errPtr) {
+    int lower_bound = 0;
+    return recast(interp, (cast_function*)portgroup_to_obj, &lower_bound, NULL,
+            (void***)objs, (void**)portgroups, portgroup_count, errPtr);
 }
 
 static int obj_to_string(void* userdata UNUSED, char** string, Tcl_Obj* obj,

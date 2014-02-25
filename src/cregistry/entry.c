@@ -2,7 +2,7 @@
  * entry.c
  * $Id$
  *
- * Copyright (c) 2010-2011 The MacPorts Project
+ * Copyright (c) 2010-2011, 2014 The MacPorts Project
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * All rights reserved.
  *
@@ -31,6 +31,7 @@
 #include <config.h>
 #endif
 
+#include "portgroup.h"
 #include "entry.h"
 #include "registry.h"
 #include "sql.h"
@@ -246,9 +247,11 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     sqlite3_stmt* ports = NULL;
     sqlite3_stmt* files = NULL;
     sqlite3_stmt* dependencies = NULL;
+    sqlite3_stmt* portgroups = NULL;
     char* ports_query = "DELETE FROM registry.ports WHERE id=?";
     char* files_query = "DELETE FROM registry.files WHERE id=?";
     char* dependencies_query = "DELETE FROM registry.dependencies WHERE id=?";
+    char* portgroups_query = "DELETE FROM registry.portgroups WHERE id=?";
     if ((sqlite3_prepare_v2(reg->db, ports_query, -1, &ports, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(ports, 1, entry->id) == SQLITE_OK)
             && (sqlite3_prepare_v2(reg->db, files_query, -1, &files, NULL)
@@ -256,7 +259,10 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
             && (sqlite3_bind_int64(files, 1, entry->id) == SQLITE_OK)
             && (sqlite3_prepare_v2(reg->db, dependencies_query, -1, &dependencies,
                     NULL) == SQLITE_OK)
-            && (sqlite3_bind_int64(dependencies, 1, entry->id) == SQLITE_OK)) {
+            && (sqlite3_bind_int64(dependencies, 1, entry->id) == SQLITE_OK)
+            && (sqlite3_prepare_v2(reg->db, portgroups_query, -1, &portgroups,
+                    NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(portgroups, 1, entry->id) == SQLITE_OK)) {
         int r;
         do {
             r = sqlite3_step(ports);
@@ -271,7 +277,20 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                         r = sqlite3_step(dependencies);
                                         switch (r) {
                                             case SQLITE_DONE:
-                                                result = 1;
+                                                do {
+                                                    r = sqlite3_step(portgroups);
+                                                    switch (r) {
+                                                        case SQLITE_DONE:
+                                                            result = 1;
+                                                            break;
+                                                        case SQLITE_BUSY:
+                                                            break;
+                                                        case SQLITE_ERROR:
+                                                            reg_sqlite_error(reg->db,
+                                                                    errPtr, NULL);
+                                                            break;
+                                                    }
+                                                } while (r == SQLITE_BUSY);
                                                 break;
                                             case SQLITE_BUSY:
                                                 break;
@@ -314,6 +333,9 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     }
     if (dependencies) {
         sqlite3_finalize(dependencies);
+    }
+    if (portgroups) {
+        sqlite3_finalize(portgroups);
     }
     return result;
 }
@@ -665,6 +687,73 @@ int reg_entry_propset(reg_entry* entry, char* key, char* value,
     if (stmt) {
         sqlite3_finalize(stmt);
     }
+    sqlite3_free(query);
+    return result;
+}
+
+/**
+ * Associates a portgroup with given port.
+ *
+ * @param [in] entry      the entry to map the portgroup to
+ * @param [in] name       the portgroup name (e.g. "muniversal")
+ * @param [in] version    the portgroup version (e.g. "1.0")
+ * @param [in] sha256     the sha256 hash of the portgroup file
+ * @param [in] size       the size of the portgroup file in bytes
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_addgroup(reg_entry* entry, char* name, char *version,
+        char *sha256, sqlite_int64 size, reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+    char* insert = "INSERT INTO registry.portgroups (id, name, version, size, sha256) "
+        "VALUES (?, ?, ?, ?, ?)";
+    if ((sqlite3_prepare_v2(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 2, name, -1, SQLITE_STATIC) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 3, version, -1, SQLITE_STATIC) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 4, size) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 5, sha256, -1, SQLITE_STATIC) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    sqlite3_reset(stmt);
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, insert);
+                    result = 0;
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, insert);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+/**
+ * Gets a list of portgroups that are used by this port.
+ *
+ * @param [in] entry       a port
+ * @param [out] portgroups a list of portgroups used by the given port
+ * @param [out] errPtr     on error, a description of the error that occurred
+ * @return                 true if success; false if failure
+ */
+int reg_entry_getgroups(reg_entry* entry, reg_portgroup*** portgroups, reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    char* query = sqlite3_mprintf("SELECT ROWID FROM portgroups "
+            "WHERE id=%lld",
+            entry->id);
+    int result = reg_all_portgroups(reg, query, -1, portgroups, errPtr);
     sqlite3_free(query);
     return result;
 }

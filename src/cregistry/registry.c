@@ -4,7 +4,7 @@
  * vim:expandtab:tw=80
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
- * Copyright (c) 2012 The MacPorts Project
+ * Copyright (c) 2012, 2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #include <config.h>
 #endif
 
+#include "portgroup.h"
 #include "entry.h"
 #include "file.h"
 #include "sql.h"
@@ -208,6 +209,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                                     sizeof(sqlite_int64)/sizeof(int));
                             Tcl_InitHashTable(&reg->open_files,
                                     TCL_STRING_KEYS);
+                            Tcl_InitHashTable(&reg->open_portgroups,
+                                    sizeof(sqlite_int64)/sizeof(int));
                             reg->status |= reg_attached;
                             result = 1;
                         }

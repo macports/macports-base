@@ -3,7 +3,7 @@
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
- * Copyright (c) 2012 The MacPorts Project
+ * Copyright (c) 2012, 2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <tcl.h>
 
 #include <cregistry/registry.h>
+#include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <cregistry/file.h>
 
@@ -46,6 +47,7 @@
 #include "file.h"
 #include "graph.h"
 #include "item.h"
+#include "portgroup.h"
 #include "registry.h"
 #include "util.h"
 
@@ -389,6 +391,7 @@ int Registry_Init(Tcl_Interp* interp) {
     /* Tcl_CreateObjCommand(interp, "registry::item", item_cmd, NULL, NULL); */
     Tcl_CreateObjCommand(interp, "registry::entry", entry_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::file", file_cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::portgroup", portgroup_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::metadata", metadata_cmd, NULL, NULL);
     if (Tcl_PkgProvide(interp, "registry2", "2.0") != TCL_OK) {
         return TCL_ERROR;

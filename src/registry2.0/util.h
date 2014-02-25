@@ -37,6 +37,7 @@
 #include <sqlite3.h>
 
 #include <cregistry/registry.h>
+#include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <cregistry/file.h>
 
@@ -60,6 +61,8 @@ int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr);
 int set_file(Tcl_Interp* interp, char* name, reg_file* file,
         reg_error* errPtr);
+int set_portgroup(Tcl_Interp* interp, char* name, reg_portgroup* portgroup,
+        reg_error* errPtr);
 
 void set_sqlite_result(Tcl_Interp* interp, sqlite3* db, const char* query);
 
@@ -77,6 +80,10 @@ int file_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_file* file,
         int* lower_bound, reg_error* errPtr);
 int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_file** files, int file_count, reg_error* errPtr);
+int portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_portgroup* portgroup,
+        int* lower_bound, reg_error* errPtr);
+int list_portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_portgroup** portgroups, int portgroup_count, reg_error* errPtr);
 
 void free_strings(void* userdata UNUSED, char** strings, int count);
 

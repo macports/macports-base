@@ -56,6 +56,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <registry2.0/registry.h>
 

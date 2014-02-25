@@ -307,7 +307,7 @@ proc portinstall::install_main {args} {
     homepage depends_run package-install workdir workpath \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
-    os.platform os.major portarchivetype installPlist
+    os.platform os.major portarchivetype installPlist registry.path porturl
 
     set oldpwd [pwd]
     if {$oldpwd eq ""} {
@@ -373,11 +373,40 @@ proc portinstall::install_main {args} {
             # register files
             $regref map $installPlist
         }
-        
+
         # store portfile
-        set fd [open [file join ${portpath} Portfile]]
-        $regref portfile [read $fd]
-        close $fd
+        set portfile_path [file join $portpath Portfile]
+        set portfile_sha256 [sha256 file $portfile_path]
+        set portfile_size [file size $portfile_path]
+        set portfile_reg_dir [file join ${registry.path} registry portfiles ${subport}-${version}_${revision} ${portfile_sha256}-${portfile_size}]
+        file mkdir $portfile_reg_dir
+        set portfile_reg_path ${portfile_reg_dir}/Portfile
+        if {![file isfile $portfile_reg_path] || [file size $portfile_reg_path] != $portfile_size || [sha256 file $portfile_reg_path] ne $portfile_sha256} {
+            file copy -force $portfile_path $portfile_reg_dir
+        }
+        $regref portfile ${portfile_sha256}-${portfile_size}
+
+        # store portgroups
+        if {[info exists PortInfo(portgroups)]} {
+            foreach pg $PortInfo(portgroups) {
+                set pgname [lindex $pg 0]
+                set pgversion [lindex $pg 1]
+                set groupFile [getportresourcepath $porturl "port1.0/group/${pgname}-${pgversion}.tcl"]
+                if {[file isfile $groupFile]} {
+                    set pgsha256 [sha256 file $groupFile]
+                    set pgsize [file size $groupFile]
+                    set pg_reg_dir [file join ${registry.path} registry portgroups ${pgsha256}-${pgsize}]
+                    set pg_reg_path ${pg_reg_dir}/${pgname}-${pgversion}.tcl
+                    if {![file isfile $pg_reg_path] || [file size $pg_reg_path] != $pgsize || [sha256 file $pg_reg_path] ne $pgsha256} {
+                        file mkdir $pg_reg_dir
+                        file copy -force $groupFile $pg_reg_dir
+                    }
+                    $regref addgroup $pgname $pgversion $pgsha256 $pgsize
+                } else {
+                    ui_debug "install_main: no portgroup ${pgname}-${pgversion}.tcl found"
+                }
+            }
+        }
     }
 
     _cd $oldpwd

@@ -1363,12 +1363,12 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
 
     foreach {opt val} $options {
-        $workername eval set user_options($opt) $val
-        $workername eval set $opt $val
+        $workername eval [list set user_options($opt) $val]
+        $workername eval [list set $opt $val]
     }
 
     foreach {var val} $variations {
-        $workername eval set variations($var) $val
+        $workername eval [list set variations($var) $val]
     }
 }
 
@@ -1715,12 +1715,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 proc mportopen_installed {name version revision variants options} {
     global macports::registry.path
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
-    set portfile_dir [file join ${registry.path} registry portfiles $name ${version}_${revision}$variants]
-    file mkdir $portfile_dir
-    set fd [open ${portfile_dir}/Portfile w]
-    puts $fd [$regref portfile]
-    close $fd
-    file mtime ${portfile_dir}/Portfile [$regref date]
+    set portfile_dir [file join ${registry.path} registry portfiles ${name}-${version}_${revision} [$regref portfile]]
 
     set variations {}
     set minusvariant [lrange [split [$regref negated_variants] -] 1 end]
@@ -1732,23 +1727,17 @@ proc mportopen_installed {name version revision variants options} {
         lappend variations $v -
     }
     lappend options subport $name
-    return [mportopen file://${portfile_dir}/ $options $variations]
-}
 
-# mportclose_installed
-# close mport opened with mportopen_installed and clean up associated files
-proc mportclose_installed {mport} {
-    global macports::registry.path
-    foreach key {subport version revision portvariants} {
-        set $key [_mportkey $mport $key]
+    # find portgroups in registry
+    set pgdirlist [list]
+    foreach pg [$regref groups_used] {
+        lappend pgdirlist [file join ${registry.path} registry portgroups [$pg sha256]-[$pg size]]
     }
-    mportclose $mport
-    set portfiles_dir [file join ${registry.path} registry portfiles $subport]
-    set portfile [file join $portfiles_dir ${version}_${revision}$portvariants Portfile]
-    file delete -force $portfile [file dirname $portfile]
-    if {[llength [glob -nocomplain -directory $portfiles_dir *]] == 0} {
-        file delete -force $portfiles_dir
+    if {$pgdirlist ne {}} {
+        lappend options _portgroup_search_dirs $pgdirlist
     }
+
+    return [mportopen file://${portfile_dir}/ $options $variations]
 }
 
 # Traverse a directory with ports, calling a function on the path of ports

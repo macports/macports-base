@@ -103,7 +103,7 @@ proc run_target {port target options} {
         if {[catch {set result [mportexec $mport $target]} result] || $result != 0} {
             global errorInfo
             ui_debug "$errorInfo"
-            catch {mportclose_installed $mport}
+            catch {mportclose $mport}
             ui_warn "Failed to execute portfile from registry for $portspec"
             switch $target {
                 activate {
@@ -127,7 +127,7 @@ proc run_target {port target options} {
             if {(![info exists keeplogs] || !$keeplogs) && $target ne "activate"} {
                 catch {mportexec $mport clean}
             }
-            mportclose_installed $mport
+            mportclose $mport
             return 1
         }
     } else {

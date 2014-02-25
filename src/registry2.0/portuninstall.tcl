@@ -53,7 +53,7 @@ proc uninstall_composite {portname {v ""} {optionslist ""}} {
 
 proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""}} {
     global uninstall.force uninstall.nochecksum UI_PREFIX \
-           macports::portimagefilepath
+           macports::portimagefilepath macports::registry.path
     array set options $optionslist
     if {[info exists options(subport)]} {
         # don't want this set when calling registry::run_target
@@ -156,7 +156,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         # look up deps from the saved portfile if possible
         if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optionslist]}]} {
             array set depportinfo [mportinfo $mport]
-            mportclose_installed $mport
+            mportclose $mport
             foreach type $deptypes {
                 if {[info exists depportinfo($type)]} {
                     foreach dep $depportinfo($type) {
@@ -217,8 +217,36 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         # files so just ignore the failure
         catch {file delete [::file dirname $imagefile]}
 
+        # We want to delete the portfile if not referenced by any other ports
+        set portfile [$ref portfile]
+
+        # and likewise the portgroups
+        set portgroups [list]
+        foreach pg [$ref groups_used] {
+            lappend portgroups [list [$pg name] [$pg version] [$pg size] [$pg sha256]]
+        }
+
         registry::write {
             registry::entry delete $port
+        }
+
+        set portfile_path [file join ${registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
+        if {[registry::entry search portfile $portfile] eq {}} {
+            file delete -force $portfile_path
+            catch {file delete [file dirname $portfile_path]}
+        }
+
+        set reg_portgroups_dir [file join ${registry.path} registry portgroups]
+        foreach pg $portgroups {
+            set pgname [lindex $pg 0]
+            set pgversion [lindex $pg 1]
+            set pgsize [lindex $pg 2]
+            set pgsha256 [lindex $pg 3]
+            if {[registry::portgroup search name $pgname version $pgversion size $pgsize sha256 $pgsha256] eq {}} {
+                set pg_reg_dir [file join $reg_portgroups_dir ${pgsha256}-${pgsize}]
+                file delete -force ${pg_reg_dir}/${pgname}-${pgversion}.tcl
+                catch {file delete $pg_reg_dir}
+            }
         }
     }
     

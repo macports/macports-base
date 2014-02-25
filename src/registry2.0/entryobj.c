@@ -356,6 +356,59 @@ static int entry_obj_depends(Tcl_Interp* interp, reg_entry* entry, int objc,
     }
 }
 
+static int entry_obj_add_portgroup(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 6) {
+        Tcl_WrongNumArgs(interp, 1, objv, "addgroup name version sha256 size");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        reg_error error;
+        char* name = Tcl_GetString(objv[2]);
+        char* version = Tcl_GetString(objv[3]);
+        char* sha256 = Tcl_GetString(objv[4]);
+        Tcl_WideInt tclsize;
+        Tcl_GetWideIntFromObj(interp, objv[5], &tclsize);
+        sqlite_int64 size = (sqlite_int64)tclsize;
+        if (reg_entry_addgroup(entry, name, version, sha256, size, &error)) {
+            return TCL_OK;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+static int entry_obj_get_portgroups(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "groups_used");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        reg_portgroup** portgroups;
+        reg_error error;
+        int portgroup_count = reg_entry_getgroups(entry, &portgroups, &error);
+        if (portgroup_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_portgroup_to_obj(interp, &objs, portgroups, portgroup_count, &error)){
+                Tcl_Obj* result = Tcl_NewListObj(portgroup_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            free(portgroups);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, reg_entry* entry, int objc,
@@ -391,6 +444,9 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "dependents", entry_obj_dependents },
     { "dependencies", entry_obj_dependencies },
     { "depends", entry_obj_depends },
+    /* portgroups */
+    { "addgroup", entry_obj_add_portgroup },
+    { "groups_used", entry_obj_get_portgroups },
     { NULL, NULL }
 };
 

@@ -94,6 +94,7 @@ ifeq ($(DESTDIR),)
 	$(TCLSH) src/upgrade_sources_conf_default.tcl "${prefix}"
 # Convert image directories (and direct mode installs) to image archives
 	$(TCLSH) src/images_to_archives.tcl "${macports_tcl_dir}"
+	$(TCLSH) src/dedup_portfiles.tcl "${macports_tcl_dir}"
 endif
 ifndef SELFUPDATING
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""

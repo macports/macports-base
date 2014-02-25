@@ -3,7 +3,8 @@
 SRCS = registry.tcl registry_autoconf.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portimage.tcl portuninstall.tcl
 OBJS = registry.o util.o \
 	entry.o entryobj.o \
-	file.o fileobj.o
+	file.o fileobj.o \
+	portgroup.o portgroupobj.o
 	#graph.o graphobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}

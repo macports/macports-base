@@ -2569,12 +2569,12 @@ proc set_ui_prefix {} {
 
 # Use a specified group/version.
 proc PortGroup {group version} {
-    global porturl PortInfo
+    global porturl PortInfo _portgroup_search_dirs
 
     lappend PortInfo(portgroups) [list $group $version]
 
-    if {[info exists portutil::portgroup_search_dirs]} {
-        foreach dir $portutil::portgroup_search_dirs {
+    if {[info exists _portgroup_search_dirs]} {
+        foreach dir $_portgroup_search_dirs {
             set groupFile ${dir}/${group}-${version}.tcl
             if {[file exists $groupFile]} {
                 uplevel "source $groupFile"

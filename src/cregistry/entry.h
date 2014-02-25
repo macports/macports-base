@@ -71,6 +71,11 @@ int reg_entry_propget(reg_entry* entry, char* key, char** value,
 int reg_entry_propset(reg_entry* entry, char* key, char* value,
         reg_error* errPtr);
 
+int reg_entry_addgroup(reg_entry* entry, char* name, char *version,
+        char *sha256, sqlite_int64 size, reg_error* errPtr);
+int reg_entry_getgroups(reg_entry* entry, reg_portgroup*** portgroups,
+        reg_error* errPtr);
+
 int reg_entry_map(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
 int reg_entry_unmap(reg_entry* entry, char** files, int file_count,

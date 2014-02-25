@@ -3,7 +3,7 @@
  * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
- * Copyright (c) 2012 The MacPorts Project
+ * Copyright (c) 2012, 2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,13 +129,13 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', 1.100)",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', 1.200)",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
         "CREATE TABLE registry.ports ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "name TEXT COLLATE NOCASE, portfile CLOB, url TEXT, "
+            "id INTEGER PRIMARY KEY, "
+            "name TEXT COLLATE NOCASE, portfile TEXT, url TEXT, "
             "location TEXT, epoch INTEGER, version TEXT COLLATE VERSION, "
             "revision INTEGER, variants TEXT, negated_variants TEXT, "
             "state TEXT, date DATETIME, installtype TEXT, archs TEXT, "
@@ -162,6 +162,11 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE TABLE registry.dependencies (id INTEGER, name TEXT, variants TEXT, "
         "FOREIGN KEY(id) REFERENCES ports(id))",
         "CREATE INDEX registry.dep_name ON dependencies (name)",
+
+        /* portgroups table */
+        "CREATE TABLE registry.portgroups (id INTEGER, "
+            "name TEXT, version TEXT COLLATE VERSION, size INTEGER, sha256 TEXT, "
+            "FOREIGN KEY(id) REFERENCES ports(id))",
 
         "COMMIT",
         NULL
@@ -313,6 +318,36 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             stmt = NULL;
 
             if (!do_queries(db, version_1_1_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+        if (sql_version(NULL, -1, version, -1, "1.2") < 0) {
+            /* We need to add the portgroup table and move the portfiles out
+               of the db and into the filesystem. The latter is way easier to do
+               from Tcl, so here we'll just flag that it needs to be done. */
+            static char* version_1_2_queries[] = {
+                /* portgroups table */
+                "CREATE TABLE registry.portgroups (id INTEGER, "
+                    "name TEXT, version TEXT COLLATE VERSION, size INTEGER, sha256 TEXT, "
+                    "FOREIGN KEY(id) REFERENCES ports(id))",
+
+                "UPDATE registry.metadata SET value = '1.200' WHERE key = 'version'",
+
+                "INSERT INTO registry.metadata (key, value) VALUES ('portfiles_update_needed', 1)",
+
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_2_queries, errPtr)) {
                 rollback_db(db);
                 return 0;
             }

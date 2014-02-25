@@ -153,10 +153,10 @@ test mportopen_installed {
        return "FAIL: installed port not opened"
     }
 
-    if {[catch {mportclose_installed $res}] != 0} {
+    if {[catch {mportclose $res}] != 0} {
        return "FAIL: cannot close port"
     }
-    if {[catch {mportclose_installed $res}] != 1} {
+    if {[catch {mportclose $res}] != 1} {
        return "FAIL: installed port not closed"
     }
     return "Installed port open successful."
@@ -700,10 +700,6 @@ test getdefaultportresourcepath {
 
 
 # test mportopen
-
-
-# Covered by mportopen_installed
-# test mportclose_installed
 
 
 test mporttraverse {
