@@ -1363,12 +1363,12 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
 
     foreach {opt val} $options {
-        $workername eval [list set user_options($opt) $val]
-        $workername eval [list set $opt $val]
+        $workername eval set user_options($opt) $val
+        $workername eval set $opt $val
     }
 
     foreach {var val} $variations {
-        $workername eval [list set variations($var) $val]
+        $workername eval set variations($var) $val
     }
 }
 
@@ -1734,7 +1734,7 @@ proc mportopen_installed {name version revision variants options} {
         lappend pgdirlist [file join ${registry.path} registry portgroups [$pg sha256]-[$pg size]]
     }
     if {$pgdirlist ne {}} {
-        lappend options _portgroup_search_dirs $pgdirlist
+        lappend options _portgroup_search_dirs [list $pgdirlist]
     }
 
     return [mportopen file://${portfile_dir}/ $options $variations]
