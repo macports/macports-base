@@ -2795,34 +2795,17 @@ MACPORTS_VERSION=2.2.99
 $as_echo "$MACPORTS_VERSION" >&6; }
 
 
-# Check user PATH for MP paths, and remove as necessary.
+# Reset user PATH to /usr/bin:/bin:/usr/sbin:/sbin to avoid problems (e.g.
+# when /sbin isn't on the PATH)
 
-	oldprefix=$prefix
-	if test "x$prefix" = "xNONE" ; then
-		prefix=$ac_default_prefix
-	fi
-	oldPATH=$PATH
-	newPATH=
-	as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-	for as_dir in $oldPATH
-	do
-		IFS=$as_save_IFS
-		case "$as_dir" in
-			$prefix/*)
-				;;
-			*)
-				if test -z "$newPATH"; then
-					newPATH=$as_dir
-				else
-					newPATH=$newPATH$PATH_SEPARATOR$as_dir
-				fi
-				;;
-		esac
-	done
-	PATH=$newPATH; export PATH
-	PATH_CLEANED=$newPATH
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a clean \$PATH" >&5
+$as_echo_n "checking for a clean \$PATH... " >&6; }
+	PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+	export PATH
+	PATH_CLEANED=$PATH
 
-	prefix=$oldprefix
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PATH" >&5
+$as_echo "$PATH" >&6; }
 
 
 # Extract the first word of "sw_vers", so it can be a program name with args.
@@ -4392,7 +4375,8 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
+as_dummy="$PATH:/usr/sbin"
+for as_dir in $as_dummy
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -4554,8 +4538,7 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="$PATH:/usr/local/bin"
-for as_dir in $as_dummy
+for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -4600,8 +4583,7 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="$PATH:/usr/local/bin"
-for as_dir in $as_dummy
+for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -4646,8 +4628,7 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="$PATH:/usr/local/bin"
-for as_dir in $as_dummy
+for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -5531,8 +5512,7 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="$PATH:/usr/local/bin"
-for as_dir in $as_dummy
+for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -5851,7 +5831,7 @@ else
   ac_cv_prog_HAVE_LAUNCHD="$HAVE_LAUNCHD" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
+for as_dir in /sbin
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
