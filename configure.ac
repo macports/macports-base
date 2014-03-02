@@ -14,9 +14,8 @@ MACPORTS_VERSION=MACPORTS_VERSION_MACRO
 AC_MSG_RESULT([$MACPORTS_VERSION])
 AC_SUBST(MACPORTS_VERSION)
 
-# Reset user PATH to /usr/bin:/bin:/usr/sbin:/sbin to avoid problems (e.g.
-# when /sbin isn't on the PATH)
-MP_PATH_RESET
+# Check user PATH for MP paths, and remove as necessary.
+MP_PATH_SCAN
 
 AC_PATH_PROG(SW_VERS, sw_vers)
 AC_PATH_PROG(DEFAULTS, defaults)
@@ -138,7 +137,7 @@ AC_PATH_PROG(RSYNC, [rsync], [])
 AC_PATH_PROG(SANDBOX_EXEC, [sandbox-exec], [], [/usr/bin])
 AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(SVN, [svn], [])
-AC_PATH_PROG(SWIG, [swig], [], [])
+AC_PATH_PROG(SWIG, [swig], [])
 AC_PATH_PROG(TAR, [tar])
 AC_PATH_PROG(UNZIP, [unzip])
 AC_PATH_PROG(XAR, [xar], [])

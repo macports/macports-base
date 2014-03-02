@@ -895,14 +895,32 @@ AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
 dnl This macro ensures MP installation prefix paths are NOT in PATH
 dnl for configure to prevent potential problems when base/ code is updated
 dnl and ports are installed that would match needed items.
-dnl This macro also resets the PATH to a standard value for this system; some
-dnl checks might fail if e.g. /sbin was missing.
-AC_DEFUN([MP_PATH_RESET],[
-	AC_MSG_CHECKING([for a clean \$PATH])
-	PATH="/usr/bin:/bin:/usr/sbin:/sbin"
-	export PATH
-	AC_SUBST(PATH_CLEANED,$PATH)
-	AC_MSG_RESULT([$PATH])
+AC_DEFUN([MP_PATH_SCAN],[
+	oldprefix=$prefix
+	if test "x$prefix" = "xNONE" ; then
+		prefix=$ac_default_prefix
+	fi
+	oldPATH=$PATH
+	newPATH=
+	as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+	for as_dir in $oldPATH
+	do
+		IFS=$as_save_IFS
+		case "$as_dir" in
+			$prefix/*)
+				;;
+			*)
+				if test -z "$newPATH"; then
+					newPATH=$as_dir
+				else
+					newPATH=$newPATH$PATH_SEPARATOR$as_dir
+				fi
+				;;
+		esac
+	done
+	PATH=$newPATH; export PATH
+	AC_SUBST(PATH_CLEANED,$newPATH)
+	prefix=$oldprefix
 ])
 
 dnl This macro tests for sed support of -E (BSD) or -r (GNU)

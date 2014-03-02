@@ -2795,17 +2795,34 @@ MACPORTS_VERSION=2.2.99
 $as_echo "$MACPORTS_VERSION" >&6; }
 
 
-# Reset user PATH to /usr/bin:/bin:/usr/sbin:/sbin to avoid problems (e.g.
-# when /sbin isn't on the PATH)
+# Check user PATH for MP paths, and remove as necessary.
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a clean \$PATH" >&5
-$as_echo_n "checking for a clean \$PATH... " >&6; }
-	PATH="/usr/bin:/bin:/usr/sbin:/sbin"
-	export PATH
-	PATH_CLEANED=$PATH
+	oldprefix=$prefix
+	if test "x$prefix" = "xNONE" ; then
+		prefix=$ac_default_prefix
+	fi
+	oldPATH=$PATH
+	newPATH=
+	as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+	for as_dir in $oldPATH
+	do
+		IFS=$as_save_IFS
+		case "$as_dir" in
+			$prefix/*)
+				;;
+			*)
+				if test -z "$newPATH"; then
+					newPATH=$as_dir
+				else
+					newPATH=$newPATH$PATH_SEPARATOR$as_dir
+				fi
+				;;
+		esac
+	done
+	PATH=$newPATH; export PATH
+	PATH_CLEANED=$newPATH
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PATH" >&5
-$as_echo "$PATH" >&6; }
+	prefix=$oldprefix
 
 
 # Extract the first word of "sw_vers", so it can be a program name with args.
