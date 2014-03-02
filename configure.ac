@@ -14,8 +14,9 @@ MACPORTS_VERSION=MACPORTS_VERSION_MACRO
 AC_MSG_RESULT([$MACPORTS_VERSION])
 AC_SUBST(MACPORTS_VERSION)
 
-# Check user PATH for MP paths, and remove as necessary.
-MP_PATH_SCAN
+# Reset user PATH to /usr/bin:/bin:/usr/sbin:/sbin to avoid problems (e.g.
+# when /sbin isn't on the PATH)
+MP_PATH_RESET
 
 AC_PATH_PROG(SW_VERS, sw_vers)
 AC_PATH_PROG(DEFAULTS, defaults)
@@ -109,13 +110,13 @@ AC_PATH_PROG(CPIO, [cpio], [])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(DIFF, [diff], [])
 AC_PATH_PROG(DSCL, [dscl], [])
-AC_PATH_PROG(DSEDITGROUP, [dseditgroup], [])
+AC_PATH_PROG(DSEDITGROUP, [dseditgroup], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(FILE, [file], [])
 AC_PATH_PROG(FIND, [find], [])
 AC_PATH_PROG(GIT, [git], [])
-AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
-AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [], [$PATH:/usr/local/bin])
-AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
+AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [])
+AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [])
+AC_PATH_PROGS(GNUTAR, [gnutar gtar], [])
 AC_PATH_PROG(GZIP, [gzip], [])
 AC_PATH_PROG(HDIUTIL, [hdiutil], [])
 AC_PATH_PROG(HG, [hg], [])
@@ -137,7 +138,7 @@ AC_PATH_PROG(RSYNC, [rsync], [])
 AC_PATH_PROG(SANDBOX_EXEC, [sandbox-exec], [], [/usr/bin])
 AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(SVN, [svn], [])
-AC_PATH_PROG(SWIG, [swig], [], [$PATH:/usr/local/bin])
+AC_PATH_PROG(SWIG, [swig], [], [])
 AC_PATH_PROG(TAR, [tar])
 AC_PATH_PROG(UNZIP, [unzip])
 AC_PATH_PROG(XAR, [xar], [])
@@ -146,7 +147,7 @@ AC_PATH_PROG(XCRUN, [xcrun], [])
 AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(ZIP, [zip])
 
-AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
+AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
 
 # Define some precious variables allowing user to override PATH for some programs
 AC_ARG_VAR(BSDMAKE, [path to bsdmake/pmake command])
