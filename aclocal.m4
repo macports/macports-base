@@ -3,6 +3,288 @@ builtin(include,m4/tcl.m4)
 builtin(include,m4/pthread.m4)
 builtin(include,m4/foundation.m4)
 
+dnl Search for a variable in a list. Run ACTION-IF-FOUND if it is in the list,
+dnl ACTION-IF-NOT-FOUND otherwise.
+dnl
+dnl Parameters:
+dnl  - The name of the list.
+dnl  - The name of the variable that should be searched in the list.
+dnl  - An optional action to be run if found
+dnl  - An optional action to be run if not found
+dnl
+dnl _MP_LIST_CONTAINS_QUOTED([listname], [varname], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+AC_DEFUN([_MP_LIST_CONTAINS], [dnl
+	mp_list_contains_present=
+	eval "mp_list_contains_list=\"$$1\""
+	for mp_list_contains_entry in $mp_list_contains_list; do
+		test -z "$mp_list_contains_entry" && continue
+		if test "x$$2" = "x$mp_list_contains_entry"; then
+			mp_list_contains_present=1
+			break
+		fi
+	done
+	if test "x$mp_list_contains_present" = "x"; then
+		m4_ifvaln([$3], [$3], [:])dnl
+		m4_ifvaln([$4], [else $4])dnl
+	fi
+])
+
+dnl Quote a variable and prepend it to a list.
+dnl
+dnl Parameters:
+dnl  - The name of the list.
+dnl  - The name of the variable that should be quoted and prepended to the
+dnl    list.
+AC_DEFUN([_MP_LIST_PREPEND_QUOTED], [dnl
+	_MP_QUOTE([$2])
+	_MP_VAR_PREPEND([$1], ["$$2 "])
+])
+
+
+dnl Quote a variable and append it to a list.
+dnl
+dnl Parameters:
+dnl  - The name of the list.
+dnl  - The name of the variable that should be quoted and appended to the list.
+AC_DEFUN([_MP_LIST_APPEND_QUOTED], [dnl
+	_MP_QUOTE([$2])
+	AS_VAR_APPEND([$1], [" $$2"])
+])
+
+dnl Prepend the shell expansion of a value to a variable.
+dnl
+dnl Parameters:
+dnl  - The name of the variable to which the second argument should be
+dnl    prepended.
+dnl  - The value that should be expanded using the shell expansion rules and
+dnl    prepended to the variable given in the first argument.
+AC_DEFUN([_MP_VAR_PREPEND], [dnl
+	AC_REQUIRE([_MP_VAR_PREPEND_PREPARE])dnl
+	mp_fn_var_prepend $1 $2
+])
+
+dnl Define the function required for _MP_VAR_PREPEND
+AC_DEFUN([_MP_VAR_PREPEND_PREPARE], [dnl
+	mp_fn_var_prepend() {
+		eval "$[]1=\"$[]2\$$[]1\""
+	}
+])
+
+dnl Quote a variable in single quotes (escaping any existing single quotes) and
+dnl store it in itself.
+dnl
+dnl Parameters:
+dnl  - The name of the variable that should be quoted using single quotes.
+AC_DEFUN([_MP_QUOTE], [dnl
+	case $$1 in
+		*\'*)
+			$1=$(AS_ECHO(["$$1"]) | sed "s/'/'\\\\\\\\''/g")
+		;;
+	esac
+	$1="'$$1'"dnl
+])
+
+
+dnl Extract the key part of a key-value pair given as string in the form
+dnl  --key=value or
+dnl   -key=value
+dnl
+dnl Parameters:
+dnl  - The variable name to assign to
+dnl  - The (quoted, if necessary) key-value pair
+AC_DEFUN([_MP_EXTRACT_KEY], [dnl
+	$1=$(AS_ECHO([$2]) | sed -E 's/^--?([^=]+)=.*$/\1/')dnl
+])
+
+dnl Configure a project contained in a .tar.gz (or .tgz) tarball, extracting it
+dnl previously, if necessary. Different from AC_CONFIG_SUBDIRS (on which this
+dnl macro is based), you can pass parameters to the sub-configure script.
+dnl
+dnl Parameters:
+dnl  - The relative path to the tarball
+dnl  - The relative path to the directory that will be extracted from the
+dnl    tarball and contains the configure script to be run (can be a sub directory of the extracted directory)
+dnl  - Parameters to pass to the configure script
+dnl
+dnl MP_CONFIG_TARBALL([path-to-tarball], [dir-extracted-from-tarball-with-configure], [configure-parameters])
+AC_DEFUN([MP_CONFIG_TARBALL], [
+	mp_tarball="$1"
+	ac_dir=$2
+
+	if test "$no_recursion" != yes; then
+		mp_popdir=$(pwd)
+		if ! test -d "$ac_dir"; then
+			mp_tarball_vendordir="$(dirname "$mp_tarball")"
+			AS_MKDIR_P(["$mp_tarball_vendordir"])
+			AC_MSG_NOTICE([=== extracting $mp_tarball])
+			(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
+		fi
+		if ! test -d "$ac_dir"; then
+			AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])
+		fi
+	
+		AC_MSG_NOTICE([=== configuring in $ac_dir ($mp_popdir/$ac_dir)])
+		AS_MKDIR_P(["$ac_dir"])
+		_AC_SRCDIRS(["$ac_dir"])
+		cd "$ac_dir"
+		if test -f "$ac_srcdir/configure"; then
+			mp_sub_configure_args=
+			mp_sub_configure_keys=
+			# Compile a list of keys that have been given to the MP_CONFIG_TARBALL
+			# macro; we want to skip copying those parameters from the original
+			# configure invocation.
+			for mp_arg in $3; do
+				case $mp_arg in
+					--*=* | -*=*)
+						_MP_EXTRACT_KEY([mp_arg_key], ["$mp_arg"])
+						_MP_LIST_APPEND_QUOTED([mp_sub_configure_keys], [mp_arg_key])
+					;;
+				esac
+				_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+			done
+			# Walk the list of arguments given to the original configure script;
+			# filter out a few common ones we likely would not want to pass along,
+			# add --disable-option-checking and filter those already given as
+			# argument to MP_CONFIG_TARBALL.
+			# Most of this code is adapted from _AC_OUTPUT_SUBDIRS in
+			# $prefix/share/autoconf/autoconf/status.m4.
+			mp_prev=
+			eval "set x $ac_configure_args"
+			shift
+			for mp_arg; do
+				if test -n "$mp_prev"; then
+					mp_prev=
+					continue
+				fi
+				case $mp_arg in
+					  -cache-file \
+					| --cache-file \
+					| --cache-fil \
+					| --cache-fi \
+					| --cache-f \
+					| --cache- \
+					| --cache \
+					| --cach \
+					| --cac \
+					| --ca \
+					| --c)
+						mp_prev=cache_file
+					;;
+					  -cache-file=* \
+					| --cache-file=* \
+					| --cache-fil=* \
+					| --cache-fi=* \
+					| --cache-f=* \
+					| --cache-=* \
+					| --cache=* \
+					| --cach=* \
+					| --cac=* \
+					| --ca=* \
+					| --c=*)
+						# ignore --cache-file
+					;;
+					  --config-cache \
+					| -C)
+						# ignore -C
+					;;
+					  -srcdir \
+					| --srcdir \
+					| -srcdi \
+					| -srcd \
+					| -src \
+					| -sr)
+						mp_prev=srcdir
+					;;
+					  -srcdir=* \
+					| --srcdir=* \
+					| --srcdi=* \
+					| --srcd=* \
+					| --src=* \
+					| --sr=*)
+						# ignore --srcdir
+					;;
+					  -prefix \
+					| --prefix \
+					| --prefi \
+					| --pref \
+					| --pre \
+					| --pr \
+					| --p)
+						mp_prev=prefix
+					;;
+					  -prefix=* \
+					| --prefix=* \
+					| --prefi=* \
+					| --pref=* \
+					| --pre=* \
+					| --pr=* \
+					| --p=*)
+						# ignore --prefix
+					;;
+					--disable-option-checking)
+						# ignore --disable-option-checking
+					;;
+					--*=* | -*=*)
+						_MP_EXTRACT_KEY([mp_arg_key], ["$mp_arg"])
+						_MP_LIST_CONTAINS([mp_sub_configure_keys], [mp_arg_key], [], [
+							_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+						])
+					;;
+					*)
+						# always pass positional arguments
+						_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+					;;
+				esac
+			done
+
+			# Now prepend some arguments that should always be present unless
+			# overriden, such as --prefix, --silent, --disable-option-checking,
+			# --cache-file, --srcdir
+			# Pass --prefix unless already given
+			mp_arg_key=prefix
+			_MP_LIST_CONTAINS([mp_sub_configure_args], [mp_arg_key], [], [
+				mp_arg="--prefix=$prefix"
+				_MP_LIST_PREPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+			])
+
+			# Pass --silent
+			if test "$silent" = yes; then
+				mp_arg="--silent"
+				_MP_LIST_PREPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+			fi
+
+			# Always prepend --disable-option-checking to silence warnings, since
+			# different subdirs can have different --enable and --with options.
+			mp_arg="--disable-option-checking"
+			_MP_LIST_PREPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+
+			# Make the cache file name correct relative to the subdirectory.
+			case $cache_file in
+				[[\\/]]* | ?:[[\\/]]* )
+					mp_sub_cache_file=$cache_file
+				;;
+				*) # Relative name.
+					mp_sub_cache_file=$ac_top_build_prefix$cache_file
+				;;
+			esac
+			mp_arg="--cache-file=$mp_sub_cache_file"
+			_MP_LIST_PREPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+
+			mp_arg="--srcdir=$ac_srcdir"
+			_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+
+			AC_MSG_NOTICE([running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir])
+			eval "\$SHELL \$ac_srcdir/configure $mp_sub_configure_args" || AC_MSG_ERROR([configure failed for $ac_dir])
+		else
+			AC_MSG_ERROR([no configure script found in $ac_dir])
+		fi
+		AC_MSG_NOTICE([=== finished configuring in $ac_dir ($mp_popdir/$ac_dir)])
+
+		cd "$mp_popdir"
+	fi
+])
+
+
 #------------------------------------------------------------------------
 # MP_CHECK_FRAMEWORK_COREFOUNDATION --
 #
@@ -309,18 +591,17 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 	dnl if with user specifies --with-no-root-privileges,
 	dnl use current user and group.
 	dnl use ~/Library/Tcl as Tcl package directory
-		AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(no-root-privileges, [AS_HELP_STRING([--with-no-root-privileges],[Specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
 
 	if test "${ROOTPRIVS+set}" = set; then
-
 		# Set install-user to current user
 		AC_MSG_CHECKING([for install user])
 		DSTUSR=`id -un`
 		AC_MSG_RESULT([$DSTUSR])
 		AC_SUBST(DSTUSR)
-		
+
 		# Set install-group to current user
 		AC_MSG_CHECKING([for install group])
 		DSTGRP=`id -gn`
@@ -332,19 +613,6 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 		RUNUSR=`id -un`
 		AC_MSG_RESULT([$RUNUSR])
 		AC_SUBST(RUNUSR)
-
-		# Set Tcl package directory to ~/Library/Tcl
-	    AC_MSG_CHECKING(for Tcl package directory)
-		ac_cv_c_tclpkgd=`eval echo ~$DSTUSR/Library/Tcl`
-	    # Convert to a native path and substitute into the output files.
-	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
-	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
-	    AC_SUBST(TCL_PACKAGE_DIR)
-		if test x"${ac_cv_c_tclpkgd}" = x ; then
-			AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
-	    else
-			AC_MSG_RESULT(${ac_cv_c_tclpkgd})
-	    fi
 	fi
 
 ])
@@ -354,13 +622,13 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 AC_DEFUN([MP_CHECK_RUNUSER],[
 	dnl if with user specifies --with-macports-user,
 	dnl use it. otherwise default to platform defaults
-       AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(macports-user, [AS_HELP_STRING([--with-macports-user=USER],[Specify user to drop privileges to, if possible, during compiles etc.])], [ RUNUSR=$withval ] )
 	
 	AC_MSG_CHECKING([for macports user])
 	if test "x$RUNUSR" = "x" ; then
-	   RUNUSR=macports
+		RUNUSR=macports
 	fi
 
 	AC_MSG_RESULT([$RUNUSR])
@@ -373,13 +641,13 @@ AC_DEFUN([MP_CHECK_RUNUSER],[
 AC_DEFUN([MP_SHARED_DIRECTORY],[
 	dnl if with user specifies --with-shared-directory,
 	dnl use 0775 permissions for ${prefix} directories
-        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(shared-directory, [AS_HELP_STRING([--with-shared-directory],[Use 0775 permissions for installed directories])], [ SHAREDIR=$withval ] )
 
 	if test "${SHAREDIR+set}" = set; then	
 		AC_MSG_CHECKING([whether to share the install directory with all members of the install group])
-	    DSTMODE=0775
+		DSTMODE=0775
 
 		AC_MSG_RESULT([$DSTMODE])
 		AC_SUBST(DSTMODE)
@@ -391,13 +659,13 @@ AC_DEFUN([MP_SHARED_DIRECTORY],[
 AC_DEFUN([MP_CHECK_INSTALLUSER],[
 	dnl if with user specifies --with-install-user,
 	dnl use it. otherwise default to platform defaults
-        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(install-user, [AS_HELP_STRING([--with-install-user=USER],[Specify user ownership of installed files])], [ DSTUSR=$withval ] )
 	
 	AC_MSG_CHECKING([for install user])
 	if test "x$DSTUSR" = "x" ; then
-	   DSTUSR=root
+		DSTUSR=root
 	fi
 
 	AC_MSG_RESULT([$DSTUSR])
@@ -409,27 +677,26 @@ AC_DEFUN([MP_CHECK_INSTALLUSER],[
 AC_DEFUN([MP_CHECK_INSTALLGROUP],[
 	dnl if with user specifies --with-install-group,
 	dnl use it. otherwise default to platform defaults
-        AC_REQUIRE([MP_CHECK_INSTALLUSER])
+	AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
 	AC_ARG_WITH(install-group, [AS_HELP_STRING([--with-install-group=GROUP],[Specify group ownership of installed files])], [ DSTGRP=$withval ] )
 
 	AC_MSG_CHECKING([for install group])
 	if test "x$DSTGRP" = "x" ; then
-	   
-	   case $host_os in
-	   darwin*)
-		DSTGRP="admin"
-		;;
-	   freebsd*)
-		DSTGRP="wheel"
-		;;
-	   linux*)
-		DSTGRP="root"
-		;;
-	   *)
-		DSTGRP="wheel"
-		;;
-	   esac
+		case $host_os in
+			darwin*)
+				DSTGRP="admin"
+			;;
+			freebsd*)
+				DSTGRP="wheel"
+			;;
+			linux*)
+				DSTGRP="root"
+			;;
+			*)
+				DSTGRP="wheel"
+			;;
+		esac
 	fi
 
 	AC_MSG_RESULT([$DSTGRP])
@@ -442,13 +709,13 @@ AC_DEFUN([MP_DIRECTORY_MODE],[
 	dnl if with user specifies --with-directory-mode,
 	dnl use the specified permissions for ${prefix} directories
 	dnl otherwise use 0755
-        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+	AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(directory-mode, [AS_HELP_STRING([--with-directory-mode=MODE],[Specify directory mode of installed directories])], [ DSTMODE=$withval ] )
 	
 	AC_MSG_CHECKING([what permissions to use for installation directories])
 	if test "x$DSTMODE" = "x" ; then
-	   DSTMODE=0755
+		DSTMODE=0755
 	fi
 
 	AC_MSG_RESULT([$DSTMODE])
@@ -458,87 +725,85 @@ AC_DEFUN([MP_DIRECTORY_MODE],[
 # MP_PATH_APPLICATIONS
 #---------------------------------------
 AC_DEFUN([MP_PATH_APPLICATIONS],[
-        AC_REQUIRE([MP_CHECK_INSTALLUSER])
+	AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
-    AC_ARG_WITH(applications-dir,[AS_HELP_STRING([--with-applications-dir],[Applications installation directory.])], MPAPPLICATIONSDIR=${withval})
+	AC_ARG_WITH(applications-dir,[AS_HELP_STRING([--with-applications-dir],[Applications installation directory.])], MPAPPLICATIONSDIR=${withval})
 
-    oldprefix=$prefix
-    if test "x$prefix" = "xNONE" ; then
-	prefix=$ac_default_prefix
-    fi
-    AC_MSG_CHECKING([for Applications installation directory])
+	oldprefix=$prefix
+	if test "x$prefix" = "xNONE" ; then
+		prefix=$ac_default_prefix
+	fi
+	AC_MSG_CHECKING([for Applications installation directory])
 
 	if test "x$MPAPPLICATIONSDIR" = "x" ; then
-	    if test "$DSTUSR" = "root" ; then
-		MPAPPLICATIONSDIR="/Applications/MacPorts"
-	    else
-		MPAPPLICATIONSDIR="$(eval echo ~$DSTUSR)/Applications/MacPorts"
-	    fi
+		if test "$DSTUSR" = "root" ; then
+			MPAPPLICATIONSDIR="/Applications/MacPorts"
+		else
+			MPAPPLICATIONSDIR="$(eval echo ~$DSTUSR)/Applications/MacPorts"
+		fi
 	fi
 
 	AC_MSG_RESULT([$MPAPPLICATIONSDIR])
-    AC_SUBST(MPAPPLICATIONSDIR)
-    prefix=$oldprefix
+	AC_SUBST(MPAPPLICATIONSDIR)
+	prefix=$oldprefix
 ])
 
 # MP_PATH_FRAMEWORKS
 #---------------------------------------
 AC_DEFUN([MP_PATH_FRAMEWORKS],[
-        AC_REQUIRE([MP_CHECK_INSTALLUSER])
+	AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
-    AC_ARG_WITH(frameworks-dir,[AS_HELP_STRING([--with-frameworks-dir],[Frameworks installation directory.])], MPFRAMEWORKSDIR=${withval})
+	AC_ARG_WITH(frameworks-dir,[AS_HELP_STRING([--with-frameworks-dir],[Frameworks installation directory.])], MPFRAMEWORKSDIR=${withval})
 
-    oldprefix=$prefix
-    if test "x$prefix" = "xNONE" ; then
-	prefix=$ac_default_prefix
-    fi
-    AC_MSG_CHECKING([for Frameworks installation directory])
+	oldprefix=$prefix
+	if test "x$prefix" = "xNONE" ; then
+		prefix=$ac_default_prefix
+	fi
+	AC_MSG_CHECKING([for Frameworks installation directory])
 
 	if test "x$MPFRAMEWORKSDIR" = "x" ; then
 		MPFRAMEWORKSDIR="${prefix}/Library/Frameworks"
 	fi
 
 	AC_MSG_RESULT([$MPFRAMEWORKSDIR])
-    AC_SUBST(MPFRAMEWORKSDIR)
-    prefix=$oldprefix
+	AC_SUBST(MPFRAMEWORKSDIR)
+	prefix=$oldprefix
 ])
-
 
 # MP_UNIVERSAL_OPTIONS
 #---------------------------------------
 AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
-  AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
+	AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
-  if test "x$UNIVERSAL_ARCHS" = "x"; then
-    case "$MACOSX_VERSION" in
-      10.1[[0-9]]*)
-        UNIVERSAL_ARCHS="x86_64 i386"
-        ;;
-      10.[[0-5]]*)
-        UNIVERSAL_ARCHS="i386 ppc"
-        ;;
-      *)
-        UNIVERSAL_ARCHS="x86_64 i386"
-        ;;
-    esac
-  fi
+	if test "x$UNIVERSAL_ARCHS" = "x"; then
+		case "$MACOSX_VERSION" in
+			10.1[[0-9]]*)
+				UNIVERSAL_ARCHS="x86_64 i386"
+			;;
+			10.[[0-5]]*)
+				UNIVERSAL_ARCHS="i386 ppc"
+			;;
+			*)
+				UNIVERSAL_ARCHS="x86_64 i386"
+			;;
+		esac
+	fi
 
-  UNIVERSAL_ARCHFLAGS=
-  for arch in $UNIVERSAL_ARCHS; do
-    UNIVERSAL_ARCHFLAGS="$UNIVERSAL_ARCHFLAGS -arch $arch"
-  done
+	UNIVERSAL_ARCHFLAGS=
+	for arch in $UNIVERSAL_ARCHS; do
+		UNIVERSAL_ARCHFLAGS="$UNIVERSAL_ARCHFLAGS -arch $arch"
+	done
 
-  AC_MSG_CHECKING([for Universal CPU architectures])
-  AC_MSG_RESULT([$UNIVERSAL_ARCHS])
-  AC_SUBST(UNIVERSAL_ARCHS)
-  AC_SUBST(UNIVERSAL_ARCHFLAGS)
+	AC_MSG_CHECKING([for Universal CPU architectures])
+	AC_MSG_RESULT([$UNIVERSAL_ARCHS])
+	AC_SUBST(UNIVERSAL_ARCHS)
+	AC_SUBST(UNIVERSAL_ARCHFLAGS)
 ])
 
 # MP_LIB_MD5
 #---------------------------------------
 # Check for an md5 implementation
 AC_DEFUN([MP_LIB_MD5],[
-
 	# Check for libmd from FreeBSD, which is preferred
 	AC_CHECK_LIB([md], [MD5File],[
 		AC_CHECK_HEADERS([md5.h sha.h], ,[
@@ -581,179 +846,22 @@ AC_DEFUN([MP_PROG_DAEMONDO],[
 	AC_REQUIRE([MP_CHECK_FRAMEWORK_IOKIT])
 	AC_REQUIRE([MP_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER])
 	
-    AC_MSG_CHECKING(for whether we will build daemondo)
-    result=no
+	AC_MSG_CHECKING(for whether we will build daemondo)
+	result=no
 	case $host_os in
-	darwin*)
-		if test "x$mp_cv_have_framework_corefoundation" == "xyes" &&
-		   test "x$mp_cv_have_framework_systemconfiguration" == "xyes" &&
-		   test "x$mp_cv_have_framework_iokit" == "xyes" &&
-		   test "x$mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
-			result=yes
-			EXTRA_PROGS="$EXTRA_PROGS daemondo"
-			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
-		fi
+		darwin*)
+			if test "x$mp_cv_have_framework_corefoundation" == "xyes" &&
+			   test "x$mp_cv_have_framework_systemconfiguration" == "xyes" &&
+			   test "x$mp_cv_have_framework_iokit" == "xyes" &&
+			   test "x$mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
+				result=yes
+				EXTRA_PROGS="$EXTRA_PROGS daemondo"
+				AC_CONFIG_FILES([src/programs/daemondo/Makefile])
+			fi
 		;;
-	*)
+		*)
 	esac
 	AC_MSG_RESULT(${result})
-])
-
-#------------------------------------------------------------------------
-# MP_TCL_PACKAGE_DIR --
-#
-#	Locate the correct directory for Tcl package installation
-#
-# Arguments:
-#	None.
-#
-# Requires:
-#	TCLVERSION must be set
-#	CYGPATH must be set
-#	TCLSH must be set
-#
-# Results:
-#
-#	Adds a --with-tclpackage switch to configure.
-#	Result is cached.
-#
-#	Substs the following vars:
-#		TCL_PACKAGE_DIR
-#------------------------------------------------------------------------
-
-AC_DEFUN(MP_TCL_PACKAGE_DIR, [
-	AC_REQUIRE([MP_CHECK_INSTALLUSER])
-
-    AC_MSG_CHECKING(for Tcl package directory)
-
-    AC_ARG_WITH(tclpackage, [  --with-tclpackage       Tcl package installation directory.], with_tclpackagedir=${withval})
-
-    if test x"${with_tclpackagedir}" != x ; then
-	ac_cv_c_tclpkgd=${with_tclpackagedir}
-    else
-	AC_CACHE_VAL(ac_cv_c_tclpkgd, [
-	    # Use the value from --with-tclpackage, if it was given
-
-	    if test x"${with_tclpackagedir}" != x ; then
-		echo "tclpackagedir"
-		ac_cv_c_tclpkgd=${with_tclpackagedir}
-	    else
-		# On darwin we can do some intelligent guessing
-		case $host_os in
-		    darwin*)
-		    	tcl_autopath=`echo 'puts -nonewline \$auto_path' | $TCLSH`
-			for path in $tcl_autopath; do
-			if test "$DSTUSR" = "root" ; then
-			    if test "$path" = "/Library/Tcl"; then
-				ac_cv_c_tclpkgd="$path"
-				break
-			    fi
-			    if test "$path" = "/System/Library/Tcl"; then
-				if test -d "$path"; then
-				    ac_cv_c_tclpkgd="$path"
-				    break
-			        fi
-			    fi
-			elif test "$path" = "~/Library/Tcl"; then
-			    ac_cv_c_tclpkgd=`eval echo ~$DSTUSR/Library/Tcl`
-			    break
-			fi
-			done
-		    ;;
-		esac
-    		if test x"${ac_cv_c_tclpkgd}" = x ; then
-		    # Fudge a path from the first entry in the auto_path
-		    tcl_pkgpath=`echo 'puts -nonewline [[lindex \$auto_path 0]]' | $TCLSH`
-		    if test -d "$tcl_pkgpath"; then
-			ac_cv_c_tclpkgd="$tcl_pkgpath"
-		    fi
-		    # If the first entry does not exist, do nothing
-		fi
-	    fi
-	])
-    fi
-
-    if test x"${ac_cv_c_tclpkgd}" = x ; then
-	AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
-    else
-	AC_MSG_RESULT(${ac_cv_c_tclpkgd})
-    fi
-
-    # Convert to a native path and substitute into the output files.
-
-    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
-
-    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
-
-    AC_SUBST(TCL_PACKAGE_DIR)
-])
-
-# MP_PROG_TCLSH
-#---------------------------------------
-AC_DEFUN([MP_PROG_TCLSH],[
-
-
-	case $host_os in
-		freebsd*)
-			# FreeBSD installs a dummy tclsh (annoying)
-			# Look for a real versioned tclsh with threads first
-			# Look for a real versioned tclsh without threads second
-			AC_PATH_PROG([TCLSH], [tclsh${TCL_VERSION}-threads tclsh${TCL_VERSION} tclsh])
-			;;
-		*)
-			# Otherwise, look for a non-versioned tclsh
-			AC_PATH_PROG([TCLSH], [tclsh tclsh${TCL_VERSION}])
-			;;
-	esac
-	if test "x$TCLSH" = "x" ; then
-		AC_MSG_ERROR([Could not find tclsh])
-	fi
-
-	AC_SUBST(TCLSH)
-])
-
-# MP_TCL_PACKAGE
-#	Determine if a Tcl package is present.
-#
-# Arguments:
-#	Package name (may include the version)
-#
-# Syntax:
-#   MP_TCL_PACKAGE (package, [action-if-found], [action-if-not-found])
-#
-# Requires:
-#	TCLSH must be set
-#
-# Results:
-#	Execute action-if-found or action-if-not-found
-#---------------------------------------
-AC_DEFUN([MP_TCL_PACKAGE],[
-	AC_MSG_CHECKING([for Tcl $1 package])
-	package_present=`echo 'if {[[catch {package require $1}]]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
-	AS_IF([test "$package_present" = "1"], [$2], [$3])[]
-])
-
-# MP_TCL_THREAD_SUPPORT
-#	Determine if thread support is available in tclsh.
-#
-# Arguments:
-#	None.
-#
-# Requires:
-#	TCLSH must be set
-#
-# Results:
-#   Fails if thread support isn't available.
-#---------------------------------------
-AC_DEFUN([MP_TCL_THREAD_SUPPORT],[
-	AC_MSG_CHECKING([whether tclsh was compiled with threads])
-	tcl_threadenabled=`echo 'puts -nonewline [[info exists tcl_platform(threaded)]]' | $TCLSH`
-	if test "$tcl_threadenabled" = "1" ; then
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-		AC_MSG_ERROR([tcl wasn't compiled with threads enabled])
-	fi
 ])
 
 # MP_LIBCURL_FLAGS
@@ -841,42 +949,14 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
 	fi
 
-    # check if we have sqlite3ext.h, using the appropriate cppflags
-    CPPFLAGS_OLD="${CPPFLAGS}"
-    CPPFLAGS="${CPPFLAGS} ${CFLAGS_SQLITE3}"
-    AC_CHECK_HEADERS(sqlite3ext.h)
-    CPPFLAGS="${CPPFLAGS_OLD}"
+	# check if we have sqlite3ext.h, using the appropriate cppflags
+	CPPFLAGS_OLD="${CPPFLAGS}"
+	CPPFLAGS="${CPPFLAGS} ${CFLAGS_SQLITE3}"
+	AC_CHECK_HEADERS(sqlite3ext.h)
+	CPPFLAGS="${CPPFLAGS_OLD}"
 
 	AC_SUBST(CFLAGS_SQLITE3)
 	AC_SUBST(LDFLAGS_SQLITE3)
-
-	# now the sqlite Tcl bindings
-	AC_ARG_WITH(tcl-sqlite3,
-		AS_HELP_STRING([--with-tcl-sqlite3=DIR],
-			[directory for Tcl sqlite3 (default /usr/lib/sqlite3)]),
-		[mp_sqlite3_dir=$withval])
-
-    if test "x$mp_sqlite3_dir" = "x"; then
-        case $host_os in
-            darwin*)
-                mp_sqlite3_dir="/usr/lib/sqlite3"
-                ;;
-            freebsd*)
-                mp_sqlite3_dir="/usr/local/lib/sqlite"
-                ;;
-            *)
-                mp_sqlite3_dir="/usr/share/tcl${TCL_VERSION}/sqlite3"
-                ;;
-        esac
-    fi
-
-	AC_CACHE_CHECK([for Tcl sqlite3 location], [mp_cv_sqlite3_dir],
-		[mp_cv_sqlite3_dir=
-		test -r "${mp_sqlite3_dir}/pkgIndex.tcl" && mp_cv_sqlite3_dir=$mp_sqlite3_dir
-		])
-
-	SQLITE3_TCL_DIR=$mp_cv_sqlite3_dir
-	AC_SUBST(SQLITE3_TCL_DIR)
 ])
 
 dnl This macro tests if the compiler supports GCC's
@@ -1151,7 +1231,7 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 ])
 
 #------------------------------------------------------------------------
-# MP_TCL_PLATFORM --
+# MP_PLATFORM --
 #
 #       Export target platform and major version
 #
@@ -1159,7 +1239,7 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 #       none.
 #
 # Requires:
-#       TCLSH must be set.
+#       none.
 #
 # Depends:
 #       none.
@@ -1168,10 +1248,10 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 #       Defines OS_PLATFORM and OS_MAJOR.
 #
 #------------------------------------------------------------------------
-AC_DEFUN([MP_TCL_PLATFORM],[
-        AC_MSG_CHECKING([for Tcl target platform])
-        OS_PLATFORM=`echo 'puts -nonewline [[string tolower \$tcl_platform(os)]]' | $TCLSH`
-        OS_MAJOR=`echo 'puts -nonewline [[lindex [split \$tcl_platform(osVersion) .] 0]]' | $TCLSH`
+AC_DEFUN([MP_PLATFORM],[
+        AC_MSG_CHECKING([for target platform])
+        OS_PLATFORM=`uname -s | tr '[[:upper:]]' '[[:lower:]]'`
+		OS_MAJOR=`uname -r | cut -d '.' -f 1`
         AC_MSG_RESULT($OS_PLATFORM $OS_MAJOR)
         AC_SUBST(OS_PLATFORM)
         AC_SUBST(OS_MAJOR)
@@ -1186,7 +1266,7 @@ AC_DEFUN([MP_TCL_PLATFORM],[
 #       none.
 #
 # Requires:
-#       OS_PLATOFRM and OS_MAJOR from MP_TCL_PLATFORM.
+#       OS_PLATOFRM and OS_MAJOR from MP_PLATFORM.
 #
 # Depends:
 #       none.
@@ -1197,7 +1277,7 @@ AC_DEFUN([MP_TCL_PLATFORM],[
 #
 #------------------------------------------------------------------------
 AC_DEFUN([MP_TRACEMODE_SUPPORT],[
-		AC_REQUIRE([MP_TCL_PLATFORM])
+		AC_REQUIRE([MP_PLATFORM])
 
 		AC_CHECK_FUNCS([kqueue kevent])
 

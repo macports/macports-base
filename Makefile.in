@@ -1,7 +1,10 @@
 # $Id$
 
+srcdir      = @srcdir@
+VPATH       = @srcdir@
+
 PATH		= @PATH_CLEANED@
-SUBDIR		= doc src tests
+SUBDIR		= vendor doc src tests
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= release_${subst .,_,${DISTVER}}
@@ -29,13 +32,13 @@ config.status: configure
 		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
-include Mk/macports.subdir.mk
+include $(srcdir)/Mk/macports.subdir.mk
 
 install::
 	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
 # create run user if it doesn't exist
@@ -91,10 +94,10 @@ ifeq ($(DESTDIR),)
         echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
     fi
 # Add [default] tag to the central MacPorts repository, if it isn't already
-	$(TCLSH) src/upgrade_sources_conf_default.tcl "${prefix}"
+	$(TCLSH) $(srcdir)/src/upgrade_sources_conf_default.tcl "${prefix}"
 # Convert image directories (and direct mode installs) to image archives
-	$(TCLSH) src/images_to_archives.tcl "${macports_tcl_dir}"
-	$(TCLSH) src/dedup_portfiles.tcl "${macports_tcl_dir}"
+	$(TCLSH) $(srcdir)/src/images_to_archives.tcl "${macports_tcl_dir}"
+	$(TCLSH) $(srcdir)/src/dedup_portfiles.tcl "${macports_tcl_dir}"
 endif
 ifndef SELFUPDATING
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""

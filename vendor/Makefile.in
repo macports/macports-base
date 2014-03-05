@@ -1,0 +1,66 @@
+TCL_SUBDIR=			@VENDOR_TCL_SUBDIR@
+TCL_TARGETS=		@VENDOR_TCL_INSTALL@
+
+TCLTHREAD_SUBDIR=	@VENDOR_TCLTHREAD_SUBDIR@
+TCLTREHAD_TARGETS=	@VENDOR_TCLTHREAD_INSTALL@
+
+TCLLIB_SUBDIR=		@VENDOR_TCLLIB_SUBDIR@
+TCLLIB_TARGETS= 	@VENDOR_TCLLIB_INSTALL@
+
+DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
+
+.PHONY: all clean distclean install destroot test
+.PHONY: destroot-tcl destroot-tcllthread destroot-tcllib
+.PHONY: install-tcl install-tcllthread install-tcllib
+.PHONY: %-tcl %-tcllthread %-tcllib
+
+# for make all, run destroot (where destroot will depend on all of each
+# subpackage)
+all: destroot
+
+%-tcl:
+	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCL_SUBDIR@ $(@:%-tcl=%)
+
+%-tclthread:
+	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ $(@:%-tclthread=%)
+
+%-tcllib:
+	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ $(@:%-tcllib=%)
+
+destroot: destroot-tcl destroot-tclthread destroot-tcllib
+destroot-tcl: all-tcl
+	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
+
+destroot-tclthread: all-tclthread
+	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLTHREAD_INSTALL@
+
+destroot-tcllib: all-tcllib
+	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLLIB_INSTALL@
+
+install: install-tcl install-tclthread install-tcllib
+install-tcl:
+	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCL_SUBDIR@ @VENDOR_TCL_INSTALL@
+
+install-tclthread:
+	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ @VENDOR_TCLTHREAD_INSTALL@
+
+install-tcllib:
+	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
+	@$(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
+
+test:
+
+clean: clean-tcl clean-tcllib clean-tclthread
+	rm -rf ${DESTROOT}
+
+distclean:
+	rm -f Makefile
+	rm -rf $(TCL_SUBDIR:/unix=) $(TCLTHREAD_SUBDIR) $(TCLLIB_SUBDIR)

@@ -81,11 +81,3 @@ if {[file exists $sharetcldir]} {
         }
     }
 }
-
-if { "@SQLITE3_TCL_DIR@" != "" } {
-    set dir "@SQLITE3_TCL_DIR@"
-    set pkgindex [file join $dir pkgIndex.tcl]
-    if [file exists $pkgindex] {
-        source $pkgindex
-    }
-}

@@ -1,0 +1,49 @@
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
+		macports_autoconf.tcl macports_fastload.tcl
+OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
+SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
+
+INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/macports1.0
+INSTALLPKGLINK=	${TCL_PACKAGE_PATH}/macports1.0
+
+include ../../Mk/macports.autoconf.mk
+include $(srcdir)/../../Mk/macports.tea.mk
+
+ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
+	LIBS+= -framework CoreFoundation -framework SystemConfiguration
+endif
+
+pkgIndex.tcl: $(SRCS)
+
+test::
+	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor
+
+distclean:: clean
+	rm -f macports_autoconf.tcl macports_fastload.tcl macports_test_autoconf.tcl ${SHLIB_NAME}
+
+install:: all
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
+
+	$(SILENT) set -x; for file in ${SRCS}; do \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
+	done
+
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
+
+	echo "${TCL_PACKAGE_PATH}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
+	if test -z "${DESTDIR}" -a "${INSTALLPKGLINK}" != "${INSTALLDIR}"; then \
+		if test ! -L "${INSTALLPKGLINK}"; then \
+            if test ! -e "${TCL_PACKAGE_PATH}"; then \
+                $(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${TCL_PACKAGE_PATH}" || true; \
+            fi; \
+            if test -d "${INSTALLPKGLINK}"; then \
+                rm -vrf "${INSTALLPKGLINK}" || true; \
+            fi; \
+            if test ! -e "${INSTALLPKGLINK}"; then \
+                ln -vs "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
+            fi; \
+        fi; \
+	fi

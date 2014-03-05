@@ -1,5 +1,7 @@
-TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
-			cregistry \
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+TCLPKG=		cregistry \
 			registry2.0 \
 			macports1.0 \
 			port1.0 \
@@ -21,4 +23,4 @@ distclean::
 
 test::
 
-include ../Mk/macports.subdir.mk
+include $(srcdir)/../Mk/macports.subdir.mk

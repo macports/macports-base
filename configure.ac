@@ -241,8 +241,6 @@ AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h limits.h paths.
 	readline/history.h readline/readline.h spawn.h sys/cdefs.h sys/event.h sys/fcntl.h sys/file.h \
 	sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
-INCLUDES="-I.. -I. $INCLUDES"
-
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 OSAtomicCompareAndSwapPtr bzero \
 	clearenv copyfile fgetln flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
@@ -275,26 +273,8 @@ AC_SUBST(READLINE_LIBS)
 AC_DEFINE([MIN_USABLE_UID], [500], [Lowest non-system-reserved UID.])
 AC_DEFINE([MIN_USABLE_GID], [500], [Lowest non-system-reserved GID.])
 
-# Load tclConfig.sh
-SC_PATH_TCLCONFIG
-SC_LOAD_TCLCONFIG
-
-# Check for Tcl public headers
-dnl XXX	 hardwire CYGPATH (CYGPATH must be set for SC_PUBLIC_TCL_HEADERS)
-CYGPATH=echo
-SC_PUBLIC_TCL_HEADERS
-
-# Check for tclsh binary
-MP_PROG_TCLSH
-
-# Substitute Tcl platform for base compatibility check
-MP_TCL_PLATFORM
-
-# Check for Tcl package path
-MP_TCL_PACKAGE_DIR
-
-# Check if thread is enabled.
-MP_TCL_THREAD_SUPPORT
+# Substitute platform for base compatibility check
+MP_PLATFORM
 
 ## libcurl
 MP_LIBCURL_FLAGS
@@ -310,68 +290,17 @@ fi
 # check whether trace mode is supported on this platform
 MP_TRACEMODE_SUPPORT
 
-# Determine if we need to install some bundled packages
-OUR_INCLUDED_PACKAGES=
-
-## Thread package.
-AC_ARG_WITH(
-		included-tclthread,
-		AS_HELP_STRING([--with-included-tclthread],
-			[install included Thread package.]),
-		[with_included_tclthread=$withval],
-		[with_included_tclthread="unspecified"])
-
-# Check if thread package is already installed.
-if test "x$with_included_tclthread" = "xunspecified" ; then
-	MP_TCL_PACKAGE(
-		[Thread],
-		[AC_MSG_RESULT([yes]); with_included_tclthread=no],
-		[AC_MSG_RESULT([no]); with_included_tclthread=yes])
-fi
-
-# If thread package isn't installed, configure and install thread package.
-if test "$with_included_tclthread" = "yes"; then
-	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES thread2.6"
-	AC_CONFIG_SUBDIRS([src/thread2.6])
-	# Extract thread package
-	(cd src/; gzip -d < thread2.6.tar.gz | tar xf -)
-	# Patch thread package (so thread2.6 is the vanilla distribution directory)
-	patch -p0 < src/thread2.6.diff
-fi
-
-# Allows building of shared libraries
-SC_ENABLE_SHARED
-
-# Pull compiler / linker values from tclConfig.sh
-LDFLAGS_DEBUG=${TCL_LDFLAGS_DEBUG}
-LDFLAGS_OPTIMIZE=${TCL_LDFLAGS_OPTIMIZE}
-SHLIB_LD=${TCL_SHLIB_LD}
-STLIB_LD=${TCL_STLIB_LD}
-SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
-SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
-
-AC_SUBST(INCLUDES)
-AC_SUBST(STLIB_LD)
-AC_SUBST(SHLIB_LD)
-AC_SUBST(SHLIB_CFLAGS)
-AC_SUBST(SHLIB_LDFLAGS)
-AC_SUBST(SHLIB_SUFFIX)
-AC_SUBST(TCL_DEFS)
-AC_SUBST(TCL_STUB_LIB_SPEC)
-AC_SUBST(TCL_CC)
-AC_SUBST(OUR_INCLUDED_PACKAGES)
-
 # misc variables that need to be expanded for substitution into tcl
-
 oldprefix=$prefix
+oldexec_prefix=$exec_prefix
 if test "x$prefix" = "xNONE" ; then
    prefix=$ac_default_prefix
 fi
-
-# Check if there's an existing DP/MP install too old to upgrade
-MP_CHECK_OLDLAYOUT
-
+if test "x$exec_prefix" = "xNONE" ; then
+	exec_prefix=$prefix
+fi
 eval "prefix_expanded=$prefix"
+eval "exec_prefix_expanded=$exec_prefix"
 AC_SUBST(prefix_expanded)
 # do this twice, since there is a nested variable of
 # ${prefix} inside of ${sysconfdir}
@@ -383,18 +312,90 @@ AC_SUBST(localstatedir_expanded)
 eval "macports_tcl_dir=${datadir}/macports/Tcl"
 eval "macports_tcl_dir=$macports_tcl_dir"
 AC_SUBST(macports_tcl_dir)
-
+# Compute the libexec dir for the vendor packages
+eval "macports_libexec_dir=${libexecdir}/macports"
+eval "macports_libexec_dir=$macports_libexec_dir"
 prefix=$oldprefix
+exec_prefix=$oldexec_prefix
 
-dnl man page settings (compressed, links, etc)
-dnl
-dnl SC_CONFIG_MANPAGES
+# Determine if we need to install some bundled packages
+VENDOR_PACKAGES=
+
+## Tcl package
+tcl_version=8.5.15
+tcl_thread_version=2.7.0
+tcllib_version=1.15
+MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
+VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
+VENDOR_TCL_INSTALL="install-binaries install-libraries"
+AC_SUBST(VENDOR_TCL_SUBDIR)
+AC_SUBST(VENDOR_TCL_INSTALL)
+
+# Set up some variables needed by MacPorts' Tcl setup
+VENDOR_DESTROOT=vendor/vendor-destroot
+AC_SUBST(VENDOR_DESTROOT)
+
+## Tcl Thread package
+# Tcl supports Threads internally, but to use threads from Tcl code we need
+# this package
+MP_CONFIG_TARBALL([vendor/thread${tcl_thread_version}.tar.gz], [vendor/thread${tcl_thread_version}], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLTHREAD_SUBDIR=thread${tcl_thread_version}
+VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
+AC_SUBST(VENDOR_TCLTHREAD_SUBDIR)
+AC_SUBST(VENDOR_TCLTHREAD_INSTALL)
+
+## Tcllib package
+# Note that Tcllib needs a Tcl interpreter during installation; it will *not*
+# be the one we configure above, because that one isn't built yet. That's not
+# a problem, though -- it's only used during installation.
+MP_CONFIG_TARBALL([vendor/tcllib-${tcllib_version}.tar.gz], [vendor/tcllib-${tcllib_version}], [--prefix=${macports_libexec_dir}])
+VENDOR_PACKAGES="$VENDOR_PACKAGES tcllib-${tcllib_version}"
+VENDOR_TCLLIB_SUBDIR=tcllib-${tcllib_version}
+VENDOR_TCLLIB_INSTALL="install-libraries"
+AC_SUBST(VENDOR_TCLLIB_SUBDIR)
+AC_SUBST(VENDOR_TCLLIB_INSTALL)
+
+# Load tclConfig.sh from our private install of Tcl
+AC_MSG_CHECKING([for Tcl configuration])
+TCL_BIN_DIR=`(cd vendor/tcl${tcl_version}/unix; pwd)`
+AC_MSG_RESULT([found $TCL_BIN_DIR/tclConfig.sh])
+SC_LOAD_TCLCONFIG
+SC_ENABLE_SHARED
+
+# Pull compiler/linker values from tclConfig.sh
+SHLIB_LD=${TCL_SHLIB_LD}
+STLIB_LD=${TCL_STLIB_LD}
+SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
+SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
+TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
+INTREE_TCLSH=${TCL_BIN_DIR}/tclsh
+# strip possible whitespace at the end of TCL_PACKAGE_PATH
+eval "TCL_PACKAGE_PATH=${TCL_PACKAGE_PATH}"
+
+AC_SUBST(SHLIB_LD)
+AC_SUBST(STLIB_LD)
+AC_SUBST(SHLIB_CFLAGS)
+AC_SUBST(SHLIB_SUFFIX)
+AC_SUBST(TCL_PREFIX)
+AC_SUBST(TCL_VERSION)
+AC_SUBST(TCL_PACKAGE_PATH)
+AC_SUBST(TCL_STUB_LIB_SPEC)
+AC_SUBST(TCL_SRC_DIR)
+AC_SUBST(TCLSH)
+AC_SUBST(INTREE_TCLSH)
+
+INCLUDES="-I.. -I. $INCLUDES"
+AC_SUBST(INCLUDES)
+
+# Check if there's an existing DP/MP install too old to upgrade
+MP_CHECK_OLDLAYOUT
 
 # Output
 AC_CONFIG_FILES([
 	Doxyfile
 	Makefile
 	Mk/macports.autoconf.mk
+	doc/Makefile
 	doc/base.mtree
 	doc/macosx.mtree
 	doc/macports.conf
@@ -403,16 +404,26 @@ AC_CONFIG_FILES([
 	portmgr/freebsd/Makefile
 	setupenv.bash
 	src/Makefile
+	src/cflib1.0/Makefile
+	src/cregistry/Makefile
+	src/darwintracelib1.0/Makefile
 	src/machista1.0/Makefile
+	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
-	src/macports1.0/macports_test_autoconf.tcl
 	src/macports1.0/macports_fastload.tcl
+	src/macports1.0/macports_test_autoconf.tcl
+	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
+	src/port/Makefile
+	src/port1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/port1.0/port_test_autoconf.tcl
 	src/programs/Makefile
+	src/registry2.0/Makefile
 	src/registry2.0/registry_autoconf.tcl
+	tests/Makefile
+	vendor/Makefile
 ])
 
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
