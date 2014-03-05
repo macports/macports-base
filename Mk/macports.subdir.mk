@@ -3,6 +3,7 @@
 .PHONY : all
 .PHONY : clean distclean
 .PHONY : install
+.PHONY : test
 
 all::
 	@for subdir in $(SUBDIR); do\
