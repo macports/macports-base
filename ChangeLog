@@ -4,6 +4,8 @@
 ###
 
 Release 2.3 (unreleased)
+    - Add select --summary option. (#36179, snc in r117607)
+
     - Display a progress indicator for slow downloads. (cal in r117044)
 
     - Allow ports to select a specific version of the Mac OS X SDK
