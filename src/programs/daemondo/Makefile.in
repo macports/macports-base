@@ -1,8 +1,9 @@
 # $Id$
 
-top_srcdir = @top_srcdir@
+srcdir     = @srcdir@
+VPATH      = @srcdir@
 
-include ${top_srcdir}/Mk/macports.autoconf.mk
+include ../../../Mk/macports.autoconf.mk
 
 datarootdir=	@datarootdir@
 mandir=		@mandir@
