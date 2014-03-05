@@ -4192,12 +4192,12 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
 }
 
 # mportselect
-#   * command: The only valid commands are list, set and show
+#   * command: The only valid commands are list, set, show and summary
 #   * group: This argument should correspond to a directory under
 #            ${macports::prefix}/etc/select.
 #   * version: This argument is only used by the 'set' command.
 # On error mportselect returns with the code 'error'.
-proc mportselect {command group {version {}}} {
+proc mportselect {command {group ""} {version {}}} {
     ui_debug "mportselect \[$command] \[$group] \[$version]"
 
     set conf_path ${macports::prefix}/etc/select/$group
@@ -4225,6 +4225,16 @@ proc mportselect {command group {version {}}} {
                 lappend lversions [file tail $v]
             }
             return [lsort $lversions]
+        }
+        summary {
+            # Return the list of portgroups in ${macports::prefix}/etc/select
+            if {[catch {set lportgroups [glob -directory $conf_path -tails *]} result]} {
+                global errorInfo
+                ui_debug "${result}: $errorInfo"
+                return -code error [concat "No ports with the select" \
+                                           "option were found."]
+            }
+            return [lsort $lportgroups]
         }
         set {
             # Use ${conf_path}/$version to read in sources.

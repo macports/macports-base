@@ -463,7 +463,7 @@ proc require_portlist { nameportlist {is_upgrade "no"} } {
 
 # Execute the enclosed block once for every element in the portlist
 # When the block is entered, the following variables will have been set:
-#	portspec, porturl, portname, portversion, options, variations, requested_variations
+#   portspec, porturl, portname, portversion, options, variations, requested_variations
 proc foreachport {portlist block} {
     set savedir [pwd]
     foreach portspec $portlist {
@@ -2504,18 +2504,20 @@ proc action_deactivate { action portlist opts } {
 proc action_select { action portlist opts } {
     ui_debug "action_select \[$portlist] \[$opts]..."
 
-    # Error out if no group is specified.
-    if {[llength $portlist] < 1} {
-        ui_error "port select \[--list|--set|--show] <group> \[<version>]"
-        return 1
-    }
-    set group [lindex $portlist 0]
-
     array set opts_array $opts
     set commands [array names opts_array ports_select_*]
     array unset opts_array
-    # If no command (--set, --show, --list) is specified *but* more than one
-    # argument is specified, default to the set command.
+
+    # Error out if no group is specified or command is not --summary.
+    if {[llength $portlist] < 1 && [string map {ports_select_ ""} [lindex $commands 0]] != "summary"} {
+        ui_error "port select \[--list|--set|--show|--summary] \<group> \[<version>]"
+        return 1
+    }
+
+    set group [lindex $portlist 0]
+    
+    # If no command (--set, --show, --list, --summary) is specified *but*
+    #  more than one argument is specified, default to the set command.
     if {[llength $commands] < 1 && [llength $portlist] > 1} {
         set command set
         ui_debug [concat "Although no command was specified, more than " \
@@ -2599,6 +2601,41 @@ proc action_select { action portlist opts } {
             }
             puts [concat "The currently selected version for '$group' is " \
                          "'$selected_version'."]
+            return 0
+        }
+        summary {
+            if {[llength $portlist] > 0} {
+                ui_warn [concat "The 'summary' command does not expect any " \
+                                "arguments. Extra arguments will be ignored."]
+            }
+
+            if {[catch {mportselect $command} portgroups]} {
+                ui_error "The 'summary' command failed: $portgroups"
+                return 1
+            }
+
+            set w1 4
+            set w2 8
+            set formatStr "%-*s  %-*s  %s"
+            puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
+            foreach pg $portgroups {
+                if {[catch {mportselect list $pg} versions]} {
+                    ui_error "The list of versions could not be obtained: $versions"
+                    return 1
+                }
+
+                foreach v $versions {
+                    if {[catch {mportselect show $pg} selected_version]} {
+                        ui_error "The 'show' command failed: $selected_version"
+                        return 1
+                    }
+                }
+
+                set w1 [expr {max($w1, [string length $pg])}]
+                set w2 [expr {max($w2, [string length $selected_version])}]
+
+                puts [format $formatStr $w1 [string trim $pg] $w2 $selected_version [join $versions " "]]
+            }
             return 0
         }
         default {
@@ -4294,7 +4331,7 @@ array set cmd_opts_array {
     clean       {all archive dist work logs}
     mirror      {new}
     lint        {nitpick}
-    select      {list set show}
+    select      {list set show summary}
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}
