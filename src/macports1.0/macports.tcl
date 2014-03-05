@@ -4508,15 +4508,6 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         continue;
                     }
 
-                    if {(${filepath} == "/usr/lib/libstdc++.6.dylib" && ${macports::cxx_stdlib} == "libc++") ||
-                        (${filepath} == "/usr/lib/libc++.1.dylib" && ${macports::cxx_stdlib} == "libstdc++")} {
-
-                        if {$fancy_output} {
-                            $revupgrade_progress intermission
-                        }
-                        ui_warn "${bpath} uses ${filepath} as C++ standard library although macports::cxx_stdlib is set to ${macports::cxx_stdlib}."
-                    }
-
                     set libresultlist [machista::parse_file $handle $filepath]
                     set libreturncode [lindex $libresultlist 0]
                     set libresult     [lindex $libresultlist 1]
