@@ -153,7 +153,7 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         list_handle = Tcl_GetAssocData(interp, "registry::deleted", NULL);
         if (list_handle) {
             entry_list* list = *list_handle;
-            *list_handle = malloc(sizeof(entry_list*));
+            *list_handle = malloc(sizeof(entry_list));
             if (*list_handle) {
                 (*list_handle)->entry = entry;
                 (*list_handle)->next = list;
