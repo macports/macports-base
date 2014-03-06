@@ -336,7 +336,7 @@ int reg_all_open_files(reg_registry* reg, reg_file*** files) {
     int file_space = 10;
     Tcl_HashEntry* hash;
     Tcl_HashSearch search;
-    *files = malloc(10 * sizeof(void*));
+    *files = malloc(file_space * sizeof(reg_file*));
     if (!*files) {
         return -1;
     }
