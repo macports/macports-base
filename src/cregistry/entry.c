@@ -1268,7 +1268,7 @@ int reg_all_open_entries(reg_registry* reg, reg_entry*** entries) {
     int entry_space = 10;
     Tcl_HashEntry* hash;
     Tcl_HashSearch search;
-    *entries = malloc(10*sizeof(void*));
+    *entries = malloc(entry_space * sizeof(reg_entry*));
     if (!*entries) {
         return -1;
     }
