@@ -111,22 +111,23 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 	mp_tarball="$1"
 	ac_dir=$2
 
-	if test "$no_recursion" != yes; then
-		mp_popdir=$(pwd)
-		if ! test -d "$ac_dir"; then
-			mp_tarball_vendordir="$(dirname "$mp_tarball")"
-			AS_MKDIR_P(["$mp_tarball_vendordir"])
-			AC_MSG_NOTICE([=== extracting $mp_tarball])
-			(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
-		fi
-		if ! test -d "$ac_dir"; then
-			AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])
-		fi
-	
+	mp_popdir=$(pwd)
+	if ! test -d "$ac_dir"; then
+		mp_tarball_vendordir="$(dirname "$mp_tarball")"
+		AS_MKDIR_P(["$mp_tarball_vendordir"])
+		AC_MSG_NOTICE([=== extracting $mp_tarball])
+		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
+	fi
+	if ! test -d "$ac_dir"; then
+		AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])
+	fi
+
+	AS_MKDIR_P(["$ac_dir"])
+	_AC_SRCDIRS(["$ac_dir"])
+	cd "$ac_dir"
+
+	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
 		AC_MSG_NOTICE([=== configuring in $ac_dir ($mp_popdir/$ac_dir)])
-		AS_MKDIR_P(["$ac_dir"])
-		_AC_SRCDIRS(["$ac_dir"])
-		cd "$ac_dir"
 		if test -f "$ac_srcdir/configure"; then
 			mp_sub_configure_args=
 			mp_sub_configure_keys=
@@ -279,9 +280,8 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 			AC_MSG_ERROR([no configure script found in $ac_dir])
 		fi
 		AC_MSG_NOTICE([=== finished configuring in $ac_dir ($mp_popdir/$ac_dir)])
-
-		cd "$mp_popdir"
 	fi
+	cd "$mp_popdir"
 ])
 
 
