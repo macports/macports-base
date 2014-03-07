@@ -9430,23 +9430,20 @@ tcllib_version=1.15
 	mp_tarball="vendor/tcl${tcl_version}-src.tar.gz"
 	ac_dir=vendor/tcl${tcl_version}/unix
 
-	if test "$no_recursion" != yes; then
-		mp_popdir=$(pwd)
-		if ! test -d "$ac_dir"; then
-			mp_tarball_vendordir="$(dirname "$mp_tarball")"
-			as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
+	mp_popdir=$(pwd)
+	if ! test -d "$ac_dir"; then
+		mp_tarball_vendordir="$(dirname "$mp_tarball")"
+		as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
 $as_echo "$as_me: === extracting $mp_tarball" >&6;}
-			(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
-		fi
-		if ! test -d "$ac_dir"; then
-			as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
-		fi
+		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+	fi
+	if ! test -d "$ac_dir"; then
+		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
+	fi
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
-$as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-		as_dir="$ac_dir"; as_fn_mkdir_p
-		ac_builddir=.
+	as_dir="$ac_dir"; as_fn_mkdir_p
+	ac_builddir=.
 
 case "$ac_dir" in
 .) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
@@ -9480,7 +9477,11 @@ case $srcdir in
 esac
 ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 
-		cd "$ac_dir"
+	cd "$ac_dir"
+
+	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
+$as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 		if test -f "$ac_srcdir/configure"; then
 			mp_sub_configure_args=
 			mp_sub_configure_keys=
@@ -9728,9 +9729,8 @@ $as_echo "$as_me: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in 
 		fi
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
 $as_echo "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-
-		cd "$mp_popdir"
 	fi
+	cd "$mp_popdir"
 
 VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
 VENDOR_TCL_INSTALL="install-binaries install-libraries"
@@ -9748,23 +9748,20 @@ VENDOR_DESTROOT=vendor/vendor-destroot
 	mp_tarball="vendor/thread${tcl_thread_version}.tar.gz"
 	ac_dir=vendor/thread${tcl_thread_version}
 
-	if test "$no_recursion" != yes; then
-		mp_popdir=$(pwd)
-		if ! test -d "$ac_dir"; then
-			mp_tarball_vendordir="$(dirname "$mp_tarball")"
-			as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
+	mp_popdir=$(pwd)
+	if ! test -d "$ac_dir"; then
+		mp_tarball_vendordir="$(dirname "$mp_tarball")"
+		as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
 $as_echo "$as_me: === extracting $mp_tarball" >&6;}
-			(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
-		fi
-		if ! test -d "$ac_dir"; then
-			as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
-		fi
+		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+	fi
+	if ! test -d "$ac_dir"; then
+		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
+	fi
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
-$as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-		as_dir="$ac_dir"; as_fn_mkdir_p
-		ac_builddir=.
+	as_dir="$ac_dir"; as_fn_mkdir_p
+	ac_builddir=.
 
 case "$ac_dir" in
 .) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
@@ -9798,7 +9795,11 @@ case $srcdir in
 esac
 ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 
-		cd "$ac_dir"
+	cd "$ac_dir"
+
+	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
+$as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 		if test -f "$ac_srcdir/configure"; then
 			mp_sub_configure_args=
 			mp_sub_configure_keys=
@@ -10046,9 +10047,8 @@ $as_echo "$as_me: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in 
 		fi
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
 $as_echo "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-
-		cd "$mp_popdir"
 	fi
+	cd "$mp_popdir"
 
 VENDOR_TCLTHREAD_SUBDIR=thread${tcl_thread_version}
 VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
@@ -10063,23 +10063,20 @@ VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
 	mp_tarball="vendor/tcllib-${tcllib_version}.tar.gz"
 	ac_dir=vendor/tcllib-${tcllib_version}
 
-	if test "$no_recursion" != yes; then
-		mp_popdir=$(pwd)
-		if ! test -d "$ac_dir"; then
-			mp_tarball_vendordir="$(dirname "$mp_tarball")"
-			as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
+	mp_popdir=$(pwd)
+	if ! test -d "$ac_dir"; then
+		mp_tarball_vendordir="$(dirname "$mp_tarball")"
+		as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
 $as_echo "$as_me: === extracting $mp_tarball" >&6;}
-			(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
-		fi
-		if ! test -d "$ac_dir"; then
-			as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
-		fi
+		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+	fi
+	if ! test -d "$ac_dir"; then
+		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
+	fi
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
-$as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-		as_dir="$ac_dir"; as_fn_mkdir_p
-		ac_builddir=.
+	as_dir="$ac_dir"; as_fn_mkdir_p
+	ac_builddir=.
 
 case "$ac_dir" in
 .) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
@@ -10113,7 +10110,11 @@ case $srcdir in
 esac
 ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 
-		cd "$ac_dir"
+	cd "$ac_dir"
+
+	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
+$as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 		if test -f "$ac_srcdir/configure"; then
 			mp_sub_configure_args=
 			mp_sub_configure_keys=
@@ -10361,9 +10362,8 @@ $as_echo "$as_me: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in 
 		fi
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
 $as_echo "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-
-		cd "$mp_popdir"
 	fi
+	cd "$mp_popdir"
 
 VENDOR_PACKAGES="$VENDOR_PACKAGES tcllib-${tcllib_version}"
 VENDOR_TCLLIB_SUBDIR=tcllib-${tcllib_version}
