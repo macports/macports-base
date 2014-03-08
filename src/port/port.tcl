@@ -2614,24 +2614,40 @@ proc action_select { action portlist opts } {
             set w1 4
             set w2 8
             set formatStr "%-*s  %-*s  %s"
-            puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
-            foreach pg $portgroups {
-                if {[catch {mportselect list $pg} versions]} {
-                    ui_error "The list of versions could not be obtained: $versions"
-                    return 1
-                }
 
-                foreach v $versions {
-                    if {[catch {mportselect show $pg} selected_version]} {
-                        ui_error "The 'show' command failed: $selected_version"
-                        return 1
-                    }
+            set groups [list]
+            foreach pg $portgroups {
+                array set groupdesc {}
+                set groupdesc(name) [string trim $pg]
+
+                if {[catch {mportselect list $pg} versions]} {
+                    ui_warn "The list of options for the select group $pg could not be obtained: $versions"
+                    continue
                 }
+                # remove "none", sort the list, append none at the end
+                set noneidx [lsearch -exact $versions "none"]
+                set versions [lsort [lreplace $versions $noneidx $noneidx]]
+                lappend versions "none"
+                set groupdesc(versions) $versions
+
+                if {[catch {mportselect show $pg} selected_version]} {
+                    ui_warn "The currently selected option for the select group $pg could not be obtained: $selected_version"
+                    continue
+                }
+                set groupdesc(selected) $selected_version
 
                 set w1 [expr {max($w1, [string length $pg])}]
                 set w2 [expr {max($w2, [string length $selected_version])}]
 
-                puts [format $formatStr $w1 [string trim $pg] $w2 $selected_version [join $versions " "]]
+                lappend groups [array get groupdesc]
+                array unset groupdesc
+            }
+            puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
+            puts [format $formatStr $w1 "====" $w2 "========" "======="]
+            foreach groupdesc $groups {
+                array set groupd $groupdesc
+                puts [format $formatStr $w1 $groupd(name) $w2 $groupd(selected) [join $groupd(versions) " "]]
+                array unset groupd
             }
             return 0
         }
