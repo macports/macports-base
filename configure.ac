@@ -16,6 +16,7 @@ AC_SUBST(MACPORTS_VERSION)
 
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN
+MP_FLAGS_SCAN
 
 AC_PATH_PROG(SW_VERS, sw_vers)
 AC_PATH_PROG(DEFAULTS, defaults)

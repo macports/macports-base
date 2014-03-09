@@ -972,6 +972,60 @@ AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
 	
 ])
 
+dnl This macro ensures MP installation prefix paths are NOT in CFLAGS,
+dnl CPPFLAGS, OBJCFLAGS, LDFLAGS for configure to prevent potential problems
+dnl when base/ code is updated and ports are installed that would match needed
+dnl items.
+AC_DEFUN([MP_FLAGS_SCAN],[
+	AC_ARG_ENABLE(
+		[flag-sanitization],
+		AS_HELP_STRING([--disable-flag-sanitization], [Do not sanitize CPPFLAGS, CFLAGS, OBJCFLAGS and LDFLAGS]),
+		[disable_mp_flags_scan=yes],
+		[disable_mp_flags_scan=no])
+
+	if test x"$disable_mp_flags_scan" != "xyes"; then
+		# Get a value for $prefix
+		oldprefix=$prefix
+		if test "x$prefix" = "xNONE" ; then
+			prefix=$ac_default_prefix
+		fi
+
+		mp_flags_scan_found=
+
+		# Clean CFLAGS CPPFLAGS OBJCFLAGS and LDFLAGS
+		for flagname in CFLAGS CPPFLAGS OBJCFLAGS LDFLAGS; do
+			mp_flags_scan_flag_cleaned=
+			eval "set x \$$flagname"
+			shift
+			for mp_flags_scan_val; do
+				case "$mp_flags_scan_val" in
+					-I$prefix/* | -L$prefix/*)
+						AC_MSG_NOTICE([Removing `$mp_flags_scan_val' from \$$flagname because it might cause a self-dependency])
+						mp_flags_scan_found=1
+						;; #(
+					*)
+						AS_VAR_APPEND([mp_flags_scan_flag_cleaned], [" $mp_flags_scan_val"])
+						;;
+				esac
+			done
+			if test -z "$mp_flags_scan_flag_cleaned"; then
+				(unset $flagname) >/dev/null 2>&1 && unset $flagname
+			else
+				eval "$flagname=\"$mp_flags_scan_flag_cleaned\""
+			fi
+		done
+
+		if ! test -z "$mp_flags_scan_found"; then
+			AC_MSG_NOTICE([See https://trac.macports.org/ticket/42756 for rationale on why this script is removing these values])
+			AC_MSG_NOTICE([Pass --disable-flag-sanitization if you're aware of the potential problems and want to risk them anyway])
+		fi
+
+		# Restore $prefix
+		prefix=$oldprefix
+	fi
+])
+
+
 dnl This macro ensures MP installation prefix paths are NOT in PATH
 dnl for configure to prevent potential problems when base/ code is updated
 dnl and ports are installed that would match needed items.
