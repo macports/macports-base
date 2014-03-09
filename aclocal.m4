@@ -126,7 +126,7 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 	_AC_SRCDIRS(["$ac_dir"])
 	cd "$ac_dir"
 
-	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+	if test "$no_recursion" != yes || test ! -f "$ac_srcdir/config.status"; then
 		AC_MSG_NOTICE([=== configuring in $ac_dir ($mp_popdir/$ac_dir)])
 		if test -f "$ac_srcdir/configure"; then
 			mp_sub_configure_args=

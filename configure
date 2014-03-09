@@ -9536,7 +9536,7 @@ ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 
 	cd "$ac_dir"
 
-	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+	if test "$no_recursion" != yes || test ! -f "$ac_srcdir/config.status"; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
 $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 		if test -f "$ac_srcdir/configure"; then
@@ -9854,7 +9854,7 @@ ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 
 	cd "$ac_dir"
 
-	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+	if test "$no_recursion" != yes || test ! -f "$ac_srcdir/config.status"; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
 $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 		if test -f "$ac_srcdir/configure"; then
@@ -10169,7 +10169,7 @@ ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 
 	cd "$ac_dir"
 
-	if test "$no_recursion" != yes -o ! -f "$ac_srcdir/config.status"; then
+	if test "$no_recursion" != yes || test ! -f "$ac_srcdir/config.status"; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
 $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 		if test -f "$ac_srcdir/configure"; then
