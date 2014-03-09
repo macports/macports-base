@@ -4,15 +4,30 @@
 ###
 
 Release 2.3 (unreleased)
+    - Use a private copy of Tcl 8.5 for MacPorts. Starting with this change
+      features introduced with Tcl 8.5 can be used in Portfiles while still
+      keeping support for Tiger and Leopard. (cal in r117621)
+
     - Add select --summary option. (#36179, snc in r117607)
 
     - Display a progress indicator for slow downloads. (cal in r117044)
 
+    - Attempt to use HTTP pipelining when downloading. (cal in r117022)
+
     - Allow ports to select a specific version of the Mac OS X SDK
       for builds. (larryv in r116437)
 
+    - Check for Command Line Tools presence and Xcode license agreement
+      acceptance and print helpful warnings if they aren't detected. (cal in
+      r115900)
+
+    - Support using .tar.lz archives using use_lzip (mww in r114652)
+
     - Enhance the "move" Portfile builtin to support case-only renames
       on case-insensitive filesystems. (#41679, ryandesign in r114289)
+
+    - Fix a regression that caused problems with sandboxing when the MacPorts
+      prefix contained a symlink. (#39850, cal in r113704)
 
     - Disable Spotlight indexing on build directories, distfiles,
       registry, log files, archives, base source and the default ports
@@ -22,6 +37,9 @@ Release 2.3 (unreleased)
       it was configured for and refer user to migration instructions.
       (raimue in r113478)
 
+    - Merge curl HTTP POST support required for MacPorts port statistics
+      developed in GSoC 2011 (jmr in r113396, original code by derek)
+
     - In debug output, sort environment variables and print one per
       line. (#40703, ryandesign in r113037)
 
@@ -30,6 +48,17 @@ Release 2.3 (unreleased)
 
     - Add "-prepend" command for Portfile options (similar to existing
       "-append" command). (#40655, ryandesign in r111990)
+
+    - Merge new test framework developed in GSoC 2003 (mariusc in 111325)
+
+    - Support clang's -stdlib option explicitly using configure.cxx_stdlib
+      rather than  relying on its default value. This can be used to make
+      MacPorts use libc++ on OS X < 10.9. (larryv in r110519)
+
+    - Support syncing git-svn working copies. (jeremyhu in r109747)
+
+    - Remove support for mports:// and non-tarball HTTP/FTP port tree sources.
+      (cal in r109659)
 
 Release 2.2.1 (2013-10-26 by jmr)
     - Fixed a problem where dependency calculation could sometimes fail for
