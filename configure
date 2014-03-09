@@ -824,6 +824,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_flag_sanitization
 enable_werror
 with_objc_runtime
 with_objc_foundation
@@ -1486,6 +1487,9 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-flag-sanitization
+                          Do not sanitize CPPFLAGS, CFLAGS, OBJCFLAGS and
+                          LDFLAGS
   --enable-werror         Add -Werror to CFLAGS. Used for development.
   --enable-readline       Enable addition of readline support, if readline
                           present.
@@ -2813,6 +2817,59 @@ $as_echo "$MACPORTS_VERSION" >&6; }
 	PATH_CLEANED=$newPATH
 
 	prefix=$oldprefix
+
+
+	# Check whether --enable-flag-sanitization was given.
+if test "${enable_flag_sanitization+set}" = set; then :
+  enableval=$enable_flag_sanitization; disable_mp_flags_scan=yes
+else
+  disable_mp_flags_scan=no
+fi
+
+
+	if test x"$disable_mp_flags_scan" != "xyes"; then
+		# Get a value for $prefix
+		oldprefix=$prefix
+		if test "x$prefix" = "xNONE" ; then
+			prefix=$ac_default_prefix
+		fi
+
+		mp_flags_scan_found=
+
+		# Clean CFLAGS CPPFLAGS OBJCFLAGS and LDFLAGS
+		for flagname in CFLAGS CPPFLAGS OBJCFLAGS LDFLAGS; do
+			mp_flags_scan_flag_cleaned=
+			eval "set x \$$flagname"
+			shift
+			for mp_flags_scan_val; do
+				case "$mp_flags_scan_val" in
+					-I$prefix/* | -L$prefix/*)
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: Removing \`$mp_flags_scan_val' from \$$flagname because it might cause a self-dependency" >&5
+$as_echo "$as_me: Removing \`$mp_flags_scan_val' from \$$flagname because it might cause a self-dependency" >&6;}
+						mp_flags_scan_found=1
+						;; #(
+					*)
+						as_fn_append mp_flags_scan_flag_cleaned " $mp_flags_scan_val"
+						;;
+				esac
+			done
+			if test -z "$mp_flags_scan_flag_cleaned"; then
+				(unset $flagname) >/dev/null 2>&1 && unset $flagname
+			else
+				eval "$flagname=\"$mp_flags_scan_flag_cleaned\""
+			fi
+		done
+
+		if ! test -z "$mp_flags_scan_found"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: See https://trac.macports.org/ticket/42756 for rationale on why this script is removing these values" >&5
+$as_echo "$as_me: See https://trac.macports.org/ticket/42756 for rationale on why this script is removing these values" >&6;}
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: Pass --disable-flag-sanitization if you're aware of the potential problems and want to risk them anyway" >&5
+$as_echo "$as_me: Pass --disable-flag-sanitization if you're aware of the potential problems and want to risk them anyway" >&6;}
+		fi
+
+		# Restore $prefix
+		prefix=$oldprefix
+	fi
 
 
 # Extract the first word of "sw_vers", so it can be a program name with args.
