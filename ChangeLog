@@ -49,10 +49,10 @@ Release 2.3 (unreleased)
     - Add "-prepend" command for Portfile options (similar to existing
       "-append" command). (#40655, ryandesign in r111990)
 
-    - Merge new test framework developed in GSoC 2003 (mariusc in 111325)
+    - Merge new test framework developed in GSoC 2003 (mariusc in r111325)
 
     - Support clang's -stdlib option explicitly using configure.cxx_stdlib
-      rather than  relying on its default value. This can be used to make
+      rather than relying on its default value. This can be used to make
       MacPorts use libc++ on OS X < 10.9. (larryv in r110519)
 
     - Support syncing git-svn working copies. (jeremyhu in r109747)
