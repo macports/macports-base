@@ -50,7 +50,7 @@
  * need to. This possibility is the \c __darwintrace_close_sock variable, which
  * will be set to the FD to be closed when closing should be allowed.
  */
-int close(int fd) {
+int _dt_close(int fd) {
 #define close(x) syscall(SYS_close, (x))
 	__darwintrace_setup();
 
@@ -66,3 +66,5 @@ int close(int fd) {
 	return close(fd);
 #undef close
 }
+
+DARWINTRACE_INTERPOSE(_dt_close, close);

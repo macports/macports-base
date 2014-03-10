@@ -254,7 +254,7 @@ static inline int check_interpreter(const char *restrict path) {
  * exist, if it's outside the sandbox. Also checks for potential interpreters
  * using \c check_interpreter.
  */
-int execve(const char *path, char *const argv[], char *const envp[]) {
+int _dt_execve(const char *path, char *const argv[], char *const envp[]) {
 #define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 	__darwintrace_setup();
 
@@ -289,6 +289,8 @@ int execve(const char *path, char *const argv[], char *const envp[]) {
 #undef execve
 }
 
+DARWINTRACE_INTERPOSE(_dt_execve, execve);
+
 #if defined(HAVE_SPAWN_H) && defined(HAVE_POSIX_SPAWN)
 // Let's save some typing work...
 typedef int (*posix_spawn_t)(
@@ -303,11 +305,10 @@ typedef int (*posix_spawn_t)(
  * exist, if it's outside the sandbox. Also checks for potential interpreters
  * using \c check_interpreter.
  */
-int posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spawn_file_actions_t *file_actions,
+int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spawn_file_actions_t *file_actions,
 		const posix_spawnattr_t *restrict attrp, char *const argv[restrict], char *const envp[restrict]) {
 	__darwintrace_setup();
 
-	static posix_spawn_t prev_posix_spawn = NULL;
 	int result = 0;
 
 	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
@@ -339,13 +340,9 @@ int posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spaw
 			 * We cannot override posix_spawn and call __posix_spawn from it
 			 * either, because that will fail with an invalid argument. Thus,
 			 * we need to call the original posix_spawn from here. */
-			// retrieve the original posix_spawn function
-			if (prev_posix_spawn == NULL) {
-				prev_posix_spawn = (posix_spawn_t) dlsym(RTLD_NEXT, "posix_spawn");
-			}
 			// call the original posix_spawn function, but restore environment
 			char **newenv = restore_env(envp);
-			result = prev_posix_spawn(pid, path, file_actions, attrp, argv, newenv);
+			result = posix_spawn(pid, path, file_actions, attrp, argv, newenv);
 			free(newenv);
 		}
 	}
@@ -354,4 +351,6 @@ int posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spaw
 
 	return result;
 }
+
+DARWINTRACE_INTERPOSE(_dt_posix_spawn, posix_spawn);
 #endif

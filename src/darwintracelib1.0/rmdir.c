@@ -46,7 +46,7 @@
  * Wrapper around \c rmdir(2) to deny deleting directories outside of the
  * sandbox.
  */
-int rmdir(const char *path) {
+int _dt_rmdir(const char *path) {
 #define rmdir(x) syscall(SYS_rmdir, (x))
 	__darwintrace_setup();
 
@@ -64,3 +64,5 @@ int rmdir(const char *path) {
 	return result;
 #undef rmdir
 }
+
+DARWINTRACE_INTERPOSE(_dt_rmdir, rmdir);

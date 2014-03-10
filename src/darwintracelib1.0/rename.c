@@ -46,7 +46,7 @@
  * Wrapper around \c rename(2) to prevent moving a file outside, or out of the
  * sandbox.
  */
-int rename(const char *from, const char *to) {
+int _dt_rename(const char *from, const char *to) {
 #define rename(x,y) syscall(SYS_rename, (x), (y))
 	__darwintrace_setup();
 
@@ -67,3 +67,5 @@ int rename(const char *from, const char *to) {
 	return result;
 #undef rename
 }
+
+DARWINTRACE_INTERPOSE(_dt_rename, rename);

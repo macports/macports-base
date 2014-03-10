@@ -53,7 +53,7 @@
  * the sandbox. Will silently do nothing and return success for directories
  * outside the sandbox that already exist.
  */
-int mkdir(const char *path, mode_t mode) {
+int _dt_mkdir(const char *path, mode_t mode) {
 #define mkdir(x,y) syscall(SYS_mkdir, (x), (y))
 #define lstat(x,y) syscall(LSTATSYSNUM, (x), (y))
 	__darwintrace_setup();
@@ -78,3 +78,5 @@ int mkdir(const char *path, mode_t mode) {
 #undef lstat
 #undef mkdir
 }
+
+DARWINTRACE_INTERPOSE(_dt_mkdir, mkdir);

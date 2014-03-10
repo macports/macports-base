@@ -48,7 +48,7 @@
  * Indicates the file does not exist on sandbox violation, or permission denied
  * when attempting to create a file, i.e., when \c O_CREAT is set.
  */
-int open(const char *path, int flags, ...) {
+int _dt_open(const char *path, int flags, ...) {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 	__darwintrace_setup();
 	int result = 0;
@@ -70,3 +70,5 @@ int open(const char *path, int flags, ...) {
 	return result;
 #undef open
 }
+
+DARWINTRACE_INTERPOSE(_dt_open, open);

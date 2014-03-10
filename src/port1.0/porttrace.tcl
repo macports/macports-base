@@ -66,7 +66,6 @@ proc porttrace::trace_start {workpath} {
             } else {
                 set env(DYLD_INSERT_LIBRARIES) ${tracelib_path}
             }
-            set env(DYLD_FORCE_FLAT_NAMESPACE) 1
             set env(DARWINTRACE_LOG) "$trace_fifo"
             # The sandbox is limited to:
             # workpath
@@ -170,7 +169,7 @@ proc porttrace::trace_stop {} {
     global os.platform
     if {${os.platform} == "darwin"} {
         global env trace_fifo macosx_version
-        foreach var {DYLD_INSERT_LIBRARIES DYLD_FORCE_FLAT_NAMESPACE DARWINTRACE_LOG DARWINTRACE_SANDBOX_BOUNDS} {
+        foreach var {DYLD_INSERT_LIBRARIES DARWINTRACE_LOG} {
             array unset env $var
             if {$macosx_version eq "10.5"} {
                 unsetenv $var

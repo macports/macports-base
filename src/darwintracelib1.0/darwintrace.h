@@ -44,6 +44,22 @@
 #include <stdio.h>
 
 /**
+ * DARWINTRACE_INTERPOSE: provides a way to override standard library functions
+ * with your own implementations.
+ */
+#ifndef DARWINTRACE_INTERPOSE
+#define DARWINTRACE_INTERPOSE(_replacement, _replacee) \
+__attribute__((used)) static struct { \
+	const void *replacement; \
+	const void *replacee; \
+} _interpose_##_replacee \
+__attribute__((section ("__DATA,__interpose"))) = { \
+	(const void *) (unsigned long) &_replacement, \
+	(const void *) (unsigned long) &_replacee \
+}
+#endif
+
+/**
  * DARWINTRACE_DEBUG: verbose output of operations to debug darwintrace
  */
 #ifndef DARWINTRACE_DEBUG
