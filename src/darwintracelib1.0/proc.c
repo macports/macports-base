@@ -292,14 +292,6 @@ int _dt_execve(const char *path, char *const argv[], char *const envp[]) {
 DARWINTRACE_INTERPOSE(_dt_execve, execve);
 
 #if defined(HAVE_SPAWN_H) && defined(HAVE_POSIX_SPAWN)
-// Let's save some typing work...
-typedef int (*posix_spawn_t)(
-			pid_t *restrict,
-			const char *restrict,
-			const posix_spawn_file_actions_t *,
-			const posix_spawnattr_t *restrict,
-			char *const *restrict,
-			char *const *restrict);
 /**
  * Wrapper for \c posix_spawn(2). Denies access and simulates the file does not
  * exist, if it's outside the sandbox. Also checks for potential interpreters
