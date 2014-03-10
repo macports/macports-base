@@ -93,7 +93,7 @@ dnl Parameters:
 dnl  - The variable name to assign to
 dnl  - The (quoted, if necessary) key-value pair
 AC_DEFUN([_MP_EXTRACT_KEY], [dnl
-	$1=$(AS_ECHO([$2]) | sed -E 's/^--?([^=]+)=.*$/\1/')dnl
+	$1=$(AS_ECHO([$2]) | sed -E 's/^--?([[^=]]+)=.*$/\1/')dnl
 ])
 
 dnl Configure a project contained in a .tar.gz (or .tgz) tarball, extracting it
@@ -993,26 +993,56 @@ AC_DEFUN([MP_FLAGS_SCAN],[
 		mp_flags_scan_found=
 
 		# Clean CFLAGS CPPFLAGS OBJCFLAGS and LDFLAGS
-		for flagname in CFLAGS CPPFLAGS OBJCFLAGS LDFLAGS; do
+		for mp_flags_flagname in CFLAGS CPPFLAGS OBJCFLAGS LDFLAGS; do
 			mp_flags_scan_flag_cleaned=
-			eval "set x \$$flagname"
+			eval "set x \$$mp_flags_flagname"
 			shift
 			for mp_flags_scan_val; do
 				case "$mp_flags_scan_val" in
 					-I$prefix/* | -L$prefix/*)
-						AC_MSG_NOTICE([Removing `$mp_flags_scan_val' from \$$flagname because it might cause a self-dependency])
+						AC_MSG_NOTICE([Removing `$mp_flags_scan_val' from \$$mp_flags_flagname because it might cause a self-dependency])
 						mp_flags_scan_found=1
 						;; #(
 					*)
-						AS_VAR_APPEND([mp_flags_scan_flag_cleaned], [" $mp_flags_scan_val"])
+						if test -z "$mp_flags_scan_flag_cleaned"; then
+							mp_flags_scan_flag_cleaned=$mp_flags_scan_val
+						else
+							AS_VAR_APPEND([mp_flags_scan_flag_cleaned], [" $mp_flags_scan_val"])
+						fi
 						;;
 				esac
 			done
 			if test -z "$mp_flags_scan_flag_cleaned"; then
-				(unset $flagname) >/dev/null 2>&1 && unset $flagname
+				(unset $mp_flags_flagname) >/dev/null 2>&1 && unset $mp_flags_flagname
+				(export -n $mp_flags_flagname) >/dev/null 2>&1 && export -n $mp_flags_flagname
 			else
-				eval "$flagname=\"$mp_flags_scan_flag_cleaned\""
+				eval "$mp_flags_flagname=\"$mp_flags_scan_flag_cleaned\""
+				export $mp_flags_flagname
 			fi
+			eval "ac_env_${mp_flags_flagname}_set=\${${mp_flags_flagname}+set}"
+			eval "ac_env_${mp_flags_flagname}_value=\${${mp_flags_flagname}}"
+			eval "ac_cv_env_${mp_flags_flagname}_set=\${${mp_flags_flagname}+set}"
+			eval "ac_cv_env_${mp_flags_flagname}_value=\${${mp_flags_flagname}}"
+		done
+
+		# Since those are all precious variables they have been saved into config.cache and put into $ac_configure_args
+		# We need to remove them at least from $ac_configure_args, because that's being passed to sub-configures
+		eval "set x $ac_configure_args"
+		shift
+		ac_configure_args=
+		for mp_flags_configure_arg; do
+			case "$mp_flags_configure_arg" in
+				CFLAGS=* | CPPFLAGS=* | OBJCFLAGS=* | LDFLAGS=*)
+					mp_flags_configure_arg_key=$(AS_ECHO(["$mp_flags_configure_arg"]) | sed -E 's/^([[^=]]+)=.*$/\1/')
+					eval "mp_flags_configure_arg_newval=\$$mp_flags_configure_arg_key"
+					if test -n "$mp_flags_configure_arg_newval"; then
+						AS_VAR_APPEND([ac_configure_args], [" '$mp_flags_configure_arg_key=$mp_flags_configure_arg_newval'"])
+					fi
+					;;
+				*)
+					AS_VAR_APPEND([ac_configure_args], [" '$mp_flags_configure_arg'"])
+					;;
+			esac
 		done
 
 		if ! test -z "$mp_flags_scan_found"; then
