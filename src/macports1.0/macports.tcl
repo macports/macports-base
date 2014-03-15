@@ -59,7 +59,7 @@ namespace eval macports {
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_platform macosx_version macosx_sdk_version macosx_deployment_target \
+        os_arch os_endian os_version os_major os_minor os_platform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -573,6 +573,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_endian \
         macports::os_version \
         macports::os_major \
+        macports::os_minor \
         macports::os_platform \
         macports::macosx_version \
         macports::macosx_sdk_version \
@@ -593,6 +594,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$os_arch eq {i586} || $os_arch eq {i686} || $os_arch eq {x86_64}} {set os_arch "i386"}
     set os_version $tcl_platform(osVersion)
     set os_major [lindex [split $os_version .] 0]
+    set os_minor [lindex [split $os_version .] 1]
     set os_platform [string tolower $tcl_platform(os)]
     # Remove trailing "Endian"
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]

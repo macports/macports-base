@@ -51,7 +51,7 @@ options prefix name version revision epoch categories maintainers \
         long_description description homepage notes license \
         provides conflicts replaced_by \
         worksrcdir filesdir distname portdbpath libpath distpath sources_conf \
-        os.platform os.subplatform os.version os.major os.arch os.endian \
+        os.platform os.subplatform os.version os.major os.minor os.arch os.endian \
         platforms default_variants install.user install.group \
         macosx_deployment_target universal_variant os.universal_supported \
         supported_archs depends_skip_archcheck installs_libs \
@@ -116,6 +116,7 @@ default install.group {${portutil::autoconf::install_group}}
 default os.platform {$os_platform}
 default os.version {$os_version}
 default os.major {$os_major}
+default os.minor {$os_minor}
 default os.arch {$os_arch}
 default os.endian {$os_endian}
 
