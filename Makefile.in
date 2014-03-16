@@ -115,6 +115,7 @@ rmgroup::
 
 
 clean::
+	rm -rf tcldox
 
 distclean::
 	rm -f config.log config.status configure.lineno
