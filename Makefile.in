@@ -149,11 +149,6 @@ ifeq ($(ARC),yes)
 	${MAKE} SVNTAG=${DISTARCTAG} PKGNAME=${DISTARCNAME} _dopkg
 endif
 
-tcldoc:
-	@[ -e "${prefix}/bin/tcldoc" ] \
-		|| { echo "Install tcldoc with MacPorts in ${prefix} first."; exit 1; }
-	find src -name '*.tcl' | xargs ${TCLDOC} --verbose --title "MacPorts Documentation" --force tcldoc
-
 tcldox:
 	@[ -e "${prefix}/bin/doxygen" -a -e "${prefix}/bin/tcl-dox" -a -e "${prefix}/bin/dot" ] \
 		|| { echo "Install doxygen, tcl-dox and graphviz with MacPorts in ${prefix} first."; exit 1; }
