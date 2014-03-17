@@ -154,9 +154,11 @@ static void __darwintrace_setup_tls() {
 /**
  * Convenience getter function for the thread ID
  */
+/*
 static inline pthread_t __darwintrace_tid() {
 	return (pthread_t) pthread_getspecific(tid_key);
 }
+*/
 
 /**
  * Convenience setter function for the thread-local darwintrace socket
