@@ -243,8 +243,9 @@ AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h limits.h paths.
 	sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
 # Checks for library functions.
-AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 OSAtomicCompareAndSwapPtr bzero \
-	clearenv copyfile fgetln flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
+AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
+	OSAtomicCompareAndSwapPtr __getdirentries64 bzero clearenv copyfile fgetln \
+	flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
 	strlcpy strncasecmp sysctlbyname])
 AC_SUBST([ac_cv_func_strlcat])
 
