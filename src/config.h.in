@@ -259,6 +259,9 @@
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
 
+/* Define to 1 if you have the `__getdirentries64' function. */
+#undef HAVE___GETDIRENTRIES64
+
 /* Lowest non-system-reserved GID. */
 #undef MIN_USABLE_GID
 

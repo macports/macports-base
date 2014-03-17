@@ -8680,8 +8680,9 @@ done
 
 
 # Checks for library functions.
-for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 OSAtomicCompareAndSwapPtr bzero \
-	clearenv copyfile fgetln flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
+for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
+	OSAtomicCompareAndSwapPtr __getdirentries64 bzero clearenv copyfile fgetln \
+	flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
 	strlcpy strncasecmp sysctlbyname
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
