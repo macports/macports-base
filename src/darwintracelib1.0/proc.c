@@ -254,7 +254,7 @@ static inline int check_interpreter(const char *restrict path) {
  * exist, if it's outside the sandbox. Also checks for potential interpreters
  * using \c check_interpreter.
  */
-int _dt_execve(const char *path, char *const argv[], char *const envp[]) {
+static int _dt_execve(const char *path, char *const argv[], char *const envp[]) {
 #define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 	__darwintrace_setup();
 
@@ -297,7 +297,7 @@ DARWINTRACE_INTERPOSE(_dt_execve, execve);
  * exist, if it's outside the sandbox. Also checks for potential interpreters
  * using \c check_interpreter.
  */
-int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spawn_file_actions_t *file_actions,
+static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spawn_file_actions_t *file_actions,
 		const posix_spawnattr_t *restrict attrp, char *const argv[restrict], char *const envp[restrict]) {
 	__darwintrace_setup();
 

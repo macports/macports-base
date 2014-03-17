@@ -66,7 +66,7 @@ struct dirent64  {
 	char      d_name[__DARWIN_MAXPATHLEN]; /* entry name (up to MAXPATHLEN bytes) */
 };
 
-size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep) {
+static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep) {
 #define __getdirentries64(w,x,y,z) syscall(SYS_getdirentries64, (w), (x), (y), (z))
 	__darwintrace_setup();
 
@@ -121,7 +121,7 @@ struct dirent32 {
 };
 #pragma pack()
 
-int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
+static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 #define getdirentries(w,x,y,z) syscall(SYS_getdirentries, (w), (x), (y), (z))
 	__darwintrace_setup();
 

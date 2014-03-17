@@ -48,7 +48,7 @@
  * attempts to overwrite it using \c dup(2). Shells tend to do that a lot when
  * FDs are numbered in ascending order.
  */
-int _dt_dup2(int filedes, int filedes2) {
+static int _dt_dup2(int filedes, int filedes2) {
 #define dup2(x, y) syscall(SYS_dup2, (x), (y))
 	__darwintrace_setup();
 

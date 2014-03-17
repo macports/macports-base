@@ -46,7 +46,7 @@
  * Wrapper around \c unlink(2) that will deny attempts to delete files outside
  * of the sandbox and simulate non-existence of the file instead.
  */
-int _dt_unlink(const char *path) {
+static int _dt_unlink(const char *path) {
 #define unlink(x) syscall(SYS_unlink, (x))
 	__darwintrace_setup();
 

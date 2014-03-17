@@ -47,7 +47,7 @@
  * Wrapper around \c stat(2) to hide information about files outside the
  * sandbox.
  */
-int _dt_stat(const char *path, void *sb) {
+static int _dt_stat(const char *path, void *sb) {
 #define stat(path, sb) syscall(SYS_stat, path, sb)
 	__darwintrace_setup();
 
@@ -73,7 +73,7 @@ DARWINTRACE_INTERPOSE(_dt_stat, stat);
 
 // Don't provide stat64 on systems that have no stat64 syscall
 #ifdef SYS_stat64
-int _dt_stat64(const char *path, void *sb) {
+static int _dt_stat64(const char *path, void *sb) {
 #define stat64(path, sb) syscall(SYS_stat64, path, sb)
 	__darwintrace_setup();
 
@@ -99,7 +99,7 @@ DARWINTRACE_INTERPOSE(_dt_stat64, stat$INODE64);
 
 #endif /* defined(SYS_stat64) */
 
-int _dt_lstat(const char *path, void *sb) {
+static int _dt_lstat(const char *path, void *sb) {
 #define lstat(path, sb) syscall(SYS_lstat, path, sb)
 	__darwintrace_setup();
 
@@ -124,7 +124,7 @@ DARWINTRACE_INTERPOSE(_dt_lstat, lstat);
 
 // Don't provide lstat64 on systems that have no lstat64 syscall
 #ifdef SYS_lstat64
-int _dt_lstat64(const char *path, void *sb) {
+static int _dt_lstat64(const char *path, void *sb) {
 #define lstat64(path, sb) syscall(SYS_lstat64, path, sb)
 	__darwintrace_setup();
 
