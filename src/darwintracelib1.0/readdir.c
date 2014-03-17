@@ -55,7 +55,7 @@
  * thus copy both structs and decide at runtime.
  */
 
-#if defined(__DARWIN_64_BIT_INO_T)
+#if defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64)
 
 struct dirent64  {
 	__uint64_t  d_ino;      /* file number of entry */
@@ -109,7 +109,7 @@ size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *ba
 size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep);
 DARWINTRACE_INTERPOSE(_dt_getdirentries64, __getdirentries64);
 
-#endif /* defined(__DARWIN_64_BIT_INO_T) */
+#endif /* defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64) */
 
 #pragma pack(4)
 struct dirent32 {
