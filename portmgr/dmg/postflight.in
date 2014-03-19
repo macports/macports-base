@@ -36,7 +36,7 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=2.1.0
+VERSION=2.3.0
 
 # Abstraction variables:
 PREFIX=__PREFIX__
@@ -48,7 +48,7 @@ MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 REG1DIR=${MACPORTS_TCL_DIR}/registry1.0
 DSCL=/usr/bin/dscl
 RUNUSR=macports
-TCLSH=/usr/bin/tclsh
+TCLSH=@TCLSH@
 TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}

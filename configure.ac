@@ -404,6 +404,7 @@ AC_CONFIG_FILES([
 	doc/prefix.mtree
 	doc/pubkeys.conf
 	portmgr/freebsd/Makefile
+	portmgr/dmg/postflight
 	setupenv.bash
 	src/Makefile
 	src/cflib1.0/Makefile
