@@ -141,7 +141,7 @@ default configure.cflags        {${configure.optflags}}
 default configure.cxxflags      {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
 default configure.objcxxflags   {${configure.optflags}}
-default configure.cppflags      {-isystem${prefix}/include}
+default configure.cppflags      {-I${prefix}/include}
 default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
 default configure.libs          {}
 default configure.fflags        {${configure.optflags}}
