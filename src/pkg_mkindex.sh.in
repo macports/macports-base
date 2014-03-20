@@ -37,7 +37,7 @@ if [ $# = 0 ]; then
 fi
 
 for dir in $@; do
-    echo "pkg_mkIndex -verbose -- $dir *.tcl *.dylib *.so" | $TCLSH 2>&1 \
+    echo "pkg_mkIndex -verbose -- $dir *.tcl *.dylib *.so" | env DYLD_LIBRARY_PATH=`dirname $TCLSH` $TCLSH 2>&1 \
         | $GREP "^warning: " && exit 1
 done
 
