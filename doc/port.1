@@ -393,7 +393,9 @@ For instance,
 might be linked to
 .Ic "python2.6" .
 Available select groups are installed as subdirectories of
-.Ar ${prefix}/etc/select/ .
+.Ar ${prefix}/etc/select/
+and can be listed using
+.Fl -summary .
 To list the available versions in a group, use
 .Fl -list .
 To see which version is currently selected for a group, use
@@ -403,9 +405,10 @@ To change the selected version for a group, use
 .Pp
 For example:
 .Pp
+.Dl "port select --summary"
+.Dl "port select --show python"
 .Dl "port select --list python"
-.Dl "port select --show gcc"
-.Dl "port select --set gcc mp-gcc44"
+.Dl "port select --set python python34"
 .Pp
 .Ss activate
 Activate the installed
