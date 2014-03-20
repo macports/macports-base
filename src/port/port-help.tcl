@@ -298,12 +298,14 @@ python25, python26, and python31.  The select action lets you set which
 of these becomes the version run when you simply use 'python'.
 
 <arguments> must include the group upon which to be acted, and may include
-a version if --set is used.
+a version if --set is used. <arguments> can be empty for --summary.
 
---list   List available versions for the group
---set    Select the given version for the group
---show   Show which version is currently selected for the group (default if
-         none given)
+--list     List available versions for the group
+--set      Select the given version for the group
+--show     Show which version is currently selected for the group (default
+           if none given)
+--summary  Display a summary of all available select groups and choices as
+           well as the currently selected ports.
 }
 
 set porthelp(selfupdate) {
