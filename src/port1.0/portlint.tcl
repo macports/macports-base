@@ -53,6 +53,7 @@ set lint_optional [list \
     "distname" \
     "use_automake" \
     "use_autoconf" \
+    "use_autoreconf" \
     "use_configure" \
     ]
 
