@@ -407,7 +407,6 @@ AC_CONFIG_FILES([
 	portmgr/dmg/postflight
 	setupenv.bash
 	src/Makefile
-	src/cflib1.0/Makefile
 	src/cregistry/Makefile
 	src/darwintracelib1.0/Makefile
 	src/machista1.0/Makefile
