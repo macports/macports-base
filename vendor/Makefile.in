@@ -64,3 +64,4 @@ clean: clean-tcl clean-tcllib clean-tclthread
 distclean:
 	rm -f Makefile
 	rm -rf $(TCL_SUBDIR:/unix=) $(TCLTHREAD_SUBDIR) $(TCLLIB_SUBDIR)
+	rm -rf vendor-destroot
