@@ -21,6 +21,7 @@ test:
 
 distclean: clean
 	rm -f macports.conf base.mtree macosx.mtree prefix.mtree pubkeys.conf
+	rm -f Makefile
 
 %.1.gz: %.1
 	gzip -c $^ > $@

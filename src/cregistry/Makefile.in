@@ -28,6 +28,7 @@ clean::
 	rm -f ${STLIB_NAME} ${SQLEXT_NAME} ${SQLEXT_OBJS} ${OBJS}
 
 distclean:: clean
+	rm -f Makefile
 
 test:
 

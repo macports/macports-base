@@ -123,6 +123,7 @@ distclean::
 	rm -f Makefile Mk/macports.autoconf.mk portmgr/freebsd/Makefile
 	rm -f Doxyfile
 	rm -f setupenv.bash
+	rm -f portmgr/dmg/postflight
 
 _gettag:
 	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${PKGNAME}-svn

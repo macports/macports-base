@@ -35,6 +35,7 @@ test:: ${SHLIB_NAME}
 
 distclean:: clean
 	rm -f registry_autoconf.tcl
+	rm -f Makefile
 
 install:: all $(SHLIB_NAME)
 	[ ! -d $(DESTDIR)${datadir}/macports/Tcl/registry1.0 ] || rm -vrf $(DESTDIR)${datadir}/macports/Tcl/registry1.0

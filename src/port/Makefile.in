@@ -34,6 +34,7 @@ clean:
 test:
 
 distclean: clean
+	rm -f Makefile
 
 install: all mkdirs
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin

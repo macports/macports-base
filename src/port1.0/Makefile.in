@@ -27,6 +27,7 @@ clean::
 
 distclean:: clean
 	rm -f port_autoconf.tcl port_test_autoconf.tcl
+	rm -f Makefile
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}

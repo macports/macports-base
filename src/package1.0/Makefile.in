@@ -19,6 +19,7 @@ clean::
 
 distclean:: clean
 	rm -f package_test_autoconf.tcl
+	rm -f Makefile
 
 test::
 	-$(prefix)/bin/port sync

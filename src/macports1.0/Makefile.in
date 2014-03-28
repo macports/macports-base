@@ -23,6 +23,7 @@ test::
 
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_fastload.tcl macports_test_autoconf.tcl ${SHLIB_NAME}
+	rm -f Makefile
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
