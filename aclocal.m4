@@ -96,9 +96,10 @@ AC_DEFUN([_MP_EXTRACT_KEY], [dnl
 	$1=$(AS_ECHO([$2]) | sed -E 's/^--?([[^=]]+)=.*$/\1/')dnl
 ])
 
-dnl Configure a project contained in a .tar.gz (or .tgz) tarball, extracting it
-dnl previously, if necessary. Different from AC_CONFIG_SUBDIRS (on which this
-dnl macro is based), you can pass parameters to the sub-configure script.
+dnl Configure a project contained in a .tar.gz, .tgz or .tar.bz2 tarball,
+dnl extracting it previously, if necessary. Different from AC_CONFIG_SUBDIRS
+dnl (on which this macro is based), you can pass parameters to the
+dnl sub-configure script.
 dnl
 dnl Parameters:
 dnl  - The relative path to the tarball
@@ -116,7 +117,19 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 		mp_tarball_vendordir="$(dirname "$mp_tarball")"
 		AS_MKDIR_P(["$mp_tarball_vendordir"])
 		AC_MSG_NOTICE([=== extracting $mp_tarball])
-		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
+		mp_tarball_extract_cmd=
+		case "$mp_tarball" in
+			*.tar.gz | *.tgz)
+				mp_tarball_extract_cmd="gzip"
+				;;
+			*.tar.bz2 | *.tbz2)
+				mp_tarball_extract_cmd="bzip2"
+				;;
+			*)
+				AC_MSG_ERROR([Don't know how to extract tarball $mp_tarball])
+				;;
+		esac
+		(cd "$mp_tarball_vendordir"; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
 	fi
 	if ! test -d "$ac_dir"; then
 		AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])

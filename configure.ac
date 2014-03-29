@@ -320,12 +320,10 @@ eval "macports_libexec_dir=$macports_libexec_dir"
 prefix=$oldprefix
 exec_prefix=$oldexec_prefix
 
-# Determine if we need to install some bundled packages
-VENDOR_PACKAGES=
-
 ## Tcl package
 tcl_version=8.5.15
 tcl_thread_version=2.7.0
+tclx_version=8.4.1
 tcllib_version=1.15
 MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
 VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
@@ -346,12 +344,19 @@ VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLTHREAD_SUBDIR)
 AC_SUBST(VENDOR_TCLTHREAD_INSTALL)
 
+## TclX package
+# TclX is required for signal handling
+MP_CONFIG_TARBALL([vendor/tclx${tclx_version}.tar.bz2], [vendor/tclx8.4], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLX_SUBDIR=tclx8.4
+VENDOR_TCLX_INSTALL="install-binaries install-libraries"
+AC_SUBST(VENDOR_TCLX_SUBDIR)
+AC_SUBST(VENDOR_TCLX_INSTALL)
+
 ## Tcllib package
 # Note that Tcllib needs a Tcl interpreter during installation; it will *not*
 # be the one we configure above, because that one isn't built yet. That's not
 # a problem, though -- it's only used during installation.
 MP_CONFIG_TARBALL([vendor/tcllib-${tcllib_version}.tar.gz], [vendor/tcllib-${tcllib_version}], [--prefix=${macports_libexec_dir}])
-VENDOR_PACKAGES="$VENDOR_PACKAGES tcllib-${tcllib_version}"
 VENDOR_TCLLIB_SUBDIR=tcllib-${tcllib_version}
 VENDOR_TCLLIB_INSTALL="install-libraries"
 AC_SUBST(VENDOR_TCLLIB_SUBDIR)
