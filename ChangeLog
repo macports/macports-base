@@ -3,6 +3,11 @@
 # $Id$
 ###
 
+Release 2.4 (unreleased)
+    - Handle SIGTERM and SIGINT (^C) in MacPorts to prevent inconsistencies in
+      the registry database when MacPorts is aborted during a critical
+      operation. (cal in r118297 and r118298)
+
 Release 2.3 (unreleased)
     - Use a private copy of Tcl 8.5 for MacPorts. Starting with this change
       features introduced with Tcl 8.5 can be used in Portfiles while still
