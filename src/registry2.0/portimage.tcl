@@ -134,7 +134,6 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
 
     _activate_contents $requested
-    $requested state installed
 }
 
 # takes a composite version spec rather than separate version,revision,variants
@@ -201,7 +200,6 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     }
 
     _deactivate_contents $requested [$requested files] $force
-    $requested state imaged
 }
 
 proc _check_registry {name version revision variants} {
@@ -541,6 +539,11 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         lappend rollback_filelist $file
                     }
                 }
+
+                # Recording that the port has been activated should be done
+                # here so that this information cannot be inconsistent with the
+                # state of the files on disk.
+                $port state installed
             } catch {{POSIX SIG SIGINT} eCode eMessage} {
                 # Pressing ^C will (often?) print "^C" to the terminal; send
                 # a linebreak so our message appears after that.
@@ -563,29 +566,39 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
         }
     } catch {*} {
         # This code must run to completion, or the installation might be left
-        # in an inconsistent state
-        signal block {TERM INT}
+        # in an inconsistent state. We store the old signal handling state,
+        # block the critical signals and restore to the previous state instead
+        # of unblocking.
+        # Note that this still contains a race condition: A user could press ^C
+        # fast enough so that the second error arrives before the error is
+        # caught, re-thrown and re-caught here. As far as I can see, there's no
+        # easy way around this problem.
+        set osignals [signal get {TERM INT}]
+        try {
+            # Block signals to avoid inconsistiencies.
+            signal block {TERM INT}
 
-        # roll back activation of this port
-        if {[info exists deactivate_this]} {
-            _deactivate_contents $port $rollback_filelist yes yes
-        }
-        # if any errors occurred, move backed-up files back to their original
-        # locations, then rethrow the error. Transaction rollback will take care
-        # of this in the registry.
-        foreach file $backups {
-            ::file rename -force -- "${file}${baksuffix}" $file
-        }
-        # reactivate deactivated ports
-        foreach entry [array names todeactivate] {
-            if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
-                activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
+            # roll back activation of this port
+            if {[info exists deactivate_this]} {
+                _deactivate_contents $port $rollback_filelist yes yes
             }
+            # if any errors occurred, move backed-up files back to their original
+            # locations, then rethrow the error. Transaction rollback will take care
+            # of this in the registry.
+            foreach file $backups {
+                ::file rename -force -- "${file}${baksuffix}" $file
+            }
+            # reactivate deactivated ports
+            foreach entry [array names todeactivate] {
+                if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
+                    activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
+                }
+            }
+        } finally {
+            # We've completed all critical operations, re-enable the TERM and
+            # INT signals.
+            signal set $osignals
         }
-
-        # We've completed all critical operations, re-enable the TERM and INT
-        # signals.
-        signal unblock {TERM INT}
 
         # remove temp image dir
         ::file delete -force $extracted_dir
@@ -660,18 +673,38 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     # are after their elements.
     set files [lsort -decreasing -unique $files]
 
-    # Remove all elements.
-    if {!$rollback} {
-        registry::write {
-            $port deactivate $imagefiles
+    # Avoid interruptions while removing the files and updating the database to
+    # prevent inconsistencies from forming between filesystem and database.
+    set osignals [signal get {TERM INT}]
+
+    try {
+        # Block the TERM and INT signals to avoid being interrupted. Note that
+        # they might already be block at this point because
+        # _deactivate_contents might be called during rollback of
+        # _activate_contents, but because we're storing the old signal state
+        # and returning to that instead of unblocking it doesn't matter.
+        signal block {TERM INT}
+
+        # Remove all elements.
+        if {!$rollback} {
+            registry::write {
+                $port deactivate $imagefiles
+                foreach file $files {
+                    _deactivate_file $file
+                }
+
+                # Update the port's state in the same transaction as the file
+                # delete operations.
+                $port state imaged
+            }
+        } else {
             foreach file $files {
                 _deactivate_file $file
             }
         }
-    } else {
-        foreach file $files {
-            _deactivate_file $file
-        }
+    } finally {
+        # restore the signal block state
+        signal set $osignals
     }
 }
 
