@@ -4,6 +4,10 @@
 ###
 
 Release 2.4 (unreleased)
+    - Display notes for installed or updated ports at the end of the
+      installation to prevent them from getting lost in the scrolling output.
+      (#24507, cal in r118304, patch by snc)
+
     - Handle SIGTERM and SIGINT (^C) in MacPorts to prevent inconsistencies in
       the registry database when MacPorts is aborted during a critical
       operation. (cal in r118297 and r118298)
