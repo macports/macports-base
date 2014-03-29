@@ -1580,12 +1580,16 @@ proc target_run {ditem} {
             # - this step is not to always be performed
             # - this step must be written to file
             if {$skipped == 0
-          && [ditem_key $ditem runtype] ne "always"
-          && [ditem_key $ditem state] ne "no"} {
-            write_statefile target $targetname $target_state_fd
+                && [ditem_key $ditem runtype] ne "always"
+                && [ditem_key $ditem state] ne "no"} {
+                write_statefile target $targetname $target_state_fd
             }
         } else {
-            ui_error "$targetname for port $portname returned: $errstr"
+            if {$errstr ne {}} {
+                ui_error "Failed to $target $portname: $errstr"
+            } else {
+                ui_error "Failed to $target $portname."
+            }
             ui_debug "Error code: $errcode"
             ui_debug "Backtrace: $errinfo"
             set result 1
@@ -2132,7 +2136,8 @@ proc check_variants {target} {
 
         array set oldvariations {}
         if {[check_statefile_variants variations oldvariations $state_fd]} {
-            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean [option subport]' or specify the force option (-f)."
+            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\"."
+            ui_error "Please use the same variants again, perform 'port clean [option subport]' or specify the force option (-f)."
             set result 1
         } elseif {!([info exists ports_dryrun] && $ports_dryrun eq "yes")} {
             # Write variations out to the statefile

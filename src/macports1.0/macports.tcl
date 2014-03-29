@@ -1972,10 +1972,9 @@ proc _mportexec {target mport} {
     } else {
         # An error occurred.
         global ::logenabled ::debuglogname
-        ui_error "Failed to install $portname"
         ui_debug $::errorInfo
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
-            ui_notice "Please see the log file for port $portname for details:\n    $::debuglogname"
+            ui_error "See $::debuglogname for details."
         }
         macports::pop_log
         return 1
@@ -2059,11 +2058,16 @@ proc mportexec {mport target} {
         registry::exclusive_unlock
 
         if {$result ne {}} {
-            set errstring "The following dependencies were not installed:"
-            foreach ditem $result {
-                append errstring " [ditem_key $ditem provides]"
-            }
-            ui_error $errstring
+            ##
+            # When this happens, the failing port usually already printed an
+            # error message. Omit this one to avoid cluttering the output and
+            # hiding the *real* problem.
+
+            #set errstring "The following dependencies were not installed:"
+            #foreach ditem $result {
+            #    append errstring " [ditem_key $ditem provides]"
+            #}
+            #ui_error $errstring
             foreach ditem $dlist {
                 catch {mportclose $ditem}
             }
@@ -2101,7 +2105,7 @@ proc mportexec {mport target} {
     global ::logenabled ::debuglogname
     if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
         if {$result != 0} {
-            ui_notice "Please see the log file for port $portname for details:\n    $::debuglogname"
+            ui_error "See $::debuglogname for details."
         }
         macports::pop_log
     }

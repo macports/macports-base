@@ -245,7 +245,7 @@ proc break_softcontinue { msg status name_status } {
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
     if {${macports::prefix} ne "/usr/local" && ${macports::prefix} ne "/usr"} {
-        ui_notice "To report a bug, follow the instructions in the guide:\n    http://guide.macports.org/#project.tickets"
+        ui_error "Follow http://guide.macports.org/#project.tickets to report a bug."
     }
 }
 
@@ -4103,7 +4103,7 @@ proc action_target { action portlist opts } {
             set status [action_revupgrade $action $portlist $opts]
         }
     }
-    
+
     return $status
 }
 
