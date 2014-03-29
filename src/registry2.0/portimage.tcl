@@ -40,6 +40,8 @@ package require registry_util 2.0
 package require macports 1.0
 package require Pextlib 1.0
 
+package require Tclx
+
 set UI_PREFIX "--> "
 
 # Port Images are installations of the destroot of a port into a compressed
@@ -539,6 +541,19 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         lappend rollback_filelist $file
                     }
                 }
+            } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                # Pressing ^C will (often?) print "^C" to the terminal; send
+                # a linebreak so our message appears after that.
+                ui_msg ""
+                ui_msg "Control-C pressed, rolling back, please wait."
+                # can't do it here since we're already inside a transaction
+                set deactivate_this yes
+                throw
+            } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                ui_msg "SIGTERM received, rolling back, please wait."
+                # can't do it here since we're already inside a transaction
+                set deactivate_this yes
+                throw
             } catch {*} {
                 ui_debug "Activation failed, rolling back."
                 # can't do it here since we're already inside a transaction
@@ -547,6 +562,10 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
             }
         }
     } catch {*} {
+        # This code must run to completion, or the installation might be left
+        # in an inconsistent state
+        signal block {TERM INT}
+
         # roll back activation of this port
         if {[info exists deactivate_this]} {
             _deactivate_contents $port $rollback_filelist yes yes
@@ -563,6 +582,11 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                 activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
             }
         }
+
+        # We've completed all critical operations, re-enable the TERM and INT
+        # signals.
+        signal unblock {TERM INT}
+
         # remove temp image dir
         ::file delete -force $extracted_dir
         throw
