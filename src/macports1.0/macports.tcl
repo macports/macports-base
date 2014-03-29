@@ -36,6 +36,7 @@
 package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
+package require Tclx
 
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases
@@ -587,6 +588,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Set the system encoding to utf-8
     encoding system utf-8
+
+    # Set up signal handling for SIGTERM and SIGINT
+    # Specifying error here will case the program to abort where it is with
+    # a Tcl error, which can be caught, if necessary.
+    signal -restart error {TERM INT}
 
     # set up platform info variables
     set os_arch $tcl_platform(machine)
