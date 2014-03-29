@@ -1294,6 +1294,14 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
         $workername alias ui_progress_download $macports::ui_options(progress_download)
     }
 
+    # notifications callback
+    if {[info exists macports::ui_options(notifications_append)]} {
+        $workername alias ui_notifications_append $macports::ui_options(notifications_append)
+    } else {
+        # provide a no-op if notifications_append wasn't set. See http://wiki.tcl.tk/3044
+        $workername alias ui_notifications_append return -level 0
+    }
+
     $workername alias ui_prefix ui_prefix
     $workername alias ui_channels ui_channels
 

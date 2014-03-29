@@ -4639,6 +4639,9 @@ proc process_cmd { argv } {
             registry::exclusive_unlock
         }
 
+        # Print notifications of just-activated ports.
+        portclient::notifications::display
+
         # semaphore to exit
         if {$action_status == -999} break
     }
@@ -5167,6 +5170,74 @@ namespace eval portclient::progress {
     }
 }
 
+namespace eval portclient::notifications {
+    ##
+    # Ports whose notifications to display; these were either installed
+    # or requested to be installed.
+    variable notificationsToPrint
+    array set notificationsToPrint {}
+
+    ##
+    # Add a port to the list for printing notifications.
+    #
+    # @param name
+    #        The name of the port.
+    # @param note
+    #        A list of notes to be stored for the given port.
+    proc append {name notes} {
+        variable notificationsToPrint
+
+        set notificationsToPrint($name) $notes
+    }
+
+    ##
+    # Print port notifications.
+    #
+    proc display {} {
+        global env
+        variable notificationsToPrint
+
+        # Display notes at the end of the activation phase.
+        if {[array size notificationsToPrint] > 0} {
+            ui_notice "--->  Some of the ports you installed have notes:"
+            foreach {name notes} [array get notificationsToPrint] {
+                ui_notice "  $name has the following notes:"
+
+                # If env(COLUMNS) exists, limit each line's width to this width.
+                if {[info exists env(COLUMNS)]} {
+                    set maxlen $env(COLUMNS)
+
+                    foreach note $notes {
+                        foreach line [split $note "\n"] {
+                            set joiner ""
+                            set lines ""
+                            set newline "    "
+
+                            foreach word [split $line " "] {
+                                if {[string length $newline] + [string length $word] >= $maxlen} {
+                                    lappend lines $newline
+                                    set newline "    "
+                                    set joiner ""
+                                }
+                                ::append newline $joiner $word
+                                set joiner " "
+                            }
+                            if {$newline ne {}} {
+                                lappend lines $newline
+                            }
+                            ui_notice [join $lines "\n"]
+                        }
+                    }
+                } else {
+                    foreach note $notes {
+                        ui_notice $note
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 ##########################################
 # Main
@@ -5221,6 +5292,8 @@ if {[isatty stdout]
     set ui_options(progress_download) portclient::progress::download
     set ui_options(progress_generic)  portclient::progress::generic
 }
+
+set ui_options(notifications_append) portclient::notifications::append
 
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]

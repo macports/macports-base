@@ -60,42 +60,11 @@ proc portactivate::activate_start {args} {
 }
 
 proc portactivate::activate_main {args} {
-    global env subport version revision portvariants user_options PortInfo startupitem.autostart UI_PREFIX
+    global subport version revision portvariants user_options PortInfo
 
     registry_activate $subport $version $revision $portvariants [array get user_options]
-
-    # Display notes at the end of the activation phase.
-    if {[info exists PortInfo(notes)] && $PortInfo(notes) ne {}} {
-        ui_notice ""
-        foreach note $PortInfo(notes) {
-            # If env(COLUMNS) exists, limit each line's width to this width.
-            if {[info exists env(COLUMNS)]} {
-                set maxlen $env(COLUMNS)
-
-                foreach line [split $note "\n"] {
-                    set joiner ""
-                    set lines ""
-                    set newline ""
-
-                    foreach word [split $line " "] {
-                        if {[string length $newline] + [string length $word] >= $maxlen} {
-                            lappend lines $newline
-                            set newline ""
-                            set joiner ""
-                        }
-                        append newline $joiner $word
-                        set joiner " "
-                    }
-                    if {$newline ne {}} {
-                        lappend lines $newline
-                    }
-                    ui_notice [join $lines "\n"]
-                }
-            } else {
-                ui_notice $note
-            }
-        }
-        ui_notice ""
+    if {[info exists PortInfo(notes)] && [llength $PortInfo(notes)] > 0} {
+        ui_notifications_append $subport $PortInfo(notes)
     }
 
     return 0
