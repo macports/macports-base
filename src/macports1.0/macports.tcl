@@ -3999,7 +3999,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 if {[info exists ::errorInfo]} {
                     ui_debug $::errorInfo
                 }
-                ui_error "Unable to upgrade port: $result"
                 catch {mportclose $mport}
                 return 1
             }
@@ -4008,7 +4007,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 if {[info exists ::errorInfo]} {
                     ui_debug $::errorInfo
                 }
-                ui_error "Unable to upgrade port: $result"
                 catch {mportclose $mport}
                 return 1
             }
@@ -4019,7 +4017,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 if {[info exists ::errorInfo]} {
                     ui_debug $::errorInfo
                 }
-                ui_error "Unable to upgrade port: $result"
                 catch {mportclose $mport}
                 return 1
             }
