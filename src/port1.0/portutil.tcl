@@ -1684,11 +1684,14 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
         # somebody broke!
-        set errstring "Warning: targets not executed for $subport:"
-        foreach ditem $dlist {
-            append errstring " [ditem_key $ditem name]"
-        }
-        ui_info $errstring
+        # The phase that failed should have already printed error info; don't
+        # print useless stuff cluttering the *real* info of the error message.
+
+        #set errstring "Warning: targets not executed for $subport:"
+        #foreach ditem $dlist {
+        #    append errstring " [ditem_key $ditem name]"
+        #}
+        #ui_info $errstring
         set result 1
     } else {
         set result 0
