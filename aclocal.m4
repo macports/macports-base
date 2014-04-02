@@ -109,6 +109,9 @@ dnl  - Parameters to pass to the configure script
 dnl
 dnl MP_CONFIG_TARBALL([path-to-tarball], [dir-extracted-from-tarball-with-configure], [configure-parameters])
 AC_DEFUN([MP_CONFIG_TARBALL], [
+	AC_PATH_PROG(GZIP, [gzip], [])
+	AC_PATH_PROG(BZIP2, [bzip2], [])
+
 	mp_tarball="$1"
 	ac_dir=$2
 
@@ -120,10 +123,16 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 		mp_tarball_extract_cmd=
 		case "$mp_tarball" in
 			*.tar.gz | *.tgz)
-				mp_tarball_extract_cmd="gzip"
+				if test "x$GZIP" = "x"; then
+					AC_MSG_ERROR([gzip not found])
+				fi
+				mp_tarball_extract_cmd="$GZIP"
 				;;
 			*.tar.bz2 | *.tbz2)
-				mp_tarball_extract_cmd="bzip2"
+				if test "x$BZIP2" = "x"; then
+					AC_MSG_ERROR([bzip2 not found])
+				fi
+				mp_tarball_extract_cmd="$BZIP2"
 				;;
 			*)
 				AC_MSG_ERROR([Don't know how to extract tarball $mp_tarball])
