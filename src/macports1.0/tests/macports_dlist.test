@@ -4,7 +4,6 @@ package require tcltest 2
 namespace import tcltest::*
 
 source ../macports_test_autoconf.tcl
-source $macports::autoconf::macports_tcl_dir/macports1.0/macports_fastload.tcl
 package require macports 1.0
 
 # Debug options

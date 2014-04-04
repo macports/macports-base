@@ -3,7 +3,7 @@ VPATH  = @srcdir@
 
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	../..
-SCRIPTS=	portmirror portindex port
+SCRIPTS=	portmirror portindex port port-tclsh
 
 edit = sed \
 	-e 's,@TCLSH\@,$(TCLSH),g' \
@@ -24,6 +24,9 @@ portindex: portindex.tcl ../../Mk/macports.autoconf.mk
 port: port.tcl ../../Mk/macports.autoconf.mk
 	${edit} $(srcdir)/port.tcl > $@
 
+port-tclsh: port-tclsh.in ../../Mk/macports.autoconf.mk
+	${edit} $(srcdir)/port-tclsh.in > $@
+
 mkdirs:
 	< ../../doc/prefix.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
 	< ../../doc/base.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
@@ -39,6 +42,6 @@ distclean: clean
 install: all mkdirs
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/var/macports
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror port-tclsh ${INSTALLDIR}/bin/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $(srcdir)/port-help.tcl  ${INSTALLDIR}/var/macports/
 	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf

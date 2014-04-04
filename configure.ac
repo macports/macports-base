@@ -417,7 +417,6 @@ AC_CONFIG_FILES([
 	src/machista1.0/Makefile
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
-	src/macports1.0/macports_fastload.tcl
 	src/macports1.0/macports_test_autoconf.tcl
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
@@ -433,6 +432,9 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
+AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
+AC_CONFIG_FILES([src/upgrade_sources_conf_default.tcl], [chmod +x src/upgrade_sources_conf_default.tcl])
 
 AC_OUTPUT

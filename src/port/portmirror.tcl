@@ -8,7 +8,6 @@
 # Updates the distfiles to current distfiles by deleting old stuff.
 # Uses the database.
 
-source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
 package require macports
 package require Pextlib
 

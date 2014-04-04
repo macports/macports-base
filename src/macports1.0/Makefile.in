@@ -2,7 +2,7 @@ srcdir = @srcdir@
 VPATH  = @srcdir@
 
 SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
-		macports_autoconf.tcl macports_fastload.tcl
+		macports_autoconf.tcl
 OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
@@ -22,7 +22,7 @@ test::
 	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor
 
 distclean:: clean
-	rm -f macports_autoconf.tcl macports_fastload.tcl macports_test_autoconf.tcl ${SHLIB_NAME}
+	rm -f macports_autoconf.tcl macports_test_autoconf.tcl ${SHLIB_NAME}
 	rm -f Makefile
 
 install:: all
