@@ -542,6 +542,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::ui_init $priority
     }
 
+    package require Pextlib 1.0
+    package require registry 1.0
+    package require registry2 2.0
+    package require machista 1.0
 
     global auto_path env tcl_platform \
         macports::autoconf::macports_conf_path \
