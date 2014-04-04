@@ -9,7 +9,7 @@ OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/macports1.0
-OLDINSTALLDIR= ${datadir}/macports
+OLDINSTALLDIR= ${datadir}/macports/Tcl
 
 ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
 	LIBS+= -framework CoreFoundation -framework SystemConfiguration
