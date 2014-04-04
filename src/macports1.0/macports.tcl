@@ -41,7 +41,7 @@ package require Tclx
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases
     variable bootstrap_options "\
-        portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
+        portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type startupitem_install place_worksymlink xcodeversion xcodebuildcmd \
@@ -555,7 +555,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::sources \
         macports::sources_default \
         macports::destroot_umask \
-        macports::libpath \
         macports::prefix \
         macports::macportsuser \
         macports::prefix_frozen \
@@ -875,10 +874,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set portsharepath ${prefix}/share/macports
     if {![file isdirectory $portsharepath]} {
         return -code error "Data files directory '$portsharepath' must exist"
-    }
-
-    if {![info exists libpath]} {
-        set libpath ${prefix}/share/macports/Tcl
     }
 
     if {![info exists binpath]} {
@@ -3376,10 +3371,10 @@ proc macports::_deptypes_for_target {target workername} {
 
 # selfupdate procedure
 proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
-    global macports::prefix macports::portdbpath macports::libpath \
-           macports::rsync_server macports::rsync_dir macports::rsync_options \
-           macports::autoconf::macports_version macports::autoconf::rsync_path \
-           tcl_platform macports::autoconf::openssl_path macports::autoconf::tar_path
+    global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir \
+           macports::rsync_options macports::autoconf::macports_version \
+           macports::autoconf::rsync_path tcl_platform macports::autoconf::openssl_path \
+           macports::autoconf::tar_path
     array set options $optionslist
 
     # variable that indicates whether we actually updated base
@@ -3504,17 +3499,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
             }
             ui_debug "Permissions OK"
 
-            # where to install a link to our macports1.0 tcl package
-            set mp_tclpackage_path [file join $portdbpath .tclpackage]
-            if {[file exists $mp_tclpackage_path]} {
-                set fd [open $mp_tclpackage_path r]
-                gets $fd tclpackage
-                close $fd
-            } else {
-                set tclpackage $libpath
-            }
-
-            set configure_args "--prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms"
+            set configure_args "--prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms"
             # too many users have an incompatible readline in /usr/local, see ticket #10651
             if {$tcl_platform(os) ne {Darwin} || $prefix eq {/usr/local}
                 || ([glob -nocomplain /usr/local/lib/lib{readline,history}*] eq {} && [glob -nocomplain /usr/local/include/readline/*.h] eq {})} {
@@ -3534,7 +3519,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
             }
 
             # do the actual configure, build and installation of new base
-            ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}; Tcl-Package in $tclpackage\n"
+            ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}\n"
             if {[catch {system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1"} result]} {
                 return -code error "Error installing new MacPorts base: $result"
             }
