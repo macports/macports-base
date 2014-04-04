@@ -1,11 +1,12 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 OBJS=		tclobjc.o tclobjc_types.o MPMethodSignatureExtensions.o objc_encoding.o
 SHLIB_NAME=	tclobjc${SHLIB_SUFFIX}
-INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/tclobjc1.0
+INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/tclobjc1.0
 
-include ../../Mk/macports.autoconf.mk
 include $(srcdir)/../../Mk/macports.tea.mk
 
 LDFLAGS+=	${OBJC_FOUNDATION_LDFLAGS}

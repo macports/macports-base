@@ -311,9 +311,6 @@ eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
 AC_SUBST(MPCONFIGDIR_EXPANDED)
 eval "localstatedir_expanded=$localstatedir"
 AC_SUBST(localstatedir_expanded)
-eval "macports_tcl_dir=${datadir}/macports/Tcl"
-eval "macports_tcl_dir=$macports_tcl_dir"
-AC_SUBST(macports_tcl_dir)
 # Compute the libexec dir for the vendor packages
 eval "macports_libexec_dir=${libexecdir}/macports"
 eval "macports_libexec_dir=$macports_libexec_dir"

@@ -1023,21 +1023,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set keepenvkeys [concat $keepenvkeys $extra_env]
     }
 
-    if {[file isdirectory $libpath]} {
-        lappend auto_path $libpath
-        set macports::auto_path $auto_path
-
-        # XXX: not sure if this the best place, but it needs to happen
-        # early, and after auto_path has been set.  Or maybe Pextlib
-        # should ship with macports1.0 API?
-        package require Pextlib 1.0
-        package require registry 1.0
-        package require registry2 2.0
-        package require machista 1.0
-    } else {
-        return -code error "Library directory '$libpath' must exist"
-    }
-
     # set the hidden flag on $portdbpath to avoid spotlight indexing, which
     # might slow builds down considerably. You can avoid this by touching
     # $portdbpath/.nohide.

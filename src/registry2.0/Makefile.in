@@ -3,6 +3,8 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 SRCS_AUTOCONF = registry_autoconf.tcl
 SRCS = registry.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portimage.tcl portuninstall.tcl
 OBJS = registry.o util.o \
@@ -12,9 +14,8 @@ OBJS = registry.o util.o \
 	#graph.o graphobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}
-INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/registry2.0
+INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/registry2.0
 
-include ../../Mk/macports.autoconf.mk
 include $(srcdir)/../../Mk/macports.tea.mk
 
 pkgIndex.tcl: $(SRCS) $(SRCS_AUTOCONF)

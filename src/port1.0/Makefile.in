@@ -1,7 +1,9 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/port1.0
+include ../../Mk/macports.autoconf.mk
+
+INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/port1.0
 
 SRCS_AUTOCONF= port_autoconf.tcl
 SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
@@ -13,7 +15,6 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portdistfiles.tcl fetch_common.tcl portsandbox.tcl
 
 include $(srcdir)/../../Mk/macports.subdir.mk
-include ../../Mk/macports.autoconf.mk
 
 .PHONY: test
 

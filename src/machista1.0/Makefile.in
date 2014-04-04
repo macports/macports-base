@@ -1,9 +1,11 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 OBJS= 		libmachista.o hashmap.o machista_wrap.o
 SHLIB_NAME= machista${SHLIB_SUFFIX}
-INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/machista1.0
+INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/machista1.0
 
 SWIG         = @SWIG@
 SWIG_FLAGS   = -tcl8 -pkgversion 1.0 -namespace
@@ -15,7 +17,6 @@ SWIG_OBJS  = ${SWIG_SRCS:%.c=%.o}
 
 TESTS = ./tests/libmachista-test
 
-include ../../Mk/macports.autoconf.mk
 include $(srcdir)/../../Mk/macports.tea.mk
 
 CFLAGS+= -fPIC

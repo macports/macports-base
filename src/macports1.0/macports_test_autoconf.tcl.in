@@ -32,6 +32,5 @@
 #
 
 namespace eval macports::autoconf {
-    variable macports_tcl_dir "@macports_tcl_dir@"
     variable prefix "@prefix@"
 }

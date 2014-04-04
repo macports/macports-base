@@ -1,16 +1,15 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
 		macports_autoconf.tcl
 OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
-INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/macports1.0
-INSTALLPKGLINK=	${TCL_PACKAGE_PATH}/macports1.0
-
-include ../../Mk/macports.autoconf.mk
-include $(srcdir)/../../Mk/macports.tea.mk
+INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/macports1.0
+OLDINSTALLDIR= ${datadir}/macports
 
 ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
 	LIBS+= -framework CoreFoundation -framework SystemConfiguration
@@ -26,6 +25,13 @@ distclean:: clean
 	rm -f Makefile
 
 install:: all
+	@# Clean up old instances of the MacPorts Tcl packages
+	if test -z "${DESTDIR}"; then rm -rf "${OLDINSTALLDIR}"; fi
+
+	@# Remove the previously installed link if it still exists. Without this,
+	@# creating the directory will fail.
+	if test -L "${INSTALLDIR}"; then rm -rf "${INSTALLDIR}"; fi
+
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 
 	$(SILENT) set -x; for file in ${SRCS}; do \
@@ -34,17 +40,5 @@ install:: all
 
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
 
-	echo "${TCL_PACKAGE_PATH}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
-	if test -z "${DESTDIR}" -a "${INSTALLPKGLINK}" != "${INSTALLDIR}"; then \
-		if test ! -L "${INSTALLPKGLINK}"; then \
-            if test ! -e "${TCL_PACKAGE_PATH}"; then \
-                $(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${TCL_PACKAGE_PATH}" || true; \
-            fi; \
-            if test -d "${INSTALLPKGLINK}"; then \
-                rm -vrf "${INSTALLPKGLINK}" || true; \
-            fi; \
-            if test ! -e "${INSTALLPKGLINK}"; then \
-                ln -vs "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
-            fi; \
-        fi; \
-	fi
+
+include $(srcdir)/../../Mk/macports.tea.mk

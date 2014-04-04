@@ -1,15 +1,13 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	../..
 SCRIPTS=	portmirror portindex port port-tclsh
 
-edit = sed \
-	-e 's,@TCLSH\@,$(TCLSH),g' \
-	-e 's,@macports_tcl_dir\@,$(macports_tcl_dir),g'
-
-include ../../Mk/macports.autoconf.mk
+edit = sed -e 's,@TCLSH\@,$(TCLSH),g'
 
 .PHONY: mkdirs
 

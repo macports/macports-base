@@ -1,14 +1,14 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 # This Makefile will only be run on Darwin systems; we can safely use
 # Apple-specifics here
 SRCS=		$(wildcard *.c)
 OBJS=		$(SRCS:%.c=%.o)
 SHLIB_NAME=	darwintrace${SHLIB_SUFFIX}
-INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/darwintrace1.0
-
-include ../../Mk/macports.autoconf.mk
+INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/darwintrace1.0
 
 # Yes, we know having $ signs in identifiers is not a very good idea; in the
 # case of darwintrace we still need them, though.

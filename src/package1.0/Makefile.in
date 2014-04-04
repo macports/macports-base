@@ -1,13 +1,13 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/package1.0
+include ../../Mk/macports.autoconf.mk
+
+INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/package1.0
 
 SRCS=	package.tcl portdmg.tcl portmdmg.tcl portmpkg.tcl portpkg.tcl \
 	portrpm.tcl portsrpm.tcl portdpkg.tcl portunarchive.tcl \
 	portarchivefetch.tcl
-
-include ../../Mk/macports.autoconf.mk
 
 all:: pkgIndex.tcl
 

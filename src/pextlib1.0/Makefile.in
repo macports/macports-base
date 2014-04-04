@@ -1,6 +1,8 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
+include ../../Mk/macports.autoconf.mk
+
 OBJS= \
 	Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
 	fs-traverse.o strcasecmp.o vercomp.o filemap.o base32cmd.o \
@@ -12,9 +14,8 @@ OBJS+=strlcat.o
 endif
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
-INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/pextlib1.0
+INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/pextlib1.0
 
-include ../../Mk/macports.autoconf.mk
 include $(srcdir)/../../Mk/macports.tea.mk
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
