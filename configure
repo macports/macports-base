@@ -11299,10 +11299,16 @@ $as_echo "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/freebsd/Makefile portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_fastload.tcl src/macports1.0/macports_test_autoconf.tcl src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile vendor/Makefile"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/freebsd/Makefile portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile vendor/Makefile"
 
+
+ac_config_files="$ac_config_files src/dedup_portfiles.tcl"
+
+ac_config_files="$ac_config_files src/images_to_archives.tcl"
 
 ac_config_files="$ac_config_files src/pkg_mkindex.sh"
+
+ac_config_files="$ac_config_files src/upgrade_sources_conf_default.tcl"
 
 
 cat >confcache <<\_ACEOF
@@ -12015,7 +12021,6 @@ do
     "src/machista1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/machista1.0/Makefile" ;;
     "src/macports1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/macports1.0/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
-    "src/macports1.0/macports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_fastload.tcl" ;;
     "src/macports1.0/macports_test_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_test_autoconf.tcl" ;;
     "src/package1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/package1.0/Makefile" ;;
     "src/package1.0/package_test_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/package1.0/package_test_autoconf.tcl" ;;
@@ -12029,7 +12034,10 @@ do
     "src/registry2.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry2.0/registry_autoconf.tcl" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "vendor/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/Makefile" ;;
+    "src/dedup_portfiles.tcl") CONFIG_FILES="$CONFIG_FILES src/dedup_portfiles.tcl" ;;
+    "src/images_to_archives.tcl") CONFIG_FILES="$CONFIG_FILES src/images_to_archives.tcl" ;;
     "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
+    "src/upgrade_sources_conf_default.tcl") CONFIG_FILES="$CONFIG_FILES src/upgrade_sources_conf_default.tcl" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -12582,7 +12590,10 @@ $as_echo "$as_me: $ac_file is unchanged" >&6;}
 
 
   case $ac_file$ac_mode in
+    "src/dedup_portfiles.tcl":F) chmod +x src/dedup_portfiles.tcl ;;
+    "src/images_to_archives.tcl":F) chmod +x src/images_to_archives.tcl ;;
     "src/pkg_mkindex.sh":F) chmod +x src/pkg_mkindex.sh ;;
+    "src/upgrade_sources_conf_default.tcl":F) chmod +x src/upgrade_sources_conf_default.tcl ;;
 
   esac
 done # for ac_tag
