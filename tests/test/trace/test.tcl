@@ -23,14 +23,13 @@ proc test_trace {} {
     port_index
     port_clean $path
 
-
-    makeDirectory ../tracetesttmp
-    file attributes ../tracetesttmp -owner $user
-
     file delete -force /tmp/hello-trace
     file delete -force /tmp/link-trace2
     file link -symbolic /tmp/link-trace2 /usr/include/unistd.h
+
+    makeDirectory ../tracetesttmp
     if {[getuid] == 0} {
+		file attributes ../tracetesttmp -owner $user
         exec chown -h $user /tmp/link-trace2
     }
 
