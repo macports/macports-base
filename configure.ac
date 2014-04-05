@@ -426,6 +426,7 @@ AC_CONFIG_FILES([
 	src/registry2.0/Makefile
 	src/registry2.0/registry_autoconf.tcl
 	tests/Makefile
+	tests/test.tcl
 	vendor/Makefile
 ])
 
