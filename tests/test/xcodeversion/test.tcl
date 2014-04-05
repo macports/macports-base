@@ -11,7 +11,7 @@ proc xcode_ver {} {
 
     set xcode "xcodeversion*"
     set line [get_line $path/$output_file $xcode]
-    return $line
+    return [string tolower $line]
 }
 
 proc xcode_binpath {} {
@@ -19,7 +19,7 @@ proc xcode_binpath {} {
 
     set xcode "xcodebuildcmd*"
     set line [get_line $path/$output_file $xcode]
-    return $line
+    return [string tolower $line]
 }
 
 test envvariables {

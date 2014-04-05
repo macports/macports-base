@@ -11,7 +11,7 @@ proc var_check {} {
 
     set var "utopia variant*"
     set line [get_line $path/$output_file $var]
-    return $line
+    return [string tolower $line]
 }
 
 

@@ -14,7 +14,7 @@ proc dep-e {} {
 
     set err "error: dependency 'docbook-xml-4.1.2' not found*"
     set line [get_line $output_file $err]
-    return $line
+    return [string tolower $line]
 }
 
 test dependencies-e {

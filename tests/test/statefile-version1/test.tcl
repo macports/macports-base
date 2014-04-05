@@ -25,7 +25,7 @@ proc statefile_v1 {warn} {
         set msg "*staging*destroot*"
     }
     set line [get_line $path/$output_file $msg]
-    return $line
+    return [string tolower $line]
 }
 
 test warning_check {
