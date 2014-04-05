@@ -15,10 +15,12 @@ set test_suite {
     statefile-version2-invalid
     statefile-version2-outdated
     svn-and-patchsites
-    trace
     universal
     variants
     xcodeversion
+}
+if {@TRACEMODE_SUPPORT@ != 0} {
+	lappend test_suite trace
 }
 set arguments ""
 set test_name ""
