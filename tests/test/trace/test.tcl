@@ -1,4 +1,8 @@
 package require tcltest 2
+
+# need pextlib to drop privs
+package require Pextlib 1.0
+
 namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
@@ -22,16 +26,27 @@ proc test_trace {} {
 
     makeDirectory ../tracetesttmp
     file attributes ../tracetesttmp -owner $user
-    exec sudo -u $user touch  ../tracetesttmp/delete-trace
-    exec sudo -u $user touch ../tracetesttmp/rename-trace
-    exec sudo -u $user mkdir ../tracetesttmp/rmdir-trace
+
     file delete -force /tmp/hello-trace
+    file delete -force /tmp/link-trace2
     file link -symbolic /tmp/link-trace2 /usr/include/unistd.h
-    exec chown -h $user /tmp/link-trace2
+    if {[getuid] == 0} {
+        exec chown -h $user /tmp/link-trace2
+    }
+
+    if {[getuid] == 0} {
+        seteuid [name_to_uid $user]
+    }
+    exec touch  ../tracetesttmp/delete-trace
+    exec touch ../tracetesttmp/rename-trace
+    exec mkdir ../tracetesttmp/rmdir-trace
+    if {[getuid] == 0} {
+        seteuid 0
+    }
 
     port_trace $path
-    
-    #file delete -force /tmp/link-trace2
+
+    file delete -force /tmp/link-trace2
     file delete -force /tmp/hello-trace
 
     set err "error*"
