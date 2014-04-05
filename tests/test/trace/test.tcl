@@ -26,7 +26,6 @@ proc test_trace {} {
     exec sudo -u $user touch ../tracetesttmp/rename-trace
     exec sudo -u $user mkdir ../tracetesttmp/rmdir-trace
     file delete -force /tmp/hello-trace
-    file attributes /usr/include/unistd.h -owner $user
     file link -symbolic /tmp/link-trace2 /usr/include/unistd.h
     exec chown -h $user /tmp/link-trace2
 
@@ -46,8 +45,6 @@ proc test_trace {} {
 
 test trace {
     Regression test for trace.
-} -constraints {
-    root
 } -body {
     test_trace
 } -result "No errors found."
