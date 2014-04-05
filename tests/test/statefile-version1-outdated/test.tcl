@@ -12,8 +12,9 @@ set_dir
 port_index
 port_config $path
 file copy -force $path/statefile $work_dir/.macports.statefile-version1-outdated.state
+file attributes $work_dir/.macports.statefile-version1-outdated.state -permissions 0664
 exec touch -t 197001010000.09 $work_dir/.macports.statefile-version1-outdated.state
-port_desroot $path
+port_destroot $path
 port_clean $path
 
 proc state_v1 {warn} {

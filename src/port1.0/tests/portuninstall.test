@@ -19,9 +19,9 @@ source ../port_autoconf.tcl
 source ./library.tcl
 macports_worker_init
 
-set subport fondu
-set version 3.0
-set revision 2
+set subport gcc_select
+set version 0.1
+set revision 4
 
 
 # test uninstall_start

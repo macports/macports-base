@@ -24,12 +24,12 @@ test distcheck_main {
     set portpath $pwd
     set filespath $pwd/files
 
-    set name cocot
+    set name gcc_select
     set subport $name
-    set distname cocot-20080315
-    set porturl "http://distfiles.macports.org/cocot/"
+    set distname select-0.1
+    set porturl "http://distfiles.macports.org/gcc_select/"
     set master_sites $porturl
-    set extract.suffix .tar.bz2
+    set extract.suffix .tar.gz
 
 } -body {
     set fetch.type standard

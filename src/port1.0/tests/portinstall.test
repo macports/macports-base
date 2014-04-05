@@ -30,9 +30,9 @@ set supported_archs {}
 set configure.build_arch build_arch
 set portarchivetype tgz
 
-set subport fondu
-set version 3.0
-set revision 2
+set subport gcc_select
+set version 0.1
+set revision 4
 
 
 test install_start {

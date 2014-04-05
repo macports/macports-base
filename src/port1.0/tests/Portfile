@@ -1,36 +1,29 @@
-# $Id: Portfile 85472 2011-10-14 01:52:18Z dports@macports.org $
+# $Id$
 
-PortSystem              1.0
+PortSystem 1.0
 
-name                    fondu
-version                 060102
-revision                1
-platforms               darwin
-categories              print
-license                 BSD
-maintainers             nomaintainer
-homepage                http://fondu.sourceforge.net/
-master_sites            http://fondu.sourceforge.net/
+name			gcc_select
+version			0.1
+revision		4
+categories		sysutils
+platforms		darwin
+license		BSD
+maintainers		mww
+supported_archs		noarch
+description		Switch the default compiler
+long_description	gcc_select lets you switch the default compiler. \
+			It symlinks the standard compiler executables \
+			in the MacPorts prefix to the selected version.
 
-description             A set of programs to interconvert between Mac font \
-                        formats and pfb, ttf, otf and bdf files on UNIX.
-
-long_description        Dealing with Mac fonts is hard on other operating \
-                        systems because Mac fonts are stored in the resource \
-                        fork, and other operating systems do not support \
-                        this concept. Fondu will extract the resource fork \
-                        from either a MacBinary file or a BinHex file. Ufond \
-                        will create a resource fork inside a MacBinary file.
-
-checksums               md5 e20861beacddc1ab392bef7813641bf8
-extract.suffix          .tgz
-distfiles               ${name}_src-${version}${extract.suffix}
+homepage		http://svn.macports.org/repository/macports/contrib/select/
+master_sites		${homepage}
+distname		select-${version}
+checksums		sha1 18e1f95c2ddd88210aa52eb696261859af2dc3a4
 
 patchfiles
-
 patch {
     foreach patch $patchfiles {
-        set fd [open ${portpath}/files/${patch} r]
+        set fd [open ${filespath}/${patch} r]
         set var [gets $fd]
         close $fd
         set fd [open ${workpath}/${distname}/test_patch w+]
@@ -39,17 +32,16 @@ patch {
     }
 }
 
-post-patch {
-    reinplace "s|^CFLAGS = -g \$(WFLAGS)|CFLAGS = -g \$(WFLAGS) ${configure.cppflags} ${configure.cflags} ${configure.ldflags} [get_canonical_archflags]|g" ${worksrcpath}/Makefile.in
-}
-
-configure.args          --bindir=${prefix}/bin \
-                        --mandir=${prefix}/share/man
+configure.args		--mandir=${prefix}/share/man --name=gcc
 
 post-destroot {
-    eval xinstall -m 644 [glob ${worksrcpath}/*.1] ${destroot}${prefix}/share/man/man1/
+    xinstall -d ${destroot}${prefix}/etc/select/gcc
+    touch ${destroot}${prefix}/etc/select/gcc/base
 }
 
 test {
-    file delete -force $worksrcpath/README
+    touch ${worksrcpath}/README
+    file delete -force ${worksrcpath}/README
 }
+
+livecheck.type	none

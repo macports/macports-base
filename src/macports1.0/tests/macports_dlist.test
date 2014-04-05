@@ -20,7 +20,7 @@ test dlist_match_multi {
 } -setup {
     set mport [mportopen file://.]
     set crit {
-       provides fondu
+       provides gcc_select
        porturl file://.
     }
     set crit2 { provides fondu2 }
@@ -43,7 +43,7 @@ test dlist_search {
 } -setup {
     set mport [mportopen file://.]
 } -body {
-    if {[dlist_search $mport provides fondu] != $mport} {
+    if {[dlist_search $mport provides gcc_select] != $mport} {
        return "FAIL: matching item not found"
     }
     if {[dlist_search $mport provides fondu2] != ""} {
@@ -79,7 +79,7 @@ test dlist_has_pending {
 } -setup {
     set mport [mportopen file://.]
 } -body {
-    if {[dlist_has_pending $mport fondu] != 1} {
+    if {[dlist_has_pending $mport gcc_select] != 1} {
        return "FAIL: not detected"
     }
     if {[dlist_has_pending $mport provides] != 0} {
@@ -139,7 +139,7 @@ test dlist_get_next {
     Dlist get next unit test.
 } -setup {
     set mport [mportopen file://.]
-    set dict {fondu}
+    set dict {gcc_select}
 } -body {
     if {[dlist_get_next $mport $dict] != $mport} {
        return "FAIL: wrong dlist"

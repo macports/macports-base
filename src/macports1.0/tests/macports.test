@@ -34,20 +34,14 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
-package require portutil 1.0
-package require portinstall 1.0
-package require portuninstall 1.0
 package require Thread
-source ../../registry2.0/portuninstall.tcl
-source ../../port1.0/port_autoconf.tcl
 source ./library.tcl
-macports_worker_init
 
 
 test mportclose {
     Mport close unit test.
 } -setup {
-    set mport [mportopen file://.]
+    set mport [mportopen file://${pwd}]
 } -body {
     if {[catch {mportclose $mport}] != 0} {
        return "FAIL: cannot run mportclose"
@@ -62,12 +56,13 @@ test mportclose {
 
 
 test mportinfo {
-    Mport info uni test.
+    Mport info unit test.
 } -setup {
-    set mport [mportopen file://.]
+    set mport [mportopen file://${pwd}]
 } -body {
     set res [mportinfo $mport]
-    if {[lindex $res 2] != "canonical_active_variants"} {
+    catch {array set PortInfo $res}
+    if {![info exists PortInfo(canonical_active_variants)]} {
         return "FAIL: cannot get ::PortInfo"
     }
     return "Mport info successful."
@@ -76,99 +71,54 @@ test mportinfo {
 } -result "Mport info successful."
 
 
-test mportopen_installed {
-    Mport installed unit test.
+test worker_init {
+    Worker init unit test.
+} -setup {
+    set name [interp create]
+    set portpath $pwd/portpath
+    set porturl http://www.macports.org
+    set portbuildpath $pwd/build
+    set options {a b}
+    set variations {1 2}
+} -body {
+    macports::worker_init $name $portpath $porturl $portbuildpath $options $variations
+    if {$name ne "interp0"} {
+       return "FAIL: wrong workername"
+    }
+    if {[catch {$name eval source Portfile} result]} {
+       return "FAIL: cannot load Portfile"
+    }
+    if {[$name eval findBinary ls] ne "/bin/ls"} {
+       return "FAIL: alias not created"
+    }
+    if {[$name eval return \$os_arch] ne $macports::os_arch} {
+       return "FAIL: var not set"
+    }
+    return "Worker init successful."
+} -result "Worker init successful."
+
+
+test init_logging {
+    Init logging unit test.
 } -constraints {
     root
 } -setup {
-    set os.platform darwin
-    set macosx_version 10.8
-    set os.major 10
-    set os_version 11
-    set os_arch i386
-
-    set supported_archs {}
-    set configure.build_arch build_arch
-    set portarchivetype tgz
-
-    set destpath $pwd/work/destroot
-    set portdbpath $pwd/portdbpath
-    set workpath $pwd/fondu/work
-    set portpath $pwd
-
-    set subport fondu
-    set version 3.0
-    set revision 1
-    set epoch i386
-
-    file copy -force $pwd/Portfile /tmp/
-    set mport [mportopen file://.]
-
-    proc getportbuildpath {id {portname ""}} {
-        global portdbpath
-        regsub {://} $id {.} port_path
-        regsub -all {/} $port_path {_} port_path
-        return [file join $portdbpath build $port_path $portname]
-    }
-
-    proc getportworkpath_from_buildpath {portbuildpath} {
-        return [file join $portbuildpath work]
-    }
-
-    proc getportworkpath_from_portdir {portpath {portname ""}} {
-        return [getportworkpath_from_buildpath [getportbuildpath $portpath $portname]]
-    }
-
-    source $pwd/../../port1.0/portmain.tcl
-
-    # sets up PortInfo array
-    if {[eval_variants variations] != 0} {
-        mportclose $mport
-        error "Error evaluating variants"
-    }
-
-    # set $version var
-    set workername [ditem_key $mport workername]
-
-    # run destroot
-    $workername eval eval_targets destroot
-
-    # portinstall setup
-    interp alias {} _cd {} cd
-    set macosx_deployment_target $pwd/deploy_target
-    file mkdir $pwd/$subport
-    file link -symbolic $pwd/$subport/work $pwd/work
-
-    if {[catch {portinstall::install_main}] != 0} {
-        return "FAIL: cannot install port"
-    }
-
-    set variants {}
-    set options {}
-
+    set mport [mportopen file://${pwd}]
 } -body {
-    set res [mportopen_installed $subport $version $revision $variants $options]
-    if {![string match "ditem_*" $res]} {
-       return "FAIL: installed port not opened"
+    if {[macports::init_logging $mport] != 0} {
+       return "FAIL: incorrect channels"
     }
-
-    if {[catch {mportclose $res}] != 0} {
-       return "FAIL: cannot close port"
+    if {$macports::channels(any) != "stdout debuglog"} {
+       return "FAIL: incorrect channels(any)"
     }
-    if {[catch {mportclose $res}] != 1} {
-       return "FAIL: installed port not closed"
+    if {(![info exists ui_options(ports_debug)] && $macports::channels(debug) ne "debuglog") || 
+        ([info exists ui_options(ports_debug)] && $macports::channels(debug) ne "stderr debuglog")} {
+       return "FAIL: incorrect channels(debug)"
     }
-    return "Installed port open successful."
-
+    return "Init logging successful."
 } -cleanup {
-    if {[catch {portuninstall::uninstall_main}] != 0} {
-        return "FAIL: cannot install port"
-    }
     mportclose $mport
-
-    file delete -force $pwd/work
-    file delete -force $pwd/$subport
-} -result "Installed port open successful."
+} -result "Init logging successful."
 
 
 test ui_isset {
@@ -203,34 +153,12 @@ test global_option_isset {
 } -result "Global option isset successful."
 
 
-test init_logging {
-    Init logging unit test.
-} -constraints {
-    root
-} -setup {
-    set mport [mportopen file://.]
-} -body {
-    if {[macports::init_logging $mport] != 0} {
-       return "FAIL: incorrect channels"
-    }
-    if {$macports::channels(any) != "stdout debuglog"} {
-       return "FAIL: incorrect channels(any)"
-    }
-    if {$macports::channels(debug) != "debuglog"} {
-       return "FAIL: incorrect channels(debug)"
-    }
-    return "Init logging successful."
-} -cleanup {
-    mportclose $mport
-} -result "Init logging successful."
-
-
 test ch_logging {
     Channel logging unit test. Assumes main.log filename.
 } -constraints {
     root
 } -setup {
-    set mport [mportopen file://.]
+    set mport [mportopen file://${pwd}]
 
     set portname [_mportkey $mport subport]
     set portpath [_mportkey $mport portpath]
@@ -259,7 +187,7 @@ test push_log {
 } -constraints {
     root
 } -setup {
-    set mport [mportopen file://.]
+    set mport [mportopen file://${pwd}]
     set ::logenabled 1
 } -body {
     if {[catch {macports::push_log $mport}] != 0} {
@@ -280,7 +208,7 @@ test pop_log {
     set ::logenabled 1
     set ::logstack [open $pwd/logstack w+]
     set ::debuglog [open $pwd/log w+]
-    set mport [mportopen file://.]
+    set mport [mportopen file://${pwd}]
     if {[catch {macports::push_log $mport}] != 0} {
        return "FAIL: cannot push log"
     }
@@ -504,6 +432,54 @@ test _is_valid_developer_dir {
 # test mportinit
 
 
+test mportopen_installed {
+    Mport installed unit test.
+} -constraints {
+    root
+} -setup {
+    set subport gcc_select
+    set version 0.1
+    set revision 4
+
+    set mport [mportopen file://${pwd}]
+
+    # run destroot
+    mportexec $mport destroot
+
+    if {[catch {mportexec $mport activate}] != 0} {
+        ui_debug "$::errorInfo"
+        return "FAIL: cannot install port"
+    }
+
+    set variants {}
+    set options {}
+
+} -body {
+    set res [mportopen_installed $subport $version $revision $variants $options]
+    if {![string match "ditem_*" $res]} {
+       return "FAIL: installed port not opened"
+    }
+
+    if {[catch {mportclose $res}] != 0} {
+       return "FAIL: cannot close port"
+    }
+    if {[catch {mportclose $res}] != 1} {
+       return "FAIL: installed port not closed"
+    }
+    return "Installed port open successful."
+
+} -cleanup {
+    if {[catch {mportexec $mport uninstall}] != 0} {
+        return "FAIL: cannot uninstall port"
+    }
+    mportclose $mport
+
+    file delete -force $pwd/work
+    file delete -force $pwd/$subport
+    cd $pwd
+} -result "Installed port open successful."
+
+
 test mportshutdown {
     Mport shutdown unit test.
 } -setup {
@@ -557,33 +533,6 @@ test copy_xcode_plist {
 } -result "Copy xcode plist successful."
 
 
-test worker_init {
-    Worker init unit test.
-} -setup {
-    set name [interp create]
-    set portpath $pwd/portpath
-    set porturl http://www.macports.org
-    set portbuildpath $pwd/build
-    set options {a b}
-    set variations {1 2}
-} -body {
-    macports::worker_init $name $portpath $porturl $portbuildpath $options $variations
-    if {$name != "interp0"} {
-       return "FAIL: wrong workername"
-    }
-    if {[$name eval source Portfile] != "yes"} {
-       return "FAIL: cannot load Portfile"
-    }
-    if {[$name eval findBinary ls] != "/bin/ls"} {
-       return "FAIL: alias not created"
-    }
-    if {[$name eval return \$os_arch] != "i386"} {
-       return "FAIL: var not set"
-    }
-    return "Worker init successful."
-} -result "Worker init successful."
-
-
 test create_thread {
     Create thread unit test.
 } -body {
@@ -614,9 +563,9 @@ test get_tar_flags {
 test fetch_port {
     Fetch port unit test.
 } -body {
-    set url http://packages.macports.org/fondu/fondu-060102_1.darwin_10.x86_64.tbz2
+    set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
     set res [macports::fetch_port $url]
-    if {$res != "${pwd}/portdbpath/portdirs/fondu-060102_1"} {
+    if {$res != "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
 	return "FAIL: cannot fetch port"
     }
     return "Fetch port successful."
@@ -640,9 +589,9 @@ test getportdir {
 } -setup {
     close [open $pwd/local_file w+]
 } -body {
-    set url http://fondu.sourceforge.net/fondu_src-060102.tgz
+    set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
     set res [macports::getportdir $url]
-    if {$res != "${pwd}/portdbpath/portdirs/fondu_src-060102"} {
+    if {$res != "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
 	return "FAIL: invalid port directory"
     }
 
@@ -661,9 +610,9 @@ test getportresourcepath {
     Get port resource path. Doesn't check for 'file' protocol.
 } -body {
     set macports::portdbpath $pwd/portdbpath
-    set url "http://packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2"
+    set url "http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2"
     set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
-    set fallback_path $pwd/portdbpath/sources/packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2/_resources
+    set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2/_resources
 
     if {[macports::getportresourcepath $url "" yes] != $default_path} {
        return "FAIL: wrong resource path"
@@ -702,27 +651,29 @@ test getdefaultportresourcepath {
 
 
 test mporttraverse {
-    Mport traverse unit test. Uses 3rd column of the Portfile.
+    Mport traverse unit test. Uses 3rd line of the Portfile.
 } -setup {
     file mkdir $pwd/porttree
-    file mkdir $pwd/porttree/cat1/fondu
-    file mkdir $pwd/porttree/cat2/fondu
+    file mkdir $pwd/porttree/cat1/gcc_select
+    file mkdir $pwd/porttree/cat2/gcc_select
 
-    file copy -force $pwd/Portfile $pwd/porttree/cat1/fondu/Portfile
-    file copy -force $pwd/Portfile $pwd/porttree/cat2/fondu/Portfile
+    file copy -force $pwd/Portfile $pwd/porttree/cat1/gcc_select/Portfile
+    file copy -force $pwd/Portfile $pwd/porttree/cat2/gcc_select/Portfile
 
     proc test_proc {file} {
        global pwd res
        set fd [open ${pwd}/porttree/${file}/Portfile r]
+       gets $fd
+       gets $fd
        gets $fd line
-       append res [lindex [split $line " "] 3]
+       append res [lindex [split $line " "] 1]
     }
 
     global res
     set res ""
 } -body {
     mporttraverse test_proc $pwd/porttree
-    if {$res != "8547285472"} {
+    if {$res != "1.01.0"} {
        return "FAIL: porttree not traversed"
     }
     return "Mport traverse successful."
@@ -937,9 +888,10 @@ test get_archive_sites_conf_values {
     close $fd
 
     set macports::autoconf::macports_conf_path $pwd/archive_sites
-
+    unset -nocomplain macports::archive_sites_conf_values
 } -body {
     set res [macports::get_archive_sites_conf_values]
+    puts $res
     if {[lindex [split $res " "] 1] != "macports.org:nosubdir"} {
        return "FAIL: name not set"
     }

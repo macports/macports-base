@@ -16,7 +16,7 @@ port_config $path
 file copy -force $path/statefile $work_dir/.macports.statefile-version2.state
 exec sed -i'' -E "s/@CHECKSUM@/`openssl dgst -sha256 Portfile | \
     awk '{print \$\$2}'`/" $work_dir/.macports.statefile-version2.state
-port_desroot $path
+port_destroot $path
 port_clean $path
 
 proc statefile_v2 {arg} {

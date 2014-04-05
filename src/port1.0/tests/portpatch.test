@@ -37,7 +37,7 @@ test patch_main {
 } -setup {
     set macosx_version 12
 
-    set subport fondu
+    set subport gcc_select
     set filespath $pwd/files
     set distpath $pwd/dist
     set usealtworkpath yes
@@ -62,7 +62,7 @@ test patch_main {
     if {[$workername eval eval_targets patch]} {
         return "FAIL: cannot run patch"
     }
-    if {![file exists $pwd/work/fondu-060102/test_patch]} {
+    if {![file exists $pwd/work/select-0.1/test_patch]} {
         return "FAIL: missing patched file"
     }
     return "Patch successful."

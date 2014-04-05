@@ -121,8 +121,8 @@ proc port_config {pwd} {
     set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
 }
 
-# Run desroot command.
-proc port_desroot {pwd} {
+# Run destroot command.
+proc port_destroot {pwd} {
     global path bindir portsrc work_dir output_file
 
     file copy -force ${path}/statefile ${work_dir}/.macports.statefile-unknown-version.state

@@ -12,7 +12,8 @@ set_dir
 port_index
 port_config $path
 file copy -force $path/statefile $work_dir/.macports.statefile-version2-invalid.state
-port_desroot $path
+file attributes $work_dir/.macports.statefile-version2-invalid.state -permissions 0664
+port_destroot $path
 port_clean $path
 
 proc state_v2_invalid {warn} {
