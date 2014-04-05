@@ -29,7 +29,7 @@ proc test_trace {} {
 
     makeDirectory ../tracetesttmp
     if {[getuid] == 0} {
-		file attributes ../tracetesttmp -owner $user
+        file attributes ../tracetesttmp -owner $user
         exec chown -h $user /tmp/link-trace2
     }
 
@@ -50,7 +50,8 @@ proc test_trace {} {
 
     set err "error*"
     set line [get_line $path/$output_file $err]
-    if { $line == -1 } {
+    set unsupported [get_line $path/$output_file "*tracelib not supported on this platform*"]
+    if {$unsupported != -1 || $line == -1} {
         return "No errors found."
     } else {
         return $line
