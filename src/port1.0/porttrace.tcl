@@ -49,9 +49,7 @@ proc porttrace::trace_start {workpath} {
             # Create a fifo.
             # path in unix socket limited to 109 chars
             # # set trace_fifo "$workpath/trace_fifo"
-            set trace_fifo "/tmp/macports/[pid]_[expr {int(rand()*1000)}]"
-            file mkdir "/tmp/macports"
-            chownAsRoot "/tmp/macports"
+            set trace_fifo "/tmp/macports_trace_[pid]-[expr {int(rand()*1000)}]"
             file delete -force $trace_fifo
 
             # Create the thread/process.
@@ -337,7 +335,7 @@ proc porttrace::slave_run {} {
 # Private.
 # Slave cleanup method.
 proc porttrace::slave_stop {} {
-    global trace_filemap trace_fifo_r_chan trace_fifo_w_chan
+    global trace_filemap
     # Close the virtual filemap.
     filemap close trace_filemap
     # Close the pipe (both ends).
