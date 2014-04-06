@@ -1726,7 +1726,9 @@ proc mportopen_installed {name version revision variants options} {
     foreach v $minusvariant {
         lappend variations $v -
     }
-    lappend options subport $name
+
+    array set options_array $options
+    set options_array(subport) $name
 
     # find portgroups in registry
     set pgdirlist [list]
@@ -1734,10 +1736,10 @@ proc mportopen_installed {name version revision variants options} {
         lappend pgdirlist [file join ${registry.path} registry portgroups [$pg sha256]-[$pg size]]
     }
     if {$pgdirlist ne {}} {
-        lappend options _portgroup_search_dirs [list $pgdirlist]
+        set options_array(_portgroup_search_dirs) [list $pgdirlist]
     }
 
-    return [mportopen file://${portfile_dir}/ $options $variations]
+    return [mportopen file://${portfile_dir}/ [array get options_array] $variations]
 }
 
 # Traverse a directory with ports, calling a function on the path of ports
