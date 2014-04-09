@@ -533,6 +533,7 @@ proc portfetch::fetchfiles {args} {
                 set urlmap($url_var) $urlmap(master_sites)
             }
             unset -nocomplain fetched
+            set lastError ""
             foreach site $urlmap($url_var) {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
@@ -551,10 +552,15 @@ proc portfetch::fetchfiles {args} {
                     throw
                 } catch {{*} eCode eMessage} {
                     ui_debug [msgcat::mc "Fetching distfile failed: %s" $eMessage]
+                    set lastError $eMessage
                 }
             }
             if {![info exists fetched]} {
-                return -code error [msgcat::mc "fetch failed"]
+                if {$lastError ne ""} {
+                    error $lastError
+                } else {
+                    error [msgcat::mc "fetch failed"]
+                }
             }
         }
     }
