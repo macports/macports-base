@@ -579,8 +579,15 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			theResult = TCL_ERROR;
 			break;
 		}
+
+		if (info->msg != CURLMSG_DONE) {
+			snprintf(theErrorString, sizeof(theErrorString), "curl_multi_info_read() returned unexpected {.msg = %d, .data.result = %d}", info->msg, info->data.result);
+			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
 		
-		if (info->msg != CURLMSG_DONE || info->data.result != CURLE_OK) {
+		if (info->data.result != CURLE_OK) {
 			/* execution failed, use the error string */
 			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
 			theResult = TCL_ERROR;
