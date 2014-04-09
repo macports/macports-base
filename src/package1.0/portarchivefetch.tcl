@@ -216,6 +216,7 @@ proc portarchivefetch::fetchfiles {args} {
             }
             set failed_sites 0
             unset -nocomplain fetched
+            set lastError ""
             foreach site $urlmap($url_var) {
                 if {[string index $site end] ne "/"} {
                     append site "/[option archive.subdir]"
@@ -238,6 +239,7 @@ proc portarchivefetch::fetchfiles {args} {
                     throw
                 } catch {{*} eCode eMessage} {
                     ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
+                    set lastError $eMessage
                     file delete -force "${incoming_path}/${archive}.TMP"
                     incr failed_sites
                     if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
@@ -292,7 +294,11 @@ proc portarchivefetch::fetchfiles {args} {
         return 0
     }
     if {[info exists ports_binary_only] && $ports_binary_only eq "yes"} {
-        return -code error "archivefetch failed for [option subport] @[option version]_[option revision][option portvariants]"
+        if {[info exists lastError] && $lastError ne ""} {
+            error [msgcat::mc "version @[option version]_[option revision][option portvariants]: %s" $lastError]
+        } else {
+            error "version @[option version]_[option revision][option portvariants]"
+        }
     } else {
         return 0
     }
