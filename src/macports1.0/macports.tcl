@@ -2525,8 +2525,14 @@ proc mportsync {{optionslist {}}} {
                     set progressflag "--progress ${macports::ui_options(progress_download)}"
                 }
 
-                if {[catch {eval curl fetch $progressflag {$source} {$tarpath}} error]} {
-                    ui_error "Fetching $source failed ($error)"
+                try {
+                    eval curl fetch $progressflag {$source} {$tarpath}
+                } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                    throw
+                } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                    throw
+                } catch {{*} eCode eMessage} {
+                    ui_error [msgcat::mc "Fetching %s failed: %s" $source $error]
                     incr numfailed
                     continue
                 }
