@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <utime.h>
 
 #include <curl/curl.h>
@@ -64,9 +65,15 @@
 #pragma mark Definitions
 
 /* ------------------------------------------------------------------------- **
- * Global cURL handle
+ * Global cURL handles
  * ------------------------------------------------------------------------- */
-/* we use a single global handle rather than creating and destroying handles to
+/* If we want to use TclX' signal handling mechanism we need cURL to return
+ * control to our code from time to time so we can call Tcl_AsyncInvoke to
+ * process pending signals. To do that, we could either abuse the curl progress
+ * callback (which would mean we could no longer use the default curl progress
+ * callback, or we need to use the cURL multi API. */
+static CURLM* theMHandle = NULL;
+/* We use a single global handle rather than creating and destroying handles to
  * take advantage of HTTP pipelining, especially to the packages servers. */
 static CURL* theHandle = NULL;
 
@@ -74,6 +81,7 @@ static CURL* theHandle = NULL;
  * Prototypes
  * ------------------------------------------------------------------------- */
 int SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode);
+int SetResultFromCurlMErrorCode(Tcl_Interp* interp, CURLMcode inErrorCode);
 int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -120,6 +128,29 @@ SetResultFromCurlErrorCode(Tcl_Interp *interp, CURLcode inErrorCode)
 }
 
 /**
+ * Set the result if a libcurl multi error occurred return TCL_ERROR.
+ * Otherwise, set the result to "" and return TCL_OK.
+ *
+ * @param interp		pointer to the interpreter.
+ * @param inErrorCode	code of the multi error.
+ * @return TCL_OK if inErrorCode is 0, TCL_ERROR otherwise.
+ */
+int
+SetResultFromCurlMErrorCode(Tcl_Interp *interp, CURLMcode inErrorCode)
+{
+	int result = TCL_ERROR;
+
+	if (inErrorCode == CURLM_OK) {
+		Tcl_SetResult(interp, "", TCL_STATIC);
+		result = TCL_OK;
+	} else {
+		Tcl_SetResult(interp, (char *)curl_multi_strerror(inErrorCode), TCL_VOLATILE);
+	}
+
+	return result;
+}
+
+/**
  * curl fetch subcommand entry point.
  *
  * syntax: curl fetch [--disable-epsv] [--ignore-ssl-cert] [--remote-time] [-u userpass] [--effective-url lasturlvar] [--progress "builtin"|callback] url filename
@@ -133,7 +164,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
 	FILE* theFile = NULL;
-	bool performFailed = false;
 	char theErrorString[CURL_ERROR_SIZE];
 
 	do {
@@ -156,7 +186,10 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		const char* theFilePath;
 		long theFileTime = 0;
 		CURLcode theCurlCode;
+		CURLMcode theCurlMCode;
 		struct curl_slist *headers = NULL;
+		struct CURLMsg *info = NULL;
+		int running; /* number of running transfers */
 
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -260,10 +293,25 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-		/* Create the CURL handle */
+		/* Create the CURL handles */
+		if (theMHandle == NULL) {
+			/* Re-use existing multi handle if theMHandle isn't NULL */
+			theMHandle = curl_multi_init();
+			if (theMHandle == NULL) {
+				theResult = TCL_ERROR;
+				Tcl_SetResult(interp, "error in curl_multi_init", TCL_STATIC);
+				break;
+			}
+		}
+
 		if (theHandle == NULL) {
 			/* Re-use existing handle if theHandle isn't NULL */
 			theHandle = curl_easy_init();
+			if (theHandle == NULL) {
+				theResult = TCL_ERROR;
+				Tcl_SetResult(interp, "error in curl_easy_init", TCL_STATIC);
+				break;
+			}
 		}
 		/* If we're re-using a handle, the previous call did ensure to reset it
 		 * to the default state using curl_easy_reset(3) */
@@ -432,16 +480,117 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-		/* actually fetch the resource */
-		theCurlCode = curl_easy_perform(theHandle);
-		if (theCurlCode != CURLE_OK) {
-			performFailed = true;
+		/* add the easy handle to the multi handle */
+		theCurlMCode = curl_multi_add_handle(theMHandle, theHandle);
+		if (theCurlMCode != CURLM_OK) {
+			theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
 			break;
 		}
+
+		/* select(2) the file descriptors used by curl and interleave with
+		 * checks for TclX signals */
+		do {
+			int rc; /* select() return code */
+
+			/* arguments for select(2) */
+			int nfds;
+			fd_set readfds;
+			fd_set writefds;
+			fd_set errorfds;
+			struct timeval timeout;
+
+			long curl_timeout = -1;
+
+			/* use at most half a second as timeout */
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 500 * 1000;
+
+			/* get the next timeout */
+			theCurlMCode = curl_multi_timeout(theMHandle, &curl_timeout);
+			if (theCurlMCode != CURLM_OK) {
+				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+				break;
+			}
+
+			/* convert the timeout into a suitable format for select(2) and
+			 * limit the timeout to 500 msecs at most */
+			if (curl_timeout >= 0 && curl_timeout < 500) {
+				timeout.tv_usec = curl_timeout * 1000;
+			} else {
+				timeout.tv_usec = 500 * 1000;
+			}
+
+			/* get the fd sets for select(2) */
+			theCurlMCode = curl_multi_fdset(theMHandle, &readfds, &writefds, &errorfds, &nfds);
+			if (theCurlMCode != CURLM_OK) {
+				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
+				break;
+			}
+
+			/* The value of nfds is guaranteed to be >= -1. Passing nfds + 1 to
+			 * select(2) makes the case of nfds == -1 a sleep. */
+			rc = select(nfds + 1, &readfds, &writefds, &errorfds, &timeout);
+			if (-1 == rc) {
+				/* select error */
+				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+
+			/* timeout or activity */
+			theCurlMCode = curl_multi_perform(theMHandle, &running);
+
+			/* process signals from TclX */
+			if (Tcl_AsyncReady()) {
+				theResult = Tcl_AsyncInvoke(interp, theResult);
+				if (theResult != TCL_OK) {
+					break;
+				}
+			}
+		} while (running > 0);
+
+		/* Find out whether the transfer succeeded or failed. */
+		info = curl_multi_info_read(theMHandle, &running);
+		if (running > 0) {
+			fprintf(stderr, "Warning: curl_multi_info_read has %d more structs available\n", running);
+		}
+
+		/* Remove the handle from the multi handle, but ignore errors to avoid
+		 * cluttering the real error info that might be somewhere further up */
+		curl_multi_remove_handle(theMHandle, theHandle);
+
+		/* free header memory */
+		curl_slist_free_all(headers);
 
 		/* signal cleanup to the progress callback */
 		if (noprogress == 0 && strcmp(progressCallback.proc, "builtin") != 0) {
 			CurlProgressCleanup(&progressCallback);
+		}
+
+		/* check for errors in the loop */
+		if (theResult != TCL_OK || theCurlMCode != CURLM_OK) {
+			break;
+		}
+
+		/* we should always get CURLMSG_DONE unless we aborted due to a Tcl
+		 * signal */
+		if (info == NULL) {
+			Tcl_SetResult(interp, "curl_multi_info_read() returned NULL", TCL_STATIC);
+			theResult = TCL_ERROR;
+			break;
+		}
+		
+		if (info->msg != CURLMSG_DONE) {
+			Tcl_SetResult(interp, "curl_multi_info_read() returned an unexpected value", TCL_STATIC);
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		if (info->data.result != CURLE_OK) {
+			/* execution failed, use the error string */
+			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
 		}
 
 		/* close the file */
@@ -497,22 +646,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			}
 		}
 
-		/* free header memory */
-		curl_slist_free_all(headers);
-
 		/* If --effective-url option was given, set given variable name to last effective url used by curl */
 		if (effectiveURLVarName != NULL) {
 			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_EFFECTIVE_URL, &effectiveURL);
 			Tcl_SetVar(interp, effectiveURLVarName,
-				(effectiveURL == NULL || theCurlCode != CURLE_OK) ? "" : effectiveURL,
-				0);
+				(effectiveURL == NULL || theCurlCode != CURLE_OK) ? "" : effectiveURL, 0);
 		}
 	} while (0);
-
-	if (performFailed) {
-		Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
-		theResult = TCL_ERROR;
-	}
 
 	/* reset the connection */
 	if (theHandle != NULL) {
@@ -1187,14 +1327,15 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 		/* actually perform the POST */
 		theCurlCode = curl_easy_perform(theHandle);
-		if (theCurlCode != CURLE_OK) {
-			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-			break;
-		}
 
 		/* signal cleanup to the progress callback */
 		if (noprogress == 0 && strcmp(progressCallback.proc, "builtin") != 0) {
 			CurlProgressCleanup(&progressCallback);
+		}
+
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
 		}
 
 		/* close the file */
@@ -1409,6 +1550,7 @@ static void CurlProgressCleanup(
 	/*
 	 * Transfer complete, signal the progress callback
 	 */
+	Tcl_InterpState state;
 
 	/*
 	 * Command string, a space followed "finish" plus the trailing \0.
@@ -1423,5 +1565,9 @@ static void CurlProgressCleanup(
 		abort();
 	}
 
+	/* make sure to save and restore the interpreter state so a potential error
+	 * message doesn't get lost */
+	state = Tcl_SaveInterpState(callback->interp, 0);
 	Tcl_EvalEx(callback->interp, commandBuffer, len, TCL_EVAL_GLOBAL);
+	Tcl_RestoreInterpState(callback->interp, state);
 }
