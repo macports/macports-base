@@ -163,6 +163,7 @@ int
 CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
+	bool handleAdded = false;
 	FILE* theFile = NULL;
 	char theErrorString[CURL_ERROR_SIZE];
 
@@ -486,6 +487,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
 			break;
 		}
+		handleAdded = true;
 
 		/* select(2) the file descriptors used by curl and interleave with
 		 * checks for TclX signals */
@@ -554,10 +556,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (running > 0) {
 			fprintf(stderr, "Warning: curl_multi_info_read has %d more structs available\n", running);
 		}
-
-		/* Remove the handle from the multi handle, but ignore errors to avoid
-		 * cluttering the real error info that might be somewhere further up */
-		curl_multi_remove_handle(theMHandle, theHandle);
 
 		/* free header memory */
 		curl_slist_free_all(headers);
@@ -654,6 +652,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				(effectiveURL == NULL || theCurlCode != CURLE_OK) ? "" : effectiveURL, 0);
 		}
 	} while (0);
+
+	if (handleAdded) {
+		/* Remove the handle from the multi handle, but ignore errors to avoid
+		 * cluttering the real error info that might be somewhere further up */
+		curl_multi_remove_handle(theMHandle, theHandle);
+		handleAdded = false;
+	}
 
 	/* reset the connection */
 	if (theHandle != NULL) {
