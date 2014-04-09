@@ -225,12 +225,19 @@ proc portarchivefetch::fetchfiles {args} {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
                 set file_url [portfetch::assemble_url $site $archive]
                 set effectiveURL ""
-                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${incoming_path}/${archive}.TMP"}} result]} {
-                    # Successful fetch
+                try {
+                    eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${incoming_path}/${archive}.TMP"}
                     set fetched 1
-                    break
-                } else {
-                    ui_debug "[msgcat::mc "Fetching archive failed:"]: $result"
+                } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                    ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                    file delete -force "${incoming_path}/${archive}.TMP"
+                    throw
+                } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                    ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                    file delete -force "${incoming_path}/${archive}.TMP"
+                    throw
+                } catch {{*} eCode eMessage} {
+                    ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
                     file delete -force "${incoming_path}/${archive}.TMP"
                     incr failed_sites
                     if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {

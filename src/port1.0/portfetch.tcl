@@ -536,13 +536,21 @@ proc portfetch::fetchfiles {args} {
             foreach site $urlmap($url_var) {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
-                if {![catch {eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}} result] &&
-                    ![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
+                try {
+                    eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}
+                    file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"
                     set fetched 1
                     break
-                } else {
-                    ui_debug "[msgcat::mc "Fetching distfile failed"]: $result"
+                } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                    ui_debug [msgcat::mc "Aborted fetching distfile due to SIGINT"]
                     file delete -force "${distpath}/${distfile}.TMP"
+                    throw
+                } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                    ui_debug [msgcat::mc "Aborted fetching distfile due to SIGTERM"]
+                    file delete -force "${distpath}/${distfile}.TMP"
+                    throw
+                } catch {{*} eCode eMessage} {
+                    ui_debug [msgcat::mc "Fetching distfile failed: %s" $eMessage]
                 }
             }
             if {![info exists fetched]} {
