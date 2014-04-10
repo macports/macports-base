@@ -229,6 +229,7 @@ proc portarchivefetch::fetchfiles {args} {
                 try {
                     eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${incoming_path}/${archive}.TMP"}
                     set fetched 1
+                    break
                 } catch {{POSIX SIG SIGINT} eCode eMessage} {
                     ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
                     file delete -force "${incoming_path}/${archive}.TMP"
