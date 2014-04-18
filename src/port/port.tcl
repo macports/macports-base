@@ -149,17 +149,8 @@ proc fatal s {
 # @param name variable name
 # @param value constant variable value
 proc const {name args} {
-    interp alias {} $name {} _const [expr $args]
+    proc $name {} [list return [expr $args]]
 }
-
-##
-# Helper function to define constants
-#
-# @see const
-proc _const value {
-    return $value
-}
-
 
 # Format an integer representing bytes using given units
 proc bytesize {siz {unit {}} {format {%.3f}}} {
@@ -4909,7 +4900,7 @@ namespace eval portclient::progress {
         variable showTimeThreshold
         variable showPercentageThreshold
 
-        if {$show eq yes} {
+        if {$show eq "yes"} {
             return yes
         } else {
             if {[expr {[clock milliseconds] - $startTime}] > $showTimeThreshold &&
@@ -4946,7 +4937,7 @@ namespace eval portclient::progress {
                 # the for loop is a simple hack because Tcl 8.4 doesn't have
                 # lassign
                 foreach {now total} $args {
-                    if {[showProgress $now $total] eq yes} {
+                    if {[showProgress $now $total] eq "yes"} {
                         set barPrefix "      "
                         set barPrefixLen [string length $barPrefix]
                         if {$total != 0} {
@@ -4998,7 +4989,7 @@ namespace eval portclient::progress {
                 # the for loop is a simple hack because Tcl 8.4 doesn't have
                 # lassign
                 foreach {type total now speed} $args {
-                    if {[showProgress $now $total] eq yes} {
+                    if {[showProgress $now $total] eq "yes"} {
                         set barPrefix "      "
                         set barPrefixLen [string length $barPrefix]
                         if {$total != 0} {
@@ -5047,7 +5038,7 @@ namespace eval portclient::progress {
         # Subtract the width of the percentage output, also subtract the two
         # characters [ and ] bounding the progress bar.
         set percentageWidth 8
-        set barWidth      [expr entier($width) - $percentageWidth - 2]
+        set barWidth      [expr {entier($width) - $percentageWidth - 2}]
 
         # Map the range (0, $total) to (0, 4 * $width) where $width is the maximum
         # numebr of characters to be printed for the progress bar. Multiply the
@@ -5120,7 +5111,7 @@ namespace eval portclient::progress {
         }
 
         # Format the percentage using the space that has been reserved for it
-        set percentagesuffix [format " %[expr $percentageWidth - 3].1f %%" $percentage]
+        set percentagesuffix [format " %[expr {$percentageWidth - 3}].1f %%" $percentage]
 
         puts -nonewline "\r${prefix}\[${progressbar}\]${percentagesuffix}${suffix}"
         flush stdout
@@ -5286,7 +5277,7 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
 }
 
 if {[isatty stdout]
-    && $portclient::progress::hasTermAnsiSend eq yes
+    && $portclient::progress::hasTermAnsiSend eq "yes"
     && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
     set ui_options(progress_download) portclient::progress::download
     set ui_options(progress_generic)  portclient::progress::generic

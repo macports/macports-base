@@ -205,6 +205,24 @@ proc set_phase {phase} {
 
 proc ui_message {priority prefix phase args} {
     global macports::channels ::debuglog macports::current_phase
+
+    # 
+    # validate $args
+    #
+    switch [llength $args] {
+       0 - 1 {}
+       2 {
+           if {[lindex $args 0] ne {-nonewline}} {
+               set hint "error: when 5 arguments are given, 2nd last must be \"-newnewline\""
+               error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
+           }
+       }
+       default {
+           set hint "error: too many arguments specified"
+           error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
+       }
+    } 
+
     foreach chan $macports::channels($priority) {
         if {[info exists ::debuglog] && ($chan eq {debuglog})} {
             set chan $::debuglog
@@ -2669,7 +2687,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 
                     switch -- $matchstyle {
                         exact {
-                            if {$case_sensitive eq yes} {
+                            if {$case_sensitive eq "yes"} {
                                 set compres [string compare $pattern $target]
                             } else {
                                 set compres [string compare -nocase $pattern $target]
@@ -2677,14 +2695,14 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             set matchres [expr {0 == $compres}]
                         }
                         glob {
-                            if {$case_sensitive eq yes} {
+                            if {$case_sensitive eq "yes"} {
                                 set matchres [string match $pattern $target]
                             } else {
                                 set matchres [string match -nocase $pattern $target]
                             }
                         }
                         regexp {
-                            if {$case_sensitive eq yes} {
+                            if {$case_sensitive eq "yes"} {
                                 set matchres [regexp -- $pattern $target]
                             } else {
                                 set matchres [regexp -nocase -- $pattern $target]
@@ -4111,7 +4129,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
     }
 
-    if {[info exists uninstall_later] && $uninstall_later eq yes} {
+    if {[info exists uninstall_later] && $uninstall_later eq "yes"} {
         foreach i $ilist {
             set version [lindex $i 1]
             set revision [lindex $i 2]
@@ -4556,7 +4574,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         break;
                     }
 
-                    if {$libarch_found eq false} {
+                    if {$libarch_found eq "false"} {
                         ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file $filepath"
                         if {[path_is_in_prefix $filepath]} {
                             ui_debug "Marking $bpath as broken"
