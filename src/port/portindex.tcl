@@ -4,7 +4,6 @@
 # if requested
 # $Id$
 
-source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
 package require macports
 package require Pextlib
 

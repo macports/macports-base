@@ -43,7 +43,6 @@ if {![catch {package require term::ansi::send}]} {
     set portclient::progress::hasTermAnsiSend yes
 }
 
-source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
 package require macports
 package require Pextlib 1.0
 

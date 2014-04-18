@@ -650,7 +650,6 @@ VENDOR_TCLTHREAD_SUBDIR
 VENDOR_DESTROOT
 VENDOR_TCL_INSTALL
 VENDOR_TCL_SUBDIR
-macports_tcl_dir
 localstatedir_expanded
 MPCONFIGDIR_EXPANDED
 prefix_expanded
@@ -9493,9 +9492,6 @@ eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"
 eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
 
 eval "localstatedir_expanded=$localstatedir"
-
-eval "macports_tcl_dir=${datadir}/macports/Tcl"
-eval "macports_tcl_dir=$macports_tcl_dir"
 
 # Compute the libexec dir for the vendor packages
 eval "macports_libexec_dir=${libexecdir}/macports"

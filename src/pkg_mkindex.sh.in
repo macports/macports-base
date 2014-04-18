@@ -30,6 +30,7 @@
 
 TCLSH=@INTREE_TCLSH@
 GREP=@GREP@
+LIB_PATH=`dirname $TCLSH`
 
 if [ $# = 0 ]; then
     echo "Usage: $0 <directory list>"
@@ -37,7 +38,8 @@ if [ $# = 0 ]; then
 fi
 
 for dir in $@; do
-    echo "pkg_mkIndex -verbose -- $dir *.tcl *.dylib *.so" | env DYLD_LIBRARY_PATH=`dirname $TCLSH` $TCLSH 2>&1 \
+    echo "pkg_mkIndex -verbose -- $dir *.tcl *.dylib *.so" \
+		| env DYLD_LIBRARY_PATH=$LIB_PATH LD_LIBRARY_PATH=$LIB_PATH $TCLSH 2>&1 \
         | $GREP "^warning: " && exit 1
 done
 

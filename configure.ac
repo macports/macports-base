@@ -311,9 +311,6 @@ eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
 AC_SUBST(MPCONFIGDIR_EXPANDED)
 eval "localstatedir_expanded=$localstatedir"
 AC_SUBST(localstatedir_expanded)
-eval "macports_tcl_dir=${datadir}/macports/Tcl"
-eval "macports_tcl_dir=$macports_tcl_dir"
-AC_SUBST(macports_tcl_dir)
 # Compute the libexec dir for the vendor packages
 eval "macports_libexec_dir=${libexecdir}/macports"
 eval "macports_libexec_dir=$macports_libexec_dir"
@@ -413,7 +410,6 @@ AC_CONFIG_FILES([
 	src/machista1.0/Makefile
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
-	src/macports1.0/macports_fastload.tcl
 	src/macports1.0/macports_test_autoconf.tcl
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
@@ -430,6 +426,9 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
+AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
+AC_CONFIG_FILES([src/upgrade_sources_conf_default.tcl], [chmod +x src/upgrade_sources_conf_default.tcl])
 
 AC_OUTPUT

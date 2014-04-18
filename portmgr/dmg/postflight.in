@@ -44,15 +44,16 @@ BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
-MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
-REG1DIR=${MACPORTS_TCL_DIR}/registry1.0
 DSCL=/usr/bin/dscl
 RUNUSR=macports
 TCLSH=@TCLSH@
-TCL_PACKAGE_DIR=/Library/Tcl
+TCL_PACKAGE_PATH=@TCL_PACKAGE_PATH@
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
 OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
+
+OLD_MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
+OLD_TCL_PACKAGE_DIR=/Library/Tcl
 
 # Create config files from defaults if not present
 function setup_configs {
@@ -73,8 +74,8 @@ function update_macports {
     ${TCLSH} ${SCRIPT_DIR}/upgrade_sources_conf_default.tcl ${PREFIX}
     # Convert image directories (and direct mode installs) to image archives
     echo "Updating port image format..."
-    ${TCLSH} ${SCRIPT_DIR}/images_to_archives.tcl ${MACPORTS_TCL_DIR}
-    ${TCLSH} ${SCRIPT_DIR}/dedup_portfiles.tcl ${MACPORTS_TCL_DIR}
+    ${TCLSH} ${SCRIPT_DIR}/images_to_archives.tcl
+    ${TCLSH} ${SCRIPT_DIR}/dedup_portfiles.tcl
 
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! ${BINPATH}/port -v selfupdate; then 
@@ -117,27 +118,24 @@ function cleanup_man () {
     echo -e "Done.\n"
 }
 
-# Delete the old registry1.0 directory
-function delete_reg1 {
-    if [[ -d ${REG1DIR} ]]; then
-        rm -vrf ${REG1DIR}
+# delete macports1.0 link from old tcl package dir
+function delete_old_tcl_package_link {
+    # delete old link if present
+    if [[ -e "${OLD_TCL_PACKAGE_DIR}/macports1.0" ]]; then
+        rm -vrf "${OLD_TCL_PACKAGE_DIR}/macports1.0"
+	fi
+
+    # delete old macports1.0 link from new tcl package dir if present
+    if [[ -L "${TCL_PACKAGE_PATH}/macports1.0" ]]; then
+        rm -vrf "${TCL_PACKAGE_PATH}/macports1.0"
     fi
 }
 
-# link macports1.0 into tcl package dir if possible
-function link_tcl_package {
-    # delete old directory if present
-    if [[ ! -L "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
-        if [[ ! -e "${TCL_PACKAGE_DIR}" ]]; then
-            /usr/bin/install -d "${TCL_PACKAGE_DIR}" || true
-        fi
-        if [[ -d "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
-            rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
-        fi
-        if [[ ! -e "${TCL_PACKAGE_DIR}/macports1.0" && -d "${TCL_PACKAGE_DIR}" ]]; then
-            ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
-        fi
-	fi
+# delete the old tcl package location in share/macports/Tcl
+function delete_old_tcl_packages {
+    if [[ -d "${OLD_MACPORTS_TCL_DIR}" ]]; then
+        rm -vrf "${OLD_MACPORTS_TCL_DIR}"
+    fi
 }
 
 # create the user to use for privilege dropping
@@ -190,12 +188,11 @@ echo "The MacPorts Project, postflight script version ${VERSION}: checking the s
 create_run_user
 # Set up config files
 setup_configs
-# link macports1.0 pkg
-link_tcl_package
 
 # Remove old stuff
 cleanup_man
-delete_reg1
+delete_old_tcl_package_link
+delete_old_tcl_packages
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.

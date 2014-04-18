@@ -49,7 +49,6 @@ BZIP2			= @BZIP2@
 INTREE_TCLSH		= @INTREE_TCLSH@
 TCLSH			= @TCLSH@
 TCL_PACKAGE_PATH	= @TCL_PACKAGE_PATH@
-macports_tcl_dir	= @macports_tcl_dir@
 
 DSCL			= @DSCL@
 DSEDITGROUP		= @DSEDITGROUP@
