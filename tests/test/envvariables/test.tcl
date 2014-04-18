@@ -32,7 +32,7 @@ test envvariables {
     Regression test for Environment Variables.
 } -body {
     envvar_test
-} -result "AB"
+} -result "ab"
 
 
 cleanup

@@ -25,7 +25,7 @@ proc state_v2_out {warn} {
     }
 
     set line [get_line $path/$output_file $msg]
-    return [string tolower $line]
+    return $line
 }
 
 test warning_check {

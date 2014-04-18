@@ -145,9 +145,9 @@ proc get_line {filename lookup} {
     set fp [open $filename r]
 
     while {[gets $fp line] != -1} {
-        set testline [string tolower $line]
+        set line [string tolower $line]
 
-        if {[string match $lookup $testline] != 0} {
+        if {[string match $lookup $line] != 0} {
             close $fp
             return $line
         }

@@ -1,14 +1,11 @@
 package require tcltest 2
 
+# need pextlib to drop privs
+package require Pextlib 1.0
+
 namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
-
-# need pextlib to drop privs
-set line [get_line $autoconf "macports_tcl_dir*"]
-set macports_tcl_dir [lindex [split $line " "] 1]
-source [file join $macports_tcl_dir macports1.0 macports_fastload.tcl]
-package require Pextlib 1.0
 
 makeFile "" $output_file
 makeDirectory $work_dir

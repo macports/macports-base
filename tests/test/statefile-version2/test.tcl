@@ -28,7 +28,7 @@ proc statefile_v2 {arg} {
         set msg "*staging*destroot*"
     }
     set line [get_line $path/$output_file $msg]
-    return [string tolower $line]
+    return $line
 }
 
 test statefile-v2-discard {

@@ -32,7 +32,7 @@ proc univ_test {opt} {
     exec sh -c $string > output 2>@1
     set var "variants:*"
     set line [get_line $path/$output_file $var]
-    return [string tolower $line]
+    return $line
 }
 
 
