@@ -221,7 +221,7 @@ proc portconfigure::configure_start {args} {
         {^gcc$}                             {System GCC}
         {^gcc-(3\.3|4\.[02])$}              {Xcode GCC %s}
         {^llvm-gcc-4\.2$}                   {Xcode LLVM-GCC 4.2}
-        {^macports-clang$}                  {MacPorts Clang (port select}
+        {^macports-clang$}                  {MacPorts Clang (port select)}
         {^macports-clang-(\d+\.\d+)$}       {MacPorts Clang %s}
         {^macports-dragonegg-(\d+\.\d+)$}   {MacPorts DragonEgg %s}
         {^macports-dragonegg-(\d+\.\d+)-gcc-(\d+\.\d+)$}
