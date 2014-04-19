@@ -19,7 +19,7 @@ include Mk/macports.autoconf.mk
 
 all:: Mk/macports.autoconf.mk
 
-Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in config.status
+Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in doc/Makefile.in src/cflib1.0/Makefile.in src/cregistry/Makefile.in src/darwintracelib1.0/Makefile.in src/macports1.0/Makefile.in src/package1.0/Makefile.in src/port/Makefile.in src/port1.0/Makefile.in src/registry2.0/Makefile.in tests/Makefile.in config.status
 	./config.status
 	${MAKE} clean
 
