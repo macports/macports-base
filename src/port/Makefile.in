@@ -41,3 +41,6 @@ install: all mkdirs
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $(srcdir)/port-help.tcl  ${INSTALLDIR}/var/macports/
 	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf
 	cd ${INSTALLDIR}/bin && $(LN_S) -f ${TCLSH} port-tclsh
+ifneq (,$(findstring darwin,@build_os@))
+	chmod -h 555 ${INSTALLDIR}/bin/portf ${INSTALLDIR}/bin/port-tclsh
+endif
