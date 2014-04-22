@@ -42,5 +42,7 @@ install: all mkdirs
 	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf
 	cd ${INSTALLDIR}/bin && $(LN_S) -f ${TCLSH} port-tclsh
 ifneq (,$(findstring darwin,@build_os@))
+ifneq (8,@OS_MAJOR@)
 	chmod -h 555 ${INSTALLDIR}/bin/portf ${INSTALLDIR}/bin/port-tclsh
+endif
 endif
