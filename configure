@@ -826,6 +826,23 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_flag_sanitization
+with_bsdmake
+with_bzip2
+with_cvs
+with_gnumake
+with_gnutar
+with_lzma
+with_make
+with_mtree
+with_open
+with_openssl
+with_rsync
+with_sed
+with_svn
+with_swig
+with_tar
+with_xar
+with_xz
 enable_werror
 with_objc_runtime
 with_objc_foundation
@@ -855,23 +872,6 @@ LIBS
 CPPFLAGS
 OBJC
 OBJCFLAGS
-BSDMAKE
-BZIP2
-CVS
-GNUMAKE
-GNUTAR
-LZMA
-MAKE
-MTREE
-OPEN
-OPENSSL
-RSYNC
-SED
-SVN
-SWIG
-TAR
-XAR
-XZ
 OBJCPP
 CPP'
 
@@ -1499,6 +1499,23 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-bsdmake=PATH     Path to alternate bsdmake/pmake command
+  --with-bzip2=PATH       Path to alternate bzip2 command
+  --with-cvs=PATH         Path to alternate cvs command
+  --with-gnumake=PATH     Path to alternate gnumake command
+  --with-gnutar=PATH      Path to alternate gnutar command
+  --with-lzma=PATH        Path to alternate lzma command
+  --with-make=PATH        Path to alternate make command
+  --with-mtree=PATH       Path to alternate mtree command
+  --with-open=PATH        Path to alternate open command
+  --with-openssl=PATH     Path to alternate openssl command
+  --with-rsync=PATH       Path to alternate rsync command
+  --with-sed=PATH         Path to alternate sed command
+  --with-svn=PATH         Path to alternate svn command
+  --with-swig=PATH        Path to alternate swig command
+  --with-tar=PATH         Path to alternate tar command
+  --with-xar=PATH         Path to alternate xar command
+  --with-xz=PATH          Path to alternate xz command
   --with-objc-runtime     Specify either "GNU" or "apple"
   --with-objc-foundation  Specify either "GNUstep" or "apple"
   --with-unsupported-prefix
@@ -1535,23 +1552,6 @@ Some influential environment variables:
               you have headers in a nonstandard directory <include dir>
   OBJC        Objective C compiler command
   OBJCFLAGS   Objective C compiler flags
-  BSDMAKE     path to bsdmake/pmake command
-  BZIP2       path to bzip2 command
-  CVS         path to cvs command
-  GNUMAKE     path to gnumake command
-  GNUTAR      path to gnutar command
-  LZMA        path to lzma command
-  MAKE        path to make command
-  MTREE       path to mtree command
-  OPEN        path to open command
-  OPENSSL     path to openssl command
-  RSYNC       path to rsync command
-  SED         path to sed command
-  SVN         path to svn command
-  SWIG        path to swig command
-  TAR         path to tar command
-  XAR         path to xar command
-  XZ          path to xz command
   OBJCPP      Objective C preprocessor
   CPP         C preprocessor
 
@@ -4091,6 +4091,111 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+# Check for user-supplied paths before searching
+
+# Check whether --with-bsdmake was given.
+if test "${with_bsdmake+set}" = set; then :
+  withval=$with_bsdmake; BSDMAKE=$withval
+fi
+
+
+# Check whether --with-bzip2 was given.
+if test "${with_bzip2+set}" = set; then :
+  withval=$with_bzip2; BZIP2=$withval
+fi
+
+
+# Check whether --with-cvs was given.
+if test "${with_cvs+set}" = set; then :
+  withval=$with_cvs; CVS=$withval
+fi
+
+
+# Check whether --with-gnumake was given.
+if test "${with_gnumake+set}" = set; then :
+  withval=$with_gnumake; GNUMAKE=$withval
+fi
+
+
+# Check whether --with-gnutar was given.
+if test "${with_gnutar+set}" = set; then :
+  withval=$with_gnutar; GNUTAR=$withval
+fi
+
+
+# Check whether --with-lzma was given.
+if test "${with_lzma+set}" = set; then :
+  withval=$with_lzma; LZMA=$withval
+fi
+
+
+# Check whether --with-make was given.
+if test "${with_make+set}" = set; then :
+  withval=$with_make; MAKE=$withval
+fi
+
+
+# Check whether --with-mtree was given.
+if test "${with_mtree+set}" = set; then :
+  withval=$with_mtree; MTREE=$withval
+fi
+
+
+# Check whether --with-open was given.
+if test "${with_open+set}" = set; then :
+  withval=$with_open; OPEN=$withval
+fi
+
+
+# Check whether --with-openssl was given.
+if test "${with_openssl+set}" = set; then :
+  withval=$with_openssl; OPENSSL=$withval
+fi
+
+
+# Check whether --with-rsync was given.
+if test "${with_rsync+set}" = set; then :
+  withval=$with_rsync; RSYNC=$withval
+fi
+
+
+# Check whether --with-sed was given.
+if test "${with_sed+set}" = set; then :
+  withval=$with_sed; SED=$withval
+fi
+
+
+# Check whether --with-svn was given.
+if test "${with_svn+set}" = set; then :
+  withval=$with_svn; SVN=$withval
+fi
+
+
+# Check whether --with-swig was given.
+if test "${with_swig+set}" = set; then :
+  withval=$with_swig; SWIG=$withval
+fi
+
+
+# Check whether --with-tar was given.
+if test "${with_tar+set}" = set; then :
+  withval=$with_tar; TAR=$withval
+fi
+
+
+# Check whether --with-xar was given.
+if test "${with_xar+set}" = set; then :
+  withval=$with_xar; XAR=$withval
+fi
+
+
+# Check whether --with-xz was given.
+if test "${with_xz+set}" = set; then :
+  withval=$with_xz; XZ=$withval
+fi
+
+
+# Search for tool paths. Any set above (via --with-pkg=PATH) will be retained
 for ac_prog in bsdmake pmake
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -5950,24 +6055,6 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
-
-
-
-# Define some precious variables allowing user to override PATH for some programs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
