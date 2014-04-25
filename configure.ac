@@ -101,6 +101,26 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_OBJC([clang cc gcc])
 
+# Check for user-supplied paths before searching
+MP_TOOL_PATH(BSDMAKE, [bsdmake/pmake])
+MP_TOOL_PATH(BZIP2, [bzip2])
+MP_TOOL_PATH(CVS, [cvs])
+MP_TOOL_PATH(GNUMAKE, [gnumake])
+MP_TOOL_PATH(GNUTAR, [gnutar])
+MP_TOOL_PATH(LZMA, [lzma])
+MP_TOOL_PATH(MAKE, [make])
+MP_TOOL_PATH(MTREE, [mtree])
+MP_TOOL_PATH(OPEN, [open])
+MP_TOOL_PATH(OPENSSL, [openssl])
+MP_TOOL_PATH(RSYNC, [rsync])
+MP_TOOL_PATH(SED, [sed])
+MP_TOOL_PATH(SVN, [svn])
+MP_TOOL_PATH(SWIG, [swig])
+MP_TOOL_PATH(TAR, [tar])
+MP_TOOL_PATH(XAR, [xar])
+MP_TOOL_PATH(XZ, [xz])
+
+# Search for tool paths. Any set above (via --with-pkg=PATH) will be retained
 AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
 AC_PATH_PROG(BZIP2, [bzip2], [])
 AC_PATH_PROG(BZR, [bzr], [])
@@ -149,24 +169,6 @@ AC_PATH_PROG(ZIP, [zip])
 
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
 
-# Define some precious variables allowing user to override PATH for some programs
-AC_ARG_VAR(BSDMAKE, [path to bsdmake/pmake command])
-AC_ARG_VAR(BZIP2, [path to bzip2 command])
-AC_ARG_VAR(CVS, [path to cvs command])
-AC_ARG_VAR(GNUMAKE, [path to gnumake command])
-AC_ARG_VAR(GNUTAR, [path to gnutar command])
-AC_ARG_VAR(LZMA, [path to lzma command])
-AC_ARG_VAR(MAKE, [path to make command])
-AC_ARG_VAR(MTREE, [path to mtree command])
-AC_ARG_VAR(OPEN, [path to open command])
-AC_ARG_VAR(OPENSSL, [path to openssl command])
-AC_ARG_VAR(RSYNC, [path to rsync command])
-AC_ARG_VAR(SED, [path to sed command])
-AC_ARG_VAR(SVN, [path to svn command])
-AC_ARG_VAR(SWIG, [path to swig command])
-AC_ARG_VAR(TAR, [path to tar command])
-AC_ARG_VAR(XAR, [path to xar command])
-AC_ARG_VAR(XZ, [path to xz command])
 
 if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])

@@ -96,6 +96,15 @@ AC_DEFUN([_MP_EXTRACT_KEY], [dnl
 	$1=$(AS_ECHO([$2]) | sed -E 's/^--?([[^=]]+)=.*$/\1/')dnl
 ])
 
+dnl Similar to AC_ARG_VAR, but implemented with --with-pkg=PATH for PKG.
+dnl
+dnl Parameters: Similar to AC_ARG_VAR ($2 gets some boiler plate around it)
+AC_DEFUN([MP_TOOL_PATH], [dnl
+	AC_ARG_WITH([m4_tolower($1)], [AS_HELP_STRING([--with-m4_tolower($1)=PATH],
+			[Path to alternate $2 command])], [$1=$withval],dnl
+		[])dnl
+])
+
 dnl Configure a project contained in a .tar.gz, .tgz or .tar.bz2 tarball,
 dnl extracting it previously, if necessary. Different from AC_CONFIG_SUBDIRS
 dnl (on which this macro is based), you can pass parameters to the
