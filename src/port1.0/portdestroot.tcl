@@ -172,22 +172,26 @@ proc portdestroot::destroot_finish {args} {
     # Prevent overlinking due to glibtool .la files: https://trac.macports.org/ticket/38010
     ui_debug "Fixing glibtool .la files in destroot for ${subport}"
     fs-traverse -depth fullpath ${destroot} {
-        if {[file extension $fullpath] eq ".la" && [file type $fullpath] eq "file"} {
+        # XXX checking only relative symlinks - rewriting absolute links to point to destroot would be tricky
+        if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || ([file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] eq "relative"))} {
             # Make sure it is from glibtool ... "a libtool library file" will appear in the first line
             if {![catch {set fp [open $fullpath]}]} {
                 if {[gets $fp line] > 0 && [string first "a libtool library file" $line] != -1} {
-                    if {${destroot.delete_la_files}} {
-                        ui_debug "Removing [file tail $fullpath]"
-                        file delete -force ${fullpath}
-                    } else {
-                        ui_debug "Clearing dependency_libs in [file tail $fullpath]"
-                        reinplace "/dependency_libs/ s/'.*'/''/" ${fullpath}
-                    }
+                    lappend la_file_list $fullpath
                 }
             } else {
                 ui_debug "Failed to open $fullpath"
             }
             catch {close $fp}
+        }
+    }
+    foreach fullpath $la_file_list {
+        if {${destroot.delete_la_files}} {
+            ui_debug "Removing [file tail $fullpath]"
+            file delete -force ${fullpath}
+        } else {
+            ui_debug "Clearing dependency_libs in [file tail $fullpath]"
+            reinplace "/dependency_libs/ s/'.*'/''/" ${fullpath}
         }
     }
 
