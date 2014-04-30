@@ -171,6 +171,7 @@ proc portdestroot::destroot_finish {args} {
 
     # Prevent overlinking due to glibtool .la files: https://trac.macports.org/ticket/38010
     ui_debug "Fixing glibtool .la files in destroot for ${subport}"
+    set la_file_list [list]
     fs-traverse -depth fullpath ${destroot} {
         # XXX checking only relative symlinks - rewriting absolute links to point to destroot would be tricky
         if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || ([file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] eq "relative"))} {
