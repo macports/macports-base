@@ -173,15 +173,20 @@ proc portdestroot::destroot_finish {args} {
     ui_debug "Fixing glibtool .la files in destroot for ${subport}"
     set la_file_list [list]
     fs-traverse -depth fullpath ${destroot} {
-        # XXX checking only relative symlinks - rewriting absolute links to point to destroot would be tricky
-        if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || ([file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] eq "relative"))} {
+        if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || [file type $fullpath] eq "link")} {
+            if {[file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] ne "relative"} {
+                # prepend $destroot to target of absolute symlinks
+                set checkpath ${destroot}${fullpath}
+            } else {
+                set checkpath $fullpath
+            }
             # Make sure it is from glibtool ... "a libtool library file" will appear in the first line
-            if {![catch {set fp [open $fullpath]}]} {
+            if {![catch {set fp [open $checkpath]}]} {
                 if {[gets $fp line] > 0 && [string first "a libtool library file" $line] != -1} {
                     lappend la_file_list $fullpath
                 }
             } else {
-                ui_debug "Failed to open $fullpath"
+                ui_debug "Failed to open $checkpath"
             }
             catch {close $fp}
         }
