@@ -176,7 +176,7 @@ proc portdestroot::destroot_finish {args} {
         if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || [file type $fullpath] eq "link")} {
             if {[file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] ne "relative"} {
                 # prepend $destroot to target of absolute symlinks
-                set checkpath ${destroot}${fullpath}
+                set checkpath ${destroot}[file link $fullpath]
             } else {
                 set checkpath $fullpath
             }
