@@ -267,7 +267,7 @@ proc macports::ui_init {priority args} {
     }
     set phases {fetch checksum}
     try {
-        eval ::ui_init $priority $prefix $channels($priority) $args
+        ::ui_init $priority $prefix $channels($priority) {*}$args
     } catch * {
         interp alias {} ui_$priority {} ui_message $priority $prefix {}
         foreach phase $phases {
@@ -1479,7 +1479,7 @@ proc macports::fetch_port {url {local 0}} {
         } elseif {[info exists macports::ui_options(progress_download)]} {
             set progressflag "--progress ${macports::ui_options(progress_download)}"
         }
-        if {[catch {eval curl fetch $progressflag {$url} {[file join $fetchdir $fetchfile]}} result]} {
+        if {[catch {curl fetch {*}$progressflag $url [file join $fetchdir $fetchfile]} result]} {
             return -code error "Port remote fetch failed: $result"
         }
     }
@@ -1492,9 +1492,13 @@ proc macports::fetch_port {url {local 0}} {
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag $macports::autoconf::tar_q
-    set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
+    set cmdline {}
+    lappend cmdline "$tarcmd"
+    lappend cmdline "${tarflags}${qflag}xOf"
+    lappend cmdline "$fetchfile"
+    lappend cmdline "+CONTENTS"
     ui_debug $cmdline
-    if {![catch {set contents [eval exec $cmdline]}]} {
+    if {![catch {set contents [exec {*}$cmdline]}]} {
         # the file is probably a valid binary archive
         set binary 1
         ui_debug "getting port name from binary archive"
@@ -1519,13 +1523,21 @@ proc macports::fetch_port {url {local 0}} {
 
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
+    set cmdline {}
     if {$binary} {
-        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"../$fetchfile\" +PORTFILE > Portfile"
+        lappend cmdline "$tarcmd"
+        lappend cmdline "${tarflags}${qflag}xOf"
+        lappend cmdline "../$fetchfile"
+        lappend cmdline "+PORTFILE"
+        lappend cmdline ">"
+        lappend cmdline "Portfile"
     } else {
-        set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
+        lappend cmdline "$tarcmd"
+        lappend cmdline "${tarflags}${qflag}xf"
+        lappend cmdline "$fetchfile"
     }
     ui_debug $cmdline
-    if {[catch {eval exec $cmdline} result]} {
+    if {[catch {exec {*}$cmdline} result]} {
         # clean up the archive, we don't need it anymore
         file delete [file join $fetchdir $fetchfile]
 
@@ -2544,7 +2556,7 @@ proc mportsync {{optionslist {}}} {
                 }
 
                 try {
-                    eval curl fetch $progressflag {$source} {$tarpath}
+                    curl fetch {*}$progressflag $source $tarpath
                 } catch {{POSIX SIG SIGINT} eCode eMessage} {
                     throw
                 } catch {{POSIX SIG SIGTERM} eCode eMessage} {
