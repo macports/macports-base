@@ -268,10 +268,10 @@ proc _activate_file {srcfile dstfile} {
                 ::file mkdir $dstfile
                 # fix attributes on the directory.
                 if {[getuid] == 0} {
-                    ::file attributes {$dstfile} {*}[::file attributes $srcfile]
+                    ::file attributes $dstfile {*}[::file attributes $srcfile]
                 } else {
                     # not root, so can't set owner/group
-                    ::file attributes {$dstfile} -permissions {*}[::file attributes $srcfile -permissions]
+                    ::file attributes $dstfile -permissions {*}[::file attributes $srcfile -permissions]
                 }
                 # set mtime on installed element
                 ::file mtime $dstfile [::file mtime $srcfile]
