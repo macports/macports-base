@@ -99,7 +99,7 @@ if {$defaultWritten} {
       file rename -force ${sourcesConf} "${sourcesConf}.mpsaved_[clock seconds]"
    }
    file rename ${tempfile} ${sourcesConf}
-   eval file attributes ${sourcesConf} $attributes
+   file attributes ${sourcesConf} {*}$attributes
 } else {
    file delete ${tempfile}
    if {!$defaultSeen} {
