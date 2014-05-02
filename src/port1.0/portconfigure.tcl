@@ -79,7 +79,7 @@ proc portconfigure::add_build_dep { type dep } {
         ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq $option_defaults(${type}.cmd)) ||
         (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq ${type})
         )} {
-            eval [linsert $dep 0 depends_build-append]
+            depends_build-append {*}$dep
     }
 }
 
@@ -99,14 +99,14 @@ proc portconfigure::set_configure_type {option action args} {
             autoreconf.cmd  -
             automake.cmd    -
             autoconf.cmd {
-                eval [linsert $configure_map(autoconf) 0 depends_build-delete]
+                depends_build-delete $configure_map(autoconf)
             }
             xmkmf.cmd {
-                eval [linsert $configure_map(xmkmf) 0 depends_build-delete]
+                depends_build-delete $configure_map(xmkmf)
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    eval [linsert $configure_map(xmkmf) 0 depends_build-append]
+                    depends_build-appendl $configure_map(xmkmf)
                 }
             }
             default {
@@ -232,7 +232,7 @@ proc portconfigure::configure_start {args} {
     }
     foreach {re fmt} $valid_compilers {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
-            set compiler_name [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
+            set compiler_name [format $fmt {*}[lrange $matches 1 end]]
             break
         }
     }
@@ -387,7 +387,7 @@ proc portconfigure::compiler_port_name {compiler} {
     }
     foreach {re fmt} $valid_compiler_ports {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
-            return [eval [linsert [lrange $matches 1 end] 0 format $fmt]]
+            return [format $fmt {*}[lrange $matches 1 end]
         }
     }
     return {}
@@ -702,7 +702,7 @@ proc portconfigure::configure_main {args} {
             PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG PKG_CONFIG_PATH \
         } {
             set value [option configure.[string tolower $env_var]]
-            eval [linsert $value 0 append_to_environment_value configure $env_var]
+            append_to_environment_value configure $env_var $value
         }
 
         # https://trac.macports.org/ticket/34221
@@ -719,16 +719,16 @@ proc portconfigure::configure_main {args} {
         }
 
         # add extra flags that are conditional on whether we're building universal
-        eval [linsert [get_canonical_archflags cc] 0 append_to_environment_value configure CFLAGS]
+        append_to_environment_value configure CFLAGS {*}[get_canonical_archflags cc]
         foreach tool {cxx objc objcxx cpp f77 f90 fc ld} {
             if {[catch {get_canonical_archflags $tool} flags]} {
                 continue
             }
             set env_var [string toupper $tool]FLAGS
-            eval [linsert $flags 0 append_to_environment_value configure $env_var]
+            append_to_environment_value configure $env_var {*}$flags
         }
         if {[variant_exists universal] && [variant_isset universal]} {
-            eval [linsert ${configure.universal_args} 0 configure.pre_args-append]
+            configure.pre_args-append ${configure.universal_args}
         } else {
             foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS LDFLAGS} {
                 if {${configure.march} ne ""} {

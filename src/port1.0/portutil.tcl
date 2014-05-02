@@ -2823,7 +2823,7 @@ proc merge_lipo {base target file archs} {
     foreach arch ${archs} {
         lappend exec-lipo -arch ${arch} ${base}/${arch}${file}
     }
-    eval exec ${exec-lipo} [list -create -output ${target}${file}]
+    exec ${exec-lipo} {*}[list -create -output ${target}${file}]
 }
 
 # private function
