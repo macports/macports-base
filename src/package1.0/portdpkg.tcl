@@ -196,7 +196,7 @@ proc portdpkg::make_dependency_list {portname} {
 
 			foreach depspec $depends {
 				set dep [lindex [split $depspec :] end]
-				eval "lappend result [make_dependency_list $dep]"
+				lappend result {*}[make_dependency_list $dep]
 			}
 		}
 				lappend result $portinfo(name)/$portinfo(version)

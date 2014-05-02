@@ -164,7 +164,7 @@ proc portsrpm::make_dependency_list {portname} {
 
                 # xxx: nasty hack
                 if {$dep != "XFree86"} {
-                    eval "lappend result [make_dependency_list $dep]"
+                    lappend result {*}[make_dependency_list $dep]
                 }
             }
         }

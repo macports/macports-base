@@ -134,7 +134,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         if ([file exists "${destpath}/$dir"]) {
             # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
             file mkdir "${destpath}/private/${dir}"
-            eval file rename [glob ${destpath}/${dir}/*] "${destpath}/private/${dir}"
+            file rename {*}[glob ${destpath}/${dir}/*] "${destpath}/private/${dir}"
             delete "${destpath}/${dir}"
         }
     }
