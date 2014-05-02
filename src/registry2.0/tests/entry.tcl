@@ -7,7 +7,7 @@ proc main {pextlibname} {
     load $pextlibname
 
     # totally lame that file delete won't do it
-    eval exec rm -f [glob -nocomplain test.db*]
+    exec rm -f {*}[glob -nocomplain test.db*]
 
     # can't create registry in some brain-dead place or in protected place
     test_throws {registry::open /some/brain/dead/place} registry::cannot-init
