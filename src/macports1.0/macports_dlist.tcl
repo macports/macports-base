@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -55,21 +55,21 @@ package provide macports_dlist 1.0
 
 # dlist_match_multi
 # Returns all dependency entries for which the entry's value for 'key' exactly matches the given 'value'.
-#	dlist - the dependency list to search
-#	criteria - the key/value pairs to compare
+#   dlist - the dependency list to search
+#   criteria - the key/value pairs to compare
 
 proc dlist_match_multi {dlist criteria} {
 	set result {}
 	foreach ditem $dlist {
-	    set match 1
-	    foreach {key value} $criteria {
-		    if {[ditem_key $ditem $key] != $value} {
-			    set match 0
-			    break
-		    }
+		set match 1
+		foreach {key value} $criteria {
+			if {[ditem_key $ditem $key] != $value} {
+				set match 0
+				break
+			}
 		}
 		if {$match} {
-		    lappend result $ditem
+			lappend result $ditem
 		}
 	}
 	return $result
@@ -77,9 +77,9 @@ proc dlist_match_multi {dlist criteria} {
 
 # dlist_search
 # Returns all dependency entries whose 'key' contains 'value'.
-#	dlist - the dependency list to search
-#	key   - the key to compare: Requires, Provides, et al.
-#	value - the value to compare
+#   dlist - the dependency list to search
+#   key   - the key to compare: Requires, Provides, et al.
+#   value - the value to compare
 
 proc dlist_search {dlist key value} {
 	set result {}
@@ -93,22 +93,22 @@ proc dlist_search {dlist key value} {
 
 # dlist_delete
 # Deletes the specified ditem from the dlist.
-#	dlist - the list to search
-#	ditem - the item to delete
+#   dlist - the list to search
+#   ditem - the item to delete
 proc dlist_delete {dlist ditem} {
-    upvar $dlist uplist
-    set ix [lsearch -exact $uplist $ditem]
-    if {$ix >= 0} {
+	upvar $dlist uplist
+	set ix [lsearch -exact $uplist $ditem]
+	if {$ix >= 0} {
 		set uplist [lreplace $uplist $ix $ix]
-    }
+	}
 }
 
 # dlist_has_pending
 # Returns true if the dlist contains ditems
 # which will provide one of the specified names,
 # and thus are still "pending".
-#	dlist  - the dependency list to search
-#	tokens - the list of pending tokens to check for
+#   dlist  - the dependency list to search
+#   tokens - the list of pending tokens to check for
 
 proc dlist_has_pending {dlist tokens} {
 	foreach token $tokens {
@@ -153,9 +153,9 @@ proc ditem_delete {ditem} {
 
 # ditem_key
 # Sets and returns the given key of the dependency item.
-#	ditem - the dependency item to operate on
-#	key   - the key to set
-#	value - optional value to set the key to
+#   ditem - the dependency item to operate on
+#   key   - the key to set
+#   value - optional value to set the key to
 
 proc ditem_key {ditem args} {
 	set nbargs [llength $args]
@@ -170,40 +170,40 @@ proc ditem_key {ditem args} {
 
 # ditem_append
 # Appends the value to the given key of the dependency item.
-#	ditem - the dependency item to operate on
-#	key   - the key to append to
-#	value - the value to append to the key
+#   ditem - the dependency item to operate on
+#   key   - the key to append to
+#   value - the value to append to the key
 
 proc ditem_append {ditem key args} {
-	eval "return \[macports_dlist::ditem_append $ditem $key $args\]"
+	return [macports_dlist::ditem_append $ditem $key {*}$args]
 }
 
 # ditem_append_unique
 # Appends the value to the given key of the dependency item if
 # they were not there yet.
-#	ditem - the dependency item to operate on
-#	key   - the key to append to
-#	value - the value to append to the key
+#   ditem - the dependency item to operate on
+#   key   - the key to append to
+#   value - the value to append to the key
 
 proc ditem_append_unique {ditem key args} {
-	eval "return \[macports_dlist::ditem_append_unique $ditem $key $args\]"
+	return [macports_dlist::ditem_append_unique $ditem $key {*}$args]
 }
 
 # ditem_contains
 # Tests whether the ditem key contains the specified value;
 # or if the value is omitted, tests whether the key exists.
-#	ditem - the dependency item to test
-#	key   - the key to examine
-#	value - optional value to search for in the key
+#   ditem - the dependency item to test
+#   key   - the key to examine
+#   value - optional value to search for in the key
 proc ditem_contains {ditem key args} {
-	eval "return \[macports_dlist::ditem_contains $ditem $key $args\]"
+	return [macports_dlist::ditem_contains $ditem $key {*}$args]
 }
 
 # dlist_append_dependents
 # Returns the ditems which are dependents of the ditem specified.
-#	dlist - the dependency list to search
-#	ditem - the item which itself, and its dependents should be selected
-#	result - used for recursing, pass empty initially.
+#   dlist - the dependency list to search
+#   ditem - the item which itself, and its dependents should be selected
+#   result - used for recursing, pass empty initially.
 
 proc dlist_append_dependents {dlist ditem result} {
 	# Only append things if the root item is not in the list.
@@ -233,9 +233,9 @@ proc dlist_append_dependents {dlist ditem result} {
 # on unfulfilled tokens in the Uses key.  However these items
 # will eventually be returned if there are no alternatives.
 # Soft-dependencies can be implemented in this way.
-#	dlist      - the dependency list to select from
-#	statusdict - the status dictionary describing the history
-#	             of the dependency list.
+#   dlist      - the dependency list to select from
+#   statusdict - the status dictionary describing the history
+#                of the dependency list.
 
 proc dlist_get_next {dlist statusdict} {
 	upvar $statusdict upstatus
@@ -278,14 +278,14 @@ proc dlist_get_next {dlist statusdict} {
 # ditems are eligible to run (the selector returns {}) then
 # dlist_eval will exit with a list of the remaining ditems,
 # or {} if all ditems were evaluated.
-#	dlist    - the dependency list to evaluate
-#	testcond - test condition to populate the status dictionary
-#	           should return {-1, 0, 1}
-#	handler  - the handler to invoke on each ditem
-#	canfail  - If 1, then progress will not stop when a failure
-#	           occures; if 0, then dlist_eval will return on the
-#	           first failure
-#	selector - the selector for determining eligibility
+#   dlist    - the dependency list to evaluate
+#   testcond - test condition to populate the status dictionary
+#              should return {-1, 0, 1}
+#   handler  - the handler to invoke on each ditem
+#   canfail  - If 1, then progress will not stop when a failure
+#              occures; if 0, then dlist_eval will return on the
+#              first failure
+#   selector - the selector for determining eligibility
 
 proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"}} {
 	array set statusdict [list]
@@ -294,7 +294,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	# can evaluate to true.
 	if {$testcond ne ""} {
 		foreach ditem $dlist {
-			if {[eval "expr \[\$testcond \$ditem\] == 1"]} {
+			if {[expr [$testcond $ditem]]} {
 				foreach token [ditem_key $ditem provides] {
 					set statusdict($token) 1
 				}
@@ -308,14 +308,14 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 		set ditem [$selector $dlist statusdict]
 
 		if {$ditem == {}} {
-		    if {[llength $dlist] > 0} {
-		        ui_debug "dlist_eval: all entries in dependency list have unsatisfied dependencies; can't process"
-		    }
+			if {[llength $dlist] > 0} {
+				ui_debug "dlist_eval: all entries in dependency list have unsatisfied dependencies; can't process"
+			}
 			break
 		} else {
 			# $handler should return a unix status code, 0 for success.
 			# statusdict notation is 1 for success
-			if {[catch {eval "$handler $ditem"} result]} {
+			if {[catch {$handler $ditem} result]} {
 				puts $result
 				return $dlist
 			}
@@ -388,7 +388,7 @@ proc ditem_append {ditem key args} {
 	variable $ditem
 	set x [lindex [array get $ditem $key] 1]
 	if {$x != {}} {
-		eval "lappend x $args"
+		lappend x {*}$args
 	} else {
 		set x $args
 	}
@@ -400,7 +400,7 @@ proc ditem_append_unique {ditem key args} {
 	variable $ditem
 	set x [lindex [array get $ditem $key] 1]
 	if {$x != {}} {
-		eval "lappend x $args"
+		lappend x {*}$args
 		set x [lsort -unique $x]
 	} else {
 		set x $args
@@ -412,7 +412,7 @@ proc ditem_append_unique {ditem key args} {
 proc ditem_contains {ditem key args} {
 	variable $ditem
 	if {[llength $args] == 0} {
-		eval "return \[info exists ${ditem}($key)\]"
+		return [info exists [subst $ditem]($key)]
 	} else {
 		set x [lindex [array get $ditem $key] 1]
 		if {[llength $x] > 0 && [lsearch -exact $x [lindex $args 0]] != -1} {
@@ -425,4 +425,3 @@ proc ditem_contains {ditem key args} {
 
 # End of macports_dlist namespace
 }
-
