@@ -85,7 +85,7 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    if {[catch {set urlnewer [eval curl isnewer $curl_options {$file_url} $port_moddate]} error]} {
+                    if {[catch {set urlnewer [curl isnewer {*}$curl_options $file_url $port_moddate]} error]} {
                         ui_warn "couldn't fetch $file_url for $subport ($error)"
                     } else {
                         if {$urlnewer} {
@@ -102,7 +102,7 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    if {[catch {set urlsize [eval curl getsize $curl_options {$file_url}]} error]} {
+                    if {[catch {set urlsize [curl getsize {*}$curl_options $file_url]} error]} {
                         ui_warn "couldn't fetch $file_url for $subport ($error)"
                     } else {
                         incr count
