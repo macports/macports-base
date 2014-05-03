@@ -1,5 +1,5 @@
 # Global vars
-set arguments ""
+set arguments {}
 set test_name ""
 set color_out ""
 set tcl ""
@@ -41,7 +41,7 @@ foreach arg $argv {
         set index [expr {[lsearch $argv $arg] + 1}]
         set level [lindex $argv $index]
         if { $level >= 0 && $level <= 3 } {
-            append arguments "-debug " $level
+            lappend arguments "-debug" $level
         } else {
             puts "Invalid debug level."
             exit 1
