@@ -412,7 +412,7 @@ proc ditem_append_unique {ditem key args} {
 proc ditem_contains {ditem key args} {
 	variable $ditem
 	if {[llength $args] == 0} {
-		return [info exists [subst $ditem]($key)]
+		return [info exists [set ditem]($key)]
 	} else {
 		set x [lindex [array get $ditem $key] 1]
 		if {[llength $x] > 0 && [lsearch -exact $x [lindex $args 0]] != -1} {
