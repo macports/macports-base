@@ -2,7 +2,7 @@
 
 package require tcltest 2
 namespace import tcltest::*
-eval ::tcltest::configure $::argv
+::tcltest::configure {*}$::argv
 
 set pwd [file dirname [file normalize $argv0]]
 
