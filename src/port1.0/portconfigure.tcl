@@ -387,7 +387,7 @@ proc portconfigure::compiler_port_name {compiler} {
     }
     foreach {re fmt} $valid_compiler_ports {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
-            return [format $fmt {*}[lrange $matches 1 end]
+            return [format $fmt {*}[lrange $matches 1 end]]
         }
     }
     return {}
