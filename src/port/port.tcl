@@ -3893,7 +3893,7 @@ proc action_portcmds { action portlist opts } {
                     if { $editor eq "" } { set editor "/usr/bin/vi" }
                     
                     # Invoke the editor
-                    if {[catch {eval exec >@stdout <@stdin 2>@stderr $editor {$portfile}} result]} {
+                    if {[catch {exec -ignorestderr >@stdout <@stdin {*}$editor $portfile} result]} {
                         global errorInfo
                         ui_debug "$errorInfo"
                         break_softcontinue "unable to invoke editor $editor: $result" 1 status
