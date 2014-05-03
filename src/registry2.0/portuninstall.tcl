@@ -85,7 +85,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             append composite_spec _${revision}${variants}
         }
     }
-    set ilist [eval registry::entry imaged $searchkeys]
+    set ilist [registry::entry imaged {*}$searchkeys]
     if { [llength $ilist] > 1 } {
         # set portname again since the one we were passed may not have had the correct case
         set portname [[lindex $ilist 0] name]
