@@ -188,10 +188,10 @@ proc portdpkg::make_dependency_list {portname} {
 			# xxx: only examines the portfile component of the depspec
 			set depends {}
 			if {[info exists portinfo(depends_run)]} {
-				eval "lappend depends $portinfo(depends_run)"
+				lappend depends {*}$portinfo(depends_run)
 			}
 			if {[info exists portinfo(depends_lib)]} {
-				eval "lappend depends $portinfo(depends_lib)"
+				lappend depends {*}$portinfo(depends_lib)
 			}
 
 			foreach depspec $depends {

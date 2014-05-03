@@ -81,7 +81,7 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
     foreach dir [list "${prefix}/src/macports/SRPMS" "${prefix}/src/apple/SRPMS" "/usr/src/apple/SRPMS" "/macports/rpms/SRPMS"] {
         foreach arch {"src" "nosrc"} {
             set rpmpath "$dir/${portname}-${portversion}-${portrevision}.${arch}.rpm"
-	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
+            if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
                 ui_debug "$rpmpath"
                 ui_msg "$UI_PREFIX [format [msgcat::mc "SRPM package for %s version %s is up-to-date"] ${portname} ${portversion}]"
                 return 0
@@ -141,8 +141,8 @@ proc portsrpm::srpm_pkg {portname portversion portrevision} {
 proc portsrpm::make_dependency_list {portname} {
     set result {}
     if {[catch {set res [mport_lookup $portname]} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
+        global errorInfo
+        ui_debug "$errorInfo"
         ui_error "port lookup failed: $error"
         return 1
     }
@@ -154,10 +154,18 @@ proc portsrpm::make_dependency_list {portname} {
             # get the union of depends_fetch, depends_extract, depends_build and depends_lib
             # xxx: only examines the portfile component of the depspec
             set depends {}
-            if {[info exists portinfo(depends_fetch)]} { eval "lappend depends $portinfo(depends_fetch)" }
-            if {[info exists portinfo(depends_extract)]} { eval "lappend depends $portinfo(depends_extract)" }
-            if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
-            if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+            if {[info exists portinfo(depends_fetch)]} {
+                lappend depends {*}$portinfo(depends_fetch)
+            }
+            if {[info exists portinfo(depends_extract)]} {
+                lappend depends {*}$portinfo(depends_extract)
+            }
+            if {[info exists portinfo(depends_build)]} {
+                lappend depends {*}$portinfo(depends_build)
+            }
+            if {[info exists portinfo(depends_lib)]} {
+                lappend depends {*}$portinfo(depends_lib)
+            }
 
             foreach depspec $depends {
                 set dep [lindex [split $depspec :] end]
@@ -183,21 +191,21 @@ proc portsrpm::word_wrap {orig Length} {
     set words [split $orig]
     set numWords [llength $words]
     for {set cnt 0} {$cnt < $numWords} {incr cnt} {
-	set w [lindex $words $cnt]
-	set wLen [string length $w]
+        set w [lindex $words $cnt]
+        set wLen [string length $w]
 
-	if {($pos+$wLen < $Length)} {
-	    # append word to current line
-	    if {$pos} {append line " "; incr pos}
-	    append line $w
-	    incr pos $wLen
-	} else {
-	    # line full => write buffer and  begin a new line
-	    if {[string length $text]} {append text "\n"}
-	    append text $line
-	    set line $w
-	    set pos $wLen
-	}
+        if {($pos+$wLen < $Length)} {
+            # append word to current line
+            if {$pos} {append line " "; incr pos}
+            append line $w
+            incr pos $wLen
+        } else {
+            # line full => write buffer and  begin a new line
+            if {[string length $text]} {append text "\n"}
+            append text $line
+            set line $w
+            set pos $wLen
+        }
     }
 
     if {[string length $text]} {append text "\n"}
@@ -228,7 +236,7 @@ Source0: ${portname}-Portfile"
         puts $specfd "Source1: $zip"
     }
     if {$epoch != 0} {
-	    puts $specfd "Epoch: ${epoch}"
+        puts $specfd "Epoch: ${epoch}"
     }
     set first 2
     set count $first
@@ -254,9 +262,9 @@ Source0: ${portname}-Portfile"
     }
     puts $specfd "AutoReq: no"
     if {[llength ${dependencies}] != 0} {
-	foreach require ${dependencies} {
-	    puts $specfd "BuildRequires: [regsub -all -- "\-" $require "_"]"
-	}
+        foreach require ${dependencies} {
+            puts $specfd "BuildRequires: [regsub -all -- "\-" $require "_"]"
+        }
     }
     set wrap_description [word_wrap ${long_description} 72]
     if {$zip ne ""} {

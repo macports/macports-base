@@ -92,7 +92,7 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
     foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
         foreach arch [list ${configure.build_arch} ${os.arch} "fat" "noarch"] {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
-	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
+            if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
                 ui_debug "$rpmpath"
                 ui_msg "$UI_PREFIX [format [msgcat::mc "RPM package for %s version %s is up-to-date"] ${portname} ${portversion}]"
                 return 0
@@ -125,8 +125,8 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
         }
     }
 
-	# depend on system (virtual packages for apple stuff)
-	lappend dependencies "org.macports.${os.platform}${os.major}"
+    # depend on system (virtual packages for apple stuff)
+    lappend dependencies "org.macports.${os.platform}${os.major}"
 
     set listpath ${workpath}/${portname}.filelist
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"
@@ -142,8 +142,8 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
 proc portrpm::make_dependency_list {portname} {
     set result {}
     if {[catch {set res [mport_lookup $portname]} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
+        global errorInfo
+        ui_debug "$errorInfo"
         ui_error "port lookup failed: $error"
         return 1
     }
@@ -154,14 +154,18 @@ proc portrpm::make_dependency_list {portname} {
             # get the union of depends_run and depends_lib
             # xxx: only examines the portfile component of the depspec
             set depends {}
-            if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-            if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+            if {[info exists portinfo(depends_run)]} {
+                lappend depends {*}$portinfo(depends_run)
+            }
+            if {[info exists portinfo(depends_lib)]} {
+                lappend depends {*}$portinfo(depends_lib)
+            }
 
             foreach depspec $depends {
                 set dep [lindex [split $depspec :] end]
 
                 # xxx: nasty hack
-                if {$dep != "XFree86"} {
+                if {$dep ne "XFree86"} {
                     lappend result {*}[make_dependency_list $dep]
                 }
             }
@@ -181,21 +185,21 @@ proc portrpm::word_wrap {orig Length} {
     set words [split $orig]
     set numWords [llength $words]
     for {set cnt 0} {$cnt < $numWords} {incr cnt} {
-	set w [lindex $words $cnt]
-	set wLen [string length $w]
+        set w [lindex $words $cnt]
+        set wLen [string length $w]
 
-	if {($pos+$wLen < $Length)} {
-	    # append word to current line
-	    if {$pos} {append line " "; incr pos}
-	    append line $w
-	    incr pos $wLen
-	} else {
-	    # line full => write buffer and  begin a new line
-	    if {[string length $text]} {append text "\n"}
-	    append text $line
-	    set line $w
-	    set pos $wLen
-	}
+        if {($pos+$wLen < $Length)} {
+            # append word to current line
+            if {$pos} {append line " "; incr pos}
+            append line $w
+            incr pos $wLen
+        } else {
+            # line full => write buffer and  begin a new line
+            if {[string length $text]} {append text "\n"}
+            append text $line
+            set line $w
+            set pos $wLen
+        }
     }
 
     if {[string length $text]} {append text "\n"}
@@ -228,12 +232,12 @@ URL: ${homepage}
 BuildRoot: ${destroot}
 AutoReq: no"
     if {$epoch != 0} {
-	    puts $specfd "Epoch: ${epoch}"
+        puts $specfd "Epoch: ${epoch}"
     }
     if {[llength ${dependencies}] != 0} {
-	foreach require ${dependencies} {
-	    puts $specfd "Requires: [regsub -all -- "\-" $require "_"]"
-	}
+        foreach require ${dependencies} {
+            puts $specfd "Requires: [regsub -all -- "\-" $require "_"]"
+        }
     }
     set wrap_description [word_wrap ${long_description} 72]
     puts $specfd "
