@@ -180,7 +180,7 @@ proc handle_option-replace {option args} {
         }
         set refcount [lindex $deprecated_options(${option}-replace) 1]
         lset deprecated_options(${option}-replace) 1 [expr {$refcount + 1}]
-        return [eval handle_option-strsed $option $args]
+        return [handle_option-strsed $option {*}$args]
     }
 
     if {![info exists user_options($option)] && [info exists $option]} {
@@ -451,7 +451,7 @@ proc command_exec {command args} {
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
     ui_debug "Executing command line: $fullcmdstring"
-    set code [catch {eval system $notty $nice \$fullcmdstring} result]
+    set code [catch {system {*}$notty {*}$nice $fullcmdstring} result]
     # Save variables in order to re-throw the same error code.
     set errcode $::errorCode
     set errinfo $::errorInfo
@@ -988,7 +988,8 @@ proc reinplace {args}  {
             set tmpfile [join [lrange $tmpfile 1 end]]
         }
 
-        set cmdline $portutil::autoconf::sed_command
+        set cmdline {}
+        lappend cmdline $portutil::autoconf::sed_command
         if {$extended} {
             if {$portutil::autoconf::sed_ext_flag eq "N/A"} {
                 ui_debug "sed extended regexp not available"
@@ -999,13 +1000,13 @@ proc reinplace {args}  {
         if {$suppress} {
             lappend cmdline -n
         }
-        set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd 2>@stderr]]
+        lappend cmdline $pattern "<$file" ">@$tmpfd"
         if {$locale ne ""} {
             set env(LC_CTYPE) $locale
         }
         ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] [file tail $file] $pattern]"
         ui_debug "Executing reinplace: $cmdline"
-        if {[catch {eval exec $cmdline} error]} {
+        if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "reinplace: $error"
@@ -1068,7 +1069,7 @@ proc reinplace {args}  {
 # delete
 # Wrapper for file delete -force
 proc delete {args} {
-    eval file delete -force -- $args
+    file delete -force -- {*}$args
 }
 
 # touch
@@ -1167,7 +1168,7 @@ proc touch {args} {
 # copy
 # Wrapper for file copy
 proc copy {args} {
-    eval file copy $args
+    file copy {*}$args
 }
 
 # move
@@ -1196,7 +1197,7 @@ proc move {args} {
             return
         }
     }
-    eval file rename $options -- $args
+    file rename {*}$options -- {*}$args
 }
 
 # ln
@@ -1506,7 +1507,7 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
-                        set result [catch {eval $pre $targetname} errstr]
+                        set result [catch {$pre $targetname} errstr]
                         # Save variables in order to re-throw the same error code.
                         set errcode $::errorCode
                         set errinfo $::errorInfo
@@ -1516,7 +1517,7 @@ proc target_run {ditem} {
 
                 if {$result == 0} {
                     ui_debug "Executing $targetname ($portname)"
-                    set result [catch {eval $procedure $targetname} errstr]
+                    set result [catch {$procedure $targetname} errstr]
                     # Save variables in order to re-throw the same error code.
                     set errcode $::errorCode
                     set errinfo $::errorInfo
@@ -1525,7 +1526,7 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
-                        set result [catch {eval $post $targetname} errstr]
+                        set result [catch {$post $targetname} errstr]
                         # Save variables in order to re-throw the same error code.
                         set errcode $::errorCode
                         set errinfo $::errorInfo
@@ -1551,7 +1552,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem postrun] && $result == 0} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
-                    set result [catch {eval $postrun $targetname} errstr]
+                    set result [catch {$postrun $targetname} errstr]
                     # Save variables in order to re-throw the same error code.
                     set errcode $::errorCode
                     set errinfo $::errorInfo
@@ -2240,39 +2241,39 @@ proc target_provides {ditem args} {
             makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$args
         "
     }
-    eval ditem_append $ditem provides $args
+    ditem_append $ditem provides {*}$args
 }
 
 proc target_requires {ditem args} {
-    eval ditem_append $ditem requires $args
+    ditem_append $ditem requires {*}$args
 }
 
 proc target_uses {ditem args} {
-    eval ditem_append $ditem uses $args
+    ditem_append $ditem uses {*}$args
 }
 
 proc target_deplist {ditem args} {
-    eval ditem_append $ditem deplist $args
+    ditem_append $ditem deplist {*}$args
 }
 
 proc target_prerun {ditem args} {
-    eval ditem_append $ditem prerun $args
+    ditem_append $ditem prerun {*}$args
 }
 
 proc target_postrun {ditem args} {
-    eval ditem_append $ditem postrun $args
+    ditem_append $ditem postrun {*}$args
 }
 
 proc target_runtype {ditem args} {
-    eval ditem_append $ditem runtype $args
+    ditem_append $ditem runtype {*}$args
 }
 
 proc target_state {ditem args} {
-    eval ditem_append $ditem state $args
+    ditem_append $ditem state {*}$args
 }
 
 proc target_init {ditem args} {
-    eval ditem_append $ditem init $args
+    ditem_append $ditem init {*}$args
 }
 
 ##### variant class #####
@@ -2336,7 +2337,7 @@ proc handle_add_users {} {
         }
     }
     foreach username [array names args] {
-        eval adduser $username $args($username)
+        adduser $username {*}$args($username)
     }
 }
 
@@ -2978,12 +2979,12 @@ proc fileAttrsAsRoot {file attributes} {
             setegid $egid
             ui_debug "euid/egid changed to: [geteuid]/[getegid]"
             ui_debug "setting attributes on $file"
-            eval file attributes {$file} $attributes
+            file attributes $file {*}$attributes
             setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
             ui_debug "euid/egid changed to: [geteuid]/[getegid]"
         } else {
-            eval file attributes {$file} $attributes
+            file attributes $file {*}$attributes
         }
     } else {
         # not root, so can't set owner/group
