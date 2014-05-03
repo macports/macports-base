@@ -72,7 +72,7 @@ foreach arg $argv {
 
 # Run tests
 if { $test_name ne ""} {
-    set result [eval exec $tcl $test_name $arguments 2>@stderr]
+    set result [exec -ignorestderr $tcl $test_name {*}$arguments]
     puts $result
 
 } else {
@@ -80,7 +80,7 @@ if { $test_name ne ""} {
     set test_suite [glob *.test]
 
     foreach test $test_suite {
-        set result [eval exec $tcl $test $arguments 2>@stderr]
+        set result [exec -ignorestderr $tcl $test {*}$arguments]
 	set lastline [lindex [split $result "\n"] end]
 
 	if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
