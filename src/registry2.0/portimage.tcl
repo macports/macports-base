@@ -217,7 +217,7 @@ proc _check_registry {name version revision variants} {
             append composite_spec _${revision}${variants}
         }
     }
-    set ilist [eval registry::entry imaged $searchkeys]
+    set ilist [registry::entry imaged {*}$searchkeys]
 
     if { [llength $ilist] > 1 } {
         ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
