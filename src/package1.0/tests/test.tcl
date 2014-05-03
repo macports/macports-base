@@ -1,5 +1,5 @@
 # Global vars
-set arguments ""
+set arguments {}
 set test_name ""
 set color_out ""
 set tcl ""
@@ -17,8 +17,8 @@ while {[gets $fp line] != -1} {
 proc print_help {arg} {
     if { $arg eq "tests" } {
         puts "The list of available tests is:"
-	cd tests
-	set test_suite [glob *.test]
+        cd tests
+        set test_suite [glob *.test]
         foreach test $test_suite {
             puts [puts -nonewline "  "]$test
         }
@@ -34,82 +34,91 @@ proc print_help {arg} {
 
 # Process args
 foreach arg $argv {
-    if { $arg eq "-h" || $arg eq "-help" } {
+    if {$arg eq "-h" || $arg eq "-help"} {
         print_help ""
         exit 0
-    } elseif { $arg eq "-debug" } {
+    } elseif {$arg eq "-debug"} {
         set index [expr {[lsearch $argv $arg] + 1}]
         set level [lindex $argv $index]
-        if { $level >= 0 && $level <= 3 } {
-            append arguments "-debug " $level
+        if {$level >= 0 && $level <= 3} {
+            lappend arguments "-debug" $level
         } else {
             puts "Invalid debug level."
             exit 1
         }
-    } elseif { $arg eq "-t" } {
+    } elseif {$arg eq "-t"} {
         set index [expr {[lsearch $argv $arg] + 1}]
         set test_name [lindex $argv $index]
         set no 0
-	cd tests
-	set test_suite [glob *.test]
+        cd tests
+        set test_suite [glob *.test]
         foreach test $test_suite {
-            if { $test_name != $test } {
+            if {$test_name ne $test} {
                 set no [expr {$no + 1}]
             }
         }
-        if { $no == [llength $test_suite] } {
+        if {$no == [llength $test_suite]} {
             print_help tests
             exit 1
         }
-    } elseif { $arg eq "-l" } {
+    } elseif {$arg eq "-l"} {
         print_help tests
         exit 0
-    } elseif { $arg eq "-nocolor" } {
+    } elseif {$arg eq "-nocolor"} {
         set color_out "no"
     }
 }
 
 
 # Run tests
-if { $test_name ne ""} {
-    set result [eval exec $tcl $test_name $arguments 2>@stderr]
+if {$test_name ne ""} {
+    set result [exec -ignorestderr $tcl $test_name {*}$arguments]
     puts $result
-
 } else {
     cd tests
     set test_suite [glob *.test]
 
     foreach test $test_suite {
-        set result [eval exec $tcl $test $arguments 2>@stderr]
-		set lastline [lindex [split $result "\n"] end]
+        set result [exec -ignorestderr $tcl $test {*}$arguments]
+        set lastline [lindex [split $result "\n"] end]
 
-	if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
-		if {[lrange [split $lastline "\t"] 1 1] == ""} {
-			set lastline [lindex [split $result "\n"] 0]
-	    	set errmsg [lindex [split $result "\n"] 2]
-		} else {
-	    	set lastline [lindex [split $result "\n"] end-2]
-	    	set errmsg [lindex [split $result "\n"] end]
-		}
-	}
+        if {[lrange [split $lastline "\t"] 1 1] ne "Total"} {
+            if {[lrange [split $lastline "\t"] 1 1] eq ""} {
+                set lastline [lindex [split $result "\n"] 0]
+                set errmsg [lindex [split $result "\n"] 2]
+            } else {
+                set lastline [lindex [split $result "\n"] end-2]
+                set errmsg [lindex [split $result "\n"] end]
+            }
+        }
 
-	set splitresult [split $lastline "\t"]
+        set splitresult [split $lastline "\t"]
         set total [lindex $splitresult 2]
         set pass [lindex $splitresult 4]
         set skip [lindex $splitresult 6]
         set fail [lindex $splitresult 8]
 
-	# Format output
-	if {$total < 10} { set total "0${total}"}
-	if {$pass < 10} { set pass "0${pass}"}
-	if {$skip < 10} { set skip "0${skip}"}
-	if {$fail < 10} { set fail "0${fail}"}
+        # Format output
+        if {$total < 10} {
+            set total "0${total}"
+        }
+        if {$pass < 10} {
+            set pass "0${pass}"
+        }
+        if {$skip < 10} {
+            set skip "0${skip}"
+        }
+        if {$fail < 10} {
+            set fail "0${fail}"
+        }
 
         # Check for errors.
-        if { $fail != 0 } { set err "yes" }
+        if {$fail != 0} {
+            set err "yes"
+        }
 
         set out ""
-        if { ($fail != 0 || $skip != 0) && $color_out eq "" } {
+        if {($fail != 0 || $skip != 0) && $color_out eq ""} {
             # Color failed tests.
             append out "\x1b\[1;31mTotal:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  \x1b\[0m" $test
         } else {
@@ -118,19 +127,21 @@ if { $test_name ne ""} {
 
         # Print results and constrints for auto-skipped tests.
         puts $out
-        if { $skip != 0 } {
+        if {$skip != 0} {
             set out "    Constraint: "
             append out [string trim $errmsg "\t {}"]
             puts $out
         }
-	if { $fail != 0 } {
-	    set end [expr {[string first $test $result 0] - 1}]
-	    puts [string range $result 0 $end]
-	}
+        if {$fail != 0} {
+            set end [expr {[string first $test $result 0] - 1}]
+            puts [string range $result 0 $end]
+        }
     }
 }
 
 # Return 1 if errors were found.
-if {$err ne ""} { exit 1 }
+if {$err ne ""} {
+    exit 1
+}
 
 return 0
