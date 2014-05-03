@@ -459,11 +459,21 @@ proc portlint::lint_main {args} {
     }
 
     set all_depends {}
-    if {[info exists depends_fetch]} { eval "lappend all_depends $depends_fetch" }
-    if {[info exists depends_extract]} { eval "lappend all_depends $depends_extract" }
-    if {[info exists depends_lib]} { eval "lappend all_depends $depends_lib" }
-    if {[info exists depends_build]} { eval "lappend all_depends $depends_build" }
-    if {[info exists depends_run]} { eval "lappend all_depends $depends_run" }
+    if {[info exists depends_fetch]} {
+		lappend all_depends {*}$depends_fetch
+	}
+    if {[info exists depends_extract]} {
+		lappend all_depends {*}$depends_extract
+	}
+    if {[info exists depends_lib]} {
+		lappend all_depends {*}$depends_lib
+	}
+    if {[info exists depends_build]} {
+		lappend all_depends {*}$depends_build
+	}
+    if {[info exists depends_run]} {
+		lappend all_depends {*}$depends_run
+	}
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
