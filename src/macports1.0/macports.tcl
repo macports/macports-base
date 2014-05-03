@@ -1492,11 +1492,7 @@ proc macports::fetch_port {url {local 0}} {
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag $macports::autoconf::tar_q
-    set cmdline {}
-    lappend cmdline "$tarcmd"
-    lappend cmdline "${tarflags}${qflag}xOf"
-    lappend cmdline "$fetchfile"
-    lappend cmdline "+CONTENTS"
+    set cmdline [list $tarcmd ${tarflags}${qflag}xOf $fetchfile +CONTENTS]
     ui_debug $cmdline
     if {![catch {set contents [exec {*}$cmdline]}]} {
         # the file is probably a valid binary archive
@@ -1523,18 +1519,10 @@ proc macports::fetch_port {url {local 0}} {
 
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
-    set cmdline {}
     if {$binary} {
-        lappend cmdline "$tarcmd"
-        lappend cmdline "${tarflags}${qflag}xOf"
-        lappend cmdline "../$fetchfile"
-        lappend cmdline "+PORTFILE"
-        lappend cmdline ">"
-        lappend cmdline "Portfile"
+        set cmdline [list $tarcmd ${tarflags}${qflag}xOf ../$fetchfile +PORTFILE > Portfile]
     } else {
-        lappend cmdline "$tarcmd"
-        lappend cmdline "${tarflags}${qflag}xf"
-        lappend cmdline "$fetchfile"
+        set cmdline [list $tarcmd ${tarflags}${qflag}xf $fetchfile]
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
