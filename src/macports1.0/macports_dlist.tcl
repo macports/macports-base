@@ -315,7 +315,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 		} else {
 			# $handler should return a unix status code, 0 for success.
 			# statusdict notation is 1 for success
-			if {[catch {$handler $ditem} result]} {
+			if {[catch {{*}$handler $ditem} result]} {
 				puts $result
 				return $dlist
 			}
