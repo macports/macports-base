@@ -294,7 +294,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	# can evaluate to true.
 	if {$testcond ne ""} {
 		foreach ditem $dlist {
-			if {[expr [$testcond $ditem]]} {
+			if {[$testcond $ditem] == 1} {
 				foreach token [ditem_key $ditem provides] {
 					set statusdict($token) 1
 				}
