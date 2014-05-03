@@ -2733,9 +2733,12 @@ proc action_upgrade { action portlist opts } {
 
 proc action_revupgrade { action portlist opts } {
     set status [macports::revupgrade $opts]
-    if {$status != 0} {
-        print_tickets_url
+    switch $status {
+        1 {
+            print_tickets_url
+        }
     }
+
     return $status
 }
 
