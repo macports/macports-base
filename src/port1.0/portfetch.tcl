@@ -538,7 +538,7 @@ proc portfetch::fetchfiles {args} {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 try {
-                    eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}
+                    curl fetch {*}$fetch_options $file_url "${distpath}/${distfile}.TMP"
                     file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"
                     set fetched 1
                     break
