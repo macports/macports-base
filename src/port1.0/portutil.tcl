@@ -2374,22 +2374,22 @@ proc adduser {name args} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         try {
-            exec $dscl . -create /Users/${name} UniqueID ${uid} 2>@stderr
+            exec -ignorestderr $dscl . -create /Users/${name} UniqueID ${uid}
 
             # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
             # causes the user to be visible in the Users & Groups Preference Pane,
             # and the others are just noise, so delete them.
             # https://trac.macports.org/ticket/30168
-            exec $dscl . -delete /Users/${name} AuthenticationAuthority 2>@stderr
-            exec $dscl . -delete /Users/${name} PasswordPolicyOptions 2>@stderr
-            exec $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys 2>@stderr
-            exec $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData 2>@stderr
+            exec -ignorestderr $dscl . -delete /Users/${name} AuthenticationAuthority
+            exec -ignorestderr $dscl . -delete /Users/${name} PasswordPolicyOptions
+            exec -ignorestderr $dscl . -delete /Users/${name} dsAttrTypeNative:KerberosKeys
+            exec -ignorestderr $dscl . -delete /Users/${name} dsAttrTypeNative:ShadowHashData
 
-            exec $dscl . -create /Users/${name} RealName ${realname} 2>@stderr
-            exec $dscl . -create /Users/${name} Password ${passwd} 2>@stderr
-            exec $dscl . -create /Users/${name} PrimaryGroupID ${gid} 2>@stderr
-            exec $dscl . -create /Users/${name} NFSHomeDirectory ${home} 2>@stderr
-            exec $dscl . -create /Users/${name} UserShell ${shell} 2>@stderr
+            exec -ignorestderr $dscl . -create /Users/${name} RealName ${realname}
+            exec -ignorestderr $dscl . -create /Users/${name} Password ${passwd}
+            exec -ignorestderr $dscl . -create /Users/${name} PrimaryGroupID ${gid}
+            exec -ignorestderr $dscl . -create /Users/${name} NFSHomeDirectory ${home}
+            exec -ignorestderr $dscl . -create /Users/${name} UserShell ${shell}
         } catch {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
             # seem to have lassign
@@ -2420,7 +2420,7 @@ proc adduser {name args} {
                 # state before the error
                 ui_debug "Attempting to clean up failed creation of user $name"
                 try {
-                    exec $dscl . -delete /Users/${name} 2>@stderr
+                    exec -ignorestderr $dscl . -delete /Users/${name}
                 } catch {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
                         ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $name."
@@ -2518,7 +2518,7 @@ proc addgroup {name args} {
                 # state before the error
                 ui_debug "Attempting to clean up failed creation of group $name"
                 try {
-                    exec $dscl . -delete /Groups/${name} 2>@stderr
+                    exec -ignorestderr $dscl . -delete /Groups/${name}
                 } catch {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
                         ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $name."
