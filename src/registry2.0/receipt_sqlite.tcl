@@ -195,16 +195,16 @@ proc open_dep_map {args} {
 # List all the ports that this port depends on
 proc list_depends {name version revision variants} {
 	set rlist [list]
-	set searchcmd "registry::entry search"
+	set searchkeys {}
     foreach key {name version revision} {
         if {[set $key] ne ""} {
-            append searchcmd " $key [set $key]"
+            lappend searchkeys $key [set $key]
         }
     }
     if {$variants != 0} {
-        append searchcmd " variants {$variants}"
+		lappend searchkeys "variants" $variants
     }
-    if {[catch {set ports [eval $searchcmd]}]} {
+    if {[catch {set ports [registry::entry search {*}$searchkeys]}]} {
         set ports [list]
     }
     foreach port $ports {
@@ -219,16 +219,16 @@ proc list_depends {name version revision variants} {
 # List all the ports that depend on this port
 proc list_dependents {name version revision variants} {
 	set rlist [list]
-	set searchcmd "registry::entry search"
+	set searchkeys {}
     foreach key {name version revision} {
         if {[set $key] ne ""} {
-            append searchcmd " $key [set $key]"
+			lappend searchkeys $key [set $key]
         }
     }
     if {$variants != 0} {
-        append searchcmd " variants {$variants}"
+		lappend searchkeys "variants" $variants
     }
-    if {[catch {set ports [eval $searchcmd]}]} {
+    if {[catch {set ports [registry::entry search {*}$searchkeys]}]} {
         set ports [list]
     }
     foreach port $ports {
