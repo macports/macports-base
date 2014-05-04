@@ -115,7 +115,7 @@ rmgroup::
 
 
 clean::
-	rm -rf docs
+	rm -rf tcldox
 
 distclean::
 	rm -f config.log config.status configure.lineno
@@ -151,11 +151,11 @@ ifeq ($(ARC),yes)
 	${MAKE} SVNTAG=${DISTARCTAG} PKGNAME=${DISTARCNAME} _dopkg
 endif
 
-docs:
-	@[ -e "${prefix}/bin/doxygen" ] \
-		|| { echo "Install doxygen with MacPorts in ${prefix} first."; exit 1; }
+tcldox:
+	@[ -e "${prefix}/bin/doxygen" -a -e "${prefix}/bin/tcl-dox" -a -e "${prefix}/bin/dot" ] \
+		|| { echo "Install doxygen, tcl-dox and graphviz with MacPorts in ${prefix} first."; exit 1; }
 	${prefix}/bin/doxygen
 
 test::
 
-.PHONY: dist _gettag _pkgdist _dopkg docs
+.PHONY: dist _gettag _pkgdist _dopkg tcldoc tcldox
