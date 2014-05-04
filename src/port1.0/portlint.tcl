@@ -289,6 +289,11 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
+        if {[regexp {compiler\.blacklist.*\{} $line] && ![info exists portgroups(compiler_blacklist_versions)]} {
+            ui_error "Line $lineno uses compiler.blacklist in a way that requires the compiler_blacklist_versions portgroup, but this portgroup has not been included"
+            incr errors
+        }
+
         # Check for hardcoded version numbers
         if {$nitpick} {
             # Support for skipping checksums lines
