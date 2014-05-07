@@ -48,7 +48,7 @@
 
 #include "flock.h"
 
-volatile int alarmReceived = 0;
+static volatile int alarmReceived = 0;
 
 static void alarmHandler(int sig UNUSED) {
     alarmReceived = 1;
