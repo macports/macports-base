@@ -40,24 +40,33 @@
 
 #include <errno.h>
 #include <inttypes.h>
+#include <signal.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <tcl.h>
 
 #include "flock.h"
 
+volatile int alarmReceived = 0;
+
+static void alarmHandler(int sig UNUSED) {
+    alarmReceived = 1;
+}
+
 int
 FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
-    int operation = 0, fd, i, ret;
+    int operation = 0, fd, i, ret, sigret;
     int errnoval = 0;
-    int oshared = 0, oexclusive = 0, ounlock = 0, onoblock = 0;
+    int oshared = 0, oexclusive = 0, ounlock = 0, onoblock = 0, retry = 0;
 #if defined(HAVE_LOCKF) && !defined(HAVE_FLOCK)
     off_t curpos;
 #endif
     char *res;
     Tcl_Channel channel;
     ClientData handle;
+    struct sigaction sa_oldalarm, sa_alarm;
 
     if (objc < 3 || objc > 4) {
         Tcl_WrongNumArgs(interp, 1, objv, "channelId switches");
@@ -104,75 +113,131 @@ FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         return TCL_ERROR;
     }
 
+    /* (re-)enable SIGALRM so we can use alarm(3) to specify a timeout for the
+     * locking, do some Tcl signal processing and restart the locking to solve
+     * #43388. */
+    memset(&sa_alarm, 0, sizeof(struct sigaction));
+    sigemptyset(&sa_alarm.sa_mask);
+    sa_alarm.sa_flags = 0; /* explicitly don't specify SA_RESTART, we want the
+                              following alarm(3) to interrupt the locking. */
+    sa_alarm.sa_handler = alarmHandler;
+    sigaction(SIGALRM, &sa_alarm, &sa_oldalarm);
+
+    do {
+        /* use a delay of one second */
+        retry = 0;
+        alarmReceived = 0;
+        alarm(1);
 #if HAVE_FLOCK
-    /* prefer flock if present */
-    if (oshared) {
-        operation |= LOCK_SH;
-    }
+        /* prefer flock if present */
+        if (oshared) {
+            operation |= LOCK_SH;
+        }
 
-    if (oexclusive) {
-        operation |= LOCK_EX;
-    }
+        if (oexclusive) {
+            operation |= LOCK_EX;
+        }
 
-    if (ounlock) {
-        operation |= LOCK_UN;
-    }
+        if (ounlock) {
+            operation |= LOCK_UN;
+        }
 
-    if (onoblock) {
-        operation |= LOCK_NB;
-    }
+        if (onoblock) {
+            operation |= LOCK_NB;
+        }
 
-    ret = flock(fd, operation);
-    if (ret == -1) {
-        errnoval = errno;
-    }
+        ret = flock(fd, operation);
+        if (ret == -1) {
+            errnoval = errno;
+        }
 #else
 #if HAVE_LOCKF
-    if (ounlock) {
-        operation = F_ULOCK;
-    }
-
-    /* lockf semantics don't map to shared locks. */
-    if (oshared || oexclusive) {
-        if (onoblock) {
-            operation = F_TLOCK;
+        if (ounlock) {
+            operation = F_ULOCK;
         }
-        else {
-            operation = F_LOCK;
-        }
-    }
 
-    curpos = lseek(fd, 0, SEEK_CUR);
-    if (curpos == -1) {
-        Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
-        return TCL_ERROR;
-    }
-
-    ret = lockf(fd, operation, 0); /* lock entire file */
-
-    curpos = lseek(fd, curpos, SEEK_SET);
-    if (curpos == -1) {
-        Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
-        return TCL_ERROR;
-    }
-
-    if (ret == -1) {
-        errnoval = errno;
-        if ((oshared || oexclusive)) {
-            /* map the errno val to what we would expect for flock */
-            if (onoblock && errnoval == EAGAIN) {
-                /* on some systems, EAGAIN=EWOULDBLOCK, but lets be safe */
-                errnoval = EWOULDBLOCK;
+        /* lockf semantics don't map to shared locks. */
+        if (oshared || oexclusive) {
+            if (onoblock) {
+                operation = F_TLOCK;
             }
-            else if (errnoval == EINVAL) {
-                errnoval = EOPNOTSUPP;
+            else {
+                operation = F_LOCK;
             }
         }
-    }
+
+        curpos = lseek(fd, 0, SEEK_CUR);
+        if (curpos == -1) {
+            Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
+            return TCL_ERROR;
+        }
+
+        ret = lockf(fd, operation, 0); /* lock entire file */
+        if (ret == -1) {
+            errnoval = errno;
+        }
+
+        curpos = lseek(fd, curpos, SEEK_SET);
+        if (curpos == -1) {
+            Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
+            return TCL_ERROR;
+        }
+
+        if (ret == -1) {
+            errnoval = errno;
+            if ((oshared || oexclusive)) {
+                /* map the errno val to what we would expect for flock */
+                if (onoblock && errnoval == EAGAIN) {
+                    /* on some systems, EAGAIN=EWOULDBLOCK, but lets be safe */
+                    errnoval = EWOULDBLOCK;
+                }
+                else if (errnoval == EINVAL) {
+                    errnoval = EOPNOTSUPP;
+                }
+            }
+        }
 #else
 #error no available locking implementation
 #endif /* HAVE_LOCKF */
 #endif /* HAVE_FLOCK */
+        /* disable the alarm timer */
+        alarm(0);
+
+        if (ret == -1) {
+            if (oshared || oexclusive) {
+                if (!onoblock && alarmReceived && errnoval == EINTR) {
+                    /* We were trying to lock, the lock was supposed to block,
+                     * it failed with EINTR and we processed a SIGALRM. This
+                     * probably means the call was interrupted by the timer.
+                     * Call Tcl signal processing functions and try again. */
+                    if (Tcl_AsyncReady()) {
+                        sigret = Tcl_AsyncInvoke(interp, TCL_OK);
+                        if (sigret != TCL_OK) {
+                            break;
+                        }
+                    }
+                    retry = 1;
+                    continue;
+                }
+
+                if (onoblock && errnoval == EAGAIN) {
+                    /* The lock wasn't supposed to block, and the lock wasn't
+                     * successful because the lock is taken. On some systems
+                     * EAGAIN == EWOULDBLOCK, but let's play it safe. */
+                    errnoval = EWOULDBLOCK;
+                }
+            }
+        }
+    } while (retry);
+
+    /* Restore the previous handler for SIGALRM */
+    sigaction(SIGALRM, &sa_oldalarm, NULL);
+
+    if (sigret != TCL_OK) {
+        /* We received a signal that raised an error. The file hasn't been
+         * locked. */
+        return sigret;
+    }
 
     if (ret != 0) {
         switch (errnoval) {
