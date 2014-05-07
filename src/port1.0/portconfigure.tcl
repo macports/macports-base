@@ -106,7 +106,7 @@ proc portconfigure::set_configure_type {option action args} {
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    depends_build-appendl $configure_map(xmkmf)
+                    depends_build-append $configure_map(xmkmf)
                 }
             }
             default {
