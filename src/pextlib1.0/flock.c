@@ -182,20 +182,6 @@ FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CO
             Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
             return TCL_ERROR;
         }
-
-        if (ret == -1) {
-            errnoval = errno;
-            if ((oshared || oexclusive)) {
-                /* map the errno val to what we would expect for flock */
-                if (onoblock && errnoval == EAGAIN) {
-                    /* on some systems, EAGAIN=EWOULDBLOCK, but lets be safe */
-                    errnoval = EWOULDBLOCK;
-                }
-                else if (errnoval == EINVAL) {
-                    errnoval = EOPNOTSUPP;
-                }
-            }
-        }
 #else
 #error no available locking implementation
 #endif /* HAVE_LOCKF */
