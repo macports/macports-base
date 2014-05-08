@@ -702,7 +702,7 @@ proc portconfigure::configure_main {args} {
             PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG PKG_CONFIG_PATH \
         } {
             set value [option configure.[string tolower $env_var]]
-            append_to_environment_value configure $env_var $value
+            append_to_environment_value configure $env_var {*}$value
         }
 
         # https://trac.macports.org/ticket/34221
