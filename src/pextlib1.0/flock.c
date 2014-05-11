@@ -74,6 +74,7 @@ FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     }
 
     if ((channel = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), NULL)) == NULL) {
+        Tcl_SetResult(interp, "error getting channel, result was NULL", TCL_STATIC);
         return TCL_ERROR;
     }
 
@@ -222,6 +223,7 @@ FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     if (sigret != TCL_OK) {
         /* We received a signal that raised an error. The file hasn't been
          * locked. */
+        Tcl_SetResult(interp, "signal raised an error", TCL_STATIC);
         return sigret;
     }
 
