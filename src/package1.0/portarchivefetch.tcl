@@ -320,6 +320,8 @@ proc portarchivefetch::archivefetch_start {args} {
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+    } elseif {[tbool ports_binary_only]} {
+        error "Binary-only mode requested with no usable archive sites configured"
     }
     portfetch::check_dns
 }
