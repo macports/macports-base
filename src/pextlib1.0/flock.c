@@ -57,7 +57,7 @@ static void alarmHandler(int sig UNUSED) {
 int
 FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
-    int operation = 0, fd, i, ret, sigret;
+    int operation = 0, fd, i, ret, sigret = TCL_OK;
     int errnoval = 0;
     int oshared = 0, oexclusive = 0, ounlock = 0, onoblock = 0, retry = 0;
 #if defined(HAVE_LOCKF) && !defined(HAVE_FLOCK)
@@ -223,7 +223,6 @@ FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     if (sigret != TCL_OK) {
         /* We received a signal that raised an error. The file hasn't been
          * locked. */
-        Tcl_SetResult(interp, "signal raised an error", TCL_STATIC);
         return sigret;
     }
 
