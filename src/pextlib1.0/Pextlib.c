@@ -94,7 +94,7 @@
 extern char **environ;
 #endif
 
-#if !HAVE_SETMODE
+#ifndef HAVE_SETMODE
 #include "setmode.h"
 #endif
 
