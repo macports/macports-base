@@ -23,53 +23,53 @@ all: destroot
 
 %-tcl:
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCL_SUBDIR@ $(@:%-tcl=%)
+	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ $(@:%-tcl=%)
 
 %-tclthread:
 	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ $(@:%-tclthread=%)
+	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ $(@:%-tclthread=%)
 
 %-tclx:
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLX_SUBDIR@ $(@:%-tclx=%)
+	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ $(@:%-tclx=%)
 
 %-tcllib:
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ $(@:%-tcllib=%)
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ $(@:%-tcllib=%)
 
 destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
 
 destroot-tclthread: all-tclthread
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLTHREAD_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLTHREAD_INSTALL@
 
 destroot-tclx: all-tclx
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLX_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLX_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLX_INSTALL@
 
 destroot-tcllib: all-tcllib
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLLIB_INSTALL@
 
 install: install-tcl install-tclthread install-tclx install-tcllib
 install-tcl:
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCL_SUBDIR@ @VENDOR_TCL_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ @VENDOR_TCL_INSTALL@
 
 install-tclthread:
 	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ @VENDOR_TCLTHREAD_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ @VENDOR_TCLTHREAD_INSTALL@
 
 install-tclx:
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLX_SUBDIR@ @VENDOR_TCLX_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ @VENDOR_TCLX_INSTALL@
 
 install-tcllib:
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@$(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
 
 test:
 
