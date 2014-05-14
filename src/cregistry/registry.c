@@ -54,6 +54,21 @@
  *       alive at any given time.
  */
 
+/*
+ * Error constants. Those need to be constants and cannot be string literals
+ * because we'll use address comparisons for those and compilers don't have to
+ * guarantee string literals always have the same address (they don't have to
+ * guarantee string literals will have an address at all, so comparing the
+ * address of a string with a string literal is undefined behavior).
+ */
+char *const registry_err_not_found      = "registry::not-found";
+char *const registry_err_invalid        = "registry::invalid";
+char *const registry_err_constraint     = "registry::constraint";
+char *const registry_err_sqlite_error   = "registry::sqlite-error";
+char *const registry_err_misuse         = "registry::misuse";
+char *const registry_err_cannot_init    = "registry::cannot-init";
+char *const registry_err_already_active = "registry::already-active";
+
 /**
  * Destroys a `reg_error` object. This should be called on any reg_error when a
  * registry function returns a failure condition; depending on the function,

@@ -37,13 +37,21 @@
 #include <sqlite3.h>
 #include <tcl.h>
 
-#define REG_NOT_FOUND       "registry::not-found"
-#define REG_INVALID         "registry::invalid"
-#define REG_CONSTRAINT      "registry::constraint"
-#define REG_SQLITE_ERROR    "registry::sqlite-error"
-#define REG_MISUSE          "registry::misuse"
-#define REG_CANNOT_INIT     "registry::cannot-init"
-#define REG_ALREADY_ACTIVE  "registry::already-active"
+#define REG_NOT_FOUND       (registry_err_not_found)
+#define REG_INVALID         (registry_err_invalid)
+#define REG_CONSTRAINT      (registry_err_constraint)
+#define REG_SQLITE_ERROR    (registry_err_sqlite_error)
+#define REG_MISUSE          (registry_err_misuse)
+#define REG_CANNOT_INIT     (registry_err_cannot_init)
+#define REG_ALREADY_ACTIVE  (registry_err_already_active)
+
+extern char *const registry_err_not_found;
+extern char *const registry_err_invalid;
+extern char *const registry_err_constraint;
+extern char *const registry_err_sqlite_error;
+extern char *const registry_err_misuse;
+extern char *const registry_err_cannot_init;
+extern char *const registry_err_already_active;
 
 typedef void reg_error_destructor(const char* description);
 
