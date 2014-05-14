@@ -208,7 +208,6 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 			AC_LINK_IFELSE([
 					AC_LANG_PROGRAM([
 							#include <objc/objc.h>
-							#include <objc/objc-api.h>
 						], [
 							id class = objc_lookup_class("Object");
 							id obj = @<:@class alloc@:>@;
