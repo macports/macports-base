@@ -5298,8 +5298,10 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "mtree", so it can be a program name with args.
-set dummy mtree; ac_word=$2
+for ac_prog in mtree fmtree
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_MTREE+:} false; then :
@@ -5338,6 +5340,9 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$MTREE" && break
+done
 
 # Extract the first word of "open", so it can be a program name with args.
 set dummy open; ac_word=$2
