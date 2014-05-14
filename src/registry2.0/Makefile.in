@@ -18,6 +18,8 @@ INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/registry2.0
 
 include $(srcdir)/../../Mk/macports.tea.mk
 
+CPPFLAGS+=-D_XOPEN_SOURCE=600
+
 pkgIndex.tcl: $(SRCS) $(SRCS_AUTOCONF)
 
 CFLAGS+=	${SQLITE3_CFLAGS}
