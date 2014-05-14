@@ -62,7 +62,6 @@
 /* ========================================================================= **
  * Definitions
  * ========================================================================= */
-#pragma mark Definitions
 
 /* ------------------------------------------------------------------------- **
  * Global cURL handles
@@ -101,8 +100,6 @@ void CurlInit(void);
 /* ========================================================================= **
  * Entry points
  * ========================================================================= */
-#pragma mark -
-#pragma mark Entry points
 
 /**
  * Set the result if a libcurl error occurred return TCL_ERROR.
@@ -1438,8 +1435,6 @@ CurlInit()
 /* ========================================================================= **
  * Callback function
  * ========================================================================= */
-#pragma mark -
-#pragma mark Callback function
 static int CurlProgressHandler(
 		tcl_callback_t *callback,
 		double dltotal,

@@ -18,7 +18,7 @@ INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/pextlib1.0
 
 include $(srcdir)/../../Mk/macports.tea.mk
 
-CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS} -D_BSD_SOURCE
+CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
 ifeq ($(shell uname), Darwin)
 LIBS+= ../registry2.0/registry${SHLIB_SUFFIX}

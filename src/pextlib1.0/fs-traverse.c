@@ -38,6 +38,10 @@
 #include <config.h>
 #endif
 
+/* required for u_short in fts.h on Linux; I think this can be considered a bug
+ * in the system header, though. */
+#define _BSD_SOURCE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>

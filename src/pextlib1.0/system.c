@@ -36,6 +36,11 @@
 #include <config.h>
 #endif
 
+/* required for fdopen(3)/seteuid(2), among others */
+#define _XOPEN_SOURCE 600
+/* required for fgetln(3) on OS X */
+#define _DARWIN_C_SOURCE
+
 #include <tcl.h>
 
 #if HAVE_PATHS_H
@@ -111,8 +116,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     char *args[7];
     char *cmdstring;
     int sandbox = 0;
-    char *sandbox_exec_path;
-    char *profilestr;
+    char *sandbox_exec_path = NULL;
+    char *profilestr = NULL;
     FILE *pdes;
     int fdset[2], nullfd;
     int fline, pos, ret;

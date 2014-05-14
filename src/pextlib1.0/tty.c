@@ -38,6 +38,7 @@
 #include <config.h>
 #endif
 
+#include <stdint.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 

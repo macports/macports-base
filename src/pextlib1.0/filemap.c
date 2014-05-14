@@ -30,9 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/* needed for NAME_MAX and PATH_MAX on Linux */
+#define _XOPEN_SOURCE
 
 #include <sys/stat.h>
 #include <errno.h>
@@ -48,7 +51,6 @@
 /* ========================================================================= **
  * Definitions
  * ========================================================================= */
-#pragma mark Definitions
 
 /* ------------------------------------------------------------------------- **
  * Internal structures
@@ -184,8 +186,6 @@ Tcl_ObjType tclFilemapType = {
 /* ========================================================================= **
  * Tree access functions
  * ========================================================================= */
-#pragma mark -
-#pragma mark Access functions
 
 /**
  * Load the database from a file.
@@ -1118,8 +1118,6 @@ Delete(SNode** ioRoot, const char* inPath)
 /* ========================================================================= **
  * Tcl object functions
  * ========================================================================= */
-#pragma mark -
-#pragma mark Tcl object functions
 
 /**
  * Free the object.
@@ -1205,8 +1203,6 @@ SetFilemapFromAny(Tcl_Interp* inInterp, Tcl_Obj* inObjPtr UNUSED)
 /* ========================================================================= **
  * Entry points
  * ========================================================================= */
-#pragma mark -
-#pragma mark Entry points
 
 /**
  * Set the result if an error occurred and return TCL_ERROR.

@@ -8,19 +8,22 @@
  *
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/* required for strdup(3) on Linux and OS X */
+#define _XOPEN_SOURCE 600L
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if HAVE_READLINE_READLINE_H
+#ifdef HAVE_READLINE_READLINE_H
 #include <readline/readline.h>
 #endif
 
-#if HAVE_READLINE_HISTORY_H
+#ifdef HAVE_READLINE_HISTORY_H
 #include <readline/history.h>
 #endif
 
@@ -29,7 +32,7 @@
 #include "readline.h"
 
 /* Globals */
-#if HAVE_READLINE_READLINE_H
+#ifdef HAVE_READLINE_READLINE_H
 Tcl_Interp* completion_interp = NULL;
 Tcl_Obj* attempted_completion_word = NULL;
 Tcl_Obj* generator_word = NULL;
@@ -55,7 +58,7 @@ Tcl_Obj* generator_word = NULL;
 #endif
 
 
-#if HAVE_LIBREADLINE
+#ifdef HAVE_LIBREADLINE
 char*
 completion_generator(const char* text, int state)
 {
@@ -156,7 +159,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 {
 	char* action;
 	Tcl_Obj *tcl_result;
-#if HAVE_LIBREADLINE
+#ifdef HAVE_LIBREADLINE
 	int argbase;
 	int argcnt;
 #endif
@@ -173,7 +176,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 	
 		int initOk = 0;
 		
-#if HAVE_LIBREADLINE
+#ifdef HAVE_LIBREADLINE
 		/* Set the name of our program, so .inputrc can be conditionalized */
 		if (objc == 3) {
 			rl_readline_name = strdup(Tcl_GetString(objv[2]));
@@ -194,7 +197,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 		tcl_result = Tcl_NewIntObj(initOk);	
 		Tcl_SetObjResult(interp, tcl_result);
 
-#if HAVE_LIBREADLINE
+#ifdef HAVE_LIBREADLINE
 	} else if (0 == strcmp("read", action)) {
 	
 		char* s;
@@ -272,7 +275,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char* action = NULL;
-#if HAVE_LIBREADLINE
+#ifdef HAVE_LIBREADLINE
 	char* s = NULL;
 	int i = 0;
 	Tcl_Obj *tcl_result;
@@ -286,7 +289,7 @@ int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
 
 	/* Case out on action */
 	if (0) {
-#if HAVE_LIBREADLINE
+#ifdef HAVE_LIBREADLINE
 	} else if (0 == strcmp("add", action)) {
 		if (objc != 3) {
 			Tcl_WrongNumArgs(interp, 1, objv, "add line");
