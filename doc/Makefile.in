@@ -38,6 +38,11 @@ install: all
 
 	< prefix.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
 	< base.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
+ifneq (8,@OS_MAJOR@)
+# Tiger's chmod doesn't accept -h
+# mtree with umask 0077 doesn't get the permissions of the symlink right
+	chmod -h 755 ${INSTALLDIR}/man
+endif
 
 	for f in ${CONF}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$f "${DESTDIR}${mpconfigdir}/$${f}.default"; \
