@@ -9710,7 +9710,7 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
 				;;
 		esac
-		(cd "$mp_tarball_vendordir"; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
@@ -10127,7 +10127,7 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
 				;;
 		esac
-		(cd "$mp_tarball_vendordir"; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
@@ -10539,7 +10539,7 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
 				;;
 		esac
-		(cd "$mp_tarball_vendordir"; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
@@ -10953,7 +10953,7 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
 				;;
 		esac
-		(cd "$mp_tarball_vendordir"; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
