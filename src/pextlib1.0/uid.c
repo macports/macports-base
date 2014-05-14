@@ -12,6 +12,9 @@
 #include <config.h>
 #endif
 
+/* required for seteuid(2)/setegid(2) */
+#define _BSD_SOURCE
+
 #include <sys/types.h>
 #include <grp.h>
 #include <pwd.h>

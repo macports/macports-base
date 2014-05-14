@@ -33,9 +33,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/* required for strdup(3) on Linux and OS X */
+#define _XOPEN_SOURCE 600L
+/* required for clearenv(3)/setenv(3)/unsetenv(3) on Linux */
+#define _BSD_SOURCE
+/* required for clearenv(3)/setenv(3)/unsetenv(3) on OS X */
+#define _DARWIN_C_SOURCE
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -361,13 +368,6 @@ int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc,
 int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *name;
-    char **envp;
-    char *equals;
-    size_t len;
-    Tcl_Obj *tclList;
-    int listLength;
-    Tcl_Obj **listArray;
-    int loopCounter;
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "name");
@@ -386,18 +386,21 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
            clearenv() but that is not yet standardized, instead use Tcl's
            list capability to easily build an array of strings for each
            env name, then loop through that list to unsetenv() each one */
-        tclList = Tcl_NewListObj( 0, NULL );
+        Tcl_Obj *tclList = Tcl_NewListObj( 0, NULL );
         Tcl_IncrRefCount( tclList );
         /* unset all current environment variables */
-        for (envp = environ; *envp != NULL; envp++) {
-            equals = strchr(*envp, '=');
+        for (char **envp = environ; *envp != NULL; envp++) {
+            char *equals = strchr(*envp, '=');
             if (equals != NULL) {
-                len = (size_t)(equals - *envp);
+				size_t len = (size_t)(equals - *envp);
                 Tcl_ListObjAppendElement(interp, tclList, Tcl_NewStringObj(*envp, len));
             }
         }
+
+		int listLength;
+		Tcl_Obj **listArray;
         Tcl_ListObjGetElements(interp, tclList, &listLength, &listArray);
-        for (loopCounter = 0; loopCounter < listLength; loopCounter++) {
+        for (int loopCounter = 0; loopCounter < listLength; loopCounter++) {
             unsetenv(Tcl_GetString(listArray[loopCounter]));
         }
         Tcl_DecrRefCount( tclList );

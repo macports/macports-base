@@ -46,6 +46,11 @@ static char rcsid[] = "$OpenBSD: setmode.c,v 1.12 2003/06/02 20:18:34 millert Ex
 #endif
 #endif /* LIBC_SCCS and not lint */
 
+/* required for sigfillset(3)/sigemptyset(3) and S_ISVTX */
+#define _XOPEN_SOURCE 500
+/* required for u_int and u_long */
+#define _BSD_SOURCE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -190,7 +195,7 @@ setmode(p)
 	BITCMD *set, *saveset, *endset;
 	sigset_t sigset, sigoset;
 	mode_t mask;
-	int equalopdone, permXbits, setlen;
+	int equalopdone = 0, permXbits, setlen;
 	long perml;
 
 	if (!*p)
@@ -378,7 +383,7 @@ addcmd(set, op, who, oparg, mask)
 	case '-':
 	case 'X':
 		set->cmd = op;
-		set->bits = (who ? who : mask) & oparg;
+		set->bits = (who ? ((mode_t) who) : ((mode_t) mask)) & oparg;
 		break;
 
 	case 'u':

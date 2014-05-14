@@ -34,6 +34,9 @@
 #include <config.h>
 #endif
 
+/* required for PATH_MAX and realpath(3) */
+#define _XOPEN_SOURCE 500
+
 #include <tcl.h>
 
 #include <errno.h>

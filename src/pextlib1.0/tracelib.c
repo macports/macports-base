@@ -848,6 +848,14 @@ static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
 
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int result = TCL_OK;
+
+    /* There is no args for commands now. */
+    if (objc < 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "option");
+        return TCL_ERROR;
+    }
+
+#ifdef HAVE_TRACEMODE_SUPPORT
     static const char *options[] = {"setname", "opensocket", "run", "clean", "setsandbox", "closesocket", "setdeps", "enablefence", 0};
     typedef enum {
         kSetName,
@@ -861,13 +869,6 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     } EOptions;
     EOptions current_option;
 
-    /* There is no args for commands now. */
-    if (objc < 2) {
-        Tcl_WrongNumArgs(interp, 1, objv, "option");
-        return TCL_ERROR;
-    }
-
-#ifdef HAVE_TRACEMODE_SUPPORT
     result = Tcl_GetIndexFromObj(interp, objv[1], options, "option", 0, (int *)&current_option);
     if (result == TCL_OK) {
         switch (current_option) {
