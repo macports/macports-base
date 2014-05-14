@@ -104,7 +104,7 @@ extern int copyfile(const char *from, const char *to, void *state,
 #define ALLPERMS (S_ISUID|S_ISGID|S_ISTXT|S_IRWXU|S_IRWXG|S_IRWXO)
 #endif
 
-#if !HAVE_SETMODE
+#ifndef HAVE_SETMODE
 #include "setmode.h"
 #endif
 

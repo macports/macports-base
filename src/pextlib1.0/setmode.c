@@ -36,9 +36,7 @@
 
 #include <config.h>
 
-extern int xxx_so_this_isnt_empty;
-
-#if !HAVE_SETMODE
+#ifndef HAVE_SETMODE
 
 #if defined(LIBC_SCCS) && !defined(lint)
 #if 0
@@ -479,5 +477,8 @@ compress_mode(set)
 		}
 	}
 }
-#endif
+#else /* !defined(HAVE_SETMODE) */
 
+extern int xxx_so_this_isnt_empty;
+
+#endif /* !defined(HAVE_SETMODE) */
