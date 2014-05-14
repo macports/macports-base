@@ -9524,7 +9524,7 @@ tcllib_version=1.15
 		as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
 $as_echo "$as_me: === extracting $mp_tarball" >&6;}
-		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
@@ -9842,7 +9842,7 @@ VENDOR_DESTROOT=vendor/vendor-destroot
 		as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
 $as_echo "$as_me: === extracting $mp_tarball" >&6;}
-		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5
@@ -10157,7 +10157,7 @@ VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
 		as_dir="$mp_tarball_vendordir"; as_fn_mkdir_p
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: === extracting $mp_tarball" >&5
 $as_echo "$as_me: === extracting $mp_tarball" >&6;}
-		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
+		(cd "$mp_tarball_vendordir"; umask 0022; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || as_fn_error $? "failed to extract $mp_tarball" "$LINENO" 5)
 	fi
 	if ! test -d "$ac_dir"; then
 		as_fn_error $? "tarball $mp_tarball did not extract to $ac_dir" "$LINENO" 5

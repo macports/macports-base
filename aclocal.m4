@@ -116,7 +116,7 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 		mp_tarball_vendordir="$(dirname "$mp_tarball")"
 		AS_MKDIR_P(["$mp_tarball_vendordir"])
 		AC_MSG_NOTICE([=== extracting $mp_tarball])
-		(cd "$mp_tarball_vendordir"; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
+		(cd "$mp_tarball_vendordir"; umask 0022; gzip -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
 	fi
 	if ! test -d "$ac_dir"; then
 		AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])
