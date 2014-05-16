@@ -36,6 +36,9 @@ all-tclthread: all-tcl
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ $(@:%-tclx=%)
 
+# tclx also links against libtclstub
+all-tclx: all-tcl
+
 %-tcllib:
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ $(@:%-tcllib=%)
