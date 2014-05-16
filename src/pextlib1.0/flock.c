@@ -36,6 +36,8 @@
 
 /* needed to get struct sigaction on some platforms */
 #define _XOPEN_SOURCE 500L
+/* the above hides flock on OS X without _DARWIN_C_SOURCE */
+#define _DARWIN_C_SOURCE
 
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>
