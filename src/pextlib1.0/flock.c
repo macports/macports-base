@@ -41,7 +41,7 @@
 #include <errno.h>
 #include <inttypes.h>
 /* needed to get struct sigaction on some platforms */
-#define _POSIX_SOURCE
+#define _XOPEN_SOURCE 500L
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
