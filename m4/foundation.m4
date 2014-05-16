@@ -313,7 +313,7 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 
 	if test x"${with_objc_foundation}" != x"no"; then
 	
-	if test x"${with_objc_foundation}" == x || test x"${with_objc_foundation}" == x"apple"; then
+	if test x"${with_objc_foundation}" = x || test x"${with_objc_foundation}" = x"apple"; then
 		# '@<:@' = '['
 		# '@:>@' = ']'
 		AC_MSG_CHECKING([for Apple Foundation library])
@@ -352,10 +352,10 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 		ac_cv_objc_foundation_apple="no"
 	fi
 
-	if test x"${with_objc_foundation}" == x || test x${with_objc_foundation} == x"GNUstep"; then
+	if test x"${with_objc_foundation}" = x || test x"${with_objc_foundation}" = x"GNUstep"; then
 		GNUSTEP_CONFIG=/usr/bin/gnustep-config
-		if test ! -x "${GNUSTEP_CONFIG}" -a x"${GNUSTEP_SYSTEM_ROOT}" == x; then
-			if test x"${with_objc_foundation}" == x"GNUstep"; then
+		if test ! -x "${GNUSTEP_CONFIG}" -a x"${GNUSTEP_SYSTEM_ROOT}" = x; then
+			if test x"${with_objc_foundation}" = x"GNUstep"; then
 				AC_MSG_ERROR([GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library])
 			else
 				AC_MSG_WARN([GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library])
@@ -412,21 +412,21 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 	fi
 	
 	# NeXT Foundation is prefered
-	if test x"${ac_cv_objc_foundation_apple}" == x"yes"; then
+	if test x"${ac_cv_objc_foundation_apple}" = x"yes"; then
 		OBJC_FOUNDATION="Apple"
 		OBJC_FOUNDATION_CPPFLAGS="${APPLE_FOUNDATION_CFLAGS}"
 		OBJC_FOUNDATION_LIBS="${APPLE_FOUNDATION_LIBS}"
 		OBJC_FOUNDATION_LDFLAGS=""
 		AC_DEFINE([APPLE_FOUNDATION], 1, [Define if using the Apple Foundation framework]) 
 		AC_MSG_NOTICE([Using Apple Foundation library])
-	elif test x"${ac_cv_objc_foundation_gnustep}" == x"yes"; then
+	elif test x"${ac_cv_objc_foundation_gnustep}" = x"yes"; then
 		OBJC_FOUNDATION="GNUstep"
 		OBJC_FOUNDATION_CPPFLAGS="${GNUSTEP_CPPFLAGS}"
 		OBJC_FOUNDATION_LIBS="${GNUSTEP_LIBS}"
 		OBJC_FOUNDATION_LDFLAGS="${GNUSTEP_LDFLAGS}"
 		AC_DEFINE([GNUSTEP_FOUNDATION], 1, [Define if using the GNUstep Foundation library]) 
 		AC_MSG_NOTICE([Using GNUstep Foundation library])
-	elif test x"${with_objc_foundation}" = x"no"; then
+	elif test x"${with_objc_foundation}" = x"no" || test x"$MACOSX_VERSION" = x; then
 		OBJC_FOUNDATION="none"
 		AC_MSG_NOTICE([Not using Foundation implementation])
 	else
