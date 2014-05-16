@@ -7530,7 +7530,7 @@ ac_compiler_gnu=$ac_cv_objc_compiler_gnu
 
 	if test x"${with_objc_foundation}" != x"no"; then
 
-	if test x"${with_objc_foundation}" == x || test x"${with_objc_foundation}" == x"apple"; then
+	if test x"${with_objc_foundation}" = x || test x"${with_objc_foundation}" = x"apple"; then
 		# '[' = '['
 		# ']' = ']'
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Apple Foundation library" >&5
@@ -7593,10 +7593,10 @@ $as_echo "${ac_cv_objc_foundation_apple}" >&6; }
 		ac_cv_objc_foundation_apple="no"
 	fi
 
-	if test x"${with_objc_foundation}" == x || test x${with_objc_foundation} == x"GNUstep"; then
+	if test x"${with_objc_foundation}" = x || test x"${with_objc_foundation}" = x"GNUstep"; then
 		GNUSTEP_CONFIG=/usr/bin/gnustep-config
-		if test ! -x "${GNUSTEP_CONFIG}" -a x"${GNUSTEP_SYSTEM_ROOT}" == x; then
-			if test x"${with_objc_foundation}" == x"GNUstep"; then
+		if test ! -x "${GNUSTEP_CONFIG}" -a x"${GNUSTEP_SYSTEM_ROOT}" = x; then
+			if test x"${with_objc_foundation}" = x"GNUstep"; then
 				as_fn_error $? "GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library" "$LINENO" 5
 			else
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library" >&5
@@ -7678,7 +7678,7 @@ $as_echo "${ac_cv_objc_foundation_gnustep}" >&6; }
 	fi
 
 	# NeXT Foundation is prefered
-	if test x"${ac_cv_objc_foundation_apple}" == x"yes"; then
+	if test x"${ac_cv_objc_foundation_apple}" = x"yes"; then
 		OBJC_FOUNDATION="Apple"
 		OBJC_FOUNDATION_CPPFLAGS="${APPLE_FOUNDATION_CFLAGS}"
 		OBJC_FOUNDATION_LIBS="${APPLE_FOUNDATION_LIBS}"
@@ -7688,7 +7688,7 @@ $as_echo "#define APPLE_FOUNDATION 1" >>confdefs.h
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: Using Apple Foundation library" >&5
 $as_echo "$as_me: Using Apple Foundation library" >&6;}
-	elif test x"${ac_cv_objc_foundation_gnustep}" == x"yes"; then
+	elif test x"${ac_cv_objc_foundation_gnustep}" = x"yes"; then
 		OBJC_FOUNDATION="GNUstep"
 		OBJC_FOUNDATION_CPPFLAGS="${GNUSTEP_CPPFLAGS}"
 		OBJC_FOUNDATION_LIBS="${GNUSTEP_LIBS}"
@@ -7698,7 +7698,7 @@ $as_echo "#define GNUSTEP_FOUNDATION 1" >>confdefs.h
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: Using GNUstep Foundation library" >&5
 $as_echo "$as_me: Using GNUstep Foundation library" >&6;}
-	elif test x"${with_objc_foundation}" = x"no"; then
+	elif test x"${with_objc_foundation}" = x"no" || test x"$MACOSX_VERSION" = x; then
 		OBJC_FOUNDATION="none"
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: Not using Foundation implementation" >&5
 $as_echo "$as_me: Not using Foundation implementation" >&6;}
