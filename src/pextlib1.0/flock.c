@@ -34,14 +34,15 @@
 #include <config.h>
 #endif
 
+/* needed to get struct sigaction on some platforms */
+#define _XOPEN_SOURCE 500L
+
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
 
 #include <errno.h>
 #include <inttypes.h>
-/* needed to get struct sigaction on some platforms */
-#define _XOPEN_SOURCE 500L
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
