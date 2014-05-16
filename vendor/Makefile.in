@@ -26,8 +26,11 @@ all: destroot
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ $(@:%-tcl=%)
 
 %-tclthread:
-	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
+	@echo ===\> making $(@:%-tclthread=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ $(@:%-tclthread=%)
+
+# thread links against libtclstub
+all-tclthread: all-tcl
 
 %-tclx:
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
