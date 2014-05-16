@@ -40,6 +40,8 @@
 
 #include <errno.h>
 #include <inttypes.h>
+/* needed to get struct sigaction on some platforms */
+#define _POSIX_SOURCE
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
