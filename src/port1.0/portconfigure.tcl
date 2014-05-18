@@ -99,14 +99,14 @@ proc portconfigure::set_configure_type {option action args} {
             autoreconf.cmd  -
             automake.cmd    -
             autoconf.cmd {
-                depends_build-delete $configure_map(autoconf)
+                depends_build-delete {*}$configure_map(autoconf)
             }
             xmkmf.cmd {
-                depends_build-delete $configure_map(xmkmf)
+                depends_build-delete {*}$configure_map(xmkmf)
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    depends_build-append $configure_map(xmkmf)
+                    depends_build-append {*}$configure_map(xmkmf)
                 }
             }
             default {
@@ -728,7 +728,7 @@ proc portconfigure::configure_main {args} {
             append_to_environment_value configure $env_var {*}$flags
         }
         if {[variant_exists universal] && [variant_isset universal]} {
-            configure.pre_args-append ${configure.universal_args}
+            configure.pre_args-append {*}${configure.universal_args}
         } else {
             foreach env_var {CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS FFLAGS F90FLAGS FCFLAGS LDFLAGS} {
                 if {${configure.march} ne ""} {
