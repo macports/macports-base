@@ -7,6 +7,10 @@ namespace import tcltest::*
 set pwd [file dirname [file normalize $argv0]]
 
 source ../macports_test_autoconf.tcl
+
+# constraint for darwin platform
+testConstraint darwin [expr {$macports::autoconf::os_platform eq "darwin"}]
+
 package require macports 1.0
 
 # clean leftovers from interrupted tests
@@ -420,8 +424,9 @@ test set_developer_dir {
 
 test _is_valid_developer_dir {
     Check valid dev dir unit test.
+} -constraints {
+    darwin
 } -body {
-    set macports::set_developer /Applications/Xcode.app/Contents/Developer
     if {[macports::_is_valid_developer_dir $macports::developer_dir] != 1} {
        return "FAIL: valid dir not detected"
     }

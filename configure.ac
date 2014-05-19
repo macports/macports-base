@@ -430,6 +430,7 @@ AC_CONFIG_FILES([
 	tests/Makefile
 	tests/test.tcl
 	tests/test/library.tcl
+	tests/test/trace/test.tcl
 	vendor/Makefile
 ])
 
