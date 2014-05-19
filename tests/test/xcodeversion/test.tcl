@@ -24,12 +24,16 @@ proc xcode_binpath {} {
 
 test envvariables {
     Regression test for XCode version.
+} -constraints {
+    darwin
 } -body {
     xcode_ver
 } -result "xcodeversion >= 2.1"
 
 test xcode_path {
     Regression test for XCode path.
+} -constraints {
+    darwin
 } -body {
     xcode_binpath
 } -result "xcodebuildcmd = /usr/bin/xcodebuild"

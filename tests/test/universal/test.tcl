@@ -38,6 +38,8 @@ proc univ_test {opt} {
 
 test universal {
     Regression test for universal variant.
+} -constraints {
+    darwin
 } -body {
     univ_test "yes"
 } -result "variants: universal"

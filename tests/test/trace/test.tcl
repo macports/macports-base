@@ -60,6 +60,8 @@ proc test_trace {} {
 
 test trace {
     Regression test for trace.
+} -constraints {
+    tracemode_support
 } -body {
     test_trace
 } -result "No errors found."
