@@ -23,6 +23,8 @@ macports_worker_init
 
 test package_dmg {
     Package dmg unit test.
+} -constraints {
+    darwin
 } -setup {
     set os.major 10
     set os.arch i386
