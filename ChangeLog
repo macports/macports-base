@@ -12,7 +12,7 @@ Release 2.4 (unreleased)
       the registry database when MacPorts is aborted during a critical
       operation. (cal in r118297 and r118298)
 
-Release 2.3 (unreleased)
+Release 2.3 (2014-05-24 by jmr)
     - Use a private copy of Tcl 8.5 for MacPorts. Starting with this change
       features introduced with Tcl 8.5 can be used in Portfiles while still
       keeping support for Tiger and Leopard. (cal in r117621)
