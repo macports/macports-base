@@ -103,14 +103,13 @@ revision of the final tagging of base and then switching the base directory to t
 tag URL. For instance:
 
  svn co [-r<rev>] https://svn.macports.org/repository/macports/trunk release_2.0.0-archive
- cd release_2.0.0-archive/base
- svn switch https://svn.macports.org/repository/macports/tags/release_2_0_0/base
+ cd release_2.0.0-archive
+ svn rm base
+ svn cp https://svn.macports.org/repository/macports/tags/release_2_0_0/base base
 
 And finally we tag the entire directory as release_2_0_0-archive:
 
-FIXME: this doesn't seem to work any more. The base subdir in the tag ends up being from trunk.
-
- cd ../../
+ cd ..
  svn cp -m "commit-message" release_2.0.0-archive https://svn.macports.org/repository/macports/tags/release_2_0_0-archive
 
 
