@@ -2539,8 +2539,10 @@ proc mportsync {{optionslist {}}} {
                 set progressflag {}
                 if {$macports::portverbose eq {yes}} {
                     set progressflag "--progress builtin"
+                    set verboseflag "-v"
                 } elseif {[info exists macports::ui_options(progress_download)]} {
                     set progressflag "--progress ${macports::ui_options(progress_download)}"
+                    set verboseflag ""
                 }
 
                 try {
