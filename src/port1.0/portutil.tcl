@@ -4,7 +4,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2013 The MacPorts Project
+# Copyright (c) 2004-2014 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -2824,7 +2824,7 @@ proc merge_lipo {base target file archs} {
     foreach arch ${archs} {
         lappend exec-lipo -arch ${arch} ${base}/${arch}${file}
     }
-    exec ${exec-lipo} {*}[list -create -output ${target}${file}]
+    exec {*}${exec-lipo} -create -output ${target}${file}
 }
 
 # private function
