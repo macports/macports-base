@@ -430,6 +430,8 @@ proc portconfigure::get_compiler_fallback {} {
         return $default_compilers
     } elseif {$xcodeversion eq "none" || $xcodeversion eq ""} {
         return {cc}
+    } elseif {[vercmp $xcodeversion 6.0] >= 0 && [vercmp $macosx_deployment_target 10.10] >= 0} {
+        return {clang macports-clang-3.4 macports-clang-3.3}
     } elseif {[vercmp $xcodeversion 5.0] >= 0} {
         return {clang macports-clang-3.4 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 4.3] >= 0} {
