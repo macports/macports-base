@@ -1,0 +1,63 @@
+API DEFINITION FOR INTERACTIVE QUESTIONS
+
+FUNCTION CALLS AVAILABLE
+
+ui_ask_yesno 
+DESC: Displays a question with 'yes' and 'no' as options. Waits for user input indefinitely unless a timeout is specified.
+	  Shows the list of port passed to it without any numbers.
+
+PARAMETERS: (may change)
+			"message": Message as a string
+			portname : Name of the port which triggered the question
+			<list>   : May contain one or more portnames 
+			def		 : The default answer for the question
+			10s	 	 : Time for timeout (with 0 as default value which signifies no timeout)
+			
+RETURN VALUES: Return a unique value for each case
+			   -1: Timeout occured
+			   -2: Default
+			    0: Yes
+				1: No
+				
+ui_ask_singlechoice
+DESC: Displays a question with a list of numbered choices and asks the user to enter a number to specify their choice.
+	  Waits for user input indefinitely unless a timeout is specified.
+
+PARAMETERS: (may change)
+			"message": Message as a string
+			portname : Name of the port which triggered the question
+			<list>   : May contain one or more portnames 
+			def		 : The default answer for the question
+			10s	 	 : Time for timeout (with 0 as default value which signifies no timeout)
+			
+RETURN VALUES: Return a unique value for each case
+			   -1: Timeout occured
+			   -2: Default
+			    i: Index of the list that was initially passed to the function
+				
+ui_ask_multichoice
+DESC: Displays a question with a list of numbered choices and asks the user to enter a space separated string of numbers to specify their choice.
+	  Waits for user input indefinitely unless a timeout is specified.
+
+PARAMETERS: (may change)
+			"message": Message as a string
+			portname : Name of the port which triggered the question
+			<list>   : May contain one or more portnames 
+			def		 : The default answer for the question
+			10s	 	 : Time for timeout (with 0 as default value which signifies no timeout)
+			
+RETURN VALUES: Return a unique value for each case
+			   -1: Timeout occured
+			   -2: Default
+		   <list>: Indices of the list that was initially passed in the form of a list
+ 
+ui_timeout
+DESC: Function internal to the client that prints the visualisation for a timeout. Runs for the specified time interval.
+
+PARAMETERS: (may change)
+			10s	: Time for timeout 
+			
+RETURN VALUES: Return a unique value for each case
+			   1: Timeout completed
+			   0: Timeout aborted
+			   
