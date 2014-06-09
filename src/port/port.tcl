@@ -5228,6 +5228,62 @@ namespace eval portclient::notifications {
     }
 }
 
+# Create namespace for questions
+namespace eval portclient::questions {
+	##
+	# Display a question that asks the user for yes/no as an answer.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param name
+    #        The name of the port.
+    # @param ports
+    #        The port/list of ports for which the question is being asked.
+    # @param def
+    #        The default answer to the question.
+	# @param time
+	# 		 The amount of time for which a timeout is to occur.
+	proc ui_ask_yesno {msg name ports def time} {
+		# Check if timeout is set or not
+		if {$time > 0} {
+			# Run ui_timeout and skip the rest of the stuff here
+			puts "just testing"
+		}
+		
+		puts -nonewline $msg
+		set leftmargin "\t"
+		
+		# Print portname or port list suitably
+		if {llength ports == 1} {
+			puts " "
+			puts $ports
+		} else {
+			foreach port $ports {
+				puts -nonewline $leftmargin  
+				puts $port
+			}
+		}
+		
+		# Check for the default and print accordingly
+		if {$def == {y}} {
+			puts -nonewline "Continue? \[Y/n\]: "
+		} else {
+			puts -nonewline "Continue? \[y/N\]: "
+		}
+		
+		# User input (probably requires some input error checking code) 
+		while 1 {
+			set input [gets stdin]
+			if {$input in {y Y}} {
+				return 0
+			} elseif {$input in {n N}} {
+				return 1
+			} else {
+				puts "Please enter either 'y' or 'n'."
+			}
+		}
+	}
+}
 
 ##########################################
 # Main
