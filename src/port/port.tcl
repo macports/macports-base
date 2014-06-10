@@ -5283,6 +5283,23 @@ namespace eval portclient::questions {
 			}
 		}
 	}
+	
+	##
+	# Display a question that asks the user for yes/no as an answer.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param name
+    #        The name of the port.
+    # @param ports
+    #        The port/list of ports for which the question is being asked.
+    # @param def
+    #        The default answer to the question.
+	# @param time
+	# 		 The amount of time for which a timeout is to occur.
+	proc ui_ask_singlechoice {msg name ports def time} {
+		
+	}
 }
 
 ##########################################
