@@ -5230,13 +5230,53 @@ namespace eval portclient::notifications {
 
 # Create namespace for questions
 namespace eval portclient::questions {
+	
+	##
+	# Function that handles printing of a timeout.
+    #
+    # @param time
+	# 		 The amount of time for which a timeout is to occur.
+	proc ui_timeout {time} {
+		# Something using vwait
+	}
+	
+	##
+	# Main function that displays the choices for a multiple choice question.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param ports
+    #        The list of ports for which the question is being asked.
+    # @param time
+	# 		 The amount of time for which a timeout is to occur.
+	proc ui_choice {msg name ports {time 0}} {
+		# Print the main message
+		puts $msg
+		
+		# Print portname or port list suitably
+		set i 1
+		foreach port $ports {
+			puts -nonewline " $i) "
+			puts $port
+			incr i
+		}
+		
+		# Check if timeout is set or not
+		if {$time > 0} {
+			# Run ui_timeout and skip the rest of the stuff here
+			puts "just testing"
+		}
+	}
+	
 	##
 	# Display a question that asks the user for yes/no as an answer.
     #
     # @param msg
     #        The question specific message that is to be printed before asking the question.
-    # @param name
-    #        The name of the port.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
     # @param ports
     #        The port/list of ports for which the question is being asked.
     # @param def
@@ -5251,7 +5291,7 @@ namespace eval portclient::questions {
 		}
 		
 		puts -nonewline $msg
-		set leftmargin "\t"
+		set leftmargin " "
 		
 		# Print portname or port list suitably
 		if {llength ports == 1} {
@@ -5285,20 +5325,68 @@ namespace eval portclient::questions {
 	}
 	
 	##
-	# Display a question that asks the user for yes/no as an answer.
+	# Display a question that asks the user for a single choice as an answer.
     #
     # @param msg
     #        The question specific message that is to be printed before asking the question.
-    # @param name
-    #        The name of the port.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
     # @param ports
     #        The port/list of ports for which the question is being asked.
     # @param def
     #        The default answer to the question.
 	# @param time
 	# 		 The amount of time for which a timeout is to occur.
-	proc ui_ask_singlechoice {msg name ports def time} {
+	proc ui_ask_singlechoice {msg name ports def {time 0}} {
 		
+		ui_choice msg name ports time
+				
+		# User Input (single input restriction)
+		puts "Enter a number to select an option: "
+		while 1 {
+			set input [gets stdin]
+			if {($input <= [llength $ports] && [string is integer -strict $input])} {
+				return $input
+			} else {
+				puts "Please enter an index from the above list."
+			}
+		}
+	}
+	
+	##
+	# Display a question that asks the user for multiple choices as answer.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param ports
+    #        The list of ports for which the question is being asked.
+    # @param def
+    #        The default answer to the question.
+	# @param time
+	# 		 The amount of time for which a timeout is to occur.
+	proc ui_ask_multichoice {msg name ports def {time 0}} {
+		
+		ui_choice msg name ports time
+				
+		# User Input (with Multiple input parsing) 
+		while 1 {
+			puts "Enter the numbers to select the options: "
+			set input [gets stdin]
+			set count 1
+			foreach num $input {
+				if {($num <= [llength $ports] && [string is integer -strict $num])} {
+					incr count
+				} else {
+					puts "Please enter numbers separated by a space which are indices from the above list."
+					break
+				}
+			}
+			if {$count == [llength input]} {
+				return input
+			}
+		}
 	}
 }
 
