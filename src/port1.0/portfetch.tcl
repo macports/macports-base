@@ -188,7 +188,7 @@ proc portfetch::set_fetch_type {option action args} {
                 }
             }
             git {
-                depends_fetch-append bin:git:git-core
+                depends_fetch-append bin:git:git
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
