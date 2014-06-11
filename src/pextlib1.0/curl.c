@@ -511,15 +511,23 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				break;
 			}
 
+			timeout.tv_sec = 1;
+			timeout.tv_usec = 0;
 			/* convert the timeout into a suitable format for select(2) and
 			 * limit the timeout to 500 msecs at most */
-			if (curl_timeout >= 0 && curl_timeout < 500) {
-				timeout.tv_usec = curl_timeout * 1000;
-			} else {
-				timeout.tv_usec = 500 * 1000;
+			if (curl_timeout > 0) {
+				timeout.tv_sec = curl_timeout / 1000;
+				if (timeout.tv_sec > 1) {
+					timeout.tv_sec = 1;
+				}
+
+				timeout.tv_usec = (curl_timeout % 1000) * 1000;
 			}
 
 			/* get the fd sets for select(2) */
+			FD_ZERO(&readfds);
+			FD_ZERO(&writefds);
+			FD_ZERO(&errorfds);
 			theCurlMCode = curl_multi_fdset(theMHandle, &readfds, &writefds, &errorfds, &nfds);
 			if (theCurlMCode != CURLM_OK) {
 				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
