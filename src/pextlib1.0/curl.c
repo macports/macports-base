@@ -538,6 +538,15 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			 * select(2) makes the case of nfds == -1 a sleep. */
 			rc = select(nfds + 1, &readfds, &writefds, &errorfds, &timeout);
 			if (-1 == rc) {
+				/* check for signals first to avoid breaking our special
+				 * handling of SIGINT and SIGTERM */
+				if (Tcl_AsyncReady()) {
+					theResult = Tcl_AsyncInvoke(interp, theResult);
+					if (theResult != TCL_OK) {
+						break;
+					}
+				}
+
 				/* select error */
 				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 				theResult = TCL_ERROR;
