@@ -5333,8 +5333,10 @@ namespace eval portclient::questions {
 		# Check for the default and print accordingly
 		if {$def == {y}} {
 			puts -nonewline "Continue? \[Y/n\]: "
+			set default 0
 		} else {
 			puts -nonewline "Continue? \[y/N\]: "
+			set default 1
 		}
 		
 		# User input (probably requires some input error checking code) 
@@ -5344,6 +5346,9 @@ namespace eval portclient::questions {
 				return 0
 			} elseif {$input in {n N}} {
 				return 1
+			} elseif {$input == ""} {
+				return $default
+			}
 			} else {
 				puts "Please enter either 'y' or 'n'."
 			}
