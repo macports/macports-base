@@ -85,13 +85,20 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    if {[catch {set urlnewer [curl isnewer {*}$curl_options $file_url $port_moddate]} error]} {
-                        ui_warn "couldn't fetch $file_url for $subport ($error)"
-                    } else {
+                    try {
+                        set urlnewer [curl isnewer {*}$curl_options $file_url $port_moddate]
                         if {$urlnewer} {
                             ui_warn "port $subport: $file_url is newer than Portfile"
                         }
                         incr count
+                    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                        ui_debug [msgcat::mc "Aborted due to SIGINT"]
+                        throw
+                    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                        ui_debug [msgcat::mc "Aborted due to SIGTERM"]
+                        throw
+                    } catch {{*} eCode eMessage} {
+                        ui_debug [msgcat::mc "couldn't fetch %s for %s (%s)" $file_url $subport $eMessage]
                     }
                 }
                 if {$count == 0} {
@@ -102,15 +109,22 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    if {[catch {set urlsize [curl getsize {*}$curl_options $file_url]} error]} {
-                        ui_warn "couldn't fetch $file_url for $subport ($error)"
-                    } else {
+                    try {
+                        set urlsize [curl getsize {*}$curl_options $file_url]
                         incr count
                         if {$urlsize > 0} {
                             ui_info "port $subport: $distfile $urlsize bytes"
                             incr totalsize $urlsize
                             break
                         }
+                    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                        ui_debug [msgcat::mc "Aborted due to SIGINT"]
+                        throw
+                    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                        ui_debug [msgcat::mc "Aborted due to SIGTERM"]
+                        throw
+                    } catch {{*} eCode eMessage} {
+                        ui_debug [msgcat::mc "couldn't fetch %s for %s (%s)" $file_url $subport $eMessage]
                     }
                 }
                 if {$count == 0} {
