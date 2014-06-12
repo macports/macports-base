@@ -5233,23 +5233,49 @@ namespace eval portclient::questions {
 	
 	##
 	# Function that handles printing of a timeout.
-    #
-    # @param time
-	# 		 The amount of time for which a timeout is to occur.
-	proc ui_timeout {time} {
-		# Something using vwait
+	#
+	# @param time
+	#        The amount of time for which a timeout is to occur.
+	# @param def
+	#        The default action to be taken in the occurence of a timeout.
+	proc ui_timeout {def time} {
+		# Gap between printing of each dot
+		set step 333
+		set multiplier 1
+		set sec 1
+		
+		# Message before starting of timeout
+		puts "Press Ctrl-C now to abort "
+		
+		# Prints time like 5...4...3...2...1...0
+		# TODO: Find a hack to make it print on a single line (using -nonewline does not work)
+		while {$time >= 0} { 
+			after $sec puts $time
+	        incr sec 1000
+	        after [expr {$step * $multiplier}] puts "."
+	        incr multiplier
+	        after [expr {$step * $multiplier}] puts "."
+	        incr multiplier
+	        after [expr {$step * $multiplier}] puts "."
+	        incr multiplier 2
+	        incr time -1
+		}
+		incr sec -1000
+		after $sec set result def
+		vwait result
+		return $def
 	}
 	
 	##
 	# Main function that displays the choices for a multiple choice question.
-    #
-    # @param msg
-    #        The question specific message that is to be printed before asking the question.
-    # @param ???name???
-    #        May be a qid will be of better use instead as the client does not do anything port specific.
-    # @param ports
-    #        The list of ports for which the question is being asked.
-    # @param time
+	#
+	# @param msg
+	#        The question specific message that is to be printed before asking the question.
+	# @param ???name???
+	#        May be a qid will be of better use instead as the client does not do anything port specific.
+	# @param ports
+	#        The list of ports for which the question is being asked.
+	# @param time
 	# 		 The amount of time for which a timeout is to occur.
 	proc ui_choice {msg name ports {time 0}} {
 		# Print the main message
@@ -5272,15 +5298,15 @@ namespace eval portclient::questions {
 	
 	##
 	# Display a question that asks the user for yes/no as an answer.
-    #
-    # @param msg
-    #        The question specific message that is to be printed before asking the question.
-    # @param ???name???
-    #        May be a qid will be of better use instead as the client does not do anything port specific.
-    # @param ports
-    #        The port/list of ports for which the question is being asked.
-    # @param def
-    #        The default answer to the question.
+	#
+	# @param msg
+	#        The question specific message that is to be printed before asking the question.
+	# @param ???name???
+	#        May be a qid will be of better use instead as the client does not do anything port specific.
+	# @param ports
+	#        The port/list of ports for which the question is being asked.
+	# @param def
+	#        The default answer to the question.
 	# @param time
 	# 		 The amount of time for which a timeout is to occur.
 	proc ui_ask_yesno {msg name ports def time} {
@@ -5326,15 +5352,15 @@ namespace eval portclient::questions {
 	
 	##
 	# Display a question that asks the user for a single choice as an answer.
-    #
-    # @param msg
-    #        The question specific message that is to be printed before asking the question.
-    # @param ???name???
-    #        May be a qid will be of better use instead as the client does not do anything port specific.
-    # @param ports
-    #        The port/list of ports for which the question is being asked.
-    # @param def
-    #        The default answer to the question.
+	#
+	# @param msg
+	#        The question specific message that is to be printed before asking the question.
+	# @param ???name???
+	#        May be a qid will be of better use instead as the client does not do anything port specific.
+	# @param ports
+	#        The port/list of ports for which the question is being asked.
+	# @param def
+	#        The default answer to the question.
 	# @param time
 	# 		 The amount of time for which a timeout is to occur.
 	proc ui_ask_singlechoice {msg name ports def {time 0}} {
@@ -5355,15 +5381,15 @@ namespace eval portclient::questions {
 	
 	##
 	# Display a question that asks the user for multiple choices as answer.
-    #
-    # @param msg
-    #        The question specific message that is to be printed before asking the question.
-    # @param ???name???
-    #        May be a qid will be of better use instead as the client does not do anything port specific.
-    # @param ports
-    #        The list of ports for which the question is being asked.
-    # @param def
-    #        The default answer to the question.
+	#
+	# @param msg
+	#        The question specific message that is to be printed before asking the question.
+	# @param ???name???
+	#        May be a qid will be of better use instead as the client does not do anything port specific.
+	# @param ports
+	#        The list of ports for which the question is being asked.
+	# @param def
+	#        The default answer to the question.
 	# @param time
 	# 		 The amount of time for which a timeout is to occur.
 	proc ui_ask_multichoice {msg name ports def {time 0}} {
