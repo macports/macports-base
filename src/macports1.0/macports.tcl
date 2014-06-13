@@ -4614,6 +4614,15 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         set broken_ports [lsort -unique $broken_ports]
 
+		##
+		# User Interaction Question
+		# Asking before rebuilding in rev-upgrade
+		ui_msg "You can always run 'port rev-upgrade' again to fix errors."
+		set retvalue [ui_ask_yesno "The following ports will be rebuilt:" "TestCase#1" $broken_ports {y} 0]
+		if {retvalue == 1} {
+			set $macports::revupgrade_mode dontrebuild
+		}
+		
         if {$macports::revupgrade_mode eq {rebuild}} {
             # don't try to rebuild ports that don't exist in the tree
             set temp_broken_ports {}
