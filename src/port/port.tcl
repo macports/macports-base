@@ -5348,7 +5348,6 @@ namespace eval portclient::questions {
 				return 1
 			} elseif {$input == ""} {
 				return $default
-			}
 			} else {
 				puts "Please enter either 'y' or 'n'."
 			}
