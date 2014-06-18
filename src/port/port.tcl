@@ -4452,6 +4452,10 @@ proc parse_options { action ui_options_name global_options_name } {
                         # Ignore errors while processing within a command
                         set ui_options(ports_processall) yes
                     }
+                    N { 
+                        # Interactive mode is available or not
+                        set ui_options(ports_noninteractive) yes
+                    }
                     f {
                         set global_options(ports_force) yes
                     }
@@ -5238,31 +5242,38 @@ namespace eval portclient::questions {
 	#        The amount of time for which a timeout is to occur.
 	# @param def
 	#        The default action to be taken in the occurence of a timeout.
-	proc ui_timeout {def time} {
+	proc ui_timeout {def timeout} {
 		# Gap between printing of each dot
-		set step 333
+		set step 250
 		set multiplier 1
-		set sec 1
+		set sec 0
 		
 		# Message before starting of timeout
-		puts "Press Ctrl-C now to abort "
+		puts -nonewline "Press Ctrl-C now to abort "
+		flush stdout
 		
 		# Prints time like 5...4...3...2...1...0
-		# TODO: Find a hack to make it print on a single line (using -nonewline does not work)
-		while {$time >= 0} { 
-			after $sec puts $time
-	        incr sec 1000
-	        after [expr {$step * $multiplier}] puts "."
-	        incr multiplier
-	        after [expr {$step * $multiplier}] puts "."
-	        incr multiplier
-	        after [expr {$step * $multiplier}] puts "."
-	        incr multiplier 2
-	        incr time -1
+		while {$timeout >= 0} { 
+			after $sec puts -nonewline $timeout
+			incr sec 1000
+			after [expr {$step * $multiplier}] puts -nonewline "."
+			after [expr {$step * $multiplier + 1}] flush stdout
+			flush stdout
+			incr multiplier
+			after [expr {$step * $multiplier}] puts -nonewline "."
+			after [expr {$step * $multiplier + 1}] flush stdout
+			flush stdout
+			incr multiplier
+			after [expr {$step * $multiplier}] puts -nonewline "."
+			after [expr {$step * $multiplier + 1}] flush stdout
+			flush stdout
+			incr multiplier 2
+			incr timeout -1
 		}
 		incr sec -1000
 		after $sec set result def
 		vwait result
+		puts ""
 		return $def
 	}
 	
@@ -5275,9 +5286,7 @@ namespace eval portclient::questions {
 	#        May be a qid will be of better use instead as the client does not do anything port specific.
 	# @param ports
 	#        The list of ports for which the question is being asked.
-	# @param time
-	# 		 The amount of time for which a timeout is to occur.
-	proc ui_choice {msg name ports {time 0}} {
+	proc ui_choice {msg name ports} {
 		# Print the main message
 		puts $msg
 		
@@ -5287,12 +5296,6 @@ namespace eval portclient::questions {
 			puts -nonewline " $i) "
 			puts $port
 			incr i
-		}
-		
-		# Check if timeout is set or not
-		if {$time > 0} {
-			# Run ui_timeout and skip the rest of the stuff here
-			puts "just testing"
 		}
 	}
 	
@@ -5309,34 +5312,42 @@ namespace eval portclient::questions {
 	#        The default answer to the question.
 	# @param time
 	# 		 The amount of time for which a timeout is to occur.
-	proc ui_ask_yesno {msg name ports def time} {
-		# Check if timeout is set or not
-		if {$time > 0} {
-			# Run ui_timeout and skip the rest of the stuff here
-			puts "just testing"
+	proc ui_ask_yesno {msg name ports def {timeout 0}} {
+		# Set number default to the given letter default
+		if {$def == {y}} {
+			set default 0
+		} else {
+			set default 1
 		}
 		
 		puts -nonewline $msg
 		set leftmargin " "
 		
 		# Print portname or port list suitably
-		if {llength ports == 1} {
-			puts " "
+		if {[llength $ports] == 1} {
+			puts -nonewline " "
 			puts $ports
 		} else {
+			puts ""
 			foreach port $ports {
 				puts -nonewline $leftmargin  
 				puts $port
 			}
 		}
 		
+		# Check if timeout is set or not
+		if {$timeout > 0} {
+			# Run ui_timeout and skip the rest of the stuff here
+			return [ui_timeout $default $timeout] 
+		}
+				
 		# Check for the default and print accordingly
 		if {$def == {y}} {
 			puts -nonewline "Continue? \[Y/n\]: "
-			set default 0
+			flush stdout
 		} else {
 			puts -nonewline "Continue? \[y/N\]: "
-			set default 1
+			flush stdout
 		}
 		
 		# User input (probably requires some input error checking code) 
@@ -5363,13 +5374,9 @@ namespace eval portclient::questions {
 	#        May be a qid will be of better use instead as the client does not do anything port specific.
 	# @param ports
 	#        The port/list of ports for which the question is being asked.
-	# @param def
-	#        The default answer to the question.
-	# @param time
-	# 		 The amount of time for which a timeout is to occur.
-	proc ui_ask_singlechoice {msg name ports def {time 0}} {
+	proc ui_ask_singlechoice {msg name ports} {
 		
-		ui_choice msg name ports time
+		ui_choice msg name ports
 				
 		# User Input (single input restriction)
 		puts "Enter a number to select an option: "
@@ -5392,13 +5399,9 @@ namespace eval portclient::questions {
 	#        May be a qid will be of better use instead as the client does not do anything port specific.
 	# @param ports
 	#        The list of ports for which the question is being asked.
-	# @param def
-	#        The default answer to the question.
-	# @param time
-	# 		 The amount of time for which a timeout is to occur.
-	proc ui_ask_multichoice {msg name ports def {time 0}} {
+	proc ui_ask_multichoice {msg name ports} {
 		
-		ui_choice msg name ports time
+		ui_choice msg name ports
 				
 		# User Input (with Multiple input parsing) 
 		while 1 {
@@ -5472,6 +5475,14 @@ if {[isatty stdout]
     && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")} {
     set ui_options(progress_download) portclient::progress::download
     set ui_options(progress_generic)  portclient::progress::generic
+}
+
+if {[isatty stdin]
+	&& (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")
+	&& (![info exists ui_options(ports_noninteractive)] || $ui_options(ports_noninteractive) ne "yes")} {
+	set ui_options(questions_yesno) portclient::questions::ui_ask_yesno
+	set ui_options(questions_singlechoice) portclient::questions::ui_ask_singlechoice
+	set ui_options(questions_multichoice) portclient::questions::ui_ask_multichoice
 }
 
 set ui_options(notifications_append) portclient::notifications::append
