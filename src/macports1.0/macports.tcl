@@ -2049,13 +2049,30 @@ proc mportexec {mport target} {
 
         # print the dep list
         if {[llength $dlist] > 0} {
-            set depstring "$macports::ui_prefix Dependencies to be installed:"
-            foreach ditem $dlist {
-                append depstring " [ditem_key $ditem provides]"
+            ##
+            # User Interaction Question
+            # Asking before installing dependencies(apt-get like)
+            if {[info exists macports::ui_options(questions_yesno)]} {
+                set deplist {}
+                foreach ditem $dlist {
+                    lappend deplist [ditem_key $ditem provides]
+                }
+                set retvalue [$macports::ui_options(questions_yesno) "The following dependencies will be installed: " "TestCase#2" [lsort $deplist] {y} 0]
+                if {$retvalue == 1} {
+                    return 0
+                } 
+            } elseif {[info exists macports::ui_options(ports_noninteractive)]
+                && $macports::ui_options(ports_noninteractive) eq "yes"} {
+                set depstring "$macports::ui_prefix Dependencies to be installed:"
+                foreach ditem $dlist {
+                    append depstring " [ditem_key $ditem provides]"
+                }
+                ui_msg $depstring
+            } else {
+                ui_error "Not sure if interactive or non-interactive."
             }
-            ui_msg $depstring
         }
-
+		
         # install them
         set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
 
