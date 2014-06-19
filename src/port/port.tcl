@@ -4447,6 +4447,8 @@ proc parse_options { action ui_options_name global_options_name } {
                     }
                     q {
                         set ui_options(ports_quiet) yes
+                        # quiet implies noninteractive
+                        set ui_options(ports_noninteractive) yes
                     }
                     p {
                         # Ignore errors while processing within a command
