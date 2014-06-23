@@ -36,10 +36,10 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=2.3.0
+VERSION=2.3.1
 
 # Abstraction variables:
-PREFIX=__PREFIX__
+PREFIX=@prefix@
 BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 CONFIGPATH=${PREFIX}/etc/macports
@@ -240,7 +240,7 @@ esac
 if ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv PATH" | grep ${PREFIX} > /dev/null; then
     echo "Your shell already has the right PATH environment variable for use with MacPorts!"
 else
-    write_setting PATH "${BINPATH}:${SBINPATH}:\$PATH"
+    write_setting PATH "\"${BINPATH}:${SBINPATH}:\$PATH\""
 fi
 
 # We gather the path into a variable of our own for faster operation:
@@ -259,7 +259,7 @@ if ! ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
   [[ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $NF}')" ]]; then
     echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
 else
-    write_setting MANPATH "${MANPAGES}:\$MANPATH"
+    write_setting MANPATH "\"${MANPAGES}:\$MANPATH\""
 fi
 
 # Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
