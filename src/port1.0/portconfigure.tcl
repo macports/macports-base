@@ -431,16 +431,16 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {$xcodeversion eq "none" || $xcodeversion eq ""} {
         return {cc}
     } elseif {[vercmp $xcodeversion 5.0] >= 0} {
-        return {clang macports-llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
+        return {clang macports-clang-3.4 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 4.3] >= 0} {
-        return {clang llvm-gcc-4.2 apple-gcc-4.2 macports-clang-3.3}
+        return {clang llvm-gcc-4.2 macports-clang-3.4 macports-clang-3.3 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
-        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.3 apple-gcc-4.2}
+        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.4 macports-clang-3.3 apple-gcc-4.2}
     } elseif {[vercmp $xcodeversion 3.2] >= 0} {
         if {[string match *10.4u* ${configure.sdkroot}]} {
             return {gcc-4.0}
         } else {
-            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
+            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.4 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
         }
     } elseif {[vercmp $xcodeversion 3.0] >= 0} {
         return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
