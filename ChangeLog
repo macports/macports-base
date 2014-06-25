@@ -3,6 +3,18 @@
 # $Id$
 ###
 
+Release 2.3.1 (2014-06-26 by jmr)
+    - Added macports-clang-3.4 to compiler fallback lists
+      (#43932, jeremyhu in r118735, r119034)
+
+    - Added quoting to PATH and MANPATH variables set by the installer, to
+      accomodate paths containing spaces (#43798, jmr in r121311)
+
+    - Update for automatic dependencies for fetch.type git, needed due to the
+      git-core port being renamed to git (#44052, ciserlohn in r120928)
+
+    - Fixed failure to sync using daily tarball (#43821, cal in r120382)
+
 Release 2.3 (2014-05-24 by jmr)
     - Use a private copy of Tcl 8.5 for MacPorts. Starting with this change
       features introduced with Tcl 8.5 can be used in Portfiles while still
