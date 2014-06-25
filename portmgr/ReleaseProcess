@@ -232,7 +232,6 @@ Once the release has been posted, notification of the release should be sent/pos
    appropriate in the trunk/www/includes/common.inc file.
  * The &macports-version; entity in trunk/doc-new/guide/xml/installing.xml.
  * [https://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
- * [http://freecode.com/projects/macports/ Freecode] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
  * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: rhwood@)
  * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
@@ -246,5 +245,3 @@ Once the release has been posted, notification of the release should be sent/pos
 Using new features introduced by a release should be delayed for 14 days. This
 should allow users to upgrade their installations to the new release. This
 delay matches the warning about outdated ports tree sources.
-
-
