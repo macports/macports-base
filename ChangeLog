@@ -12,7 +12,7 @@ Release 2.4 (unreleased)
       the registry database when MacPorts is aborted during a critical
       operation. (cal in r118297 and r118298)
 
-Release 2.3.1 (unreleased)
+Release 2.3.1 (2014-06-26 by jmr)
     - Added macports-clang-3.4 to compiler fallback lists
       (#43932, jeremyhu in r118735, r119034)
 
