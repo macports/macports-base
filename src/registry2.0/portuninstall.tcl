@@ -89,14 +89,37 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     if { [llength $ilist] > 1 } {
         # set portname again since the one we were passed may not have had the correct case
         set portname [[lindex $ilist 0] name]
-        ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
-        foreach i [portlist_sortint $ilist] {
+        set msg "The following versions of $portname are currently installed:"
+        if {[macports::ui_isset ports_noninteractive]} {
+            ui_msg "$UI_PREFIX [msgcat::mc $msg]"
+        }
+        set sortedlist [portlist_sortint $ilist]
+        foreach i $sortedlist {
             set ispec "[$i version]_[$i revision][$i variants]"
-            if {[$i state] eq "installed"} {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] [$i name] $ispec]"
+            ##
+            # User Interaction Question
+            # Asking choice to select option in case of ambiguous uninstall
+            if {[info exists macports::ui_options(questions_multichoice)]} {
+                if { [$i state] eq "installed" } {
+                    lappend portilist [$i name]@[$i version]_[$i revision][$i variants](active)
+                } else {
+                    lappend portilist [$i name]@[$i version]_[$i revision][$i variants]
+                }
             } else {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
+                if {[$i state] eq "installed"} {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] [$i name] $ispec]"
+                } else {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
+                }
             }
+        }
+        if {[info exists macports::ui_options(questions_multichoice)]} {
+            set retstring [$macports::ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
+            foreach index $retstring {
+                set uport [lindex $sortedlist [expr { $index - 1 }]]
+                uninstall [$uport name] [$uport version] [$uport revision] [$uport variants]
+            }
+            return 0
         }
         throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
     } elseif { [llength $ilist] == 1 } {
