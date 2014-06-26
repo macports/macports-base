@@ -4594,6 +4594,16 @@ proc process_cmd { argv } {
         # What kind of arguments does the command expect?
         set expand [action_needs_portlist $action]
 
+        # (Re-)initialize private_options(ports_no_args) to no, because it might still be yes
+        # from the last command in batch mode. If we don't do this, port will fail to
+        # distinguish arguments that expand to empty lists from no arguments at all:
+        # > installed
+        # > list outdated
+        # will then behave like
+        # > list
+        # if outdated expands to the empty list. See #44091, which was filed about this.
+        set private_options(ports_no_args) "no"
+
         # Parse action arguments, setting a special flag if there were none
         # We otherwise can't tell the difference between arguments that evaluate
         # to the empty set, and the empty set itself.
@@ -4601,7 +4611,7 @@ proc process_cmd { argv } {
         switch -- [lookahead] {
             ;       -
             _EOF_ {
-                set private_options(ports_no_args) yes
+                set private_options(ports_no_args) "yes"
             }
             default {
                 if {[ACTION_ARGS_NONE] == $expand} {
