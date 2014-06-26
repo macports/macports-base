@@ -2061,8 +2061,7 @@ proc mportexec {mport target} {
                 if {$retvalue == 1} {
                     return 0
                 } 
-            } elseif {[info exists macports::ui_options(ports_noninteractive)]
-                && $macports::ui_options(ports_noninteractive) eq "yes"} {
+            } elseif {[macports::ui_isset ports_noninteractive]} {
                 set depstring "$macports::ui_prefix Dependencies to be installed:"
                 foreach ditem $dlist {
                     append depstring " [ditem_key $ditem provides]"
