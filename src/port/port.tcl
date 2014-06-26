@@ -314,7 +314,7 @@ proc registry_installed {portname {portversion ""}} {
         # set portname again since the one we were passed may not have had the correct case
         set portname [lindex $ilist 0 0]
         ui_notice "The following versions of $portname are currently installed:"
-        foreach i [portlist_sortint $ilist] { 
+        foreach i [portlist_sortint $ilist] {
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
@@ -331,7 +331,6 @@ proc registry_installed {portname {portversion ""}} {
         return [lindex $ilist 0]
     }
 }
-
 
 proc entry_for_portlist {portentry} {
     global global_options global_variations
@@ -5296,7 +5295,7 @@ namespace eval portclient::questions {
 		set i 1
 		foreach port $ports {
 			puts -nonewline " $i) "
-			puts $port
+			puts [string map {@ " @" ( " ("} $port]
 			incr i
 		}
 	}
@@ -5328,12 +5327,12 @@ namespace eval portclient::questions {
 		# Print portname or port list suitably
 		if {[llength $ports] == 1} {
 			puts -nonewline " "
-			puts $ports
+			puts [string map {@ " @"} $ports]
 		} else {
 			puts ""
 			foreach port $ports {
 				puts -nonewline $leftmargin  
-				puts $port
+				puts [string map {@ " @"} $port]
 			}
 		}
 		
@@ -5378,10 +5377,10 @@ namespace eval portclient::questions {
 	#        The port/list of ports for which the question is being asked.
 	proc ui_ask_singlechoice {msg name ports} {
 		
-		ui_choice msg name ports
+		ui_choice $msg $name $ports
 				
 		# User Input (single input restriction)
-		puts "Enter a number to select an option: "
+		puts -nonewline "Enter a number to select an option: "
 		while 1 {
 			set input [gets stdin]
 			if {($input <= [llength $ports] && [string is integer -strict $input])} {
@@ -5403,11 +5402,11 @@ namespace eval portclient::questions {
 	#        The list of ports for which the question is being asked.
 	proc ui_ask_multichoice {msg name ports} {
 		
-		ui_choice msg name ports
+		ui_choice $msg $name $ports
 				
 		# User Input (with Multiple input parsing) 
 		while 1 {
-			puts "Enter the numbers to select the options: "
+			puts -nonewline "Enter the numbers to select the options: "
 			set input [gets stdin]
 			set count 1
 			foreach num $input {
