@@ -5380,8 +5380,9 @@ namespace eval portclient::questions {
 		ui_choice $msg $name $ports
 				
 		# User Input (single input restriction)
-		puts -nonewline "Enter a number to select an option: "
 		while 1 {
+			puts -nonewline "Enter a number to select an option: "
+			flush stdout
 			set input [gets stdin]
 			if {($input <= [llength $ports] && [string is integer -strict $input])} {
 				return $input
@@ -5407,8 +5408,13 @@ namespace eval portclient::questions {
 		# User Input (with Multiple input parsing) 
 		while 1 {
 			puts -nonewline "Enter the numbers to select the options: "
+			flush stdout
 			set input [gets stdin]
-			set count 1
+			set count 0
+			# check if input is non-empty and otherwise fine
+			if {$input == ""} {
+				continue
+			}
 			foreach num $input {
 				if {($num <= [llength $ports] && [string is integer -strict $num])} {
 					incr count
@@ -5417,8 +5423,8 @@ namespace eval portclient::questions {
 					break
 				}
 			}
-			if {$count == [llength input]} {
-				return input
+			if {$count == [llength $input]} {
+				return $input
 			}
 		}
 	}
