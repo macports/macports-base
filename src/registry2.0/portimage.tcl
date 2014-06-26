@@ -220,17 +220,37 @@ proc _check_registry {name version revision variants} {
     set ilist [eval registry::entry imaged $searchkeys]
 
     if { [llength $ilist] > 1 } {
-        ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
+        set portilist {}
+        set msg "The following versions of $name are currently installed:"
+        if {[macports::ui_isset ports_noninteractive]} {
+            ui_msg "$UI_PREFIX [msgcat::mc $msg]"
+        }
         foreach i $ilist {
             set iname [$i name]
             set iversion [$i version]
             set irevision [$i revision]
             set ivariants [$i variants]
-            if { [$i state] eq "installed" } {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
+            ##
+            # User Interaction Question
+            # Asking choice to select option in case of ambiguous activate
+            if {[info exists macports::ui_options(questions_singlechoice)]} {
+                if { [$i state] eq "installed" } {
+                    lappend portilist $iname@${iversion}_${irevision}${ivariants}(active)
+                } else {
+                    lappend portilist $iname@${iversion}_${irevision}${ivariants}
+                }
             } else {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
+                if { [$i state] eq "installed" } {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
+                } else {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
+                }
             }
+        }
+        if {[info exists macports::ui_options(questions_singlechoice)]} {
+            set retvalue [$macports::ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
+            set index [expr { $retvalue - 1 }]
+            return [lindex $ilist $index]
         }
         throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
     } elseif { [llength $ilist] == 1 } {
