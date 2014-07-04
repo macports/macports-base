@@ -344,7 +344,13 @@ proc extract_archive_to_tmpdir {location} {
                     if {[regexp {z2?$} ${unarchive.type}]} {
                         set unarchive.args {-}
                         if {[regexp {bz2?$} ${unarchive.type}]} {
-                            set gzip "bzip2"
+                            if {![catch {macports::binaryInPath lbzip2}]} {
+                                set gzip "lbzip2"
+                            } elseif {![catch {macports::binaryInPath pbzip2}]} {
+                                set gzip "pbzip2"
+                            } else {
+                                set gzip "bzip2"
+                            }
                         } elseif {[regexp {lz$} ${unarchive.type}]} {
                             set gzip "lzma"
                         } elseif {[regexp {xz$} ${unarchive.type}]} {
