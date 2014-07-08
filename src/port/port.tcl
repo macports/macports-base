@@ -5249,29 +5249,17 @@ namespace eval portclient::questions {
 		set multiplier 1
 		set sec 0
 		
-		# Message before starting of timeout
-		puts -nonewline "Press Ctrl-C now to abort "
-		flush stdout
-		
 		# Prints time like 5...4...3...2...1...0
 		while {$timeout >= 0} { 
-			after $sec puts -nonewline $timeout
-			incr sec 1000
-			after [expr {$step * $multiplier}] puts -nonewline "."
-			after [expr {$step * $multiplier + 1}] flush stdout
-			flush stdout
-			incr multiplier
-			after [expr {$step * $multiplier}] puts -nonewline "."
-			after [expr {$step * $multiplier + 1}] flush stdout
-			flush stdout
-			incr multiplier
-			after [expr {$step * $multiplier}] puts -nonewline "."
-			after [expr {$step * $multiplier + 1}] flush stdout
-			flush stdout
-			incr multiplier 2
-			incr timeout -1
+			after $sec {puts -nonewline "Continuing in "}
+		    incr sec 1000
+			after $sec puts -nonewline [format "%02d" $time]
+			after $sec flush stdout
+			after $sec {puts -nonewline ". Press Ctrl-C to exit:"}
+		    after $sec {puts -nonewline "\r"}
+		    after $sec flush stdout
+			incr time -1
 		}
-		incr sec -1000
 		after $sec set result def
 		vwait result
 		puts ""
