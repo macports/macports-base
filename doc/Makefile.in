@@ -33,8 +33,8 @@ distclean: clean
 	gzip -c $^ > $@
 
 install: all
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${INSTALLDIR}"
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${DESTDIR}${mpconfigdir}"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${mpconfigdir}"
 
 	< prefix.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
 	< base.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
@@ -42,15 +42,15 @@ ifneq (,$(findstring darwin,@build_os@))
 ifneq (8,@OS_MAJOR@)
 # Tiger's chmod doesn't accept -h
 # mtree with umask 0077 doesn't get the permissions of the symlink right
-	chmod -h 755 ${INSTALLDIR}/man
+	chmod -h 755 "${INSTALLDIR}/man"
 endif
 endif
 
 	for f in ${CONF}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$f "${DESTDIR}${mpconfigdir}/$${f}.default"; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$f" "${DESTDIR}${mpconfigdir}/$${f}.default"; \
 		if test ! -e "${DESTDIR}${mpconfigdir}/$$f" ; then \
 			set -x; \
-			$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 $$f "${DESTDIR}${mpconfigdir}"; \
+			$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 644 "$$f" "${DESTDIR}${mpconfigdir}"; \
 		fi; \
 	done
 
@@ -59,13 +59,13 @@ endif
 	for m in ${MAN5}; do rm -f "${INSTALLDIR}/share/man/man5/$$m" ; done
 	for m in ${MAN7}; do rm -f "${INSTALLDIR}/share/man/man7/$$m" ; done
 
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "${INSTALLDIR}/share/macports/install"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 base.mtree "${INSTALLDIR}/share/macports/install/"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree "${INSTALLDIR}/share/macports/install/"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree "${INSTALLDIR}/share/macports/install/"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1.gz "${INSTALLDIR}/share/man/man1"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports.conf.5.gz "${INSTALLDIR}/share/man/man5"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7.gz "${INSTALLDIR}/share/man/man7"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7.gz "${INSTALLDIR}/share/man/man7"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 porthier.7.gz "${INSTALLDIR}/share/man/man7"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portgroup.7.gz "${INSTALLDIR}/share/man/man7"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}/share/macports/install"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 base.mtree "${INSTALLDIR}/share/macports/install/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 prefix.mtree "${INSTALLDIR}/share/macports/install/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 macosx.mtree "${INSTALLDIR}/share/macports/install/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 port.1.gz "${INSTALLDIR}/share/man/man1"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 macports.conf.5.gz "${INSTALLDIR}/share/man/man5"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 portfile.7.gz "${INSTALLDIR}/share/man/man7"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 portstyle.7.gz "${INSTALLDIR}/share/man/man7"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 porthier.7.gz "${INSTALLDIR}/share/man/man7"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 portgroup.7.gz "${INSTALLDIR}/share/man/man7"

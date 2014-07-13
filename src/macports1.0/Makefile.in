@@ -32,13 +32,13 @@ install:: all
 	@# creating the directory will fail.
 	if test -L "${INSTALLDIR}"; then rm -rf "${INSTALLDIR}"; fi
 
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
 
 	$(SILENT) set -x; for file in ${SRCS}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${INSTALLDIR}/$$file"; \
 	done
 
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
+	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${INSTALLDIR}"
 
 
 include $(srcdir)/../../Mk/macports.tea.mk

@@ -35,6 +35,6 @@ distclean: clean
 	rm -f Makefile
 
 install: daemondo
-	${INSTALL} -o ${DSTUSR} -g ${DSTGRP} -m 555 ${PROGRAM} ${DESTDIR}${bindir}
+	${INSTALL} -o "${DSTUSR}" -g "${DSTGRP}" -m 555 "${PROGRAM}" "${DESTDIR}${bindir}"
 
 test:
