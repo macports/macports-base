@@ -3539,7 +3539,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
             }
             ui_debug "Permissions OK"
 
-            set configure_args "--prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms"
+            set configure_args "--prefix=[macports::shellescape $prefix] --with-install-user=[macports::shellescape $owner] --with-install-group=[macports::shellescape $group] --with-directory-mode=[macports::shellescape $perms]"
             # too many users have an incompatible readline in /usr/local, see ticket #10651
             if {$tcl_platform(os) ne {Darwin} || $prefix eq {/usr/local}
                 || ([glob -nocomplain /usr/local/lib/lib{readline,history}*] eq {} && [glob -nocomplain /usr/local/include/readline/*.h] eq {})} {
@@ -5001,4 +5001,26 @@ proc macports::get_archive_sites_conf_values {} {
         }
     }
     return $archive_sites_conf_values
+}
+
+##
+# Escape a string for use in a POSIX shell, e.g., when passing it to the \c system Pextlib extension. This is necessary
+# to handle cases such as group names with backslashes correctly. See #43875 for an example of a problem caused by
+# missing quotes.
+#
+# @param arg The argument that should be escaped for use in a POSIX shell
+# @return A quoted version of the argument
+proc macports::shellescape {arg} {
+    set mapping {}
+    # Replace each backslash by a double backslash. Apparently Bash treats Backslashes in single-quoted strings
+    # differently depending on whether is was invoked as sh or bash: echo 'using \backslashes' preserves the backslash
+    # in bash mode, but interprets it in sh mode. Since the `system' command uses sh, escape backslashes.
+    lappend mapping "\\" "\\\\"
+    # Replace each single quote with a single quote (closing the currently open string), an escaped single quote \'
+    # (additional backslash needed to escape the backslash in Tcl), and another single quote (opening a new quoted
+    # string).
+    lappend mapping "'" "'\\''"
+
+    # Add a single quote at the start, escape all single quotes in the argument, and add a single quote at the end
+    return "'[string map $mapping $arg]'"
 }

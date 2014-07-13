@@ -915,4 +915,39 @@ test get_archive_sites_conf_values {
 } -result "Get archive sites conf values successful."
 
 
+set shellescapeTests [list \
+    "using \\backslashes" \
+    " spaces " \
+    "and	tabs" \
+    "quotes need to be \"supported\", too" \
+    "… and not only 'double-quotes'" \
+    "other meta chars such as \$dollar," \
+    "!bang, ;semicolon, :colon," \
+    "\$(subshells) and similar must be kept" \
+    ">redirects <& must be ignored as well as ampersands &"]
+test shellescaping {
+    Check whether shell escaping using macports::shellescape works correctly when passed to Pextlib's system extension.
+} -setup {
+    set outputfile "shellescapetestoutput.txt"
+    makeFile "" $outputfile
+
+} -body {
+    set first "yes"
+    foreach test $shellescapeTests {
+        if {$first eq "yes"} {
+            system "echo [macports::shellescape $test]  >$outputfile"
+            set first "no"
+        } else {
+            system "echo [macports::shellescape $test] >>$outputfile"
+        }
+    }
+
+    set fd [open $outputfile r]
+    set output [read -nonewline $fd]
+    close $fd
+    return $output
+} -cleanup {
+    removeFile $outputfile
+} -result [join $shellescapeTests "\n"]
+
 cleanupTests
