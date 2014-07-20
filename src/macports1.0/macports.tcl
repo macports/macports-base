@@ -4754,22 +4754,27 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
 
         set broken_portnames {}
-        ui_msg "$macports::ui_prefix Rebuilding in order"
+        if {![info exists macports::ui_options(questions_yesno)]} {
+            ui_msg "$macports::ui_prefix Rebuilding in order"
+        }
         foreach port $topsort_ports {
             lappend broken_portnames [$port name]@[$port version][$port variants]
-            ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
+            if {![info exists macports::ui_options(questions_yesno)]} {
+                ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
+            }
         }
 
         ##
         # User Interaction Question
         # Asking before rebuilding in rev-upgrade
         if {[info exists macports::ui_options(questions_yesno)]} {
-	        ui_msg "You can always run 'port rev-upgrade' again to fix errors."
-	        set retvalue [$macports::ui_options(questions_yesno) "The following ports will be rebuilt:" "TestCase#1" $broken_portnames {y} 0]
-	        if {$retvalue == 1} {
-		        # quit as user answered 'no'
-		        return 0
-	        }
+            ui_msg "You can always run 'port rev-upgrade' again to fix errors."
+            set retvalue [$macports::ui_options(questions_yesno) "The following ports will be rebuilt:" "TestCase#1" $broken_portnames {y} 0]
+            if {$retvalue == 1} {
+                # quit as user answered 'no'
+                return 0
+            }
+            unset macports::ui_options(questions_yesno)
         }
 
         # shared depscache for all ports that are going to be rebuilt
