@@ -171,7 +171,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     }
 
     set ref $port
-
+	
     # note deps before we uninstall if we're going to uninstall them too
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
         set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
@@ -279,6 +279,51 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         if {[info exists options(ports_uninstall_follow-dependents)]} {
             unset options(ports_uninstall_follow-dependents)
             set optionslist [array get options]
+        }
+        ## User Interaction Question
+        # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            set alldeps $all_dependencies
+            set portilist {}
+            for {set j 0} {$j < [llength $alldeps]} {incr j} {
+                set dep [lindex $alldeps $j]
+                if {![catch {set ilist [registry::installed $dep]}]} {
+                    #puts "I entered the loop"
+                    foreach i $ilist {
+                        set iversion [lindex $i 1]
+                        set irevision [lindex $i 2]
+                        set ivariants [lindex $i 3]
+					    if {[llength [registry::list_dependents $dep $iversion $irevision $ivariants]] == 0} {
+                            set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
+                            if {![registry::property_retrieve $regref requested]} {
+                                #puts "Added to portilist"
+                                lappend portilist $dep@[lindex $i 1]_$irevision 
+                            }
+                        }
+                    }
+                }
+                set depref [registry::entry imaged $dep]
+                set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+                if {![catch {set mport [mportopen_installed [$depref name] [$depref version] [$depref revision] [$depref variants] $optionslist]}]} {
+                    array set depportinfo [mportinfo $mport]
+                    mportclose $mport
+                    foreach type $deptypes {
+                        if {[info exists depportinfo($type)]} {
+                            foreach de $depportinfo($type) {
+                                lappend alldeps [lindex [split $de :] end]
+                            }
+                        }
+                    }
+                }
+                set depdeps [$depref dependencies] 
+                foreach d $depdeps {
+                    lappend alldeps [$d name]
+                }
+                set alldeps [lsort -unique $alldeps]
+            }
+            set portilist [lsort -unique $portilist]
+            $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
+            unset macports::ui_options(questions_yesno)
         }
         while 1 {
             set remaining_list {}
