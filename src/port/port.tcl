@@ -5245,20 +5245,18 @@ namespace eval portclient::questions {
 	#        The default action to be taken in the occurence of a timeout.
 	proc ui_timeout {def timeout} {
 		# Gap between printing of each dot
-		set step 250
-		set multiplier 1
 		set sec 0
 		
 		# Prints time like 5...4...3...2...1...0
 		while {$timeout >= 0} { 
+			after $sec {puts -nonewline "\r"}
 			after $sec {puts -nonewline "Continuing in "}
-		    incr sec 1000
-			after $sec puts -nonewline [format "%02d" $time]
+			incr sec 1000
+			after $sec puts -nonewline [format "%02d" $timeout]
 			after $sec flush stdout
-			after $sec {puts -nonewline ". Press Ctrl-C to exit:"}
-		    after $sec {puts -nonewline "\r"}
-		    after $sec flush stdout
-			incr time -1
+			after $sec {puts -nonewline ". Press Ctrl-C to exit: "}
+			after $sec flush stdout
+			incr timeout -1
 		}
 		after $sec set result def
 		vwait result
@@ -5473,6 +5471,7 @@ if {[isatty stdout]
 }
 
 if {[isatty stdin]
+	&& [isatty stdout]
 	&& (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")
 	&& (![info exists ui_options(ports_noninteractive)] || $ui_options(ports_noninteractive) ne "yes")} {
 	set ui_options(questions_yesno) portclient::questions::ui_ask_yesno
