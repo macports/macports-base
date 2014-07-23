@@ -105,8 +105,8 @@ universal_archs     	@UNIVERSAL_ARCHS@
 #keeplogs            	no
 
 # The rsync server for fetching MacPorts base during selfupdate. This
-# setting is NOT used when downloading the ports tree; the sources for
-# the ports tree are set in sources.conf. See
+# setting is NOT used when downloading ports trees; ports trees are
+# configured using the file referenced by sources_conf. See
 # https://trac.macports.org/wiki/Mirrors#MacPortsSource for a list of
 # available servers.
 #rsync_server        	rsync.macports.org
