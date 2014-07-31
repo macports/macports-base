@@ -2497,7 +2497,10 @@ proc action_select { action portlist opts } {
 
     # Error out if no group is specified or command is not --summary.
     if {[llength $portlist] < 1 && [string map {ports_select_ ""} [lindex $commands 0]] != "summary"} {
-        ui_error "port select \[--list|--set|--show|--summary] \<group> \[<version>]"
+        ui_error "Incorrect usage. Correct synopsis is one of:"
+        ui_msg   "  port select \[--list|--show\] <group>"
+        ui_msg   "  port select \[--set\] <group> <version>"
+        ui_msg   "  port select --summary"
         return 1
     }
 
