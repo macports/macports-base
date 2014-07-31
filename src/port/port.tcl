@@ -5236,6 +5236,7 @@ namespace eval portclient::notifications {
 # Create namespace for questions
 namespace eval portclient::questions {
 	
+	package require Tclx
 	##
 	# Function that handles printing of a timeout.
 	#
@@ -5244,23 +5245,25 @@ namespace eval portclient::questions {
 	# @param def
 	#        The default action to be taken in the occurence of a timeout.
 	proc ui_timeout {def timeout} {
-		# Gap between printing of each dot
-		set sec 0
-		
-		# Prints time like 5...4...3...2...1...0
-		while {$timeout >= 0} { 
-			after $sec {puts -nonewline "\r"}
-			after $sec {puts -nonewline "Continuing in "}
-			incr sec 1000
-			after $sec puts -nonewline [format "%02d" $timeout]
-			after $sec flush stdout
-			after $sec {puts -nonewline ". Press Ctrl-C to exit: "}
-			after $sec flush stdout
+		fconfigure stdin -blocking 0
+
+		signal error {TERM INT}
+		while {$timeout >= 0} {
+			if {[catch {set inp [read stdin]} err]} {
+				return -code error "Ctrl-C"
+			}
+			if {$inp eq "\n"} {
+				return $def
+			}
+			puts -nonewline "\r"
+			puts -nonewline [format "Continuing in %02d s. Press Ctrl-C to exit: " $timeout]
+			flush stdout
+			after 1000
 			incr timeout -1
 		}
-		after $sec set result def
-		vwait result
 		puts ""
+		fconfigure stdin -blocking 1
+		signal -restart error {TERM INT}
 		return $def
 	}
 	
@@ -5339,7 +5342,11 @@ namespace eval portclient::questions {
 		
 		# User input (probably requires some input error checking code) 
 		while 1 {
-			set input [gets stdin]
+			signal error {TERM INT}
+			if {[catch {set input [gets stdin]} err]} {
+				return -code error "Ctrl-C"
+			}
+			signal -restart error {TERM INT}
 			if {$input in {y Y}} {
 				return 0
 			} elseif {$input in {n N}} {
@@ -5362,14 +5369,18 @@ namespace eval portclient::questions {
 	# @param ports
 	#        The port/list of ports for which the question is being asked.
 	proc ui_ask_singlechoice {msg name ports} {
-		
+		package require Tclx
 		ui_choice $msg $name $ports
 				
 		# User Input (single input restriction)
 		while 1 {
 			puts -nonewline "Enter a number to select an option: "
 			flush stdout
-			set input [gets stdin]
+			signal error {TERM INT}
+			if {[catch {set input [gets stdin]} err]} {
+				return -code error "Ctrl-C"
+			}
+			signal -restart error {TERM INT}
 			if {($input <= [llength $ports] && [string is integer -strict $input])} {
 				return $input
 			} else {
@@ -5395,7 +5406,11 @@ namespace eval portclient::questions {
 		while 1 {
 			puts -nonewline "Enter the numbers to select the options: "
 			flush stdout
-			set input [gets stdin]
+			signal error {TERM INT}
+			if {[catch {set input [gets stdin]} err]} {
+				return -code error "Ctrl-C"
+			}
+			signal -restart error {TERM INT}
 			set count 0
 			# check if input is non-empty and otherwise fine
 			if {$input == ""} {
