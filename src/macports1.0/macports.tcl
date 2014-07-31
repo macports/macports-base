@@ -4590,6 +4590,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     $revupgrade_progress intermission
                                 }
                                 ui_info "Could not open ${filepath}: [machista::strerror $libreturncode] (referenced from $bpath)"
+                                if {[string first [file separator] $filepath] == -1} {
+                                    ui_info "${filepath} seems to be referenced using a relative path. This may be a problem with its canonical library name and require the use of install_name_tool(1) to fix."
+                                }
                                 set files_warned_about($filepath) yes
                             }
                             if {$libreturncode == $machista::EFILE} {
