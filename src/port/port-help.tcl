@@ -277,12 +277,18 @@ Creates a rpm for each of the given ports
 set porthelp(search) {
 Search for a port
 
---case-sensitive   match the search string in a case-sensitive manner
---exact   match the literal search string exactly
---glob    treat the given search string as a glob (default)
---line    print each result on a single line
---regex   treat the given search string as a regular expression
---<field> match against <field>, default is '--name --description'
+--case-sensitive    match the search string in a case-sensitive manner
+--exact             match the literal search string exactly
+--glob              treat the given search string as a glob (default)
+--line              print each result on a single line
+--regex             treat the given search string as a regular expression
+--<field>           match against <field>, default is '--name --description'.
+                    Possible values for <field> are category, categories,
+                    depends, depends_build, depends_extract, depends_fetch,
+                    depends_lib, depends_run, description, epoch, homepage,
+                    long_description, maintainer, maintainers, name, platform,
+                    platforms, portdir, revision, variant, variants, and
+                    version.
 }
 
 set porthelp(select) {
