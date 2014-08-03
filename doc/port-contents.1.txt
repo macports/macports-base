@@ -11,7 +11,7 @@ SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-q*] [*-D* 'portdir'] *contents*
-     [--size] [--units *UNIT*]
+     [--size] [--units 'unit']
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
@@ -31,11 +31,11 @@ OPTIONS
 
 --size::
     Enable printing a human-readable representation of the files' sizes. The
-    size output can be adjusted using the *--units UNIT* flag.
+    size output can be adjusted using the *--units 'unit'* flag.
 
---units UNIT::
+--units 'unit'::
     Used in conjunction with *--size* to choose the unit in which the size is
-    given. Valid values for 'UNIT' are
+    given. Valid values for 'unit' are
 
     B:::
         List sizes in bytes.
