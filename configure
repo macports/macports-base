@@ -11426,7 +11426,7 @@ $as_echo "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/freebsd/Makefile portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
 
 
 ac_config_files="$ac_config_files src/dedup_portfiles.tcl"
@@ -12139,7 +12139,6 @@ do
     "doc/macports.conf") CONFIG_FILES="$CONFIG_FILES doc/macports.conf" ;;
     "doc/prefix.mtree") CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
     "doc/pubkeys.conf") CONFIG_FILES="$CONFIG_FILES doc/pubkeys.conf" ;;
-    "portmgr/freebsd/Makefile") CONFIG_FILES="$CONFIG_FILES portmgr/freebsd/Makefile" ;;
     "portmgr/dmg/postflight") CONFIG_FILES="$CONFIG_FILES portmgr/dmg/postflight" ;;
     "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
