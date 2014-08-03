@@ -25,7 +25,7 @@ port-contents \- List the files installed by a given port
 .sp
 .nf
 \fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBcontents\fR
-     [\-\-size] [\-\-units \fBUNIT\fR]
+     [\-\-size] [\-\-units \fIunit\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
@@ -48,16 +48,16 @@ port \-q contents asciidoc | grep \-E \*(Aq/s?bin/\*(Aq
 \-\-size
 .RS 4
 Enable printing a human\-readable representation of the files\*(Aq sizes\&. The size output can be adjusted using the
-\fB\-\-units UNIT\fR
+\fB\-\-units \fR\fB\fIunit\fR\fR
 flag\&.
 .RE
 .PP
-\-\-units UNIT
+\-\-units \fIunit\fR
 .RS 4
 Used in conjunction with
 \fB\-\-size\fR
 to choose the unit in which the size is given\&. Valid values for
-\fIUNIT\fR
+\fIunit\fR
 are
 .PP
 B
