@@ -30,6 +30,7 @@ MAN1=	\
 		port-install.1 \
 		port-patch.1 \
 		port-rev-upgrade.1 \
+		port-selfupdate.1 \
 		port-uninstall.1 \
 		port.1 \
 
