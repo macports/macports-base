@@ -40,11 +40,12 @@ MAN=		${MAN1} ${MAN5} ${MAN7}
 
 # Filter man pages with existing source files
 MANTXT=		$(wildcard ${MAN:%=%.txt})
+MANSOELIM= 	$(wildcard ${MAN:%=%.soelim})
 # Only those can be transformed into XML and HTML
 MANXML=		${MANTXT:.txt=.xml}
-MANHTML=	${MANTXT:.txt=.html}
+MANHTML=	${MANTXT:.txt=.html} ${MANSOELIM:.soelim=.html}
 
-CONF=       	archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf
+CONF=		archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
@@ -69,8 +70,7 @@ xml: ${MANXML}
 html: ${MANHTML}
 
 clean:
-	rm -f ${MANTXT:%.txt=%.gz}
-	rm -f ${MANTXT:%.txt=%.html}
+	rm -f ${MANTXT:%.txt=%.html} ${MANSOELIM:%.soelim=%.html}
 	rm -f ${MANTXT:%.txt=%.xml}
 	rm -f *.{1,5,7}.gz
 	rm -f .dep
