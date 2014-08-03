@@ -15,7 +15,7 @@ endif
 ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION}
 XSLTFLAGS=	-nonet
 
-MAN1=		port.1 \
+MAN1=	\
 		port-activate.1 \
 		port-build.1 \
 		port-checksum.1 \
@@ -27,7 +27,10 @@ MAN1=		port.1 \
 		port-fetch.1 \
 		port-install.1 \
 		port-patch.1 \
-		port-uninstall.1
+		port-rev-upgrade.1 \
+		port-uninstall.1 \
+		port.1 \
+
 MAN5=		macports.conf.5
 MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7 portundocumented.7
 MAN=		${MAN1} ${MAN5} ${MAN7}

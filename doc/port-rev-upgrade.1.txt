@@ -1,0 +1,51 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-rev-upgrade(1)
+===================
+$Id$
+
+NAME
+----
+port-rev-upgrade - Check for linking inconsistencies and attempt to fix them
+automatically.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdy*] *rev-upgrade*
+     [--id-loadcmd-check]
+
+DESCRIPTION
+-----------
+*port rev-upgrade* will check all binaries (i.e., executables and libraries)
+installed by MacPorts for consistency. If any linking problems such as missing
+or incompatible libraries are found, *rev-upgrade* will rebuild broken ports in
+an attempt to fix the problems.
+
+By default, *rev-upgrade* is run automatically after each installation or
+upgrade, unless you pass the *--no-rev-upgrade* option or disable this beahvior
+in man:macports.conf[5] using the *revupgrade_autorun* switch.
+
+
+OPTIONS
+-------
+
+--id-loadcmd-check::
+    Check the ID load command in each library installed by MacPorts. This load
+    command contains a path that should always reference the library itself,
+    because the path will be copied into all binaries and libraries that link
+    against this library. This option verifies that this is the case and will
+    detect incorrect or non-absolute paths. Since this check is only helpful for
+    port maintainers, it is disabled by default.
+
+
+include::global-flags.txt[]
+
+
+SEE ALSO
+--------
+man:port[1], man:macports.conf[5]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
