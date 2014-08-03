@@ -1,0 +1,75 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-contents(1)
+================
+$Id$
+
+NAME
+----
+port-contents - List the files installed by a given port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-q*] [*-D* 'portdir'] *contents*
+     [--size] [--units *UNIT*]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port contents* displays a list of all files that have been installed by a given
+port. You can only use *contents* for ports that are 'active' and installed.
+
+Common uses for *contents* include finding the location of a port's executable
+after installing it. You can combine *port contents* with other tools to
+simplify this, e.g.
+----
+port -q contents asciidoc | grep -E '/s?bin/'
+----
+
+OPTIONS
+-------
+
+--size::
+    Enable printing a human-readable representation of the files' sizes. The
+    size output can be adjusted using the *--units UNIT* flag.
+
+--units UNIT::
+    Used in conjunction with *--size* to choose the unit in which the size is
+    given. Valid values for 'UNIT' are
+
+    B:::
+        List sizes in bytes.
+
+    K, Ki, or KiB:::
+        List sizes in KiB, i.e., 1024 bytes.
+
+    Mi, or MiB:::
+        List sizes in MiB, i.e., 1024 * 1024 bytes.
+
+    Gi, or GiB:::
+        List sizes in GiB, i.e., 1024 * 1024 * 1024 bytes.
+
+    k, or kB:::
+        List sizes in kB, i.e., 1000 bytes.
+
+    M, or MB:::
+        List sizes in MB, i.e., 1000 * 1000 bytes.
+
+    G, or GB:::
+        List sizes in GB, i.e., 1000 * 1000 * 1000 bytes.
+
+
+include::global-flags.txt[]
+
+-q::
+    Do not print the header line.
+
+
+SEE ALSO
+--------
+port(1)
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

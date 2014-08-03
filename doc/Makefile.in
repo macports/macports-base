@@ -20,6 +20,7 @@ MAN1=	\
 		port-build.1 \
 		port-checksum.1 \
 		port-configure.1 \
+		port-contents.1 \
 		port-deactivate.1 \
 		port-destroot.1 \
 		port-edit.1 \
