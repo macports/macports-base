@@ -3361,10 +3361,7 @@ proc macports::_target_needs_deps {target} {
         dmg -
         mdmg -
         pkg -
-        mpkg -
-        rpm -
-        dpkg -
-        srpm {return 1}
+        mpkg {return 1}
         default {return 0}
     }
 }
@@ -3379,14 +3376,11 @@ proc macports::_deptypes_for_target {target workername} {
         configure   -
         build       {return "depends_fetch depends_extract depends_build depends_lib"}
         test        -
-        srpm        -
         destroot    {return "depends_fetch depends_extract depends_build depends_lib depends_run"}
         dmg         -
         pkg         -
         mdmg        -
-        mpkg        -
-        rpm         -
-        dpkg        {
+        mpkg        {
             if {[global_option_isset ports_binary_only] ||
                 (![global_option_isset ports_source_only] && [$workername eval _archive_available])} {
                 return "depends_lib depends_run"

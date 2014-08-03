@@ -1457,9 +1457,6 @@ proc target_run {ditem} {
                         pkg         -
                         portpkg     -
                         mpkg        -
-                        rpm         -
-                        srpm        -
-                        dpkg        -
                         mdmg        -
                         ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
 

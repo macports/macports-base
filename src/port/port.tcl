@@ -4257,12 +4257,9 @@ array set action_array [list \
     unarchive   [list action_target         [ACTION_ARGS_PORTS]] \
     dmg         [list action_target         [ACTION_ARGS_PORTS]] \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
-    dpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
     portpkg     [list action_target         [ACTION_ARGS_PORTS]] \
-    rpm         [list action_target         [ACTION_ARGS_PORTS]] \
-    srpm        [list action_target         [ACTION_ARGS_PORTS]] \
     \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
