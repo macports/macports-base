@@ -67,7 +67,7 @@ include::global-flags.txt[]
 
 SEE ALSO
 --------
-port(1)
+man:port[1], man:grep[1]
 
 AUTHORS
 -------

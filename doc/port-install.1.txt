@@ -39,7 +39,8 @@ include::global-flags.txt[]
 
 SEE ALSO
 --------
-port(1), port-uninstall(1), port-info(1), port-variants(1), variants.conf(5)
+man:port[1], man:port-uninstall[1], man:port-info[1], man:port-variants[1],
+man:port-rev-upgrade[1], man:port-setrequested[1], man:variants.conf[5]
 
 AUTHORS
 -------

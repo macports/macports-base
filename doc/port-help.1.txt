@@ -23,7 +23,7 @@ include::furtherdocs.txt[]
 
 SEE ALSO
 --------
-port(1)
+man:port[1]
 
 AUTHORS
 -------
