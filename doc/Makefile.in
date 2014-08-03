@@ -40,10 +40,9 @@ MAN=		${MAN1} ${MAN5} ${MAN7}
 
 # Filter man pages with existing source files
 MANTXT=		$(wildcard ${MAN:%=%.txt})
-# Only those can be transformed into XML
+# Only those can be transformed into XML and HTML
 MANXML=		${MANTXT:.txt=.xml}
-# HTML version for all man pages
-MANHTML=	${MAN:%=%.html}
+MANHTML=	${MANTXT:.txt=.html}
 
 CONF=       	archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf
 INSTALLDIR=	${DESTDIR}${prefix}
