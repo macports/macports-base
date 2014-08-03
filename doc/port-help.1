@@ -1,0 +1,99 @@
+'\" t
+.TH "PORT\-HELP" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-help \- Get help on MacPorts commands
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR \fBhelp\fR [\fIaction\fR | \fIhelp\-topic\fR]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport help\fR opens the manpage for a given port action such as \fIinstall\fR, \fIupgrade\fR, \fIselfupdate\fR, etc\&. or a specific help topic like \fImacports\&.conf\fR\&. MacPorts even has help for its help feature\&. MacPorts will however not engage in higher level abstractions: There is no help on the help on the help\&.
+.sp
+Further documentation on MacPorts can be found in the following places:
+.PP
+\m[blue]\fBThe MacPorts Guide\fR\m[]\&\s-2\u[1]\d\s+2
+.RS 4
+Detailed help and support guide
+.RE
+.PP
+\m[blue]\fBThe MacPorts Wiki\fR\m[]\&\s-2\u[2]\d\s+2
+.RS 4
+MacPorts usage, development, and support
+.RE
+.PP
+\m[blue]\fBMailing Lists\fR\m[]\&\s-2\u[3]\d\s+2
+.RS 4
+Ask questions on the mailing lists: macports\-dev for base and Portfile development, macports\-users for user support questions
+.RE
+.PP
+\m[blue]\fBFAQ\fR\m[]\&\s-2\u[4]\d\s+2
+.RS 4
+Frequently Asked Questions
+.RE
+.PP
+\m[blue]\fBProblem Hotlist\fR\m[]\&\s-2\u[5]\d\s+2
+.RS 4
+Solutions for the most common error messages and other problems
+.RE
+.SH "SEE ALSO"
+.sp
+port(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
+.SH "EXTERNAL REFERENCES"
+.IP " 1." 4
+The MacPorts Guide
+.RS 4
+\%http://guide.macports.org/#
+.RE
+.IP " 2." 4
+The MacPorts Wiki
+.RS 4
+\%https://trac.macports.org/wiki/
+.RE
+.IP " 3." 4
+Mailing Lists
+.RS 4
+\%https://trac.macports.org/wiki/MailingLists
+.RE
+.IP " 4." 4
+FAQ
+.RS 4
+\%https://trac.macports.org/wiki/FAQ
+.RE
+.IP " 5." 4
+Problem Hotlist
+.RS 4
+\%https://trac.macports.org/wiki/ProblemHotlist
+.RE
