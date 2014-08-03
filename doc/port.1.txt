@@ -1,0 +1,703 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port(1)
+=======
+$Id$
+
+NAME
+----
+port - Command line interface for MacPorts
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-bcdfknopqRstuvy*] [*-D* 'portdir'] [*-F* 'cmdfile'] ['action'] ['actionflags']
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     [['@version'] [+/-variant ...] ... [option=value ...]]
+
+DESCRIPTION
+-----------
+*port* is designed to operate on individual or multiple 'ports', optionally
+within a single call, based on the requested 'action'. If no 'action' is
+specified the port command enters interactive mode, in which commands are read
+via stdin. If no 'portdir' or 'portname' is specified for an 'action', the
+current working directory is assumed. Batch commands may be passed via a
+'cmdfile'. Port 'options' are passed as key=value pairs and take precedence over
+individual 'portname' options as specified in its Portfile and system-wide
+settings.
+
+Port 'variants' can be specified as '+name', which indicates the variant is
+desired, or '-name', indicating the contrary. In case of ambiguities, a port
+can be fully specified with the '@version_revision+variants' format.
+
+Installed ports can be activated or deactivated without being uninstalled. A
+port can be installed in multiple versions and variant combinations, but only
+one of them can be 'active'. See man:portarchives[7].
+
+When passing 'portnames' to an 'action', *port* recognizes various
+'pseudo-portnames' that will expand to the specified set of ports from the
+available port tree(s). These may be used in the same way as a 'portname'.
+
+.The 'pseudo-portnames' are:
+
+    - 'all': all the ports in each ports tree listed in 'sources.conf'
+    - 'current': the port in the current working directory
+    - 'active': set of installed and active ports
+    - 'inactive': set of installed but inactive ports
+    - 'installed': set of all installed ports
+    - 'uninstalled': ports in the ports tree(s) that are not installed
+    - 'outdated': installed ports that are out of date with respect to their 
+      current version/revision in the ports tree(s)
+    - 'obsolete': set of ports that are installed but no longer exist in any
+      port tree
+    - 'requested': installed ports that were explicitly asked for
+    - 'unrequested': installed ports that were installed only to satisfy
+      dependencies
+    - 'leaves': installed ports that are unrequested and have no dependents
+
+Sets of ports can also be specified with 'pseudo-portname selectors', which
+expand to the ports in which the value of the 'Portfile' option corresponding
+to the selector's name (in either singular or plural form where applicable)
+matches the given regular expression. Usage is: selector:regex
+
+[options="compact"]
+.The 'pseudo-portname selectors' are:
+    - 'name'
+    - 'version'
+    - 'revision'
+    - 'epoch'
+    - 'variant'
+    - 'variants'
+    - 'category'
+    - 'categories'
+    - 'maintainer'
+    - 'maintainers'
+    - 'platform'
+    - 'platforms'
+    - 'description'
+    - 'long_description'
+    - 'homepage'
+    - 'license'
+    - 'portdir'
+
+Other pseudo-portname selectors match ports which have a particular
+relationship to another port. These will match ports that are direct or
+recursive dependencies or dependents of the given portname:
+
+[options="compact"]
+    - 'depof'
+    - 'rdepof'
+    - 'dependentof'
+    - 'rdependentof'
+
+Search strings that will expand to a set of matching ports can be constructed
+based on the "'pseudo-portname selector'":regex combination used. 'portnames'
+containing valid UNIX glob patterns will also expand to the set of matching
+ports. Any action passed to port will be invoked on each of them.
+
+For example:
+--------
+port info variant:no_ssl
+port uninstall name:sql
+port echo depof:mysql5
+port echo 'apache*'
+--------
+
+Logical operators "and", "or", "not", "!", "(" and ")" may be used to combine
+individual 'portnames', port glob patterns and/or 'pseudo-portnames' to
+construct complex 'port-expressions' that expand to the set of matching ports.
+
+For example:
+--------
+port upgrade outdated and 'py27-*'
+port echo maintainer:jberry and uninstalled and \( category:java and not commons* \)
+--------
+
+[NOTE]
+Special shell characters like \*, \( or \) need to be escaped in order to be
+passed correctly to *port*.
+
+
+GLOBAL OPTIONS
+--------------
+
+The port command recognizes several global flags and options.
+
+.Output control
+-v::
+    Verbose mode, generates verbose messages
+
+-d::
+    Debug mode, generate debugging messages, implies -v
+
+-q::
+    Quiet mode, suppress informational messages to a minimum
+
+.Installation and upgrade
+-n::
+    Don't follow dependencies in upgrade (affects 'upgrade' and 'install')
+
+-R::
+    Also upgrade dependents (only for 'upgrade')
+
+-u::
+    Uninstall inactive ports when upgrading and uninstalling
+
+-y::
+    Perform a dry run. All of the steps to build the ports and their
+    dependencies are computed, but not actually performed. With the verbose
+    flag, every step is reported; otherwise there is just one message per port,
+    which allows you to easily determine the recursive deps of a port (and the
+    order in which they will be built).
+
+.Sources
+-s::
+    Source-only mode, build and install from source; do not attempt to fetch
+    binary archives.
+
+-b::
+    Binary-only mode, build and install from binary archives, ignore source,
+    abort if no archive available.
+
+.Cleaning
+-c::
+    Autoclean mode, execute clean after 'install'
+
+-k::
+    Keep mode, do not autoclean after 'install'
+
+.Exit status
+-p::
+    Despite any errors encountered, proceed to process multiple ports and
+    commands.
+
+.Development
+-o::
+    Honor state files even if the Portfile was modified. This flag is called -o
+    because it used to mean "older".
+
+-t::
+    Enable trace mode debug facilities on platforms that support it, currently
+    only Mac OS X.
+    + 
+    This feature is two-folded. It consists in automatically detecting and
+    reporting undeclared dependencies based on what files the port reads or what
+    programs the port executes. In verbose mode, it will also report unused
+    dependencies for each stage of the port installation. It also consists in
+    forbidding and reporting file creation and file writes outside allowed
+    directories (temporary directories and $\{workpath\}).
+
+.Misc
+-f::
+    Force mode, ignore state file
+
+-D 'portdir'::
+    Specfiy 'portdir'
+
+-F 'cmdfile'::
+    Read and process the 'file' of commands specified by the argument. If the
+    argument is '-', then read commands from stdin. If the option is given
+    multiple times, then multiple files will be read.
+
+
+USER TARGETS
+------------
+
+Targets most commonly used by regular MacPorts users are:
+
+search::
+    Search for an available port whose name matches a regular expression.
++
+For example:
++
+--------
+port search vim
+--------
+
+info::
+    Displays meta-information available for 'portname'.  Specific meta-information
+    may be requested through an option such as *--maintainer* or *--category*.
+    Recognized field names are those from the PortIndex, see ``port help info''
+    for a complete list. If no specific fields are specified, a useful
+    default collection of fields will be displayed. If the global option *-q*
+    is in effect, the meta-info fields will not be labeled.  If the option
+    *--line* is provided, all such data will be consolidated into a single
+    line per port, suitable for processing in a pipe of commands.  If the
+    option *--pretty* is provided, the information will be formatted in a
+    somewhat more attractive fashion for human readers. This is the default
+    when no options at all are specified to info. If the option *--index* is
+    provided, the information will be pulled from the PortIndex rather than
+    from the Portfile. In this case variant information, such as
+    dependencies, will not affect the output.
++
+For example:
++
+--------
+port info vim +ruby
+port info --category --name apache*
+port -q info --category --name --version category:java
+port info --line --category --name all
+port info --pretty --fullname --depends gtk2
+port info --index python27
+--------
+
+notes::
+    Displays notes for 'portname' which usually contain useful information
+    concerning setup and use of the port.
+
+variants::
+    Lists the variants available for 'portname'.
+
+deps::
+    Lists the other ports that are required to build and run portname. This is
+    simply an alias for ``info --pretty --fullname --depends''.
+
+rdeps::
+    Recursively lists the other ports that are required to build and run
+    portname. To display the full dependency tree instead of only showing each
+    port once, use --full. To take dependency information from the PortIndex
+    instead of the Portfile (faster, but does not take variant selections into
+    account), use --index. To exclude dependencies that are only needed at
+    build time (i.e. depends_fetch, depends_extract, depends_build), use
+    *--no-build*.
+
+dependents::
+    Lists the installed ports that depend on the port 'portname'.
+
+rdependents::
+    Recursively lists the installed ports that depend on the port portname. To
+    display the full tree of dependents instead of only showing each port once,
+    use --full.
+
+install::
+    Install and activate 'portname'.
+
+uninstall::
+    Deactivate and uninstall portname. To uninstall all installed but 'inactive'
+    ports, use *-u*. To recursively uninstall all dependents of this port, use
+    *--follow-dependents*. To uninstall portname and then recursively uninstall
+    all ports it depended on, use --follow-dependencies.  This will not
+    uninstall dependencies that are marked as requested or that have other
+    dependents.
++
+For example:
++
+--------
+port uninstall vim
+port -u uninstall
+port uninstall --follow-dependents python27
+--------
+
+select::
+    For a given group, selects a version to be the default by creating
+    appropriate symbolic links.  For instance, python might be linked to
+    python2.6. Available select groups are installed as subdirectories of
+    $\{prefix\}/etc/select/ and can be listed using *--summary*.  To list the
+    available versions in a group, use *--list*. To see which version is currently
+    selected for a group, use *--show*. To change the selected version for
+    a group, use *--set*.
++
+For example:
++
+--------
+port select --summary
+port select --show python
+port select --list python
+port select --set python python34
+--------
+
+activate::
+    Activate the installed 'portname'.
+
+deactivate::
+    Deactivate the installed 'portname'.
+
+setrequested::
+    Mark portname as requested.
+
+unsetrequested::
+    Mark portname as unrequested.
+
+installed::
+    Show the installed version, variants and activation status for each
+    'portname'. If no arguments are given, all installed ports are displayed.
+
+location::
+    Print the install location of a given port.
+
+contents::
+    Lists the files installed by 'portname'.
+
+provides::
+    Determines which port owns a given file and can take either a relative or
+    absolute path.
++
+For example:
++
+--------
+port provides /opt/local/etc/irssi.conf
+port provides include/tiff.h
+--------
+
+sync::
+    Performs a sync operation only on the ports tree of a MacPorts installation,
+    pulling in the latest revision available of the Portfiles from the MacPorts
+    rsync server.
++
+To update you would normally do:
++
+--------
+sudo port -d sync
+--------
++
+If any of the ports tree(s) uses a file: URL that points to a local
+subversion working copy, sync will perform an svn update on the working
+copy with the user set to the owner of the working copy.
++
+
+outdated::
+    Lists the installed ports which need a 'upgrade'.
+
+upgrade::
+    The upgrade target works on a port and its dependencies. If you want to
+    change this behavior, look at the switches for *-n* (no dependencies) and
+    *-R* (dependents) above.
++
+--
+Upgrade the installed 'portname'. For example:
+--------
+port upgrade vim
+--------
+
+To upgrade all outdated ports:
+
+--------
+port upgrade outdated
+--------
+
+To upgrade 'portname' and the ports that depend on it:
+
+--------
+port -R upgrade libiconv
+--------
+
+To force a rebuild of 'portname' and all of its dependencies use:
+
+--------
+port upgrade --force vim
+--------
+
+To upgrade 'portname' without following its dependencies before, use *-n*.
+
+For example:
+
+--------
+port -n upgrade wireshark
+--------
+
+[NOTE]
+By selecting the variants to use in the upgraded build of the port, any variants
+specified on the command line take highest precedence, then the variants active
+in the latest installed version of the port, and finally the global variants
+specified in variants.conf, if any. Note that upgrade will not normally rebuild
+a port only to change the selected variants; you can either specify
+--enforce-variants, or deactivate the port and reinstall it with different
+variants.
+
+// Forcing a new paragraph here by inserting a dummy space
+{nbsp}
+
+After the upgrade MacPorts will automatically run rev-upgrade to check for
+broken ports that need to be rebuilt. If there are known problems with
+rev-upgrade or other reasons why you would want to avoid running this step, you
+can disable it by running port upgrade with the --no-rev-upgrade switch:
+
+--------
+port upgrade --no-rev-upgrade outdated
+--------
+--
+
+rev-upgrade::
+    Manually check for broken binaries and rebuild ports containing broken
+    binaries.  rev-upgrade is usually automatically run after each upgrade,
+    unless you specify the --no-rev-upgrade option.
+    +
+    rev-upgrade can run more checks against a special loadcommand in Mach-O
+    binaries that should always be referencing the file itself. This check is
+    most helpful for maintainers to check whether their ports have been built
+    correctly. It is disabled by default and can be enabled by passing --id-
+    loadcmd-check to rev-upgrade.
+    +
+    See also: man:macports.conf[5]
+
+clean::
+    Clean the files used for building 'portname'. To just remove the work files,
+    use the *--work* 'actionflag'.  This is the default when no flag is given.
+    To remove the distribution files (fetched tarballs, patches, etc), specify
+    *--dist*. To remove any archive(s) of a port than remain in the temporary
+    download directory, pass *--archive*. (This does not remove archives from
+    the installed location.) To remove log files for a port, pass *--logs*. To
+    remove the work files, distribution files, temporary archives and logs pass
+    *--all*.
++
+--
+For example:
+
+--------
+port clean --dist vim
+port clean --archive vim
+port clean --logs vim
+--------
+
+To remove only certain version(s) of a port's archives (version is any
+valid UNIX glob pattern), you can use:
+
+--------
+port clean --archive vim 6.2.114
+--------
+
+or:
+
+--------
+port clean --archive vim '6.*'
+--------
+--
+
+log::
+    Parses and shows log files for 'portname'. To filter log files by some
+    criterions use *--phase* to specify the phase you want to show and
+    *--verbosity* to specify message category (msg, info, debug).
++
+For example:
++
+--------
+port log --phase configure vim
+port log --phase fetch --verbosity debug vim
+--------
+
+logfile::
+    Displays the path to the log file for 'portname'.
+
+echo::
+    Writes to stdout the arguments passed to 'port'. This follows the expansion
+    of 'pseudo-portnames', portname glob patterns, 'pseudo-portname selectors'
+    and the evaluation of 'port-expressions'. *echo* may be used to determine
+    the exact set of ports to which a given string of arguments will expand,
+    without performing any further operations on them.
++
+For example:
++
+--------
+port echo category:net
+port echo maintainer:jmpp and name:netw
+port echo maintainer:jmpp and \( net* or category:text \)
+--------
+
+list::
+    If no argument is given, display a list of the latest version of all
+    available ports. If portname(s) are given as arguments, display a list of
+    the latest version of each port.
+
+mirror::
+    Create/update a local mirror of distfiles used for ports given on the
+    command line. The filemap database can be reset by using the *--new* option
+    (though if no database is found, it will be created automatically). If the
+    fetched file does not match the checksum given in the Portfile, it is
+    deleted. This can be used with 'pseudo-portnames', e.g. 'all', to mirror
+    everything.  Note that if you use 'all', you'll most likely want to use *-p*
+    so *port* doesn't quit on the first download failure.
+
+version::
+    Display the release number of the installed MacPorts infrastructure.
+
+selfupdate::
+    Updates the MacPorts system, ports tree(s) and base tools if needed, from
+    the MacPorts rsync server, installing the newest infrastructure available.
++
+To update you would typically do:
++
+--------
+sudo port selfupdate
+--------
++
+See 'sync' for more information about updating ports tree(s).
+
+load::
+    Provides a shortcut to using launchctl to load a port's daemon (as installed
+    in /Library/LaunchDaemons). It runs:
++
+--------
+launchctl load -w /Library/LaunchDaemons/org.macports.${port}.plist
+--------
+
+unload::
+    A shortcut to launchctl, like load, but unloads the daemon.
+
+gohome::
+    Loads the home page for the given portname in the default web browser.
+
+usage::
+    Displays a condensed usage summary.
+
+help::
+    Displays a summary of all available actions and port command syntax on
+    stdout.
+
+DEVELOPER TARGETS
+-----------------
+
+The targets that are often used by Port developers are intended to provide
+access to the different phases of a Port's build process:
+
+dir::
+    Displays the path to the directory containing 'portname'.
+
+work::
+    Displays the path to the work directory for 'portname'.
+
+cd::
+    Changes the current working directory to the one containing portname. Only
+    useful in interactive mode.
+
+file::
+    Displays the path to the Portfile for 'portname'.
+
+url::
+    Displays the URL for the path of the given portname, which can be passed as
+    'port-url'.
+
+cat::
+    Concatenates and prints the contents of 'Portfile' on stdout.
+
+edit::
+    Opens Portfile with your default editor specified in your shell's
+    environment variable. You can also use the --editor flag on the command line
+    to specify an alternative editor.
++
+For example:
++
+--------
+port edit --editor nano apache2
+--------
+
+fetch::
+    Fetches the distribution files required to build 'portname'.
+
+checksum::
+    Compute the checksums of the distribution files for 'portname', and compare
+    them to the checksums listed in 'Portfile'.
+
+extract::
+    Extracts the distribution files for 'portname'.
+
+patch::
+    Applies any required patches to 'portname's' extracted distribution files.
+
+configure::
+    Runs any configure process for 'portname'.
+
+build::
+    Build 'portname'.
+
+destroot::
+    Installs 'portname' to a temporary directory.
+
+test::
+    Tests 'portname'.
+
+lint::
+    Verifies Portfile for portname. To nitpick about whitespace and patchfile
+    names, use *--nitpick*.
+
+distcheck::
+    Check if the distfiles haven't changed and can be fetched.
+
+distfiles::
+    Display each distfile, its checksums, and the URLs used to fetch it.
+
+livecheck::
+    Check if the software hasn't been updated since the Portfile was last
+    modified.
+
+
+PACKAGING TARGETS
+-----------------
+
+There are also targets for producing installable packages of ports:
+
+pkg::
+    Creates an OS X installer package of 'portname'.
+
+mpkg::
+    Creates an OS X installer metapackage of 'portname' and its dependencies.
+
+dmg::
+    Creates an internet-enabled disk image containing an OS X package of
+    'portname'.
+
+mdmg::
+    Creates an internet-enabled disk image containing an OS X metapackage of
+    'portname' and its dependencies.
+
+rpm::
+    Creates an RPM binary package of 'portname', similar to a tgz ``archive''.
+
+srpm::
+    Creates a SRPM source package of 'portname', similar to a xar ``portpkg''.
+
+dpkg::
+    Creates a DEB binary package of 'portname'.
+
+
+EXAMPLES
+--------
+
+The following demonstrates invoking port with the extract target on portdir
+``textproc/figlet'' and extract.suffix set to ``.tgz'':
+
+--------
+port extract -D textproc/figlet extract.suffix=.tgz
+--------
+
+FILES
+-----
+
+$\{prefix\}/etc/macports/macports.conf::
+    Global configuration file for the MacPorts system.
+
+$\{prefix\}/etc/macports/sources.conf::
+    Global listing of the ports trees used by MacPorts. This file also enables
+    rsync synchronization.
+
+$\{prefix\}/etc/macports/variants.conf::
+    Global variants used when a port is installed.
+
+~/.macports/macports.conf::
+    User configuration file for the MacPorts system. It overrides the global
+    'macports.conf(5)' file.
+
+DIAGNOSTICS
+-----------
+The *port* utility exits 0 on success, and >0 if an error occurs.
+
+
+SEE ALSO
+--------
+man:macports.conf[5], man:portfile[7], man:portgroup[7],
+man:portstyle[7], man:porthier[7]
+
+
+AUTHORS
+-------
+ (C) 2002-2003 Apple Inc.
+ (C) 2004-2012 The MacPorts Project
+ Landon Fuller <landonf@macports.org>
+ James Berry <jberry@macports.org>
+ Jordan K. Hubbard <jkh@macports.org>
+ Juan Manuel Palacios <jmpp@macports.org>
+ Kevin Van Vechten <kevin@opendarwin.org>
+ Ole Guldberg Jensen <olegb@opendarwin.org>
+ Robert Shaw <rshaw@opendarwin.org>
+ Chris Ridd <cjr@opendarwin.org>
+ Matt Anton <matt@opendarwin.org>
+ Joe Auty <joe@opendarwin.org>
+ Rainer Mueller <raimue@macports.org>

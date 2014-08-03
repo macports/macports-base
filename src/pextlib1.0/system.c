@@ -107,7 +107,7 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
     return 1;
 }
 
-/* usage: system ?-notty? ?-nice value? ?-W path? command */
+/* usage: system ?-notty? ?-nodup? ?-nice value? ?-W path? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *buf;
@@ -122,6 +122,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int fdset[2], nullfd;
     int fline, pos, ret;
     int osetsid = 0;
+    int odup = 1; /* redirect stdin/stdout/stderr by default */
     int oniceval = INT_MAX; /* magic value indicating no change */
     const char *path = NULL;
     pid_t pid;
@@ -141,6 +142,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         char *arg = Tcl_GetString(objv[i]);
         if (strcmp(arg, "-notty") == 0) {
             osetsid = 1;
+        } else if (strcmp(arg, "-nodup") == 0) {
+            odup = 0;
         } else if (strcmp(arg, "-nice") == 0) {
             i++;
             if (Tcl_GetIntFromObj(interp, objv[i], &oniceval) != TCL_OK) {
@@ -168,9 +171,11 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
      * Fork a child to run the command, in a popen() like fashion -
      * popen() itself is not used because stderr is also desired.
      */
-    if (pipe(fdset) != 0) {
-        Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
-        return TCL_ERROR;
+    if (odup) {
+        if (pipe(fdset) != 0) {
+            Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+            return TCL_ERROR;
+        }
     }
 
     pid = fork();
@@ -180,13 +185,15 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         return TCL_ERROR;
         /*NOTREACHED*/
     case 0: /* child */
-        close(fdset[0]);
+        if (odup) {
+            close(fdset[0]);
 
-        if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-            _exit(1);
-        dup2(nullfd, STDIN_FILENO);
-        dup2(fdset[1], STDOUT_FILENO);
-        dup2(fdset[1], STDERR_FILENO);
+            if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+                _exit(1);
+            dup2(nullfd, STDIN_FILENO);
+            dup2(fdset[1], STDOUT_FILENO);
+            dup2(fdset[1], STDERR_FILENO);
+        }
         /* drop the controlling terminal if requested */
         if (osetsid) {
             if (setsid() == -1)
@@ -236,58 +243,60 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         break;
     }
 
-    close(fdset[1]);
+    if (odup) {
+        close(fdset[1]);
 
-    /* read from simulated popen() pipe */
-    read_failed = 0;
-    pos = 0;
-    memset(circbuf, 0, sizeof(circbuf));
-    pdes = fdopen(fdset[0], "r");
-    if (pdes) {
-        while ((buf = fgetln(pdes, &linelen)) != NULL) {
-            char *sbuf;
-            size_t slen;
-    
-            /*
-             * Allocate enough space to insert a terminating
-             * '\0' if the line is not terminated with a '\n'
-             */
-            if (buf[linelen - 1] == '\n')
-                slen = linelen;
-            else
-                slen = linelen + 1;
-    
-            if (circbuf[pos].len == 0)
-                sbuf = malloc(slen);
-            else {
-                sbuf = realloc(circbuf[pos].line, slen);
+        /* read from simulated popen() pipe */
+        read_failed = 0;
+        pos = 0;
+        memset(circbuf, 0, sizeof(circbuf));
+        pdes = fdopen(fdset[0], "r");
+        if (pdes) {
+            while ((buf = fgetln(pdes, &linelen)) != NULL) {
+                char *sbuf;
+                size_t slen;
+
+                /*
+                * Allocate enough space to insert a terminating
+                * '\0' if the line is not terminated with a '\n'
+                */
+                if (buf[linelen - 1] == '\n')
+                    slen = linelen;
+                else
+                    slen = linelen + 1;
+
+                if (circbuf[pos].len == 0)
+                    sbuf = malloc(slen);
+                else {
+                    sbuf = realloc(circbuf[pos].line, slen);
+                }
+
+                if (sbuf == NULL) {
+                    read_failed = 1;
+                    break;
+                }
+
+                memcpy(sbuf, buf, linelen);
+                /* terminate line with '\0',replacing '\n' if it exists */
+                sbuf[slen - 1] = '\0';
+
+                circbuf[pos].line = sbuf;
+                circbuf[pos].len = slen;
+
+                if (pos++ == CBUFSIZ - 1) {
+                    pos = 0;
+                }
+
+                if (ui_info(interp, sbuf) != TCL_OK) {
+                    read_failed = 1;
+                    break;
+                }
             }
-    
-            if (sbuf == NULL) {
-                read_failed = 1;
-                break;
-            }
-    
-            memcpy(sbuf, buf, linelen);
-            /* terminate line with '\0',replacing '\n' if it exists */
-            sbuf[slen - 1] = '\0';
-    
-            circbuf[pos].line = sbuf;
-            circbuf[pos].len = slen;
-    
-            if (pos++ == CBUFSIZ - 1) {
-                pos = 0;
-            }
-    
-            if (ui_info(interp, sbuf) != TCL_OK) {
-                read_failed = 1;
-                break;
-            }
+            fclose(pdes);
+        } else {
+            read_failed = 1;
+            Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
         }
-        fclose(pdes);
-    } else {
-        read_failed = 1;
-        Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
     }
 
     status = TCL_ERROR;
@@ -324,11 +333,13 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
 
-    /* Cleanup. */
-    close(fdset[0]);
-    for (fline = 0; fline < CBUFSIZ; fline++) {
-        if (circbuf[fline].len != 0) {
-            free(circbuf[fline].line);
+    if (odup) {
+        /* Cleanup. */
+        close(fdset[0]);
+        for (fline = 0; fline < CBUFSIZ; fline++) {
+            if (circbuf[fline].len != 0) {
+                free(circbuf[fline].line);
+            }
         }
     }
 

@@ -40,6 +40,7 @@ namespace eval macports::autoconf {
     variable macports_version "@MACPORTS_VERSION@"
     variable macports_user_dir "~/.macports"
     variable macportsuser "@RUNUSR@"
+    variable man_path "@MAN@"
     variable mdfind_path "@MDFIND@"
     variable mdls_path "@MDLS@"
     variable open_path "@OPEN@"

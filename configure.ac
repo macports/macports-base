@@ -145,6 +145,7 @@ AC_PATH_PROG(LIPO, [lipo], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
 AC_PATH_PROG(LZMA, [lzma], [])
 AC_PATH_PROG(MAKE, [make])
+AC_PATH_PROG(MAN, [man])
 AC_PATH_PROG(MDFIND, [mdfind], [])
 AC_PATH_PROG(MDLS, [mdls], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
@@ -168,7 +169,6 @@ AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(ZIP, [zip])
 
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
-
 
 if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])

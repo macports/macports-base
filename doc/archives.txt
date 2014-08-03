@@ -1,0 +1,13 @@
+PORT IMAGES
+-----------
+
+MacPorts has the ability to install multiple versions or different variant
+selections of the same port. The files will be stored in an intermediate
+location as 'archives', which allows to switch between the versions. Only one
+version can be active at a time. On activation, files will be copied to their
+intended place in 'prefix'.
+
+More information on this topic can be found in the
+guide:internals.images[The MacPorts Guide].
+
+To check the current status of a specific port, use *man:port-installed[1]*.

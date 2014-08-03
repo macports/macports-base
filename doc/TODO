@@ -1,0 +1,8 @@
+TODO:
+
+    - [options="compact"] not supported by docbook for manpage output
+    - split global-options.txt into macro which allows display selection
+
+Missing new man pages:
+
+    - portarchives(7)

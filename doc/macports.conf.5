@@ -1,318 +1,683 @@
-.\" Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
-.\" Copyright (c) 2007 Juan Manuel Palacios <jmpp@macports.org>
-.\" Copyright (c) 2007-2011 The MacPorts Project
-.\" All rights reserved.
-.\"
-.\" Redistribution and use in source and binary forms, with or without
-.\" modification, are permitted provided that the following conditions
-.\" are met:
-.\" 1. Redistributions of source code must retain the above copyright
-.\"    notice, this list of conditions and the following disclaimer.
-.\" 2. Redistributions in binary form must reproduce the above copyright
-.\"    notice, this list of conditions and the following disclaimer in the
-.\"    documentation and/or other materials provided with the distribution.
-.\"
-.\" THIS SOFTWARE IS PROVIDED BY Eric Melville AND CONTRIBUTORS ``AS IS'' AND
-.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-.\" SUCH DAMAGE.
-.\"
-.Dd May 22, 2007
-.Dt MACPORTS.CONF 5 "MacPorts"
-.Os 
-.Sh NAME
-macports.conf
-.Nd Configuration file of the MacPorts system
-.Sh DESCRIPTION
-.Nm macports.conf
-is the configuration file used to bootstrap the MacPorts system. This file is read by the
-.Nm port
-command and determines how it behaves. Lines beginning with '#' are comments, empty lines are ignored.
-The format is that of a simple key/value space or tab separated pair.
-.Pp
+'\" t
+.TH "MACPORTS\&.CONF" "5" "2013\-03\-10" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+macports.conf \- Configuration file of the MacPorts system
+.SH "DESCRIPTION"
+.sp
+\fBmacports\&.conf\fR is the configuration file used to bootstrap the MacPorts system\&. This file is read by the \fBport\fR command and determines how it behaves\&. Lines beginning with \fI#\fR are comments, empty lines are ignored\&. The format is that of a simple key/value space or tab separated pair\&.
+.sp
 The file contains entries of the form:
-.Pp
-.Dl Va "<key> <value>"
-.Pp
-The value of any given key can be referred to by the '${<keyname>}' abstraction, where <keyname> expands
-to the key in question.
-.Pp
-.Sh KEYS
-The following keys are used by
-.Nm port
-itself:
-.Pp
-.Bl -tag -width lc
-.It Va prefix
-Sets the directory where ports are installed. Any path may be used but those with spaces and/or non ascii
-characters should be avoided, as this can break some ports. This key is often referred to as '${prefix}'.
-.br
-.Ic Default:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+<key> <value>
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+The value of any given key can be referred to by the \fI${<keyname>}\fR abstraction, where \fI<keyname>\fR expands to the key in question\&.
+.SH "KEYS"
+.sp
+The following keys are used by \fBport\fR itself:
+.PP
+prefix
+.RS 4
+Sets the directory where ports are installed\&. Any path may be used but those with spaces and/or non ascii characters should be avoided, as this can break some ports\&. This key is often referred to as
+\fI${prefix}\fR\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 /opt/local
-.It Va portdbpath
-Directory where MacPorts keeps working data such as downloaded sources, installed ports' receipts
-and the main registry. The same path restrictions apply as for '${prefix}'.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+portdbpath
+.RS 4
+Directory where MacPorts keeps working data such as downloaded sources, installed ports\*(Aq receipts and the main registry\&. The same path restrictions apply as for
+\fI${prefix}\fR\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 ${prefix}/var/macports
-.It Va portdbformat
-Storage type to use for the MacPorts registry. The preferred format is "sqlite", with "flat"
-also available as a legacy format.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+portdbformat
+.RS 4
+Storage type to use for the MacPorts registry\&. The preferred format is "sqlite", with "flat" also available as a legacy format\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 sqlite
-.It Va applications_dir
-Directory containing Applications installed from ports.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+applications_dir
+.RS 4
+Directory containing Applications installed from ports\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 /Applications/MacPorts
-.It Va frameworks_dir
-Directory containing Frameworks installed from ports.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+frameworks_dir
+.RS 4
+Directory containing Frameworks installed from ports\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 ${prefix}/Library/Frameworks
-.It Va sources_conf
-Location of the sources file. This file enables rsync synchronization of the default ports tree with the
-MacPorts rsync server (through the "sync" target of the
-.Nm port
-command) and any other local tree(s) you might have.
-.br
-.Ic Default:
-${prefix}/etc/macports/sources.conf
-.It Va variants_conf
-Location of the optional global variants definition file, listing those that should be used in all installed
-ports if available.
-.br
-.Ic Default:
-${prefix}/etc/macports/variants.conf
-.It Va buildfromsource
-Controls whether ports are built from source or downloaded as pre-built
-archives. Setting to 'always' will never use archives, 'never' will always
-try to use an archive and fail if one is not available. 'ifneeded' will try to
-fetch an archive and fall back to building from source if that isn't possible.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+sources_conf
+.RS 4
+Location of the sources file\&. This file enables rsync synchronization of the default ports tree with the MacPorts rsync server (through the "sync" target of the port command) and any other local tree(s) you might have\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+${prefix}/etc/macports/sources\&.conf
+T}
+.TE
+.sp 1
+.RE
+.PP
+variants_conf
+.RS 4
+Location of the optional global variants definition file, listing those that should be used in all installed ports if available\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+${prefix}/etc/macports/variants\&.conf
+T}
+.TE
+.sp 1
+.RE
+.PP
+buildfromsource
+.RS 4
+Controls whether ports are built from source or downloaded as pre\-built archives\&. Setting to
+\fIalways\fR
+will never use archives,
+\fInever\fR
+will always try to use an archive and fail if one is not available\&.
+\fIifneeded\fR
+will try to fetch an archive and fall back to building from source if that isn\(cqt possible\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 ifneeded
-.It Va portarchivetype
-Format of archives in which to store port images. This controls both the type
-of archive created locally after building from source, and the type to request
-from remote servers. Changing this will not affect the usability of already
-installed archives; they can be of any supported type.
-.br
-Supported types are: tgz, tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+portarchivetype
+.RS 4
+Format of archives in which to store port images\&. This controls both the type of archive cre\- ated locally after building from source, and the type to request from remote servers\&. Changing this will not affect the usability of already installed archives; they can be of any supported type\&.
+.TS
+tab(:);
+lt lt
+lt lt.
+T{
+\fBSupported types:\fR
+T}:T{
+tgz, tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
+T}
+T{
+\fBDefault:\fR
+T}:T{
 tbz2
-.It Va configureccache
-Use ccache (C/C++ compiler cache). Requires that ccache has been installed.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+configureccache
+.RS 4
+Use ccache (C/C++ compiler cache)\&. Requires that ccache has been installed\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 no
-.It Va ccache_dir
+T}
+.TE
+.sp 1
+.RE
+.PP
+ccache_dir
+.RS 4
 Location where ccache stores its files
-.br
-.Ic Default:
-${portdbpath}/build/.ccache
-.It Va ccache_size
-Maximum size ccache may use.
-.br
-Use 'G', 'M', or 'K' suffix for giga-, mega- or kilobytes.
-.br
-.Ic Default:
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+${portdbpath}/build/\&.ccache
+T}
+.TE
+.sp 1
+.RE
+.PP
+ccache_size
+.RS 4
+Maximum size ccache may use\&. Use
+\fIG\fR,
+\fIM\fR, or
+\fIK\fR
+suffix for giga\-, mega\- or kilobytes\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 2G
-.It Va configuredistcc
-Use distcc (distributed compiler). Requires that distcc has been installed.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+configuredistcc
+.RS 4
+Use distcc (distributed compiler)\&. Requires that distcc has been installed\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 no
-.It Va configurepipe
-Use pipes rather than intermediate files when compiling C/C++/etc (gcc -pipe)
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+configurepipe
+.RS 4
+Use pipes rather than intermediate files when compiling C/C++/etc (gcc \-pipe)
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 yes
-.It Va buildnicevalue
-Lowered scheduling priority (0-20) to use for make when building ports
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+buildnicevalue
+.RS 4
+Lowered scheduling priority (0\-20) to use for make when building ports
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 0
-.It Va buildmakejobs
-Number of simultaneous make jobs (commands) to use when building ports. 0 is a
-special value meaning "the number of CPU cores or the number of GB
-of physical memory plus one, whichever is less."
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+buildmakejobs
+.RS 4
+Number of simultaneous make jobs (commands) to use when building ports\&. 0 is a special value meaning "the number of CPU cores or the number of GB of physical memory plus one, whichever is less\&."
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 0
-.It Va portautoclean
-Automatic cleaning of the build directory of a given port after it has been installed.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+portautoclean
+.RS 4
+Automatic cleaning of the build directory of a given port after it has been installed\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 yes
-.It Va keeplogs 
-Keep logs for ports
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+keeplogs
+.RS 4
+Keep logs for ports\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 no
-.It Va build_arch
-The machine architecture to try to build for in normal use
-.br
-Regular architectures include: ppc, i386, ppc64, x86_64
-.br
-.Ic Default (10.6):
+T}
+.TE
+.sp 1
+.RE
+.PP
+build_arch
+.RS 4
+The machine architecture to try to build for in normal use\&.
+.TS
+tab(:);
+lt lt
+lt lt
+lt lt.
+T{
+\fBRegular architectures include:\fR
+T}:T{
+ppc, i386, ppc64, x86_64
+T}
+T{
+\fBDefault (10\&.6):\fR
+T}:T{
 x86_64 or i386 depending on hardware
-.br
-.Ic Default (10.5 and earlier):
+T}
+T{
+\fBDefault (10\&.5 and earlier):\fR
+T}:T{
 i386 or ppc depending on hardware
-.It Va universal_archs
-The machine architectures to use for +universal variant
-(multiple architecture entries should be space separated)
-.br
-Regular architectures include: ppc, i386, ppc64, x86_64
-.br
-.Ic Default (10.6):
+T}
+.TE
+.sp 1
+.RE
+.PP
+universal_archs
+.RS 4
+The machine architectures to use for +universal variant (multiple architecture entries should be space separated)\&.
+.TS
+tab(:);
+lt lt
+lt lt
+lt lt.
+T{
+\fBRegular architectures include:\fR
+T}:T{
+ppc, i386, ppc64, x86_64
+T}
+T{
+\fBDefault (10\&.6):\fR
+T}:T{
 x86_64 i386
-.br
-.Ic Default (10.5 and earlier):
+T}
+T{
+\fBDefault (10\&.5 and earlier):\fR
+T}:T{
 i386 ppc
-.It Va startupitem_type
-Set the default type of startupitems to be generated, overridable by Portfiles that explicitly state a
-startupitem.type key. If set to "default", then a type will be selected that's appropriate to the OS.
-Supported types are: none, SystemStarter, launchd, default, rcNG.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+startupitem_type
+.RS 4
+Set the default type of startupitems to be generated, overridable by Portfiles that explicitly state a startupitem\&.type key\&. If set to "default", then a type will be selected that\(cqs appropriate to the OS\&.
+.TS
+tab(:);
+lt lt
+lt lt.
+T{
+\fBSupported types:\fR
+T}:T{
+none, SystemStarter, launchd, default, rcNG\&.
+T}
+T{
+\fBDefault:\fR
+T}:T{
 default
-.It Va startupitem_install
-Option to install symlinks into /Library/LaunchAgents or
-/Library/LaunchDaemons; startupitem_install may be empty, "yes" or "no";
-if the option is NOT "no" then a symlink for the startupitem will be
-created in the appropriate system directory.
-.br
-.Ic Default:
-yes
-.It Va destroot_umask
-Umask value to use during the destrooting of a port.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+destroot_umask
+.RS 4
+Umask value to use during the destrooting of a port\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 022
-.It Va rsync_server
-Default rsync server to connect to when running "selfupdate" through the
-.Nm port
-command to update your base MacPorts infrastructure. While selfupdate also
-syncs the ports tree, it uses the settings from ${sources_conf} to do so.
-.br
-.Ic Default:
-rsync.macports.org
-.It Va rsync_dir
-Rsync directory from which to pull MacPorts sources from the rsync server.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+rsync_server
+.RS 4
+Default rsync server to connect to when running "selfupdate" through the port com\- mand to update your base MacPorts infrastructure\&. While selfupdate also syncs the ports tree, it uses the settings from ${sources_conf} to do so\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+rsync\&.macports\&.org
+T}
+.TE
+.sp 1
+.RE
+.PP
+rsync_dir
+.RS 4
+Rsync directory from which to pull MacPorts sources from the rsync server\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 release/base/ (which pulls sources for the currently shipping MacPorts release)
-.It Va rsync_options
-Default rsync options to use when connecting to the rsync server.
-.br
-.Ic Default:
--rtzv --delete-after
-.It Va binpath
-Sets the directory search path for locating system executables used by MacPorts. This variable should contain
-the paths for locating utilities such as rsync, tar, cvs and others. Changing this is unsupported; don't do so
-unless you understand and accept the consequences.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+rsync_options
+.RS 4
+Default rsync options to use when connecting to the rsync server\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+\-rtzv \-\-delete\-after
+T}
+.TE
+.sp 1
+.RE
+.PP
+binpath
+.RS 4
+Sets the directory search path for locating system executables used by MacPorts\&. This variable should contain the paths for locating utilities such as rsync, tar, cvs and others\&. Don\(cqt change this unless you understand and accept the consequences\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
-.It Va extra_env
-List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
-Changing this is unsupported.
-.It Va proxy_override_env
-Proxy support. Precedence is: env, macports.conf, System Preferences.
-That is, if it's set in the environment, that will be used instead of
-anything here or in System Preferences. Setting proxy_override_env to
-yes will cause any proxies set here (or in System Preferences if set
-there but not here) to override what's in the environment. Note that
-System Preferences doesn't have an rsync proxy definition. Also note, on
-10.5, sudo will clear many environment variables including those for
-proxy support. Equivalent environment variables: http_proxy,
-HTTPS_PROXY, FTP_PROXY, RSYNC_PROXY, NO_PROXY
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+extra_env
+.RS 4
+List of extra environment variables MacPorts should keep in the user\(cqs environment when sanitizing it\&. Changing this is unsupported\&.
+.RE
+.PP
+proxy_override_env
+.RS 4
+Proxy support\&. Precedence is: env, macports\&.conf, System Preferences\&. That is, if it\(cqs set in the environment, that will be used instead of anything here or in System Preferences\&. Setting proxy_override_env to yes will cause any proxies set here (or in System Preferences if set there but not here) to override what\(cqs in the environment\&. Note that System Preferences doesn\(cqt have an rsync proxy definition\&. Also note, on 10\&.5, sudo will clear many environment variables including those for proxy support\&. Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY, RSYNC_PROXY, NO_PROXY
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 yes
-.It Va proxy_http
+T}
+.TE
+.sp 1
+.RE
+.PP
+proxy_http
+.RS 4
 HTTP proxy
-.br
-.Ic Default:
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va proxy_https
+T}
+.TE
+.sp 1
+.RE
+.PP
+proxy_https
+.RS 4
 HTTPS proxy
-.br
-.Ic Default:
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va proxy_ftp
+T}
+.TE
+.sp 1
+.RE
+.PP
+proxy_ftp
+.RS 4
 FTP proxy
-.br
-.Ic Default:
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va proxy_rsync
+T}
+.TE
+.sp 1
+.RE
+.PP
+proxy_rsync
+.RS 4
 rsync proxy
-.br
-.Ic Default:
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va proxy_skip
-Hosts not to go through the proxy (comma-separated, applies to HTTP,
-HTTPS and FTP, but not rsync):
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+proxy_skip
+.RS 4
+Hosts not to go through the proxy (comma\-separated, applies to HTTP, HTTPS and FTP, but not rsync)\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va host_blacklist
-Space separated list of download hosts that should not be used.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+host_blacklist
+.RS 4
+Space separated list of download hosts that should not be used\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va preferred_hosts
-Space separated list of download hosts that should be used preferentially.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+preferred_hosts
+.RS 4
+Space separated list of download hosts that should be used preferentially\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.It Va revupgrade_autorun
-Controls whether the rev-upgrade action will be run automatically after
-upgrading ports.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+revupgrade_autorun
+.RS 4
+Controls whether the rev\-upgrade action will be run automatically after upgrading ports\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 yes
-.It Va revupgrade_mode
-Controls the rev-upgrade functionality which checks for broken linking and can
-rebuild ports to fix it. 'rebuild' means ports will automatically be rebuilt
-when broken linking is detected in their files, while 'report' means broken
-files will be scanned for and reported but the ports will not be rebuilt.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+revupgrade_mode
+.RS 4
+Controls the rev\-upgrade functionality which checks for broken linking and can rebuild ports to fix it\&.
+\fIrebuild\fR
+means ports will automatically be rebuilt when broken linking is detected in their files, while
+\fIreport\fR
+means broken files will be scanned for and reported but the ports will not be rebuilt\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 rebuild
-.It Va default_compiler
-Default value for configure.compiler. This can be a space-separated list. Later
-entries will be used if earlier entries are unavailable or blacklisted by a
-port. Setting this is unsupported.
-.br
-.Ic Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+default_compiler
+.RS 4
+Default value for configure\&.compiler\&. This can be a space\-separated list\&. Later entries will be used if earlier entries are unavailable or blacklisted by a port\&. Setting this is unsupported\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none (internal list based on Xcode version is normally used)
-.El
-.Sh FILES
-.Bl -tag -width
-.It Va ${prefix}/etc/macports/macports.conf
-Standard system-wide MacPorts configuration file.
-.It Va ~/.macports/macports.conf
-User-specific configuration override. This file, if found, will be used instead of the default file at
-${prefix}/etc/macports/macports.conf.
-.El
-.Sh SEE ALSO
-.Xr port 1 ,
-.Xr portfile 7 ,
-.Xr portgroup 7 ,
-.Xr portstyle 7
-.Xr porthier 7 ,
-.Sh AUTHORS
-.An "Juan Manuel Palacios" Aq jmpp@macports.org
-.An "Matt Anton" Aq matt@opendarwin.org
+T}
+.TE
+.sp 1
+.RE
+.SH "FILES"
+.PP
+${prefix}/etc/macports/macports\&.conf
+.RS 4
+Standard system\-wide MacPorts configuration file\&.
+.RE
+.PP
+~/\&.macports/macports\&.conf
+.RS 4
+User\-specific configuration override\&. This file, if found, will be used instead of the default file at ${prefix}/etc/macports/macports\&.conf\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBportfile\fR(7)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2007\-2011 The MacPorts Project
+Juan Manuel Palacios <jmpp@macports\&.org>
+Matt Anton <matt@opendarwin\&.org>
+Rainer Mueller <raimue@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

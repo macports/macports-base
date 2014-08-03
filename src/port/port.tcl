@@ -1820,38 +1820,61 @@ proc action_usage { action portlist opts } {
 
 
 proc action_help { action portlist opts } {
-    set helpfile "$macports::prefix/var/macports/port-help.tcl"
-
+    set manext ".gz"
     if {[llength $portlist] == 0} {
-        print_help
-        return 0
-    }
-
-    if {[file exists $helpfile]} {
-        if {[catch {source $helpfile} err]} {
-            puts stderr "Error reading helpfile $helpfile: $err"
-            return 1
-        }
+        set page "man1/port.1$manext"
     } else {
-        puts stderr "Unable to open help file $helpfile"
-        return 1
+        set topic [lindex $portlist 0]
+
+        # Look for an action with the requested argument
+        set actions [find_action $topic]
+        if {[llength $actions] == 1} {
+            set page "man1/port-[lindex $actions 0].1$manext"
+        } else {
+            if {[llength $actions] > 1} {
+                ui_error "\"port help ${action}\" is ambiguous: \n  port help [join $actions "\n  port help "]"
+                return 1
+            }
+
+            # No valid command specified
+            set page ""
+        }
     }
 
-    foreach topic $portlist {
-        if {![info exists porthelp($topic)]} {
-            puts stderr "No help for topic $topic"
+    set pagepath ${macports::prefix}/share/man/$page
+    if {$page == "" || ![file exists $pagepath]} {
+        set page "man7/portundocumented.7$manext"
+        set pagepath ${macports::prefix}/share/man/$page
+    }
+
+    if {$pagepath != ""} {
+        ui_debug "Opening man page '$pagepath'"
+
+        # Restore our entire environment from start time.
+        # man might want to evaluate TERM
+        global env boot_env
+        array unset env_save; array set env_save [array get env]
+        array unset env *
+        if {${macports::macosx_version} == "10.5"} {
+            unsetenv *
+        }
+        array set env [array get boot_env]
+
+        if [catch {system -nodup "${macports::autoconf::man_path} $pagepath"} result] {
+            ui_debug "$::errorInfo"
+            ui_error "Unable to show man page using ${macports::autoconf::man_path}: $result"
             return 1
         }
 
-        set usage [action_get_usage $topic]
-        if {$usage != -1} {
-           puts -nonewline stderr $usage
-        } else {
-            ui_error "No usage for topic $topic"
-            return 1
+        # Restore internal MacPorts environment
+        array unset env *
+        if {${macports::macosx_version} == "10.5"} {
+            unsetenv *
         }
-
-        puts stderr $porthelp($topic)
+        array set env [array get env_save]
+    } else {
+        ui_error "Sorry, no help for this topic is available."
+        return 1
     }
 
     return 0

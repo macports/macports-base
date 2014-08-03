@@ -1,0 +1,70 @@
+'\" t
+.TH "PORT\-INSTALL" "1" "2013\-03\-10" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-uninstall \- Remove a previously installed port
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-vdquxpf\fR] [\fB\-D\fR \fIportdir\fR] \fBuninstall\fR
+     [\-\-follow\-dependents] [\-\-follow\-dependencies] [\-\-no\-exec]
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+     [@version]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport uninstall\fR removes a port from your system\&. You can only uninstall a port if all dependents have been removed before or by applying force with \fB\-f\fR\&.
+.sp
+If multiple versions of the same port are installed, you need to specify a version using the \fB@version\fR syntax\&. Use \fBport installed\fR to find out which versions are currently installed on your system\&. If multiple versions are installed and you did not specify a version, \fBport\fR will output a list\&.
+.SH "OPTIONS"
+.PP
+\-\-follow\-dependents
+.RS 4
+Also uninstall all ports recursively depending directly or indirectly on one of the specified ports before uninstalling the port itself\&.
+.RE
+.PP
+\-\-follow\-dependencies
+.RS 4
+Also recursively uninstall all ports that the specified port depends on\&. This will not uninstall dependencies that are marked as requested or that have other dependents\&.
+.RE
+.PP
+\-\-no\-exec
+.RS 4
+Do not execute any stored pre\- or post\-uninstall procedures\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.SH "SEE ALSO"
+.sp
+port(1), port\-uninstall(1), port\-info(1), port\-variants(1), variants\&.conf(5)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2009 The MacPorts Project
+Rainer Mueller <raimue@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

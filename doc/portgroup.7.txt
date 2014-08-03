@@ -1,0 +1,339 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+PortGroup(7)
+============
+$Id$
+// Set default style for second-level labeled lists in this document
+:listdef-labeled2.style: horizontal
+
+NAME
+----
+portgroup - MacPorts PortGroup command reference
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+PortGroup gnustep 1.0
+PortGroup perl5 1.0
+PortGroup python24 1.0
+PortGroup python25 1.0
+PortGroup python30 1.0
+PortGroup ruby 1.0
+PortGroup xcode 1.0
+
+DESCRIPTION
+-----------
+MacPorts defines the notion of PortGroup classes with the PortGroup command.
+These classes factorize the work for similar ports. Port maintainers willing
+to use PortGroup need to have some notion of Portfiles. See man:portfile[7].
+
+XCODE PORTGROUP
+---------------
+*PortGroup xcode* is here to easily port Xcode-based opensource software. It
+handles configuration, build and destroot phases. It also defines some values
+for Xcode-based software. A minimum Portfile using the *xcode PortGroup* class
+only defines the fetch and the checksum phases.
+
+Using *PortGroup xcode* is a way to make your port more robust to Xcode version
+updates as the PortGroup is tested against all supported Mac OS X and Xcode
+versions.
+
+XCODE PORTGROUP SUGAR
+~~~~~~~~~~~~~~~~~~~~~
+
+Portfiles using *xcode PortGroup* do not need to define the following variables:
+
+categories::
+    *Default:* aqua
+
+platforms::
+    *Default:* macosx
+
+use_configure::
+    *Default:* no
+
+Moreover, Portfiles using *PortGroup xcode* do not need to define any build or
+destroot phase. Some options are provided for tailoring these phases to what the
+software requires.
+
+XCODE PORTGROUP SPECIFIC VARIABLES
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Portfiles using *xcode PortGroup* may define the following variables:
+
+xcode.project::
+    Path (relative to ${build.dir} and ${destroot.dir}) of the Xcode
+    project. If unset, let xcode tool figure it out. It usually succeeds if
+    there is a single project in the directory.
++
+--
+*Type:*;; optional
+--
++
+*Example:*
++
+--------
+xcode.project ${name}.xcode
+--------
+
+xcode.configuration::
+    Project configuration/buildstyle to use.
++
+--
+*Type:*;; optional
+*Default:*;; Deployment
+--
++
+*Example:*
++
+--------
+xcode.configuration Main
+--------
+
+xcode.target::
+    If present, overrides build.target and destroot.target.
+    *Type:*;; optional
+
+xcode.build.settings::
+    Additional settings passed to the xcode build tool during the build phase.
+    These settings should be in the X=Y form.
++
+--
+*Type:*;; optional
+--
++
+*Example:*
++
+--------
+xcode.build.settings FRAMEWORK_SEARCH_PATHS=${prefix}/Library/Frameworks
+--------
+
+xcode.destroot.type::
+    Type of project that will be installed. This tells Xcode PortGroup how to
+    destroot the project. Correct values are application and framework.
++
+--
+*Type:*;; optional
+*Default:*;; application
+--
++
+*Example:*
++
+--------
+xcode.destroot.type framework
+--------
+
+xcode.destroot.path::
+    Where to install the build product.
+    *Type:*;; optional
+    *Default:*;; $\{prefix\}/Library/Frameworks or /Applications/MacPorts depending on xcode.destroot.type
+
+xcode.destroot.settings::
+    Additional settings passed to the xcode build tool during the destroot
+    phase. These settings should be in the X=Y form.
++
+--
+*Type:*;; optional
+--
++
+*Example:*
++
+--------
+xcode.destroot.settings SKIP_INSTALL=NO
+--------
+
+
+STANDARD PORTFILE VARIABLES AFFECTING XCODE PORTGROUP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following standard Portfile variables actually affect *xcode PortGroup*. In
+most cases, you will not need to set any of these variables in the Portfile.
+
+destroot::
+    Where to destroot the project.
+
+build.cmd::
+    The command to invoke to build the project. *xcode PortGroup* sets this
+    variable to $\{xcodebuildcmd\}.
+
+build.target::
+    The Xcode target to build. *xcode PortGroup* sets this variable to "", thus
+    building all targets. This variable will be ignored if xcode.target is set.
+
+build.pre_args::
+    Additional parameters for ${build.cmd}.
+    *Default:*;; none
+
+build.args::
+    Main parameters for ${build.cmd}.
+    *Default:*;; build
+
+build.post_args::
+    Additional parameters for ${build.cmd}.
+    *Default:*;; none
+
+build.dir::
+    Where to build the project from (i.e. where the Xcode project is).
+    *Default:*;; $\{worksrcpath\}
+
+destroot.cmd::
+    The command to invoke to destroot the project. *xcode PortGroup* sets this
+    variable to xcodebuildcmd.
+
+destroot.target::
+    The Xcode target to install. *xcode PortGroup* sets this variable to "",
+    thus installing all targets. This variable will be ignored if xcode.target
+    is set.
+
+destroot.pre_args::
+    Additional parameters for ${destroot.cmd}.
+    *Default:*;; none
+
+destroot.args::
+    Main parameters for ${destroot.cmd}.
+    *Default:*;; install
+
+destroot.post_args::
+    Additional parameters for ${destroot.cmd}.
+    *Default:*;; none
+
+destroot.dir::
+    Where to destroot the project from (i.e. where the Xcode project is).
+    *Default:*;; $\{worksrcpath\}
+
+GNUSTEP PORTGROUP
+-----------------
+*PortGroup gnustep* is here to easily port GNUstep-based opensource software
+using the GNU objective- C runtime. It handles configuration, build and destroot
+phases. It also defines some values for GNUstep-based software. A minimum
+Portfile using the *gnustep PortGroup* class only defines the fetch and the
+checksum phases.
+
+GNUSTEP FILESYSTEM LAYOUTS
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+PortGroup gnustep also supports both the traditionnal gnustep file layout and
+the new fhs file layout. However, the ports themselves do not necessarily
+support both. The Portfiles have access to many procedures in dealing with these
+two layouts:
+
+set_gnustep_make::
+    Sets GNUSTEP_MAKEFILES according to the FilesystemLayout
+
+set_gnustep_env::
+    Sets DYLD_LIBRARY_PATH and PATH for the gnustep FilesystemLayout
+
+gnustep_layout::
+    Returns true (1) if current file layout is gnustep
+
+set_system_library::
+    Sets GNUSTEP_SYSTEM_LIBRARY according to the FilesystemLayout
+
+set_local_library::
+    Sets GNUSTEP_LOCAL_LIBRARY according to the FilesystemLayout
+
+GNUSTEP PORTGROUP SUGAR
+~~~~~~~~~~~~~~~~~~~~~~~
+Portfiles using *gnustep PortGroup* do not need to define the following variables:
+
+categories::
+    *Default:* gnustep
+
+homepage::
+    *Default:* http://www.gnustep.org/
+
+master_sites::
+    *Default:* gnustep:core
+
+depends_lib::
+    *Default:* gnustep-core
+
+use_configure::
+    *Default:* no
+
+configure.env::
+    *Default:* DYLD_LIBRARY_PATH PATH
+
+configure.pre_args-append::
+    *Default:* CC=gcc-mp-4.2 GNUSTEP_MAKEFILES
+
+build.type::
+    *Default:* gnu
+
+build.env::
+    *Default:* DYLD_LIBRARY_PATH PATH
+
+build.pre_args-append::
+    *Default:* messages=yes
+
+destroot.env::
+    *Default:* DYLD_LIBRARY_PATH PATH
+
+destroot.pre_args-append::
+    *Default:* messages=yes
+
+Moreover, Portfiles using *PortGroup gnustep* do not need to define any build or
+destroot phase. Some options are provided for tailoring these phases to what the
+software requires. A mechanism is also provided to ease the patch process.
+
+GNUSTEP PORTGROUP SPECIFIC VARIABLES 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Portfiles using *gnustep PortGroup* may define the following variables:
+
+gnustep.post_flags::
+    an associative array which specifies the sub-directories relative to
+    $\{worksrcpath\} and the SHARED_LD_POSTFLAGS variables to be added to
+    GNUmakefile.preamble in those sub-directories. This helps making the
+    patching process easier on Darwin.
++
+--
+*Type:*;; optional
+--
++
+*Example:*
++
+--------
+platform darwin {
+    array set gnustep.post_flags {
+        BundleSubDir "-lfoo -lbar"
+    }
+}
+--------
+
+gnustep.cc::
++
+--
+*Type:*;; optional
+*Default:*;; gcc-mp-4.2
+--
++
+*Example:*
++
+--------
+gnustep.cc gcc-mp-4.3
+--------
+
+variant with_docs::
+    Many GNUstep packages include a Documentation sub-directory that is not
+    built by default. Enabling this variant builds and installs the included
+    documentation.
++
+--
+*Type:*;; optional
+--
++
+*Example:*
++
+--------
+port install gnustep-gui +with_docs
+--------
+
+SEE ALSO
+--------
+man:port[1], man:macports.conf[5], man:portfile[7], man:portstyle[7],
+man:porthier[7]
+
+AUTHORS
+-------
+ (C) 2013 The MacPorts Project
+ Paul Guyot <pguyot@kallisys.net>
+ Yves de Champlain <yves@macports.org>
+ Rainer Mueller <raimue@macports.org>

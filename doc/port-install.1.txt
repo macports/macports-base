@@ -1,0 +1,47 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-install(1)
+===============
+$Id$
+
+NAME
+----
+port-install - Install a new port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdqysbckxpotf*] [*-D* 'portdir'] *install*
+     [--no-rev-upgrade] [--unrequested]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     [+/-variant ...]
+
+DESCRIPTION
+-----------
+*port install* will install a new port on your system. You can choose multiple
+variants, by specifying \+name, which indicates the variant is desired, or
+-name, indicating the contrary.
+
+Global variants will be applied as specified in *variants.conf*(5).
+
+OPTIONS
+-------
+*--no-rev-upgrade*::
+Do not run rev-upgrade after installation. See man:port-rev-upgrade[1] for more
+information.
+
+*--unrequested*::
+Do not mark the installed ports as requested. See man:port-setrequested[1] for
+more information.
+
+
+include::global-flags.txt[]
+
+
+SEE ALSO
+--------
+port(1), port-uninstall(1), port-info(1), port-variants(1), variants.conf(5)
+
+AUTHORS
+-------
+ (C) 2009 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>

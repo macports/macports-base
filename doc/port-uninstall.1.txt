@@ -1,0 +1,54 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-install(1)
+===============
+$Id$
+
+NAME
+----
+port-uninstall - Remove a previously installed port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdquxpf*] [*-D* 'portdir'] *uninstall*
+     [--follow-dependents] [--follow-dependencies] [--no-exec]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     [@version]
+
+DESCRIPTION
+-----------
+*port uninstall* removes a port from your system. You can only uninstall a port
+if all dependents have been removed before or by applying force with *-f*.
+    
+If multiple versions of the same port are installed, you need to specify a
+version using the *@version* syntax. Use *port installed* to find out
+which versions are currently installed on your system. If multiple versions are
+installed and you did not specify a version, *port* will output a list.
+
+OPTIONS
+-------
+
+--follow-dependents::
+    Also uninstall all ports recursively depending directly or indirectly on one
+    of the specified ports before uninstalling the port itself.
+
+--follow-dependencies::
+    Also recursively uninstall all ports that the specified port depends on.
+    This will not uninstall dependencies that are marked as requested or that
+    have other dependents.
+
+--no-exec::
+    Do not execute any stored pre- or post-uninstall procedures.
+
+
+include::global-flags.txt[]
+
+
+SEE ALSO
+--------
+port(1), port-uninstall(1), port-info(1), port-variants(1), variants.conf(5)
+
+AUTHORS
+-------
+ (C) 2009 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>

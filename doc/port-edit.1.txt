@@ -1,0 +1,51 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-edit(1)
+============
+$Id$
+
+NAME
+----
+port-edit - Open the Portfile in an editor
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *edit*
+     [--editor <editor>]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port edit* will open the associated Portfile in an editor. It will try to
+determine your favorite editor by respecting the environment variables *$VISUAL*
+or *$EDITOR* in this order. If none has been set it will fallback to
+'/usr/bin/vi'. Your shell will be blocked until the editor returns. The path to
+the Portfile is passed as one single argument to the editor.
+
+If you specify multiple ports, the editor is executed multiple times for
+each of them one after another.
+
+[NOTE]
+If you edit a 'Portfile', your changes might be lost on the next sync. If you
+want to permanently use a changed 'Portfile', copy it to a local ports tree and
+edit it there. See also guide:development.local-repositories[The MacPorts
+Guide].
+
+OPTIONS
+-------
+*--editor <editor>*::
+Use the specified 'editor', overriding environment variables.
+
+ENVIRONMENT
+-----------
+*EDITOR*, *VISUAL*::
+Specifies the editor to be launched.
+
+SEE ALSO
+--------
+man:port[1], man:port-file[1], man:port-cat[1]
+
+AUTHORS
+-------
+ (C) 2009 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>

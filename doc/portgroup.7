@@ -1,376 +1,616 @@
-.\" portgroup.7
-.\"
-.\" Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>
-.\" All rights reserved.
-.\"
-.\" Redistribution and use in source and binary forms, with or without
-.\" modification, are permitted provided that the following conditions
-.\" are met:
-.\" 1. Redistributions of source code must retain the above copyright
-.\"    notice, this list of conditions and the following disclaimer.
-.\" 2. Redistributions in binary form must reproduce the above copyright
-.\"    notice, this list of conditions and the following disclaimer in the
-.\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of The MacPorts Project nor the names of its
-.\"    contributors may be used to endorse or promote products derived from
-.\"    this software without specific prior written permission.
-.\"
-.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-.\" POSSIBILITY OF SUCH DAMAGE.
-.\"
-.Dd February 5, 2007
-.Dt XCODE 7 "MacPorts"
-.Os
-.Sh NAME
-.Nm PortGroup
-.Nd MacPorts PortGroup command reference
-.Sh SYNOPSIS
-.Nm PortGroup gnustep 1.0
-.Nm PortGroup perl5 1.0
-.Nm PortGroup python24 1.0
-.Nm PortGroup python25 1.0
-.Nm PortGroup python30 1.0
-.Nm PortGroup ruby 1.0
-.Nm PortGroup xcode 1.0
-.Sh DESCRIPTION
-MacPorts defines the notion of PortGroup classes with the PortGroup command.
-These classes factorize the work for similar ports.  Port maintainers willing to
-use
-.Nm PortGroup
-need to have some notion of Portfiles. See
-.Xr portfile 7
-.Pp
-.Sh XCODE PORTGROUP
-.Nm PortGroup xcode
-is here to easily port Xcode-based opensource software. It handles
-configuration, build and destroot phases. It also defines some values
-for Xcode-based software. A minimum Portfile using the xcode PortGroup class
-only defines the fetch and the checksum phases.
-.Pp
-Using
-.Nm PortGroup xcode
-is a way to make your port more robust to Xcode version updates as the PortGroup
-is tested against all supported Mac OS X and Xcode versions.
-.Sh XCODE PORTGROUP SUGAR
-Portfiles using xcode PortGroup do not need to define the following variables:
-.Bl -tag -width lc
-.It Ic categories
-.Sy Default:
-.Em aqua
-.br
-.It Ic platforms
-.Sy Default:
-.Em macosx
-.br
-.It Ic use_configure
-.Sy Default:
-.Em no
-.El
-.br
-Moreover, Portfiles using
-.Nm PortGroup xcode
-do not need to define any build or destroot phase.  Some options are provided
-for tailoring these phases to what the software requires.
-.Sh XCODE PORTGROUP SPECIFIC VARIABLES
-Portfiles using xcode PortGroup may define the following variables:
-.Bl -tag -width lc
-.It Ic xcode.project
-path (relative to ${build.dir} and ${destroot.dir}) of the Xcode project. If
-unset, let xcode tool figure it out. It usually succeeds if there is a single
-project in the directory.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl xcode.project ${name}.xcode
-.br
-.It Ic xcode.configuration
-Project configuration/buildstyle to use.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em Deployment
-.br
-.Sy Example:
-.Dl xcode.configuration Main
-.br
-.It Ic xcode.target
-If present, overrides build.target and destroot.target.
-.br
-.Sy Type:
-.Em optional
-.br
-.It Ic xcode.build.settings
-Additional settings passed to the xcode build tool during the build phase.
-These settings should be in the X=Y form.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Bd -literal -offset indent -compact
-xcode.build.settings FRAMEWORK_SEARCH_PATHS=${prefix}/Library/Frameworks
-.Ed
-.It Ic xcode.destroot.type
-Type of project that will be installed. This tells Xcode PortGroup how to
-destroot the project. Correct values are application and framework.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em application
-.br
-.Sy Example:
-.Dl xcode.destroot.type framework
-.br
-.It Ic xcode.destroot.path
-Where to install the build product.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em ${prefix}/Library/Frameworks
-or
-.Em /Applications/MacPorts depending on xcode.destroot.type
-.br
-.It Ic xcode.destroot.settings
-Additional settings passed to the xcode build tool during the destroot phase.
-These settings should be in the X=Y form.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Bd -literal -offset indent -compact
-xcode.destroot.settings SKIP_INSTALL=NO
-.Ed
-.El
-.Sh STANDARD PORTFILE VARIABLES AFFECTING XCODE PORTGROUP
-The following standard Portfile variables actually affect
-.Nm xcode PortGroup.
-In most cases, you will not need to set any of these variables in the Portfile.
-.Bl -tag -width lc
-.It Ic destroot
-Where to destroot the project.
-.br
-.It Ic build.cmd
-The command to invoke to build the project.
-.Nm xcode PortGroup
-sets this variable to ${xcodebuildcmd}.
-.br
-.It Ic build.target
-The Xcode target to build.
-.Nm xcode PortGroup
-sets this variable to "", thus building all targets. This variable will be
-ignored if xcode.target is set.
-.br
-.It Ic build.pre_args
-Additional parameters for ${build.cmd}.
-.br
-.Sy Default:
+'\" t
+.TH "PORTGROUP" "7" "2013\-03\-10" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+portgroup \- MacPorts PortGroup command reference
+.SH "SYNOPSIS"
+.sp
+.nf
+PortGroup gnustep 1\&.0
+PortGroup perl5 1\&.0
+PortGroup python24 1\&.0
+PortGroup python25 1\&.0
+PortGroup python30 1\&.0
+PortGroup ruby 1\&.0
+PortGroup xcode 1\&.0
+.fi
+.SH "DESCRIPTION"
+.sp
+MacPorts defines the notion of PortGroup classes with the PortGroup command\&. These classes factorize the work for similar ports\&. Port maintainers willing to use PortGroup need to have some notion of Portfiles\&. See \fBportfile\fR(7)\&.
+.SH "XCODE PORTGROUP"
+.sp
+\fBPortGroup xcode\fR is here to easily port Xcode\-based opensource software\&. It handles configuration, build and destroot phases\&. It also defines some values for Xcode\-based software\&. A minimum Portfile using the \fBxcode PortGroup\fR class only defines the fetch and the checksum phases\&.
+.sp
+Using \fBPortGroup xcode\fR is a way to make your port more robust to Xcode version updates as the PortGroup is tested against all supported Mac OS X and Xcode versions\&.
+.SS "XCODE PORTGROUP SUGAR"
+.sp
+Portfiles using \fBxcode PortGroup\fR do not need to define the following variables:
+.PP
+categories
+.RS 4
+\fBDefault:\fR
+aqua
+.RE
+.PP
+platforms
+.RS 4
+\fBDefault:\fR
+macosx
+.RE
+.PP
+use_configure
+.RS 4
+\fBDefault:\fR
+no
+.RE
+.sp
+Moreover, Portfiles using \fBPortGroup xcode\fR do not need to define any build or destroot phase\&. Some options are provided for tailoring these phases to what the software requires\&.
+.SS "XCODE PORTGROUP SPECIFIC VARIABLES"
+.sp
+Portfiles using \fBxcode PortGroup\fR may define the following variables:
+.PP
+xcode\&.project
+.RS 4
+Path (relative to ${build\&.dir} and ${destroot\&.dir}) of the Xcode project\&. If unset, let xcode tool figure it out\&. It usually succeeds if there is a single project in the directory\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+xcode\&.project ${name}\&.xcode
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+xcode\&.configuration
+.RS 4
+Project configuration/buildstyle to use\&.
+.TS
+tab(:);
+lt lt
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+T{
+\fBDefault:\fR
+T}:T{
+Deployment
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+xcode\&.configuration Main
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+xcode\&.target
+.RS 4
+If present, overrides build\&.target and destroot\&.target\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+.TE
+.sp 1
+.RE
+.PP
+xcode\&.build\&.settings
+.RS 4
+Additional settings passed to the xcode build tool during the build phase\&. These settings should be in the X=Y form\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+xcode\&.build\&.settings FRAMEWORK_SEARCH_PATHS=${prefix}/Library/Frameworks
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+xcode\&.destroot\&.type
+.RS 4
+Type of project that will be installed\&. This tells Xcode PortGroup how to destroot the project\&. Correct values are application and framework\&.
+.TS
+tab(:);
+lt lt
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+T{
+\fBDefault:\fR
+T}:T{
+application
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+xcode\&.destroot\&.type framework
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+xcode\&.destroot\&.path
+.RS 4
+Where to install the build product\&.
+.TS
+tab(:);
+lt lt
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+T{
+\fBDefault:\fR
+T}:T{
+${prefix}/Library/Frameworks or /Applications/MacPorts depending on xcode\&.destroot\&.type
+T}
+.TE
+.sp 1
+.RE
+.PP
+xcode\&.destroot\&.settings
+.RS 4
+Additional settings passed to the xcode build tool during the destroot phase\&. These settings should be in the X=Y form\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+xcode\&.destroot\&.settings SKIP_INSTALL=NO
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.SS "STANDARD PORTFILE VARIABLES AFFECTING XCODE PORTGROUP"
+.sp
+The following standard Portfile variables actually affect \fBxcode PortGroup\fR\&. In most cases, you will not need to set any of these variables in the Portfile\&.
+.PP
+destroot
+.RS 4
+Where to destroot the project\&.
+.RE
+.PP
+build\&.cmd
+.RS 4
+The command to invoke to build the project\&.
+\fBxcode PortGroup\fR
+sets this variable to ${xcodebuildcmd}\&.
+.RE
+.PP
+build\&.target
+.RS 4
+The Xcode target to build\&.
+\fBxcode PortGroup\fR
+sets this variable to "", thus building all targets\&. This variable will be ignored if xcode\&.target is set\&.
+.RE
+.PP
+build\&.pre_args
+.RS 4
+Additional parameters for ${build\&.cmd}\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.br
-.It Ic build.args
-Main parameters for ${build.cmd}.
-.br
-.Sy Default:
-.Em build
-.br
-.It Ic build.post_args
-Additional parameters for ${build.cmd}.
-.br
-.Sy Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+build\&.args
+.RS 4
+Main parameters for ${build\&.cmd}\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+build
+T}
+.TE
+.sp 1
+.RE
+.PP
+build\&.post_args
+.RS 4
+Additional parameters for ${build\&.cmd}\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.br
-.It Ic build.dir
-Where to build the project from (i.e. where the Xcode project is).
-.br
-.Sy Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+build\&.dir
+.RS 4
+Where to build the project from (i\&.e\&. where the Xcode project is)\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 ${worksrcpath}
-.br
-.It Ic destroot.cmd
-The command to invoke to destroot the project.
-.Nm xcode PortGroup
-sets this variable to xcodebuildcmd.
-.br
-.It Ic destroot.target
-The Xcode target to install.
-.Nm xcode PortGroup
-sets this variable to "", thus installing all targets. This variable will be
-ignored if xcode.target is set.
-.br
-.It Ic destroot.pre_args
-Additional parameters for ${destroot.cmd}.
-.br
-.Sy Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+destroot\&.cmd
+.RS 4
+The command to invoke to destroot the project\&.
+\fBxcode PortGroup\fR
+sets this variable to xcodebuildcmd\&.
+.RE
+.PP
+destroot\&.target
+.RS 4
+The Xcode target to install\&.
+\fBxcode PortGroup\fR
+sets this variable to "", thus installing all targets\&. This variable will be ignored if xcode\&.target is set\&.
+.RE
+.PP
+destroot\&.pre_args
+.RS 4
+Additional parameters for ${destroot\&.cmd}\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.br
-.It Ic destroot.args
-Main parameters for ${destroot.cmd}.
-.br
-.Sy Default:
-.Em install
-.br
-.It Ic destroot.post_args
-Additional parameters for ${destroot.cmd}.
-.br
-.Sy Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+destroot\&.args
+.RS 4
+Main parameters for ${destroot\&.cmd}\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+install
+T}
+.TE
+.sp 1
+.RE
+.PP
+destroot\&.post_args
+.RS 4
+Additional parameters for ${destroot\&.cmd}\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 none
-.br
-.It Ic destroot.dir
-Where to destroot the project from (i.e. where the Xcode project is).
-.br
-.Sy Default:
+T}
+.TE
+.sp 1
+.RE
+.PP
+destroot\&.dir
+.RS 4
+Where to destroot the project from (i\&.e\&. where the Xcode project is)\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
 ${worksrcpath}
-.br
-.El
-.Sh GNUSTEP PORTGROUP
-.Nm PortGroup gnustep
-is here to easily port GNUstep-based opensource software using the GNU 
-objective-C runtime. It handles configuration, build and destroot phases.
-It also defines some values for GNUstep-based software. A minimum Portfile 
-using the gnustep PortGroup class only defines the fetch and the checksum phases.
-.Sh GNUSTEP FILESYSTEM LAYOUTS
-.Nm PortGroup gnustep
-also supports both the traditionnal gnustep file layout and the new fhs file layout.
-However, the ports themselves do not necessarily support both.
-The Portfiles have access to many procedures in dealing with these two layouts :
-.Bl -tag -width lc
-.It Ic set_gnustep_make
+T}
+.TE
+.sp 1
+.RE
+.SH "GNUSTEP PORTGROUP"
+.sp
+\fBPortGroup gnustep\fR is here to easily port GNUstep\-based opensource software using the GNU objective\- C runtime\&. It handles configuration, build and destroot phases\&. It also defines some values for GNUstep\-based software\&. A minimum Portfile using the \fBgnustep PortGroup\fR class only defines the fetch and the checksum phases\&.
+.SS "GNUSTEP FILESYSTEM LAYOUTS"
+.sp
+PortGroup gnustep also supports both the traditionnal gnustep file layout and the new fhs file layout\&. However, the ports themselves do not necessarily support both\&. The Portfiles have access to many procedures in dealing with these two layouts:
+.PP
+set_gnustep_make
+.RS 4
 Sets GNUSTEP_MAKEFILES according to the FilesystemLayout
-.br
-.It Ic set_gnustep_env
+.RE
+.PP
+set_gnustep_env
+.RS 4
 Sets DYLD_LIBRARY_PATH and PATH for the gnustep FilesystemLayout
-.br
-.It Ic gnustep_layout
+.RE
+.PP
+gnustep_layout
+.RS 4
 Returns true (1) if current file layout is gnustep
-.br
-.It Ic set_system_library
+.RE
+.PP
+set_system_library
+.RS 4
 Sets GNUSTEP_SYSTEM_LIBRARY according to the FilesystemLayout
-.br
-.It Ic set_local_library
+.RE
+.PP
+set_local_library
+.RS 4
 Sets GNUSTEP_LOCAL_LIBRARY according to the FilesystemLayout
-.br
-.El
-.Pp
-.Sh GNUSTEP PORTGROUP SUGAR
-Portfiles using gnustep PortGroup do not need to define the following variables:
-.Bl -tag -width lc
-.It Ic categories
-.Sy Default:
-.Em gnustep
-.br
-.It Ic homepage
-.Sy Default:
-.Em http://www.gnustep.org/
-.br
-.It Ic master_sites
-.Sy Default:
-.Em gnustep:core
-.br
-.It Ic depends_lib
-.Sy Default:
-.Em gnustep-core
-.br
-.It Ic use_configure
-.Sy Default:
-.Em no
-.It Ic configure.env
-.Sy Default:
-.Em DYLD_LIBRARY_PATH PATH
-.It Ic configure.pre_args-append
-.Sy Default:
-.Em CC=gcc-mp-4.2 GNUSTEP_MAKEFILES
-.br
-.It Ic build.type
-.Sy Default:
-.Em gnu
-.br
-.It Ic build.env
-.Sy Default:
-.Em DYLD_LIBRARY_PATH PATH
-.It Ic build.pre_args-append
-.Sy Default:
-.Em messages=yes
-.br
-.It Ic destroot.env
-.Sy Default:
-.Em DYLD_LIBRARY_PATH PATH
-.It Ic destroot.pre_args-append
-.Sy Default:
-.Em messages=yes
-.br
-.br
-.El
-.br
-Moreover, Portfiles using
-.Nm PortGroup gnustep
-do not need to define any build or destroot phase.  Some options are provided
-for tailoring these phases to what the software requires.  A mechanism is also
-provided to ease the patch process.
-.Sh GNUSTEP PORTGROUP SPECIFIC VARIABLES
-Portfiles using 
-.Nm gnustep PortGroup 
-may define the following variables:
-.Bl -tag -width lc
-.It Ic gnustep.post_flags
-an associative array which specifies the sub-directories relative to ${worksrcpath}
-and the SHARED_LD_POSTFLAGS variables to be added to GNUmakefile.preamble in those
-sub-directories.  This helps making the patching process easier on Darwin.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl platform darwin {
-.Dl		array set gnustep.post_flags {
-.Dl			BundleSubDir  """-lfoo -lbar""
-.Dl		}
-.Dl }
-.br
-.It Ic gnustep.cc
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em gcc-mp-4.2
-.br
-.Sy Example:
-.Dl gnustep.cc gcc-mp-4.3
-.br
-.It Ic variant with_docs
-Many GNUstep packages include a Documentation sub-directory that is not
-built by default.  Enabling this variant builds and installs the included 
-documentation.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl port install gnustep-gui +with_docs
-.br
-.El
-.Sh SEE ALSO
-.Xr port 1 ,
-.Xr macports.conf 5 ,
-.Xr portfile 7 ,
-.Xr portstyle 7 ,
-.Xr porthier 7
-.Sh AUTHORS
-.An "Paul Guyot" Aq pguyot@kallisys.net
-.An "Yves de Champlain" Aq yves@macports.org
+.RE
+.SS "GNUSTEP PORTGROUP SUGAR"
+.sp
+Portfiles using \fBgnustep PortGroup\fR do not need to define the following variables:
+.PP
+categories
+.RS 4
+\fBDefault:\fR
+gnustep
+.RE
+.PP
+homepage
+.RS 4
+\fBDefault:\fR\m[blue]\fBhttp://www\&.gnustep\&.org/\fR\m[]
+.RE
+.PP
+master_sites
+.RS 4
+\fBDefault:\fR
+gnustep:core
+.RE
+.PP
+depends_lib
+.RS 4
+\fBDefault:\fR
+gnustep\-core
+.RE
+.PP
+use_configure
+.RS 4
+\fBDefault:\fR
+no
+.RE
+.PP
+configure\&.env
+.RS 4
+\fBDefault:\fR
+DYLD_LIBRARY_PATH PATH
+.RE
+.PP
+configure\&.pre_args\-append
+.RS 4
+\fBDefault:\fR
+CC=gcc\-mp\-4\&.2 GNUSTEP_MAKEFILES
+.RE
+.PP
+build\&.type
+.RS 4
+\fBDefault:\fR
+gnu
+.RE
+.PP
+build\&.env
+.RS 4
+\fBDefault:\fR
+DYLD_LIBRARY_PATH PATH
+.RE
+.PP
+build\&.pre_args\-append
+.RS 4
+\fBDefault:\fR
+messages=yes
+.RE
+.PP
+destroot\&.env
+.RS 4
+\fBDefault:\fR
+DYLD_LIBRARY_PATH PATH
+.RE
+.PP
+destroot\&.pre_args\-append
+.RS 4
+\fBDefault:\fR
+messages=yes
+.RE
+.sp
+Moreover, Portfiles using \fBPortGroup gnustep\fR do not need to define any build or destroot phase\&. Some options are provided for tailoring these phases to what the software requires\&. A mechanism is also provided to ease the patch process\&.
+.SS "GNUSTEP PORTGROUP SPECIFIC VARIABLES"
+.sp
+Portfiles using \fBgnustep PortGroup\fR may define the following variables:
+.PP
+gnustep\&.post_flags
+.RS 4
+an associative array which specifies the sub\-directories relative to ${worksrcpath} and the SHARED_LD_POSTFLAGS variables to be added to GNUmakefile\&.preamble in those sub\-directories\&. This helps making the patching process easier on Darwin\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+platform darwin {
+    array set gnustep\&.post_flags {
+        BundleSubDir "\-lfoo \-lbar"
+    }
+}
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+gnustep\&.cc
+.RS 4
+.TS
+tab(:);
+lt lt
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+T{
+\fBDefault:\fR
+T}:T{
+gcc\-mp\-4\&.2
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+gnustep\&.cc gcc\-mp\-4\&.3
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+variant with_docs
+.RS 4
+Many GNUstep packages include a Documentation sub\-directory that is not built by default\&. Enabling this variant builds and installs the included documentation\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBType:\fR
+T}:T{
+optional
+T}
+.TE
+.sp 1
+\fBExample:\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port install gnustep\-gui +with_docs
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBmacports.conf\fR(5), \fBportfile\fR(7), \fBportstyle\fR(7), \fBporthier\fR(7)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2013 The MacPorts Project
+Paul Guyot <pguyot@kallisys\&.net>
+Yves de Champlain <yves@macports\&.org>
+Rainer Mueller <raimue@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

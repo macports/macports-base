@@ -1,0 +1,56 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-activate(1)
+===============
+$Id$
+
+NAME
+----
+port-activate, port-deactivate - Change active version of an installed port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdf*] [*-D* 'portdir'] *activate*
+     [--no-exec]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     ['@version']
+
+[cmdsynopsis]
+*port* [*-vdf*] [*-D* 'portdir'] *deactivate*
+     [--no-exec]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port activate* will set the status of an previously installed version of a port
+to active. The passed ports have to reference already installed versions.
+
+*port deactivate* will set the status of a port to inactive. The passed ports
+have to be active at the moment. You will be warned if this port has active
+dependents.
+
+// [NOTE]
+If any version is active at the time of using *port activate*, it will be
+deactivated first. This can be used to switch from one version to another.
+
+include::archives.txt[]
+
+OPTIONS
+-------
+
+--no-exec::
+    Do not execute any stored pre- or post-uninstall procedures.
+
+
+include::global-flags.txt[]
+
+
+SEE ALSO
+--------
+man:port[1], man:port-install[1], man:port-installed[1],
+man:port-deactivate[1]
+
+AUTHORS
+-------
+ (C) 2009 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>

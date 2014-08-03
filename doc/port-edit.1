@@ -1,0 +1,85 @@
+'\" t
+.TH "PORT\-EDIT" "1" "2013\-03\-10" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-edit \- Open the Portfile in an editor
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-D\fR \fIportdir\fR] \fBedit\fR
+     [\-\-editor <editor>]
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport edit\fR will open the associated Portfile in an editor\&. It will try to determine your favorite editor by respecting the environment variables \fB$VISUAL\fR or \fB$EDITOR\fR in this order\&. If none has been set it will fallback to \fI/usr/bin/vi\fR\&. Your shell will be blocked until the editor returns\&. The path to the Portfile is passed as one single argument to the editor\&.
+.sp
+If you specify multiple ports, the editor is executed multiple times for each of them one after another\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+.sp
+If you edit a \fIPortfile\fR, your changes might be lost on the next sync\&. If you want to permanently use a changed \fIPortfile\fR, copy it to a local ports tree and edit it there\&. See also \m[blue]\fBThe MacPorts Guide\fR\m[]\&\s-2\u[1]\d\s+2\&.
+.sp .5v
+.RE
+.SH "OPTIONS"
+.PP
+\fB\-\-editor <editor>\fR
+.RS 4
+Use the specified
+\fIeditor\fR, overriding environment variables\&.
+.RE
+.SH "ENVIRONMENT"
+.PP
+\fBEDITOR\fR, \fBVISUAL\fR
+.RS 4
+Specifies the editor to be launched\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBport-file\fR(1), \fBport-cat\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2009 The MacPorts Project
+Rainer Mueller <raimue@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
+.SH "EXTERNAL REFERENCES"
+.IP " 1." 4
+The MacPorts Guide
+.RS 4
+\%http://guide.macports.org/#development.local-repositories
+.RE

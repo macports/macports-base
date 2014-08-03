@@ -1,10 +1,45 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-MAN1=		port.1
+# If this is a selfupdate, we never want to run any tools from the target
+# prefix (could be broken or wrong architecture), otherwise try to use the
+# tools from the target prefix for generating man pages if they exist
+ifeq ($(SELFUPDATING),1)
+ASCIIDOC=
+XSLTPROC=
+else
+ASCIIDOC=	$(wildcard ${prefix}/bin/asciidoc)
+XSLTPROC=	$(wildcard ${prefix}/bin/xsltproc)
+endif
+
+ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION}
+XSLTFLAGS=	-nonet
+
+MAN1=		port.1 \
+		port-activate.1 \
+		port-build.1 \
+		port-checksum.1 \
+		port-configure.1 \
+		port-deactivate.1 \
+		port-destroot.1 \
+		port-edit.1 \
+		port-extract.1 \
+		port-fetch.1 \
+		port-install.1 \
+		port-patch.1 \
+		port-uninstall.1
 MAN5=		macports.conf.5
-MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7
-CONF=       archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf
+MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7 portundocumented.7
+MAN=		${MAN1} ${MAN5} ${MAN7}
+
+# Filter man pages with existing source files
+MANTXT=		$(wildcard ${MAN:%=%.txt})
+# Only those can be transformed into XML
+MANXML=		${MANTXT:.txt=.xml}
+# HTML version for all man pages
+MANHTML=	${MAN:%=%.html}
+
+CONF=       	archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
@@ -12,10 +47,28 @@ ifneq ($(MAKECMDGOALS),distclean)
 include ../Mk/macports.autoconf.mk
 endif
 
-all: ${MAN1:.1=.1.gz} ${MAN5:.5=.5.gz} ${MAN7:.7=.7.gz}
+all: man
+
+# Update "include::" dependencies
+.dep: $(wildcard *.txt) asciidoc-deps.tcl
+	$(INTREE_TCLSH) ./asciidoc-deps.tcl *.txt > $@
+
+-include .dep
+
+.PHONY: man xml html
+
+man: ${MAN} ${MAN:%=%.gz}
+
+xml: ${MANXML}
+
+html: ${MANHTML}
 
 clean:
+	rm -f ${MANTXT:%.txt=%.gz}
+	rm -f ${MANTXT:%.txt=%.html}
+	rm -f ${MANTXT:%.txt=%.xml}
 	rm -f *.{1,5,7}.gz
+	rm -f .dep
 
 test:
 
@@ -31,6 +84,35 @@ distclean: clean
 
 %.7.gz: %.7
 	gzip -c $^ > $@
+
+%: %.soelim
+	ln -f $< $@
+
+%.html: %.soelim
+	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
+
+# Define these rules only if both asciidoc and xsltproc are available
+ifneq ($(ASCIIDOC)$(XSLTPROC),)
+%: %.xml manpage.xsl
+	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
+
+%.xml: %.txt asciidoc.conf
+	$(ASCIIDOC) $(ASCIIDOCFLAGS) -d manpage -b docbook $<
+
+%.html: %.txt asciidoc.conf
+	$(ASCIIDOC) $(ASCIIDOCFLAGS) -d manpage -b xhtml11 $<
+else
+man: ${MAN} ${MAN:%=%.gz}
+	@echo "* Warning: Using pre-generated man pages only."
+	@echo "* asciidoc and xsltproc are required to generate man pages from source."
+
+%.xml %.html: | %.txt
+	@echo "* In order to modify and generate output from these source files,"
+	@echo "* please install asciidoc and xsltproc or use"
+	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc"
+	@echo "* with appropriate paths."
+	@exit 1
+endif
 
 install: all
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
@@ -63,9 +145,7 @@ endif
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 base.mtree "${INSTALLDIR}/share/macports/install/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 prefix.mtree "${INSTALLDIR}/share/macports/install/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 macosx.mtree "${INSTALLDIR}/share/macports/install/"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 port.1.gz "${INSTALLDIR}/share/man/man1"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 macports.conf.5.gz "${INSTALLDIR}/share/man/man5"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 portfile.7.gz "${INSTALLDIR}/share/man/man7"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 portstyle.7.gz "${INSTALLDIR}/share/man/man7"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 porthier.7.gz "${INSTALLDIR}/share/man/man7"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 portgroup.7.gz "${INSTALLDIR}/share/man/man7"
+
+	for page in ${MAN1} ${MAN5} ${MAN7}; do \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$${page}.gz" "${INSTALLDIR}/share/man/man$$(echo $$page | sed -e 's/.*\.//')"; \
+	done
