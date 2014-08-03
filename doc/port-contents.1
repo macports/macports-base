@@ -1,0 +1,120 @@
+'\" t
+.TH "PORT\-CONTENTS" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-contents \- List the files installed by a given port
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBcontents\fR
+     [\-\-size] [\-\-units \fBUNIT\fR]
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport contents\fR displays a list of all files that have been installed by a given port\&. You can only use \fBcontents\fR for ports that are \fIactive\fR and installed\&.
+.sp
+Common uses for \fBcontents\fR include finding the location of a port\(cqs executable after installing it\&. You can combine \fBport contents\fR with other tools to simplify this, e\&.g\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port \-q contents asciidoc | grep \-E \*(Aq/s?bin/\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.SH "OPTIONS"
+.PP
+\-\-size
+.RS 4
+Enable printing a human\-readable representation of the files\*(Aq sizes\&. The size output can be adjusted using the
+\fB\-\-units UNIT\fR
+flag\&.
+.RE
+.PP
+\-\-units UNIT
+.RS 4
+Used in conjunction with
+\fB\-\-size\fR
+to choose the unit in which the size is given\&. Valid values for
+\fIUNIT\fR
+are
+.PP
+B
+.RS 4
+List sizes in bytes\&.
+.RE
+.PP
+K, Ki, or KiB
+.RS 4
+List sizes in KiB, i\&.e\&., 1024 bytes\&.
+.RE
+.PP
+Mi, or MiB
+.RS 4
+List sizes in MiB, i\&.e\&., 1024 * 1024 bytes\&.
+.RE
+.PP
+Gi, or GiB
+.RS 4
+List sizes in GiB, i\&.e\&., 1024 * 1024 * 1024 bytes\&.
+.RE
+.PP
+k, or kB
+.RS 4
+List sizes in kB, i\&.e\&., 1000 bytes\&.
+.RE
+.PP
+M, or MB
+.RS 4
+List sizes in MB, i\&.e\&., 1000 * 1000 bytes\&.
+.RE
+.PP
+G, or GB
+.RS 4
+List sizes in GB, i\&.e\&., 1000 * 1000 * 1000 bytes\&.
+.RE
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.PP
+\-q
+.RS 4
+Do not print the header line\&.
+.RE
+.SH "SEE ALSO"
+.sp
+port(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
