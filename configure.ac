@@ -407,7 +407,6 @@ AC_CONFIG_FILES([
 	doc/macports.conf
 	doc/prefix.mtree
 	doc/pubkeys.conf
-	portmgr/freebsd/Makefile
 	portmgr/dmg/postflight
 	setupenv.bash
 	src/Makefile

@@ -120,7 +120,7 @@ clean::
 distclean::
 	rm -f config.log config.status configure.lineno
 	rm -rf autom4te.cache ${DISTDIR}
-	rm -f Makefile Mk/macports.autoconf.mk portmgr/freebsd/Makefile
+	rm -f Makefile Mk/macports.autoconf.mk
 	rm -f Doxyfile
 	rm -f setupenv.bash
 	rm -f portmgr/dmg/postflight
