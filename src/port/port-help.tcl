@@ -316,6 +316,10 @@ a version if --set is used. <arguments> can be empty for --summary.
 
 set porthelp(selfupdate) {
 Upgrade MacPorts itself and run the sync target
+
+--nosync   Do not run the sync target, i.e. do not update the ports tree.
+           Only checks for (and installs, if available) new versions of
+           MacPorts.
 }
 
 set porthelp(space) {
