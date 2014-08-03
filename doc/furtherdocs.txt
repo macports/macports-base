@@ -1,0 +1,15 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+Further documentation on MacPorts can be found in the following places:
+
+guide:[The MacPorts Guide]::
+    Detailed help and support guide
+wiki:[The MacPorts Wiki]::
+    MacPorts usage, development, and support
+wiki:MailingLists[Mailing Lists]::
+    Ask questions on the mailing lists:
+    macports-dev for base and Portfile development,
+    macports-users for user support questions
+wiki:FAQ[]::
+    Frequently Asked Questions
+wiki:ProblemHotlist[Problem Hotlist]::
+    Solutions for the most common error messages and other problems

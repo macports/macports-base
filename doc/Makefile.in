@@ -26,6 +26,7 @@ MAN1=	\
 		port-edit.1 \
 		port-extract.1 \
 		port-fetch.1 \
+		port-help.1 \
 		port-install.1 \
 		port-patch.1 \
 		port-rev-upgrade.1 \

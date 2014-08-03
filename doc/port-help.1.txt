@@ -1,0 +1,31 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-help(1)
+============
+$Id$
+
+NAME
+----
+port-help - Get help on MacPorts commands
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* *help* ['action' | 'help-topic']
+
+DESCRIPTION
+-----------
+*port help* opens the manpage for a given port action such as 'install',
+'upgrade', 'selfupdate', etc. or a specific help topic like 'macports.conf'.
+MacPorts even has help for its help feature. MacPorts will however not engage in
+higher level abstractions: There is no help on the help on the help.
+
+include::furtherdocs.txt[]
+
+SEE ALSO
+--------
+port(1)
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
