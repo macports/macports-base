@@ -1,0 +1,28 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-cat(1)
+===========
+$Id$
+
+NAME
+----
+port-cat - Print the contents of a Portfile
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *cat*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+Print the 'Portfile' of the given port(s). Note that always the latest version
+in your local ports tree is printed.
+
+SEE ALSO
+--------
+man:port[1], man:port-selfupdate[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
