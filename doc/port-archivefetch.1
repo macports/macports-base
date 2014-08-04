@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-ARCHIVE" "1" "2014\-08\-04" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-ARCHIVEFETCH" "1" "2014\-08\-04" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,17 +20,17 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-port-archive \- Create an archive of a port\&.
+port-archivefetch \- Fetch archive for the given ports if available\&.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fBport\fR [\fB\-vdqysbckpotf\fR] [\fB\-D\fR \fIportdir\fR] \fBarchive\fR
+\fBport\fR [\fB\-vdqypotf\fR] [\fB\-D\fR \fIportdir\fR] \fBarchivefetch\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [+/\-variant \&...]
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport archive\fR will create the port image (also called archive) for a port but will not actually install the port\(cqs files\&. In a nutshell, \fBport archive\fR is like \fBinstall\fR, but without the implicit \fBactivate\fR at the end\&. See \fBport-install\fR(1) and \fBport-activate\fR(1) and the \fBPORT IMAGES\fR section for details\&. The created port image can be located using \fBport-location\fR(1),
+\fBport archivefetch\fR attempts to download a binary archive for the given port(s) from the configured binary sources, by default from \fIpackages\&.macports\&.org\fR and its mirrors\&. An archive or port image is a tarball containing the files of a port and some metadata and can be used to install a port without building it from source\&. See the \fBPORT IMAGES\fR section for a description of the port image concept in MacPorts\&.
 .sp
 You can choose multiple variants, by specifying +name, which indicates the variant is desired, or \-name, indicating the contrary\&.
 .sp
@@ -45,9 +45,14 @@ To check the current status of a specific port, use \fB\fBport-installed\fR(1)\f
 .SH "GLOBAL OPTIONS"
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.PP
+\-p
+.RS 4
+Proceed even if a port fails to fetch\&. This is useful if you are trying to download all available binary images for a number of ports, e\&.g\&., if you want to install them later without a network connection\&.
+.RE
 .SH "SEE ALSO"
 .sp
-\fBport\fR(1), \fBport-install\fR(1), \fBport-activate\fR(1), \fBport-info\fR(1), \fBport-variants\fR(1), \fBvariants.conf\fR(5)
+\fBport\fR(1), \fBport-archive\fR(1), \fBport-variants\fR(1), \fBvariants.conf\fR(5)
 .SH "AUTHORS"
 .sp
 .if n \{\
