@@ -1,0 +1,43 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-archive(1)
+===============
+$Id$
+
+NAME
+----
+port-archive - Create an archive of a port.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *archive*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     [+/-variant ...]
+
+DESCRIPTION
+-----------
+*port archive* will create the port image (also called archive) for a port but
+will not actually install the port's files. In a nutshell, *port archive* is
+like *install*, but without the implicit *activate* at the end. See
+man:port-install[1] and man:port-activate[1] and the *PORT IMAGES* section for
+details. The created port image can be located using man:port-location[1],
+
+You can choose multiple variants, by specifying +name, which indicates the
+variant is desired, or -name, indicating the contrary.
+
+Global variants will be applied as specified in *variants.conf*(5).
+
+include::archives.txt[]
+
+include::global-flags.txt[]
+
+
+SEE ALSO
+--------
+man:port[1], man:port-install[1], man:port-activate[1], man:port-info[1],
+man:port-variants[1], man:variants.conf[5]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
