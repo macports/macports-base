@@ -21,7 +21,7 @@ DESCRIPTION
 variants, by specifying \+name, which indicates the variant is desired, or
 -name, indicating the contrary.
 
-Global variants will be applied as specified in *variants.conf*(5).
+Global variants will be applied as specified in man:variants.conf[5].
 
 OPTIONS
 -------
