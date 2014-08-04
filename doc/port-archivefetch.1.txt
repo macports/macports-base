@@ -1,0 +1,48 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-archivefetch(1)
+====================
+$Id$
+
+NAME
+----
+port-archivefetch - Fetch archive for the given ports if available.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdqypotf*] [*-D* 'portdir'] *archivefetch*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     [+/-variant ...]
+
+DESCRIPTION
+-----------
+*port archivefetch* attempts to download a binary archive for the given port(s)
+from the configured binary sources, by default from 'packages.macports.org' and
+its mirrors. An archive or port image is a tarball containing the files of
+a port and some metadata and can be used to install a port without building it
+from source. See the *PORT IMAGES* section for a description of the port image
+concept in MacPorts.
+
+You can choose multiple variants, by specifying +name, which indicates the
+variant is desired, or -name, indicating the contrary.
+
+Global variants will be applied as specified in man:variants.conf[5].
+
+include::archives.txt[]
+
+include::global-flags.txt[]
+
+-p::
+    Proceed even if a port fails to fetch. This is useful if you are trying to
+    download all available binary images for a number of ports, e.g., if you
+    want to install them later without a network connection.
+
+
+SEE ALSO
+--------
+man:port[1], man:port-archive[1], man:port-variants[1], man:variants.conf[5]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

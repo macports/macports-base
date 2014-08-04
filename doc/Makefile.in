@@ -18,6 +18,7 @@ XSLTFLAGS=	-nonet
 MAN1=	\
 		port-activate.1 \
 		port-archive.1 \
+		port-archivefetch.1 \
 		port-build.1 \
 		port-checksum.1 \
 		port-configure.1 \
