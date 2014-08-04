@@ -10,7 +10,7 @@ port-install - Install a new port
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-vdqysbckxpotf*] [*-D* 'portdir'] *install*
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *install*
      [--no-rev-upgrade] [--unrequested]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
      [+/-variant ...]
