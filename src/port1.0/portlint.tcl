@@ -326,6 +326,7 @@ proc portlint::lint_main {args} {
                 && ![regexp {^\s*reinplace} $line]
                 && ![regexp {^\s*system.*\Wsed\W} $line]} {
             ui_error "Line $lineno hardcodes /opt/local, use \${prefix} instead"
+            incr errors
         }
 
         ### TODO: more checks to Portfile syntax
@@ -578,6 +579,7 @@ proc portlint::lint_main {args} {
             # space instead of hyphen
             if {[string is double -strict $test]} {
                 ui_error "Invalid license '${prev} ${test}': missing hyphen between ${prev} ${test}"
+                incr errors
 
             # missing hyphen
             } elseif {![string equal -nocase "X11" $test]} {
@@ -592,6 +594,7 @@ proc portlint::lint_main {args} {
                         set license_end [string index $subtest end]
                         if {"+" eq $license_end || [string is integer -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
+                            incr errors
                         }
                     }
                 }
@@ -600,12 +603,15 @@ proc portlint::lint_main {args} {
             if {[string equal -nocase "BSD-2" $test]} {
                 # BSD-2 => BSD
                 ui_error "Invalid license '${test}': use BSD instead"
+                incr errors
             } elseif {[string equal -nocase "BSD-3" $test]} {
                 # BSD-3 => BSD
                 ui_error "Invalid license '${test}': use BSD instead"
+                incr errors
             } elseif {[string equal -nocase "BSD-4" $test]} {
                 # BSD-4 => BSD-old
                 ui_error "Invalid license '${test}': use BSD-old instead"
+                incr errors
             }
 
             set prev $test
