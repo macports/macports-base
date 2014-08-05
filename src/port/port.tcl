@@ -43,6 +43,7 @@ if {![catch {package require term::ansi::send}]} {
     set portclient::progress::hasTermAnsiSend yes
 }
 
+package require Tclx
 package require macports
 package require Pextlib 1.0
 
@@ -5369,7 +5370,6 @@ namespace eval portclient::questions {
 	# @param ports
 	#        The port/list of ports for which the question is being asked.
 	proc ui_ask_singlechoice {msg name ports} {
-		package require Tclx
 		ui_choice $msg $name $ports
 				
 		# User Input (single input restriction)
