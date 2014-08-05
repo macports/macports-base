@@ -100,7 +100,7 @@ distclean: clean
 	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
 
 # Define these rules only if both asciidoc and xsltproc are available
-ifneq ($(ASCIIDOC)$(XSLTPROC),)
+ifneq ($(and $(ASCIIDOC),$(XSLTPROC)),)
 %: %.xml manpage.xsl
 	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
 
