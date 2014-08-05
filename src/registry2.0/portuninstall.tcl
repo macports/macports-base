@@ -41,6 +41,68 @@ set UI_PREFIX "---> "
 
 namespace eval registry_uninstall {
 
+# generate list of all dependencies of the port
+proc generate_deplist {port {optslist ""}} {
+    array set options $optslist
+    # note deps before we uninstall if we're going to uninstall them too
+    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
+        set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+        set all_dependencies {}
+        # look up deps from the saved portfile if possible
+        if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optslist]}]} {
+            array set depportinfo [mportinfo $mport]
+            mportclose $mport
+            foreach type $deptypes {
+                if {[info exists depportinfo($type)]} {
+                    foreach dep $depportinfo($type) {
+                        lappend all_dependencies [lindex [split $dep :] end]
+                    }
+                }
+            }
+            # append those from the registry (could be different because of path deps)
+            foreach dep [$port dependencies] {
+                lappend all_dependencies [$dep name]
+            }
+        } else {
+            # grab the deps from the dep map
+            set depmaplist [registry::list_depends $portname $version $revision $variants]
+            foreach dep $depmaplist {
+                lappend all_dependencies [lindex $dep 0]
+            }
+            # and the ones from the current portfile
+            if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
+                array set depportinfo [lindex $result 1]
+                set porturl $depportinfo(porturl)
+                set variations {}
+                set minusvariant [lrange [split [registry::property_retrieve $ref negated_variants] -] 1 end]
+                set plusvariant [lrange [split $variants +] 1 end]
+                foreach v $plusvariant {
+                    lappend variations $v "+"
+                }
+                foreach v $minusvariant {
+                    lappend variations $v "-"
+			    }
+                if {![catch {set mport [mportopen $porturl [concat $optionslist subport $portname] [array get variations]]} result]} {
+                    array unset depportinfo
+                    array set depportinfo [mportinfo $mport]
+                    mportclose $mport
+                }
+                foreach type $deptypes {
+                    if {[info exists depportinfo($type)]} {
+                        foreach dep $depportinfo($type) {
+                            lappend all_dependencies [lindex [split $dep :] end]
+                        }
+                    }
+                }
+            }
+        }
+        array unset depportinfo
+        set all_dependencies [lsort -unique $all_dependencies]
+        return $all_dependencies
+    }
+    return {}
+}
+
 # takes a composite version spec rather than separate version,revision,variants
 proc uninstall_composite {portname {v ""} {optionslist ""}} {
     if {$v eq ""} {
@@ -171,62 +233,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     }
 
     set ref $port
-	
-    # note deps before we uninstall if we're going to uninstall them too
-    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
-        set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
-        set all_dependencies {}
-        # look up deps from the saved portfile if possible
-        if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optionslist]}]} {
-            array set depportinfo [mportinfo $mport]
-            mportclose $mport
-            foreach type $deptypes {
-                if {[info exists depportinfo($type)]} {
-                    foreach dep $depportinfo($type) {
-                        lappend all_dependencies [lindex [split $dep :] end]
-                    }
-                }
-            }
-            # append those from the registry (could be different because of path deps)
-            foreach dep [$port dependencies] {
-                lappend all_dependencies [$dep name]
-            }
-        } else {
-            # grab the deps from the dep map
-            set depmaplist [registry::list_depends $portname $version $revision $variants]
-            foreach dep $depmaplist {
-                lappend all_dependencies [lindex $dep 0]
-            }
-            # and the ones from the current portfile
-            if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
-                array set depportinfo [lindex $result 1]
-                set porturl $depportinfo(porturl)
-                set variations {}
-                set minusvariant [lrange [split [registry::property_retrieve $ref negated_variants] -] 1 end]
-                set plusvariant [lrange [split $variants +] 1 end]
-                foreach v $plusvariant {
-                    lappend variations $v "+"
-                }
-                foreach v $minusvariant {
-                    lappend variations $v "-"
-                }
-                if {![catch {set mport [mportopen $porturl [concat $optionslist subport $portname] [array get variations]]} result]} {
-                    array unset depportinfo
-                    array set depportinfo [mportinfo $mport]
-                    mportclose $mport
-                }
-                foreach type $deptypes {
-                    if {[info exists depportinfo($type)]} {
-                        foreach dep $depportinfo($type) {
-                            lappend all_dependencies [lindex [split $dep :] end]
-                        }
-                    }
-                }
-            }
-        }
-        array unset depportinfo
-        set all_dependencies [lsort -unique $all_dependencies]
-    }
+    set all_dependencies [registry_uninstall::generate_deplist $port $optionslist]
 
     if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
         ui_msg "For $portname @${composite_spec}: skipping uninstall (dry run)"
@@ -273,88 +280,81 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
     }
     
-    # uninstall dependencies if requested
+    # create list of all dependencies that will be uninstalled, if requested
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
         # don't uninstall dependencies' dependents
         if {[info exists options(ports_uninstall_follow-dependents)]} {
             unset options(ports_uninstall_follow-dependents)
             set optionslist [array get options]
         }
-        ## User Interaction Question
-        # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
-        if {[info exists macports::ui_options(questions_yesno)]} {
-            set alldeps $all_dependencies
-            set portilist {}
-            for {set j 0} {$j < [llength $alldeps]} {incr j} {
-                set dep [lindex $alldeps $j]
-                if {![catch {set ilist [registry::installed $dep]}]} {
-                    #puts "I entered the loop"
-                    foreach i $ilist {
-                        set iversion [lindex $i 1]
-                        set irevision [lindex $i 2]
-                        set ivariants [lindex $i 3]
-					    if {[llength [registry::list_dependents $dep $iversion $irevision $ivariants]] == 0} {
-                            set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
-                            if {![registry::property_retrieve $regref requested]} {
-                                #puts "Added to portilist"
-                                lappend portilist $dep@[lindex $i 1]_$irevision 
+        unset options(ports_uninstall_follow-dependencies)
+        set alldeps $all_dependencies
+        set portilist {}
+        set uports {}
+        for {set j 0} {$j < [llength $alldeps]} {incr j} {
+            set dep [lindex $alldeps $j]
+            if {![catch {set ilist [registry::installed $dep]}]} {
+                foreach i $ilist {
+                    set dependents {}
+                    set iversion [lindex $i 1]
+                    set irevision [lindex $i 2]
+                    set ivariants [lindex $i 3]
+                    set dependentlist [registry::list_dependents $dep $iversion $irevision $ivariants]
+                    foreach depdt $dependentlist {
+                        lappend dependents [lindex $depdt 2]
+                    }
+                    set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
+                    if {![registry::property_retrieve $regref requested]} {
+                        if {[llength $dependents] == 0} { 
+                            lappend uports $dep
+                            lappend portilist $dep@[lindex $i 1]_$irevision 
+       	                } else {
+                            foreach depdt $dependents {
+                                set count 0
+                                foreach p $uports {
+                                    if {[string match $p $depdt]} {
+                                        incr count
+                                    }
+                                }
+                                if {$count == [llength $dependents]} {
+                                    lappend portilist $dep@[lindex $i 1]_$irevision
+                                }
                             }
                         }
                     }
                 }
-                set depref [registry::entry imaged $dep]
-                set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
-                if {![catch {set mport [mportopen_installed [$depref name] [$depref version] [$depref revision] [$depref variants] $optionslist]}]} {
-                    array set depportinfo [mportinfo $mport]
-                    mportclose $mport
-                    foreach type $deptypes {
-                        if {[info exists depportinfo($type)]} {
-                            foreach de $depportinfo($type) {
-                                lappend alldeps [lindex [split $de :] end]
-                            }
-                        }
-                    }
-                }
-                set depdeps [$depref dependencies] 
-                foreach d $depdeps {
-                    lappend alldeps [$d name]
-                }
-                set alldeps [lsort -unique $alldeps]
             }
-            set portilist [lsort -unique $portilist]
-            $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
-            unset macports::ui_options(questions_yesno)
-        }
-        while 1 {
-            set remaining_list {}
-            foreach dep $all_dependencies {
-                if {![catch {set ilist [registry::installed $dep]}]} {
-                    set remaining 0
-                    foreach i $ilist {
-                        set iversion [lindex $i 1]
-                        set irevision [lindex $i 2]
-                        set ivariants [lindex $i 3]
-                        if {[llength [registry::list_dependents $dep $iversion $irevision $ivariants]] == 0} {
-                            set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
-                            if {![registry::property_retrieve $regref requested] && ([info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall $optionslist])} {
-                                registry_uninstall::uninstall $dep $iversion $irevision $ivariants $optionslist
-                            }
-                        } else {
-                            set remaining 1
-                        }
-                    }
-                    if {$remaining} {
-                        lappend remaining_list $dep
-                    }
+            set depref [registry::entry imaged $dep]
+            set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
+            foreach dep $depdeps {
+                set index [lsearch $alldeps $dep]
+                if {$index == -1} {
+                    lappend alldeps $dep 
                 }
             }
-            if {[llength $remaining_list] == 0 || [llength $remaining_list] == [llength $all_dependencies]} {
-                break
-            }
-            set all_dependencies $remaining_list
         }
     }
-    
+    ## User Interaction Question
+    # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
+    if {[info exists macports::ui_options(questions_yesno)]} {
+        $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
+    }
+
+     # uninstall all dependencies in order from uports
+#    foreach dep $uports {
+#        if {![catch {set ilist [registry::installed $dep]}]} {
+#            foreach i $ilist {
+#                set iversion [lindex $i 1]
+#                set irevision [lindex $i 2]
+#                set ivariants [lindex $i 3]
+#                set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
+#                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall $optionslist]} {
+#                    registry_uninstall::uninstall $dep $iversion $irevision $ivariants $optionslist
+#                }
+#			}
+#		}
+#	}
+
     return 0
 }
 
