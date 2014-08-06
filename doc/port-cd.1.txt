@@ -1,0 +1,33 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-cd(1)
+==========
+$Id$
+
+NAME
+----
+port-cd - Change the current working directory in interactive mode.
+
+SYNOPSIS
+--------
+To be used only in interactive mode:
+
+*cd*
+    ['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']
+
+DESCRIPTION
+-----------
+*cd* can be used in interactive mode of *port* (see man:port-interactive[7]) to
+change the current working directory to the directory that contains a given
+port. The second parameter is not optional, as it usually is with *cd* in your
+shell.
+
+Note that *port cd* can be used from the command line, but is a no-op.
+
+SEE ALSO
+--------
+man:port[1], man:port-interactive[7]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

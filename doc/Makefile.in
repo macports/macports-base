@@ -21,6 +21,7 @@ MAN1=	\
 		port-archivefetch.1 \
 		port-build.1 \
 		port-cat.1 \
+		port-cd.1 \
 		port-checksum.1 \
 		port-configure.1 \
 		port-contents.1 \
