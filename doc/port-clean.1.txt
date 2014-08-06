@@ -1,0 +1,74 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-clean(1)
+=============
+$Id$
+
+NAME
+----
+port-clean - Remove temporary files used to build a port.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdqypotf*] [*-D* 'portdir'] *clean*
+     [--archive] [--dist] [--logs] [--work] [--all]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port clean* removes temporary files that were while installing a port.
+
+During the installation of a port, a number of files might be placed on your
+system. Whether they actually are depends on the installation process (e.g., if
+a pre-built binary is available, source code will not be downloaded and
+extracted). The temporary files include:
+
+ * Archives of source code, the so-called distfile(s),
+ * log files for the build,
+ * a working directory for the build MacPorts internal state, and folders
+ + used as home and temporary directories,
+ * an extracted copy of the source code, and
+ * a staging directory for installations.
+
+By default, most of these temporary files are removed after a successful
+installation, while others (such as the source code archives) are kept because
+they might be re-used later. However, if a build fails, these files are not
+deleted, might be re-used later and lead to failure again. It is for this
+reason, that the standard approach in case of a build failure in MacPorts is
+*clean* and try again.
+
+Which of the temporary files are removed depends on the flags given to clean.
+The default behavior is *--work*.
+
+OPTIONS
+-------
+*--archive*::
+    Remove partially downloaded binary archives.
+
+*--dist*::
+    Delete source code archives, the so-called distfiles.
+
+*--logs*::
+    Delete log files.
+
+*--work*::
+    Delete the work directory of a port. This is the default and includes the
+    extracted source code, the staging directory and MacPorts' internal progress
+    information. This is included in all but *--logs*.
+
+*--all*::
+    Remove all temporary files. The same as specifying *--archive*, *--dist*,
+    *--logs*, and *--work*.
+
+
+include::global-flags.txt[]
+
+
+SEE ALSO
+--------
+man:port[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

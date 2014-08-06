@@ -23,6 +23,7 @@ MAN1=	\
 		port-cat.1 \
 		port-cd.1 \
 		port-checksum.1 \
+		port-clean.1 \
 		port-configure.1 \
 		port-contents.1 \
 		port-deactivate.1 \
