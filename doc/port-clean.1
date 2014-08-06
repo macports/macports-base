@@ -1,0 +1,143 @@
+'\" t
+.TH "PORT\-CLEAN" "1" "2014\-08\-06" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-clean \- Remove temporary files used to build a port\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-vdqypotf\fR] [\fB\-D\fR \fIportdir\fR] \fBclean\fR
+     [\-\-archive] [\-\-dist] [\-\-logs] [\-\-work] [\-\-all]
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport clean\fR removes temporary files that were while installing a port\&.
+.sp
+During the installation of a port, a number of files might be placed on your system\&. Whether they actually are depends on the installation process (e\&.g\&., if a pre\-built binary is available, source code will not be downloaded and extracted)\&. The temporary files include:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Archives of source code, the so\-called distfile(s),
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+log files for the build,
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a working directory for the build MacPorts internal state, and folders + used as home and temporary directories,
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+an extracted copy of the source code, and
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a staging directory for installations\&.
+.RE
+.sp
+By default, most of these temporary files are removed after a successful installation, while others (such as the source code archives) are kept because they might be re\-used later\&. However, if a build fails, these files are not deleted, might be re\-used later and lead to failure again\&. It is for this reason, that the standard approach in case of a build failure in MacPorts is \fBclean\fR and try again\&.
+.sp
+Which of the temporary files are removed depends on the flags given to clean\&. The default behavior is \fB\-\-work\fR\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-archive\fR
+.RS 4
+Remove partially downloaded binary archives\&.
+.RE
+.PP
+\fB\-\-dist\fR
+.RS 4
+Delete source code archives, the so\-called distfiles\&.
+.RE
+.PP
+\fB\-\-logs\fR
+.RS 4
+Delete log files\&.
+.RE
+.PP
+\fB\-\-work\fR
+.RS 4
+Delete the work directory of a port\&. This is the default and includes the extracted source code, the staging directory and MacPorts\*(Aq internal progress information\&. This is included in all but
+\fB\-\-logs\fR\&.
+.RE
+.PP
+\fB\-\-all\fR
+.RS 4
+Remove all temporary files\&. The same as specifying
+\fB\-\-archive\fR,
+\fB\-\-dist\fR,
+\fB\-\-logs\fR, and
+\fB\-\-work\fR\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
