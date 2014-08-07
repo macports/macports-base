@@ -16,7 +16,7 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-*port clean* removes temporary files that were while installing a port.
+*port clean* removes temporary files that were created while installing a port.
 
 During the installation of a port, a number of files might be placed on your
 system. Whether they actually are depends on the installation process (e.g., if
