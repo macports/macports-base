@@ -100,6 +100,8 @@ proc porttrace::trace_start {workpath} {
             [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist] \
             "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist" \
             /Library/Caches/com.apple.Xcode \
+            /Library/LaunchDaemons \
+            /Library/LaunchAgents \
             /dev \
             /etc/passwd \
             /etc/groups \
