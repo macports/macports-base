@@ -28,6 +28,7 @@ MAN1=	\
 		port-contents.1 \
 		port-deactivate.1 \
 		port-dependents.1 \
+		port-deps.1 \
 		port-destroot.1 \
 		port-edit.1 \
 		port-extract.1 \
@@ -35,6 +36,7 @@ MAN1=	\
 		port-help.1 \
 		port-install.1 \
 		port-patch.1 \
+		port-rdeps.1 \
 		port-rev-upgrade.1 \
 		port-selfupdate.1 \
 		port-uninstall.1 \

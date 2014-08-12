@@ -1,0 +1,56 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-deps(1)
+============
+$Id$
+
+NAME
+----
+port-deps, port-rdeps - Display a dependency listing for the given port(s)
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *deps*
+     [--index] [--no-build]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *rdeps*
+     [--full] [--index] [--no-build]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port deps* lists all dependencies of the given port(s), i.e., the ports that
+need to be installed to build or use a port.
+
+*port rdeps* recursively descends into the dependencies and displays a tree of
+dependencies for a given port.
+
+OPTIONS
+-------
+*--full*::
+    When using *rdeps*, display all branches of the dependency tree instead of
+    listing each dependency only once.
+
+*--index*::
+    Do not read Portfiles, but instead rely solely on the PortIndex information.
+    Note that this option will prevent the dependencies reported from reflecting
+    the effects of any variants specified.
+
+*--no-build*::
+    Exclude dependencies only required at build time, i.e., fetch, extract, and
+    build dependencies.
+
+include::global-flags.txt[]
+
+include::dependents-vs-dependencies.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-variants[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
