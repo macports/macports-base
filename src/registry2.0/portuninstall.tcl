@@ -65,7 +65,8 @@ proc generate_deplist {port {optslist ""}} {
             }
         } else {
             # grab the deps from the dep map
-            set depmaplist [registry::list_depends $portname $version $revision $variants]
+            set portname [$port name]
+            set depmaplist [registry::list_depends $portname [$port version] [$port revision] [$port variants]]
             foreach dep $depmaplist {
                 lappend all_dependencies [lindex $dep 0]
             }
@@ -74,8 +75,8 @@ proc generate_deplist {port {optslist ""}} {
                 array set depportinfo [lindex $result 1]
                 set porturl $depportinfo(porturl)
                 set variations {}
-                set minusvariant [lrange [split [registry::property_retrieve $ref negated_variants] -] 1 end]
-                set plusvariant [lrange [split $variants +] 1 end]
+                set minusvariant [lrange [split [registry::property_retrieve $port negated_variants] -] 1 end]
+                set plusvariant [lrange [split [$port variants] +] 1 end]
                 foreach v $plusvariant {
                     lappend variations $v "+"
                 }
@@ -233,7 +234,10 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     }
 
     set ref $port
-    set all_dependencies [registry_uninstall::generate_deplist $port $optionslist]
+    # save list of dependencies if --follow-dependencies specified
+    if {[info exists options(ports_uninstall_follow-dependencies)]} {
+        set all_dependencies [registry_uninstall::generate_deplist $port $optionslist]
+    }
 
     if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
         ui_msg "For $portname @${composite_spec}: skipping uninstall (dry run)"
@@ -280,6 +284,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
     }
     
+    set uports {}
     # create list of all dependencies that will be uninstalled, if requested
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
         # don't uninstall dependencies' dependents
@@ -287,10 +292,8 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             unset options(ports_uninstall_follow-dependents)
             set optionslist [array get options]
         }
-        unset options(ports_uninstall_follow-dependencies)
         set alldeps $all_dependencies
         set portilist {}
-        set uports {}
         for {set j 0} {$j < [llength $alldeps]} {incr j} {
             set dep [lindex $alldeps $j]
             if {![catch {set ilist [registry::installed $dep]}]} {
@@ -317,6 +320,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                                     }
                                 }
                                 if {$count == [llength $dependents]} {
+                                    lappend uports $dep
                                     lappend portilist $dep@[lindex $i 1]_$irevision
                                 }
                             }
@@ -326,34 +330,35 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             }
             set depref [registry::entry imaged $dep]
             set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
-            foreach dep $depdeps {
-                set index [lsearch $alldeps $dep]
+            foreach d $depdeps {
+                set index [lsearch $alldeps $d]
                 if {$index == -1} {
-                    lappend alldeps $dep 
+                    lappend alldeps $d 
+                }
+            }
+        }
+        ## User Interaction Question
+        # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
+        }
+        unset options(ports_uninstall_follow-dependencies)
+    }
+
+    # uninstall all dependencies in order from uports
+    foreach dp $uports {
+        if {![catch {set ilist [registry::installed $dp]}]} {
+            foreach i $ilist {
+                set iversion [lindex $i 1]
+                set irevision [lindex $i 2]
+                set ivariants [lindex $i 3]
+                set regref [registry::open_entry $dp $iversion $irevision $ivariants [lindex $i 5]]
+                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall [array get options]]} {
+                    registry_uninstall::uninstall $dp $iversion $irevision $ivariants [array get options]
                 }
             }
         }
     }
-    ## User Interaction Question
-    # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
-    if {[info exists macports::ui_options(questions_yesno)]} {
-        $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
-    }
-
-     # uninstall all dependencies in order from uports
-#    foreach dep $uports {
-#        if {![catch {set ilist [registry::installed $dep]}]} {
-#            foreach i $ilist {
-#                set iversion [lindex $i 1]
-#                set irevision [lindex $i 2]
-#                set ivariants [lindex $i 3]
-#                set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
-#                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall $optionslist]} {
-#                    registry_uninstall::uninstall $dep $iversion $irevision $ivariants $optionslist
-#                }
-#			}
-#		}
-#	}
 
     return 0
 }
