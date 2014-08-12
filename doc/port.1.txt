@@ -532,6 +532,9 @@ launchctl load -w /Library/LaunchDaemons/org.macports.${port}.plist
 unload::
     A shortcut to launchctl, like load, but unloads the daemon.
 
+reload::
+    A shortcut to launchctl, like load and unload, but reloads the daemon.
+
 gohome::
     Loads the home page for the given portname in the default web browser.
 
