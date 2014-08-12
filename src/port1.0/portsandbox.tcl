@@ -51,7 +51,8 @@ proc portsandbox::set_profile {target} {
         dmg -
         mdmg -
         load -
-        unload {
+        unload -
+        reload {
             set portsandbox_profile ""
             return
         }

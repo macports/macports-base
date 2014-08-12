@@ -4250,6 +4250,7 @@ array set action_array [list \
     mirror      [list action_target         [ACTION_ARGS_PORTS]] \
     load        [list action_target         [ACTION_ARGS_PORTS]] \
     unload      [list action_target         [ACTION_ARGS_PORTS]] \
+    reload      [list action_target         [ACTION_ARGS_PORTS]] \
     distfiles   [list action_target         [ACTION_ARGS_PORTS]] \
     \
     archivefetch [list action_target         [ACTION_ARGS_PORTS]] \

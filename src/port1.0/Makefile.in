@@ -11,7 +11,7 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portinstall.tcl portuninstall.tcl portdepends.tcl portdestroot.tcl \
 	portlint.tcl portclean.tcl porttest.tcl portactivate.tcl \
 	portdeactivate.tcl portstartupitem.tcl porttrace.tcl portlivecheck.tcl \
-	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl \
+	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl portreload.tcl \
 	portdistfiles.tcl fetch_common.tcl portsandbox.tcl
 
 include $(srcdir)/../../Mk/macports.subdir.mk
