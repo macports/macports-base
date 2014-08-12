@@ -1,0 +1,17 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+
+DEPENDENCY RELATIONS
+--------------------
+
+Do not confuse 'dependents' and 'dependencies' (or, shortened, 'deps').
+Refer to the following example to understand the difference:
+
+----
+portA --> portB
+----
+
+*portA* depends on *portB*, i.e., *portA* needs *portB* to run. Because of
+that, *portB* is a 'dependency' (or 'dep') of *portA*. After installing
+*portA*, *portB* has been automatically installed. At this point, *portA* has
+become a 'dependent' of *portB*. You can only uninstall *portB* once all of its
+dependents (i.e., including *portA*) have been uninstalled.

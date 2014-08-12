@@ -27,6 +27,7 @@ MAN1=	\
 		port-configure.1 \
 		port-contents.1 \
 		port-deactivate.1 \
+		port-dependents.1 \
 		port-destroot.1 \
 		port-edit.1 \
 		port-extract.1 \

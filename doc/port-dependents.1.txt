@@ -1,0 +1,51 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-dependents(1)
+==================
+$Id$
+
+NAME
+----
+port-dependents - List ports that depend on a given (installed) port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *dependents*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port dependents* reports which ports depend upon a given (installed) port, if
+any. Note that *dependents* does not work for ports that are not installed on
+your system. It uses the database of installed ports that MacPorts keeps
+internally, which records the dependency relations at installation time. *port
+dependents* prints this information.
+
+For this reason, *port dependents* does not work for ports that are not
+installed on your system. If you want to find out which ports depend on a port
+you haven't installed, you can use the *depends:* pseudo-portname selector:
+
+----
+port echo depends:<portname>
+----
+
+This command will, however, not cover dependencies that are only present in
+non-default variants. For more information about pseudo-portname selectors, see
+man:port[1].
+
+The dependency relations printed by *port dependents* are the same that are used
+to determine if a port can be safely uninstalled. Ports that still have
+dependents installed cannot be uninstalled without either the
+*--follow-dependents* or the *-f* flag. See man:port-uninstall[1] for more
+details.
+
+include::dependents-vs-dependencies.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-echo[1], man:port-deps[1], man:port-uninstall[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
