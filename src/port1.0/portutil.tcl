@@ -2479,11 +2479,11 @@ proc addgroup {name args} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
         try {
-            exec $dscl . -create /Groups/${name} Password ${passwd}
-            exec $dscl . -create /Groups/${name} RealName ${realname}
-            exec $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+            exec -ignorestderr $dscl . -create /Groups/${name} Password ${passwd}
+            exec -ignorestderr $dscl . -create /Groups/${name} RealName ${realname}
+            exec -ignorestderr $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
             if {${users} ne ""} {
-                exec $dscl . -create /Groups/${name} GroupMembership ${users}
+                exec -ignorestderr $dscl . -create /Groups/${name} GroupMembership ${users}
             }
         } catch {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
