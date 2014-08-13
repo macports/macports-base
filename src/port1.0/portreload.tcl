@@ -59,6 +59,10 @@ proc portreload::reload_main {args} {
         } else {
             # Basically run port unload; port load.
             exec -ignorestderr $launchctl_path unload -w $path
+            # Let's wait a second. #36054 suggests some ports have problems
+            # when they are re-started too quickly, and I hope the second
+            # doesn't hurt too much.
+            after 1000
             exec -ignorestderr $launchctl_path load -w $path
         }
     }
