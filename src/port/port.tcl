@@ -5227,7 +5227,8 @@ namespace eval portclient::notifications {
         # Display notes at the end of the activation phase.
         if {[array size notificationsToPrint] > 0} {
             ui_notice "--->  Some of the ports you installed have notes:"
-            foreach {name notes} [array get notificationsToPrint] {
+            foreach name [lsort [array names notificationsToPrint]] {
+                set notes $notificationsToPrint($name)
                 ui_notice "  $name has the following notes:"
 
                 # If env(COLUMNS) exists, limit each line's width to this width.
