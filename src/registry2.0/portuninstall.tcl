@@ -220,7 +220,10 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
     } else {
         # check its dependents
-        registry::check_dependents $port ${uninstall.force} "uninstall"
+        set userinput [registry::check_dependents $port ${uninstall.force} "uninstall"]
+        if {$userinput eq "quit"} {
+            return 0
+        }
     }
     # if it's active, deactivate it
     if {[$port state] eq "installed"} {
@@ -228,7 +231,13 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             ui_msg "For $portname @${composite_spec}: skipping deactivate (dry run)"
         } else {
             if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
-                portimage::deactivate $portname $version $revision $variants [array get options]
+                if {catch {$userinput eq "forcedbyuser"} result} {
+                    set options(ports_nodepcheck) "yes"
+                    portimage::deactivate $portname $version $revision $variants [array get options]
+                    unset options(ports_nodepcheck) 
+             } else {
+                    portimage::deactivate $portname $version $revision $variants [array get options]
+                }
             }
         }
     }
