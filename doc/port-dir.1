@@ -1,0 +1,90 @@
+'\" t
+.TH "PORT\-DEPS" "1" "2014\-08\-14" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-dir, port-url, port-file, port-location, port-work \- Print paths for certain properties of a port
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-D\fR \fIportdir\fR] \fBdir\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.sp
+.nf
+\fBport\fR [\fB\-D\fR \fIportdir\fR] \fBurl\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.sp
+.nf
+\fBport\fR [\fB\-D\fR \fIportdir\fR] \fBfile\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.sp
+.nf
+\fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBlocation\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.sp
+.nf
+\fBport\fR [\fB\-D\fR \fIportdir\fR] \fBwork\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+These commands print a path for each given port\&. The meaning of the path differs by the command given:
+.sp
+\fBport dir\fR prints the directory that contains the Portfile for the given port expression\&. This can be quite handy in your shell, if you want to locate a Portfile:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+cd $(port dir <portname>)
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+\fBport url\fR prints a unique URL for the given port expression\&. This command mostly exists for historical reasons and isn\(cqt of much use nowadays\&.
+.sp
+\fBport file\fR prints the path of the Portfile for the given port expression\&. This can be useful to locate a port\(cqs definition\&. Note that you can always get this by using \fBport dir\fR and appending \fIPortfile\fR\&. You could use \fBport file\fR in a shell to edit a Portfile, but note that you can also use \fBport-edit\fR(1) to achieve the same\&.
+.sp
+\fBport location\fR only works for installed ports and prints the location of the archive MacPorts internally uses to be able to deactivate and activate a port\&. See \fBport-activate\fR(1) for more details on that\&. This command might be useful for you if you want to setup a local binary mirror of MacPorts packages that are not available from our official infrastructure due to licensing reasons\&.
+.sp
+\fBport work\fR prints the path to the so\-called \fIwork\fR directory, i\&.e\&., the directory used by MacPorts to build a port\&. No output is generated if no build directory exists, e\&.g\&., because there is no unfinished build in progress for the given port\&. Work directories are deleted after successful installation or using \fBport-clean\fR(1)\&.
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBport-edit\fR(1), \fBport-activate\fR(1), \fBport-clean\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
