@@ -31,6 +31,7 @@ MAN1=	\
 		port-deps.1 \
 		port-destroot.1 \
 		port-dir.1 \
+		port-distcheck.1 \
 		port-edit.1 \
 		port-extract.1 \
 		port-fetch.1 \
