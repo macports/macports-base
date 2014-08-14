@@ -77,12 +77,29 @@ proc check_dependents {port force {action "uninstall/deactivate"}} {
             set deplist $active_deplist
         }
         if { [llength $deplist] > 0 } {
-            ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to %s %s @%s_%s%s, the following ports depend on it:"] $action [$port name] [$port version] [$port revision] [$port variants]]"
-            foreach depport $deplist {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] [$depport name] [$depport version] [$depport revision] [$depport variants]]"
+            ## User Interaction Question
+            # ask if user wants to uninstall a port and thereby break its dependents
+            if {[info exists macports::ui_options(questions_yesno)] && ![string is true -strict $force]} { 
+                set portulist {}
+                foreach depport $deplist {
+                    lappend portulist [$depport name]@[$depport version]_[$depport revision]
+                }
+                ui_msg "Note: It is not recommended to uninstall/deactivate a port that has dependents as it breaks the dependents."
+                set retvalue [$macports::ui_options(questions_yesno) "The following ports will break:" "breakDeps" $portulist {n} 0]
+                if {$retvalue == 0} {
+                    set force "yes"
+                } else {
+                    return quit
+                }
+            } else {	
+                ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to %s %s @%s_%s%s, the following ports depend on it:"] $action [$port name] [$port version] [$port revision] [$port variants]]"
+                foreach depport $deplist {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] [$depport name] [$depport version] [$depport revision] [$depport variants]]"
+                }
             }
             if { [string is true -strict $force] } {
                 ui_warn "[string totitle $action] forced.  Proceeding despite dependencies."
+                return forcedbyuser
             } else {
                 throw registry::uninstall-error "Please uninstall the ports that depend on [$port name] first."
             }
