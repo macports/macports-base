@@ -185,8 +185,6 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         return -code error "Active version of $name is not $v but ${specifier}."
     }
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
-
     if { [$requested installtype] ne "image" } {
         return -code error "Image error: ${name} @${specifier} not installed as an image."
     }
@@ -194,11 +192,16 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     if { [$requested state] ne "installed" } {
         return -code error "Image error: ${name} @${specifier} is not active."
     }
-
+	
     if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
-        registry::check_dependents $requested $force "deactivate"
+        set retvalue [registry::check_dependents $requested $force "deactivate"]
+        if {$retvalue eq "quit"} {
+            return
+        }
     }
 
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
+	
     _deactivate_contents $requested [$requested files] $force
 }
 
