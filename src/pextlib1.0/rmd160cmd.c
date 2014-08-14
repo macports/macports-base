@@ -35,6 +35,9 @@
 #include <config.h>
 #endif
 
+/* required for u_char on Linux */
+#define _BSD_SOURCE
+
 #include <string.h>
 #include <stdio.h>
 #include <fcntl.h>

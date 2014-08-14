@@ -131,6 +131,9 @@
 
 #include "strsed.h"
 
+/* required for strdup(3) on Linux and OS X */
+#define _XOPEN_SOURCE 600L
+
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>

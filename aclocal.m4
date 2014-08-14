@@ -147,7 +147,7 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 				AC_MSG_ERROR([Don't know how to extract tarball $mp_tarball])
 				;;
 		esac
-		(cd "$mp_tarball_vendordir"; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
+		(cd "$mp_tarball_vendordir"; umask 0022; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
 	fi
 	if ! test -d "$ac_dir"; then
 		AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])

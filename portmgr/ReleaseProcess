@@ -103,14 +103,13 @@ revision of the final tagging of base and then switching the base directory to t
 tag URL. For instance:
 
  svn co [-r<rev>] https://svn.macports.org/repository/macports/trunk release_2.0.0-archive
- cd release_2.0.0-archive/base
- svn switch https://svn.macports.org/repository/macports/tags/release_2_0_0/base
+ cd release_2.0.0-archive
+ svn rm base
+ svn cp https://svn.macports.org/repository/macports/tags/release_2_0_0/base base
 
 And finally we tag the entire directory as release_2_0_0-archive:
 
-FIXME: this doesn't seem to work any more. The base subdir in the tag ends up being from trunk.
-
- cd ../../
+ cd ..
  svn cp -m "commit-message" release_2.0.0-archive https://svn.macports.org/repository/macports/tags/release_2_0_0-archive
 
 
@@ -233,7 +232,6 @@ Once the release has been posted, notification of the release should be sent/pos
    appropriate in the trunk/www/includes/common.inc file.
  * The &macports-version; entity in trunk/doc-new/guide/xml/installing.xml.
  * [https://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
- * [http://freecode.com/projects/macports/ Freecode] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
  * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: rhwood@)
  * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
@@ -247,5 +245,3 @@ Once the release has been posted, notification of the release should be sent/pos
 Using new features introduced by a release should be delayed for 14 days. This
 should allow users to upgrade their installations to the new release. This
 delay matches the warning about outdated ports tree sources.
-
-

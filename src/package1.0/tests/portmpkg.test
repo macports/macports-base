@@ -21,6 +21,8 @@ macports_worker_init
 
 test mpkg_main {
     Port mpkg main unit test.
+} -constraints {
+    darwin
 } -setup {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories

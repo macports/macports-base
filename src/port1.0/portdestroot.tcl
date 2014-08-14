@@ -171,23 +171,33 @@ proc portdestroot::destroot_finish {args} {
 
     # Prevent overlinking due to glibtool .la files: https://trac.macports.org/ticket/38010
     ui_debug "Fixing glibtool .la files in destroot for ${subport}"
+    set la_file_list [list]
     fs-traverse -depth fullpath ${destroot} {
-        if {[file extension $fullpath] eq ".la" && [file type $fullpath] eq "file"} {
+        if {[file extension $fullpath] eq ".la" && ([file type $fullpath] eq "file" || [file type $fullpath] eq "link")} {
+            if {[file type $fullpath] eq "link" && [file pathtype [file link $fullpath]] ne "relative"} {
+                # prepend $destroot to target of absolute symlinks
+                set checkpath ${destroot}[file link $fullpath]
+            } else {
+                set checkpath $fullpath
+            }
             # Make sure it is from glibtool ... "a libtool library file" will appear in the first line
-            if {![catch {set fp [open $fullpath]}]} {
+            if {![catch {set fp [open $checkpath]}]} {
                 if {[gets $fp line] > 0 && [string first "a libtool library file" $line] != -1} {
-                    if {${destroot.delete_la_files}} {
-                        ui_debug "Removing [file tail $fullpath]"
-                        file delete -force ${fullpath}
-                    } else {
-                        ui_debug "Clearing dependency_libs in [file tail $fullpath]"
-                        reinplace "/dependency_libs/ s/'.*'/''/" ${fullpath}
-                    }
+                    lappend la_file_list $fullpath
                 }
             } else {
-                ui_debug "Failed to open $fullpath"
+                ui_debug "Failed to open $checkpath"
             }
             catch {close $fp}
+        }
+    }
+    foreach fullpath $la_file_list {
+        if {${destroot.delete_la_files}} {
+            ui_debug "Removing [file tail $fullpath]"
+            file delete -force ${fullpath}
+        } elseif {[file type $fullpath] eq "file"} {
+            ui_debug "Clearing dependency_libs in [file tail $fullpath]"
+            reinplace "/dependency_libs/ s/'.*'/''/" ${fullpath}
         }
     }
 

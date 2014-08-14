@@ -43,7 +43,7 @@ default portsandbox_profile {}
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
     global os.major portsandbox_profile workpath distpath altprefix \
-        package.destpath configure.ccache ccache_dir rpm.srcdir rpm.tmpdir
+        package.destpath configure.ccache ccache_dir
 
     switch $target {
         activate -
@@ -51,7 +51,8 @@ proc portsandbox::set_profile {target} {
         dmg -
         mdmg -
         load -
-        unload {
+        unload -
+        reload {
             set portsandbox_profile ""
             return
         }
@@ -72,10 +73,6 @@ proc portsandbox::set_profile {target} {
             } else {
                 set allow_dirs [list ${package.destpath}]
             }
-        }
-        rpm -
-        srpm {
-            set allow_dirs [list ${rpm.srcdir} ${rpm.tmpdir}]
         }
     }
 

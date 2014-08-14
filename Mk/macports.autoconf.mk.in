@@ -70,4 +70,6 @@ infodir			= @infodir@
 mpconfigdir		= @MPCONFIGDIR@
 portsdir		= @PORTSDIR@
 
+MACPORTS_VERSION	= @MACPORTS_VERSION@
+
 SILENT			= @

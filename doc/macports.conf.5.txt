@@ -1,0 +1,255 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+macports.conf(5)
+================
+$Id$
+
+NAME
+----
+macports.conf - Configuration file of the MacPorts system
+
+DESCRIPTION
+-----------
+*macports.conf* is the configuration file used to bootstrap the MacPorts
+system. This file is read by the *port* command and determines how it behaves.
+Lines beginning with '#' are comments, empty lines are ignored. The format is
+that of a simple key/value space or tab separated pair.
+
+The file contains entries of the form:
+--------
+<key> <value>
+--------
+
+The value of any given key can be referred to by the '$\{<keyname>\}'
+abstraction, where '<keyname>' expands to the key in question.
+
+KEYS
+----
+// Set default style for second-level labeled lists in this section
+:listdef-labeled2.style: horizontal
+
+The following keys are used by *port* itself:
+
+prefix::
+    Sets the directory where ports are installed. Any path may be used but those
+    with spaces and/or non ascii characters should be avoided, as this can break
+    some ports. This key is often referred to as '$\{prefix\}'.
+    *Default:*;; /opt/local
+
+portdbpath::
+    Directory where MacPorts keeps working data such as downloaded sources,
+    installed ports' receipts and the main registry. The same path restrictions
+    apply as for '$\{prefix\}'.
+    *Default:*;; $\{prefix\}/var/macports
+
+portdbformat::
+    Storage type to use for the MacPorts registry. The preferred format is
+    "sqlite", with "flat" also available as a legacy format.
+    *Default:*;; sqlite
+
+applications_dir::
+    Directory containing Applications installed from ports.
+    *Default:*;; /Applications/MacPorts
+
+frameworks_dir::
+    Directory containing Frameworks installed from ports.
+    *Default:*;; $\{prefix\}/Library/Frameworks
+
+sources_conf::
+    Location of the sources file. This file enables rsync synchronization of the
+    default ports tree with the MacPorts rsync server (through the "sync" target
+    of the port command) and any other local tree(s) you might have.
+    *Default:*;; $\{prefix\}/etc/macports/sources.conf
+
+variants_conf::
+    Location of the optional global variants definition file, listing those that
+    should be used in all installed ports if available.
+    *Default:*;; $\{prefix\}/etc/macports/variants.conf
+
+buildfromsource::
+    Controls whether ports are built from source or downloaded as pre-built
+    archives. Setting to 'always' will never use archives, 'never' will always
+    try to use an archive and fail if one is not available. 'ifneeded' will try
+    to fetch an archive and fall back to building from source if that isn't
+    possible.
+    *Default:*;; ifneeded
+
+portarchivetype::
+    Format of archives in which to store port images. This controls both the
+    type of archive cre- ated locally after building from source, and the type
+    to request from remote servers. Changing this will not affect the usability
+    of already installed archives; they can be of any supported type.
+    *Supported types:*;; tgz, tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
+    *Default:*;; tbz2
+
+configureccache::
+    Use ccache (C/C++ compiler cache). Requires that ccache has been installed.
+    *Default:*;; no
+
+ccache_dir::
+    Location where ccache stores its files
+    *Default:*;; $\{portdbpath\}/build/.ccache
+
+ccache_size::
+    Maximum size ccache may use. Use 'G', 'M', or 'K' suffix for giga-, mega- or
+    kilobytes.
+    *Default:*;; 2G
+
+configuredistcc::
+    Use distcc (distributed compiler). Requires that distcc has been installed.
+    *Default:*;; no
+
+configurepipe::
+    Use pipes rather than intermediate files when compiling C/C++/etc (gcc
+    -pipe)
+    *Default:*;; yes
+
+buildnicevalue::
+    Lowered scheduling priority (0-20) to use for make when building ports
+    *Default:*;; 0
+
+buildmakejobs::
+    Number of simultaneous make jobs (commands) to use when building ports. 0 is
+    a special value meaning "the number of CPU cores or the number of GB of
+    physical memory plus one, whichever is less."
+    *Default:*;; 0
+
+portautoclean::
+    Automatic cleaning of the build directory of a given port after it has been
+    installed.
+    *Default:*;; yes
+
+keeplogs::
+    Keep logs for ports.
+    *Default:*;; no
+
+build_arch::
+    The machine architecture to try to build for in normal use.
+    *Regular architectures include:*;; ppc, i386, ppc64, x86_64
+    *Default (10.6):*;; x86_64 or i386 depending on hardware
+    *Default (10.5 and earlier):*;; i386 or ppc depending on hardware
+
+universal_archs::
+    The machine architectures to use for +universal variant (multiple
+    architecture entries should be space separated).
+    *Regular architectures include:*;; ppc, i386, ppc64, x86_64
+    *Default (10.6):*;; x86_64 i386
+    *Default (10.5 and earlier):*;; i386 ppc
+
+startupitem_type::
+    Set the default type of startupitems to be generated, overridable by
+    Portfiles that explicitly state a startupitem.type key. If set to "default",
+    then a type will be selected that's appropriate to the OS.
+    *Supported types:*;; none, SystemStarter, launchd, default, rcNG.
+    *Default:*;; default
+
+destroot_umask::
+    Umask value to use during the destrooting of a port.
+    *Default:*;; 022
+
+rsync_server::
+    Default rsync server to connect to when running "selfupdate" through the
+    port com- mand to update your base MacPorts infrastructure. While selfupdate
+    also syncs the ports tree, it uses the settings from $\{sources_conf\} to do
+    so.
+    *Default:*;; rsync.macports.org
+
+rsync_dir::
+    Rsync directory from which to pull MacPorts sources from the rsync server.
+    *Default:*;; release/base/ (which pulls sources for the currently shipping
+    MacPorts release)
+
+rsync_options::
+    Default rsync options to use when connecting to the rsync server.
+    *Default:*;; -rtzv --delete-after
+
+binpath::
+    Sets the directory search path for locating system executables used by
+    MacPorts. This variable should contain the paths for locating utilities such
+    as rsync, tar, cvs and others. Don't change this unless you understand and
+    accept the consequences.
+    *Default:*;; $\{prefix\}/bin:$\{prefix\}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+
+extra_env::
+    List of extra environment variables MacPorts should keep in the user's
+    environment when sanitizing it. Changing this is unsupported.
+
+proxy_override_env::
+    Proxy support. Precedence is: env, macports.conf, System Preferences. That
+    is, if it's set in the environment, that will be used instead of anything
+    here or in System Preferences. Setting proxy_override_env to yes will cause
+    any proxies set here (or in System Preferences if set there but not here) to
+    override what's in the environment. Note that System Preferences doesn't
+    have an rsync proxy definition. Also note, on 10.5, sudo will clear many
+    environment variables including those for proxy support. Equivalent
+    environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY, RSYNC_PROXY,
+    NO_PROXY
+    *Default:*;; yes
+
+proxy_http::
+    HTTP proxy
+    *Default:*;; none
+
+proxy_https::
+    HTTPS proxy
+    *Default:*;; none
+
+proxy_ftp::
+    FTP proxy
+    *Default:*;; none
+
+proxy_rsync::
+    rsync proxy
+    *Default:*;; none
+
+proxy_skip::
+    Hosts not to go through the proxy (comma-separated, applies to HTTP, HTTPS
+    and FTP, but not rsync).
+    *Default:*;; none
+
+host_blacklist::
+    Space separated list of download hosts that should not be used.
+    *Default:*;; none
+
+preferred_hosts::
+    Space separated list of download hosts that should be used preferentially.
+    *Default:*;; none
+
+revupgrade_autorun::
+    Controls whether the rev-upgrade action will be run automatically after
+    upgrading ports.
+    *Default:*;; yes
+
+revupgrade_mode::
+    Controls the rev-upgrade functionality which checks for broken linking and
+    can rebuild ports to fix it. 'rebuild' means ports will automatically be
+    rebuilt when broken linking is detected in their files, while 'report' means
+    broken files will be scanned for and reported but the ports will not be
+    rebuilt.
+    *Default:*;; rebuild
+
+default_compiler::
+    Default value for configure.compiler. This can be a space-separated list.
+    Later entries will be used if earlier entries are unavailable or blacklisted
+    by a port. Setting this is unsupported.
+    *Default:*;; none (internal list based on Xcode version is normally used)
+
+FILES
+-----
+
+$\{prefix\}/etc/macports/macports.conf::
+    Standard system-wide MacPorts configuration file.
+
+~/.macports/macports.conf::
+    User-specific configuration override. This file, if found, will be used
+    instead of the default file at $\{prefix\}/etc/macports/macports.conf.
+
+SEE ALSO
+--------
+man:port[1], man:portfile[7]
+
+AUTHORS
+-------
+  (C) 2007-2011 The MacPorts Project
+  Juan Manuel Palacios <jmpp@macports.org>
+  Matt Anton <matt@opendarwin.org>
+  Rainer Mueller <raimue@macports.org>

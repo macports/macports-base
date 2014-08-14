@@ -30,7 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+/* required for asprintf(3) on OS X */
+#define _DARWIN_C_SOURCE
+/* required for asprintf(3) on Linux */
+#define _GNU_SOURCE
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -109,14 +116,15 @@ char *macho_format_dylib_version (uint32_t version) {
     return result;
 }
 
-const char *macho_get_arch_name (cpu_type_t cputype) {
 #ifdef __MACH__
+const char *macho_get_arch_name (cpu_type_t cputype) {
     const NXArchInfo *archInfo = NXGetArchInfoFromCpuType(cputype, CPU_SUBTYPE_MULTIPLE);	
     if (!archInfo) {
         return NULL;
     }
     return archInfo->name;
 #else
+const char *macho_get_arch_name (cpu_type_t cputype UNUSED) {
     return NULL;
 #endif
 }
@@ -239,8 +247,8 @@ static macho_loadcmd_t *macho_loadcmdlist_append (macho_arch_t *mat) {
 #endif
 
 /* Parse a Mach-O header */
-static int parse_macho (macho_t *mt, macho_input_t *input) {
 #ifdef __MACH__
+static int parse_macho (macho_t *mt, macho_input_t *input) {
     /* Read the file type. */
     const uint32_t *magic = macho_read(input, input->data, sizeof(uint32_t));
     if (magic == NULL)
@@ -437,14 +445,12 @@ static int parse_macho (macho_t *mt, macho_input_t *input) {
     }
 
     return MACHO_SUCCESS;
-#else
-    return 0;
-#endif
 }
+#endif
 
 /* Parse a (possible Mach-O) file. For a more detailed description, see the header */
-int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t **res) {
 #ifdef __MACH__
+int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t **res) {
     int fd;
     struct stat st;
     void *data;
@@ -505,6 +511,7 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
 
     return ret;
 #else
+int macho_parse_file(macho_handle_t *handle UNUSED, const char *filepath UNUSED, const macho_t **res UNUSED) {
     return 0;
 #endif
 }

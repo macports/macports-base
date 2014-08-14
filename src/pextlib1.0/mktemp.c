@@ -34,6 +34,13 @@
 #include <config.h>
 #endif
 
+/* required for strdup(3)/mkdtemp(3) on Linux */
+#define _XOPEN_SOURCE 700L
+/* required for mktemp(3) if _XOPEN_SOURCE >= 600L on Linux */
+#define _BSD_SOURCE
+/* required for mkdtemp(3) on OS X */
+#define _DARWIN_C_SOURCE
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1820,38 +1820,61 @@ proc action_usage { action portlist opts } {
 
 
 proc action_help { action portlist opts } {
-    set helpfile "$macports::prefix/var/macports/port-help.tcl"
-
+    set manext ".gz"
     if {[llength $portlist] == 0} {
-        print_help
-        return 0
-    }
-
-    if {[file exists $helpfile]} {
-        if {[catch {source $helpfile} err]} {
-            puts stderr "Error reading helpfile $helpfile: $err"
-            return 1
-        }
+        set page "man1/port.1$manext"
     } else {
-        puts stderr "Unable to open help file $helpfile"
-        return 1
+        set topic [lindex $portlist 0]
+
+        # Look for an action with the requested argument
+        set actions [find_action $topic]
+        if {[llength $actions] == 1} {
+            set page "man1/port-[lindex $actions 0].1$manext"
+        } else {
+            if {[llength $actions] > 1} {
+                ui_error "\"port help ${action}\" is ambiguous: \n  port help [join $actions "\n  port help "]"
+                return 1
+            }
+
+            # No valid command specified
+            set page ""
+        }
     }
 
-    foreach topic $portlist {
-        if {![info exists porthelp($topic)]} {
-            puts stderr "No help for topic $topic"
+    set pagepath ${macports::prefix}/share/man/$page
+    if {$page == "" || ![file exists $pagepath]} {
+        set page "man7/portundocumented.7$manext"
+        set pagepath ${macports::prefix}/share/man/$page
+    }
+
+    if {$pagepath != ""} {
+        ui_debug "Opening man page '$pagepath'"
+
+        # Restore our entire environment from start time.
+        # man might want to evaluate TERM
+        global env boot_env
+        array unset env_save; array set env_save [array get env]
+        array unset env *
+        if {${macports::macosx_version} == "10.5"} {
+            unsetenv *
+        }
+        array set env [array get boot_env]
+
+        if [catch {system -nodup "${macports::autoconf::man_path} $pagepath"} result] {
+            ui_debug "$::errorInfo"
+            ui_error "Unable to show man page using ${macports::autoconf::man_path}: $result"
             return 1
         }
 
-        set usage [action_get_usage $topic]
-        if {$usage != -1} {
-           puts -nonewline stderr $usage
-        } else {
-            ui_error "No usage for topic $topic"
-            return 1
+        # Restore internal MacPorts environment
+        array unset env *
+        if {${macports::macosx_version} == "10.5"} {
+            unsetenv *
         }
-
-        puts stderr $porthelp($topic)
+        array set env [array get env_save]
+    } else {
+        ui_error "Sorry, no help for this topic is available."
+        return 1
     }
 
     return 0
@@ -2497,7 +2520,10 @@ proc action_select { action portlist opts } {
 
     # Error out if no group is specified or command is not --summary.
     if {[llength $portlist] < 1 && [string map {ports_select_ ""} [lindex $commands 0]] != "summary"} {
-        ui_error "port select \[--list|--set|--show|--summary] \<group> \[<version>]"
+        ui_error "Incorrect usage. Correct synopsis is one of:"
+        ui_msg   "  port select \[--list|--show\] <group>"
+        ui_msg   "  port select \[--set\] <group> <version>"
+        ui_msg   "  port select --summary"
         return 1
     }
 
@@ -2733,9 +2759,12 @@ proc action_upgrade { action portlist opts } {
 
 proc action_revupgrade { action portlist opts } {
     set status [macports::revupgrade $opts]
-    if {$status != 0} {
-        print_tickets_url
+    switch $status {
+        1 {
+            print_tickets_url
+        }
     }
+
     return $status
 }
 
@@ -3661,7 +3690,7 @@ proc action_search { action portlist opts } {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
-            if {[catch {eval set matches \[mportsearch \$searchstring $filter_case \$matchstyle $opt\]} result]} {
+            if {[catch {set matches [mportsearch $searchstring $filter_case $matchstyle $opt]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "search for name $portname failed: $result" 1 status
@@ -3890,7 +3919,7 @@ proc action_portcmds { action portlist opts } {
                     if { $editor eq "" } { set editor "/usr/bin/vi" }
                     
                     # Invoke the editor
-                    if {[catch {eval exec >@stdout <@stdin 2>@stderr $editor {$portfile}} result]} {
+                    if {[catch {exec -ignorestderr >@stdout <@stdin {*}$editor $portfile} result]} {
                         global errorInfo
                         ui_debug "$errorInfo"
                         break_softcontinue "unable to invoke editor $editor: $result" 1 status
@@ -4221,6 +4250,7 @@ array set action_array [list \
     mirror      [list action_target         [ACTION_ARGS_PORTS]] \
     load        [list action_target         [ACTION_ARGS_PORTS]] \
     unload      [list action_target         [ACTION_ARGS_PORTS]] \
+    reload      [list action_target         [ACTION_ARGS_PORTS]] \
     distfiles   [list action_target         [ACTION_ARGS_PORTS]] \
     \
     archivefetch [list action_target         [ACTION_ARGS_PORTS]] \
@@ -4228,12 +4258,9 @@ array set action_array [list \
     unarchive   [list action_target         [ACTION_ARGS_PORTS]] \
     dmg         [list action_target         [ACTION_ARGS_PORTS]] \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
-    dpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
     portpkg     [list action_target         [ACTION_ARGS_PORTS]] \
-    rpm         [list action_target         [ACTION_ARGS_PORTS]] \
-    srpm        [list action_target         [ACTION_ARGS_PORTS]] \
     \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
@@ -4597,6 +4624,16 @@ proc process_cmd { argv } {
         # What kind of arguments does the command expect?
         set expand [action_needs_portlist $action]
 
+        # (Re-)initialize private_options(ports_no_args) to no, because it might still be yes
+        # from the last command in batch mode. If we don't do this, port will fail to
+        # distinguish arguments that expand to empty lists from no arguments at all:
+        # > installed
+        # > list outdated
+        # will then behave like
+        # > list
+        # if outdated expands to the empty list. See #44091, which was filed about this.
+        set private_options(ports_no_args) "no"
+
         # Parse action arguments, setting a special flag if there were none
         # We otherwise can't tell the difference between arguments that evaluate
         # to the empty set, and the empty set itself.
@@ -4604,7 +4641,7 @@ proc process_cmd { argv } {
         switch -- [lookahead] {
             ;       -
             _EOF_ {
-                set private_options(ports_no_args) yes
+                set private_options(ports_no_args) "yes"
             }
             default {
                 if {[ACTION_ARGS_NONE] == $expand} {
@@ -4778,7 +4815,7 @@ proc process_command_file { in } {
 
         # Calculate our prompt
         if { $noisy } {
-            set shortdir [eval file join [lrange [file split $current_portdir] end-1 end]]
+            set shortdir [file join {*}[lrange [file split $current_portdir] end-1 end]]
             set prompt "\[$shortdir\] > "
         } else {
             set prompt ""
@@ -5196,7 +5233,8 @@ namespace eval portclient::notifications {
         # Display notes at the end of the activation phase.
         if {[array size notificationsToPrint] > 0} {
             ui_notice "--->  Some of the ports you installed have notes:"
-            foreach {name notes} [array get notificationsToPrint] {
+            foreach name [lsort [array names notificationsToPrint]] {
+                set notes $notificationsToPrint($name)
                 ui_notice "  $name has the following notes:"
 
                 # If env(COLUMNS) exists, limit each line's width to this width.

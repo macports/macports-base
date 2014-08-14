@@ -26,6 +26,8 @@ source ../../port1.0/port_autoconf.tcl
 
 test package_mdmg {
     Package mdmg unit test.
+} -constraints {
+    darwin
 } -setup {
     set os.major 10
     set os.arch i386

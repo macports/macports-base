@@ -31,7 +31,6 @@ mkdir -p /darwinports/distfiles
 mkdir -p /darwinports/logs
 mkdir -p /darwinports/pkgs
 mkdir -p /darwinports/mpkgs
-mkdir -p /darwinports/rpms
 
 cd $HOME/darwinports
 #tclsh base/src/portmgr/packageall.tcl

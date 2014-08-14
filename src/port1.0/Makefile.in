@@ -11,7 +11,7 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portinstall.tcl portuninstall.tcl portdepends.tcl portdestroot.tcl \
 	portlint.tcl portclean.tcl porttest.tcl portactivate.tcl \
 	portdeactivate.tcl portstartupitem.tcl porttrace.tcl portlivecheck.tcl \
-	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl \
+	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl portreload.tcl \
 	portdistfiles.tcl fetch_common.tcl portsandbox.tcl
 
 include $(srcdir)/../../Mk/macports.subdir.mk
@@ -31,14 +31,14 @@ distclean:: clean
 	rm -f Makefile
 
 install:: all
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
 	$(SILENT)set -x; for file in ${SRCS}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $(srcdir)/$$file ${INSTALLDIR}; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$(srcdir)/$$file" "${INSTALLDIR}"; \
 	done
 	$(SILENT)set -x; for file in ${SRCS_AUTOCONF}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${INSTALLDIR}"; \
 	done
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
+	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${INSTALLDIR}"
 
 test::
 	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor

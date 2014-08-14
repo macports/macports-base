@@ -146,7 +146,7 @@ proc portlivecheck::livecheck_main {args} {
         "regexm" {
             # single and multiline regex
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {eval curl fetch $curl_options {${livecheck.url}} $tempfile} error]} {
+            if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfile} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
                 set updated -1
             } else {
@@ -198,7 +198,7 @@ proc portlivecheck::livecheck_main {args} {
         }
         "md5" {
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {eval curl fetch $curl_options {${livecheck.url}} $tempfile} error]} {
+            if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfile} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
                 set updated -1
             } else {

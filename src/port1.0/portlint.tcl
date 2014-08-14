@@ -1,6 +1,33 @@
-# et:ts=4
-# portlint.tcl
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # $Id$
+#
+# Copyright (c) 2007 - 2014 The MacPorts Project
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of The MacPorts Project nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 package provide portlint 1.0
 package require portutil 1.0
@@ -262,6 +289,11 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
+        if {[regexp {compiler\.blacklist.*\{} $line] && ![info exists portgroups(compiler_blacklist_versions)]} {
+            ui_error "Line $lineno uses compiler.blacklist in a way that requires the compiler_blacklist_versions portgroup, but this portgroup has not been included"
+            incr errors
+        }
+
         # Check for hardcoded version numbers
         if {$nitpick} {
             # Support for skipping checksums lines
@@ -294,6 +326,7 @@ proc portlint::lint_main {args} {
                 && ![regexp {^\s*reinplace} $line]
                 && ![regexp {^\s*system.*\Wsed\W} $line]} {
             ui_error "Line $lineno hardcodes /opt/local, use \${prefix} instead"
+            incr errors
         }
 
         ### TODO: more checks to Portfile syntax
@@ -459,11 +492,21 @@ proc portlint::lint_main {args} {
     }
 
     set all_depends {}
-    if {[info exists depends_fetch]} { eval "lappend all_depends $depends_fetch" }
-    if {[info exists depends_extract]} { eval "lappend all_depends $depends_extract" }
-    if {[info exists depends_lib]} { eval "lappend all_depends $depends_lib" }
-    if {[info exists depends_build]} { eval "lappend all_depends $depends_build" }
-    if {[info exists depends_run]} { eval "lappend all_depends $depends_run" }
+    if {[info exists depends_fetch]} {
+        lappend all_depends {*}$depends_fetch
+    }
+    if {[info exists depends_extract]} {
+        lappend all_depends {*}$depends_extract
+    }
+    if {[info exists depends_lib]} {
+        lappend all_depends {*}$depends_lib
+    }
+    if {[info exists depends_build]} {
+        lappend all_depends {*}$depends_build
+    }
+    if {[info exists depends_run]} {
+        lappend all_depends {*}$depends_run
+    }
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
@@ -536,6 +579,7 @@ proc portlint::lint_main {args} {
             # space instead of hyphen
             if {[string is double -strict $test]} {
                 ui_error "Invalid license '${prev} ${test}': missing hyphen between ${prev} ${test}"
+                incr errors
 
             # missing hyphen
             } elseif {![string equal -nocase "X11" $test]} {
@@ -550,6 +594,7 @@ proc portlint::lint_main {args} {
                         set license_end [string index $subtest end]
                         if {"+" eq $license_end || [string is integer -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
+                            incr errors
                         }
                     }
                 }
@@ -558,12 +603,15 @@ proc portlint::lint_main {args} {
             if {[string equal -nocase "BSD-2" $test]} {
                 # BSD-2 => BSD
                 ui_error "Invalid license '${test}': use BSD instead"
+                incr errors
             } elseif {[string equal -nocase "BSD-3" $test]} {
                 # BSD-3 => BSD
                 ui_error "Invalid license '${test}': use BSD instead"
+                incr errors
             } elseif {[string equal -nocase "BSD-4" $test]} {
                 # BSD-4 => BSD-old
                 ui_error "Invalid license '${test}': use BSD-old instead"
+                incr errors
             }
 
             set prev $test

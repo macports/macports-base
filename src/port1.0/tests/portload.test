@@ -51,7 +51,7 @@ test load_main {
     return "Load successful."
 
 } -cleanup {
-    exec $launchctl_path unload -w $path 2>@stderr
+    exec -ignorestderr $launchctl_path unload -w $path
     file delete -force /Library/test
 
 } -result "Load successful."

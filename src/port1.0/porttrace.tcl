@@ -95,9 +95,13 @@ proc porttrace::trace_start {workpath} {
             /private/var/db/xcode_select_link \
             /var/db/mds \
             /private/var/db/mds \
+            /var/db/launchd.db \
+            /private/var/db/launchd.db \
             [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist] \
             "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist" \
             /Library/Caches/com.apple.Xcode \
+            /Library/LaunchDaemons \
+            /Library/LaunchAgents \
             /dev \
             /etc/passwd \
             /etc/groups \

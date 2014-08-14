@@ -33,4 +33,5 @@
 
 namespace eval macports::autoconf {
     variable prefix "@prefix@"
+    variable os_platform "@OS_PLATFORM@"
 }

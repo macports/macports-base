@@ -220,7 +220,7 @@ proc _check_registry {name version revision variants} {
             append composite_spec _${revision}${variants}
         }
     }
-    set ilist [eval registry::entry imaged $searchkeys]
+    set ilist [registry::entry imaged {*}$searchkeys]
 
     if { [llength $ilist] > 1 } {
         set portilist {}
@@ -291,10 +291,10 @@ proc _activate_file {srcfile dstfile} {
                 ::file mkdir $dstfile
                 # fix attributes on the directory.
                 if {[getuid] == 0} {
-                    eval ::file attributes {$dstfile} [::file attributes $srcfile]
+                    ::file attributes $dstfile {*}[::file attributes $srcfile]
                 } else {
                     # not root, so can't set owner/group
-                    eval ::file attributes {$dstfile} -permissions [::file attributes $srcfile -permissions]
+                    ::file attributes $dstfile -permissions {*}[::file attributes $srcfile -permissions]
                 }
                 # set mtime on installed element
                 ::file mtime $dstfile [::file mtime $srcfile]
@@ -367,7 +367,13 @@ proc extract_archive_to_tmpdir {location} {
                     if {[regexp {z2?$} ${unarchive.type}]} {
                         set unarchive.args {-}
                         if {[regexp {bz2?$} ${unarchive.type}]} {
-                            set gzip "bzip2"
+                            if {![catch {macports::binaryInPath lbzip2}]} {
+                                set gzip "lbzip2"
+                            } elseif {![catch {macports::binaryInPath pbzip2}]} {
+                                set gzip "pbzip2"
+                            } else {
+                                set gzip "bzip2"
+                            }
                         } elseif {[regexp {lz$} ${unarchive.type}]} {
                             set gzip "lzma"
                         } elseif {[regexp {xz$} ${unarchive.type}]} {

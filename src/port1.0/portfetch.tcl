@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# portfetch.tcl
 # $Id$
 #
-# Copyright (c) 2004 - 2012 The MacPorts Project
+# Copyright (c) 2004 - 2014 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -188,7 +187,7 @@ proc portfetch::set_fetch_type {option action args} {
                 }
             }
             git {
-                depends_fetch-append bin:git:git-core
+                depends_fetch-append bin:git:git
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
@@ -538,7 +537,7 @@ proc portfetch::fetchfiles {args} {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 try {
-                    eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}
+                    curl fetch {*}$fetch_options $file_url "${distpath}/${distfile}.TMP"
                     file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"
                     set fetched 1
                     break

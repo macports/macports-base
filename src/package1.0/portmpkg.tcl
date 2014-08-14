@@ -92,7 +92,7 @@ proc portmpkg::make_dependency_list {portname destination} {
     foreach depspec $depends {
         set dep [_get_dep_port $depspec]
         if {$dep ne ""} {
-            eval "lappend result [make_dependency_list $dep $destination]"
+            lappend result {*}[make_dependency_list $dep $destination]
         }
     }
 

@@ -1,0 +1,35 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-fetch(1)
+===============
+$Id$
+
+NAME
+----
+port-fetch, port-checksum, port-extract, port-patch, port-configure, port-build, port-destroot - Run a specific phase of a port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdoy*] [*-D* 'portdir'] *fetch* | *checksum* | *extract* | *patch* | *configure* | *build* | *destroot*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+These commands run a specific phase of a port. Depending phases will be
+executed automatically as needed.
+
+If the 'Portfile' has changed between multiple invocation, *port* will perform
+a clean before running the phase. The flag '-o' can be used to ignore this and
+keep the current state of the ``work'' dir.
+
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-install[1]
+
+AUTHORS
+-------
+ (C) 2010 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>

@@ -1,0 +1,58 @@
+'\" t
+.TH "PORT\-REV\-UPGRADE" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-rev-upgrade \- Check for linking inconsistencies and attempt to fix them automatically\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-vdy\fR] \fBrev\-upgrade\fR
+     [\-\-id\-loadcmd\-check]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport rev\-upgrade\fR will check all binaries (i\&.e\&., executables and libraries) installed by MacPorts for consistency\&. If any linking problems such as missing or incompatible libraries are found, \fBrev\-upgrade\fR will rebuild broken ports in an attempt to fix the problems\&.
+.sp
+By default, \fBrev\-upgrade\fR is run automatically after each installation or upgrade, unless you pass the \fB\-\-no\-rev\-upgrade\fR option or disable this beahvior in \fBmacports.conf\fR(5) using the \fBrevupgrade_autorun\fR switch\&.
+.SH "OPTIONS"
+.PP
+\-\-id\-loadcmd\-check
+.RS 4
+Check the ID load command in each library installed by MacPorts\&. This load command contains a path that should always reference the library itself, because the path will be copied into all binaries and libraries that link against this library\&. This option verifies that this is the case and will detect incorrect or non\-absolute paths\&. Since this check is only helpful for port maintainers, it is disabled by default\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBmacports.conf\fR(5)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

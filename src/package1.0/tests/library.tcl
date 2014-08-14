@@ -104,3 +104,5 @@ proc macports_worker_init {} {
     # We don't need to handle portinterp_deferred_options, they're
     # automatically handled correctly.
 }
+
+testConstraint darwin [expr {$tcl_platform(os) eq "Darwin"}]

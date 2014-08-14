@@ -62,7 +62,6 @@
 /* ========================================================================= **
  * Definitions
  * ========================================================================= */
-#pragma mark Definitions
 
 /* ------------------------------------------------------------------------- **
  * Global cURL handles
@@ -101,8 +100,6 @@ void CurlInit(void);
 /* ========================================================================= **
  * Entry points
  * ========================================================================= */
-#pragma mark -
-#pragma mark Entry points
 
 /**
  * Set the result if a libcurl error occurred return TCL_ERROR.
@@ -514,15 +511,23 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				break;
 			}
 
+			timeout.tv_sec = 1;
+			timeout.tv_usec = 0;
 			/* convert the timeout into a suitable format for select(2) and
 			 * limit the timeout to 500 msecs at most */
-			if (curl_timeout >= 0 && curl_timeout < 500) {
-				timeout.tv_usec = curl_timeout * 1000;
-			} else {
-				timeout.tv_usec = 500 * 1000;
+			if (curl_timeout > 0) {
+				timeout.tv_sec = curl_timeout / 1000;
+				if (timeout.tv_sec > 1) {
+					timeout.tv_sec = 1;
+				}
+
+				timeout.tv_usec = (curl_timeout % 1000) * 1000;
 			}
 
 			/* get the fd sets for select(2) */
+			FD_ZERO(&readfds);
+			FD_ZERO(&writefds);
+			FD_ZERO(&errorfds);
 			theCurlMCode = curl_multi_fdset(theMHandle, &readfds, &writefds, &errorfds, &nfds);
 			if (theCurlMCode != CURLM_OK) {
 				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
@@ -533,6 +538,15 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			 * select(2) makes the case of nfds == -1 a sleep. */
 			rc = select(nfds + 1, &readfds, &writefds, &errorfds, &timeout);
 			if (-1 == rc) {
+				/* check for signals first to avoid breaking our special
+				 * handling of SIGINT and SIGTERM */
+				if (Tcl_AsyncReady()) {
+					theResult = Tcl_AsyncInvoke(interp, theResult);
+					if (theResult != TCL_OK) {
+						break;
+					}
+				}
+
 				/* select error */
 				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 				theResult = TCL_ERROR;
@@ -1438,8 +1452,6 @@ CurlInit()
 /* ========================================================================= **
  * Callback function
  * ========================================================================= */
-#pragma mark -
-#pragma mark Callback function
 static int CurlProgressHandler(
 		tcl_callback_t *callback,
 		double dltotal,

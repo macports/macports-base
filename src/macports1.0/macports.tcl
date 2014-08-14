@@ -267,7 +267,7 @@ proc macports::ui_init {priority args} {
     }
     set phases {fetch checksum}
     try {
-        eval ::ui_init $priority $prefix $channels($priority) $args
+        ::ui_init $priority $prefix $channels($priority) {*}$args
     } catch * {
         interp alias {} ui_$priority {} ui_message $priority $prefix {}
         foreach phase $phases {
@@ -1479,7 +1479,7 @@ proc macports::fetch_port {url {local 0}} {
         } elseif {[info exists macports::ui_options(progress_download)]} {
             set progressflag "--progress ${macports::ui_options(progress_download)}"
         }
-        if {[catch {eval curl fetch $progressflag {$url} {[file join $fetchdir $fetchfile]}} result]} {
+        if {[catch {curl fetch {*}$progressflag $url [file join $fetchdir $fetchfile]} result]} {
             return -code error "Port remote fetch failed: $result"
         }
     }
@@ -1492,9 +1492,9 @@ proc macports::fetch_port {url {local 0}} {
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
     set tarflags [get_tar_flags [file extension $fetchfile]]
     set qflag $macports::autoconf::tar_q
-    set cmdline "$tarcmd ${tarflags}${qflag}xOf \"$fetchfile\" +CONTENTS"
+    set cmdline [list $tarcmd ${tarflags}${qflag}xOf $fetchfile +CONTENTS]
     ui_debug $cmdline
-    if {![catch {set contents [eval exec $cmdline]}]} {
+    if {![catch {set contents [exec {*}$cmdline]}]} {
         # the file is probably a valid binary archive
         set binary 1
         ui_debug "getting port name from binary archive"
@@ -1520,12 +1520,12 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline "$tarcmd ${tarflags}${qflag}xOf \"../$fetchfile\" +PORTFILE > Portfile"
+        set cmdline [list $tarcmd ${tarflags}${qflag}xOf ../$fetchfile +PORTFILE > Portfile]
     } else {
-        set cmdline "$tarcmd ${tarflags}xf \"$fetchfile\""
+        set cmdline [list $tarcmd ${tarflags}${qflag}xf $fetchfile]
     }
     ui_debug $cmdline
-    if {[catch {eval exec $cmdline} result]} {
+    if {[catch {exec {*}$cmdline} result]} {
         # clean up the archive, we don't need it anymore
         file delete [file join $fetchdir $fetchfile]
 
@@ -2359,7 +2359,7 @@ proc mportsync {{optionslist {}}} {
                     } else {
                         set git_action "pull --rebase"
                     }
-                    set git_commandline "pushd $portdir ; $git_cmd $git_action ; popd"
+                    set git_commandline "cd $portdir && $git_cmd $git_action || true"
                     ui_debug $git_commandline
                     if {
                         [catch {
@@ -2553,12 +2553,14 @@ proc mportsync {{optionslist {}}} {
                 set progressflag {}
                 if {$macports::portverbose eq {yes}} {
                     set progressflag "--progress builtin"
+                    set verboseflag "-v"
                 } elseif {[info exists macports::ui_options(progress_download)]} {
                     set progressflag "--progress ${macports::ui_options(progress_download)}"
+                    set verboseflag ""
                 }
 
                 try {
-                    eval curl fetch $progressflag {$source} {$tarpath}
+                    curl fetch {*}$progressflag $source $tarpath
                 } catch {{POSIX SIG SIGINT} eCode eMessage} {
                     throw
                 } catch {{POSIX SIG SIGTERM} eCode eMessage} {
@@ -3373,10 +3375,7 @@ proc macports::_target_needs_deps {target} {
         dmg -
         mdmg -
         pkg -
-        mpkg -
-        rpm -
-        dpkg -
-        srpm {return 1}
+        mpkg {return 1}
         default {return 0}
     }
 }
@@ -3391,14 +3390,11 @@ proc macports::_deptypes_for_target {target workername} {
         configure   -
         build       {return "depends_fetch depends_extract depends_build depends_lib"}
         test        -
-        srpm        -
         destroot    {return "depends_fetch depends_extract depends_build depends_lib depends_run"}
         dmg         -
         pkg         -
         mdmg        -
-        mpkg        -
-        rpm         -
-        dpkg        {
+        mpkg        {
             if {[global_option_isset ports_binary_only] ||
                 (![global_option_isset ports_source_only] && [$workername eval _archive_available])} {
                 return "depends_lib depends_run"
@@ -3551,7 +3547,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
             }
             ui_debug "Permissions OK"
 
-            set configure_args "--prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms"
+            set configure_args "--prefix=[macports::shellescape $prefix] --with-install-user=[macports::shellescape $owner] --with-install-group=[macports::shellescape $group] --with-directory-mode=[macports::shellescape $perms]"
             # too many users have an incompatible readline in /usr/local, see ticket #10651
             if {$tcl_platform(os) ne {Darwin} || $prefix eq {/usr/local}
                 || ([glob -nocomplain /usr/local/lib/lib{readline,history}*] eq {} && [glob -nocomplain /usr/local/include/readline/*.h] eq {})} {
@@ -4377,16 +4373,58 @@ proc macports::arch_runnable {arch} {
     return yes
 }
 
+##
+# Execute the rev-upgrade scan and attempt to rebuild all ports found to be
+# broken. Depends on the revupgrade_mode setting from macports.conf.
+#
+# @param opts
+#        A Tcl array serialized into a list using array get containing options
+#        for MacPorts. Options used exclusively by rev-upgrade are
+#        ports_rev-upgrade_id-loadcmd-check, a boolean indicating whether the
+#        ID load command of binaries should be check for sanity. This is mostly
+#        useful for maintainers.
+# @return 0 if report-only mode is enabled, no ports are broken, or the
+#         rebuilds finished successfully. 1 if an exception occured during the
+#         execution of rev-upgrade, 2 if the execution was aborted on user
+#         request.
 proc macports::revupgrade {opts} {
     set run_loop 1
     array set broken_port_counts {}
-    while {$run_loop == 1} {
-        set run_loop [revupgrade_scanandrebuild broken_port_counts $opts]
+    try {
+        while {$run_loop == 1} {
+            set run_loop [revupgrade_scanandrebuild broken_port_counts $opts]
+        }
+        return 0
+    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+        ui_debug "rev-upgrade failed: $::errorInfo"
+        ui_error [msgcat::mc "rev-upgrade aborted: SIGINT received."]
+        return 2
+    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+        ui_error [msgcat::mc "rev-upgrade aborted: SIGTERM received."]
+        return 2
+    } catch {{*} eCode eMessage} {
+        ui_debug "rev-upgrade failed: $::errorInfo"
+        ui_error [msgcat::mc "rev-upgrade failed: %s" $eMessage]
+        return 1
     }
-    return 0
 }
 
-# returns 1 if ports were rebuilt and revupgrade_scanandrebuild should be called again
+##
+# Helper function for rev-upgrade. Do not consider this to be part of public
+# API. Use macports::revupgrade instead.
+#
+# @param broken_port_counts_name
+#        The name of a Tcl array that's being used to store the number of times
+#        a port has been rebuilt so far.
+# @param opts
+#        A serialized version of a Tcl array that contains options for
+#        MacPorts. Options used by this method are
+#        ports_rev-upgrade_id-loadcmd-check, a boolean indicating whether the
+#        ID loadcommand of binaries should also be checked during rev-upgrade
+#        and ports_dryrun, a boolean indicating whether no action should be
+#        taken.
+# @return 1 if ports were rebuilt and this function should be called again,
+#         0 otherwise.
 proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
     upvar $broken_port_counts_name broken_port_counts
     array set options $opts
@@ -4425,6 +4463,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     }
                 }
             } catch {*} {
+                if {${fancy_output}} {
+                    $revupgrade_progress intermission
+                }
                 ui_error "Updating database of binaries failed"
                 throw
             }
@@ -4450,71 +4491,44 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             $revupgrade_progress start
         }
 
-        set i 1
-        foreach b $binaries {
-            if {$fancy_output} {
-                if {$binary_count < 10000 || $i % 10 == 1} {
-                    $revupgrade_progress update $i $binary_count
-                }
-            }
-            set bpath [$b actual_path]
-            #ui_debug "${i}/${binary_count}: $bpath"
-            incr i
-
-            set resultlist [machista::parse_file $handle $bpath]
-            set returncode [lindex $resultlist 0]
-            set result     [lindex $resultlist 1]
-
-            if {$returncode != $machista::SUCCESS} {
-                if {$returncode == $machista::EMAGIC} {
-                    # not a Mach-O file
-                    # ignore silently, these are only static libs anyway
-                    #ui_debug "Error parsing file ${bpath}: [machista::strerror $returncode]"
-                } else {
-                    if {$fancy_output} {
-                        $revupgrade_progress intermission
+        try {
+            set i 1
+            foreach b $binaries {
+                if {$fancy_output} {
+                    if {$binary_count < 10000 || $i % 10 == 1} {
+                        $revupgrade_progress update $i $binary_count
                     }
-                    ui_warn "Error parsing file ${bpath}: [machista::strerror $returncode]"
                 }
-                continue;
-            }
+                set bpath [$b actual_path]
+                #ui_debug "${i}/${binary_count}: $bpath"
+                incr i
 
-            set architecture [$result cget -mt_archs]
-            while {$architecture ne {NULL}} {
-                if {[info exists options(ports_rev-upgrade_id-loadcmd-check)] && $options(ports_rev-upgrade_id-loadcmd-check) eq {yes}} {
-                    if {[$architecture cget -mat_install_name] ne {NULL} && [$architecture cget -mat_install_name] ne {}} {
-                        # check if this lib's install name actually refers to this file itself
-                        # if this is not the case software linking against this library might have erroneous load commands
-                        if {0 == [catch {set idloadcmdpath [revupgrade_handle_special_paths $bpath [$architecture cget -mat_install_name]]}]} {
-                            if {[string index $idloadcmdpath 0] ne {/}} {
-                                set port [registry::entry owner $bpath]
-                                if {$port ne {}} {
-                                    set portname [$port name]
-                                } else {
-                                    set portname <unknown-port>
-                                }
-                                if {$fancy_output} {
-                                    $revupgrade_progress intermission
-                                }
-                                ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
-                            } elseif {![file exists $idloadcmdpath]} {
-                                set port [registry::entry owner $bpath]
-                                if {$port ne {}} {
-                                    set portname [$port name]
-                                } else {
-                                    set portname <unknown-port>
-                                }
-                                if {$fancy_output} {
-                                    $revupgrade_progress intermission
-                                }
-                                ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
-                                ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
-                            } else {
+                set resultlist [machista::parse_file $handle $bpath]
+                set returncode [lindex $resultlist 0]
+                set result     [lindex $resultlist 1]
 
-                                set hash_this [sha256 file $bpath]
-                                set hash_idloadcmd [sha256 file $idloadcmdpath]
+                if {$returncode != $machista::SUCCESS} {
+                    if {$returncode == $machista::EMAGIC} {
+                        # not a Mach-O file
+                        # ignore silently, these are only static libs anyway
+                        #ui_debug "Error parsing file ${bpath}: [machista::strerror $returncode]"
+                    } else {
+                        if {$fancy_output} {
+                            $revupgrade_progress intermission
+                        }
+                        ui_warn "Error parsing file ${bpath}: [machista::strerror $returncode]"
+                    }
+                    continue;
+                }
 
-                                if {$hash_this ne $hash_idloadcmd} {
+                set architecture [$result cget -mt_archs]
+                while {$architecture ne {NULL}} {
+                    if {[info exists options(ports_rev-upgrade_id-loadcmd-check)] && $options(ports_rev-upgrade_id-loadcmd-check) eq {yes}} {
+                        if {[$architecture cget -mat_install_name] ne {NULL} && [$architecture cget -mat_install_name] ne {}} {
+                            # check if this lib's install name actually refers to this file itself
+                            # if this is not the case software linking against this library might have erroneous load commands
+                            if {0 == [catch {set idloadcmdpath [revupgrade_handle_special_paths $bpath [$architecture cget -mat_install_name]]}]} {
+                                if {[string index $idloadcmdpath 0] ne {/}} {
                                     set port [registry::entry owner $bpath]
                                     if {$port ne {}} {
                                         set portname [$port name]
@@ -4524,85 +4538,121 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     if {$fancy_output} {
                                         $revupgrade_progress intermission
                                     }
-                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file ${idloadcmdpath}, which is a different file"
+                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] (belonging to port $portname) contains relative path"
+                                } elseif {![file exists $idloadcmdpath]} {
+                                    set port [registry::entry owner $bpath]
+                                    if {$port ne {}} {
+                                        set portname [$port name]
+                                    } else {
+                                        set portname <unknown-port>
+                                    }
+                                    if {$fancy_output} {
+                                        $revupgrade_progress intermission
+                                    }
+                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
                                     ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
+                                } else {
+                                    set hash_this [sha256 file $bpath]
+                                    set hash_idloadcmd [sha256 file $idloadcmdpath]
+
+                                    if {$hash_this ne $hash_idloadcmd} {
+                                        set port [registry::entry owner $bpath]
+                                        if {$port ne {}} {
+                                            set portname [$port name]
+                                        } else {
+                                            set portname <unknown-port>
+                                        }
+                                        if {$fancy_output} {
+                                            $revupgrade_progress intermission
+                                        }
+                                        ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to file ${idloadcmdpath}, which is a different file"
+                                        ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                set archname [machista::get_arch_name [$architecture cget -mat_arch]]
-                if {![arch_runnable $archname]} {
-                    ui_debug "skipping $archname in $bpath since this system can't run it anyway"
-                    set architecture [$architecture cget -next]
-                    continue
-                }
-
-                set loadcommand [$architecture cget -mat_loadcmds]
-
-                while {$loadcommand ne {NULL}} {
-                    if {0 != [catch {set filepath [revupgrade_handle_special_paths $bpath [$loadcommand cget -mlt_install_name]]}]} {
-                        set loadcommand [$loadcommand cget -next]
-                        continue;
+                    set archname [machista::get_arch_name [$architecture cget -mat_arch]]
+                    if {![arch_runnable $archname]} {
+                        ui_debug "skipping $archname in $bpath since this system can't run it anyway"
+                        set architecture [$architecture cget -next]
+                        continue
                     }
 
-                    set libresultlist [machista::parse_file $handle $filepath]
-                    set libreturncode [lindex $libresultlist 0]
-                    set libresult     [lindex $libresultlist 1]
+                    set loadcommand [$architecture cget -mat_loadcmds]
 
-                    if {$libreturncode != $machista::SUCCESS} {
-                        if {![info exists files_warned_about($filepath)]} {
-                            if {$fancy_output} {
-                                $revupgrade_progress intermission
-                            }
-                            ui_info "Could not open ${filepath}: [machista::strerror $libreturncode] (referenced from $bpath)"
-                            set files_warned_about($filepath) yes
-                        }
-                        if {$libreturncode == $machista::EFILE} {
-                            ui_debug "Marking $bpath as broken"
-                            lappend broken_files $bpath
-                        }
-                        set loadcommand [$loadcommand cget -next]
-                        continue;
-                    }
-
-                    set libarchitecture [$libresult cget -mt_archs]
-                    set libarch_found false;
-                    while {$libarchitecture ne {NULL}} {
-                        if {[$architecture cget -mat_arch] ne [$libarchitecture cget -mat_arch]} {
-                            set libarchitecture [$libarchitecture cget -next]
+                    while {$loadcommand ne {NULL}} {
+                        if {0 != [catch {set filepath [revupgrade_handle_special_paths $bpath [$loadcommand cget -mlt_install_name]]}]} {
+                            set loadcommand [$loadcommand cget -next]
                             continue;
                         }
 
-                        if {[$loadcommand cget -mlt_version] ne [$libarchitecture cget -mat_version] && [$loadcommand cget -mlt_comp_version] > [$libarchitecture cget -mat_comp_version]} {
-                            if {$fancy_output} {
-                                $revupgrade_progress intermission
+                        set libresultlist [machista::parse_file $handle $filepath]
+                        set libreturncode [lindex $libresultlist 0]
+                        set libresult     [lindex $libresultlist 1]
+
+                        if {$libreturncode != $machista::SUCCESS} {
+                            if {![info exists files_warned_about($filepath)]} {
+                                if {$fancy_output} {
+                                    $revupgrade_progress intermission
+                                }
+                                ui_info "Could not open ${filepath}: [machista::strerror $libreturncode] (referenced from $bpath)"
+                                if {[string first [file separator] $filepath] == -1} {
+                                    ui_info "${filepath} seems to be referenced using a relative path. This may be a problem with its canonical library name and require the use of install_name_tool(1) to fix."
+                                }
+                                set files_warned_about($filepath) yes
                             }
-                            ui_info "Incompatible library version: $bpath requires version [machista::format_dylib_version [$loadcommand cget -mlt_comp_version]] or later, but $filepath provides version [machista::format_dylib_version [$libarchitecture cget -mat_comp_version]]"
-                            ui_debug "Marking $bpath as broken"
-                            lappend broken_files $bpath
+                            if {$libreturncode == $machista::EFILE} {
+                                ui_debug "Marking $bpath as broken"
+                                lappend broken_files $bpath
+                            }
+                            set loadcommand [$loadcommand cget -next]
+                            continue;
                         }
 
-                        set libarch_found true;
-                        break;
+                        set libarchitecture [$libresult cget -mt_archs]
+                        set libarch_found false;
+                        while {$libarchitecture ne {NULL}} {
+                            if {[$architecture cget -mat_arch] ne [$libarchitecture cget -mat_arch]} {
+                                set libarchitecture [$libarchitecture cget -next]
+                                continue;
+                            }
+
+                            if {[$loadcommand cget -mlt_version] ne [$libarchitecture cget -mat_version] && [$loadcommand cget -mlt_comp_version] > [$libarchitecture cget -mat_comp_version]} {
+                                if {$fancy_output} {
+                                    $revupgrade_progress intermission
+                                }
+                                ui_info "Incompatible library version: $bpath requires version [machista::format_dylib_version [$loadcommand cget -mlt_comp_version]] or later, but $filepath provides version [machista::format_dylib_version [$libarchitecture cget -mat_comp_version]]"
+                                ui_debug "Marking $bpath as broken"
+                                lappend broken_files $bpath
+                            }
+
+                            set libarch_found true;
+                            break;
+                        }
+
+                        if {$libarch_found eq "false"} {
+                            ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file $filepath"
+                            if {[path_is_in_prefix $filepath]} {
+                                ui_debug "Marking $bpath as broken"
+                                lappend broken_files $bpath
+                            } else {
+                                ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file outside prefix referenced from $bpath"
+                                # ui_debug "   How did you get that compiled anyway?"
+                            }
+                        }
+                        set loadcommand [$loadcommand cget -next]
                     }
 
-                    if {$libarch_found eq "false"} {
-                        ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file $filepath"
-                        if {[path_is_in_prefix $filepath]} {
-                            ui_debug "Marking $bpath as broken"
-                            lappend broken_files $bpath
-                        } else {
-                            ui_debug "Missing architecture [machista::get_arch_name [$architecture cget -mat_arch]] in file outside prefix referenced from $bpath"
-                            # ui_debug "   How did you get that compiled anyway?"
-                        }
-                    }
-                    set loadcommand [$loadcommand cget -next]
+                    set architecture [$architecture cget -next]
                 }
-
-                set architecture [$architecture cget -next]
             }
+        } catch {*} {
+            if {$fancy_output} {
+                $revupgrade_progress intermission
+            }
+            throw
         }
         if {$fancy_output} {
             $revupgrade_progress finish
@@ -4981,4 +5031,26 @@ proc macports::get_archive_sites_conf_values {} {
         }
     }
     return $archive_sites_conf_values
+}
+
+##
+# Escape a string for use in a POSIX shell, e.g., when passing it to the \c system Pextlib extension. This is necessary
+# to handle cases such as group names with backslashes correctly. See #43875 for an example of a problem caused by
+# missing quotes.
+#
+# @param arg The argument that should be escaped for use in a POSIX shell
+# @return A quoted version of the argument
+proc macports::shellescape {arg} {
+    set mapping {}
+    # Replace each backslash by a double backslash. Apparently Bash treats Backslashes in single-quoted strings
+    # differently depending on whether is was invoked as sh or bash: echo 'using \backslashes' preserves the backslash
+    # in bash mode, but interprets it in sh mode. Since the `system' command uses sh, escape backslashes.
+    lappend mapping "\\" "\\\\"
+    # Replace each single quote with a single quote (closing the currently open string), an escaped single quote \'
+    # (additional backslash needed to escape the backslash in Tcl), and another single quote (opening a new quoted
+    # string).
+    lappend mapping "'" "'\\''"
+
+    # Add a single quote at the start, escape all single quotes in the argument, and add a single quote at the end
+    return "'[string map $mapping $arg]'"
 }

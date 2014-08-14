@@ -135,13 +135,13 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
             set thesubdir ""
         }
 
-        if {"$tag" != ""} {
-            eval append element "${thesubdir}:${tag}"
+        if {$tag ne ""} {
+            append element "${thesubdir}:${tag}"
         } else {
-            eval append element "${thesubdir}"
+            append element "${thesubdir}"
         }
 
-        eval lappend ret $element
+        lappend ret $element
     }
 
     return $ret

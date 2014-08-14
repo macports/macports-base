@@ -30,13 +30,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#if !HAVE_STRCASECMP
+#include <string.h>
+#include <strings.h>
+
+#ifndef HAVE_STRCASECMP
 	#define strcasecmp xstrcasecmp
 #endif
 
-#if !HAVE_STRNCASECMP
+#ifndef HAVE_STRNCASECMP
 	#define strncasecmp xstrncasecmp
 #endif
 

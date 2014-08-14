@@ -58,7 +58,7 @@ proc portunload::unload_main {args} {
         } elseif {![file exists $path]} {
             return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]
         } else {
-            exec $launchctl_path unload -w $path 2>@stderr
+            exec -ignorestderr $launchctl_path unload -w $path
         }
     }
     

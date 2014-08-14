@@ -122,7 +122,13 @@ proc portinstall::create_archive {location archive.type} {
                 set archive.pre_args {-cvf}
                 if {[regexp {z2?$} ${archive.type}]} {
                     if {[regexp {bz2?$} ${archive.type}]} {
-                        set gzip "bzip2"
+                        if {![catch {binaryInPath lbzip2}]} {
+                            set gzip "lbzip2"
+                        } elseif {![catch {binaryInPath pbzip2}]} {
+                            set gzip "pbzip2"
+                        } else {
+                            set gzip "bzip2"
+                        }
                         set level 9
                     } elseif {[regexp {lz$} ${archive.type}]} {
                         set gzip "lzma"

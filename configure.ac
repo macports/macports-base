@@ -145,10 +145,11 @@ AC_PATH_PROG(LIPO, [lipo], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
 AC_PATH_PROG(LZMA, [lzma], [])
 AC_PATH_PROG(MAKE, [make])
+AC_PATH_PROG(MAN, [man])
 AC_PATH_PROG(MDFIND, [mdfind], [])
 AC_PATH_PROG(MDLS, [mdls], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
-AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
+AC_PATH_PROGS(MTREE, [mtree fmtree], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(OPEN, [open], [])
 AC_PATH_PROG(OPENSSL, [openssl], [])
 AC_PATH_PROG(PATCH, [patch], [])
@@ -168,7 +169,6 @@ AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(ZIP, [zip])
 
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
-
 
 if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])
@@ -407,7 +407,6 @@ AC_CONFIG_FILES([
 	doc/macports.conf
 	doc/prefix.mtree
 	doc/pubkeys.conf
-	portmgr/freebsd/Makefile
 	portmgr/dmg/postflight
 	setupenv.bash
 	src/Makefile
@@ -429,6 +428,8 @@ AC_CONFIG_FILES([
 	src/registry2.0/registry_autoconf.tcl
 	tests/Makefile
 	tests/test.tcl
+	tests/test/library.tcl
+	tests/test/trace/test.tcl
 	vendor/Makefile
 ])
 

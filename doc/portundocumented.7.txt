@@ -1,0 +1,33 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+portundocumented(7)
+====================
+$Id$
+
+NAME
+----
+portundocumented - A last-resort man page for missing MacPorts documentation
+
+DESCRIPTION
+-----------
+Unfortunately, the requested topic is not yet documented in the MacPorts man
+pages. Sorry.
+
+include::furtherdocs.txt[]
+
+CONTRIBUTING
+------------
+All sort of contributions to MacPorts base, ports and especially the
+documentation you were just looking for are welcome. If you care about MacPorts
+and would like to improve our documentation, please take a look at the source
+code of the man pages https://trac.macports.org/browser/trunk/base/doc[in our
+repository] and get in touch with us on our wiki:MailingLists[mailing lists].
+
+
+SEE ALSO
+--------
+man:port[1]
+
+AUTHORS
+-------
+ (C) 2012 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>

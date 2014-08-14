@@ -15,13 +15,12 @@ set test_suite {
     statefile-version2-invalid
     statefile-version2-outdated
     svn-and-patchsites
+    trace
     universal
     variants
     xcodeversion
 }
-if {@TRACEMODE_SUPPORT@ != 0} {
-	lappend test_suite trace
-}
+
 set arguments ""
 set test_name ""
 set color_out ""
@@ -29,13 +28,7 @@ set tcl ""
 set err ""
 
 # Get tclsh path.
-set autoconf ../Mk/macports.autoconf.mk
-set fp [open $autoconf r]
-while {[gets $fp line] != -1} {
-    if {[string match "TCLSH*" $line] != 0} {
-        set tcl [lrange [split $line " "] 1 1]
-    }
-}
+set tcl "@TCLSH@"
 
 proc print_help {arg} {
     if { $arg eq "tests" } {

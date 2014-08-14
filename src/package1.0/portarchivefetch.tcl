@@ -227,7 +227,7 @@ proc portarchivefetch::fetchfiles {args} {
                 set file_url [portfetch::assemble_url $site $archive]
                 set effectiveURL ""
                 try {
-                    eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${incoming_path}/${archive}.TMP"}
+                    curl fetch --effective-url effectiveURL {*}$fetch_options $file_url "${incoming_path}/${archive}.TMP"
                     set fetched 1
                     break
                 } catch {{POSIX SIG SIGINT} eCode eMessage} {
@@ -253,7 +253,7 @@ proc portarchivefetch::fetchfiles {args} {
                 set signature "${incoming_path}/${archive}.rmd160"
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
                 # reusing $file_url from the last iteration of the loop above
-                if {[catch {eval curl fetch --effective-url effectiveURL $fetch_options {${file_url}.rmd160} {$signature}} result]} {
+                if {[catch {curl fetch --effective-url effectiveURL {*}$fetch_options ${file_url}.rmd160 $signature} result]} {
                     ui_debug "$::errorInfo"
                     return -code error "Failed to fetch signature for archive: $result"
                 }
@@ -320,6 +320,8 @@ proc portarchivefetch::archivefetch_start {args} {
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+    } elseif {[tbool ports_binary_only]} {
+        error "Binary-only mode requested with no usable archive sites configured"
     }
     portfetch::check_dns
 }

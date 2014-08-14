@@ -33,12 +33,9 @@
 # standard package load
 package provide mp_package 1.0
 
-package require portrpm 1.0
-package require portsrpm 1.0
 package require portpkg 1.0
 package require portmpkg 1.0
 package require portdmg 1.0
 package require portmdmg 1.0
-package require portdpkg 1.0
 package require portarchivefetch 1.0
 package require portunarchive 1.0

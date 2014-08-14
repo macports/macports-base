@@ -1,0 +1,8 @@
+// $Id$
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+
+GLOBAL OPTIONS
+--------------
+
+Please see the section *GLOBAL OPTIONS* in the man:port[1] man page for a
+description of global port options.
