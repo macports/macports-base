@@ -1,0 +1,76 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-deps(1)
+============
+$Id$
+
+NAME
+----
+port-dir, port-url, port-file, port-location, port-work - Print paths for
+certain properties of a port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *dir*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *url*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *file*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-q*] [*-D* 'portdir'] *location*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *work*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+These commands print a path for each given port. The meaning of the path
+differs by the command given:
+
+*port dir* prints the directory that contains the Portfile for the given port
+expression. This can be quite handy in your shell, if you want to locate
+a Portfile:
+
+----
+cd $(port dir <portname>)
+----
+
+*port url* prints a unique URL for the given port expression. This command
+mostly exists for historical reasons and isn't of much use nowadays.
+
+*port file* prints the path of the Portfile for the given port expression. This
+can be useful to locate a port's definition. Note that you can always get this
+by using *port dir* and appending 'Portfile'. You could use *port file* in
+a shell to edit a Portfile, but note that you can also use man:port-edit[1] to
+achieve the same.
+
+*port location* only works for installed ports and prints the location of the
+archive MacPorts internally uses to be able to deactivate and activate a port.
+See man:port-activate[1] for more details on that. This command might be useful
+for you if you want to setup a local binary mirror of MacPorts packages that are
+not available from our official infrastructure due to licensing reasons.
+
+*port work* prints the path to the so-called 'work' directory, i.e., the
+directory used by MacPorts to build a port. No output is generated if no build
+directory exists, e.g., because there is no unfinished build in progress for the
+given port. Work directories are deleted after successful installation or using
+man:port-clean[1].
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-edit[1], man:port-activate[1], man:port-clean[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

@@ -30,16 +30,21 @@ MAN1=	\
 		port-dependents.1 \
 		port-deps.1 \
 		port-destroot.1 \
+		port-dir.1 \
 		port-edit.1 \
 		port-extract.1 \
 		port-fetch.1 \
+		port-file.1 \
 		port-help.1 \
 		port-install.1 \
+		port-location.1 \
 		port-patch.1 \
 		port-rdeps.1 \
 		port-rev-upgrade.1 \
 		port-selfupdate.1 \
 		port-uninstall.1 \
+		port-url.1 \
+		port-work.1 \
 		port.1 \
 
 MAN5=		macports.conf.5
