@@ -198,6 +198,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         throw registry::invalid "Registry error: ${portname}${composite_spec} not registered as installed"
     }
 
+    set userinput {}
     # uninstall dependents if requested
     if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
         # don't uninstall dependents' dependencies
@@ -230,12 +231,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
             ui_msg "For $portname @${composite_spec}: skipping deactivate (dry run)"
         } else {
-            if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
-                if {catch {$userinput eq "forcedbyuser"} result} {
-                    set options(ports_nodepcheck) "yes"
+            if {$userinput eq "forcedbyuser"} {
+                set options(ports_nodepcheck) "yes"
+            }
+            if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate [array get options]]} {
+                if {$userinput eq "forcedbyuser"} {
                     portimage::deactivate $portname $version $revision $variants [array get options]
                     unset options(ports_nodepcheck) 
-             } else {
+                } else {
                     portimage::deactivate $portname $version $revision $variants [array get options]
                 }
             }
