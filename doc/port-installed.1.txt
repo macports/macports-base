@@ -1,0 +1,46 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-installed(1)
+=================
+$Id$
+
+NAME
+----
+port-installed - List installed versions of a given port, or all installed ports
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vq*] *installed*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port installed* can be used in two separate ways: Either without argument, in
+which case it will print a list of all installed ports (both active and
+inactive), or, with argument, which will return a list of installed ports that
+match the given expression.
+
+The output of *port installed* contains the name, version and variants of the
+installed ports and whether the port is active or inactive. See the PORT IMAGES
+section for an explanation of the active/inactive state.
+
+include::global-flags.txt[]
+
+-v::
+    Print the platform at install time (i.e., your OS X version) and the
+    architecture(s) of the installed port.
+
+-q::
+    Do not print the header line. This is useful when parsing the output of
+    *port installed* in scripts for further processing.
+
+include::archives.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-activate[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
