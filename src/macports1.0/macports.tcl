@@ -2319,24 +2319,32 @@ proc mportsync {{optionslist {}}} {
                     if {
                         [catch {
                             if {[getuid] == 0} {
-                                set euid [geteuid]
-                                set egid [getegid]
-                                ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-                                setegid [name_to_gid [file attributes $portdir -group]]
-                                seteuid [name_to_uid [file attributes $portdir -owner]]
+                                # Must change egid before dropping root euid.
+                                set old_egid [getegid]
+                                set new_egid [name_to_gid [file attributes $portdir -group]]
+                                setegid $new_egid
+                                ui_debug "Changed effective group ID from $old_egid to $new_egid"
+                                set old_euid [geteuid]
+                                set new_euid [name_to_uid [file attributes $portdir -owner]]
+                                seteuid $new_euid
+                                ui_debug "Changed effective user ID from $old_euid to $new_euid"
                             }
                             system $svn_commandline
                             if {[getuid] == 0} {
-                                seteuid $euid
-                                setegid $egid
+                                seteuid $old_euid
+                                ui_debug "Changed effective user ID from $new_euid to $old_euid"
+                                setegid $old_egid
+                                ui_debug "Changed effective group ID from $new_egid to $old_egid"
                             }
                         }]
                     } {
                         ui_debug $::errorInfo
                         ui_error "Synchronization of the local ports tree failed doing an svn update"
                         if {[getuid] == 0} {
-                            seteuid $euid
-                            setegid $egid
+                            seteuid $old_euid
+                            ui_debug "Changed effective user ID from $new_euid to $old_euid"
+                            setegid $old_egid
+                            ui_debug "Changed effective group ID from $new_egid to $old_egid"
                         }
                         incr numfailed
                         continue
@@ -2353,24 +2361,32 @@ proc mportsync {{optionslist {}}} {
                     if {
                         [catch {
                             if {[getuid] == 0} {
-                                set euid [geteuid]
-                                set egid [getegid]
-                                ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-                                setegid [name_to_gid [file attributes $portdir -group]]
-                                seteuid [name_to_uid [file attributes $portdir -owner]]
+                                # Must change egid before dropping root euid.
+                                set old_egid [getegid]
+                                set new_egid [name_to_gid [file attributes $portdir -group]]
+                                setegid $new_egid
+                                ui_debug "Changed effective group ID from $old_egid to $new_egid"
+                                set old_euid [geteuid]
+                                set new_euid [name_to_uid [file attributes $portdir -owner]]
+                                seteuid $new_euid
+                                ui_debug "Changed effective user ID from $old_euid to $new_euid"
                             }
                             system $git_commandline
                             if {[getuid] == 0} {
-                                seteuid $euid
-                                setegid $egid
+                                seteuid $old_euid
+                                ui_debug "Changed effective user ID from $new_euid to $old_euid"
+                                setegid $old_egid
+                                ui_debug "Changed effective group ID from $new_egid to $old_egid"
                             }
                         }]
                     } {
                         ui_debug $::errorInfo
                         ui_error "Synchronization of the local ports tree failed doing a git update"
                         if {[getuid] == 0} {
-                            seteuid $euid
-                            setegid $egid
+                            seteuid $old_euid
+                            ui_debug "Changed effective user ID from $new_euid to $old_euid"
+                            setegid $old_egid
+                            ui_debug "Changed effective group ID from $new_egid to $old_egid"
                         }
                         incr numfailed
                         continue
