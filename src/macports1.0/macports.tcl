@@ -2301,7 +2301,7 @@ proc mportsync {{optionslist {}}} {
             ui_debug "Skipping $source"
             continue
         }
-        set needs_portindex 0
+        set needs_portindex false
         ui_info "Synchronizing local ports tree from $source"
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
@@ -2373,7 +2373,7 @@ proc mportsync {{optionslist {}}} {
                         continue
                     }
                 }
-                set needs_portindex 1
+                set needs_portindex true
             }
             {^rsync$} {
                 # Where to, boss?
@@ -2456,7 +2456,7 @@ proc mportsync {{optionslist {}}} {
                     file delete -force ${destdir}/tmp
                 }
 
-                set needs_portindex 1
+                set needs_portindex true
                 # now sync the index if the local file is missing or older than a day
                 if {![file isfile $indexfile] || [clock seconds] - [file mtime $indexfile] > 86400
                       || [info exists options(no_reindex)]} {
@@ -2473,10 +2473,10 @@ proc mportsync {{optionslist {}}} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
                     } else {
                         set ok 1
-                        set needs_portindex 0
+                        set needs_portindex false
                         if {$is_tarball} {
                             set ok 0
-                            set needs_portindex 1
+                            set needs_portindex true
                             # verify signature for PortIndex
                             set rsync_commandline "$macports::autoconf::rsync_path $rsync_options ${remote_indexfile}.rmd160 $destdir"
                             ui_debug $rsync_commandline
@@ -2484,7 +2484,7 @@ proc mportsync {{optionslist {}}} {
                                 foreach pubkey $macports::archivefetch_pubkeys {
                                     if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex} result]} {
                                         set ok 1
-                                        set needs_portindex 0
+                                        set needs_portindex false
                                         ui_debug "successful verification with key $pubkey"
                                         break
                                     } else {
@@ -2598,7 +2598,7 @@ proc mportsync {{optionslist {}}} {
         }
 
         if {$needs_portindex} {
-            set any_needed_portindex 1
+            set any_needed_portindex true
             if {![info exists options(no_reindex)]} {
                 global macports::prefix
                 set indexdir [file dirname [macports::getindex $source]]
