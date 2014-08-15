@@ -2128,6 +2128,9 @@ proc macports::_upgrade_mport_deps {mport target} {
     set required_archs [$workername eval get_canonical_archs]
     set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
 
+    # Pluralize "arch" appropriately.
+    set s [expr {[llength $required_archs] == 1 ? "" : "s"}]
+
     set test _portnameactive
 
     foreach deptype $deptypes {
@@ -2170,7 +2173,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                                     }
                                 }
                                 if {[llength $missing] > 0} {
-                                    ui_error "Cannot install [_mportkey $mport subport] for the arch(s) '$required_archs' because"
+                                    ui_error "Cannot install [_mportkey $mport subport] for the arch${s} '$required_archs' because"
                                     ui_error "its dependency $dep_portname is only installed for the arch '$active_archs'"
                                     ui_error "and the configured universal_archs '$macports::universal_archs' are not sufficient."
                                     return -code error "architecture mismatch"
@@ -2182,12 +2185,12 @@ proc macports::_upgrade_mport_deps {mport target} {
                                 }
                             } else {
                                 # already universal
-                                ui_error "Cannot install [_mportkey $mport subport] for the arch(s) '$required_archs' because"
+                                ui_error "Cannot install [_mportkey $mport subport] for the arch${s} '$required_archs' because"
                                 ui_error "its dependency $dep_portname is only installed for the archs '$active_archs'."
                                 return -code error "architecture mismatch"
                             }
                         } else {
-                            ui_error "Cannot install [_mportkey $mport subport] for the arch(s) '$required_archs' because"
+                            ui_error "Cannot install [_mportkey $mport subport] for the arch${s} '$required_archs' because"
                             ui_error "its dependency $dep_portname is only installed for the arch '$active_archs'"
                             ui_error "and does not have a universal variant."
                             return -code error "architecture mismatch"
@@ -2614,8 +2617,11 @@ proc mportsync {{optionslist {}}} {
         _mports_load_quickindex
     }
 
-    if {$numfailed > 0} {
-        return -code error "Synchronization of $numfailed source(s) failed"
+    if {$numfailed == 1} {
+        return -code error "Synchronization of 1 source failed"
+    }
+    if {$numfailed >= 2} {
+        return -code error "Synchronization of $numfailed sources failed"
     }
 }
 
@@ -3309,11 +3315,15 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     if {![macports::ui_isset ports_debug]} {
         ui_msg {}
     }
-    ui_error "Cannot install $port for the arch(s) '$required_archs' because"
+
+    set s [expr {[llength $required_archs] == 1 ? "" : "s"}]
+
+    ui_error "Cannot install $port for the arch${s} '$required_archs' because"
     if {$supported_archs ne {}} {
+        set ss [expr {[llength $supported_archs] == 1 ? "" : "s"}]
         foreach arch $required_archs {
             if {[lsearch -exact $supported_archs $arch] == -1} {
-                ui_error "its dependency $dep only supports the arch(s) '$supported_archs'."
+                ui_error "its dependency $dep only supports the arch${ss} '$supported_archs'."
                 return
             }
         }
@@ -3321,15 +3331,15 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     if {$has_universal} {
         foreach arch $required_archs {
             if {[lsearch -exact $universal_archs $arch] == -1} {
-                ui_error "its dependency $dep does not build for the required arch(s) by default"
+                ui_error "its dependency $dep does not build for the required arch${s} by default"
                 ui_error "and the configured universal_archs '$universal_archs' are not sufficient."
                 return
             }
         }
-        ui_error "its dependency $dep cannot build for the required arch(s)."
+        ui_error "its dependency $dep cannot build for the required arch${s}."
         return
     }
-    ui_error "its dependency $dep does not build for the required arch(s) by default"
+    ui_error "its dependency $dep does not build for the required arch${s} by default"
     ui_error "and does not have a universal variant."
 }
 
@@ -4646,11 +4656,14 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
         machista::destroy_handle $handle
 
-        if {[llength $broken_files] == 0} {
+        set num_broken_files [llength $broken_files]
+        set s [expr {$num_broken_files == 1 ? "" : "s"}]
+
+        if {$num_broken_files == 0} {
             ui_msg "$macports::ui_prefix No broken files found."
             return 0
         }
-        ui_msg "$macports::ui_prefix Found [llength $broken_files] broken file(s), matching files to ports"
+        ui_msg "$macports::ui_prefix Found $num_broken_files broken file${s}, matching files to ports"
         set broken_ports {}
         set broken_files [lsort -unique $broken_files]
         foreach file $broken_files {
@@ -4702,7 +4715,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 if {$fancy_output} {
                     ui_error "Please run port -d -y rev-upgrade and use the output to report a bug."
                 }
-                error "Port $portname still broken after rebuilding [expr {$broken_port_counts($portname) - 1}] time(s)"
+                set rebuild_tries [expr {$broken_port_counts($portname) - 1}]
+                set s [expr {$rebuild_tries == 1 ? "" : "s"}]
+                error "Port $portname still broken after rebuilding $rebuild_tries time${s}"
             } elseif {$broken_port_counts($portname) > 1 && [global_option_isset ports_binary_only]} {
                 error "Port $portname still broken after reinstalling -- can't rebuild due to binary-only mode"
             }
@@ -4710,8 +4725,11 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         unset temp_broken_ports
 
+        set num_broken_ports [llength $broken_ports]
+        set s [expr {$num_broken_ports == 1 ? "" : "s"}]
+
         if {$macports::revupgrade_mode ne {rebuild}} {
-            ui_msg "$macports::ui_prefix Found [llength $broken_ports] broken port(s):"
+            ui_msg "$macports::ui_prefix Found $num_broken_ports broken port${s}:"
             foreach port $broken_ports {
                 ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
                 foreach f $broken_files_by_port($port) {
@@ -4721,7 +4739,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             return 0
         }
 
-        ui_msg "$macports::ui_prefix Found [llength $broken_ports] broken port(s), determining rebuild order"
+        ui_msg "$macports::ui_prefix Found $num_broken_ports broken port${s}, determining rebuild order"
         # broken_ports are the nodes in our graph
         # now we need adjacents
         foreach port $broken_ports {
