@@ -1,0 +1,27 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-gohome(1)
+==============
+$Id$
+
+NAME
+----
+port-gohome - Open the homepage(s) of the given port(s)
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *gohome*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port gohome* opens the homepage of the given port(s) in your default browser.
+
+SEE ALSO
+--------
+man:port[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

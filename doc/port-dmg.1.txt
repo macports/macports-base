@@ -1,0 +1,67 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-dmg(1)
+===========
+$Id$
+
+NAME
+----
+port-dmg, port-mdmg, port-pkg, port-mpkg - Create binary archives of a port, and
+optionally its dependencies.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *dmg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *mdmg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *pkg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *mpkg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+These commands create OS X-native binary archives of a given port. Depending on
+the command, either a .dmg disk image file, or a .pkg installer package is
+created.
+
+*port dmg* creates an OS X disk image. *port pkg* wraps the same files in an OS
+X installer package. In most cases you probably want to package a port and all
+its library and runtime dependencies in a single package suitable for binary
+redistribution. You can use a metapackage to do this. Create one using *port
+mdmg* or *port mpkg*.
+
+All packages are placed in a port's work directory, which can be located using
+man:port-work[1].
+
+[WARNING]
+====
+If you want to create installer packages using MacPorts for redistribution, make
+sure you do not use a standard installation of MacPorts in '/opt/local'. If you
+do that, your installer package will conflict on systems that *do* have MacPorts
+installed.
+
+Instead, follow guide:installing.macports.source.multiple[Section 2.2.4 of the
+MacPorts Guide] and choose a prefix specific to the software you are trying to
+package, e.g., '/opt/logrotate' for 'logrotate'. Then use this custom MacPorts
+installation to build your package.
+====
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-work[1], guide:installing.macports.source.multiple[Section
+2.2.4 of the MacPorts Guide]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

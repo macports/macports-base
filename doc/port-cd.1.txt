@@ -11,6 +11,7 @@ SYNOPSIS
 --------
 To be used only in interactive mode:
 
+[cmdsynopsis]
 *cd*
     ['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']
 
@@ -21,7 +22,9 @@ change the current working directory to the directory that contains a given
 port. The second parameter is not optional, as it usually is with *cd* in your
 shell.
 
-Note that *port cd* can be used from the command line, but is a no-op.
+BUGS
+----
+*port cd* can be used from the command line, but is a no-op.
 
 SEE ALSO
 --------

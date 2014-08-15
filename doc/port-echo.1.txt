@@ -1,0 +1,48 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-echo(1)
+============
+$Id$
+
+NAME
+----
+port-echo - Print the list of ports the argument expands to
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* *echo*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port echo* expands its argument list according to MacPorts' rules and prints
+a list of ports that match the expression given as argument. It can be useful to
+see what a pseudo-portname or a pseudo-portname selector (see man:port[1])
+expands to.
+
+EXAMPLES
+--------
+Common use cases are:
+
+----
+port echo depends:zlib
+port echo inactive
+port echo obsolete
+port echo requested
+port echo leaves
+port echo category:^mail$
+----
+
+Note that *echo* is usually 'not' used to list outdated ports, since a separate
+action man:port-outdated[1] exists for that. *port outdated* has the advantage
+compared to *port echo outdated* that it gives the reason why MacPorts considers
+the port outdated.
+
+SEE ALSO
+--------
+man:port[1], man:port-outdated[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
