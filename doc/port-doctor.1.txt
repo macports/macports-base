@@ -1,0 +1,34 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-doctor(1)
+==============
+$Id$
+
+NAME
+----
+port-doctor - Detects common issues 
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port doctor*
+        [--quiet]
+
+DESCRIPTION
+-----------
+*port doctor* will check a list of common issues that could affect the user or
+MacPorts in one way or another. If any issues are found, a warning will be
+shown to the user included with a possible fix for said problem.
+
+OPTIONS
+-------
+*--quiet*::
+Only display warnings or errors.
+
+SEE ALSO
+--------
+man:port[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Kyle Sammons <ksammons@macports.org>

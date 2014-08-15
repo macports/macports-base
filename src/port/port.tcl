@@ -43,6 +43,7 @@ if {![catch {package require term::ansi::send}]} {
     set portclient::progress::hasTermAnsiSend yes
 }
 
+package require Tclx
 package require macports
 package require Pextlib 1.0
 
