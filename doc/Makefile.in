@@ -32,14 +32,25 @@ MAN1=	\
 		port-destroot.1 \
 		port-dir.1 \
 		port-distcheck.1 \
+		port-distfiles.1 \
+		port-dmg.1 \
+		port-echo.1 \
 		port-edit.1 \
+		port-exit.1 \
 		port-extract.1 \
 		port-fetch.1 \
 		port-file.1 \
+		port-gohome.1 \
 		port-help.1 \
+		port-info.1 \
 		port-install.1 \
+		port-installed.1 \
 		port-location.1 \
+		port-mdmg.1 \
+		port-mpkg.1 \
 		port-patch.1 \
+		port-pkg.1 \
+		port-quit.1 \
 		port-rdeps.1 \
 		port-rev-upgrade.1 \
 		port-selfupdate.1 \

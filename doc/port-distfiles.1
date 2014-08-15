@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-CD" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-DISTFILES" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,24 +20,21 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-port-cd \- Change the current working directory in interactive mode\&.
+port-distfiles \- Print a list of distribution files for a port
 .SH "SYNOPSIS"
 .sp
-To be used only in interactive mode:
-.sp
 .nf
-\fBcd\fR
-    [\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]
+\fBport\fR [\fB\-qvd\fR] [\fB\-D\fR \fIportdir\fR] \fBdistfiles\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBcd\fR can be used in interactive mode of \fBport\fR (see \fBport-interactive\fR(7)) to change the current working directory to the directory that contains a given port\&. The second parameter is not optional, as it usually is with \fBcd\fR in your shell\&.
-.SH "BUGS"
+Print a list of source archives required to build the given port along with the checksums for the file and a list of mirrors\&. If you want to verify that all mirrors actually serve the same file see \fBport-distcheck\fR(1)\&.
 .sp
-\fBport cd\fR can be used from the command line, but is a no\-op\&.
+To delete the distfiles once they have been downloaded, use \fBport clean \-\-dist\fR\&. See \fBport-clean\fR(1) for more information regarding the \fBclean\fR command\&.
 .SH "SEE ALSO"
 .sp
-\fBport\fR(1), \fBport-interactive\fR(7)
+\fBport\fR(1), \fBport-distcheck\fR(1), \fBport-clean\fR(1)
 .SH "AUTHORS"
 .sp
 .if n \{\

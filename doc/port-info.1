@@ -1,0 +1,164 @@
+'\" t
+.TH "PORT\-INFO" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-info \- Return information about the given ports\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBinfo\fR
+     [\-\-categories|\-\-category] [\-\-depends] [\-\-depends_fetch] [\-\-depends_extract]
+     [\-\-depends_build] [\-\-depends_lib] [\-\-depends_run] [\-\-description] [\-\-epoch]
+     [\-\-fullname] [\-\-heading] [\-\-homepage] [\-\-index] [\-\-license] [\-\-line]
+     [\-\-long_description] [\-\-maintainer|\-\-maintainers] [\-\-name]
+     [\-\-platform|\-\-platforms] [\-\-portdir] [\-\-pretty] [\-\-replaced_by]
+     [\-\-revision] [\-\-subports] [\-\-variant|\-\-variants] [\-\-version]
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport info\fR prints information about the given ports\&. Specifying at least one of the options limits the output to the corresponding field\&. If no fields are specified, a useful default set consisting of name, epoch, version, revision, categories, replaced_by, variants, description, homepage, dependencies, platforms, license, and maintainers is shown\&.
+.SH "OPTIONS"
+.sp
+The following options do not select fields for the output but change how the information is obtained or formatted:
+.PP
+\-\-index
+.RS 4
+Do not read the Portfile, but rely solely on the port index information\&. Note that this option will prevent the information reported from reflecting the effects of any variants specified\&.
+.RE
+.PP
+\-\-line
+.RS 4
+Print a single line for each port\&. Fields are separated by spaces\&.
+.RE
+.PP
+\-\-pretty
+.RS 4
+Format the output in a convenient, human\-readable fashion\&. This is the default when no options are specified\&.
+.RE
+.sp
+The rest of the options affect which fields will be given in the output:
+.PP
+\-\-category, or \-\-categories
+.RS 4
+List the categories of a port\&.
+.RE
+.PP
+\-\-depends, \-\-depends_fetch, \-\-depends_extract, \-\-depends_build, \-\-depends_lib, and \-\-depends_run
+.RS 4
+List the specified dependencies of a port\&.
+\fB\-\-depends\fR
+is a shorthand option for all other
+\fB\-\-depends_\fR* options\&.
+.RE
+.PP
+\-\-description, and \-\-long_description
+.RS 4
+Print the short, and long description of a port, respectively\&.
+.RE
+.PP
+\-\-epoch, \-\-version, \-\-revision
+.RS 4
+List the components of a MacPorts version tuple, epoch, version and revision, respectively\&.
+.RE
+.PP
+\-\-fullname
+.RS 4
+Print name and the full MacPorts version tuple, e\&.g\&., "yubico\-pam @2\&.16"\&.
+.RE
+.PP
+\-\-heading
+.RS 4
+Like
+\fB\-\-fullname\fR
+but including the categories\&.
+.RE
+.PP
+\-\-homepage
+.RS 4
+List the homepage of a port\&.
+.RE
+.PP
+\-\-license
+.RS 4
+Print the license that applies to the source code of a port\&.
+.RE
+.PP
+\-\-maintainer, or \-\-maintainers
+.RS 4
+List the email address(es) of a port\(cqs maintainer(s)\&.
+.RE
+.PP
+\-\-name
+.RS 4
+Print the name of a port\&.
+.RE
+.PP
+\-\-platform, or \-\-platforms
+.RS 4
+List the platforms supported by a port\&. This field exists for historical reasons only\&. In modern MacPorts, this is always
+\fIdarwin\fR, i\&.e\&., OS X\&.
+.RE
+.PP
+\-\-portdir
+.RS 4
+Print the path to a port\(cqs directory relative to the port tree root\&.
+.RE
+.PP
+\-\-replaced_by
+.RS 4
+List the name of the port that replaces a port, if any\&.
+.RE
+.PP
+\-\-subports
+.RS 4
+Print a list of subports defined by this port\(cqs Portfile, i\&.e\&., ports that are defined in the same Portfile because they share common parts\&.
+.RE
+.PP
+\-\-variant, or \-\-variants
+.RS 4
+List the variants defined by a port by name\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.PP
+\-q
+.RS 4
+Do not print the field description when using
+\fB\-\-pretty\fR
+output\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

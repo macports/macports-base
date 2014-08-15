@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-CD" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-ECHO" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,24 +20,39 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-port-cd \- Change the current working directory in interactive mode\&.
+port-echo \- Print the list of ports the argument expands to
 .SH "SYNOPSIS"
 .sp
-To be used only in interactive mode:
-.sp
 .nf
-\fBcd\fR
-    [\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]
+\fBport\fR \fBecho\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBcd\fR can be used in interactive mode of \fBport\fR (see \fBport-interactive\fR(7)) to change the current working directory to the directory that contains a given port\&. The second parameter is not optional, as it usually is with \fBcd\fR in your shell\&.
-.SH "BUGS"
+\fBport echo\fR expands its argument list according to MacPorts\*(Aq rules and prints a list of ports that match the expression given as argument\&. It can be useful to see what a pseudo\-portname or a pseudo\-portname selector (see \fBport\fR(1)) expands to\&.
+.SH "EXAMPLES"
 .sp
-\fBport cd\fR can be used from the command line, but is a no\-op\&.
+Common use cases are:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port echo depends:zlib
+port echo inactive
+port echo obsolete
+port echo requested
+port echo leaves
+port echo category:^mail$
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Note that \fBecho\fR is usually \fInot\fR used to list outdated ports, since a separate action \fBport-outdated\fR(1) exists for that\&. \fBport outdated\fR has the advantage compared to \fBport echo outdated\fR that it gives the reason why MacPorts considers the port outdated\&.
 .SH "SEE ALSO"
 .sp
-\fBport\fR(1), \fBport-interactive\fR(7)
+\fBport\fR(1), \fBport-outdated\fR(1)
 .SH "AUTHORS"
 .sp
 .if n \{\

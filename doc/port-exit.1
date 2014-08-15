@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-CD" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-EXIT" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,21 +20,24 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-port-cd \- Change the current working directory in interactive mode\&.
+port-exit \- Exit interactive mode
 .SH "SYNOPSIS"
 .sp
 To be used only in interactive mode:
 .sp
 .nf
-\fBcd\fR
-    [\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]
+\fBexit\fR
+.fi
+.sp
+.nf
+\fBquit\fR
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBcd\fR can be used in interactive mode of \fBport\fR (see \fBport-interactive\fR(7)) to change the current working directory to the directory that contains a given port\&. The second parameter is not optional, as it usually is with \fBcd\fR in your shell\&.
+\fBexit\fR or \fBquit\fR can only be used in interactive mode of \fBport\fR (see \fBport-interactive\fR(7))\&. It causes the interactive interpreter to exit\&.
 .SH "BUGS"
 .sp
-\fBport cd\fR can be used from the command line, but is a no\-op\&.
+\fBport exit\fR and \fBport quit\fR can be used from the command line, but are no\-ops\&.
 .SH "SEE ALSO"
 .sp
 \fBport\fR(1), \fBport-interactive\fR(7)
