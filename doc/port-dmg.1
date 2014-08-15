@@ -44,9 +44,11 @@ port-dmg, port-mdmg, port-pkg, port-mpkg \- Create binary archives of a port, an
 .fi
 .SH "DESCRIPTION"
 .sp
-These commands create OS X\-native binary archives of a given port\&. Depending on the command, either a \&.dmg disk image file, or a \&.pkg installer package is created\&.
+These commands create OS X\-native binary archives of a given port\&. Depending on the command, one of a \&.dmg disk image file, a \&.pkg, or \&.mpkg installer package is created\&.
 .sp
-\fBport dmg\fR creates an OS X disk image\&. \fBport pkg\fR wraps the same files in an OS X installer package\&. In most cases you probably want to package a port and all its library and runtime dependencies in a single package suitable for binary redistribution\&. You can use a metapackage to do this\&. Create one using \fBport mdmg\fR or \fBport mpkg\fR\&.
+\fBport pkg\fR creates an OS X installer package that installs all files that belong to a given port\&. \fBport dmg\fR wraps this installer package in a disk image\&. In most cases you probably want to package a port and all its library and runtime dependencies in a single package suitable for binary distribution\&. \fBport pkg\fR and \fBport dmg\fR don\(cqt do that, so those are only useful if you are going to take care of the dependencies separately\&. \fBport mpkg\fR creates an \&.mpkg installer image that contains installer packages for each of the dependencies and is suitable for standalone redistribution\&. \fBport mdmg\fR wraps this \&.mpkg package in a disk image\&.
+.sp
+On OS X 10\&.6 and later, the generated installer packages are in "flat" format, such that wrapping them in a disk image is no longer necessary for online redistribution\&. Prior to OS X 10\&.6, generated installer packages use a resource fork and can thus not be used for online distribution without a wrapping disk image\&.
 .sp
 All packages are placed in a port\(cqs work directory, which can be located using \fBport-work\fR(1)\&.
 .if n \{\
