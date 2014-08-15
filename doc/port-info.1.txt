@@ -46,14 +46,14 @@ information is obtained or formatted:
 
 The rest of the options affect which fields will be given in the output:
 
---category, or --categories::
+--category, --categories::
     List the categories of a port.
 
---depends, --depends_fetch, --depends_extract, --depends_build, --depends_lib, and --depends_run::
+--depends, --depends_fetch, --depends_extract, --depends_build, --depends_lib, --depends_run::
     List the specified dependencies of a port. *--depends* is a shorthand option
     for all other *--depends_** options.
 
---description, and --long_description::
+--description, --long_description::
     Print the short, and long description of a port, respectively.
 
 --epoch, --version, --revision::
@@ -72,13 +72,13 @@ The rest of the options affect which fields will be given in the output:
 --license::
     Print the license that applies to the source code of a port.
 
---maintainer, or --maintainers::
+--maintainer, --maintainers::
     List the email address(es) of a port's maintainer(s).
 
 --name::
     Print the name of a port.
 
---platform, or --platforms::
+--platform, --platforms::
     List the platforms supported by a port. This field exists for historical
     reasons only. In modern MacPorts, this is always 'darwin', i.e., OS X.
 
@@ -92,7 +92,7 @@ The rest of the options affect which fields will be given in the output:
     Print a list of subports defined by this port's Portfile, i.e., ports that
     are defined in the same Portfile because they share common parts.
 
---variant, or --variants::
+--variant, --variants::
     List the variants defined by a port by name.
 
 include::global-flags.txt[]

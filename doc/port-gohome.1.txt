@@ -5,7 +5,7 @@ $Id$
 
 NAME
 ----
-port-gohome - Open the homepage(s) of the given port(s)
+port-gohome - Open the homepage of the given port(s)
 
 SYNOPSIS
 --------
