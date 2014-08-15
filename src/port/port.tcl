@@ -4260,7 +4260,6 @@ array set action_array [list \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
     mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
-    portpkg     [list action_target         [ACTION_ARGS_PORTS]] \
     \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
