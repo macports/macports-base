@@ -29,14 +29,24 @@ SYNOPSIS
 DESCRIPTION
 -----------
 These commands create OS X-native binary archives of a given port. Depending on
-the command, either a .dmg disk image file, or a .pkg installer package is
-created.
+the command, one of a .dmg disk image file, a .pkg, or .mpkg installer package
+is created.
 
-*port dmg* creates an OS X disk image. *port pkg* wraps the same files in an OS
-X installer package. In most cases you probably want to package a port and all
-its library and runtime dependencies in a single package suitable for binary
-redistribution. You can use a metapackage to do this. Create one using *port
-mdmg* or *port mpkg*.
+*port pkg* creates an OS X installer package that installs all files that belong
+to a given port. *port dmg* wraps this installer package in a disk image. In
+most cases you probably want to package a port and all its library and runtime
+dependencies in a single package suitable for binary distribution. *port pkg*
+and *port dmg* don't do that, so those are only useful if you are going to take
+care of the dependencies separately. *port mpkg* creates an .mpkg installer
+image that contains installer packages for each of the dependencies and is
+suitable for standalone redistribution. *port mdmg* wraps this .mpkg package in
+a disk image.
+
+On OS X 10.6 and later, the generated installer packages are in "flat" format,
+such that wrapping them in a disk image is no longer necessary for online
+redistribution. Prior to OS X 10.6, generated installer packages use a resource
+fork and can thus not be used for online distribution without a wrapping disk
+image.
 
 All packages are placed in a port's work directory, which can be located using
 man:port-work[1].
