@@ -8,8 +8,9 @@ ifeq ($(SELFUPDATING),1)
 ASCIIDOC=
 XSLTPROC=
 else
-ASCIIDOC=	$(wildcard ${prefix}/bin/asciidoc)
-XSLTPROC=	$(wildcard ${prefix}/bin/xsltproc)
+ASCIIDOC=    $(wildcard ${prefix}/bin/asciidoc)
+XSLTPROC=    $(wildcard ${prefix}/bin/xsltproc)
+DOCBOOK_XSL= $(wildcard ${prefix}/share/xsl/docbook-xsl/manpages/docbook.xsl)
 endif
 
 ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION}
@@ -122,7 +123,7 @@ distclean: clean
 	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
 
 # Define these rules only if both asciidoc and xsltproc are available
-ifneq ($(and $(ASCIIDOC),$(XSLTPROC)),)
+ifneq ($(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL)),)
 %: %.xml manpage.xsl
 	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
 
@@ -134,13 +135,13 @@ ifneq ($(and $(ASCIIDOC),$(XSLTPROC)),)
 else
 man: ${MAN} ${MAN:%=%.gz}
 	@echo "* Warning: Using pre-generated man pages only."
-	@echo "* asciidoc and xsltproc are required to generate man pages from source."
+	@echo "* asciidoc, xsltproc (port libxslt) and docbook-xsl are required to generate man pages from source."
 
 %.xml %.html: | %.txt
 	@echo "* In order to modify and generate output from these source files,"
-	@echo "* please install asciidoc and xsltproc or use"
-	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc"
-	@echo "* with appropriate paths."
+	@echo "* please install asciidoc and xsltproc (port libxslt) and docbook-xsl or use"
+	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=nonempty"
+	@echo "* with appropriate paths for asciidoc and xsltproc."
 	@exit 1
 endif
 
