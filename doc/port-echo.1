@@ -30,6 +30,19 @@ port-echo \- Print the list of ports the argument expands to
 .SH "DESCRIPTION"
 .sp
 \fBport echo\fR expands its argument list according to MacPorts\*(Aq rules and prints a list of ports that match the expression given as argument\&. It can be useful to see what a pseudo\-portname or a pseudo\-portname selector (see \fBport\fR(1)) expands to\&.
+.sp
+If \fBport echo\fR doesn\(cqt recognize an argument as port, it will still print it as\-is\&. You cannot use \fBport echo\fR to check whether a port exists:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ port echo nonexistentport
+nonexistentport
+.fi
+.if n \{\
+.RE
+.\}
 .SH "EXAMPLES"
 .sp
 Common use cases are:
