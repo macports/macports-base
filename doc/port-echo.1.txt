@@ -20,6 +20,14 @@ a list of ports that match the expression given as argument. It can be useful to
 see what a pseudo-portname or a pseudo-portname selector (see man:port[1])
 expands to.
 
+If *port echo* doesn't recognize an argument as port, it will still print it
+as-is. You cannot use *port echo* to check whether a port exists:
+
+----
+$ port echo nonexistentport
+nonexistentport
+----
+
 EXAMPLES
 --------
 Common use cases are:
