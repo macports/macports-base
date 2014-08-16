@@ -16,7 +16,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 *port distcheck* downloads all source files for a given port from all available
-mirrors (including MacPorts' mirror infrastructure) and check that the
+mirrors (including MacPorts' mirror infrastructure) and checks that the
 modification date of the file on the mirror is not more recent than the
 modification date of the Portfile.
 
@@ -30,9 +30,8 @@ BUGS
 checksums available in the Portfile to verify the integrity of the files on the
 mirrors instead. See man:port-checksum[1].
 
-Meanwhile, you can use
-http://trac.macports.org/browser/contrib/port-checkmirrors[port-checkmirrors]
-from contrib to do that.
+Meanwhile, you can use source:contrib/port-checkmirrors[port-checkmirrors] from
+contrib to do that.
 
 include::global-flags.txt[]
 
