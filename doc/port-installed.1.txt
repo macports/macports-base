@@ -15,10 +15,10 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-*port installed* can be used in two separate ways: Either without argument, in
+*port installed* can be used in two separate ways: Either without arguments, in
 which case it will print a list of all installed ports (both active and
-inactive), or, with argument, which will return a list of installed ports that
-match the given expression.
+inactive), or with arguments, which will return a list of installed ports that
+match the argument expression.
 
 The output of *port installed* contains the name, version and variants of the
 installed ports and whether the port is active or inactive. See the PORT IMAGES
