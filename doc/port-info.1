@@ -40,29 +40,30 @@ port-info \- Return information about the given ports\&.
 .sp
 The following options do not select fields for the output but change how the information is obtained or formatted:
 .PP
-\-\-index
+\fB\-\-index\fR
 .RS 4
-Do not read the Portfile, but rely solely on the port index information\&. Note that this option will prevent the information reported from reflecting the effects of any variants specified\&.
+Do not read the
+\fIPortfile\fR, but rely solely on the port index information\&. Note that this option will prevent the information reported from reflecting the effects of any variants specified\&.
 .RE
 .PP
-\-\-line
+\fB\-\-line\fR
 .RS 4
 Print a single line for each port\&. Fields are separated by spaces\&.
 .RE
 .PP
-\-\-pretty
+\fB\-\-pretty\fR
 .RS 4
 Format the output in a convenient, human\-readable fashion\&. This is the default when no options are specified\&.
 .RE
 .sp
 The rest of the options affect which fields will be given in the output:
 .PP
-\-\-category, \-\-categories
+\fB\-\-category\fR, \fB\-\-categories\fR
 .RS 4
 List the categories of a port\&.
 .RE
 .PP
-\-\-depends, \-\-depends_fetch, \-\-depends_extract, \-\-depends_build, \-\-depends_lib, \-\-depends_run
+\fB\-\-depends\fR, \fB\-\-depends_fetch\fR, \fB\-\-depends_extract\fR, \fB\-\-depends_build\fR, \fB\-\-depends_lib\fR, \fB\-\-depends_run\fR
 .RS 4
 List the specified dependencies of a port\&.
 \fB\-\-depends\fR
@@ -70,70 +71,73 @@ is a shorthand option for all other
 \fB\-\-depends_\fR* options\&.
 .RE
 .PP
-\-\-description, \-\-long_description
+\fB\-\-description\fR, \fB\-\-long_description\fR
 .RS 4
 Print the short or long description of a port, respectively\&.
 .RE
 .PP
-\-\-epoch, \-\-version, \-\-revision
+\fB\-\-epoch\fR, \fB\-\-version\fR, \fB\-\-revision\fR
 .RS 4
 List the components of a MacPorts version tuple, epoch, version and revision, respectively\&.
 .RE
 .PP
-\-\-fullname
+\fB\-\-fullname\fR
 .RS 4
-Print name and the full MacPorts version tuple, e\&.g\&., "yubico\-pam @2\&.16"\&.
+Print name and the full MacPorts version tuple, e\&.g\&., \(lqyubico\-pam @2\&.16\(rq\&.
 .RE
 .PP
-\-\-heading
+\fB\-\-heading\fR
 .RS 4
 Like
 \fB\-\-fullname\fR
 but including the categories\&.
 .RE
 .PP
-\-\-homepage
+\fB\-\-homepage\fR
 .RS 4
 List the homepage of a port\&.
 .RE
 .PP
-\-\-license
+\fB\-\-license\fR
 .RS 4
 Print the license that applies to the source code of a port\&.
 .RE
 .PP
-\-\-maintainer, \-\-maintainers
+\fB\-\-maintainer\fR, \fB\-\-maintainers\fR
 .RS 4
 List the email address(es) of a port\(cqs maintainer(s)\&.
 .RE
 .PP
-\-\-name
+\fB\-\-name\fR
 .RS 4
 Print the name of a port\&.
 .RE
 .PP
-\-\-platform, \-\-platforms
+\fB\-\-platform\fR, \fB\-\-platforms\fR
 .RS 4
 List the platforms supported by a port\&. This field exists for historical reasons only\&. In modern MacPorts, this is always
 \fIdarwin\fR, i\&.e\&., OS X\&.
 .RE
 .PP
-\-\-portdir
+\fB\-\-portdir\fR
 .RS 4
 Print the path to a port\(cqs directory relative to the port tree root\&.
 .RE
 .PP
-\-\-replaced_by
+\fB\-\-replaced_by\fR
 .RS 4
 List the name of the port that replaces a port, if any\&.
 .RE
 .PP
-\-\-subports
+\fB\-\-subports\fR
 .RS 4
-Print a list of subports defined by this port\(cqs Portfile, i\&.e\&., ports that are defined in the same Portfile because they share common parts\&.
+Print a list of subports defined by this port\(cqs
+\fIPortfile\fR, i\&.e\&., ports that are defined in the same
+\fIPortfile\fR
+because they share common parts\&.
 .RE
 .PP
-\-\-variant, \-\-variants
+\fB\-\-variant\fR, \fB\-\-variants\fR
 .RS 4
 List the variants defined by a port by name\&.
 .RE
@@ -141,7 +145,7 @@ List the variants defined by a port by name\&.
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
 .PP
-\-q
+\fB\-q\fR
 .RS 4
 Do not print the field description when using
 \fB\-\-pretty\fR

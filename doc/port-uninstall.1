@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-INSTALL" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-INSTALL" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -36,17 +36,17 @@ port-uninstall \- Remove a previously installed port
 If multiple versions of the same port are installed, you need to specify a version using the \fB@version\fR syntax\&. Use \fBport installed\fR to find out which versions are currently installed on your system\&. If multiple versions are installed and you did not specify a version, \fBport\fR will output a list\&.
 .SH "OPTIONS"
 .PP
-\-\-follow\-dependents
+\fB\-\-follow\-dependents\fR
 .RS 4
 Also uninstall all ports recursively depending directly or indirectly on one of the specified ports before uninstalling the port itself\&.
 .RE
 .PP
-\-\-follow\-dependencies
+\fB\-\-follow\-dependencies\fR
 .RS 4
 Also recursively uninstall all ports that the specified port depends on\&. This will not uninstall dependencies that are marked as requested or that have other dependents\&.
 .RE
 .PP
-\-\-no\-exec
+\fB\-\-no\-exec\fR
 .RS 4
 Do not execute any stored pre\- or post\-uninstall procedures\&.
 .RE

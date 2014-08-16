@@ -30,11 +30,55 @@ port-lint \- Check a port for common problems
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport lint\fR checks the Portfile of a given port for potential errors\&. It is a useful tool for port maintainers to check for possible typos, mistakes and missing definitions\&.
+\fBport lint\fR checks the \fIPortfile\fR of a given port for potential errors\&. It is a useful tool for port maintainers to check for possible typos, mistakes and missing definitions\&.
 .sp
-For example, it verifies that \- Portfiles are valid UTF\-8 \- all mandatory properties are present \- all dependencies actually exist, and \- no deprecated features are used\&.
+For example, it verifies that
 .sp
-If problems are found, \fBport lint\fR emits warnings and error messages explaining the problem\&. Please fix all errors and consider fixing any warnings before submitting your Portfile or your changes to MacPorts\&.
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Portfiles are valid UTF\-8
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+all mandatory properties are present
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+all dependencies actually exist, and
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+no deprecated features are used\&.
+.RE
+.sp
+If problems are found, \fBport lint\fR emits warnings and error messages explaining the problem\&. Please fix all errors and consider fixing any warnings before submitting your \fIPortfile\fR or your changes to MacPorts\&.
 .SH "OPTIONS"
 .PP
 \fB\-\-nitpick\fR
@@ -52,7 +96,9 @@ Print messages for successful tests\&.
 .PP
 \fB\-d\fR
 .RS 4
-Print the Portfile, and debugging information parsed from the Portfile\&.
+Print the
+\fIPortfile\fR, and debugging information parsed from the
+\fIPortfile\fR\&.
 .RE
 .PP
 \fB\-q\fR

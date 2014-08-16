@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-DIR" "1" "2014\-08\-14" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-DIR" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -51,7 +51,7 @@ port-dir, port-url, port-file, port-location, port-work \- Print paths for certa
 .sp
 These commands print a path for each given port\&. The meaning of the path differs by the command given:
 .sp
-\fBport dir\fR prints the directory that contains the Portfile for the given port expression\&. This can be quite handy in your shell, if you want to locate a Portfile:
+\fBport dir\fR prints the directory that contains the \fIPortfile\fR for the given port expression\&. This can be quite handy in your shell, if you want to locate a \fIPortfile\fR:
 .sp
 .if n \{\
 .RS 4
@@ -65,7 +65,7 @@ cd $(port dir <portname>)
 .sp
 \fBport url\fR prints a unique URL for the given port expression\&. This command mostly exists for historical reasons and isn\(cqt of much use nowadays\&.
 .sp
-\fBport file\fR prints the path of the Portfile for the given port expression\&. This can be useful to locate a port\(cqs definition\&. Note that you can always get this by using \fBport dir\fR and appending \fIPortfile\fR\&. You could use \fBport file\fR in a shell to edit a Portfile, but note that you can also use \fBport-edit\fR(1) to achieve the same\&.
+\fBport file\fR prints the path of the \fIPortfile\fR for the given port expression\&. This can be useful to locate a port\(cqs definition\&. Note that you can always get this by using \fBport dir\fR and appending \fIPortfile\fR\&. You could use \fBport file\fR in a shell to edit a Portfile, but note that you can also use \fBport-edit\fR(1) to achieve the same\&.
 .sp
 \fBport location\fR only works for installed ports and prints the location of the archive MacPorts internally uses to be able to deactivate and activate a port\&. See \fBport-activate\fR(1) for more details on that\&. This command might be useful for you if you want to setup a local binary mirror of MacPorts packages that are not available from our official infrastructure due to licensing reasons\&.
 .sp

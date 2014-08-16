@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-CONTENTS" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-CONTENTS" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -45,14 +45,14 @@ port \-q contents asciidoc | grep \-E \*(Aq/s?bin/\*(Aq
 .\}
 .SH "OPTIONS"
 .PP
-\-\-size
+\fB\-\-size\fR
 .RS 4
 Enable printing a human\-readable representation of the files\*(Aq sizes\&. The size output can be adjusted using the
 \fB\-\-units \fR\fB\fIunit\fR\fR
 flag\&.
 .RE
 .PP
-\-\-units \fIunit\fR
+\fB\-\-units \fR\fB\fIunit\fR\fR
 .RS 4
 Used in conjunction with
 \fB\-\-size\fR
@@ -60,37 +60,37 @@ to choose the unit in which the size is given\&. Valid values for
 \fIunit\fR
 are
 .PP
-B
+\fBB\fR
 .RS 4
 List sizes in bytes\&.
 .RE
 .PP
-K, Ki, or KiB
+\fBK\fR, \fBKi\fR, \fBKiB\fR
 .RS 4
 List sizes in KiB, i\&.e\&., 1024 bytes\&.
 .RE
 .PP
-Mi, or MiB
+\fBMi\fR, \fBMiB\fR
 .RS 4
 List sizes in MiB, i\&.e\&., 1024 * 1024 bytes\&.
 .RE
 .PP
-Gi, or GiB
+\fBGi\fR, \fBGiB\fR
 .RS 4
 List sizes in GiB, i\&.e\&., 1024 * 1024 * 1024 bytes\&.
 .RE
 .PP
-k, or kB
+\fBk\fR, \fBkB\fR
 .RS 4
 List sizes in kB, i\&.e\&., 1000 bytes\&.
 .RE
 .PP
-M, or MB
+\fBM\fR, \fBMB\fR
 .RS 4
 List sizes in MB, i\&.e\&., 1000 * 1000 bytes\&.
 .RE
 .PP
-G, or GB
+\fBG\fR, \fBGB\fR
 .RS 4
 List sizes in GB, i\&.e\&., 1000 * 1000 * 1000 bytes\&.
 .RE
@@ -99,7 +99,7 @@ List sizes in GB, i\&.e\&., 1000 * 1000 * 1000 bytes\&.
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
 .PP
-\-q
+\fB\-q\fR
 .RS 4
 Do not print the header line\&.
 .RE

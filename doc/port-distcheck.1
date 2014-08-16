@@ -29,12 +29,12 @@ port-distcheck \- Check if a port can be fetched from all of its mirrors
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport distcheck\fR downloads all source files for a given port from all available mirrors (including MacPorts\*(Aq mirror infrastructure) and checks that the modification date of the file on the mirror is not more recent than the modification date of the Portfile\&.
+\fBport distcheck\fR downloads all source files for a given port from all available mirrors (including MacPorts\*(Aq mirror infrastructure) and checks that the modification date of the file on the mirror is not more recent than the modification date of the \fIPortfile\fR\&.
 .sp
-Distcheck can be switched to verify the file size of the downloaded files instead by setting the \fIdistcheck\&.type\fR option to \fIfilesize\fR in the Portfile for the tested port\&.
+Distcheck can be switched to verify the file size of the downloaded files instead by setting the \fIdistcheck\&.type\fR option to \fIfilesize\fR in the \fIPortfile\fR for the tested port\&.
 .SH "BUGS"
 .sp
-\fBport distcheck\fR should not rely on timestamps or file sizes but use the checksums available in the Portfile to verify the integrity of the files on the mirrors instead\&. See \fBport-checksum\fR(1)\&.
+\fBport distcheck\fR should not rely on timestamps or file sizes but use the checksums available in the \fIPortfile\fR to verify the integrity of the files on the mirrors instead\&. See \fBport-checksum\fR(1)\&.
 .sp
 Meanwhile, you can use \m[blue]\fBport\-checkmirrors\fR\m[]\&\s-2\u[1]\d\s+2 from contrib to do that\&.
 .SH "GLOBAL OPTIONS"
