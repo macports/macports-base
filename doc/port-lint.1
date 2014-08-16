@@ -1,0 +1,76 @@
+'\" t
+.TH "PORT\-LINT" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-lint \- Check a port for common problems
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-vdq\fR] [\fB\-D\fR \fIportdir\fR] \fBlint\fR
+     [\-\-nitpick]
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport lint\fR checks the Portfile of a given port for potential errors\&. It is a useful tool for port maintainers to check for possible typos, mistakes and missing definitions\&.
+.sp
+For example, it verifies that \- Portfiles are valid UTF\-8 \- all mandatory properties are present \- all dependencies actually exist, and \- no deprecated features are used\&.
+.sp
+If problems are found, \fBport lint\fR emits warnings and error messages explaining the problem\&. Please fix all errors and consider fixing any warnings before submitting your Portfile or your changes to MacPorts\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-nitpick\fR
+.RS 4
+Enables additional checks that are mostly whitespace\-related and best practices\&.
+.RE
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.PP
+\fB\-v\fR
+.RS 4
+Print messages for successful tests\&.
+.RE
+.PP
+\fB\-d\fR
+.RS 4
+Print the Portfile, and debugging information parsed from the Portfile\&.
+.RE
+.PP
+\fB\-q\fR
+.RS 4
+Supress the header line, warning and error count; only print warnings and errors, if any\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBportfile\fR(7), \fBport-dev-style\fR(7)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
