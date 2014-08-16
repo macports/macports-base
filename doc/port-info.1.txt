@@ -54,7 +54,7 @@ The rest of the options affect which fields will be given in the output:
     for all other *--depends_** options.
 
 --description, --long_description::
-    Print the short, and long description of a port, respectively.
+    Print the short or long description of a port, respectively.
 
 --epoch, --version, --revision::
     List the components of a MacPorts version tuple, epoch, version and
