@@ -1,0 +1,50 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-echo(1)
+============
+$Id$
+
+NAME
+----
+port-list - List the latest available version for the given ports
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* *list*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port list* prints the latest version of the given port(s) that is available
+through MacPorts. It prints name, version number and the relative path of the
+port in the port tree, i.e. the name of the primary category followed by the
+port name.
+
+[NOTE]
+====
+*port list* will always print the latest *available* version, which is not
+necessarily the version you have installed.
+
+This leads to the common mistake that *port list installed* lists the same port
+multiple times in the same version. This happens because *installed* expands to
+a list of installed ports and their versions, but *port list* ignores the
+version and prints the latest available version for each occurrence of a port in
+*installed*. In these cases, you should use man:port-installed[1] or
+man:port-echo[1] instead. *port installed* and *port echo* also have the
+advantage of being much faster.
+====
+
+Pretty much the only use case for *port list* is checking which version of
+a specific port is current in MacPorts, or if a port exists at all. Do *not* use
+*port list* to print *outdated*, *inactive*, *installed*, *requested*, *leaves*,
+or other pseudo-ports. Use man:port-outdated[1], man:port-installed[1], or
+man:port-echo[1] instead.
+
+SEE ALSO
+--------
+man:port[1], man:port-installed[1], man:port-echo[1], man:port-outdated[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
