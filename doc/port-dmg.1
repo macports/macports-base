@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-DMG" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-DMG" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -48,7 +48,7 @@ These commands create OS X\-native binary archives of a given port\&. Depending 
 .sp
 \fBport pkg\fR creates an OS X installer package that installs all files that belong to a given port\&. \fBport dmg\fR wraps this installer package in a disk image\&. In most cases you probably want to package a port and all its library and runtime dependencies in a single package suitable for binary distribution\&. \fBport pkg\fR and \fBport dmg\fR don\(cqt do that, so those are only useful if you are going to take care of the dependencies separately\&. \fBport mpkg\fR creates an \&.mpkg installer image that contains installer packages for each of the dependencies and is suitable for standalone redistribution\&. \fBport mdmg\fR wraps this \&.mpkg package in a disk image\&.
 .sp
-On OS X 10\&.6 and later, the generated installer packages are in "flat" format, such that wrapping them in a disk image is no longer necessary for online redistribution\&. Prior to OS X 10\&.6, generated installer packages use a resource fork and can thus not be used for online distribution without a wrapping disk image\&.
+On OS X 10\&.6 and later, the generated installer packages are in "flat" format, such that wrapping them in a disk image is no longer necessary for online redistribution\&. Prior to OS X 10\&.6, generated installer packages could not be used for online distribution without a wrapping disk image\&.
 .sp
 All packages are placed in a port\(cqs work directory, which can be located using \fBport-work\fR(1)\&.
 .if n \{\

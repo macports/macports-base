@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-DEPS" "1" "2014\-08\-14" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-DEPS" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -29,7 +29,7 @@ port-distcheck \- Check if a port can be fetched from all of its mirrors
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport distcheck\fR downloads all source files for a given port from all available mirrors (including MacPorts\*(Aq mirror infrastructure) and check that the modification date of the file on the mirror is not more recent than the modification date of the Portfile\&.
+\fBport distcheck\fR downloads all source files for a given port from all available mirrors (including MacPorts\*(Aq mirror infrastructure) and checks that the modification date of the file on the mirror is not more recent than the modification date of the Portfile\&.
 .sp
 Distcheck can be switched to verify the file size of the downloaded files instead by setting the \fIdistcheck\&.type\fR option to \fIfilesize\fR in the Portfile for the tested port\&.
 .SH "BUGS"
@@ -59,5 +59,5 @@ Clemens Lang <cal@macports\&.org>
 .IP " 1." 4
 port-checkmirrors
 .RS 4
-\%http://trac.macports.org/browser/contrib/port-checkmirrors
+\%https://trac.macports.org/browser/contrib/port-checkmirrors
 .RE
