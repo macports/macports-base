@@ -42,7 +42,7 @@ image that contains installer packages for each of the dependencies and is
 suitable for standalone redistribution. *port mdmg* wraps this .mpkg package in
 a disk image.
 
-On OS X 10.6 and later, the generated installer packages are in "flat" format,
+On OS X 10.6 and later, the generated installer packages are in ``flat'' format,
 such that wrapping them in a disk image is no longer necessary for online
 redistribution. Prior to OS X 10.6, generated installer packages could not be
 used for online distribution without a wrapping disk image.

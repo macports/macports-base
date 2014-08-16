@@ -18,17 +18,17 @@ DESCRIPTION
 *port distcheck* downloads all source files for a given port from all available
 mirrors (including MacPorts' mirror infrastructure) and checks that the
 modification date of the file on the mirror is not more recent than the
-modification date of the Portfile.
+modification date of the 'Portfile'.
 
 Distcheck can be switched to verify the file size of the downloaded files
-instead by setting the 'distcheck.type' option to 'filesize' in the Portfile for
-the tested port.
+instead by setting the 'distcheck.type' option to 'filesize' in the 'Portfile'
+for the tested port.
 
 BUGS
 ----
 *port distcheck* should not rely on timestamps or file sizes but use the
-checksums available in the Portfile to verify the integrity of the files on the
-mirrors instead. See man:port-checksum[1].
+checksums available in the 'Portfile' to verify the integrity of the files on
+the mirrors instead. See man:port-checksum[1].
 
 Meanwhile, you can use source:contrib/port-checkmirrors[port-checkmirrors] from
 contrib to do that.

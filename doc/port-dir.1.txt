@@ -35,9 +35,9 @@ DESCRIPTION
 These commands print a path for each given port. The meaning of the path
 differs by the command given:
 
-*port dir* prints the directory that contains the Portfile for the given port
+*port dir* prints the directory that contains the 'Portfile' for the given port
 expression. This can be quite handy in your shell, if you want to locate
-a Portfile:
+a 'Portfile':
 
 ----
 cd $(port dir <portname>)
@@ -46,9 +46,9 @@ cd $(port dir <portname>)
 *port url* prints a unique URL for the given port expression. This command
 mostly exists for historical reasons and isn't of much use nowadays.
 
-*port file* prints the path of the Portfile for the given port expression. This
-can be useful to locate a port's definition. Note that you can always get this
-by using *port dir* and appending 'Portfile'. You could use *port file* in
+*port file* prints the path of the 'Portfile' for the given port expression.
+This can be useful to locate a port's definition. Note that you can always get
+this by using *port dir* and appending 'Portfile'. You could use *port file* in
 a shell to edit a Portfile, but note that you can also use man:port-edit[1] to
 achieve the same.
 

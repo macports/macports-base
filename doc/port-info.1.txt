@@ -32,72 +32,72 @@ OPTIONS
 The following options do not select fields for the output but change how the
 information is obtained or formatted:
 
---index::
-    Do not read the Portfile, but rely solely on the port index information.
+*--index*::
+    Do not read the 'Portfile', but rely solely on the port index information.
     Note that this option will prevent the information reported from reflecting
     the effects of any variants specified.
 
---line::
+*--line*::
     Print a single line for each port. Fields are separated by spaces.
 
---pretty::
+*--pretty*::
     Format the output in a convenient, human-readable fashion. This is the
     default when no options are specified.
 
 The rest of the options affect which fields will be given in the output:
 
---category, --categories::
+*--category*, *--categories*::
     List the categories of a port.
 
---depends, --depends_fetch, --depends_extract, --depends_build, --depends_lib, --depends_run::
+*--depends*, *--depends_fetch*, *--depends_extract*, *--depends_build*, *--depends_lib*, *--depends_run*::
     List the specified dependencies of a port. *--depends* is a shorthand option
     for all other *--depends_** options.
 
---description, --long_description::
+*--description*, *--long_description*::
     Print the short or long description of a port, respectively.
 
---epoch, --version, --revision::
+*--epoch*, *--version*, *--revision*::
     List the components of a MacPorts version tuple, epoch, version and
     revision, respectively.
 
---fullname::
-    Print name and the full MacPorts version tuple, e.g., "yubico-pam @2.16".
+*--fullname*::
+    Print name and the full MacPorts version tuple, e.g., ``yubico-pam @2.16''.
 
---heading::
+*--heading*::
     Like *--fullname* but including the categories.
 
---homepage::
+*--homepage*::
     List the homepage of a port.
 
---license::
+*--license*::
     Print the license that applies to the source code of a port.
 
---maintainer, --maintainers::
+*--maintainer*, *--maintainers*::
     List the email address(es) of a port's maintainer(s).
 
---name::
+*--name*::
     Print the name of a port.
 
---platform, --platforms::
+*--platform*, *--platforms*::
     List the platforms supported by a port. This field exists for historical
     reasons only. In modern MacPorts, this is always 'darwin', i.e., OS X.
 
---portdir::
+*--portdir*::
     Print the path to a port's directory relative to the port tree root.
 
---replaced_by::
+*--replaced_by*::
     List the name of the port that replaces a port, if any.
 
---subports::
-    Print a list of subports defined by this port's Portfile, i.e., ports that
-    are defined in the same Portfile because they share common parts.
+*--subports*::
+    Print a list of subports defined by this port's 'Portfile', i.e., ports that
+    are defined in the same 'Portfile' because they share common parts.
 
---variant, --variants::
+*--variant*, *--variants*::
     List the variants defined by a port by name.
 
 include::global-flags.txt[]
 
--q::
+*-q*::
     Do not print the field description when using *--pretty* output.
 
 SEE ALSO

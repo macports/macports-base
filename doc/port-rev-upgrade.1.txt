@@ -29,7 +29,7 @@ in man:macports.conf[5] using the *revupgrade_autorun* switch.
 OPTIONS
 -------
 
---id-loadcmd-check::
+*--id-loadcmd-check*::
     Check the ID load command in each library installed by MacPorts. This load
     command contains a path that should always reference the library itself,
     because the path will be copied into all binaries and libraries that link

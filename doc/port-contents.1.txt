@@ -29,39 +29,39 @@ port -q contents asciidoc | grep -E '/s?bin/'
 OPTIONS
 -------
 
---size::
+*--size*::
     Enable printing a human-readable representation of the files' sizes. The
     size output can be adjusted using the *--units 'unit'* flag.
 
---units 'unit'::
+*--units 'unit'*::
     Used in conjunction with *--size* to choose the unit in which the size is
     given. Valid values for 'unit' are
 
-    B:::
+    *B*:::
         List sizes in bytes.
 
-    K, Ki, or KiB:::
+    *K*, *Ki*, *KiB*:::
         List sizes in KiB, i.e., 1024 bytes.
 
-    Mi, or MiB:::
+    *Mi*, *MiB*:::
         List sizes in MiB, i.e., 1024 * 1024 bytes.
 
-    Gi, or GiB:::
+    *Gi*, *GiB*:::
         List sizes in GiB, i.e., 1024 * 1024 * 1024 bytes.
 
-    k, or kB:::
+    *k*, *kB*:::
         List sizes in kB, i.e., 1000 bytes.
 
-    M, or MB:::
+    *M*, *MB*:::
         List sizes in MB, i.e., 1000 * 1000 bytes.
 
-    G, or GB:::
+    *G*, *GB*:::
         List sizes in GB, i.e., 1000 * 1000 * 1000 bytes.
 
 
 include::global-flags.txt[]
 
--q::
+*-q*::
     Do not print the header line.
 
 

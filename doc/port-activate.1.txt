@@ -38,7 +38,7 @@ include::archives.txt[]
 OPTIONS
 -------
 
---no-exec::
+*--no-exec*::
     Do not execute any stored pre- or post-uninstall procedures.
 
 

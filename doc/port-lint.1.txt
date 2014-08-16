@@ -16,19 +16,20 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-*port lint* checks the Portfile of a given port for potential errors. It is
+*port lint* checks the 'Portfile' of a given port for potential errors. It is
 a useful tool for port maintainers to check for possible typos, mistakes and
 missing definitions.
 
 For example, it verifies that
- - Portfiles are valid UTF-8
- - all mandatory properties are present
- - all dependencies actually exist, and
- - no deprecated features are used.
+
+ * Portfiles are valid UTF-8
+ * all mandatory properties are present
+ * all dependencies actually exist, and
+ * no deprecated features are used.
 
 If problems are found, *port lint* emits warnings and error messages explaining
 the problem. Please fix all errors and consider fixing any warnings before
-submitting your Portfile or your changes to MacPorts.
+submitting your 'Portfile' or your changes to MacPorts.
 
 OPTIONS
 -------
@@ -42,7 +43,7 @@ include::global-flags.txt[]
     Print messages for successful tests.
 
 *-d*::
-    Print the Portfile, and debugging information parsed from the Portfile.
+    Print the 'Portfile', and debugging information parsed from the 'Portfile'.
 
 *-q*::
     Supress the header line, warning and error count; only print warnings and

@@ -26,11 +26,11 @@ section for an explanation of the active/inactive state.
 
 include::global-flags.txt[]
 
--v::
+*-v*::
     Print the platform at install time (i.e., your OS X version) and the
     architecture(s) of the installed port.
 
--q::
+*-q*::
     Do not print the header line. This is useful when parsing the output of
     *port installed* in scripts for further processing.
 
