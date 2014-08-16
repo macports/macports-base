@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-DEPENDENTS" "1" "2014\-08\-12" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-DEPENDENTS" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,11 +20,16 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-port-dependents \- List ports that depend on a given (installed) port
+port-dependents, port-rdependents \- List ports that depend on a given (installed) port
 .SH "SYNOPSIS"
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBdependents\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.sp
+.nf
+\fBport\fR [\fB\-D\fR \fIportdir\fR] \fBrdependents\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
@@ -45,7 +50,9 @@ port echo depends:<portname>
 .sp
 This command will, however, not cover dependencies that are only present in non\-default variants\&. For more information about pseudo\-portname selectors, see \fBport\fR(1)\&.
 .sp
-The dependency relations printed by \fBport dependents\fR are the same that are used to determine if a port can be safely uninstalled\&. Ports that still have dependents installed cannot be uninstalled without either the \fB\-\-follow\-dependents\fR or the \fB\-f\fR flag\&. See \fBport-uninstall\fR(1) for more details\&.
+\fBport rdependents\fR will print a tree of installed ports that depend on the given port\&.
+.sp
+The dependency relations printed by \fBport dependents\fR and \fBport rdependents\fR are the same that are used to determine if a port can be safely uninstalled\&. Ports that still have dependents installed cannot be uninstalled without either the \fB\-\-follow\-dependents\fR or the \fB\-f\fR flag\&. See \fBport-uninstall\fR(1) for more details\&.
 .SH "DEPENDENCY RELATIONS"
 .sp
 Do not confuse \fIdependents\fR and \fIdependencies\fR (or, shortened, \fIdeps\fR)\&. Refer to the following example to understand the difference:

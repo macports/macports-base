@@ -54,6 +54,7 @@ MAN1=	\
 		port-patch.1 \
 		port-pkg.1 \
 		port-quit.1 \
+		port-rdependents.1 \
 		port-rdeps.1 \
 		port-rev-upgrade.1 \
 		port-selfupdate.1 \
