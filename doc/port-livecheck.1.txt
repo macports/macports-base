@@ -36,7 +36,8 @@ include::global-flags.txt[]
 
 SEE ALSO
 --------
-man:port[1], man:portfile[7], man:port-upgrade[7]
+man:port[1], man:portfile[7], man:port-upgrade[7],
+guide:reference.livecheck[Livecheck/Distcheck in the MacPorts Guide]
 
 AUTHORS
 -------
