@@ -428,7 +428,7 @@ proc portfetch::gitfetch {args} {
            git.url git.branch git.sha1 git.cmd
 
     set options "-q"
-    if {[string length ${git.branch}] == 0} {
+    if {${git.branch} eq ""} {
         # if we're just using HEAD, we can make a shallow repo
         set options "$options --depth=1"
     }
@@ -438,7 +438,7 @@ proc portfetch::gitfetch {args} {
         return -code error [msgcat::mc "Git clone failed"]
     }
 
-    if {[string length ${git.branch}] > 0} {
+    if {${git.branch} ne ""} {
         set env "GIT_DIR=${worksrcpath}/.git GIT_WORK_TREE=${worksrcpath}"
         set cmdstring "$env ${git.cmd} checkout -q ${git.branch} 2>&1"
         ui_debug "Executing $cmdstring"
