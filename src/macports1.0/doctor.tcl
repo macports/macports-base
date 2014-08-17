@@ -381,13 +381,14 @@ namespace eval doctor {
 
         foreach app $apps {
 
-            output "'$app's tarball on disk"
 
             set name        [lindex $app 0]
             set version     [lindex $app 1]
             set revision    [lindex $app 2]
             set variants    [lindex $app 3]
             set epoch       [lindex $app 5]
+
+            output "'$name's tarball on disk"
 
             set ref         [registry::open_entry $name $version $revision $variants $epoch]
             set image_dir   [registry::property_retrieve $ref location]
