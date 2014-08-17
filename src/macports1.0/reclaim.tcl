@@ -210,10 +210,10 @@ namespace eval reclaim {
         }
 
         ui_debug "Calling walk_files on home directory."
-        # FIXME: Only commented because I accidentally delete all my dotfiles (including the home_dist location). It does in fact work on normal machines.
-        #if {[walk_files $home_dist yes $dist_path] eq "no"} {
-        #    ui_msg "No distfiles found in home directory."
-        #}
+
+        if {[walk_files $home_dist yes $dist_path] eq "no"} {
+            ui_msg "No distfiles found in home directory."
+        }
 
         return 0
     } 
