@@ -381,7 +381,9 @@ namespace eval doctor {
                             success_fail 0
                         }
 
-                        ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
+                        if {[catch {file lstat $file _}]} {
+                            ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
+                        }
                     } elseif {![file readable $file]} {
                         if {$fancyOutput} {
                             $progress intermission
