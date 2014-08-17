@@ -48,6 +48,7 @@ MAN1=	\
 		port-installed.1 \
 		port-lint.1 \
 		port-list.1 \
+		port-livecheck.1 \
 		port-location.1 \
 		port-mdmg.1 \
 		port-mpkg.1 \

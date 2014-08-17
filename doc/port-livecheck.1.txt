@@ -1,0 +1,44 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-livecheck(1)
+=================
+$Id$
+
+NAME
+----
+port-livecheck - Check if a new version of the software is available
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vd*] [*-D* 'portdir'] *livecheck*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port livecheck* checks whether a newer version of a given port is available
+upstream. It (usually) does that by automatically downloading a web page and
+applying a regular expression that extracts a version number. If the version
+number is different from the one the port packages, a message is printed.
+
+*port livecheck* is useful for maintainers that want to check whether new
+versions of their ports are available so they can be updated. It can also be
+used by users that encounter a problem, because updating to the latest upstream
+version is generally one of the first steps in case of an error of when
+encountering a bug.
+
+include::global-flags.txt[]
+
+*-v*::
+    Print a message if the port is up to date.
+
+*-d*::
+    Print debugging information such as the regular expression and all matches.
+
+SEE ALSO
+--------
+man:port[1], man:portfile[7], man:port-upgrade[7]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
