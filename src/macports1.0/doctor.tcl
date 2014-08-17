@@ -96,7 +96,7 @@ namespace eval doctor {
                                     "xcode_version_10.4" "xcode_build"}
 
         set user_config_path        ${macports::portdbpath}/port_doctor.ini
-        set xcode_config_path       [macports::getdefaultresourcepath "macports1.0/xcode_versions.ini"] 
+        set xcode_config_path       [macports::getdefaultportresourcepath "macports1.0/xcode_versions.ini"] 
 
         # Make sure at least a default copy of the xcode and user config exist
         make_xcode_config $xcode_config_path
@@ -571,8 +571,6 @@ namespace eval doctor {
         #           None
         # Returns:
         #           None
-
-        #FIXME: This most likely shouldn't be hardcoded... but for now it is. Fix it. 
 
         if {[file exists $path] == 0} {
             ui_warn "No configuration file found at $path. Please run, \
