@@ -96,11 +96,11 @@ namespace eval doctor {
                                     "xcode_version_10.4" "xcode_build"}
 
         set user_config_path        ${macports::portdbpath}/port_doctor.ini
-        set xcode_config_path       ${macports::portdbpath}/sources/rsync.macports.org/release/tarballs/ports/_resources/xcode_versions.ini
+        set xcode_config_path       [macports::getdefaultresourcepath "macports1.0/xcode_versions.ini"] 
 
         # Make sure at least a default copy of the xcode and user config exist
-        make_xcode_config
-        make_user_config
+        make_xcode_config $xcode_config_path
+        make_user_config  $user_config_path
 
         # Read the config files
         get_config config_options $parser_options $user_config_path 
@@ -563,7 +563,7 @@ namespace eval doctor {
         }
     }
 
-    proc make_xcode_config {} {
+    proc make_xcode_config {path} {
         
         # Checks to see if xcode_versions.ini exists. If it does, it returns. If it doesn't, then it creats a defult config file.
         # 
@@ -574,26 +574,14 @@ namespace eval doctor {
 
         #FIXME: This most likely shouldn't be hardcoded... but for now it is. Fix it. 
 
-        set path    ${macports::portdbpath}/sources/rsync.macports.org/release/tarballs/ports/_resources/xcode_versions.ini
-
         if {[file exists $path] == 0} {
-            ui_warn "No configuration file found at $path. Creating generic config file."
-
-            set fd      [open $path w] 
-
-            puts $fd "xcode_version_10.9=5.1.1 5.1 5.0.2 5.0.1"
-            puts $fd "xcode_version_10.8=5.1 5.0.2 5.0.1 5.0 4.6.3 4.6.2 4.6.1 4.6 4.5.2 4.5.1 4.5"
-            puts $fd "xcode_version_10.7=4.6.3 4.6.2 4.6.1 4.6 4.5.2 4.5.1 4.5 4.3.3"
-            puts $fd "xcode_version_10.6=4.2 3.2.6 3.2.5 3.2.4 3.2.3 3.2.2 3.2.1 3.2"
-            puts $fd "xcode_version_10.5=3.1.4 3.1.3 3.1.2 3.1.1 3.1 3.0"
-            puts $fd "xcode_version_10.4=2.5 2.4.1 2.4 2.3 2.2.1 2.2 2.1 2.0"
-            puts $fd "xcode_build=5B1008"
-
-            close $fd
+            ui_warn "No configuration file found at $path. Please run, \
+                        \"port selfupdate\""
+            
         }
     }
      
-    proc make_user_config {} {
+    proc make_user_config {path} {
 
         # Builds a config file for the user using all default parameters if needed.
         #
@@ -602,8 +590,6 @@ namespace eval doctor {
         # Returns:
         #           None
 
-        set path    ${macports::portdbpath}/port_doctor.ini
- 
         if {[file exists $path] == 0} {
 
             ui_warn "No configuration file found at $path. Creating generic config file."
