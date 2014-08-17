@@ -203,7 +203,7 @@ namespace eval doctor {
         # Returns:
         #           None
 
-        if {${doctor::quiet} eq 0} {
+        if {${doctor::quiet} == 0} {
             ui_msg -nonewline "Checking for $string... "
         }
     }
@@ -335,37 +335,74 @@ namespace eval doctor {
 
         set apps [reclaim::get_info]
 
+        array set activeApps {}
+        set totalFiles 0
+
         foreach app $apps {
 
-            
             set name    [lindex $app 0]
             set active  [lindex $app 4]
             set files   [registry::port_registered $name]
 
-            if {$active} { 
-
-                foreach file $files {
-
-                    output "file '$file' on disk"
-                    
-                    if {![file exists $file]} {
-                        success_fail 0
-                        ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
-
-                    } elseif {![file readable $file]} {
-                        success_fail 0
-                        ui_warn "'$file' installed by port '$name' is currently not readable. Please try again. If this problem persists, please contact\
-                                 the mailing list."
-
-                    } else {
-
-                        success_fail 1
-                    }
-                }
+            if {$active} {
+                set activeApps($name) $files
+                incr totalFiles [llength $files]
             }
         }
 
-    } 
+        set fancyOutput [expr {![macports::ui_isset ports_debug] && ![macports::ui_isset ports_verbose] && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancyOutput} {
+            set progress $macports::ui_options(progress_generic)
+        }
+
+        if {$totalFiles > 0} {
+            if {$fancyOutput} {
+                output "files installed by ports on disk"
+                if {${doctor::quiet} == 0} {
+                    # we need a newline here or the progress bar will overwrite the line
+                    ui_msg ""
+                }
+                $progress start
+            }
+
+            set currentFile 1
+            foreach name [lsort [array names activeApps]] {
+                foreach file $activeApps($name) {
+                    if {$fancyOutput} {
+                        $progress update $currentFile $totalFiles
+                    } else {
+                        output "file '$file' on disk"
+                    }
+
+                    if {![file exists $file]} {
+                        if {$fancyOutput} {
+                            $progress intermission
+                        } else {
+                            success_fail 0
+                        }
+
+                        ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
+                    } elseif {![file readable $file]} {
+                        if {$fancyOutput} {
+                            $progress intermission
+                        } else {
+                            success_fail 0
+                        }
+
+                        ui_warn "'$file' installed by port '$name' is currently not readable. Please try again. If this problem persists, please contact the mailing list."
+                    } elseif {!$fancyOutput} {
+                        success_fail 1
+                    }
+
+                    incr currentFile
+                }
+            }
+
+            if {$fancyOutput} {
+                $progress finish
+            }
+        }
+    }
 
     proc check_tarballs {} {
 
@@ -388,7 +425,7 @@ namespace eval doctor {
             set variants    [lindex $app 3]
             set epoch       [lindex $app 5]
 
-            output "'$name's tarball on disk"
+            output "'$app's tarball on disk"
 
             set ref         [registry::open_entry $name $version $revision $variants $epoch]
             set image_dir   [registry::property_retrieve $ref location]
