@@ -1,0 +1,163 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+package require reclaim 1.0
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../macports_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+mportinit ui_options
+
+test is_empty_dir {
+
+    # Regression test for is_empty_dir.
+    # 
+    # Constraints:
+    #               None.
+
+    walk_files
+    Test for correctly identifying an empty directory.
+
+} -body {
+
+    set empty "emptyDir" 
+    file mkdir $empty 
+
+    if {[reclaim::is_empty_dir $empty] == 0} {
+        return "FAIL: Did not detect empty directory."
+    } 
+
+    return "Successfully detected empty directory."
+
+} -cleanup {
+    file delete -force $empty
+
+} -result "Successfully detected empty directory."
+
+test remove_distfiles {
+
+    # Regression test for remove_distfiles.
+    # 
+    # Constraints:
+    #               None.
+
+    Test for distfiles being successfully removed.
+
+} -body {
+    
+    set path [file join ${macports::portdbpath} distfiles]
+    set file [file join $path "test.txt"]
+
+    set fd   [open $file w]
+    close $fd
+    
+    reclaim::remove_distfiles
+
+    if {[file exists $file]} {
+        return "FAIL: Did not remove distfile."
+    }
+
+    return "Successfully removed distfile."
+
+} -cleanup {
+    file delete -force $file
+
+} -result "Successfully removed distfile."
+
+test update_last_run {
+
+    # Regression test for update_last_run.
+    # 
+    # Constraints:
+    #               Require's root to run. 
+
+    Tests for last_reclaim.txt being updated.
+
+} -constraints {
+    root
+
+} -body {
+
+    set path     [file join ${macports::portdbpath} last_reclaim.txt]
+
+    set fd          [open $path w]
+    close $fd
+
+    set fd          [open $path r]
+    set old_time    [gets $fd]
+    close $fd
+
+    reclaim::update_last_run
+
+    set fd          [open $path r]
+    set new_time    [gets $fd]
+    close $fd
+
+    if {$new_time == $old_time} {
+        return "FAIL: Did not update to the current time."
+    }
+
+    return "Successfully updated to the correct time."
+
+} -cleanup {
+    set fd  [open $path w]
+    puts $fd $old_time
+    close $fd
+
+} -result "Successfully updated to the correct time."
+
+
+test walk_files {
+
+    # Regression test for walk_files.
+    # 
+    # Constraints:
+    #               Require's root to run. 
+
+    Tests if walking through the files, and deleting distfiles, ignoring normal files, and removing directory trees works.
+
+} -constraints {
+    root
+
+} -body {
+    
+    set path        [file join ${macports::portdbpath} distfiles]
+    set dir         [file join $path tmp_dir]
+    set subdir      [file join $dir other_tmp_dir]
+    set bad_dist    [file join $subdir bad_distfile.txt]
+    set bad_dist2   [file join $dir bad_distfile2.txt]
+    set good_dist   [file join $dir good_distfile.txt]
+    set dist_list   [list]
+
+    lappend dist_list $good_dist
+
+    file mkdir $subdir
+
+    set $fd         [open $bad_dist w] 
+    close $fd
+
+    set $fd         [open $bad_dist2 w] 
+    close $fd
+
+    set $fd         [open $good_dist w] 
+    close $fd
+
+    reclaim::walk_files $dir yes $dist_list 
+
+    if {[file exists $bad_dist] || [file exists $bad_dist2] || [file exists $subdir] || ![file exists $good_dist] || ![file exists $dir]} {
+        return "FAIL: Did not delete the correct files, or deleted files that should not have been deleted."
+    }
+
+    return "Successfully deleted all files that needed to be deleted."
+    
+} -cleanup {
+    file delete -force $dir  
+
+} -result "Successfully deleted all files that needed to be deleted."
+
+cleanupTests
+

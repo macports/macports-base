@@ -36,6 +36,8 @@
 package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
+package require doctor 1.0
+package require reclaim 1.0
 package require Tclx
 
 namespace eval macports {
@@ -55,7 +57,7 @@ namespace eval macports {
     variable user_options {}
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
-        registry.path registry.format user_home \
+        registry.path registry.format user_home user_path \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -658,6 +660,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::user_home /dev/null/NO_HOME_DIR
     }
 
+    # Save the path for future processing
+    set macports::user_path $env(PATH)
+
     # Configure the search path for configuration files
     set conf_files {}
     lappend conf_files ${macports_conf_path}/macports.conf
@@ -1188,6 +1193,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             }
         }
     }
+
+    # Check the last time 'reclaim' was run
+    macports::check_last_reclaim
 
     # init registry
     set db_path [file join ${registry.path} registry registry.db]
@@ -4383,6 +4391,45 @@ proc macports::arch_runnable {arch} {
         }
     }
     return yes
+}
+
+proc macports::doctor_main {opts} {
+    
+    # Calls the main function for the 'port doctor' command.
+    #
+    # Args: 
+    #           None
+    # Returns:
+    #           0 on successful execution.
+
+    doctor::main $opts
+    return 0
+}
+
+proc macports::check_last_reclaim {} {
+
+    # An abstraction layer for the reclaim function, 'check_last_run'.
+    #
+    # Args:
+    #           None
+    # Returns:
+    #           None
+
+    reclaim::check_last_run
+    return 0
+}
+
+proc macports::reclaim_main {} {
+
+    # Calls the main function for the 'port reclaim' command.
+    #
+    # Args:
+    #           None
+    # Returns:
+    #           None
+
+    reclaim::main
+    return 0
 }
 
 ##

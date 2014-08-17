@@ -35,6 +35,7 @@ MAN1=	\
 		port-distcheck.1 \
 		port-distfiles.1 \
 		port-dmg.1 \
+        port-doctor.1 \
 		port-echo.1 \
 		port-edit.1 \
 		port-exit.1 \
@@ -57,6 +58,7 @@ MAN1=	\
 		port-quit.1 \
 		port-rdependents.1 \
 		port-rdeps.1 \
+        port-reclaim.1 \
 		port-rev-upgrade.1 \
 		port-selfupdate.1 \
 		port-uninstall.1 \

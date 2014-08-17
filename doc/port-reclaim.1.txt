@@ -1,0 +1,29 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-reclaim(1)
+===============
+$Id$
+
+NAME
+----
+port-reclaim -  Reclaims disk space. 
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vd*] *reclaim*
+
+DESCRIPTION
+-----------
+*port reclaim* will reclaim disk space by uninstalling inactive ports on your
+system, and removing unneeded or unused installation files.
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-uninstall[1], man:port-clean[1], 
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Kyle Sammons <ksammons@macports.org>

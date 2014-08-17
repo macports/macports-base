@@ -1,0 +1,53 @@
+'\" t
+.TH "PORT\-DOCTOR" "1" "08/17/2014" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-doctor \- Detects common issues
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport doctor\fR
+        [\-\-quiet]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport doctor\fR will check a list of common issues that could affect the user or MacPorts in one way or another\&. If any issues are found, a warning will be shown to the user included with a possible fix for said problem\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-quiet\fR
+.RS 4
+Only display warnings or errors\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Kyle Sammons <ksammons@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
