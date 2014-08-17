@@ -96,7 +96,7 @@ namespace eval reclaim {
         set found_distfile no 
 
         # If the directory is empty, and this isn't the root folder, delete it and recursively go up directories until a non-empty one is found.
-        if { $dir ne "/opt/local/var/macports/distfiles" && [readdir $dir] eq ""} {
+        if { $dir ne "/opt/local/var/macports/distfiles" && $dir ne  ${macports::user_home}/.macports$root_dist && [readdir $dir] eq ""} {
 
             set up_dir [file dirname $dir]
 
