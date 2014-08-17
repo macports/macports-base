@@ -425,7 +425,7 @@ namespace eval doctor {
             set variants    [lindex $app 3]
             set epoch       [lindex $app 5]
 
-            output "'$app's tarball on disk"
+            output "'${name} @${version}_${revision}${variants}'s tarball on disk"
 
             set ref         [registry::open_entry $name $version $revision $variants $epoch]
             set image_dir   [registry::property_retrieve $ref location]
