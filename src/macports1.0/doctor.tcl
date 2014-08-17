@@ -573,8 +573,9 @@ namespace eval doctor {
         #           None
 
         if {[file exists $path] == 0} {
-            ui_warn "No configuration file found at $path. Please run, \
+            ui_error "No configuration file found at $path. Please run, 
                         \"port selfupdate\""
+            exit
             
         }
     }
