@@ -91,7 +91,7 @@ namespace eval doctor {
         }
 
         array set config_options    [list]
-        set parser_options          {"macports_location" "profile_path" "shell_location" "xcode_version_10.9" "xcode_version_10.8" \
+        set parser_options          {"macports_location" "profile_path" "shell_location" "xcode_version_10.10" "xcode_version_10.9" "xcode_version_10.8" \
                                     "xcode_version_10.7" "xcode_version_10.6" "xcode_version_10.7" "xcode_version_10.6" "xcode_version_10.5" \
                                     "xcode_version_10.4" "xcode_build"}
 
