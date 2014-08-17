@@ -350,7 +350,9 @@ namespace eval doctor {
             }
         }
 
-        set fancyOutput [expr {![macports::ui_isset ports_debug] && ![macports::ui_isset ports_verbose] && [info exists macports::ui_options(progress_generic)]}]
+        set fancyOutput [expr {![macports::ui_isset ports_debug] && ![macports::ui_isset ports_verbose] && [info exists macports::ui_options(progress_generic)] \
+                                && ${doctor::quiet} == 0}]
+
         if {$fancyOutput} {
             set progress $macports::ui_options(progress_generic)
         }
