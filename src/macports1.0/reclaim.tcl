@@ -209,10 +209,13 @@ namespace eval reclaim {
             ui_msg "No distfiles found in root directory."
         }
 
-        ui_debug "Calling walk_files on home directory."
+        if {[file exists $home_dist]} {
 
-        if {[walk_files $home_dist yes $dist_path] eq "no"} {
-            ui_msg "No distfiles found in home directory."
+            ui_debug "Calling walk_files on home directory."
+
+            if {[walk_files $home_dist yes $dist_path] eq "no"} {
+                ui_msg "No distfiles found in home directory."
+            }
         }
 
         return 0
