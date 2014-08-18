@@ -310,9 +310,9 @@ namespace eval doctor {
         }
 
         output "Fink"
-        if {[file exists "/sf"]} {
+        if {[file exists "/sw"]} {
             ui_warn "it seems you have Fink installed on your system -- This could potentially cause issues with MacPorts. We'd recommend you'd \
-                     either uninstall it, or move it from /sf for now."
+                     either uninstall it, or move it from /sw for now."
 
             success_fail 0
  
