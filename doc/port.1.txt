@@ -10,7 +10,7 @@ port - Command line interface for MacPorts
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-bcdfknopqRstuvy*] [*-D* 'portdir'] [*-F* 'cmdfile'] ['action'] ['actionflags']
+*port* [*-bcdfknNopqRstuvy*] [*-D* 'portdir'] [*-F* 'cmdfile'] ['action'] ['actionflags']
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
      [['@version'] [+/-variant ...] ... [option=value ...]]
 
@@ -130,7 +130,10 @@ The port command recognizes several global flags and options.
     Debug mode, generate debugging messages, implies -v
 
 -q::
-    Quiet mode, suppress informational messages to a minimum
+    Quiet mode, suppress informational messages to a minimum, implies -N
+
+-N::
+    Non-interactive mode, interactive questions are not asked 
 
 .Installation and upgrade
 -n::
