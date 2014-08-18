@@ -5307,7 +5307,7 @@ namespace eval portclient::questions {
 	}
 	
 	##
-	# Main function that displays the choices for a multiple choice question.
+	# Main function that displays numbered choices for a multiple choice question.
 	#
 	# @param msg
 	#        The question specific message that is to be printed before asking the question.
@@ -5329,7 +5329,9 @@ namespace eval portclient::questions {
 	}
 	
 	##
-	# Display a question that asks the user for yes/no as an answer.
+	# Displays a question with 'yes' and 'no' as options. 
+	# Waits for user input indefinitely unless a timeout is specified.
+	# Shows the list of port passed to it without any numbers.
 	#
 	# @param msg
 	#        The question specific message that is to be printed before asking the question.
@@ -5399,7 +5401,8 @@ namespace eval portclient::questions {
 	}
 	
 	##
-	# Display a question that asks the user for a single choice as an answer.
+	# Displays a question with a list of numbered choices and asks the user to enter a number to specify their choice.
+	# Waits for user input indefinitely.
 	#
 	# @param msg
 	#        The question specific message that is to be printed before asking the question.
@@ -5428,7 +5431,8 @@ namespace eval portclient::questions {
 	}
 	
 	##
-	# Display a question that asks the user for multiple choices as answer.
+	# Displays a question with a list of numbered choices and asks the user to enter a space separated string of numbers to specify their choice.
+	# Waits for user input indefinitely.
 	#
 	# @param msg
 	#        The question specific message that is to be printed before asking the question.
