@@ -37,10 +37,58 @@ package require Pextlib 1.0
 package require portutil 1.0
 
 namespace eval porttrace {
+    proc appendEntry {sandbox path action} {
+        upvar 2 $sandbox sndbxlst
+
+        set mapping {}
+        # Escape backslashes with backslashes
+        lappend mapping "\\" "\\\\"
+        # Escape colons with \:
+        lappend mapping ":" "\\:"
+        # Escape equal signs with \=
+        lappend mapping "=" "\\="
+
+        set normalizedPath [file normalize $path]
+        lappend sndbxlst "[string map $mapping $path]=$action"
+        if {$normalizedPath ne $path} {
+            lappend sndbxlst "[string map $mapping $normalizedPath]=$action"
+        }
+    }
+
+    ##
+    # Append a trace sandbox entry suitable for allowing access to
+    # a directory to a given sandbox list.
+    #
+    # @param sandbox The name of the sandbox list variable
+    # @param path The path that should be permitted
+    proc allow {sandbox path} {
+        appendEntry $sandbox $path "+"
+    }
+
+    ##
+    # Append a trace sandbox entry suitable for denying access to a directory
+    # (and stopping processing of the sandbox) to a given sandbox list.
+    #
+    # @param sandbox The name of the sandbox list variable
+    # @param path The path that should be denied
+    proc deny {sandbox path} {
+        appendEntry $sandbox $path "-"
+    }
+
+    ##
+    # Append a trace sandbox entry suitable for deferring the access decision
+    # back to MacPorts to query for dependencies to a given sandbox list.
+    #
+    # @param sandbox The name of the sandbox list variable
+    # @param path The path that should be handed back to MacPorts for further
+    #             processing.
+    proc ask {sandbox path} {
+        appendEntry $sandbox $path "?"
+    }
 }
 
 proc porttrace::trace_start {workpath} {
-    global os.platform developer_dir macportsuser
+    global prefix os.platform developer_dir macportsuser
     if {${os.platform} == "darwin"} {
         if {[catch {package require Thread} error]} {
             ui_warn "trace requires Tcl Thread package ($error)"
@@ -65,55 +113,78 @@ proc porttrace::trace_start {workpath} {
                 set env(DYLD_INSERT_LIBRARIES) ${tracelib_path}
             }
             set env(DARWINTRACE_LOG) "$trace_fifo"
+
             # The sandbox is limited to:
-            # workpath
-            # /tmp
-            # /private/tmp
-            # /var/tmp
-            # /private/var/tmp
-            # $TMPDIR
-            # /dev/null
-            # /dev/tty
-            # /Library/Caches/com.apple.Xcode
-            # $CCACHE_DIR
-            # $HOMEDIR/.ccache
-            set trace_sandbox [list \
-            $workpath \
-            $portpath \
-            $distpath \
-            /tmp \
-            /private/tmp \
-            /var/tmp \
-            /private/var/tmp \
-            /var/folders \
-            /private/var/folders \
-            /var/empty \
-            /private/var/empty \
-            /var/run \
-            /private/var/run \
-            /var/db/xcode_select_link \
-            /private/var/db/xcode_select_link \
-            /var/db/mds \
-            /private/var/db/mds \
-            /var/db/launchd.db \
-            /private/var/db/launchd.db \
-            [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist] \
-            "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist" \
-            /Library/Caches/com.apple.Xcode \
-            /Library/LaunchDaemons \
-            /Library/LaunchAgents \
-            /dev \
-            /etc/passwd \
-            /etc/groups \
-            /etc/localtime \
-            [file normalize ${developer_dir}/../..] \
-            "$env(HOME)/.ccache"]
+            set trace_sandbox [list]
+
+            # Allow work-, port-, and distpath
+            allow trace_sandbox $workpath
+            allow trace_sandbox $portpath
+            allow trace_sandbox $distpath
+
+            # Allow standard system directories
+            allow trace_sandbox "/bin"
+            allow trace_sandbox "/sbin"
+            allow trace_sandbox "/dev"
+            allow trace_sandbox "/usr/bin"
+            allow trace_sandbox "/usr/sbin"
+            allow trace_sandbox "/usr/include"
+            allow trace_sandbox "/usr/lib"
+            allow trace_sandbox "/usr/libexec"
+            allow trace_sandbox "/usr/share"
+            allow trace_sandbox "/System/Library"
+            # Deny /Library/Frameworks, third parties install there
+            deny  trace_sandbox "/Library/Frameworks"
+            # But allow the rest of /Library
+            allow trace_sandbox "/Library"
+
+            # Allow a few configuration files
+            allow trace_sandbox "/etc/passwd"
+            allow trace_sandbox "/etc/groups"
+            allow trace_sandbox "/etc/localtime"
+
+            # Allow temporary locations
+            allow trace_sandbox "/tmp"
+            allow trace_sandbox "/var/tmp"
+            allow trace_sandbox "/var/folders"
+            allow trace_sandbox "/var/empty"
+            allow trace_sandbox "/var/run"
             if {[info exists env(TMPDIR)]} {
-                lappend trace_sandbox $env(TMPDIR)
+                set tmpdir [string trim $env(TMPDIR)]
+                if {$tmpdir ne ""} {
+                    allow trace_sandbox $tmpdir
+                }
             }
+
+            # Allow access to some Xcode specifics
+            allow trace_sandbox "/var/db/xcode_select_link"
+            allow trace_sandbox "/var/db/mds"
+            allow trace_sandbox [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
+            allow trace_sandbox "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
+
+            # Allow access to developer_dir; however, if it ends with /Contents/Developer, strip
+            # that. If it doesn't leave that in place to avoid allowing access to "/"!
+            set ddsplit [file split [file normalize [file join ${developer_dir} ".." ".."]]]
+            if {[llength $ddsplit] > 2 && [lindex $ddsplit end-1] eq "Contents" && [lindex $ddsplit end] eq "Developer"} {
+                set ddsplit [lrange $ddsplit 0 end-2]
+            }
+            allow trace_sandbox [file join {*}$ddsplit]
+
+            # Allow launchd.db access to avoid failing on port-load(1)/port-unload(1)/port-reload(1)
+            allow trace_sandbox "/var/db/launchd.db"
+
+            # Deal with ccache
+            allow trace_sandbox "$env(HOME)/.ccache"
             if {[info exists env(CCACHE_DIR)]} {
-                lappend trace_sandbox $env(CCACHE_DIR)
+                set ccachedir [string trim $env(CCACHE_DIR)]
+                if {$ccachedir ne ""} {
+                    allow trace_sandbox $ccachedir
+                }
             }
+
+            # Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
+            # or it'll be used instead of more specific rules.
+            ask trace_sandbox $prefix
 
             ui_debug "Tracelib Sandbox is:"
             foreach sandbox $trace_sandbox {
