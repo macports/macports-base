@@ -85,7 +85,7 @@ proc port_run {pwd} {
     set back [pwd]
     cd $pwd
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port -d test >&output} ]
+    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port -d -N test >&output} ]
     cd $back
     return $result
 }
