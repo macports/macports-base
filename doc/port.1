@@ -24,7 +24,7 @@ port \- Command line interface for MacPorts
 .SH "SYNOPSIS"
 .sp
 .nf
-\fBport\fR [\fB\-bcdfknopqRstuvy\fR] [\fB\-D\fR \fIportdir\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
+\fBport\fR [\fB\-bcdfknNopqRstuvy\fR] [\fB\-D\fR \fIportdir\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [[\fI@version\fR] [+/\-variant \&...] \&... [option=value \&...]]
 .fi
@@ -464,7 +464,12 @@ Debug mode, generate debugging messages, implies \-v
 .PP
 \-q
 .RS 4
-Quiet mode, suppress informational messages to a minimum
+Quiet mode, suppress informational messages to a minimum, implies \-N
+.RE
+.PP
+\-N
+.RS 4
+Non-Interactive mode, no interactive questions asked
 .RE
 .PP
 \fBInstallation and upgrade\fR
