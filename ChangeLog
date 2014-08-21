@@ -4,6 +4,11 @@
 ###
 
 Release 2.4 (unreleased)
+    - Added interactive questions for various use cases like 'install',
+      'activate', 'uninstall --follow-dependencies'. Also added global
+      flag '-N' to provide non-interactive invocations.
+	  (shasha in branch gsoc14-interactive, merge in r124243)
+    
     - Fix bugs in trace mode that caused it to (1) not ignore /usr/local as
       it should and (2) fail with certain lengths of $prefix.
       (cal in r124145, r124146)
