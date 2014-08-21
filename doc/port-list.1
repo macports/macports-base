@@ -1,0 +1,67 @@
+'\" t
+.TH "PORT\-ECHO" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-list \- List the latest available version for the given ports
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR \fBlist\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fBport list\fR prints the latest version of the given port(s) that is available through MacPorts\&. It prints name, version number and the relative path of the port in the port tree, i\&.e\&. the name of the primary category followed by the port name\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+.sp
+\fBport list\fR will always print the latest \fBavailable\fR version, which is not necessarily the version you have installed\&.
+.sp
+This leads to the common mistake that \fBport list installed\fR lists the same port multiple times in the same version\&. This happens because \fBinstalled\fR expands to a list of installed ports and their versions, but \fBport list\fR ignores the version and prints the latest available version for each occurrence of a port in \fBinstalled\fR\&. In these cases, you should use \fBport-installed\fR(1) or \fBport-echo\fR(1) instead\&. \fBport installed\fR and \fBport echo\fR also have the advantage of being much faster\&.
+.sp .5v
+.RE
+.sp
+Pretty much the only use case for \fBport list\fR is checking which version of a specific port is current in MacPorts, or if a port exists at all\&. Do \fBnot\fR use \fBport list\fR to print \fBoutdated\fR, \fBinactive\fR, \fBinstalled\fR, \fBrequested\fR, \fBleaves\fR, or other pseudo\-ports\&. Use \fBport-outdated\fR(1), \fBport-installed\fR(1), or \fBport-echo\fR(1) instead\&.
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBport-installed\fR(1), \fBport-echo\fR(1), \fBport-outdated\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}

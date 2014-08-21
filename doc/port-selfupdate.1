@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-SELFUPDATE" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-SELFUPDATE" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -33,7 +33,7 @@ port-selfupdate \- Upgrade MacPorts itself and update the port definition files\
 You should regularly run \fBselfupdate\fR to update your local port definitions\&. Running \fBselfupdate\fR is required to get updated software with bug fixes and new features\&.
 .SH "OPTIONS"
 .PP
-\-\-nosync
+\fB\-\-nosync\fR
 .RS 4
 Only check for updates \- and install if available \- for MacPorts itself\&. Do not update the ports tree\&.
 .RE
@@ -41,12 +41,12 @@ Only check for updates \- and install if available \- for MacPorts itself\&. Do 
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
 .PP
-\-q
+\fB\-q\fR
 .RS 4
 Supress status output, be as silent as possible\&.
 .RE
 .PP
-\-f
+\fB\-f\fR
 .RS 4
 Do not check whether the downloaded MacPorts version is newer than the currently installed one, but always rebuild and reinstall MacPorts\&.
 

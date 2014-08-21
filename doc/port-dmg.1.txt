@@ -1,0 +1,76 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-dmg(1)
+===========
+$Id$
+
+NAME
+----
+port-dmg, port-mdmg, port-pkg, port-mpkg - Create binary archives of a port, and
+optionally its dependencies.
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *dmg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *mdmg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *pkg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-vdqysbckpotf*] [*-D* 'portdir'] *mpkg*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+These commands create OS X-native binary archives of a given port. Depending on
+the command, one of a .dmg disk image file, a .pkg, or .mpkg installer package
+is created.
+
+*port pkg* creates an OS X installer package that installs all files that belong
+to a given port. *port dmg* wraps this installer package in a disk image. In
+most cases you probably want to package a port and all its library and runtime
+dependencies in a single package suitable for binary distribution. *port pkg*
+and *port dmg* don't do that, so those are only useful if you are going to take
+care of the dependencies separately. *port mpkg* creates an .mpkg installer
+image that contains installer packages for each of the dependencies and is
+suitable for standalone redistribution. *port mdmg* wraps this .mpkg package in
+a disk image.
+
+On OS X 10.6 and later, the generated installer packages are in ``flat'' format,
+such that wrapping them in a disk image is no longer necessary for online
+redistribution. Prior to OS X 10.6, generated installer packages could not be
+used for online distribution without a wrapping disk image.
+
+All packages are placed in a port's work directory, which can be located using
+man:port-work[1].
+
+[WARNING]
+====
+If you want to create installer packages using MacPorts for redistribution, make
+sure you do not use a standard installation of MacPorts in '/opt/local'. If you
+do that, your installer package will conflict on systems that *do* have MacPorts
+installed.
+
+Instead, follow guide:installing.macports.source.multiple[Section 2.2.4 of the
+MacPorts Guide] and choose a prefix specific to the software you are trying to
+package, e.g., '/opt/logrotate' for 'logrotate'. Then use this custom MacPorts
+installation to build your package.
+====
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-work[1], guide:installing.macports.source.multiple[Section
+2.2.4 of the MacPorts Guide]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

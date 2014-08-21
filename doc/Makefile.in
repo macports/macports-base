@@ -8,8 +8,9 @@ ifeq ($(SELFUPDATING),1)
 ASCIIDOC=
 XSLTPROC=
 else
-ASCIIDOC=	$(wildcard ${prefix}/bin/asciidoc)
-XSLTPROC=	$(wildcard ${prefix}/bin/xsltproc)
+ASCIIDOC=    $(wildcard ${prefix}/bin/asciidoc)
+XSLTPROC=    $(wildcard ${prefix}/bin/xsltproc)
+DOCBOOK_XSL= $(wildcard ${prefix}/share/xsl/docbook-xsl/manpages/docbook.xsl)
 endif
 
 ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION}
@@ -30,16 +31,39 @@ MAN1=	\
 		port-dependents.1 \
 		port-deps.1 \
 		port-destroot.1 \
+		port-dir.1 \
+		port-distcheck.1 \
+		port-distfiles.1 \
+		port-dmg.1 \
+        port-doctor.1 \
+		port-echo.1 \
 		port-edit.1 \
+		port-exit.1 \
 		port-extract.1 \
 		port-fetch.1 \
+		port-file.1 \
+		port-gohome.1 \
 		port-help.1 \
+		port-info.1 \
 		port-install.1 \
+		port-installed.1 \
+		port-lint.1 \
+		port-list.1 \
+		port-livecheck.1 \
+		port-location.1 \
+		port-mdmg.1 \
+		port-mpkg.1 \
 		port-patch.1 \
+		port-pkg.1 \
+		port-quit.1 \
+		port-rdependents.1 \
 		port-rdeps.1 \
+        port-reclaim.1 \
 		port-rev-upgrade.1 \
 		port-selfupdate.1 \
 		port-uninstall.1 \
+		port-url.1 \
+		port-work.1 \
 		port.1 \
 
 MAN5=		macports.conf.5
@@ -105,7 +129,7 @@ distclean: clean
 	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
 
 # Define these rules only if both asciidoc and xsltproc are available
-ifneq ($(and $(ASCIIDOC),$(XSLTPROC)),)
+ifneq ($(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL)),)
 %: %.xml manpage.xsl
 	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
 
@@ -117,13 +141,13 @@ ifneq ($(and $(ASCIIDOC),$(XSLTPROC)),)
 else
 man: ${MAN} ${MAN:%=%.gz}
 	@echo "* Warning: Using pre-generated man pages only."
-	@echo "* asciidoc and xsltproc are required to generate man pages from source."
+	@echo "* asciidoc, xsltproc (port libxslt) and docbook-xsl are required to generate man pages from source."
 
 %.xml %.html: | %.txt
 	@echo "* In order to modify and generate output from these source files,"
-	@echo "* please install asciidoc and xsltproc or use"
-	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc"
-	@echo "* with appropriate paths."
+	@echo "* please install asciidoc and xsltproc (port libxslt) and docbook-xsl or use"
+	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=nonempty"
+	@echo "* with appropriate paths for asciidoc and xsltproc."
 	@exit 1
 endif
 

@@ -26,16 +26,16 @@ features.
 OPTIONS
 -------
 
---nosync::
+*--nosync*::
     Only check for updates - and install if available - for MacPorts itself. Do
     not update the ports tree.
 
 include::global-flags.txt[]
 
--q::
+*-q*::
     Supress status output, be as silent as possible.
 
--f::
+*-f*::
     Do not check whether the downloaded MacPorts version is newer than the
     currently installed one, but always rebuild and reinstall MacPorts.
     +

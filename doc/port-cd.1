@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-CD" "1" "2014\-08\-06" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-CD" "1" "2014\-08\-15" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -25,12 +25,16 @@ port-cd \- Change the current working directory in interactive mode\&.
 .sp
 To be used only in interactive mode:
 .sp
-\fBcd\fR [\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]
+.nf
+\fBcd\fR
+    [\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]
+.fi
 .SH "DESCRIPTION"
 .sp
 \fBcd\fR can be used in interactive mode of \fBport\fR (see \fBport-interactive\fR(7)) to change the current working directory to the directory that contains a given port\&. The second parameter is not optional, as it usually is with \fBcd\fR in your shell\&.
+.SH "BUGS"
 .sp
-Note that \fBport cd\fR can be used from the command line, but is a no\-op\&.
+\fBport cd\fR can be used from the command line, but is a no\-op\&.
 .SH "SEE ALSO"
 .sp
 \fBport\fR(1), \fBport-interactive\fR(7)

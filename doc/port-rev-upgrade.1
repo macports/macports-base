@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-REV\-UPGRADE" "1" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-REV\-UPGRADE" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -34,7 +34,7 @@ port-rev-upgrade \- Check for linking inconsistencies and attempt to fix them au
 By default, \fBrev\-upgrade\fR is run automatically after each installation or upgrade, unless you pass the \fB\-\-no\-rev\-upgrade\fR option or disable this beahvior in \fBmacports.conf\fR(5) using the \fBrevupgrade_autorun\fR switch\&.
 .SH "OPTIONS"
 .PP
-\-\-id\-loadcmd\-check
+\fB\-\-id\-loadcmd\-check\fR
 .RS 4
 Check the ID load command in each library installed by MacPorts\&. This load command contains a path that should always reference the library itself, because the path will be copied into all binaries and libraries that link against this library\&. This option verifies that this is the case and will detect incorrect or non\-absolute paths\&. Since this check is only helpful for port maintainers, it is disabled by default\&.
 .RE

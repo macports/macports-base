@@ -59,6 +59,7 @@
 #include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <registry2.0/registry.h>
+#include <darwintracelib1.0/sandbox_actions.h>
 
 #include "tracelib.h"
 
@@ -84,7 +85,7 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 
 static char *name;
 static char *sandbox;
-static char *filemap, *filemap_end;
+static size_t sandboxLength;
 static char *depends;
 static int sock = -1;
 static int kq = -1;
@@ -95,11 +96,16 @@ static int enable_fence = 0;
 static Tcl_Interp *interp;
 static pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int cleanuping = 0;
-static char *sdk = NULL;
 
 static void send_file_map(int sock);
 static void dep_check(int sock, char *path);
-static void sandbox_violation(int sock, const char *path);
+
+typedef enum {
+    SANDBOX_UNKNOWN,
+    SANDBOX_VIOLATION
+} sandbox_violation_t;
+static void sandbox_violation(int sock, const char *path, sandbox_violation_t type);
+
 static void ui_warn(const char *format, ...) __printflike(1, 2);
 #if 0
 static void ui_info(const char *format, ...) __printflike(1, 2);
@@ -179,9 +185,8 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
  * \return a Tcl return code
  */
 static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    int len;
     char *src, *dst;
-    enum { NORMAL, ESCAPE } state = NORMAL;
+    enum { NORMAL, ACTION, ESCAPE } state = NORMAL;
 
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
@@ -189,8 +194,8 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
     }
 
     src = Tcl_GetString(objv[2]);
-    len = strlen(src) + 2;
-    sandbox = malloc(len);
+    sandboxLength = strlen(src) + 2;
+    sandbox = malloc(sandboxLength);
     if (!sandbox) {
         Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
         return TCL_ERROR;
@@ -213,16 +218,60 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
                     /* : was escaped, keep literally */
                     *dst++ = ':';
                     state = NORMAL;
-                } else {
-                    /* : -> \0, unless it has been escaped */
+                } else if (state == ACTION) {
+                    /* : -> \0, we're done with this entry */
                     *dst++ = '\0';
+                    state = NORMAL;
+                } else {
+                    /* unescaped : should never occur in normal state */
+                    free(sandbox);
+                    Tcl_SetResult(interp, "Unexpected colon before action specification.", TCL_STATIC);
+                    return TCL_ERROR;
+                }
+                break;
+            case '=':
+                if (state == ESCAPE) {
+                    /* = was escaped, keep literally */
+                    *dst++ = '=';
+                    state = NORMAL;
+                } else {
+                    /* hit =, this is the end of the path, the action follows */
+                    *dst++ = '\0';
+                    state = ACTION;
+                }
+                break;
+            case '+':
+            case '-':
+            case '?':
+                if (state == ACTION) {
+                    /* control character after equals, convert to binary */
+                    switch (*src) {
+                        case '+':
+                            *dst++ = FILEMAP_ALLOW;
+                            break;
+                        case '-':
+                            *dst++ = FILEMAP_DENY;
+                            break;
+                        case '?':
+                            *dst++ = FILEMAP_ASK;
+                            break;
+                    }
+                } else {
+                    /* before equals sign, copy literally */
+                    *dst++ = *src;
                 }
                 break;
             default:
                 if (state == ESCAPE) {
                     /* unknown escape sequence, free buffer and raise an error */
                     free(sandbox);
-                    Tcl_SetResult(interp, "unknown escape sequence", TCL_STATIC);
+                    Tcl_SetResult(interp, "Unknown escape sequence.", TCL_STATIC);
+                    return TCL_ERROR;
+                }
+                if (state == ACTION) {
+                    /* unknown control character, free buffer and raise an error */
+                    free(sandbox);
+                    Tcl_SetResult(interp, "Unknown control character. Possible values are +, -, and ?.", TCL_STATIC);
                     return TCL_ERROR;
                 }
                 /* otherwise: copy the char */
@@ -291,8 +340,10 @@ static int process_line(int sock) {
 
     if (strcmp(buf, "filemap") == 0) {
         send_file_map(sock);
+    } else if (strcmp(buf, "sandbox_unknown") == 0) {
+        sandbox_violation(sock, f, SANDBOX_UNKNOWN);
     } else if (strcmp(buf, "sandbox_violation") == 0) {
-        sandbox_violation(sock, f);
+        sandbox_violation(sock, f, SANDBOX_VIOLATION);
     } else if (strcmp(buf, "dep_check") == 0) {
         dep_check(sock, f);
     } else {
@@ -310,68 +361,12 @@ static int process_line(int sock) {
  * \param[in] sock the socket to send the sandbox bounds to
  */
 static void send_file_map(int sock) {
-    if (!filemap) {
-        char *t, * _;
-
-        size_t remaining = BUFSIZE;
-        filemap = (char *)malloc(remaining);
-        if (!filemap) {
-            ui_warn("send_file_map: memory allocation failed");
-            return;
-        }
-        t = filemap;
-
-#       define append_allow(path, resolution) do { strlcpy(t, path, remaining); \
-            if (remaining < (strlen(t)+3)) { \
-                remaining=0; \
-                fprintf(stderr, "tracelib: insufficient filemap memory\n"); \
-            } else { \
-                remaining-=strlen(t)+3; \
-            } \
-            t+=strlen(t)+1; \
-            *t++=resolution; \
-            *t++=0; \
-        } while(0);
-
-        if (enable_fence) {
-            for (_ = sandbox; *_; _ += strlen(_) + 1) {
-                append_allow(_, 0);
-            }
-
-            append_allow("/bin", 0);
-            append_allow("/sbin", 0);
-            append_allow("/dev", 0);
-            append_allow(Tcl_GetVar(interp, "prefix", TCL_GLOBAL_ONLY), 2);
-            /* If there is no SDK we will allow everything in /usr /System/Library etc, else add binaries to allow, and redirect root to SDK. */
-            if (sdk && *sdk) {
-                char buf[260];
-                buf[0] = '\0';
-                strlcat(buf, Tcl_GetVar(interp, "developer_dir", TCL_GLOBAL_ONLY), 260);
-                strlcat(buf, "/SDKs/", 260);
-                strlcat(buf, sdk, 260);
-
-                append_allow("/usr/bin", 0);
-                append_allow("/usr/sbin", 0);
-                append_allow("/usr/libexec/gcc", 0);
-                append_allow("/System/Library/Perl", 0);
-                append_allow("/", 1);
-                strlcpy(t - 1, buf, remaining);
-                t += strlen(t) + 1;
-            } else {
-                append_allow("/usr", 0);
-                append_allow("/System/Library", 0);
-                append_allow("/Library", 0);
-                append_allow(Tcl_GetVar(interp, "developer_dir", TCL_GLOBAL_ONLY), 0);
-            }
-        } else {
-            append_allow("/", 0);
-        }
-        append_allow("", 0);
-        filemap_end = t;
-#       undef append_allow
+    if (enable_fence) {
+        answer_s(sock, sandbox, sandboxLength);
+    } else {
+        char allowAllSandbox[5] = {'/', '\0', FILEMAP_ALLOW, '\0', '\0'};
+        answer_s(sock, allowAllSandbox, sizeof(allowAllSandbox));
     }
-
-    answer_s(sock, filemap, filemap_end - filemap);
 }
 
 /**
@@ -381,9 +376,22 @@ static void send_file_map(int sock) {
  * \param[in] sock socket reporting the violation; unused.
  * \param[in] path the offending path to be passed to the callback
  */
-static void sandbox_violation(int sock UNUSED, const char *path) {
+static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violation_t type) {
     Tcl_SetVar(interp, "path", path, 0);
-    Tcl_Eval(interp, "slave_add_sandbox_violation $path");
+    int retVal = TCL_OK;
+    switch (type) {
+        case SANDBOX_VIOLATION:
+            retVal = Tcl_Eval(interp, "slave_add_sandbox_violation $path");
+            break;
+        case SANDBOX_UNKNOWN:
+            retVal = Tcl_Eval(interp, "slave_add_sandbox_unknown $path");
+            break;
+    }
+
+    if (retVal != TCL_OK) {
+        fprintf(stderr, "Error evaluating Tcl statement to add sandbox violation: %s\n", Tcl_GetStringResult(interp));
+    }
+
     Tcl_UnsetVar(interp, "path", 0);
 }
 
@@ -781,9 +789,6 @@ static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
         unlink(name);
         safe_free(name);
     }
-    if (filemap) {
-        safe_free(filemap);
-    }
     if (depends) {
         safe_free(depends);
     }
@@ -838,10 +843,6 @@ static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) 
 
 static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
     enable_fence = 1;
-    if (filemap) {
-        free(filemap);
-    }
-    filemap = 0;
     return TCL_OK;
 }
 #endif /* defined(HAVE_TRACEMODE_SUPPORT) */

@@ -32,7 +32,7 @@ include::archives.txt[]
 
 include::global-flags.txt[]
 
--p::
+*-p*::
     Proceed even if a port fails to fetch. This is useful if you are trying to
     download all available binary images for a number of ports, e.g., if you
     want to install them later without a network connection.

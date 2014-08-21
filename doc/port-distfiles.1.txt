@@ -1,0 +1,32 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-distfiles(1)
+=================
+$Id$
+
+NAME
+----
+port-distfiles - Print a list of distribution files for a port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-qvd*] [*-D* 'portdir'] *distfiles*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+Print a list of source archives required to build the given port along with the
+checksums for the file and a list of mirrors. If you want to verify that all
+mirrors actually serve the same file see man:port-distcheck[1].
+
+To delete the distfiles once they have been downloaded, use *port clean --dist*.
+See man:port-clean[1] for more information regarding the *clean* command.
+
+SEE ALSO
+--------
+man:port[1], man:port-distcheck[1], man:port-clean[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

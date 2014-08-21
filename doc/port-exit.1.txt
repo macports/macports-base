@@ -1,0 +1,36 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-exit(1)
+============
+$Id$
+
+NAME
+----
+port-exit - Exit interactive mode
+
+SYNOPSIS
+--------
+To be used only in interactive mode:
+
+[cmdsynopsis]
+*exit*
+
+[cmdsynopsis]
+*quit*
+
+DESCRIPTION
+-----------
+*exit* or *quit* can only be used in interactive mode of *port* (see
+man:port-interactive[7]). It causes the interactive interpreter to exit.
+
+BUGS
+----
+*port exit* and *port quit* can be used from the command line, but are no-ops.
+
+SEE ALSO
+--------
+man:port[1], man:port-interactive[7]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>

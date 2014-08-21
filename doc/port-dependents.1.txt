@@ -5,12 +5,17 @@ $Id$
 
 NAME
 ----
-port-dependents - List ports that depend on a given (installed) port
+port-dependents, port-rdependents - List ports that depend on a given
+(installed) port
 
 SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-D* 'portdir'] *dependents*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *rdependents*
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
@@ -33,9 +38,12 @@ This command will, however, not cover dependencies that are only present in
 non-default variants. For more information about pseudo-portname selectors, see
 man:port[1].
 
-The dependency relations printed by *port dependents* are the same that are used
-to determine if a port can be safely uninstalled. Ports that still have
-dependents installed cannot be uninstalled without either the
+*port rdependents* will print a tree of installed ports that depend on the given
+port.
+
+The dependency relations printed by *port dependents* and *port rdependents* are
+the same that are used to determine if a port can be safely uninstalled. Ports
+that still have dependents installed cannot be uninstalled without either the
 *--follow-dependents* or the *-f* flag. See man:port-uninstall[1] for more
 details.
 

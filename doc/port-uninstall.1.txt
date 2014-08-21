@@ -28,16 +28,16 @@ installed and you did not specify a version, *port* will output a list.
 OPTIONS
 -------
 
---follow-dependents::
+*--follow-dependents*::
     Also uninstall all ports recursively depending directly or indirectly on one
     of the specified ports before uninstalling the port itself.
 
---follow-dependencies::
+*--follow-dependencies*::
     Also recursively uninstall all ports that the specified port depends on.
     This will not uninstall dependencies that are marked as requested or that
     have other dependents.
 
---no-exec::
+*--no-exec*::
     Do not execute any stored pre- or post-uninstall procedures.
 
 
