@@ -37,6 +37,25 @@ package require Pextlib 1.0
 package require portutil 1.0
 
 namespace eval porttrace {
+	##
+	# The fifo currently used as server socket to establish communication
+	# between traced processes and the server-side of trace mode.
+	variable fifo
+
+	##
+	# The Tcl thread that runs the server side of trace mode and deals with
+	# requests from traced processes.
+	variable thread
+
+	##
+	# A list of files to which access was denied by trace mode.
+	variable sandbox_violation_list [list]
+
+	##
+	# A list of files inside the MacPorts prefix but unknown to MacPorts that
+	# were used by the current trace session.
+	variable sandbox_unknown_list [list]
+
     proc appendEntry {sandbox path action} {
         upvar 2 $sandbox sndbxlst
 
@@ -85,382 +104,388 @@ namespace eval porttrace {
     proc ask {sandbox path} {
         appendEntry $sandbox $path "?"
     }
-}
 
-proc porttrace::trace_start {workpath} {
-    global prefix os.platform developer_dir macportsuser
-    if {${os.platform} == "darwin"} {
-        if {[catch {package require Thread} error]} {
-            ui_warn "trace requires Tcl Thread package ($error)"
-        } else {
-            global env trace_fifo trace_sandboxbounds portpath distpath altprefix
-            # Create a fifo.
-            # path in unix socket limited to 109 chars
-            # # set trace_fifo "$workpath/trace_fifo"
-            set trace_fifo "/tmp/macports_trace_[pid]-[expr {int(rand()*1000)}]"
-            file delete -force $trace_fifo
+	##
+	# Start a trace mode session with the given $workpath. Creates a thread to
+	# handle requests from traced processes and sets up the sandbox bounds. You
+	# must call trace_stop once for each call to trace_start after you're done
+	# tracing processes.
+	#
+	# @param workpath The $workpath of the current installation
+	proc trace_start {workpath} {
+		global \
+			altprefix developer_dir distpath env macportsuser os.platform \
+			portpath prefix
 
-            # Create the thread/process.
-            create_slave $workpath $trace_fifo
+		variable fifo
 
-            # Launch darwintrace.dylib.
+		if {[catch {package require Thread} error]} {
+			ui_warn "Trace mode requires Tcl Thread package ($error)"
+			return 0
+		}
 
-            set tracelib_path [file join ${portutil::autoconf::tcl_package_path} darwintrace1.0 darwintrace.dylib]
+		# Select a name for the socket to be used to communicate with the
+		# processes being traced. Note that Unix sockets are limited to 109
+		# characters and that the the macports user must be able to connect to
+		# the socket (and in case of non-root installations, the current user,
+		# too). We're not prefixing the path in /tmp with a separate
+		# macports-specific directory, because the might not be writable by all
+		# users.
+		set fifo "/tmp/macports-trace-[pid]-[expr {int(rand() * 10000)}]"
 
-            if {[info exists env(DYLD_INSERT_LIBRARIES)] && [string length "$env(DYLD_INSERT_LIBRARIES)"] > 0} {
-                set env(DYLD_INSERT_LIBRARIES) "${env(DYLD_INSERT_LIBRARIES)}:${tracelib_path}"
-            } else {
-                set env(DYLD_INSERT_LIBRARIES) ${tracelib_path}
-            }
-            set env(DARWINTRACE_LOG) "$trace_fifo"
+		# Make sure the socket doesn't exist yet (this would cause errors
+		# later)
+		file delete -force $fifo
 
-            # The sandbox is limited to:
-            set trace_sandbox [list]
+		# Create the server-side of the trace socket; this will handle requests
+		# from the traced processed.
+		create_slave $workpath $fifo
 
-            # Allow work-, port-, and distpath
-            allow trace_sandbox $workpath
-            allow trace_sandbox $portpath
-            allow trace_sandbox $distpath
+		# Launch darwintrace.dylib.
+		set tracelib [file join ${portutil::autoconf::tcl_package_path} darwintrace1.0 darwintrace.dylib]
 
-            # Allow standard system directories
-            allow trace_sandbox "/bin"
-            allow trace_sandbox "/sbin"
-            allow trace_sandbox "/dev"
-            allow trace_sandbox "/usr/bin"
-            allow trace_sandbox "/usr/sbin"
-            allow trace_sandbox "/usr/include"
-            allow trace_sandbox "/usr/lib"
-            allow trace_sandbox "/usr/libexec"
-            allow trace_sandbox "/usr/share"
-            allow trace_sandbox "/System/Library"
-            # Deny /Library/Frameworks, third parties install there
-            deny  trace_sandbox "/Library/Frameworks"
-            # But allow the rest of /Library
-            allow trace_sandbox "/Library"
+		# Add darwintrace.dylib as last entry in DYLD_INSERT_LIBRARIES
+		if {[info exists env(DYLD_INSERT_LIBRARIES)] && [string length $env(DYLD_INSERT_LIBRARIES)] > 0} {
+			set env(DYLD_INSERT_LIBRARIES) "${env(DYLD_INSERT_LIBRARIES)}:${tracelib}"
+		} else {
+			set env(DYLD_INSERT_LIBRARIES) ${tracelib}
+		}
+		# Tell traced processes where to find their communication socket back
+		# to this code.
+		set env(DARWINTRACE_LOG) $fifo
 
-            # Allow a few configuration files
-            allow trace_sandbox "/etc/passwd"
-            allow trace_sandbox "/etc/groups"
-            allow trace_sandbox "/etc/localtime"
+		# The sandbox is limited to:
+		set trace_sandbox [list]
 
-            # Allow temporary locations
-            allow trace_sandbox "/tmp"
-            allow trace_sandbox "/var/tmp"
-            allow trace_sandbox "/var/folders"
-            allow trace_sandbox "/var/empty"
-            allow trace_sandbox "/var/run"
-            if {[info exists env(TMPDIR)]} {
-                set tmpdir [string trim $env(TMPDIR)]
-                if {$tmpdir ne ""} {
-                    allow trace_sandbox $tmpdir
-                }
-            }
+		# Allow work-, port-, and distpath
+		allow trace_sandbox $workpath
+		allow trace_sandbox $portpath
+		allow trace_sandbox $distpath
 
-            # Allow access to some Xcode specifics
-            allow trace_sandbox "/var/db/xcode_select_link"
-            allow trace_sandbox "/var/db/mds"
-            allow trace_sandbox [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
-            allow trace_sandbox "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
+		# Allow standard system directories
+		allow trace_sandbox "/bin"
+		allow trace_sandbox "/sbin"
+		allow trace_sandbox "/dev"
+		allow trace_sandbox "/usr/bin"
+		allow trace_sandbox "/usr/sbin"
+		allow trace_sandbox "/usr/include"
+		allow trace_sandbox "/usr/lib"
+		allow trace_sandbox "/usr/libexec"
+		allow trace_sandbox "/usr/share"
+		allow trace_sandbox "/System/Library"
+		# Deny /Library/Frameworks, third parties install there
+		deny  trace_sandbox "/Library/Frameworks"
+		# But allow the rest of /Library
+		allow trace_sandbox "/Library"
 
-            # Allow access to developer_dir; however, if it ends with /Contents/Developer, strip
-            # that. If it doesn't leave that in place to avoid allowing access to "/"!
-            set ddsplit [file split [file normalize [file join ${developer_dir} ".." ".."]]]
-            if {[llength $ddsplit] > 2 && [lindex $ddsplit end-1] eq "Contents" && [lindex $ddsplit end] eq "Developer"} {
-                set ddsplit [lrange $ddsplit 0 end-2]
-            }
-            allow trace_sandbox [file join {*}$ddsplit]
+		# Allow a few configuration files
+		allow trace_sandbox "/etc/passwd"
+		allow trace_sandbox "/etc/groups"
+		allow trace_sandbox "/etc/localtime"
 
-            # Allow launchd.db access to avoid failing on port-load(1)/port-unload(1)/port-reload(1)
-            allow trace_sandbox "/var/db/launchd.db"
+		# Allow temporary locations
+		allow trace_sandbox "/tmp"
+		allow trace_sandbox "/var/tmp"
+		allow trace_sandbox "/var/folders"
+		allow trace_sandbox "/var/empty"
+		allow trace_sandbox "/var/run"
+		if {[info exists env(TMPDIR)]} {
+			set tmpdir [string trim $env(TMPDIR)]
+			if {$tmpdir ne ""} {
+				allow trace_sandbox $tmpdir
+			}
+		}
 
-            # Deal with ccache
-            allow trace_sandbox "$env(HOME)/.ccache"
-            if {[info exists env(CCACHE_DIR)]} {
-                set ccachedir [string trim $env(CCACHE_DIR)]
-                if {$ccachedir ne ""} {
-                    allow trace_sandbox $ccachedir
-                }
-            }
+		# Allow access to some Xcode specifics
+		allow trace_sandbox "/var/db/xcode_select_link"
+		allow trace_sandbox "/var/db/mds"
+		allow trace_sandbox [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
+		allow trace_sandbox "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
 
-            # Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
-            # or it'll be used instead of more specific rules.
-            ask trace_sandbox $prefix
+		# Allow access to developer_dir; however, if it ends with /Contents/Developer, strip
+		# that. If it doesn't leave that in place to avoid allowing access to "/"!
+		set ddsplit [file split [file normalize [file join ${developer_dir} ".." ".."]]]
+		if {[llength $ddsplit] > 2 && [lindex $ddsplit end-1] eq "Contents" && [lindex $ddsplit end] eq "Developer"} {
+			set ddsplit [lrange $ddsplit 0 end-2]
+		}
+		allow trace_sandbox [file join {*}$ddsplit]
 
-            ui_debug "Tracelib Sandbox is:"
-            foreach sandbox $trace_sandbox {
-                ui_debug "\t$sandbox"
-            }
-            set trace_sandboxbounds [join $trace_sandbox :]
-            tracelib setsandbox $trace_sandboxbounds
-        }
-    }
-}
+		# Allow launchd.db access to avoid failing on port-load(1)/port-unload(1)/port-reload(1)
+		allow trace_sandbox "/var/db/launchd.db"
 
-# Enable the fence.
-# Only done for targets that should only happen in the sandbox.
-proc porttrace::trace_enable_fence {} {
-    tracelib enablefence
-}
+		# Deal with ccache
+		allow trace_sandbox "$env(HOME)/.ccache"
+		if {[info exists env(CCACHE_DIR)]} {
+			set ccachedir [string trim $env(CCACHE_DIR)]
+			if {$ccachedir ne ""} {
+				allow trace_sandbox $ccachedir
+			}
+		}
 
-# Check the list of ports.
-# Output a warning for every port the trace revealed a dependency on
-# that isn't included in portslist
-# This method must be called after trace_start
-proc porttrace::trace_check_deps {target portslist} {
-    # Get the list of ports.
-    set ports [slave_send porttrace::slave_get_ports]
+		# Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
+		# or it'll be used instead of more specific rules.
+		ask trace_sandbox $prefix
 
-    # Compare with portslist
-    set portslist [lsort $portslist]
-    foreach port $ports {
-        if {[lsearch -sorted -exact $portslist $port] == -1} {
-            ui_warn "Target $target has an undeclared dependency on $port"
-        }
-    }
-    foreach port $portslist {
-        if {[lsearch -sorted -exact $ports $port] == -1} {
-            ui_debug "Target $target has no traceable dependency on $port"
-        }
-    }
-}
+		ui_debug "Tracelib Sandbox is:"
+		foreach trace_entry $trace_sandbox {
+			ui_debug "\t$trace_entry"
+		}
 
-# Check that no violation happened.
-# Output a warning for every sandbox violation the trace revealed.
-# This method must be called after trace_start
-proc porttrace::trace_check_violations {} {
-    # Get the list of violations.
-    set violations [slave_send porttrace::slave_get_sandbox_violations]
-
-    set existingFiles [list]
-    set missingFiles  [list]
-    foreach violation [lsort -unique $violations] {
-        if {![catch {file lstat $violation _}]} {
-            lappend existingFiles $violation
-        } else {
-            lappend missingFiles $violation
-        }
+		tracelib setsandbox [join $trace_sandbox :]
     }
 
-    set existingFilesLen [llength $existingFiles]
-    if {$existingFilesLen > 0} {
-        if {$existingFilesLen > 1} {
-            ui_warn "The following existing files were hidden from the build system by trace mode:"
-        } else {
-            ui_warn "The following existing file was hidden from the build system by trace mode:"
-        }
-        foreach violation $existingFiles {
-            ui_msg "  $violation"
-        }
-    }
+	##
+	# Stop the running trace session and clean up the trace helper thread and
+	# the communication socket. Just must call this once for each call to
+	# trace_start.
+	proc trace_stop {} {
+		global \
+			env \
+			macosx_version
 
-    set missingFilesLen [llength $missingFiles]
-    if {$missingFilesLen > 0} {
-        if {$missingFilesLen > 1} {
-            ui_info "The following files would have been hidden from the build system by trace mode if they existed:"
-        } else {
-            ui_info "The following file would have been hidden from the build system by trace mode if it existed:"
-        }
-        foreach violation $missingFiles {
-            ui_info "  $violation"
-        }
-    }
-}
+		variable fifo
 
-# Stop the trace and return the list of ports the port depends on.
-# This method must be called after trace_start
-proc porttrace::trace_stop {} {
-    global os.platform
-    if {${os.platform} == "darwin"} {
-        global env trace_fifo macosx_version
-        foreach var {DYLD_INSERT_LIBRARIES DARWINTRACE_LOG} {
-            array unset env $var
-            if {$macosx_version eq "10.5"} {
-                unsetenv $var
-            }
-        }
+		foreach var {DYLD_INSERT_LIBRARIES DARWINTRACE_LOG} {
+			array unset env $var
+			if {$macosx_version eq "10.5"} {
+				unsetenv $var
+			}
+		}
 
-        #kill socket
-        tracelib clean
+		# Kill socket
+		tracelib clean
+		# Delete the socket file
+		file delete -force $fifo
 
-        # Clean up.
-        slave_send porttrace::slave_stop
+		# Delete the slave.
+		delete_slave
+	}
 
-        # Delete the slave.
-        delete_slave
+	##
+	# Enable the sandbox. This is only called for targets that should be run
+	# inside the sandbox.
+	proc trace_enable_fence {} {
+		tracelib enablefence
+	}
 
-        file delete -force $trace_fifo
-    }
-}
+	##
+	# Print a list of sandbox violations, separated into a list of files that
+	# actually exist and were hidden, and a list of files that would have been
+	# hidden, if they existed.
+	#
+	# Also print a list of files inside the MacPorts prefix that were not
+	# installed by a port and thus not hidden, but might still cause
+	# non-repeatable builds.
+	#
+	# This method must not be called before trace_start or after trace_stop.
+	proc trace_check_violations {} {
+		# Get the list of violations and print it; separate the list into existing
+		# and non-existent files to cut down the noise.
+		set violations [slave_send porttrace::slave_get_sandbox_violations]
 
-# Private
-# Create the slave thread.
-proc porttrace::create_slave {workpath trace_fifo} {
-    global trace_thread prefix developer_dir registry.path
-    # Create the thread.
-    set trace_thread [macports_create_thread]
+		set existingFiles [list]
+		set missingFiles  [list]
+		foreach violation [lsort -unique $violations] {
+			if {![catch {file lstat $violation _}]} {
+				lappend existingFiles $violation
+			} else {
+				lappend missingFiles $violation
+			}
+		}
 
-    # The slave thred needs this file and macports 1.0
-    thread::send $trace_thread "package require porttrace 1.0"
-    thread::send $trace_thread "package require macports 1.0"
-    # slave needs ui_{info,warn,debug,error}...
-    # make sure to sync this with ../pextlib1.0/tracelib.c!
-    thread::send $trace_thread "macports::ui_init debug"
-    thread::send $trace_thread "macports::ui_init info"
-    thread::send $trace_thread "macports::ui_init warn"
-    thread::send $trace_thread "macports::ui_init error"
-    # and these variables
-    thread::send $trace_thread "set prefix \"$prefix\"; set developer_dir \"$developer_dir\""
-    # The slave thread requires the registry package.
-    thread::send $trace_thread "package require registry 1.0"
-    # and an open registry
-    thread::send $trace_thread "registry::open [file join ${registry.path} registry registry.db]"
+		set existingFilesLen [llength $existingFiles]
+		if {$existingFilesLen > 0} {
+			if {$existingFilesLen > 1} {
+				ui_warn "The following existing files were hidden from the build system by trace mode:"
+			} else {
+				ui_warn "The following existing file was hidden from the build system by trace mode:"
+			}
+			foreach violation $existingFiles {
+				ui_msg "  $violation"
+			}
+		}
 
-    # Initialize the slave
-    thread::send $trace_thread "porttrace::slave_init $trace_fifo $workpath"
+		set missingFilesLen [llength $missingFiles]
+		if {$missingFilesLen > 0} {
+			if {$missingFilesLen > 1} {
+				ui_info "The following files would have been hidden from the build system by trace mode if they existed:"
+			} else {
+				ui_info "The following file would have been hidden from the build system by trace mode if it existed:"
+			}
+			foreach violation $missingFiles {
+				ui_info "  $violation"
+			}
+		}
 
-    # Run slave asynchronously
-    thread::send -async $trace_thread "porttrace::slave_run"
-}
+		set unknowns [slave_send porttrace::slave_get_sandbox_unknowns]
+		set existingUnknowns [list]
+		foreach unknown [lsort -unique $unknowns] {
+			if {![catch {file lstat $unknown _}]} {
+				lappend existingUnknowns $unknown
+			}
+			# We don't care about files that don't exist inside MacPorts' prefix
+		}
 
-# Private
-# Send a command to the thread without waiting for the result.
-proc porttrace::slave_send_async {command} {
-    global trace_thread
+		set existingUnknownsLen [llength $existingUnknowns]
+		if {$existingUnknownsLen > 0} {
+			if {$existingUnknownsLen > 1} {
+				ui_warn "The following files inside the MacPorts prefix not installed by a port were accessed:"
+			} else {
+				ui_warn "The following file inside the MacPorts prefix not installed by a port was accessed:"
+			}
+			foreach unknown $existingUnknowns {
+				ui_msg "  $unknown"
+			}
+		}
+	}
 
-    thread::send -async $trace_thread "$command"
-}
+	##
+	# Create a thread that will contain the server-side of a macports trace
+	# mode setup. This part of the code (most of it actually implemented in
+	# pextlib1.0/tracelib.c) will create a Unix socket that all traced
+	# processes will initially connect to to get the sandbox bounds. It will
+	# also handle requests for dependency checks from traced processes and
+	# provide the appropriate answers to the client and track sandbox
+	# violations.
+	#
+	# You must call delete_slave to clean up the data structures associated
+	# with this slave thread.
+	#
+	# @param workpath The workpath of this installation
+	# @param fifo The Unix socket name to be created
+	proc create_slave {workpath fifo} {
+		global prefix developer_dir registry.path
+		variable thread
 
-# Private
-# Send a command to the thread.
-proc porttrace::slave_send {command} {
-    global trace_thread
+		# Create the thread.
+		set thread [macports_create_thread]
 
-    # ui_warn "slave send $command ?"
+		# The slave thred needs this file and macports 1.0
+		thread::send $thread "package require porttrace 1.0"
+		thread::send $thread "package require macports 1.0"
 
-    thread::send $trace_thread "$command" result
-    return $result
-}
+		# slave needs ui_{info,warn,debug,error}...
+		# make sure to sync this with ../pextlib1.0/tracelib.c!
+		thread::send $thread "macports::ui_init debug"
+		thread::send $thread "macports::ui_init info"
+		thread::send $thread "macports::ui_init warn"
+		thread::send $thread "macports::ui_init error"
 
-# Private
-# Destroy the thread.
-proc porttrace::delete_slave {} {
-    global trace_thread
+		# and these variables
+		thread::send $thread "set prefix \"$prefix\"; set developer_dir \"$developer_dir\""
+		# The slave thread requires the registry package.
+		thread::send $thread "package require registry 1.0"
+		# and an open registry
+		thread::send $thread "registry::open [file join ${registry.path} registry registry.db]"
 
-    # Destroy the thread.
-    thread::release $trace_thread
-}
+		# Initialize the slave
+		thread::send $thread "porttrace::slave_init $fifo $workpath"
 
-# Private.
-# Slave method to read a line from the trace.
-proc porttrace::slave_read_line {chan} {
-    global ports_list trace_filemap sandbox_violation_list workpath env
+		# Run slave asynchronously
+		thread::send -async $thread "porttrace::slave_run"
+	}
 
-    while 1 {
-        # We should never get EOF, actually.
-        if {[eof $chan]} {
-            break
-        }
+	##
+	# Initialize the slave thread. This is the first user code called in the
+	# thread after creating it and setting it up.
+	#
+	# @param fifo The path of the Unix socket that should be created by
+	#             tracelib
+	# @param p_workpath The workpath of the current installation
+	proc slave_init {fifo p_workpath} {
+		variable sandbox_violation_list
+		variable sandbox_unknown_list
 
-        # The line is of the form: verb\tpath
-        # Get the path by chopping it.
-        set theline [gets $chan]
+		# Save the workpath.
+		set workpath $p_workpath
 
-        if {[fblocked $chan]} {
-            # Exit the loop.
-            break
-        }
+		# Initialize the sandbox violation lists
+		set sandbox_violation_list {}
+		set sandbox_unknown_list {}
 
-        set line_length [string length $theline]
+		# Create the socket
+		tracelib setname $fifo
+		tracelib opensocket
+	}
 
-        # Skip empty lines.
-        if {$line_length > 0} {
-            set path_start [expr {[string first "\t" $theline] + 1}]
-            set op [string range $theline 0 [expr {$path_start - 2}]]
-            set path [string range $theline $path_start [expr {$line_length - 1}]]
+	##
+	# Actually start the server component that will deal with requests from
+	# trace mode clients. This will occupy the thread until a different thread
+	# calls tracelib closesocket or tracelib clean.
+	proc slave_run {} {
+		tracelib run
+	}
 
-            # open/execve
-            if {$op eq "open" || $op eq "execve"} {
-                # Only work on files.
-                if {[file isfile $path]} {
-                    # Did we process the file yet?
-                    if {![filemap exists trace_filemap $path]} {
-                        # Obtain information about this file.
-                        set port [registry::file_registered $path]
-                        if { $port != 0 } {
-                            # Add the port to the list.
-                            if {[lsearch -sorted -exact $ports_list $port] == -1} {
-                                lappend ports_list $port
-                                set ports_list [lsort $ports_list]
-                                # Maybe fill trace_filemap for efficiency?
-                            }
-                        }
+	##
+	# Destroy the slave thread. You must call this once for each call to
+	# create_slave.
+	proc delete_slave {} {
+		variable thread
 
-                        # Add the file to the tree with port information.
-                        # Ignore errors. Errors can occur if a directory was
-                        # created where a file once lived.
-                        # This doesn't affect existing ports and we just
-                        # add this information to speed up port detection.
-                        catch {filemap set trace_filemap $path $port}
-                    }
-                }
-            } elseif {$op eq "sandbox_violation"} {
-                lappend sandbox_violation_list $path
-            }
-        }
-    }
-}
+		# Destroy the thread.
+		thread::release $thread
+	}
 
-# Private.
-# Slave init method.
-proc porttrace::slave_init {fifo p_workpath} {
-    global ports_list trace_filemap sandbox_violation_list
-    # Save the workpath.
-    set workpath $p_workpath
-    # Create a virtual filemap.
-    filemap create trace_filemap
-    set ports_list {}
-    set sandbox_violation_list {}
-    tracelib setname $fifo
+	##
+	# Send a command to the trace thread created by create_slave, wait for its
+	# completion and return its result. The behavior of this proc is undefined
+	# when called before create_slave or after delete_slave.
+	#
+	# @param command The Tcl command to be executed in the trace thread
+	# @return The return value of the Tcl command, executed in the trace thread
+	proc slave_send {command} {
+		variable thread
 
-    if {[catch {tracelib opensocket} err]} {
-        global errorInfo
-        ui_warn "Error in tracelib: $err"
-        ui_debug "Backtrace: $errorInfo"
-    }
-}
+		thread::send $thread "$command" result
+		return $result
+	}
 
-proc porttrace::slave_run {} {
-    if {[catch {tracelib run} err]} {
-        global errorInfo
-        ui_warn "Error in tracelib: $err"
-        ui_debug "Backtrace: $errorInfo"
-    }
-}
+	##
+	# Return a list of sandbox violations stored in the trace server thread.
+	#
+	# @return List of files that the traced processed tried to access but were
+	#         outside the sandbox bounds.
+	proc slave_get_sandbox_violations {} {
+		variable sandbox_violation_list
 
-# Private.
-# Slave cleanup method.
-proc porttrace::slave_stop {} {
-    global trace_filemap
-    # Close the virtual filemap.
-    filemap close trace_filemap
-    # Close the pipe (both ends).
-}
+		return $sandbox_violation_list
+	}
 
-# Private.
-# Slave ports export method.
-proc porttrace::slave_get_ports {} {
-    global ports_list
-    return $ports_list
-}
+	##
+	# Add a sandbox violation. This is called directly from
+	# pextlib1.0/tracelib.c. You won't find calls to this method in Tcl code.
+	#
+	# @param path The path of the file that a traced process tried to access
+	#             but violated the sandbox bounds.
+	proc slave_add_sandbox_violation {path} {
+		variable sandbox_violation_list
 
-# Private.
-# Slave sandbox violations export method.
-proc porttrace::slave_get_sandbox_violations {} {
-    global sandbox_violation_list
-    return $sandbox_violation_list
-}
+		lappend sandbox_violation_list $path
+	}
 
-proc porttrace::slave_add_sandbox_violation {path} {
-    global sandbox_violation_list
-    lappend sandbox_violation_list $path
+	##
+	# Return a list of files accessed inside the MacPorts prefix but not
+	# registered to any port.
+	#
+	# @return List of files that the traced processed tried to access but
+	#         couldn't be matched to a port by MacPorts.
+	proc slave_get_sandbox_unknowns {} {
+		variable sandbox_unknown_list
+
+		return $sandbox_unknown_list
+	}
+
+	##
+	# Track an access to a file within the MacPorts prefix that MacPorts
+	# doesn't know about. This is called directly from pextlib1.0/tracelib.c.
+	# You won't find calls to this method in Tcl code.
+	#
+	# @param path The path of the file that a traced process tried to access
+	#             inside the MacPorts prefix, but MacPorts couldn't match to
+	#             a port.
+	proc slave_add_sandbox_unknown {path} {
+		variable sandbox_unknown_list
+
+		lappend sandbox_unknown_list $path
+	}
 }
