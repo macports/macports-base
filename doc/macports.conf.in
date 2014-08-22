@@ -199,3 +199,6 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # removing unnecessary files and directories prior to pkg or mpkg
 # deployment.
 #pkg_post_unarchive_deletions	include share/doc share/man
+
+# Whether the user interface should ask interactive questions
+#ui_interactive         yes

@@ -53,7 +53,7 @@ namespace eval macports {
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts sandbox_enable delete_la_files cxx_stdlib \
-        packagemaker_path default_compilers pkg_post_unarchive_deletions"
+        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
     variable user_options {}
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -873,6 +873,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         if {$macports::ui_options(ports_verbose) ne $portverbose} {
             set macports::portverbose $macports::ui_options(ports_verbose)
         }
+    }
+
+    # Set noninteractive mode if specified in config
+    if {[info exists ui_interactive] && !$ui_interactive} {
+        set macports::ui_options(ports_noninteractive) yes
+        unset -nocomplain macports::ui_options(questions_yesno) macports::ui_options(questions_singlechoice) macports::ui_options(questions_multichoice)
     }
 
     # Archive type, what type of binary archive to use (CPIO, gzipped
