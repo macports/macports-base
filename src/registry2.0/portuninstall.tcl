@@ -290,15 +290,10 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             }
         }
     }
-    
+
     set uports {}
     # create list of all dependencies that will be uninstalled, if requested
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
-        # don't uninstall dependencies' dependents
-        if {[info exists options(ports_uninstall_follow-dependents)]} {
-            unset options(ports_uninstall_follow-dependents)
-            set optionslist [array get options]
-        }
         set alldeps $all_dependencies
         set portilist {}
         for {set j 0} {$j < [llength $alldeps]} {incr j} {
@@ -339,7 +334,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             foreach depref $deprefs {
                 set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
                 foreach d $depdeps {
-                    set index [lsearch $alldeps $d]
+                    set index [lsearch -exact $alldeps $d]
                     if {$index == -1} {
                         lappend alldeps $d 
                     }
@@ -348,7 +343,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
         ## User Interaction Question
         # show a list of all dependencies to be uninstalled with a timeout when --follow-dependencies is specified
-        if {[info exists macports::ui_options(questions_yesno)]} {
+        if {[info exists macports::ui_options(questions_yesno)] && [llength $uports] > 0} {
             $macports::ui_options(questions_yesno) "The following dependencies will be uninstalled:" "Timeout_1" $portilist {y} 10
         }
         unset options(ports_uninstall_follow-dependencies)
