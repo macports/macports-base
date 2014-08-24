@@ -1,0 +1,44 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-load(1)
+============
+$Id$
+
+NAME
+----
+port-load, port-unload, port-reload - Control daemons installed by a port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-d*] [*-D* 'portdir'] [*load* | *unload* | *reload*]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+These commands control the daemons that are installed by some of the ports. If
+a port provides daemon functionality, a note will be printed during installation
+advising you how to use it.
+
+The daemon functionality is provided by installing a man:launchd[8]
+configuration file (see man:launchd.conf[5]) and calling man:launchctl[1] on
+your behalf. *port load* advises launchd to start the daemon defined by a port's
+configuration file, also called a ``startup item''. Once loaded, launchd will
+preserve this state - even across reboots - until the daemon is unloaded using
+*port unload*. If you want to restart a daemon, you can use *port reload*, which
+is a convenience wrapper around *port unload* followed by a short delay and
+*port load*.
+
+In theory, MacPorts supports generating startup items for older releases of OS
+X. In practice, these commands can not deal with pre-launchd interfaces and will
+fail on these systems.
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:launchd[8], man:launchd.conf[5], man:launchctl[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
