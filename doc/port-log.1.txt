@@ -1,0 +1,68 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-cat(1)
+===========
+$Id$
+
+NAME
+----
+port-log, port-logfile - Print contents or path of a port's log file
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *log*
+     [--level [error | warn | msg | info | debug]]
+     [--phase [fetch | checksum | extract | patch | configure | build | destroot]]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+[cmdsynopsis]
+*port* [*-D* 'portdir'] *logfile*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port log* prints and optionally filters the contents of the log file for the
+installation of the given port. The file can be filtered by log message level
+and installation phase.
+
+*port logfile* prints the path to the log file for the last installation of the
+given port. This is helpful to locate the file to attach when reporting bugs
+against ports in MacPorts' issue tracker.
+
+OPTIONS
+-------
+*port logfile* has no options. *port log* has the following options:
+
+*--level SEVERITY*::
+    Hide all messages below the given severity, which is one of
+
+    error:::
+        for error messages
+
+    warn:::
+        for warnings
+
+    msg:::
+        for standard MacPorts output
+
+    info:::
+        for output shown in verbose mode
+
+    debug:::
+        for all output including debugging messages
+
+*--phase PHASE*::
+    Only print messages that were generated in the given installation phase,
+    where possible values for *PHASE* include 'fetch', 'checksum', 'extract',
+    'patch', 'configure', 'build', and 'destroot'. Note that you can specify an
+    arbitrary value which will be used in a regular expression to filter the log
+    file.
+
+SEE ALSO
+--------
+man:port[1], man:port-install[1], man:port-clean[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
