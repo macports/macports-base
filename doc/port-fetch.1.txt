@@ -10,7 +10,7 @@ port-fetch, port-checksum, port-extract, port-patch, port-configure, port-build,
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-vdoy*] [*-D* 'portdir'] *fetch* | *checksum* | *extract* | *patch* | *configure* | *build* | *destroot*
+*port* [*-vdoy*] [*-D* 'portdir'] [*fetch* | *checksum* | *extract* | *patch* | *configure* | *build* | *destroot*]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
