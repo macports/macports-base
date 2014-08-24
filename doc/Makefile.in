@@ -52,6 +52,8 @@ MAN1=	\
 		port-livecheck.1 \
 		port-load.1 \
 		port-location.1 \
+		port-log.1 \
+		port-logfile.1 \
 		port-mdmg.1 \
 		port-mpkg.1 \
 		port-patch.1 \
