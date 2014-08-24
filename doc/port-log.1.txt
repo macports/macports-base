@@ -1,5 +1,5 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
-port-cat(1)
+port-log(1)
 ===========
 $Id$
 
