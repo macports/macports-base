@@ -43,15 +43,49 @@ namespace eval registry_uninstall {
 
 # generate list of all dependencies of the port
 proc generate_deplist {port {optslist ""}} {
-    array set options $optslist
-    # note deps before we uninstall if we're going to uninstall them too
-    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
-        set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
-        set all_dependencies {}
-        # look up deps from the saved portfile if possible
-        if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optslist]}]} {
-            array set depportinfo [mportinfo $mport]
-            mportclose $mport
+
+    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+    set all_dependencies {}
+    # look up deps from the saved portfile if possible
+    if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optslist]}]} {
+        array set depportinfo [mportinfo $mport]
+        mportclose $mport
+        foreach type $deptypes {
+            if {[info exists depportinfo($type)]} {
+                foreach dep $depportinfo($type) {
+                    lappend all_dependencies [lindex [split $dep :] end]
+                }
+            }
+        }
+        # append those from the registry (could be different because of path deps)
+        foreach dep [$port dependencies] {
+            lappend all_dependencies [$dep name]
+        }
+    } else {
+        # grab the deps from the dep map
+        set portname [$port name]
+        set depmaplist [registry::list_depends $portname [$port version] [$port revision] [$port variants]]
+        foreach dep $depmaplist {
+            lappend all_dependencies [lindex $dep 0]
+        }
+        # and the ones from the current portfile
+        if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
+            array set depportinfo [lindex $result 1]
+            set porturl $depportinfo(porturl)
+            set variations {}
+            set minusvariant [lrange [split [registry::property_retrieve $port negated_variants] -] 1 end]
+            set plusvariant [lrange [split [$port variants] +] 1 end]
+            foreach v $plusvariant {
+                lappend variations $v "+"
+            }
+            foreach v $minusvariant {
+                lappend variations $v "-"
+            }
+            if {![catch {set mport [mportopen $porturl [concat $optslist subport $portname] [array get variations]]} result]} {
+                array unset depportinfo
+                array set depportinfo [mportinfo $mport]
+                mportclose $mport
+            }
             foreach type $deptypes {
                 if {[info exists depportinfo($type)]} {
                     foreach dep $depportinfo($type) {
@@ -59,49 +93,10 @@ proc generate_deplist {port {optslist ""}} {
                     }
                 }
             }
-            # append those from the registry (could be different because of path deps)
-            foreach dep [$port dependencies] {
-                lappend all_dependencies [$dep name]
-            }
-        } else {
-            # grab the deps from the dep map
-            set portname [$port name]
-            set depmaplist [registry::list_depends $portname [$port version] [$port revision] [$port variants]]
-            foreach dep $depmaplist {
-                lappend all_dependencies [lindex $dep 0]
-            }
-            # and the ones from the current portfile
-            if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
-                array set depportinfo [lindex $result 1]
-                set porturl $depportinfo(porturl)
-                set variations {}
-                set minusvariant [lrange [split [registry::property_retrieve $port negated_variants] -] 1 end]
-                set plusvariant [lrange [split [$port variants] +] 1 end]
-                foreach v $plusvariant {
-                    lappend variations $v "+"
-                }
-                foreach v $minusvariant {
-                    lappend variations $v "-"
-			    }
-                if {![catch {set mport [mportopen $porturl [concat $optionslist subport $portname] [array get variations]]} result]} {
-                    array unset depportinfo
-                    array set depportinfo [mportinfo $mport]
-                    mportclose $mport
-                }
-                foreach type $deptypes {
-                    if {[info exists depportinfo($type)]} {
-                        foreach dep $depportinfo($type) {
-                            lappend all_dependencies [lindex [split $dep :] end]
-                        }
-                    }
-                }
-            }
         }
-        array unset depportinfo
-        set all_dependencies [lsort -unique $all_dependencies]
-        return $all_dependencies
     }
-    return {}
+    set all_dependencies [lsort -unique $all_dependencies]
+    return $all_dependencies
 }
 
 # takes a composite version spec rather than separate version,revision,variants
@@ -245,9 +240,8 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
     }
 
-    set ref $port
-    # save list of dependencies if --follow-dependencies specified
-    if {[info exists options(ports_uninstall_follow-dependencies)]} {
+    # note deps before we uninstall if we're going to uninstall them too (i.e. --follow-dependencies)
+    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
         set all_dependencies [registry_uninstall::generate_deplist $port $optionslist]
     }
 
@@ -257,6 +251,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
 
         # Get the full path to the image file
+        set ref $port
         set imagefile [registry::property_retrieve $ref location]
         file delete $imagefile
         # Try to delete the port's image dir; will fail if there are more image
@@ -340,12 +335,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                     }
                 }
             }
-            set depref [registry::entry imaged $dep]
-            set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
-            foreach d $depdeps {
-                set index [lsearch $alldeps $d]
-                if {$index == -1} {
-                    lappend alldeps $d 
+            set deprefs [registry::entry imaged $dep]
+            foreach depref $deprefs {
+                set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
+                foreach d $depdeps {
+                    set index [lsearch $alldeps $d]
+                    if {$index == -1} {
+                        lappend alldeps $d 
+                    }
                 }
             }
         }
