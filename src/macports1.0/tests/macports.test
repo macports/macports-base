@@ -704,6 +704,85 @@ test mporttraverse {
 # test getportworkpath_from_buildpath
 # test getportworkpath_from_portdir
 # test getindex
+
+
+# The test files might themselves be under version control, so the test
+# repositories need to live somewhere else.
+# TODO: Replace with "file tempfile" when we move to Tcl 8.6.
+package require fileutil 1.5.1-
+set tempdir [::fileutil::tempdir]
+
+
+testConstraint hasSvn [expr {
+    ![catch {macports::findBinary svn} svn] &&
+    ![catch {macports::findBinary svnadmin} svnadmin]
+}]
+
+test GetVCSUpdateCmd-svn {
+    Tests GetVCSUpdateCmd on a valid Subversion repository
+} -constraints {
+    hasSvn
+} -setup {
+    set repo [makeDirectory macports-test-svn-repo $tempdir]
+    exec $svnadmin create $repo
+    set wc [makeDirectory macports-test-svn-wc $tempdir]
+    # This URL should probably be encoded.
+    exec $svn checkout file://$repo $wc
+} -body {
+    string map [list $svn SVN $wc WC] [macports::GetVCSUpdateCmd $wc]
+} -cleanup {
+    removeDirectory macports-test-svn-wc $tempdir
+    removeDirectory macports-test-svn-repo $tempdir
+} -result {Subversion {SVN update --non-interactive WC}}
+
+
+testConstraint hasGit [expr {![catch {macports::findBinary git} git]}]
+
+test GetVCSUpdateCmd-git {
+    Tests GetVCSUpdateCmd on a valid Git repository
+} -constraints {
+    hasGit
+} -setup {
+    set repo [makeDirectory macports-test-git-repo $tempdir]
+    exec $git init $repo
+} -body {
+    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
+} -cleanup {
+    removeDirectory macports-test-git-repo $tempdir
+} -result {Git {cd REPO && GIT pull --rebase || true}}
+
+
+testConstraint hasGitSvn [expr {
+    ![catch {macports::findBinary git} git] &&
+    [file readable [file join [exec $git --exec-path] git-svn]]
+}]
+
+test GetVCSUpdateCmd-gitsvn {
+    Tests GetVCSUpdateCmd on a valid git-svn repository
+} -constraints {
+    hasGitSvn
+} -setup {
+    set repo [makeDirectory macports-test-git-svn-repo $tempdir]
+    exec $git svn init http://localhost $repo
+} -body {
+    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
+} -cleanup {
+    removeDirectory macports-test-git-svn-repo $tempdir
+} -result {git-svn {cd REPO && GIT svn rebase || true}}
+
+
+test GetVCSUpdateCmd-none {
+    Tests GetVCSUpdateCmd on directories that aren't recognized repositories
+} -setup {
+    set repo [makeDirectory macports-test-non-repo $tempdir]
+} -body {
+    macports::GetVCSUpdateCmd $repo
+} -cleanup {
+    removeDirectory macports-test-non-repo $tempdir
+} -result {}
+
+
+# test updatevcs
 # test mportsync
 # test mportsearch
 # test mportlookup

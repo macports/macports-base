@@ -2312,6 +2312,84 @@ proc macports::getindex {source} {
     return [file join [macports::getsourcepath $source] PortIndex]
 }
 
+# macports::GetVCSUpdateCmd --
+#
+# Determine whether the given directory is associated with a repository
+# for a supported version control system. If so, return a list
+# containing two strings:
+#
+#   1) The human-readable name of the version control system.
+#   2) A command that will update the repository's working tree to the
+#      latest commit/changeset/revision/whatever. This command should
+#      work properly from any working directory, although it doesn't
+#      have to worry about cleaning up after itself (restoring the
+#      environment, changing back to the initial directory, etc.).
+#
+# If the directory is not associated with any supported system, return
+# an empty list.
+#
+proc macports::GetVCSUpdateCmd portDir {
+
+    set oldPWD [pwd]
+    cd $portDir
+
+    # Subversion
+    if {![catch {macports::findBinary svn} svn] &&
+        ([file exists .svn] ||
+         ![catch {exec $svn info >/dev/null 2>@1}])
+    } then {
+        return [list Subversion "$svn update --non-interactive $portDir"]
+    }
+
+    # Git
+    if {![catch {macports::findBinary git} git] &&
+        ![catch {exec $git rev-parse --is-inside-work-tree}]
+    } then {
+        if {![catch {exec $git config --local --get svn-remote.svn.url}]} {
+            # git-svn repository
+            return [list git-svn "cd $portDir && $git svn rebase || true"]
+        }
+        # regular git repository
+        return [list Git "cd $portDir && $git pull --rebase || true"]
+    }
+
+    # Add new VCSes here!
+
+    cd $oldPWD
+    return [list]
+}
+
+# macports::UpdateVCS --
+#
+# Execute the given command in a shell. If called with superuser
+# privileges, execute the command as the user/group that owns the given
+# directory, restoring privileges before returning.
+#
+# This proc could probably be generalized and used elsewhere.
+#
+proc macports::UpdateVCS {cmd portDir} {
+    if {[getuid] == 0} {
+        # Must change egid before dropping root euid.
+        set oldEGID [getegid]
+        set newEGID [name_to_gid [file attributes $portDir -group]]
+        setegid $newEGID
+        ui_debug "Changed effective group ID from $oldEGID to $newEGID"
+        set oldEUID [geteuid]
+        set newEUID [name_to_uid [file attributes $portDir -owner]]
+        seteuid $newEUID
+        ui_debug "Changed effective user ID from $oldEUID to $newEUID"
+    }
+    ui_debug $cmd
+    catch {system $cmd} result options
+    if {[getuid] == 0} {
+        seteuid $oldEUID
+        ui_debug "Changed effective user ID from $newEUID to $oldEUID"
+        setegid $oldEGID
+        ui_debug "Changed effective group ID from $newEGID to $oldEGID"
+    }
+    return -options $options $result
+}
+
 proc mportsync {{optionslist {}}} {
     global macports::sources macports::portdbpath macports::rsync_options \
            tcl_platform macports::portverbose macports::autoconf::rsync_path \
@@ -2337,85 +2415,17 @@ proc mportsync {{optionslist {}}} {
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
                 set portdir [macports::getportdir $source]
-                set svn_cmd {}
-                catch {set svn_cmd [macports::findBinary svn]}
-                set git_cmd {}
-                catch {set git_cmd [macports::findBinary git]}
-                if {$svn_cmd ne {} && ([file exists ${portdir}/.svn] || ![catch {exec $svn_cmd info $portdir > /dev/null 2>@1}])} {
-                    set svn_commandline "$svn_cmd update --non-interactive $portdir"
-                    ui_debug $svn_commandline
-                    if {
-                        [catch {
-                            if {[getuid] == 0} {
-                                # Must change egid before dropping root euid.
-                                set old_egid [getegid]
-                                set new_egid [name_to_gid [file attributes $portdir -group]]
-                                setegid $new_egid
-                                ui_debug "Changed effective group ID from $old_egid to $new_egid"
-                                set old_euid [geteuid]
-                                set new_euid [name_to_uid [file attributes $portdir -owner]]
-                                seteuid $new_euid
-                                ui_debug "Changed effective user ID from $old_euid to $new_euid"
-                            }
-                            system $svn_commandline
-                            if {[getuid] == 0} {
-                                seteuid $old_euid
-                                ui_debug "Changed effective user ID from $new_euid to $old_euid"
-                                setegid $old_egid
-                                ui_debug "Changed effective group ID from $new_egid to $old_egid"
-                            }
-                        }]
-                    } {
+                if {[catch {macports::GetVCSUpdateCmd $portdir} repoInfo]} {
+                    ui_debug $::errorInfo
+                    ui_info "Could not access contents of $portdir"
+                    incr numfailed
+                    continue
+                }
+                if {[llength $repoInfo]} {
+                    lassign $repoInfo vcs cmd
+                    if {[catch {macports::UpdateVCS $cmd $portdir}]} {
                         ui_debug $::errorInfo
-                        ui_error "Synchronization of the local ports tree failed doing an svn update"
-                        if {[getuid] == 0} {
-                            seteuid $old_euid
-                            ui_debug "Changed effective user ID from $new_euid to $old_euid"
-                            setegid $old_egid
-                            ui_debug "Changed effective group ID from $new_egid to $old_egid"
-                        }
-                        incr numfailed
-                        continue
-                    }
-                } elseif {$git_cmd ne {} && ![catch {exec sh -c "cd ${portdir} && $git_cmd rev-parse --is-inside-work-tree"} result]} {
-                    # determine what type of git repository this is
-                    if {![catch {exec sh -c "cd ${portdir} && $git_cmd config --local --get svn-remote.svn.url"} result]} {
-                        set git_action "svn rebase"
-                    } else {
-                        set git_action "pull --rebase"
-                    }
-                    set git_commandline "cd $portdir && $git_cmd $git_action || true"
-                    ui_debug $git_commandline
-                    if {
-                        [catch {
-                            if {[getuid] == 0} {
-                                # Must change egid before dropping root euid.
-                                set old_egid [getegid]
-                                set new_egid [name_to_gid [file attributes $portdir -group]]
-                                setegid $new_egid
-                                ui_debug "Changed effective group ID from $old_egid to $new_egid"
-                                set old_euid [geteuid]
-                                set new_euid [name_to_uid [file attributes $portdir -owner]]
-                                seteuid $new_euid
-                                ui_debug "Changed effective user ID from $old_euid to $new_euid"
-                            }
-                            system $git_commandline
-                            if {[getuid] == 0} {
-                                seteuid $old_euid
-                                ui_debug "Changed effective user ID from $new_euid to $old_euid"
-                                setegid $old_egid
-                                ui_debug "Changed effective group ID from $new_egid to $old_egid"
-                            }
-                        }]
-                    } {
-                        ui_debug $::errorInfo
-                        ui_error "Synchronization of the local ports tree failed doing a git update"
-                        if {[getuid] == 0} {
-                            seteuid $old_euid
-                            ui_debug "Changed effective user ID from $new_euid to $old_euid"
-                            setegid $old_egid
-                            ui_debug "Changed effective group ID from $new_egid to $old_egid"
-                        }
+                        ui_info "Syncing local $vcs ports tree failed"
                         incr numfailed
                         continue
                     }
