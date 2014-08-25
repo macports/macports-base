@@ -1,0 +1,83 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-mirror(1)
+==============
+$Id$
+
+NAME
+----
+port-mirror - Fetch distfiles for a port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-qvdp*] [*-D* 'portdir'] *mirror*
+     [--new]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+*port mirror* creates or updates a local mirror of source archives (called
+'distfiles' in MacPorts lingo) for the ports given on the command line. It will
+download any file that can be fetched using the standard man:libcurl[3] download
+method and ignore ports that fetch from version control systems such as
+Subversion or Git.
+
+Downloaded files will be checked for consistency and deleted if the checksums
+don't match those specified in the 'Portfile'. Additionally, successfully
+downloaded files are stored in a custom database in
+'$portdbpath/distfiles_mirror.db', where '$portdbpath' can be configured in
+man:macports.conf[5]. This database can be deleted and re-created from scratch
+using the *--new* option.
+
+OPTIONS
+-------
+*--new*::
+    Delete the existing database of mirrored files and re-create it from
+    scratch.
+
+include::global-flags.txt[]
+
+*-p*::
+    Don't abort downloading on the first error. This can be useful when
+    attempting to create or update a full mirror, e.g. when using *port mirror
+    all*.
+
+EXAMPLES
+--------
+If your use case for *port mirror* is downloading the files you need to install
+a set of ports later without a network connection, do not use *port mirror*: It
+will not work for ports that distribute their source code using a version
+control system such as Subversion or Git. Instead, use *port fetch*:
+
+----
+$> sudo port -p fetch rdepof:$newport and not installed
+$> sudo port -p fetch $newport
+----
+
+These can also be conviniently wrapped in a single command using a port
+expression (see man:port[1] for details):
+
+----
+$> sudo port -p fetch $newport rdepof:$newport and not installed
+----
+
+If your intention is creating a new complete mirror of all MacPorts distfiles,
+it is probably easier to sync them via rsync from our main mirror hosted by Mac
+OS Forge. See wiki:Mirrors[] for details.
+
+If you want to create a partial mirror of MacPorts distfiles or are running the
+main mirror for MacPorts, you should use port mirror:
+
+----
+$> sudo port -p mirror all
+$> sudo port -p mirror maintainer:^cal or category:haskell
+----
+
+SEE ALSO
+--------
+man:port[1], man:port-fetch[1], man:libcurl[3], man:curl[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
