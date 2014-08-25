@@ -55,6 +55,7 @@ MAN1=	\
 		port-log.1 \
 		port-logfile.1 \
 		port-mdmg.1 \
+		port-mirror.1 \
 		port-mpkg.1 \
 		port-patch.1 \
 		port-pkg.1 \
