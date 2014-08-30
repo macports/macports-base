@@ -919,6 +919,9 @@ proc reinplace {args}  {
     global env workpath worksrcpath macosx_version
     set extended 0
     set suppress 0
+    # once a macports version has been released, add the rest of the
+    # code from https://trac.macports.org/ticket/15514
+    set quiet 0
     set oldlocale_exists 0
     set oldlocale "" 
     set locale ""
@@ -942,6 +945,9 @@ proc reinplace {args}  {
                 n {
                     set suppress 1
                 }
+                q {
+                    set quiet 1
+                }
                 W {
                     set dir [lindex $args 0]
                     set args [lrange $args 1 end]
@@ -958,7 +964,7 @@ proc reinplace {args}  {
         }
     }
     if {[llength $args] < 2} {
-        error "reinplace ?-E? ?-n? ?-W dir? pattern file ..."
+        error "reinplace ?-E? ?-n? ?-q? ?-W dir? pattern file ..."
     }
     set pattern [lindex $args 0]
     set files [lrange $args 1 end]
