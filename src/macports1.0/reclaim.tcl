@@ -97,55 +97,37 @@ namespace eval reclaim {
         set root_dist       [file join ${macports::portdbpath} distfiles]
         set home_dist       ${macports::user_home}/.macports/$root_dist
 
-
-        # If the directory is empty, and this isn't the root folder, delete it and recursively go up directories until a non-empty one is found.
-        if { $dir ne $root_dist && $dir ne $home_dist && [readdir $dir] eq ""} {
-
-            set up_dir [file dirname $dir]
-
-            ui_msg "Found empty directory: $dir. Attempting to delete."
-
-            if {[catch {file delete -force $dir} error] } {
-                ui_error "something went wrong when trying to delete $dir"
-            }
-
-            walk_files $up_dir $delete $dist_paths
-            return
-        }
-
         foreach item [readdir $dir] {
-
             set currentPath [file join $dir $item]
 
             if {[file isdirectory $currentPath]} {
-
                 walk_files $currentPath $delete $dist_paths
-
             } else {
-                
                 # If the current file isn't in the known-installed-distfiles
                 if {[lsearch $dist_paths $currentPath] == -1} {
                     set found_distfile yes
 
-                    ui_msg "Found distfile: $item"
+                    ui_msg "Found unused distfile: $item"
 
                     if {$delete eq "yes"} {
-
                         ui_debug "Deleting file: $item"
                         ui_msg "Removing distfile: $item"
 
                         if {[catch {file delete $currentPath} error]} {
-                            ui_error "something went wrong when trying to delete $currentPath"
-                        }
-
-                        # If the directory is now empty, recursively call on this directory, to delete it.
-                        if {[is_empty_dir $dir]} {
-
-                            ui_debug "Current directory is empty. Walking to $dir"
-                            walk_files $dir $delete $dist_paths
+                            ui_error "something went wrong when trying to delete $currentPath: $error"
                         }
                     }
                 }
+            }
+        }
+
+        if {$dir ne $root_dist && $dir ne $home_dist && [llength [readdir $dir]] == 0} {
+            # If the directory is empty, and this isn't the root folder, delete
+            # it.
+            ui_msg "Found empty directory: $dir. Attempting to delete."
+
+            if {[catch {file delete -force $dir} error] } {
+                ui_error "something went wrong when trying to delete $dir: $error"
             }
         }
 
