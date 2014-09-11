@@ -57,6 +57,7 @@ MAN1=	\
 		port-mdmg.1 \
 		port-mirror.1 \
 		port-mpkg.1 \
+		port-notes.1 \
 		port-patch.1 \
 		port-pkg.1 \
 		port-quit.1 \

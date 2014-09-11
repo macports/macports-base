@@ -1,0 +1,57 @@
+'\" t
+.TH "PORT\-NOTES" "1" "2014\-09\-11" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+port-notes \- Re\-display install\-time messages for a port
+.SH "SYNOPSIS"
+.sp
+.nf
+\fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBnotes\fR
+     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
+.fi
+.SH "DESCRIPTION"
+.sp
+\fINotes\fR are messages associated with ports that are displayed after successful installation\&. These messages often contain further instructions required to use the software, helpful tips on how to configure the port or information about important changes in a port\&.
+.sp
+\fBport notes\fR can be used to display these messages again after installation\&.
+.SH "GLOBAL OPTIONS"
+.sp
+Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+.PP
+\fB\-q\fR
+.RS 4
+Do not display the header line; just print the note contents\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBport\fR(1), \fBport-install\fR(1)
+.SH "AUTHORS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(C) 2014 The MacPorts Project
+Clemens Lang <cal@macports\&.org>
+.fi
+.if n \{\
+.RE
+.\}
