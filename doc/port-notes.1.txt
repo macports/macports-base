@@ -1,0 +1,38 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-notes(1)
+=============
+$Id$
+
+NAME
+----
+port-notes - Re-display install-time messages for a port
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-q*] [*-D* 'portdir'] *notes*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+'Notes' are messages associated with ports that are displayed after successful
+installation. These messages often contain further instructions required to use
+the software, helpful tips on how to configure the port or information about
+important changes in a port.
+
+*port notes* can be used to display these messages again after installation.
+
+include::global-flags.txt[]
+
+*-q*::
+    Do not display the header line; just print the note contents.
+
+
+SEE ALSO
+--------
+man:port[1], man:port-install[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
