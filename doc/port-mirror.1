@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-MIRROR" "1" "2014\-08\-25" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-MIRROR" "1" "2014\-09\-13" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -63,7 +63,7 @@ $> sudo port \-p fetch $newport
 .RE
 .\}
 .sp
-These can also be conviniently wrapped in a single command using a port expression (see \fBport\fR(1) for details):
+These can also be conveniently wrapped in a single command using a port expression (see \fBport\fR(1) for details):
 .sp
 .if n \{\
 .RS 4
@@ -77,7 +77,7 @@ $> sudo port \-p fetch $newport rdepof:$newport and not installed
 .sp
 If your intention is creating a new complete mirror of all MacPorts distfiles, it is probably easier to sync them via rsync from our main mirror hosted by Mac OS Forge\&. See \m[blue]\fBMirrors\fR\m[]\&\s-2\u[1]\d\s+2 for details\&.
 .sp
-If you want to create a partial mirror of MacPorts distfiles or are running the main mirror for MacPorts, you should use port mirror:
+If you want to create a partial mirror of MacPorts distfiles or are running the main mirror for MacPorts, you should use \fBport mirror\fR:
 .sp
 .if n \{\
 .RS 4
