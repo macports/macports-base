@@ -54,7 +54,7 @@ $> sudo port -p fetch rdepof:$newport and not installed
 $> sudo port -p fetch $newport
 ----
 
-These can also be conviniently wrapped in a single command using a port
+These can also be conveniently wrapped in a single command using a port
 expression (see man:port[1] for details):
 
 ----
@@ -66,7 +66,7 @@ it is probably easier to sync them via rsync from our main mirror hosted by Mac
 OS Forge. See wiki:Mirrors[] for details.
 
 If you want to create a partial mirror of MacPorts distfiles or are running the
-main mirror for MacPorts, you should use port mirror:
+main mirror for MacPorts, you should use *port mirror*:
 
 ----
 $> sudo port -p mirror all
