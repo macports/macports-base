@@ -102,8 +102,14 @@ AC_PROG_MAKE_SET
 AC_PROG_OBJC([clang cc gcc])
 
 # Check for user-supplied paths before searching
+
+dnl Beware of conflicts between the variables you set and any tools executed in
+dnl the configure context. Some tools interpret an environment variable with
+dnl their own name as default flags and will fail if it is set to a path. For
+dnl example, these include BZIP2 and GZIP, which is the reason why they are
+dnl named with a _BIN suffix here.
 MP_TOOL_PATH(BSDMAKE, [bsdmake/pmake])
-MP_TOOL_PATH(BZIP2, [bzip2])
+MP_TOOL_PATH(BZIP2_BIN, [bzip2])
 MP_TOOL_PATH(CVS, [cvs])
 MP_TOOL_PATH(GNUMAKE, [gnumake])
 MP_TOOL_PATH(GNUTAR, [gnutar])
@@ -122,7 +128,7 @@ MP_TOOL_PATH(XZ, [xz])
 
 # Search for tool paths. Any set above (via --with-pkg=PATH) will be retained
 AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
-AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROG(BZIP2_BIN, [bzip2], [])
 AC_PATH_PROG(BZR, [bzr], [])
 AC_PATH_PROG(CHOWN, [chown], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CP, [cp], [])
@@ -137,7 +143,7 @@ AC_PATH_PROG(GIT, [git], [])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [])
 AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [])
 AC_PATH_PROGS(GNUTAR, [gnutar gtar], [])
-AC_PATH_PROG(GZIP, [gzip], [])
+AC_PATH_PROG(GZIP_BIN, [gzip], [])
 AC_PATH_PROG(HDIUTIL, [hdiutil], [])
 AC_PATH_PROG(HG, [hg], [])
 AC_PATH_PROG(LAUNCHCTL, [launchctl], [])

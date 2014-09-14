@@ -32,7 +32,7 @@
 package provide port 1.0
 
 namespace eval portutil::autoconf {
-	variable bzip2_path "@BZIP2@"
+	variable bzip2_path "@BZIP2_BIN@"
 	variable lzma_path "@LZMA@"
 	variable xz_path "@XZ@"
 	variable cp_path "@CP@"
@@ -46,7 +46,7 @@ namespace eval portutil::autoconf {
 	variable svn_path "@SVN@"
 	variable git_path "@GIT@"
 	variable hg_path "@HG@"
-	variable gzip_path "@GZIP@"
+	variable gzip_path "@GZIP_BIN@"
 	variable lipo_path "@LIPO@"
 	variable openssl_path "@OPENSSL@"
 	variable patch_path "@PATCH@"
