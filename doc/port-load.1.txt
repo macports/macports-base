@@ -28,10 +28,6 @@ preserve this state - even across reboots - until the daemon is unloaded using
 is a convenience wrapper around *port unload* followed by a short delay and
 *port load*.
 
-In theory, MacPorts supports generating startup items for older releases of OS
-X. In practice, these commands can not deal with pre-launchd interfaces and will
-fail on these systems.
-
 include::global-flags.txt[]
 
 SEE ALSO
