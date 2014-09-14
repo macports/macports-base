@@ -735,7 +735,7 @@ LIPO
 LAUNCHCTL
 HG
 HDIUTIL
-GZIP
+GZIP_BIN
 GNUTAR
 GNUPATCH
 GNUMAKE
@@ -750,7 +750,7 @@ CPIO
 CP
 CHOWN
 BZR
-BZIP2
+BZIP2_BIN
 BSDMAKE
 ac_ct_OBJC
 OBJCFLAGS
@@ -828,7 +828,7 @@ ac_user_opts='
 enable_option_checking
 enable_flag_sanitization
 with_bsdmake
-with_bzip2
+with_bzip2_bin
 with_cvs
 with_gnumake
 with_gnutar
@@ -1501,7 +1501,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-bsdmake=PATH     Path to alternate bsdmake/pmake command
-  --with-bzip2=PATH       Path to alternate bzip2 command
+  --with-bzip2_bin=PATH   Path to alternate bzip2 command
   --with-cvs=PATH         Path to alternate cvs command
   --with-gnumake=PATH     Path to alternate gnumake command
   --with-gnutar=PATH      Path to alternate gnutar command
@@ -4094,15 +4094,16 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 # Check for user-supplied paths before searching
 
+
 # Check whether --with-bsdmake was given.
 if test "${with_bsdmake+set}" = set; then :
   withval=$with_bsdmake; BSDMAKE=$withval
 fi
 
 
-# Check whether --with-bzip2 was given.
-if test "${with_bzip2+set}" = set; then :
-  withval=$with_bzip2; BZIP2=$withval
+# Check whether --with-bzip2_bin was given.
+if test "${with_bzip2_bin+set}" = set; then :
+  withval=$with_bzip2_bin; BZIP2_BIN=$withval
 fi
 
 
@@ -4246,12 +4247,12 @@ done
 set dummy bzip2; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_BZIP2+:} false; then :
+if ${ac_cv_path_BZIP2_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $BZIP2 in
+  case $BZIP2_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_BZIP2="$BZIP2" # Let the user override the test with a path.
+  ac_cv_path_BZIP2_BIN="$BZIP2_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -4261,7 +4262,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_BZIP2="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_BZIP2_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4272,10 +4273,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-BZIP2=$ac_cv_path_BZIP2
-if test -n "$BZIP2"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2" >&5
-$as_echo "$BZIP2" >&6; }
+BZIP2_BIN=$ac_cv_path_BZIP2_BIN
+if test -n "$BZIP2_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2_BIN" >&5
+$as_echo "$BZIP2_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -4863,12 +4864,12 @@ done
 set dummy gzip; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_GZIP+:} false; then :
+if ${ac_cv_path_GZIP_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $GZIP in
+  case $GZIP_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_GZIP="$GZIP" # Let the user override the test with a path.
+  ac_cv_path_GZIP_BIN="$GZIP_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -4878,7 +4879,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_GZIP="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_GZIP_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4889,10 +4890,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-GZIP=$ac_cv_path_GZIP
-if test -n "$GZIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP" >&5
-$as_echo "$GZIP" >&6; }
+GZIP_BIN=$ac_cv_path_GZIP_BIN
+if test -n "$GZIP_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP_BIN" >&5
+$as_echo "$GZIP_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -9642,16 +9643,16 @@ tcllib_version=1.15
 	}
 
 
-	# Extract the first word of "gzip", so it can be a program name with args.
+			# Extract the first word of "gzip", so it can be a program name with args.
 set dummy gzip; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_GZIP+:} false; then :
+if ${ac_cv_path_GZIP_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $GZIP in
+  case $GZIP_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_GZIP="$GZIP" # Let the user override the test with a path.
+  ac_cv_path_GZIP_BIN="$GZIP_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -9661,7 +9662,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_GZIP="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_GZIP_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -9672,10 +9673,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-GZIP=$ac_cv_path_GZIP
-if test -n "$GZIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP" >&5
-$as_echo "$GZIP" >&6; }
+GZIP_BIN=$ac_cv_path_GZIP_BIN
+if test -n "$GZIP_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP_BIN" >&5
+$as_echo "$GZIP_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -9686,12 +9687,12 @@ fi
 set dummy bzip2; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_BZIP2+:} false; then :
+if ${ac_cv_path_BZIP2_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $BZIP2 in
+  case $BZIP2_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_BZIP2="$BZIP2" # Let the user override the test with a path.
+  ac_cv_path_BZIP2_BIN="$BZIP2_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -9701,7 +9702,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_BZIP2="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_BZIP2_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -9712,10 +9713,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-BZIP2=$ac_cv_path_BZIP2
-if test -n "$BZIP2"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2" >&5
-$as_echo "$BZIP2" >&6; }
+BZIP2_BIN=$ac_cv_path_BZIP2_BIN
+if test -n "$BZIP2_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2_BIN" >&5
+$as_echo "$BZIP2_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -9735,16 +9736,16 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 		mp_tarball_extract_cmd=
 		case "$mp_tarball" in
 			*.tar.gz | *.tgz)
-				if test "x$GZIP" = "x"; then
+				if test "x$GZIP_BIN" = "x"; then
 					as_fn_error $? "gzip not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$GZIP"
+				mp_tarball_extract_cmd="$GZIP_BIN"
 				;;
 			*.tar.bz2 | *.tbz2)
-				if test "x$BZIP2" = "x"; then
+				if test "x$BZIP2_BIN" = "x"; then
 					as_fn_error $? "bzip2 not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$BZIP2"
+				mp_tarball_extract_cmd="$BZIP2_BIN"
 				;;
 			*)
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
@@ -10059,16 +10060,16 @@ VENDOR_DESTROOT=vendor/vendor-destroot
 # Tcl supports Threads internally, but to use threads from Tcl code we need
 # this package
 
-	# Extract the first word of "gzip", so it can be a program name with args.
+			# Extract the first word of "gzip", so it can be a program name with args.
 set dummy gzip; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_GZIP+:} false; then :
+if ${ac_cv_path_GZIP_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $GZIP in
+  case $GZIP_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_GZIP="$GZIP" # Let the user override the test with a path.
+  ac_cv_path_GZIP_BIN="$GZIP_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -10078,7 +10079,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_GZIP="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_GZIP_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -10089,10 +10090,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-GZIP=$ac_cv_path_GZIP
-if test -n "$GZIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP" >&5
-$as_echo "$GZIP" >&6; }
+GZIP_BIN=$ac_cv_path_GZIP_BIN
+if test -n "$GZIP_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP_BIN" >&5
+$as_echo "$GZIP_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10103,12 +10104,12 @@ fi
 set dummy bzip2; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_BZIP2+:} false; then :
+if ${ac_cv_path_BZIP2_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $BZIP2 in
+  case $BZIP2_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_BZIP2="$BZIP2" # Let the user override the test with a path.
+  ac_cv_path_BZIP2_BIN="$BZIP2_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -10118,7 +10119,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_BZIP2="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_BZIP2_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -10129,10 +10130,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-BZIP2=$ac_cv_path_BZIP2
-if test -n "$BZIP2"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2" >&5
-$as_echo "$BZIP2" >&6; }
+BZIP2_BIN=$ac_cv_path_BZIP2_BIN
+if test -n "$BZIP2_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2_BIN" >&5
+$as_echo "$BZIP2_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10152,16 +10153,16 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 		mp_tarball_extract_cmd=
 		case "$mp_tarball" in
 			*.tar.gz | *.tgz)
-				if test "x$GZIP" = "x"; then
+				if test "x$GZIP_BIN" = "x"; then
 					as_fn_error $? "gzip not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$GZIP"
+				mp_tarball_extract_cmd="$GZIP_BIN"
 				;;
 			*.tar.bz2 | *.tbz2)
-				if test "x$BZIP2" = "x"; then
+				if test "x$BZIP2_BIN" = "x"; then
 					as_fn_error $? "bzip2 not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$BZIP2"
+				mp_tarball_extract_cmd="$BZIP2_BIN"
 				;;
 			*)
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
@@ -10471,16 +10472,16 @@ VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
 ## TclX package
 # TclX is required for signal handling
 
-	# Extract the first word of "gzip", so it can be a program name with args.
+			# Extract the first word of "gzip", so it can be a program name with args.
 set dummy gzip; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_GZIP+:} false; then :
+if ${ac_cv_path_GZIP_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $GZIP in
+  case $GZIP_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_GZIP="$GZIP" # Let the user override the test with a path.
+  ac_cv_path_GZIP_BIN="$GZIP_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -10490,7 +10491,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_GZIP="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_GZIP_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -10501,10 +10502,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-GZIP=$ac_cv_path_GZIP
-if test -n "$GZIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP" >&5
-$as_echo "$GZIP" >&6; }
+GZIP_BIN=$ac_cv_path_GZIP_BIN
+if test -n "$GZIP_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP_BIN" >&5
+$as_echo "$GZIP_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10515,12 +10516,12 @@ fi
 set dummy bzip2; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_BZIP2+:} false; then :
+if ${ac_cv_path_BZIP2_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $BZIP2 in
+  case $BZIP2_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_BZIP2="$BZIP2" # Let the user override the test with a path.
+  ac_cv_path_BZIP2_BIN="$BZIP2_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -10530,7 +10531,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_BZIP2="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_BZIP2_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -10541,10 +10542,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-BZIP2=$ac_cv_path_BZIP2
-if test -n "$BZIP2"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2" >&5
-$as_echo "$BZIP2" >&6; }
+BZIP2_BIN=$ac_cv_path_BZIP2_BIN
+if test -n "$BZIP2_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2_BIN" >&5
+$as_echo "$BZIP2_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10564,16 +10565,16 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 		mp_tarball_extract_cmd=
 		case "$mp_tarball" in
 			*.tar.gz | *.tgz)
-				if test "x$GZIP" = "x"; then
+				if test "x$GZIP_BIN" = "x"; then
 					as_fn_error $? "gzip not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$GZIP"
+				mp_tarball_extract_cmd="$GZIP_BIN"
 				;;
 			*.tar.bz2 | *.tbz2)
-				if test "x$BZIP2" = "x"; then
+				if test "x$BZIP2_BIN" = "x"; then
 					as_fn_error $? "bzip2 not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$BZIP2"
+				mp_tarball_extract_cmd="$BZIP2_BIN"
 				;;
 			*)
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
@@ -10885,16 +10886,16 @@ VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 # be the one we configure above, because that one isn't built yet. That's not
 # a problem, though -- it's only used during installation.
 
-	# Extract the first word of "gzip", so it can be a program name with args.
+			# Extract the first word of "gzip", so it can be a program name with args.
 set dummy gzip; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_GZIP+:} false; then :
+if ${ac_cv_path_GZIP_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $GZIP in
+  case $GZIP_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_GZIP="$GZIP" # Let the user override the test with a path.
+  ac_cv_path_GZIP_BIN="$GZIP_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -10904,7 +10905,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_GZIP="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_GZIP_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -10915,10 +10916,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-GZIP=$ac_cv_path_GZIP
-if test -n "$GZIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP" >&5
-$as_echo "$GZIP" >&6; }
+GZIP_BIN=$ac_cv_path_GZIP_BIN
+if test -n "$GZIP_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GZIP_BIN" >&5
+$as_echo "$GZIP_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10929,12 +10930,12 @@ fi
 set dummy bzip2; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_BZIP2+:} false; then :
+if ${ac_cv_path_BZIP2_BIN+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $BZIP2 in
+  case $BZIP2_BIN in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_BZIP2="$BZIP2" # Let the user override the test with a path.
+  ac_cv_path_BZIP2_BIN="$BZIP2_BIN" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -10944,7 +10945,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_BZIP2="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_BZIP2_BIN="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -10955,10 +10956,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-BZIP2=$ac_cv_path_BZIP2
-if test -n "$BZIP2"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2" >&5
-$as_echo "$BZIP2" >&6; }
+BZIP2_BIN=$ac_cv_path_BZIP2_BIN
+if test -n "$BZIP2_BIN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BZIP2_BIN" >&5
+$as_echo "$BZIP2_BIN" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -10978,16 +10979,16 @@ $as_echo "$as_me: === extracting $mp_tarball" >&6;}
 		mp_tarball_extract_cmd=
 		case "$mp_tarball" in
 			*.tar.gz | *.tgz)
-				if test "x$GZIP" = "x"; then
+				if test "x$GZIP_BIN" = "x"; then
 					as_fn_error $? "gzip not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$GZIP"
+				mp_tarball_extract_cmd="$GZIP_BIN"
 				;;
 			*.tar.bz2 | *.tbz2)
-				if test "x$BZIP2" = "x"; then
+				if test "x$BZIP2_BIN" = "x"; then
 					as_fn_error $? "bzip2 not found" "$LINENO" 5
 				fi
-				mp_tarball_extract_cmd="$BZIP2"
+				mp_tarball_extract_cmd="$BZIP2_BIN"
 				;;
 			*)
 				as_fn_error $? "Don't know how to extract tarball $mp_tarball" "$LINENO" 5
