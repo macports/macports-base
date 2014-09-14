@@ -43,9 +43,10 @@ port.
 
 The dependency relations printed by *port dependents* and *port rdependents* are
 the same that are used to determine if a port can be safely uninstalled. Ports
-that still have dependents installed cannot be uninstalled without either the
-*--follow-dependents* or the *-f* flag. See man:port-uninstall[1] for more
-details.
+that still have dependents installed cannot be safely uninstalled without
+possibly breaking their dependents. All dependents can be removed at the same
+time using the *--follow-dependents* flag. The check can be ignored using the
+*-f* flag. See man:port-uninstall[1] for more details.
 
 include::dependents-vs-dependencies.txt[]
 
