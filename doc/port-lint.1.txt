@@ -46,7 +46,7 @@ include::global-flags.txt[]
     Print the 'Portfile', and debugging information parsed from the 'Portfile'.
 
 *-q*::
-    Supress the header line, warning and error count; only print warnings and
+    Suppress the header line, warning and error count; only print warnings and
     errors, if any.
 
 
