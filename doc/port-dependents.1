@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-DEPENDENTS" "1" "2014\-08\-16" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-DEPENDENTS" "1" "2014\-09\-14" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -52,7 +52,7 @@ This command will, however, not cover dependencies that are only present in non\
 .sp
 \fBport rdependents\fR will print a tree of installed ports that depend on the given port\&.
 .sp
-The dependency relations printed by \fBport dependents\fR and \fBport rdependents\fR are the same that are used to determine if a port can be safely uninstalled\&. Ports that still have dependents installed cannot be uninstalled without either the \fB\-\-follow\-dependents\fR or the \fB\-f\fR flag\&. See \fBport-uninstall\fR(1) for more details\&.
+The dependency relations printed by \fBport dependents\fR and \fBport rdependents\fR are the same that are used to determine if a port can be safely uninstalled\&. Ports that still have dependents installed cannot be safely uninstalled without possibly breaking their dependents\&. All dependents can be removed at the same time using the \fB\-\-follow\-dependents\fR flag\&. The check can be ignored using the \fB\-f\fR flag\&. See \fBport-uninstall\fR(1) for more details\&.
 .SH "DEPENDENCY RELATIONS"
 .sp
 Do not confuse \fIdependents\fR and \fIdependencies\fR (or, shortened, \fIdeps\fR)\&. Refer to the following example to understand the difference:

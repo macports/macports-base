@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-LOAD" "1" "2014\-08\-24" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-LOAD" "1" "2014\-09\-14" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -32,8 +32,6 @@ port-load, port-unload, port-reload \- Control daemons installed by a port
 These commands control the daemons that are installed by some of the ports\&. If a port provides daemon functionality, a note will be printed during installation advising you how to use it\&.
 .sp
 The daemon functionality is provided by installing a \fBlaunchd\fR(8) configuration file (see \fBlaunchd.conf\fR(5)) and calling \fBlaunchctl\fR(1) on your behalf\&. \fBport load\fR advises launchd to start the daemon defined by a port\(cqs configuration file, also called a \(lqstartup item\(rq\&. Once loaded, launchd will preserve this state \- even across reboots \- until the daemon is unloaded using \fBport unload\fR\&. If you want to restart a daemon, you can use \fBport reload\fR, which is a convenience wrapper around \fBport unload\fR followed by a short delay and \fBport load\fR\&.
-.sp
-In theory, MacPorts supports generating startup items for older releases of OS X\&. In practice, these commands can not deal with pre\-launchd interfaces and will fail on these systems\&.
 .SH "GLOBAL OPTIONS"
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
