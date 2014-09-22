@@ -227,7 +227,7 @@ proc portconfigure::configure_start {args} {
         {^macports-dragonegg-(\d+\.\d+)-gcc-(\d+\.\d+)$}
             {MacPorts DragonEgg %s with GCC %s}
         {^macports-gcc$}                    {MacPorts GCC (port select)}
-        {^macports-gcc-(\d+\.\d+)$}         {MacPorts GCC %s}
+        {^macports-gcc-(\d+(?:\.\d+)?)$}    {MacPorts GCC %s}
         {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
     }
     foreach {re fmt} $valid_compilers {
@@ -383,7 +383,7 @@ proc portconfigure::compiler_port_name {compiler} {
         {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
         {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
         {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
-        {^macports-(llvm-)?gcc-(\d+)\.(\d+)$}               {%sgcc%s%s}
+        {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}          {%sgcc%s%s}
     }
     foreach {re fmt} $valid_compiler_ports {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
@@ -548,7 +548,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             f77     -
             f90     { return ${prefix}/bin/dragonegg${infix}-gfortran${suffix} }
         }
-    } elseif {[regexp {^macports-gcc(-\d+\.\d+)?$} $compiler -> suffix]} {
+    } elseif {[regexp {^macports-gcc(-\d+(?:\.\d+)?)?$} $compiler -> suffix]} {
         if {$suffix ne ""} {
             set suffix "-mp${suffix}"
         }
