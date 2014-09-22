@@ -2,7 +2,7 @@ proc env_init {} {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs porturl workpath distname license filespath portpath pwd
-    global portname
+    global name
 
     set os.platform darwin
     set os.major 9
@@ -17,7 +17,7 @@ proc env_init {} {
     set configure.build_arch build_arch
     set package.destpath $pwd/pkg
 
-    set portname fondu   
+    set name fondu   
     set subport fondu
     set version 060102
     set distname fondu_src-060102

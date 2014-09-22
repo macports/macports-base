@@ -28,7 +28,7 @@ test filter_sites {
 } -setup {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
-    global supported_archs portname porturl portdbpath portpath workpath distname filespath license
+    global supported_archs name porturl portdbpath portpath workpath distname filespath license
     env_init
 
     set portvariants {var1}
@@ -48,7 +48,7 @@ test checkarchivefiles {
 } -setup {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
-    global supported_archs portname porturl portdbpath portpath workpath distname filespath license
+    global supported_archs name porturl portdbpath portpath workpath distname filespath license
     env_init
 
     set urls {www.a.com www.b.com}
@@ -81,7 +81,7 @@ test fetchfiles {
 } -setup {
     global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
-    global supported_archs portname porturl portdbpath portpath workpath distname filespath license
+    global supported_archs name porturl portdbpath portpath workpath distname filespath license
     env_init
 
     array set ::portfetch::urlmap {
