@@ -9,6 +9,9 @@ set work_dir "work"
 # constraint indicating whether the platform supports trace mode
 ::tcltest::testConstraint tracemode_support [expr {@TRACEMODE_SUPPORT@ != 0}]
 
+# constraint for tests that use svn
+::tcltest::testConstraint has_svn [expr {"@SVN@" ne ""}]
+
 # Set of procs used for testing.
 
 # Sets $bindir variable from autoconf

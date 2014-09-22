@@ -20,6 +20,8 @@ proc svn-patch {} {
 
 test svn-patchsites {
     Regression test for svn-and-patchsites.
+} -constraints {
+    has_svn
 } -body {
     svn-patch
 } -result "No error found."
