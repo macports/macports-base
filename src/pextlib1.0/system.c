@@ -128,7 +128,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     pid_t pid;
     uid_t euid;
     Tcl_Obj *tcl_result;
-    int read_failed, status;
+    int read_failed = 0;
+    int status;
     int i;
 
     if (objc < 2) {
