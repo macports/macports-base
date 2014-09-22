@@ -31,11 +31,6 @@ checksums           7.4.001 md5 f234692c9ab5265ba6ba6f55c0f81764 \
                     7.4.002 md5 a03e1a5ad3722f2011751dda977641af \
                     7.4.003 md5 e6d070f592bb6da4d8cf2f7f134425e5
 
-# Set depends_fetch to be empty to remove the dependency on svn added by base,
-# as it is not available in the test suite. Otherwise MacPorts will try to
-# verify a subversion port exists.
-depends_fetch
-
 # disable the patch phase because the patches would never apply
 patch		{}
 extract		{}
