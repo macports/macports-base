@@ -83,7 +83,7 @@ if {$test_name ne ""} {
         set result [exec -ignorestderr $tcl $test {*}$arguments]
         set lastline [lindex [split $result "\n"] end]
 
-        if {[lrange [split $lastline "\t"] 1 1] != "Total"} {
+        if {[lrange [split $lastline "\t"] 1 1] ne "Total"} {
             set lastline [lindex [split $result "\n"] end-2]
             set errmsg [lindex [split $result "\n"] end]
         }

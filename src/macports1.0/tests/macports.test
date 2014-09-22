@@ -50,7 +50,7 @@ test mportclose {
     if {[catch {mportclose $mport}] != 0} {
        return "FAIL: cannot run mportclose"
     }
-    if {[ditem_key $mport workername] != ""} {
+    if {[ditem_key $mport workername] ne ""} {
        return "FAIL: port not closed"
     }
     return "Mport close successful."
@@ -112,7 +112,7 @@ test init_logging {
     if {[macports::init_logging $mport] != 0} {
        return "FAIL: incorrect channels"
     }
-    if {$macports::channels(any) != "stdout debuglog"} {
+    if {$macports::channels(any) ne "stdout debuglog"} {
        return "FAIL: incorrect channels(any)"
     }
     if {(![info exists ui_options(ports_debug)] && $macports::channels(debug) ne "debuglog") || 
@@ -218,7 +218,7 @@ test pop_log {
     }
 } -body {
     macports::pop_log
-    if {$::debuglog != $::logstack} {
+    if {$::debuglog ne $::logstack} {
 	return "FAIL: cannot pop log"
     }
     return "Pop log successful."
@@ -236,7 +236,7 @@ test set_phase {
     Set phase unit test.
 } -body {
     set res [set_phase test]
-    if {$macports::current_phase != "test"} {
+    if {$macports::current_phase ne "test"} {
 	return "FAIL: phase not set"
     }
     return "Set phase successful."
@@ -258,7 +258,7 @@ test ui_message {
     close $fd2
     set fd2 [open $pwd/message r]
     set line [read $fd2]
-    if {$line != "prefixargs\n"} {
+    if {$line ne "prefixargs\n"} {
 	return "FAIL: wrong message"
     }
     close $fd2
@@ -270,7 +270,7 @@ test ui_message {
     close $fd2
     set fd2 [open $pwd/log r]
     set line [read $fd2]
-    if {$line != "prefixarg"} {
+    if {$line ne "prefixarg"} {
 	return "FAIL: wrong message"
     }
     close $fd2
@@ -354,10 +354,10 @@ test ui_warn_once {
 test findBinary {
     Find binary unit test.
 } -body {
-    if {[macports::findBinary pwd ls] != "/bin/pwd"} {
+    if {[macports::findBinary pwd ls] ne "/bin/pwd"} {
        return "FAIL: wrong binary"
     }
-    if {[macports::findBinary pwd /bin/ls] != "/bin/ls"} {
+    if {[macports::findBinary pwd /bin/ls] ne "/bin/ls"} {
        return "FAIL: wrong binary"
     }
     return "Find binary successful."
@@ -370,7 +370,7 @@ test binaryInPath {
     if {[catch {macports::binaryInPath zz}] != 1} {
        return "FAIL: invalid binary found"
     }
-    if {[macports::binaryInPath ls] != "/bin/ls"} {
+    if {[macports::binaryInPath ls] ne "/bin/ls"} {
        return "FAIL: wrong binary found"
     }
     return "Binary in path successful."
@@ -381,7 +381,7 @@ test getoption {
     Get option unit test.
 } -body {
     set macports::test macports
-    if {[macports::getoption test] != "macports"} {
+    if {[macports::getoption test] ne "macports"} {
 	return "FAIL: cannot get option"
     }
     return "Get option successful."
@@ -395,7 +395,7 @@ test setxcodeinfo {
 } -setup {
     unset macports::xcodeversion
 } -body {
-    if {[macports::setxcodeinfo a b c] != ""} {
+    if {[macports::setxcodeinfo a b c] ne ""} {
        return "FAIL: xcode binary not found"
     }
     if {![info exists macports::xcodeversion]} {
@@ -412,7 +412,7 @@ test set_developer_dir {
 } -body {
     unset macports::developer_dir
 
-    if {[macports::set_developer_dir a b c] != ""} {
+    if {[macports::set_developer_dir a b c] ne ""} {
        return "FAIL: cannot set dev dir"
     }
     if {![info exists macports::developer_dir]} {
@@ -500,7 +500,7 @@ test mportshutdown {
     close [open $macports::portdbpath/pingtimes w+]
 
 } -body {
-    if {[mportshutdown] != ""} {
+    if {[mportshutdown] ne ""} {
        return "FAIL: errors occured"
     }
 
@@ -508,7 +508,7 @@ test mportshutdown {
     append res "host1 \{test " $time "\}"
     set fd [open $macports::portdbpath/pingtimes r]
 
-    if {[gets $fd] != $res} {
+    if {[gets $fd] ne $res} {
        return "FAIL: wrong value saved"
     }
     close $fd
@@ -526,7 +526,7 @@ test copy_xcode_plist {
 } -body {
     set target $pwd/target
 
-    if {[macports::copy_xcode_plist $target] != ""} {
+    if {[macports::copy_xcode_plist $target] ne ""} {
        return "FAIL: cannot copy xcode plist"
     }
     if {![file exists $target/Library/Preferences/com.apple.dt.Xcode.plist]} {
@@ -555,10 +555,10 @@ test create_thread {
 test get_tar_flags {
     Get tar flags unit test.
 } -body {
-    if {[macports::get_tar_flags .tbz2] != "-j"} {
+    if {[macports::get_tar_flags .tbz2] ne "-j"} {
 	return "FAIL: wrong flaga (-j)"
     }
-    if {[macports::get_tar_flags .tgz] != "-z"} {
+    if {[macports::get_tar_flags .tgz] ne "-z"} {
 	return "FAIL: wrong flaga (-z)"
     }
     return "Get tar flags successful."
@@ -570,7 +570,7 @@ test fetch_port {
 } -body {
     set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
     set res [macports::fetch_port $url]
-    if {$res != "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
+    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
 	return "FAIL: cannot fetch port"
     }
     return "Fetch port successful."
@@ -582,7 +582,7 @@ test fetch_port {
 test getprotocol {
     Get protocol unit test.
 } -body {
-    if {[macports::getprotocol http://www.macports.org] != "http"} {
+    if {[macports::getprotocol http://www.macports.org] ne "http"} {
        return "FAIL: wrong protocol"
     }
     return "Get protocol successful."
@@ -596,12 +596,12 @@ test getportdir {
 } -body {
     set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
     set res [macports::getportdir $url]
-    if {$res != "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
+    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
 	return "FAIL: invalid port directory"
     }
 
     set url file://${pwd}/local_file
-    if {[macports::getportdir $url] != "${pwd}/local_file"} {
+    if {[macports::getportdir $url] ne "${pwd}/local_file"} {
 	return "FAIL: invalid local port directory"
     }
     return "Get port dir successful."
@@ -619,13 +619,13 @@ test getportresourcepath {
     set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
     set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2/_resources
 
-    if {[macports::getportresourcepath $url "" yes] != $default_path} {
+    if {[macports::getportresourcepath $url "" yes] ne $default_path} {
        return "FAIL: wrong resource path"
     }
-    if {[macports::getportresourcepath $url "" no] != $fallback_path} {
+    if {[macports::getportresourcepath $url "" no] ne $fallback_path} {
        return "FAIL: wrong fallback path"
     }
-    if {[macports::getportresourcepath $url "test" no] != "${fallback_path}/test"} {
+    if {[macports::getportresourcepath $url "test" no] ne "${fallback_path}/test"} {
        return "FAIL: wrong fallback path with subdir"
     }
 
@@ -638,14 +638,14 @@ test getdefaultportresourcepath {
 } -body {
     set path test/path
     set macports::sources_default file://$pwd
-    if {[macports::getdefaultportresourcepath $path] != "${pwd}/_resources/${path}"} {
+    if {[macports::getdefaultportresourcepath $path] ne "${pwd}/_resources/${path}"} {
        return "FAIL: wrong file res path"
     }
 
     set macports::sources_default http://$pwd
     set default_source_url [lindex ${macports::sources_default} 0]
     set right_path [macports::getsourcepath $default_source_url]/_resources/test/path
-    if {[macports::getdefaultportresourcepath $path] != $right_path} {
+    if {[macports::getdefaultportresourcepath $path] ne $right_path} {
        return "FAIL: wrong http res path"
     }
     return "Default res path successful."
@@ -678,7 +678,7 @@ test mporttraverse {
     set res ""
 } -body {
     mporttraverse test_proc $pwd/porttree
-    if {$res != "1.01.0"} {
+    if {$res ne "1.01.0"} {
        return "FAIL: porttree not traversed"
     }
     return "Mport traverse successful."
@@ -825,16 +825,16 @@ test mportselect {
     puts $fd "a\nb"
     close $fd
 } -body {
-    if {[mportselect list group] != {file1 file2}} {
+    if {[mportselect list group] ne {file1 file2}} {
        return "FAIL: files not listed"
     }
-    if {[mportselect set group file1] != ""} {
+    if {[mportselect set group file1] ne ""} {
        reutrn "FAIL: cannot set links"
     }
     if {![file exists $macports::prefix/a]} {
        return "FAIL: link not created"
     }
-    if {[mportselect show group] != "file1"} {
+    if {[mportselect show group] ne "file1"} {
        return "FAIL: file not selected"
     }
     return "Mport select successful."
@@ -849,11 +849,11 @@ test gettmpdir {
 } -body {
     global env
     set env(TMPDIR) temporal
-    if {[macports::gettmpdir] != "temporal"} {
+    if {[macports::gettmpdir] ne "temporal"} {
        return "FAIL: set temp dir not detected"
     }
     unset env(TMPDIR)
-    if {[macports::gettmpdir] != "/tmp"} {
+    if {[macports::gettmpdir] ne "/tmp"} {
        return "FAIL: default value not set"
     }
     return "Get tmp dir successful."
@@ -914,11 +914,11 @@ test revupgrade_handle_special_paths {
     Revupgrade handle special paths unit test.
 } -body {
     set res [macports::revupgrade_handle_special_paths fname test_path]
-    if {$res != "test_path"} {
+    if {$res ne "test_path"} {
        return "FAIL: wrong path"
     }
     set res [macports::revupgrade_handle_special_paths fname @loader_path/test_load]
-    if {$res != "./test_load"} {
+    if {$res ne "./test_load"} {
        return "FAIL: wrong load path"
     }
     return "Revupgrade handle special path successful."
@@ -937,7 +937,7 @@ test get_pingtime {
     set macports::host_preferred(macports_pref) [list pref $time]
 
 } -body {
-    if {[macports::get_pingtime macports.org] != "MacPorts"} {
+    if {[macports::get_pingtime macports.org] ne "MacPorts"} {
        return "FAIL: wrong ping time"
     }
     if {[macports::get_pingtime macports_blacklist] != -1} {
@@ -976,15 +976,15 @@ test get_archive_sites_conf_values {
 } -body {
     set res [macports::get_archive_sites_conf_values]
     puts $res
-    if {[lindex [split $res " "] 1] != "macports.org:nosubdir"} {
+    if {[lindex [split $res " "] 1] ne "macports.org:nosubdir"} {
        return "FAIL: name not set"
     }
-    if {[lindex [split $res " "] 3] != "tgz"} {
+    if {[lindex [split $res " "] 3] ne "tgz"} {
        return "FAIL: wrong type set"
     }
 
     set macports::archive_sites_conf_values {a b c}
-    if {[macports::get_archive_sites_conf_values] != {a b c}} {
+    if {[macports::get_archive_sites_conf_values] ne {a b c}} {
        return "FAIL: wrong  result for bad conf file"
     }
     return "Get archive sites conf values successful."

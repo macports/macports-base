@@ -1878,8 +1878,8 @@ proc _mportactive {mport} {
         set revision [lindex $i 2]
         set variants [lindex $i 3]
         array set portinfo [mportinfo $mport]
-        if {$name eq $portinfo(name) && $version == $portinfo(version)
-            && $revision == $portinfo(revision) && $variants == $portinfo(canonical_active_variants)} {
+        if {$name eq $portinfo(name) && $version eq $portinfo(version)
+            && $revision == $portinfo(revision) && $variants eq $portinfo(canonical_active_variants)} {
             return 1
         }
     }
@@ -3819,7 +3819,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set version [lindex $i 1]
         set revision [lindex $i 2]
         set epoch [lindex $i 5]
-        if {$version_installed eq {} || ($epoch > $epoch_installed && $version != $version_installed) ||
+        if {$version_installed eq {} || ($epoch > $epoch_installed && $version ne $version_installed) ||
                 ($epoch >= $epoch_installed && [vercmp $version $version_installed] > 0)
                 || ($epoch >= $epoch_installed
                     && [vercmp $version $version_installed] == 0
@@ -3965,14 +3965,14 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         && ![info exists options(ports_upgrade_force)]} {
         if {$portname ne $newname} {
             ui_debug "ignoring versions, installing replacement port"
-        } elseif {$epoch_installed < $epoch_in_tree && $version_installed != $version_in_tree} {
+        } elseif {$epoch_installed < $epoch_in_tree && $version_installed ne $version_in_tree} {
             set build_override 1
             ui_debug "epoch override ... upgrading!"
         } elseif {[info exists options(ports_upgrade_enforce-variants)] && $options(ports_upgrade_enforce-variants) eq {yes}
-                  && [info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
+                  && [info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) ne $oldvariant} {
             ui_debug "variant override ... upgrading!"
         } elseif {$os_platform_installed ne {} && $os_major_installed ne {} && $os_platform_installed != 0
-                  && ([_mportkey $mport {{os.platform}}] != $os_platform_installed
+                  && ([_mportkey $mport {{os.platform}}] ne $os_platform_installed
                   || [_mportkey $mport {{os.major}}] != $os_major_installed)} {
             ui_debug "platform mismatch ... upgrading!"
             set build_override 1
@@ -3984,7 +3984,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # in the first run of rev-upgrade, only activate possibly already existing files and check for missing dependencies
             # do nothing, just prevent will_install being set to no below
         } else {
-            if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
+            if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) ne $oldvariant} {
                 if {[llength $variationslist] > 0} {
                     ui_warn "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
                 } else {
@@ -4113,8 +4113,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {!$force_cur} {
             unset options(ports_force)
         }
-        if {$anyactive && $version_in_tree == $version_active && $revision_in_tree == $revision_active
-            && $portinfo(canonical_active_variants) == $variant_active && $portname eq $newname} {
+        if {$anyactive && $version_in_tree eq $version_active && $revision_in_tree == $revision_active
+            && $portinfo(canonical_active_variants) eq $variant_active && $portname eq $newname} {
             set anyactive no
         }
     }
@@ -4194,7 +4194,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set version [lindex $i 1]
             set revision [lindex $i 2]
             set variant [lindex $i 3]
-            if {$version == $version_in_tree && $revision == $revision_in_tree && $variant == $portinfo(canonical_active_variants) && $portname eq $newname} {
+            if {$version eq $version_in_tree && $revision == $revision_in_tree && $variant eq $portinfo(canonical_active_variants) && $portname eq $newname} {
                 continue
             }
             set epoch [lindex $i 5]

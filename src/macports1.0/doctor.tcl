@@ -141,7 +141,7 @@ namespace eval doctor {
 
         set version ${macports::macosx_version}
 
-        if {$version == 10.9} {
+        if {$version eq "10.9"} {
 
             if {![file exists "/Library/Developer/CommandLineTools/"]} {
 
@@ -493,7 +493,7 @@ namespace eval doctor {
 
         set mac_version ${macports::macosx_version}
 
-        if {$mac_version == 10.6} {
+        if {$mac_version eq "10.6"} {
 
             if {[file exists /Applications/X11.app]} {
                 ui_error "it seems you have Mac OSX 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \
@@ -705,7 +705,7 @@ namespace eval doctor {
 
         if {"$port_loc/bin" in $split && "$port_loc/sbin" in $split } {
 
-            if {[lindex $split 0] != "$port_loc/bin"} {
+            if {[lindex $split 0] ne "$port_loc/bin"} {
                 ui_warn "$port_loc/bin is not first in your PATH environmental variable.  This may or may not \
                          cause problems in the future."
             }
@@ -716,7 +716,7 @@ namespace eval doctor {
                      Would you like to add $port_loc/bin to your \$PATH variable now? \[Y/N\]"
             set input [gets stdin]
 
-            if {$input == "y" || $input == "Y"} {
+            if {$input eq "y" || $input eq "Y"} {
                 ui_msg "Attempting to add $port_loc/bin to $profile_path"
 
                 if {[file exists $profile_path] == 1} {
@@ -731,7 +731,7 @@ namespace eval doctor {
 
                 ui_msg "Added PATH properly. Please execute, 'source $profile_path' in a new terminal window."
 
-            } elseif {$input == "n" || $input == "N"} {    
+            } elseif {$input eq "n" || $input eq "N"} {    
                 ui_msg "Not fixing your \$PATH variable."
 
             } else {

@@ -23,7 +23,7 @@ test method_wrap {
     if {[test_proc 1] != 7} {
        return "FAIL: no wrap around method"
     }
-    if {[test_proc arg] != "arg"} {
+    if {[test_proc arg] ne "arg"} {
        return "FAIL: no wrap around method"
     }
     return "Method wrap successful."
@@ -46,7 +46,7 @@ test ldindex {
     if {[ldindex list] != {0 2 3}} {
        return "FAIL: not all elements poped"
     }
-    if {$list != ""} {
+    if {$list ne ""} {
        return "FAIL: list not emptied"
     }
     return "ldindex successful."
@@ -96,7 +96,7 @@ test lshift {
     if {$list != {1 2}} {
        return "FAIL: wrong list remaining"
     }
-    if {[lshift list1] != ""} {
+    if {[lshift list1] ne ""} {
        return "FAIL: empty list not detected"
     }
     return "lshift successful."

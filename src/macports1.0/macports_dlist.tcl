@@ -307,7 +307,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	while {1} {
 		set ditem [$selector $dlist statusdict]
 
-		if {$ditem == {}} {
+		if {$ditem eq {}} {
 			if {[llength $dlist] > 0} {
 				ui_debug "dlist_eval: all entries in dependency list have unsatisfied dependencies; can't process"
 			}
@@ -320,7 +320,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 				return $dlist
 			}
 			# No news is good news at this point.
-			if {$result == {}} { set result 0 }
+			if {$result eq {}} { set result 0 }
 			
 			foreach token [ditem_key $ditem provides] {
 				set statusdict($token) [expr {$result == 0}]
@@ -387,7 +387,7 @@ proc ditem_key {ditem args} {
 proc ditem_append {ditem key args} {
 	variable $ditem
 	set x [lindex [array get $ditem $key] 1]
-	if {$x != {}} {
+	if {$x ne {}} {
 		lappend x {*}$args
 	} else {
 		set x $args
@@ -399,7 +399,7 @@ proc ditem_append {ditem key args} {
 proc ditem_append_unique {ditem key args} {
 	variable $ditem
 	set x [lindex [array get $ditem $key] 1]
-	if {$x != {}} {
+	if {$x ne {}} {
 		lappend x {*}$args
 		set x [lsort -unique $x]
 	} else {
