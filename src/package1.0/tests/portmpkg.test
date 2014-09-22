@@ -67,8 +67,21 @@ test make_dependency_list {
     set destination $pwd/destination
 } -body {
     set res [portmpkg::make_dependency_list $subport $destination]
-    if { $res != "{fondu 0 060102 1 ditem_4}" } {
-        return "FAIL: invalid dependency list"
+    if {[llength $res] != 1} {
+        return "FAIL: unexpectedly long dependency list: $res"
+    }
+    # indices: 
+    # 0 name
+    # 1 epoch
+    # 2 version
+    # 3 revision
+    set res [lindex $res 0]
+    if {[llength $res] != 5 ||
+        [lindex $res 0] != $subport ||
+        [lindex $res 1] != 0 ||
+        [lindex $res 2] != 060102 ||
+        [lindex $res 3] != 1} {
+            return "FAIL: incorrect dependency list entry: $res"
     }
     return "Dependency list successful."
 
