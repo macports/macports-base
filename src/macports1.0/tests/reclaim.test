@@ -43,10 +43,12 @@ test remove_distfiles {
     # Regression test for remove_distfiles.
     # 
     # Constraints:
-    #               None.
+    #               Requires root to run.
 
     Test for distfiles being successfully removed.
 
+} -constraints {
+    root
 } -body {
     
     set path [file join ${macports::portdbpath} distfiles]
@@ -73,7 +75,7 @@ test update_last_run {
     # Regression test for update_last_run.
     # 
     # Constraints:
-    #               Require's root to run. 
+    #               Requires root to run. 
 
     Tests for last_reclaim.txt being updated.
 
