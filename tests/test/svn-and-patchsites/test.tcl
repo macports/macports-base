@@ -14,7 +14,9 @@ proc svn-patch {} {
     if {$line == -1} {
         return "No error found."
     } else {
-        return "Errors found in output file."
+        set ret "Errors found in output file:\n"
+        append ret [exec cat $path/$output_file]
+        return $ret
     }
 }
 
