@@ -3805,6 +3805,10 @@ proc action_list { action portlist opts } {
                 break_softcontinue "listing all ports failed: $result" 1 status
             }
         } else {
+            if {$portversion ne "" && ![info exists warned_for_version]} {
+                ui_warn "The 'list' action only shows the currently available version of each port. To see installed versions, use the 'installed' action."
+                set warned_for_version 1
+            }
             set search_string [regex_pat_sanitize $portname]
             if {[catch {set res [mportsearch ^$search_string\$ no]} result]} {
                 global errorInfo
