@@ -343,7 +343,7 @@ namespace eval reclaim {
                     if {[catch {set dependents [registry::list_dependents $name [lindex 1] [lindex 2] [lindex 3]]} error]} {
                         ui_error "something went wrong when trying to enumerate all dependents for $name"
                     }
-                    if {dependents ne ""} {
+                    if {${dependents} ne ""} {
                         ui_warn "the following application ($name) is a dependent for $dependents. Are you positive you'd like to uninstall this 
                                  (this could break other applications)? \[Y/N\]"
 
