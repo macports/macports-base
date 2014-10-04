@@ -61,6 +61,7 @@ MAN1=	\
 		port-outdated.1 \
 		port-patch.1 \
 		port-pkg.1 \
+		port-platform.1 \
 		port-quit.1 \
 		port-rdependents.1 \
 		port-rdeps.1 \
