@@ -1,0 +1,59 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-outdated(1)
+================
+$Id$
+
+NAME
+----
+port-outdated - List outdated ports
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-q*] *outdated*
+
+DESCRIPTION
+-----------
+*port outdated* lists all ports that have newer versions available. For each
+port, it prints the name and both the old and the new version. *port outdated*
+will give you the reason why MacPorts considers a port to be outdated. This
+could be
+
+ - due to an update, i.e. if the version number increased,
+ - due to a revision bump, i.e. a higher revision,
+ - due to an epoch increase (used in situations where the version number
+   decreased, but the port still is newer than the previous one), or
+ - due to an OS upgrade. MacPorts will consider ports built on a previous
+   version of OS X outdated.
+    
+The ports listed in *port outdated* are the ports that will be upgraded when you
+run
+
+----
+$> sudo port upgrade outdated
+----
+
+i.e. those the 'outdated' pseudo-port selector expands to, with one exception:
+If you have the newest version of a port installed, but deactivated in favor of
+an older version, *port outdated* will list it as outdated, but *sudo port
+upgrade outdated* will not upgrade it. This can be used to intentionally stay at
+an older version of a port, e.g. if the newer version does not work as expected.
+Note that MacPorts will still install newer versions of such ports if they are
+dependencies of other ports to be installed or upgraded.
+
+
+include::global-flags.txt[]
+
+*-q*::
+    Do not list the header line or the message that no ports are outdated,
+    respectively.
+
+
+SEE ALSO
+--------
+man:port[1], man:port-upgrade[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
