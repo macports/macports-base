@@ -1,0 +1,40 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-platform(1)
+================
+$Id$
+
+NAME
+----
+port-platform - Print the OS version for which MacPorts was built
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-q*] *platform*
+
+DESCRIPTION
+-----------
+This command prints the version of your operating system used to configure and
+build MacPorts. This value is used to detect OS updates and refer users to the
+wiki:Migration[] instructions.
+
+Since MacPorts picks up a number of paths at configure-time and uses them later
+on, changes in the operating system can break a MacPorts installation. For
+example, this happened when Apple removed ``/usr/bin/gnutar'' from OS X with the
+release of Mavericks. Since MacPorts keeps the path to its tar command in
+a file, this change required rebuilding MacPorts.
+
+
+include::global-flags.txt[]
+
+*-q*::
+    Do not print the ``Platform:'' prefix.
+
+SEE ALSO
+--------
+man:port[1], wiki:Migration[]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
