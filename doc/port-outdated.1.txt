@@ -45,8 +45,7 @@ dependencies of other ports to be installed or upgraded.
 include::global-flags.txt[]
 
 *-q*::
-    Do not list the header line or the message that no ports are outdated,
-    respectively.
+    Do not list the header line or the message that no ports are outdated.
 
 
 SEE ALSO
