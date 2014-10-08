@@ -42,6 +42,32 @@ target_prerun ${org.macports.configure} portconfigure::configure_start
 namespace eval portconfigure {
 }
 
+
+# ********** C++ / Objective-C++ **********
+
+options configure.cxx \
+        configure.cxx_archflags \
+        configure.cxx_stdlib \
+        configure.cxxflags \
+        configure.objcxx \
+        configure.objcxx_archflags \
+        configure.objcxxflags \
+        configure.universal_cxxflags \
+        configure.universal_objcxxflags
+
+default configure.cxx                   {[portconfigure::configure_get_compiler cxx]}
+default configure.cxx_archflags         {[portconfigure::configure_get_archflags cxx]}
+default configure.cxx_stdlib            {$cxx_stdlib}
+default configure.cxxflags              {${configure.optflags}}
+default configure.objcxx                {[portconfigure::configure_get_compiler objcxx]}
+default configure.objcxx_archflags      {[portconfigure::configure_get_archflags objcxx]}
+default configure.objcxxflags           {${configure.optflags}}
+default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_objcxxflags {${configure.universal_cxxflags}}
+
+# *****************************************
+
+
 # define options
 commands configure autoreconf automake autoconf xmkmf
 # defaults
@@ -130,17 +156,15 @@ default configure.march     {}
 default configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
 options configure.optflags \
-        configure.cflags configure.cxxflags \
-        configure.objcflags configure.objcxxflags \
+        configure.cflags \
+        configure.objcflags \
         configure.cppflags configure.ldflags configure.libs \
         configure.fflags configure.f90flags configure.fcflags \
         configure.classpath
 # compiler flags section
 default configure.optflags      {-Os}
 default configure.cflags        {${configure.optflags}}
-default configure.cxxflags      {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
-default configure.objcxxflags   {${configure.optflags}}
 default configure.cppflags      {-I${prefix}/include}
 default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
 default configure.libs          {}
@@ -168,43 +192,37 @@ default configure.build_arch    {[portconfigure::choose_supported_archs ${build_
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
 default configure.sdk_version   {$macosx_sdk_version}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
-foreach tool {cc cxx objc objcxx f77 f90 fc} {
+foreach tool {cc objc f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
 
 options configure.universal_archs configure.universal_args \
-        configure.universal_cflags configure.universal_cxxflags \
-        configure.universal_objcflags configure.universal_objcxxflags \
+        configure.universal_cflags \
+        configure.universal_objcflags \
         configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
-default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_objcflags   {${configure.universal_cflags}}
-default configure.universal_objcxxflags {${configure.universal_cxxflags}}
 default configure.universal_cppflags    {}
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
 options configure.ccache configure.distcc configure.pipe configure.cc \
-        configure.cxx configure.cpp configure.objc configure.objcxx configure.f77 \
+        configure.cpp configure.objc configure.f77 \
         configure.f90 configure.fc configure.javac configure.compiler \
         compiler.blacklist compiler.whitelist compiler.fallback
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-foreach tool {cc cxx objc objcxx cpp f77 f90 fc javac} {
+foreach tool {cc objc cpp f77 f90 fc javac} {
     default configure.$tool     "\[portconfigure::configure_get_compiler $tool\]"
 }
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 default compiler.fallback       {[portconfigure::get_compiler_fallback]}
 default compiler.blacklist      {}
 default compiler.whitelist      {}
-
-# Select a C++ STL implementation
-options configure.cxx_stdlib
-default configure.cxx_stdlib    {$cxx_stdlib}
 
 set_ui_prefix
 
