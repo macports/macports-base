@@ -43,7 +43,7 @@ namespace eval portconfigure {
 }
 
 
-# ********** C++ / Objective-C++ **********
+# ********** BEGIN C++ / OBJECTIVE-C++ **********
 
 options configure.cxx \
         configure.cxx_archflags \
@@ -93,7 +93,7 @@ proc portconfigure::stdlib_trace {opt action args} {
     return
 }
 
-# *****************************************
+# ********** END C++ / OBJECTIVE-C++ **********
 
 
 # define options
