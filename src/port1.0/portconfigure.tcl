@@ -61,7 +61,8 @@ default configure.cxx_stdlib            {$cxx_stdlib}
 default configure.cxxflags              {${configure.optflags}}
 default configure.objcxx                {[portconfigure::configure_get_compiler objcxx]}
 default configure.objcxx_archflags      {[portconfigure::configure_get_archflags objcxx]}
-default configure.objcxxflags           {${configure.optflags}}
+# No current reason for OBJCXXFLAGS to differ from CXXFLAGS.
+default configure.objcxxflags           {${configure.cxxflags}}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_objcxxflags {${configure.universal_cxxflags}}
 
