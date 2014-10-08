@@ -84,13 +84,12 @@ proc portconfigure::construct_cxxflags args {
     return $args
 }
 proc portconfigure::stdlib_trace {opt action args} {
-    if {$action ne "read" || ![portconfigure::should_add_stdlib]} {
-        return
-    }
     foreach flag [lsearch -all -inline [option $opt] -stdlib=*] {
         $opt-delete $flag
     }
-    $opt-append -stdlib=[option configure.cxx_stdlib]
+    if {$action eq "read" && [portconfigure::should_add_stdlib]} {
+        $opt-append -stdlib=[option configure.cxx_stdlib]
+    }
     return
 }
 
