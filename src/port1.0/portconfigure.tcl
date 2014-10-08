@@ -58,13 +58,41 @@ options configure.cxx \
 default configure.cxx                   {[portconfigure::configure_get_compiler cxx]}
 default configure.cxx_archflags         {[portconfigure::configure_get_archflags cxx]}
 default configure.cxx_stdlib            {$cxx_stdlib}
-default configure.cxxflags              {${configure.optflags}}
+default configure.cxxflags \
+        {[portconfigure::construct_cxxflags ${configure.optflags}]}
 default configure.objcxx                {[portconfigure::configure_get_compiler objcxx]}
 default configure.objcxx_archflags      {[portconfigure::configure_get_archflags objcxx]}
 # No current reason for OBJCXXFLAGS to differ from CXXFLAGS.
 default configure.objcxxflags           {${configure.cxxflags}}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_objcxxflags {${configure.universal_cxxflags}}
+
+# Don't let Portfiles trash "-stdlib"; if they want to remove it, they
+# should clear configure.cxx_stdlib.
+option_proc configure.cxxflags portconfigure::stdlib_trace
+option_proc configure.objcxxflags portconfigure::stdlib_trace
+
+proc portconfigure::should_add_stdlib {} {
+    set has_stdlib [expr {[option configure.cxx_stdlib] ne ""}]
+    set is_clang [string match *clang* [option configure.cxx]]
+    return [expr {$has_stdlib && $is_clang}]
+}
+proc portconfigure::construct_cxxflags args {
+    if {[portconfigure::should_add_stdlib]} {
+        lappend args -stdlib=[option configure.cxx_stdlib]
+    }
+    return $args
+}
+proc portconfigure::stdlib_trace {opt action args} {
+    if {$action ne "read" || ![portconfigure::should_add_stdlib]} {
+        return
+    }
+    foreach flag [lsearch -all -inline [option $opt] -stdlib=*] {
+        $opt-delete $flag
+    }
+    $opt-append -stdlib=[option configure.cxx_stdlib]
+    return
+}
 
 # *****************************************
 
@@ -757,12 +785,6 @@ proc portconfigure::configure_main {args} {
                     append_to_environment_value configure $env_var -mtune=${configure.mtune}
                 }
             }
-        }
-
-        # Add flags to specify C++ STL implementation
-        if {${configure.cxx_stdlib} ne "" && [string match "*clang*" [option configure.cxx]]} {
-            append_to_environment_value configure CXXFLAGS -stdlib=${configure.cxx_stdlib}
-            append_to_environment_value configure OBJCXXFLAGS -stdlib=${configure.cxx_stdlib}
         }
 
         # Execute the command (with the new environment).
