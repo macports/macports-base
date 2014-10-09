@@ -657,13 +657,11 @@ proc portconfigure::configure_main {args} {
 
     if {[tbool use_xmkmf]} {
         parse_environment xmkmf
-        append_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
         }
 
         parse_environment xmkmf
-        append_to_environment_value xmkmf "IMAKECPP" ${configure.cpp}
         if {[catch {command_exec "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] "make Makefiles" $result]"
         }
