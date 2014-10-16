@@ -37,6 +37,7 @@
 
 #define DARWINTRACE_USE_PRIVATE_API 1
 #include "darwintrace.h"
+#include "sandbox_actions.h"
 
 #ifdef HAVE_LIBKERN_OSATOMIC_H
 #include <libkern/OSAtomic.h>
@@ -127,14 +128,9 @@ pthread_key_t sock_key;
  *  0: allow
  *  1: map the path to the one given in additional_data (currently unsupported)
  *  2: check for a dependency using the socket
+ *  3: deny access to the path and stop processing
  */
 static char *filemap;
-
-enum {
-    FILEMAP_ALLOW = 0,
-    // FILEMAP_REDIR = 1,
-    FILEMAP_ASK   = 2
-};
 
 /**
  * Setup method called as constructor to set up thread-local storage for the
@@ -671,6 +667,11 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 							}
 							return false;
 					}
+				case FILEMAP_DENY:
+					if ((flags & DT_REPORT) > 0) {
+						__darwintrace_log_op("sandbox_violation", path);
+					}
+					return false;
 				default:
 					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
 					abort();
