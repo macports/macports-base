@@ -99,7 +99,13 @@ static int cleanuping = 0;
 
 static void send_file_map(int sock);
 static void dep_check(int sock, char *path);
-static void sandbox_violation(int sock, const char *path);
+
+typedef enum {
+    SANDBOX_UNKNOWN,
+    SANDBOX_VIOLATION
+} sandbox_violation_t;
+static void sandbox_violation(int sock, const char *path, sandbox_violation_t type);
+
 static void ui_warn(const char *format, ...) __printflike(1, 2);
 #if 0
 static void ui_info(const char *format, ...) __printflike(1, 2);
@@ -108,7 +114,6 @@ static void ui_error(const char *format, ...) __printflike(1, 2);
 
 #define MAX_SOCKETS (1024)
 #define BUFSIZE     (4096)
-#define CANARY      (0xdeadbeef)
 
 /**
  * send a buffer \c buf with the given length \c size to the socket \c sock, by
@@ -335,8 +340,10 @@ static int process_line(int sock) {
 
     if (strcmp(buf, "filemap") == 0) {
         send_file_map(sock);
+    } else if (strcmp(buf, "sandbox_unknown") == 0) {
+        sandbox_violation(sock, f, SANDBOX_UNKNOWN);
     } else if (strcmp(buf, "sandbox_violation") == 0) {
-        sandbox_violation(sock, f);
+        sandbox_violation(sock, f, SANDBOX_VIOLATION);
     } else if (strcmp(buf, "dep_check") == 0) {
         dep_check(sock, f);
     } else {
@@ -369,9 +376,22 @@ static void send_file_map(int sock) {
  * \param[in] sock socket reporting the violation; unused.
  * \param[in] path the offending path to be passed to the callback
  */
-static void sandbox_violation(int sock UNUSED, const char *path) {
+static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violation_t type) {
     Tcl_SetVar(interp, "path", path, 0);
-    Tcl_Eval(interp, "slave_add_sandbox_violation $path");
+    int retVal = TCL_OK;
+    switch (type) {
+        case SANDBOX_VIOLATION:
+            retVal = Tcl_Eval(interp, "slave_add_sandbox_violation $path");
+            break;
+        case SANDBOX_UNKNOWN:
+            retVal = Tcl_Eval(interp, "slave_add_sandbox_unknown $path");
+            break;
+    }
+
+    if (retVal != TCL_OK) {
+        fprintf(stderr, "Error evaluating Tcl statement to add sandbox violation: %s\n", Tcl_GetStringResult(interp));
+    }
+
     Tcl_UnsetVar(interp, "path", 0);
 }
 

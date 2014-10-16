@@ -657,7 +657,7 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 							// access anyway, but report a sandbox violation.
 							// TODO find a better solution
 							if ((flags & DT_REPORT) > 0) {
-								__darwintrace_log_op("sandbox_violation", path);
+								__darwintrace_log_op("sandbox_unknown", path);
 							}
 							return true;
 						case 0:
