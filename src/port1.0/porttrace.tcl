@@ -231,8 +231,38 @@ proc porttrace::trace_check_violations {} {
     # Get the list of violations.
     set violations [slave_send porttrace::slave_get_sandbox_violations]
 
+    set existingFiles [list]
+    set missingFiles  [list]
     foreach violation [lsort -unique $violations] {
-        ui_warn "An activity was attempted outside sandbox: $violation"
+        if {![catch {file lstat $violation _}]} {
+            lappend existingFiles $violation
+        } else {
+            lappend missingFiles $violation
+        }
+    }
+
+    set existingFilesLen [llength $existingFiles]
+    if {$existingFilesLen > 0} {
+        if {$existingFilesLen > 1} {
+            ui_warn "The following existing files were hidden from the build system by trace mode:"
+        } else {
+            ui_warn "The following existing file was hidden from the build system by trace mode:"
+        }
+        foreach violation $existingFiles {
+            ui_msg "  $violation"
+        }
+    }
+
+    set missingFilesLen [llength $missingFiles]
+    if {$missingFilesLen > 0} {
+        if {$missingFilesLen > 1} {
+            ui_info "The following files would have been hidden from the build system by trace mode if they existed:"
+        } else {
+            ui_info "The following file would have been hidden from the build system by trace mode if it existed:"
+        }
+        foreach violation $missingFiles {
+            ui_info "  $violation"
+        }
     }
 }
 
