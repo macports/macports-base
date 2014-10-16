@@ -9,10 +9,6 @@ Release 2.4 (unreleased)
       flag '-N' to provide non-interactive invocations.
 	  (shasha in branch gsoc14-interactive, merge in r124243)
     
-    - Fix bugs in trace mode that caused it to (1) not ignore /usr/local as
-      it should and (2) fail with certain lengths of $prefix.
-      (cal in r124145, r124146)
-
     - Display notes for installed or updated ports at the end of the
       installation to prevent them from getting lost in the scrolling output.
       (#24507, cal in r118304, patch by snc)
@@ -28,6 +24,19 @@ Release 2.4 (unreleased)
       (afb in r123005)
 
 Release 2.3.2 (2014-10-17 by jmr)
+    - Fix a crash in trace mode when software calls posix_spawn(2) with NULL
+      as envp (which isn't a legal thing to do from what I understand, but
+      there's software that does it)
+      (cal in r126475, #45318)
+
+    - Tune down the noise while using trace mode; in the default verbosity
+      setting, only report files that actually exist and were hidden.
+      (cal in r124150, r124216)
+
+    - Fix bugs in trace mode that caused it to (1) not ignore /usr/local as
+      it should and (2) fail with certain lengths of $prefix.
+      (cal in r124145, r124146)
+
     - Added a warning when a version is specified with the list action, such
       as with installed ports (jmr in r125621)
 
