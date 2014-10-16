@@ -148,7 +148,7 @@ static inline char **restore_env(char *const envp[]) {
 	char **copy;
 	char **copyiter;
 
-	while (*enviter != NULL) {
+	while (enviter != NULL && *enviter != NULL) {
 		envlen++;
 		enviter++;
 	}
@@ -159,7 +159,7 @@ static inline char **restore_env(char *const envp[]) {
 	enviter  = envp;
 	copyiter = copy;
 
-	while (*enviter != NULL) {
+	while (enviter != NULL && *enviter != NULL) {
 		char *val = *enviter;
 		if (__darwintrace_strbeginswith(val, "DYLD_INSERT_LIBRARIES=")) {
 			val = dyld_insert_libraries_ptr;
