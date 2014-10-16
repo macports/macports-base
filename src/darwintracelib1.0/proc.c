@@ -91,7 +91,7 @@ static void store_env() {
 		if (NULL != (val = getenv(#name))) {\
 			size_t lenName = strlen(#name);\
 			size_t lenVal  = strlen(val);\
-			if (NULL == (variable = malloc(lenName + lenVal + 0 + 1))) {\
+			if (NULL == (variable = malloc(lenName + 1 + lenVal + 1))) {\
 				perror("darwintrace: malloc");\
 				abort();\
 			}\
