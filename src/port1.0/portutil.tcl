@@ -3251,8 +3251,8 @@ proc _check_xcode_version {} {
                 set rec 6.0.1
             }
             default {
-                set min 6.1
-                set ok 6.1
+                set min 6.0.1
+                set ok 6.0.1
                 set rec 6.1
             }
         }
