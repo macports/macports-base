@@ -419,55 +419,9 @@ void __darwintrace_setup() {
  */
 static inline void __darwintrace_log_op(const char *op, const char *path) {
 	uint32_t size;
-	char pathbuf[MAXPATHLEN];
 	char logbuffer[BUFFER_SIZE];
-	const char *realpath;
 
-	do {
-#if defined(__APPLE__) && defined(ATTR_CMN_FULLPATH) && 0
-		if (false && strncmp(path, "/.vol/", 6) == 0) {
-			// path in VOLFS, try to get inode -> name lookup from
-			// getattrlist(2).
-			struct attrlist attrlist;
-			attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
-			attrlist.reserved = 0;
-			attrlist.commonattr = ATTR_CMN_FULLPATH;
-			attrlist.volattr = 0;
-			attrlist.dirattr = 0;
-			attrlist.fileattr = 0;
-			attrlist.forkattr = 0;
-
-			char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX)];
-			/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
-			if (-1 == (getattrlist(path, &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
-				perror("darwintrace: getattrlist");
-				// ignore and just print the /.vol/ path
-			} else {
-				attrreference_t *nameAttrRef = (attrreference_t *) (attrbuf + sizeof(uint32_t));
-				strlcpy(pathbuf, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset, sizeof(pathbuf));
-				realpath = pathbuf;
-				break;
-			}
-		}
-#endif
-
-		if (*path != '/') {
-			if (!getcwd(pathbuf, sizeof(pathbuf))) {
-				perror("darwintrace: getcwd");
-				abort();
-			}
-
-			strlcat(pathbuf, "/", sizeof(pathbuf));
-			strlcat(pathbuf, path, sizeof(pathbuf));
-			realpath = pathbuf;
-			break;
-		}
-
-		/* otherwise, just copy the original path. */
-		realpath = path;
-	} while (0);
-
-	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, realpath);
+	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, path);
 	__send(logbuffer, size, 0);
 }
 
@@ -813,6 +767,58 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		}
 		token += idx + 1;
 	}
+
+#	ifdef ATTR_CMN_FULLPATH
+	if (numComponents >= 3 && strncmp(".vol", pathComponents[0].start, pathComponents[0].len) == 0) {
+		// path in VOLFS, try to get inode -> name lookup from getattrlist(2).
+
+		// Add the slashes and the terminating \0
+		for (size_t i = 0; i < numComponents; ++i) {
+			if (i == numComponents - 1) {
+				pathComponents[i].start[pathComponents[i].len] = '\0';
+			} else {
+				pathComponents[i].start[pathComponents[i].len] = '/';
+			}
+		}
+
+		struct attrlist attrlist;
+		attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
+		attrlist.reserved = 0;
+		attrlist.commonattr = ATTR_CMN_FULLPATH;
+		attrlist.volattr = 0;
+		attrlist.dirattr = 0;
+		attrlist.fileattr = 0;
+		attrlist.forkattr = 0;
+
+		char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1)];
+		/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
+
+		if (-1 == (getattrlist(normPath, &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
+			perror("darwintrace: getattrlist");
+			// ignore and just return the /.vol/ path
+		} else {
+			attrreference_t *nameAttrRef = (attrreference_t *) (attrbuf + sizeof(uint32_t));
+			strlcpy(normPath, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset, sizeof(normPath));
+
+			numComponents = 0;
+			char *writableToken = normPath + 1;
+			while ((idx = strcspn(writableToken, "/")) > 0) {
+				// found a token, tokenize and store it
+				pathComponents[numComponents].start = writableToken;
+				pathComponents[numComponents].len   = idx;
+				numComponents++;
+
+				bool final = writableToken[idx] == '\0';
+				writableToken[idx] = '\0';
+				if (final) {
+					break;
+				}
+				// advance token
+				writableToken += idx + 1;
+			}
+		}
+	}
+#	endif
 
 	bool pathIsSymlink;
 	size_t loopCount = 0;
