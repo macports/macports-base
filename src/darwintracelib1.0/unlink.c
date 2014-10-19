@@ -52,7 +52,7 @@ static int _dt_unlink(const char *path) {
 
 	int result = 0;
 
-	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
+	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR)) {
 		errno = ENOENT;
 		result = -1;
 	} else {
