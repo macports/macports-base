@@ -69,6 +69,9 @@ proc portlivecheck::livecheck_main {args} {
     set updated_version "unknown"
     set has_master_sites [info exists master_sites]
     set has_homepage [info exists homepage]
+    if {!$has_homepage} {
+        set livecheck.url {}
+    }
 
     set tempfile [mktemp "/tmp/mports.livecheck.XXXXXXXX"]
     set port_moddate [file mtime ${portpath}/Portfile]
