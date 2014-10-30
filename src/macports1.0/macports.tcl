@@ -1200,9 +1200,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    # Check the last time 'reclaim' was run
-    macports::check_last_reclaim
-
     # init registry
     set db_path [file join ${registry.path} registry registry.db]
     set db_exists [file exists $db_path]
@@ -1242,6 +1239,11 @@ proc mportshutdown {} {
     }
     # close it down so the cleanup stuff is called, e.g. vacuuming the db
     registry::close
+
+    # Check the last time 'reclaim' was run
+    if {![macports::ui_isset ports_quiet]} {
+        reclaim::check_last_run
+    }
 }
 
 # link plist for xcode 4.3's benefit
@@ -4433,19 +4435,6 @@ proc macports::doctor_main {opts} {
     #           0 on successful execution.
 
     doctor::main $opts
-    return 0
-}
-
-proc macports::check_last_reclaim {} {
-
-    # An abstraction layer for the reclaim function, 'check_last_run'.
-    #
-    # Args:
-    #           None
-    # Returns:
-    #           None
-
-    reclaim::check_last_run
     return 0
 }
 
