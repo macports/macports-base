@@ -545,7 +545,7 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
         return TCL_ERROR;
     }
 
-    if (-1 == listen(sock, 32)) {
+    if (-1 == listen(sock, SOMAXCONN)) {
         Tcl_SetErrno(errno);
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "listen: ", (char *) Tcl_PosixError(interp), NULL);
