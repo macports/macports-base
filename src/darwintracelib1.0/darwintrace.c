@@ -44,6 +44,7 @@
 #endif
 
 #include <errno.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <string.h>
 #include <sys/attr.h>
@@ -309,7 +310,7 @@ static void __darwintrace_get_filemap() {
 		free(newfilemap);
 		if (filemap != NULL)
 			break;
-		newfilemap = __send("filemap\t", (uint32_t) strlen("filemap\t"), 1);
+		newfilemap = __send("filemap\t", 8, 1);
 	} while (!CAS(NULL, newfilemap, &filemap));
 
 #if DARWINTRACE_DEBUG && 0
@@ -422,7 +423,11 @@ static inline void __darwintrace_log_op(const char *op, const char *path) {
 	char logbuffer[BUFFER_SIZE];
 
 	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, path);
-	__send(logbuffer, size, 0);
+	// Check if the buffer was short. If it was, discard the message silently,
+	// assuming it isn't important enough to error out.
+	if (size < BUFFER_SIZE) {
+		__send(logbuffer, size, 0);
+	}
 }
 
 /**
@@ -452,7 +457,8 @@ static int dependency_check(const char *path) {
 	}
 
 	len = snprintf(buffer, sizeof(buffer), "dep_check\t%s", path);
-	if (len > sizeof(buffer)) {
+	if (len >= sizeof(buffer)) {
+		fprintf(stderr, "darwintrace: truncating buffer length from %" PRIu32 " to %zu.", len, sizeof(buffer) - 1);
 		len = sizeof(buffer) - 1;
 	}
 	p = __send(buffer, len, 1);
@@ -660,6 +666,7 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 #define lstat(x, y) syscall(LSTATSYSNUM, (x), (y))
 #define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
+#define getattrlist(v,w,x,y,z) syscall(SYS_getattrlist, (v), (w), (x), (y), (z))
 	if (!filemap) {
 		return true;
 	}
@@ -686,12 +693,42 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 	const char *token = NULL;
 	size_t idx;
 	if (*path != '/') {
-		// The path isn't absolute, start by populating pathcomponents with the
-		// current working directory
+		/*
+		 * The path isn't absolute, start by populating pathcomponents with the
+		 * current working directory.
+		 * 
+		 * However, we avoid getcwd(3) if we can and use getattrlist(2) with
+		 * ATTR_CMN_FULLPATH instead, because getcwd(3) will open all parent
+		 * directories, read them, search for the current component using its
+		 * inode obtained from lstat(., .., ../.., etc.) and build the path
+		 * this way, which is inefficient and will also call back into
+		 * darwintrace code.
+		 */
+#		ifdef ATTR_CMN_FULLPATH
+		struct attrlist attrlist;
+		attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
+		attrlist.reserved = 0;
+		attrlist.commonattr = ATTR_CMN_FULLPATH;
+		attrlist.volattr = 0;
+		attrlist.dirattr = 0;
+		attrlist.fileattr = 0;
+		attrlist.forkattr = 0;
+
+		char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1)];
+		/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
+
+		if (-1 == (getattrlist(".", &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
+			perror("darwintrace: getattrlist");
+			abort();
+		}
+		attrreference_t *nameAttrRef = (attrreference_t *) (attrbuf + sizeof(uint32_t));
+		strlcpy(normPath, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset, sizeof(normPath));
+#		else /* defined(ATTR_CMN_FULLPATH) */
 		if (getcwd(normPath, sizeof(normPath)) == NULL) {
 			perror("darwintrace: getcwd");
 			abort();
 		}
+#		endif /* defined(ATTR_CMN_FULLPATH) */
 
 		char *writableToken = normPath + 1;
 		while ((idx = strcspn(writableToken, "/")) > 0) {
@@ -766,6 +803,13 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 			break;
 		}
 		token += idx + 1;
+	}
+
+	// strip off resource forks
+	if (numComponents >= 2 &&
+		strcmp("..namedfork", pathComponents[numComponents - 2].start) == 0 &&
+		strcmp("rsrc", pathComponents[numComponents - 1].start) == 0) {
+		numComponents -= 2;
 	}
 
 #	ifdef ATTR_CMN_FULLPATH
@@ -930,6 +974,7 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 	} while (pathIsSymlink);
 
 	return __darwintrace_sandbox_check(normPath, flags);
+#undef getattrlist
 #undef readlink
 #undef lstat
 }
