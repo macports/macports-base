@@ -78,10 +78,9 @@ proc portinstall::install_start {args} {
 
 proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
-           epoch os.platform PortInfo installPlist \
+           epoch PortInfo installPlist \
            archive.env archive.cmd archive.pre_args archive.args \
-           archive.post_args archive.dir \
-           depends_fetch depends_extract depends_build depends_lib depends_run
+           archive.post_args archive.dir depends_lib depends_run
     set archive.env {}
     set archive.cmd {}
     set archive.pre_args {}
@@ -309,10 +308,8 @@ proc portinstall::extract_contents {location type} {
 }
 
 proc portinstall::install_main {args} {
-    global subport version portpath categories description long_description \
-    homepage depends_run package-install workdir workpath \
-    worksrcdir UI_PREFIX destroot revision maintainers user_options \
-    portvariants negated_variants targets depends_lib PortInfo epoch license \
+    global subport version portpath depends_run revision user_options \
+    portvariants negated_variants depends_lib PortInfo epoch \
     os.platform os.major portarchivetype installPlist registry.path porturl
 
     set oldpwd [pwd]
