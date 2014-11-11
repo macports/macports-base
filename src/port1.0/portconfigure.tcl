@@ -77,11 +77,11 @@ proc portconfigure::should_add_stdlib {} {
     set is_clang [string match *clang* [option configure.cxx]]
     return [expr {$has_stdlib && $is_clang}]
 }
-proc portconfigure::construct_cxxflags args {
+proc portconfigure::construct_cxxflags {flags} {
     if {[portconfigure::should_add_stdlib]} {
-        lappend args -stdlib=[option configure.cxx_stdlib]
+        lappend flags -stdlib=[option configure.cxx_stdlib]
     }
-    return $args
+    return $flags
 }
 proc portconfigure::stdlib_trace {opt action args} {
     foreach flag [lsearch -all -inline [option $opt] -stdlib=*] {
