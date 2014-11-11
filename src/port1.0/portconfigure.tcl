@@ -365,7 +365,7 @@ proc portconfigure::configure_get_archflags {tool} {
 # Unfortunately there's no consistent way to do this when the compiler
 # doesn't support -arch, because it could be used to link rather than using
 # ld directly. So we punt and let portfiles deal with that case.
-proc portconfigure::configure_get_ld_archflags {args} {
+proc portconfigure::configure_get_ld_archflags {} {
     global configure.build_arch configure.compiler
     if {${configure.build_arch} ne "" && [arch_flag_supported ${configure.compiler}]} {
         return "-arch ${configure.build_arch}"
@@ -396,7 +396,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
-proc portconfigure::configure_get_universal_archflags {args} {
+proc portconfigure::configure_get_universal_archflags {} {
     global configure.universal_archs
     set flags ""
     foreach arch ${configure.universal_archs} {
@@ -410,12 +410,12 @@ proc portconfigure::configure_get_universal_archflags {args} {
 }
 
 # internal function to determine the CFLAGS for the compiler
-proc portconfigure::configure_get_universal_cflags {args} {
+proc portconfigure::configure_get_universal_cflags {} {
     return [configure_get_universal_archflags]
 }
 
 # internal function to determine the LDFLAGS for the compiler
-proc portconfigure::configure_get_universal_ldflags {args} {
+proc portconfigure::configure_get_universal_ldflags {} {
     return [configure_get_universal_archflags]
 }
 
@@ -444,7 +444,7 @@ proc portconfigure::compiler_is_port {compiler} {
 }
 
 # internal function to determine the default compiler
-proc portconfigure::configure_get_default_compiler {args} {
+proc portconfigure::configure_get_default_compiler {} {
     if {[option compiler.whitelist] ne ""} {
         set search_list [option compiler.whitelist]
     } else {
