@@ -156,7 +156,6 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.file_port ON files (id)",
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
-        "CREATE INDEX registry.file_binary ON files(binary)",
 
         /* dependency map */
         "CREATE TABLE registry.dependencies (id INTEGER, name TEXT, variants TEXT, "
@@ -352,6 +351,27 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             stmt = NULL;
 
             if (!do_queries(db, version_1_2_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+        if (sql_version(NULL, -1, version, -1, "1.201") < 0) {
+            /* Delete the file_binary index, since it's a low-quality index
+             * according to https://www.sqlite.org/queryplanner-ng.html#howtofix */
+            static char* version_1_201_queries[] = {
+                "DROP INDEX IF EXISTS registry.file_binary",
+                "UPDATE registry.metadata SET value = '1.201' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_201_queries, errPtr)) {
                 rollback_db(db);
                 return 0;
             }
