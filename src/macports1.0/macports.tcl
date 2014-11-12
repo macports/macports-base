@@ -4523,7 +4523,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 }
                 foreach f $files {
                     if {$fancy_output} {
-                        if {$files_count < 10000 || $i % 10 == 1} {
+                        if {$files_count < 10000 || $i % 100 == 1} {
                             $revupgrade_progress update $i $files_count
                         }
                     }
