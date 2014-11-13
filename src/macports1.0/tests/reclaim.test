@@ -12,32 +12,6 @@ package require macports 1.0
 array set ui_options {}
 mportinit ui_options
 
-test is_empty_dir {
-
-    # Regression test for is_empty_dir.
-    # 
-    # Constraints:
-    #               None.
-
-    walk_files
-    Test for correctly identifying an empty directory.
-
-} -body {
-
-    set empty "emptyDir" 
-    file mkdir $empty 
-
-    if {[reclaim::is_empty_dir $empty] == 0} {
-        return "FAIL: Did not detect empty directory."
-    } 
-
-    return "Successfully detected empty directory."
-
-} -cleanup {
-    file delete -force $empty
-
-} -result "Successfully detected empty directory."
-
 test remove_distfiles {
 
     # Regression test for remove_distfiles.
