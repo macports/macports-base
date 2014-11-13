@@ -1027,8 +1027,16 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
     sqlite3_stmt* update = NULL;
     char* select_query = "SELECT id FROM registry.files WHERE actual_path=? "
         "AND active";
-    char* update_query = "UPDATE registry.files SET actual_path=?, active=1 "
-        "WHERE path=? AND id=?";
+    char* update_query = "UPDATE registry.files "
+#if SQLITE_VERSION_NUMBER >= 3006004
+        /* if the version of SQLite supports it force the usage of the index on
+         * path, rather than the one on id (which has a lot less discriminative
+         * power) and leads to very slow queries. This is needed for the new
+         * query planner introduced in 3.8.0 which would not use the correct
+         * index automatically. */
+        "INDEXED BY file_path "
+#endif
+        "SET actual_path=?, active=1 WHERE path=? AND id=?";
 
     /* if as_files wasn't specified, activate as the original files */
     if (as_files == NULL) {
@@ -1126,7 +1134,16 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
     int result = 1;
     int i;
     sqlite3_stmt* stmt = NULL;
-    char* query = "UPDATE registry.files SET active=0 WHERE actual_path=? AND id=?";
+    char* query = "UPDATE registry.files "
+#if SQLITE_VERSION_NUMBER >= 3006004
+        /* if the version of SQLite supports it force the usage of the index on
+         * path, rather than the one on id (which has a lot less discriminative
+         * power) and leads to very slow queries. This is needed for the new
+         * query planner introduced in 3.8.0 which would not use the correct
+         * index automatically. */
+        "INDEXED BY file_actual "
+#endif
+        "SET active=0 WHERE actual_path=? AND id=?";
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 2, entry->id) == SQLITE_OK)) {
         for (i=0; i<file_count && result; i++) {
