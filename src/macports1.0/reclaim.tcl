@@ -56,7 +56,6 @@ package require macports
 namespace eval reclaim {
 
     proc main {args} {
-
         # The main function. Calls each individual function that needs to be run.
         # Args: 
         #           None
@@ -68,74 +67,34 @@ namespace eval reclaim {
         update_last_run
     }
 
-    proc is_empty_dir {dir} {
-        
-        # Test if the given directory is empty.
-        # Args:
-        #           dir         - A string path of the given directory to test
-        # Returns:
-        #           0 if the directory is not empty, 1 if it is.
-
-        # Get _all_ files
-        set filenames [glob -nocomplain -tails -directory $dir * .*]
-
-        # Yay complex statements! Use RE, lsearch, and llength to determine if the directory is empty.  
-        expr {![llength [lsearch -all -not -regexp $filenames {^\.\.?$}]]}
-    }
-
-    proc walk_files {dir delete dist_paths} {
-
-        # Recursively walk through each directory that isn't an installed port and if delete each file that isn't a directory if requested.
+    proc walk_files {dir files_in_use unused_name} {
+        # Recursively walk the given directory $dir and build a list of all files that are present on-disk but not listed in $files_in_use.
+        # The list of unused files will be stored in the variable given by $unused_name
+        #
         # Args:
         #           dir             - A string path of the given directory to walk through
-        #           delete          - Whether to delete each file found that isn't a directory or not. Set to 'yes' or 'no'. 
-        #           dist_paths      - A list of the full paths for all distfiles from installed ports  
-        # Returns: 
-        #           'no' if no distfiles were found, and 'yes' if distfiles were found. 
+        #           files_in_use    - A sorted list of the full paths for all distfiles from installed ports
+        #           unused_name     - The name of a list in the caller to which unused files will be appended
 
-        set found_distfile  no 
-        set root_dist       [file join ${macports::portdbpath} distfiles]
-        set home_dist       ${macports::user_home}/.macports/$root_dist
+        upvar $unused_name unused
 
         foreach item [readdir $dir] {
             set currentPath [file join $dir $item]
-
-            if {[file isdirectory $currentPath]} {
-                walk_files $currentPath $delete $dist_paths
-            } else {
-                # If the current file isn't in the known-installed-distfiles
-                if {[lsearch $dist_paths $currentPath] == -1} {
-                    set found_distfile yes
-
-                    ui_msg "Found unused distfile: $item"
-
-                    if {$delete eq "yes"} {
-                        ui_debug "Deleting file: $item"
-                        ui_msg "Removing distfile: $item"
-
-                        if {[catch {file delete $currentPath} error]} {
-                            ui_error "something went wrong when trying to delete $currentPath: $error"
-                        }
+            switch -exact -- [file type $currentPath] {
+                directory {
+                    walk_files $currentPath $files_in_use unused
+                }
+                file {
+                    if {[lsearch -exact -sorted $files_in_use $currentPath] == -1} {
+                        ui_info "Found unused distfile $currentPath"
+                        lappend unused $currentPath
                     }
                 }
             }
         }
-
-        if {$dir ne $root_dist && $dir ne $home_dist && [llength [readdir $dir]] == 0} {
-            # If the directory is empty, and this isn't the root folder, delete
-            # it.
-            ui_msg "Found empty directory: $dir. Attempting to delete."
-
-            if {[catch {file delete -force $dir} error] } {
-                ui_error "something went wrong when trying to delete $dir: $error"
-            }
-        }
-
-        return $found_distfile
     }
 
     proc remove_distfiles {} {
-
         # Check for distfiles in both the root, and home directories. If found, delete them.
         # Args:
         #               None
@@ -150,61 +109,127 @@ namespace eval reclaim {
         set home_dist       ${macports::user_home}/.macports$root_dist
 
         set port_info    [get_info]
-        set dist_path    [list]
+        set files_in_use [list]
 
         foreach port $port_info {
-
-            set name        [lindex $port 0]
-            set version     [lindex $port 1]
-            set revision    [lindex $port 2]
-            set variants    [lindex $port 3]
+            set name     [lindex $port 0]
+            set version  [lindex $port 1]
+            set revision [lindex $port 2]
+            set variants [lindex $port 3]
 
             # Get mport reference
             if {[catch {set mport [mportopen_installed $name $version $revision $variants {}]} error]} {
-                ui_error "something went wrong when trying to get an mport reference."
+                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $error]
+                continue
             }
 
             # Setup sub-Tcl-interpreter that executed the installed port
             set workername [ditem_key $mport workername]
 
             # Append that port's distfiles to the list
-            set subdir [$workername eval return \$dist_subdir]
-            set name   [$workername eval return \$distfiles]
+            set dist_subdir [$workername eval return {$dist_subdir}]
+            set distfiles   [$workername eval return {$distfiles}]
+            set patchfiles  [$workername eval [list if {[exists patchfiles]} { return $patchfiles } else { return [list] }]]
 
-            set root_path [file join $root_dist $subdir $name]
-            set home_path [file join $home_dist $subdir $name]
+            foreach distfile [concat $distfiles $patchfiles] {
+                set root_path [file join $root_dist $dist_subdir $distfile]
+                set home_path [file join $home_dist $dist_subdir $distfile]
 
-            # Add the full file path to the list, depending where it's located.
-            if {[file isfile $root_path]} {
-                ui_debug "Appending $root_path."
-                lappend dist_path $root_path
-
-            } else {
+                # Add the full file path to the list, depending where it's located.
+                if {[file isfile $root_path]} {
+                    ui_info "Keeping $root_path"
+                    lappend files_in_use $root_path
+                }
                 if {[file isfile $home_path]} {
-                    ui_debug "Appending $home_path"
-                    lappend dist_path $home_path
+                    ui_info "Keeping $home_path"
+                    lappend files_in_use $home_path
                 }
             }
         }
 
+        # sort so we can use binary search in walk_files
+        set files_in_use [lsort -unique $files_in_use]
+
         ui_debug "Calling walk_files on root directory."
 
-        # Walk through each directory, and delete any files found. Alert the user if no files were found.
-        if {[walk_files $root_dist yes $dist_path] eq "no"} {
-            ui_msg "No distfiles found in root directory."
-        }
+        set superfluous_files [list]
+        walk_files $root_dist $files_in_use superfluous_files
 
         if {[file exists $home_dist]} {
-
             ui_debug "Calling walk_files on home directory."
+            walk_files $home_dist $files_in_use superfluous_files
+        }
 
-            if {[walk_files $home_dist yes $dist_path] eq "no"} {
-                ui_msg "No distfiles found in home directory."
+        set num_superfluous_files [llength $superfluous_files]
+        set size_superfluous_files 0
+        foreach f $superfluous_files {
+            incr size_superfluous_files [file size $f]
+        }
+        if {[llength $superfluous_files] > 0} {
+            ui_msg [msgcat::mc \
+                "Found %d files (total %s) that are no longer needed and can be deleted." \
+                $num_superfluous_files \
+                [bytesize $size_superfluous_files]]
+            while {1} {
+                ui_msg "\[D]elete / \[k]eep / \[l]ist: "
+                switch [gets stdin] {
+                    d -
+                    D {
+                        ui_msg "Deleting..."
+                        foreach f $superfluous_files {
+                            set root_length [string length "${root_dist}/"]
+                            set home_length [string length "${home_dist}/"]
+
+                            try {
+                                ui_info [msgcat::mc "Deleting unused file %s" $f]
+                                file delete -- $f
+
+                                set directory [file dirname $f]
+                                while {1} {
+                                    set is_below_root [string equal -length $root_length $directory "${root_dist}/"]
+                                    set is_below_home [string equal -length $home_length $directory "${home_dist}/"]
+
+                                    if {!$is_below_root && !$is_below_home} {
+                                        break
+                                    }
+
+                                    if {[llength [readdir $directory]] > 0} {
+                                        break
+                                    }
+
+                                    ui_info [msgcat::mc "Deleting empty directory %s" $directory]
+                                    try {
+                                        file delete -- $directory
+                                    } catch {{*} eCode eMessage} {
+                                        ui_warn [msgcat::mc "Could not delete empty directory %s: %s" $directory $eMesage]
+                                    }
+                                    set directory [file dirname $directory]
+                                }
+                            } catch {{*} eCode eMessage} {
+                                ui_warn [msgcat::mc "Could not delete %s: %s" $f $eMessage]
+                            }
+                        }
+                        break
+                    }
+                    k -
+                    K {
+                        ui_msg "OK, keeping the files."
+                        break
+                    }
+                    l -
+                    L {
+                        foreach f $superfluous_files {
+                            ui_msg "  $f"
+                        }
+                    }
+                }
             }
+        } else {
+            ui_msg "No unused distfiles found."
         }
 
         return 0
-    } 
+    }
 
     proc close_file {file} {
 
