@@ -717,6 +717,9 @@ namespace eval doctor {
             set input [gets stdin]
 
             if {$input eq "y" || $input eq "Y"} {
+                # XXX: this should use the same paths and comments as the
+                # postflight script of the pkg installer. Maybe they could even
+                # share code?
                 ui_msg "Attempting to add $port_loc/bin to $profile_path"
 
                 if {[file exists $profile_path] == 1} {
