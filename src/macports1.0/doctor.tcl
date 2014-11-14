@@ -79,7 +79,7 @@ namespace eval doctor {
         # as well as the parser_options array.
         #
         # Args:
-        #           opts - The options passed in. Currently the only option availible is 'quiet'. 
+        #           opts - The options passed in. Currently the only option available is 'quiet'. 
         # Returns:
         #           None
 
@@ -496,7 +496,7 @@ namespace eval doctor {
         if {$mac_version eq "10.6"} {
 
             if {[file exists /Applications/X11.app]} {
-                ui_error "it seems you have Mac OSX 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \
+                ui_error "it seems you have Mac OS X 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \
                          To fix this, please install xorg-server, by using the command 'sudo port install xorg-server', or installing it from \
                          their website, http://xquartz.macosforge.org/trac/wiki/Releases."
 
@@ -522,10 +522,10 @@ namespace eval doctor {
         set output          [exec df -g]
         set tokens          [split $output \n]
         set disk_info       [lindex $tokens 1]
-        set availible       [lindex $disk_info 3]
+        set available       [lindex $disk_info 3]
 
-        if {$availible < 5} {
-            ui_warn "you have less than 5 gigabytes free on your machine! This can cause serious errors. We recommend trying to clear out unnecessary \
+        if {$available < 5} {
+            ui_warn "you have less than 5 GiB of free disk space! This can cause serious errors. We recommend trying to clear out unnecessary \
                      programs and files by running 'sudo port reclaim', or manually uninstalling/deleting programs and folders on your drive."
 
             success_fail 0
@@ -547,7 +547,7 @@ namespace eval doctor {
         output "MacPort's location"
 
         if {[file exists ${macports::prefix}/bin/port] == 0} {
-            ui_error "port was not in ${macports::prefix}/bin. This can potentially cause errors. It's recommended you move it back to ${macports::prefix}/bin."
+            ui_error "the port command was not found in ${macports::prefix}/bin. This can potentially cause errors. It's recommended you move it back to ${macports::prefix}/bin."
             success_fail 0
             return
         }
