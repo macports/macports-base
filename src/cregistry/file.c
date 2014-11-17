@@ -105,7 +105,16 @@ reg_file* reg_file_open(reg_registry* reg, char* id, char* name,
         reg_error* errPtr) {
     sqlite3_stmt* stmt = NULL;
     reg_file* file = NULL;
-    char* query = "SELECT id, path FROM registry.files WHERE id=? AND path=?";
+    char* query = "SELECT id, path FROM registry.files "
+#if SQLITE_VERSION_NUMBER >= 3006004
+        /* if the version of SQLite supports it force the usage of the index on
+         * path, rather than the one on id which has a lot less discriminative
+         * power and leads to very slow queries. This is needed for the new
+         * query planner introduced in 3.8.0 which would not use the correct
+         * index automatically. */
+        "INDEXED BY file_path "
+#endif
+        "WHERE id=? AND path=?";
     int lower_bound = 0;
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
@@ -235,8 +244,17 @@ int reg_file_propget(reg_file* file, char* key, char** value,
     sqlite3_stmt* stmt = NULL;
     char* query;
     const char *text;
-    query = sqlite3_mprintf("SELECT %q FROM registry.files WHERE id=%lld "
-            "AND path='%q'", key, file->key.id, file->key.path);
+    query = sqlite3_mprintf(
+            "SELECT %q FROM registry.files "
+#if SQLITE_VERSION_NUMBER >= 3006004
+            /* if the version of SQLite supports it force the usage of the index
+             * on path, rather than the one on id which has a lot less
+             * discriminative power and leads to very slow queries. This is
+             * needed for the new query planner introduced in 3.8.0 which would
+             * not use the correct index automatically. */
+            "INDEXED BY file_path "
+#endif
+            "WHERE id=%lld AND path='%q'", key, file->key.id, file->key.path);
     if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         do {
@@ -290,8 +308,17 @@ int reg_file_propset(reg_file* file, char* key, char* value,
     int result = 0;
     sqlite3_stmt* stmt = NULL;
     char* query;
-    query = sqlite3_mprintf("UPDATE registry.files SET %q = '%q' WHERE id=%lld "
-            "AND path='%q'", key, value, file->key.id, file->key.path);
+    query = sqlite3_mprintf(
+            "UPDATE registry.files "
+#if SQLITE_VERSION_NUMBER >= 3006004
+            /* if the version of SQLite supports it force the usage of the index
+             * on path, rather than the one on id which has a lot less
+             * discriminative power and leads to very slow queries. This is
+             * needed for the new query planner introduced in 3.8.0 which would
+             * not use the correct index automatically. */
+            "INDEXED BY file_path "
+#endif
+            "SET %q = '%q' WHERE id=%lld AND path='%q'", key, value, file->key.id, file->key.path);
     if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         do {
