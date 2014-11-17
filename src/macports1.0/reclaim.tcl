@@ -111,6 +111,22 @@ namespace eval reclaim {
         set port_info    [get_info]
         set files_in_use [list]
 
+        set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
+                               && ![macports::ui_isset ports_verbose] \
+                               && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancyOutput} {
+            set progress $macports::ui_options(progress_generic)
+        } else {
+            # provide a no-op if there is no progress function
+            proc noop {args} {}
+            set progress noop
+        }
+
+        ui_msg "$macports::ui_prefix Building list of files still in use"
+        set port_count [llength $port_info]
+        set i 1
+        $progress start
+
         foreach port $port_info {
             set name     [lindex $port 0]
             set version  [lindex $port 1]
@@ -119,6 +135,7 @@ namespace eval reclaim {
 
             # Get mport reference
             if {[catch {set mport [mportopen_installed $name $version $revision $variants {}]} error]} {
+                $progress intermission
                 ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $error]
                 continue
             }
@@ -145,7 +162,14 @@ namespace eval reclaim {
                     lappend files_in_use $home_path
                 }
             }
+
+            $progress update $i $port_count
+            incr i
         }
+
+        $progress finish
+
+        ui_msg "$macports::ui_prefix Searching for unused files"
 
         # sort so we can use binary search in walk_files
         set files_in_use [lsort -unique $files_in_use]
@@ -225,7 +249,7 @@ namespace eval reclaim {
                 }
             }
         } else {
-            ui_msg "No unused distfiles found."
+            ui_msg "No unused files found."
         }
 
         return 0
