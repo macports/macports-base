@@ -138,6 +138,9 @@ proc portfetch::set_extract_type {option action args} {
         switch $option {
             use_bzip2 {
                 set extract.suffix .tar.bz2
+                if {![catch {findBinary lbzip2} result]} {
+                    depends_extract-append bin:lbzip2:lbzip2
+                }
             }
             use_lzma {
                 set extract.suffix .tar.lzma
