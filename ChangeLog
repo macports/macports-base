@@ -23,11 +23,14 @@ Release 2.4 (unreleased)
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
 
+Release 2.3.3 (2014-11-21 by jmr)
+    - Fix database performance regressions with SQLite 3.8 by specifying a
+      good index for some queries (#45645, cal in r128113, r128274, r128276)
+
 Release 2.3.2 (2014-10-17 by jmr)
     - Fix a crash in trace mode when software calls posix_spawn(2) with NULL
       as envp (which isn't a legal thing to do from what I understand, but
-      there's software that does it)
-      (cal in r126475, #45318)
+      there's software that does it) (#45318, cal in r126475)
 
     - Tune down the noise while using trace mode; in the default verbosity
       setting, only report files that actually exist and were hidden.
