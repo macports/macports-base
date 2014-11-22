@@ -783,8 +783,8 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
     reg_registry* reg = entry->reg;
     int result = 1;
     sqlite3_stmt* stmt = NULL;
-    char* insert = "INSERT INTO registry.files (id, path, mtime, active) "
-        "VALUES (?, ?, 0, 0)";
+    char* insert = "INSERT INTO registry.files (id, path, active) "
+        "VALUES (?, ?, 0)";
     if ((sqlite3_prepare_v2(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
         int i;

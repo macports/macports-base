@@ -311,7 +311,7 @@ proc open_dep_map {args} {
 # 2: gid
 # 3: mode
 # 4: size
-# 5: md5 checksum information
+# 5: md5 checksum information (deprecated, will always be "MD5 ($filename) NONE")
 #
 # fname		a path to a given file.
 # return a 6-tuple about this file.
@@ -320,16 +320,7 @@ proc fileinfo_for_file {fname} {
     # (we won't store the md5 of the target of links since it's meaningless
     # and $statvar(mode) tells us that links are links).
     if {![catch {file lstat $fname statvar}]} {
-	if {[::file isfile $fname] && [::file type $fname] ne "link"} {
-	    if {[catch {md5 file $fname} md5sum] == 0} {
-		# Create a line that matches md5(1)'s output
-		# for backwards compatibility
-		set line "MD5 ($fname) = $md5sum"
-		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
-	    }
-	} else {
-	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
-	}
+        return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
     }
     return {}
 }

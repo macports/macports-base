@@ -129,43 +129,64 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.201')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.202')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
         "CREATE TABLE registry.ports ("
-            "id INTEGER PRIMARY KEY, "
-            "name TEXT COLLATE NOCASE, portfile TEXT, url TEXT, "
-            "location TEXT, epoch INTEGER, version TEXT COLLATE VERSION, "
-            "revision INTEGER, variants TEXT, negated_variants TEXT, "
-            "state TEXT, date DATETIME, installtype TEXT, archs TEXT, "
-            "requested INT, os_platform TEXT, os_major INTEGER, "
-            "UNIQUE (name, epoch, version, revision, variants), "
-            "UNIQUE (url, epoch, version, revision, variants)"
+              "id INTEGER PRIMARY KEY"
+            ", name TEXT COLLATE NOCASE"
+            ", portfile TEXT"
+            ", location TEXT"
+            ", epoch INTEGER"
+            ", version TEXT COLLATE VERSION"
+            ", revision INTEGER"
+            ", variants TEXT"
+            ", negated_variants TEXT"
+            ", state TEXT"
+            ", date DATETIME"
+            ", installtype TEXT"
+            ", archs TEXT"
+            ", requested INTEGER"
+            ", os_platform TEXT"
+            ", os_major INTEGER"
+            ", UNIQUE (name, epoch, version, revision, variants)"
             ")",
-        "CREATE INDEX registry.port_name ON ports "
+        "CREATE INDEX registry.port_name ON ports"
             "(name, epoch, version, revision, variants)",
-        "CREATE INDEX registry.port_url ON ports "
-            "(url, epoch, version, revision, variants)",
-        "CREATE INDEX registry.port_state ON ports (state)",
+        "CREATE INDEX registry.port_state ON ports(state)",
 
         /* file map */
-        "CREATE TABLE registry.files (id INTEGER, path TEXT, actual_path TEXT, "
-            "active INT, mtime DATETIME, md5sum TEXT, editable INT, binary BOOL, "
-            "FOREIGN KEY(id) REFERENCES ports(id))",
-        "CREATE INDEX registry.file_port ON files (id)",
+        "CREATE TABLE registry.files ("
+              "id INTEGER"
+            ", path TEXT"
+            ", actual_path TEXT"
+            ", active INTEGER"
+            ", binary BOOL"
+            ", FOREIGN KEY(id) REFERENCES ports(id))",
+        "CREATE INDEX registry.file_port ON files(id)",
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
 
         /* dependency map */
-        "CREATE TABLE registry.dependencies (id INTEGER, name TEXT, variants TEXT, "
-        "FOREIGN KEY(id) REFERENCES ports(id))",
-        "CREATE INDEX registry.dep_name ON dependencies (name)",
+        "CREATE TABLE registry.dependencies ("
+              "id INTEGER"
+            ", name TEXT"
+            ", variants TEXT"
+            ", FOREIGN KEY(id) REFERENCES ports(id))",
+        "CREATE INDEX registry.dep_id ON dependencies(id)",
+        "CREATE INDEX registry.dep_name ON dependencies(name)",
 
         /* portgroups table */
-        "CREATE TABLE registry.portgroups (id INTEGER, "
-            "name TEXT, version TEXT COLLATE VERSION, size INTEGER, sha256 TEXT, "
-            "FOREIGN KEY(id) REFERENCES ports(id))",
+        "CREATE TABLE registry.portgroups ("
+              "id INTEGER"
+            ", name TEXT"
+            ", version TEXT COLLATE VERSION"
+            ", size INTEGER"
+            ", sha256 TEXT"
+            ", FOREIGN KEY(id) REFERENCES ports(id))",
+        "CREATE INDEX registry.portgroup_id ON portgroups(id)",
+        "CREATE INDEX registry.portgroup_open ON portgroups(id, name, version, size, sha256)",
 
         "COMMIT",
         NULL
@@ -335,9 +356,13 @@ int update_db(sqlite3* db, reg_error* errPtr) {
                from Tcl, so here we'll just flag that it needs to be done. */
             static char* version_1_2_queries[] = {
                 /* portgroups table */
-                "CREATE TABLE registry.portgroups (id INTEGER, "
-                    "name TEXT, version TEXT COLLATE VERSION, size INTEGER, sha256 TEXT, "
-                    "FOREIGN KEY(id) REFERENCES ports(id))",
+                "CREATE TABLE registry.portgroups ("
+                      "id INTEGER"
+                    ", name TEXT"
+                    ", version TEXT COLLATE VERSION"
+                    ", size INTEGER"
+                    ", sha256 TEXT"
+                    ", FOREIGN KEY(id) REFERENCES ports(id))",
 
                 "UPDATE registry.metadata SET value = '1.200' WHERE key = 'version'",
 
@@ -372,6 +397,179 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             sqlite3_finalize(stmt);
             stmt = NULL;
             if (!do_queries(db, version_1_201_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+        if (sql_version(NULL, -1, version, -1, "1.202") < 0) {
+            static char* version_1_202_queries[] = {
+                "CREATE INDEX registry.portgroup_id ON portgroups(id)",
+                "CREATE INDEX registry.portgroup_open ON portgroups(id, name, version, size, sha256)",
+                "CREATE INDEX registry.dep_id ON dependencies(id)",
+
+                /*
+                 * SQLite doesn't support ALTER TABLE DROP CONSTRAINT or ALTER
+                 * TABLE DROP COLUMN, so we're doing the manual way to remove
+                 * UNIQUE(url, epoch, version, revision, variants) and the url
+                 * column.
+                 */
+
+                /* Create a temporary table */
+                "CREATE TEMPORARY TABLE mp_ports_backup ("
+                      "id INTEGER PRIMARY KEY"
+                    ", name TEXT COLLATE NOCASE"
+                    ", portfile CLOB"
+                    ", location TEXT"
+                    ", epoch INTEGER"
+                    ", version TEXT COLLATE VERSION"
+                    ", revision INTEGER"
+                    ", variants TEXT"
+                    ", negated_variants TEXT"
+                    ", state TEXT"
+                    ", date DATETIME"
+                    ", installtype TEXT"
+                    ", archs TEXT"
+                    ", requested INT"
+                    ", os_platform TEXT"
+                    ", os_major INTEGER"
+                    ", UNIQUE(name, epoch, version, revision, variants))",
+
+                /* Copy all data into the temporary table */
+                "INSERT INTO mp_ports_backup "
+                    "SELECT"
+                        "  id"
+                        ", name"
+                        ", portfile"
+                        ", location"
+                        ", epoch"
+                        ", version"
+                        ", revision"
+                        ", variants"
+                        ", negated_variants"
+                        ", state"
+                        ", date"
+                        ", installtype"
+                        ", archs"
+                        ", requested"
+                        ", os_platform"
+                        ", os_major"
+                    " FROM registry.ports",
+
+                /* Drop the original table and re-create it with the new structure */
+                "DROP TABLE registry.ports",
+                "CREATE TABLE registry.ports ("
+                      "id INTEGER PRIMARY KEY"
+                    ", name TEXT COLLATE NOCASE"
+                    ", portfile CLOB"
+                    ", location TEXT"
+                    ", epoch INTEGER"
+                    ", version TEXT COLLATE VERSION"
+                    ", revision INTEGER"
+                    ", variants TEXT"
+                    ", negated_variants TEXT"
+                    ", state TEXT"
+                    ", date DATETIME"
+                    ", installtype TEXT"
+                    ", archs TEXT"
+                    ", requested INT"
+                    ", os_platform TEXT"
+                    ", os_major INTEGER"
+                    ", UNIQUE(name, epoch, version, revision, variants))",
+
+                /* Copy all data back from temporary table */
+                "INSERT INTO registry.ports "
+                    "SELECT"
+                        "  id"
+                        ", name"
+                        ", portfile"
+                        ", location"
+                        ", epoch"
+                        ", version"
+                        ", revision"
+                        ", variants"
+                        ", negated_variants"
+                        ", state"
+                        ", date"
+                        ", installtype"
+                        ", archs"
+                        ", requested"
+                        ", os_platform"
+                        ", os_major"
+                    " FROM mp_ports_backup",
+
+                /* Re-create indices that have been dropped with the table */
+                "CREATE INDEX registry.port_name ON ports(name, epoch, version, revision, variants)",
+                "CREATE INDEX registry.port_state ON ports(state)",
+
+                /* Remove temporary table */
+                "DROP TABLE mp_ports_backup",
+
+                /*
+                 * SQLite doesn't support ALTER TABLE DROP COLUMN, so we're
+                 * doing the manual way to remove files.md5sum, files.mtime,
+                 * files.editable.
+                 */
+
+                /* Create a temporary table */
+                "CREATE TEMPORARY TABLE mp_files_backup ("
+                      "id INTEGER"
+                    ", path TEXT"
+                    ", actual_path TEXT"
+                    ", active INTEGER"
+                    ", binary BOOL"
+                    ")",
+
+                /* Copy all data into the temporary table */
+                "INSERT INTO mp_files_backup "
+                    "SELECT"
+                        "  id"
+                        ", path"
+                        ", actual_path"
+                        ", active"
+                        ", binary"
+                    " FROM registry.files",
+
+                /* Drop the original table and re-create it with the new structure */
+                "DROP TABLE registry.files",
+                "CREATE TABLE registry.files ("
+                      "id INTEGER"
+                    ", path TEXT"
+                    ", actual_path TEXT"
+                    ", active INTEGER"
+                    ", binary BOOL"
+                    ", FOREIGN KEY(id) REFERENCES ports(id))",
+
+                /* Copy all data back from temporary table */
+                "INSERT INTO registry.files "
+                    "SELECT"
+                        "  id"
+                        ", path"
+                        ", actual_path"
+                        ", active"
+                        ", binary"
+                    " FROM mp_files_backup",
+
+                /* Re-create indices that have been dropped with the table */
+                "CREATE INDEX registry.file_port ON files(id)",
+                "CREATE INDEX registry.file_path ON files(path)",
+                "CREATE INDEX registry.file_actual ON files(actual_path)",
+
+                /* Remove temporary table */
+                "DROP TABLE mp_files_backup",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.202' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_202_queries, errPtr)) {
                 rollback_db(db);
                 return 0;
             }

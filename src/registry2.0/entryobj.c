@@ -42,7 +42,6 @@
 const char* entry_props[] = {
     "name",
     "portfile",
-    "url",
     "location",
     "epoch",
     "version",
@@ -419,7 +418,6 @@ static entry_obj_cmd_type entry_cmds[] = {
     /* keys */
     { "name", entry_obj_prop },
     { "portfile", entry_obj_prop },
-    { "url", entry_obj_prop },
     { "location", entry_obj_prop },
     { "epoch", entry_obj_prop },
     { "version", entry_obj_prop },

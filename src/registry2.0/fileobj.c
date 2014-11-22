@@ -44,9 +44,6 @@ const char* file_props[] = {
     "path",
     "actual_path",
     "active",
-    "mtime",
-    "md5sum",
-    "editable",
     "binary",
     NULL
 };
@@ -110,9 +107,6 @@ static file_obj_cmd_type file_cmds[] = {
     { "path", file_obj_prop },
     { "actual_path", file_obj_prop },
     { "active", file_obj_prop },
-    { "mtime", file_obj_prop },
-    { "md5sum", file_obj_prop },
-    { "editable", file_obj_prop },
     { "binary", file_obj_prop },
     { NULL, NULL }
 };
