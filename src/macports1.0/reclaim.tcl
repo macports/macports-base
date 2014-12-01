@@ -48,6 +48,9 @@
 # Implement a hash-map, or multidimensional array for ease of app info keeping. Write it yourself if you have to.
 # Figure out what the hell is going on with "port clean all" vs "port clean installed" the 'clean' target is provided by this package
 
+# XXX: all prompts for the user need to use the ui_ask_* API
+#      (definitely required for GUI support)
+
 package provide reclaim 1.0
 
 package require registry_uninstall 2.0
@@ -270,9 +273,9 @@ namespace eval reclaim {
 
     proc is_inactive {app} {
 
-        # Determine's whether an application is inactive or not.
+        # Determine's whether an port is inactive or not.
         # Args: 
-        #           app - An array where the fourth item in it is the activity of the application.
+        #           app - An array where the fourth item in it is the activity of the port.
         # Returns:
         #           1 if inactive, 0 if active.
 
@@ -296,7 +299,7 @@ namespace eval reclaim {
         #           Indexes of each sublist are: 0 = name, 1 = version, 2 = revision, 3 = variants, 4 = activity, and 5 = epoch.
         
         if {[catch {set installed [registry::installed]} result]} {
-            ui_error "no installed applications found."
+            ui_error "no installed ports found."
             return {}
         }
 
@@ -329,7 +332,7 @@ namespace eval reclaim {
         # Returns: 
         #           None
 
-        ui_debug "Checking last run information."
+        ui_debug "Checking time since last reclaim run"
 
         set path [file join ${macports::portdbpath} last_reclaim.txt]
 
@@ -349,25 +352,25 @@ namespace eval reclaim {
 
     proc uninstall_inactive {} {
 
-        # Attempts to uninstall all inactive applications. (Performance is now O(N)!)
+        # Attempts to uninstall all inactive ports. (Performance is now O(N)!)
         #
         # Args: 
         #           None
         # Returns: 
         #           0 if execution was successful. Errors (for now) if execution wasn't. 
 
-        set apps            [get_info]
-        set inactive_apps   [list]
+        set ports           [get_info]
+        set inactive_ports  [list]
         set inactive_names  [list]
         set inactive_count  0
 
-        ui_debug "Iterating through all inactive apps."
+        ui_debug "Iterating through all inactive ports."
 
-        foreach app $apps {
+        foreach port $ports {
 
-            if { [is_inactive $app] } {
-                lappend inactive_apps $app
-                lappend inactive_names [lindex $app 0]
+            if { [is_inactive $port] } {
+                lappend inactive_ports $port
+                lappend inactive_names [lindex $port 0]
                 incr inactive_count
             }
         }
@@ -378,27 +381,26 @@ namespace eval reclaim {
         } else {
 
             ui_msg "Found inactive ports: $inactive_names."
-            ui_msg "Would you like to uninstall these apps? \[Y/N\]: "
+            ui_msg "Would you like to uninstall these ports? \[y/N\]: "
 
             set input [gets stdin]
             if {$input eq "Y" || $input eq "y" } {
 
-                ui_debug "Iterating through all inactive apps... again."
+                ui_debug "Iterating through all inactive ports... again."
 
-                foreach app $inactive_apps {
+                foreach app $inactive_ports {
                     set name [lindex $app 0]
 
-                    # Get all dependents for the current application
+                    # Get all dependents for the current port
                     if {[catch {set dependents [registry::list_dependents $name [lindex 1] [lindex 2] [lindex 3]]} error]} {
                         ui_error "something went wrong when trying to enumerate all dependents for $name"
                     }
                     if {${dependents} ne ""} {
-                        ui_warn "the following application ($name) is a dependent for $dependents. Are you positive you'd like to uninstall this 
-                                 (this could break other applications)? \[Y/N\]"
+                        ui_warn "the following port $name is a dependent for $dependents. Do you want to uninstall this port with the risk of breaking other ports? \[Y/n\]"
 
                         set input [gets stdin]
                         if { $input eq "N" || "n" } {
-                            ui_msg "Skipping application."
+                            ui_msg "Skipping port."
                             continue
                         }
                     }
@@ -410,7 +412,7 @@ namespace eval reclaim {
                     }
                 }
             } else {
-                ui_msg "Not uninstalling applications."
+                ui_msg "Not uninstalling ports."
             }
         }
         return 0
