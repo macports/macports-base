@@ -40,12 +40,12 @@
 # Catch some error-prone areas.
 # Remove the useless/structure comments and add actual docstrings.
 # Add copyright notice
-# Check if inactive files are dependents for other files. 
+# Check if inactive files are dependents of other files.
 # Add test cases
 # Add distfile version checking.
 # Pretty sure we should be using ui_msg, instead of puts and what not. Should probably add that.
 # Register the "port cleanup" command with port.tcl and all that involves.
-# Implement a hash-map, or multidimensional array for ease of app info keeping. Write it yourself if you have to.
+# Implement a hash-map, or multidimensional array for ease of port info keeping. Write it yourself if you have to.
 # Figure out what the hell is going on with "port clean all" vs "port clean installed" the 'clean' target is provided by this package
 
 # XXX: all prompts for the user need to use the ui_ask_* API
@@ -271,31 +271,31 @@ namespace eval reclaim {
         }
     }
 
-    proc is_inactive {app} {
+    proc is_inactive {port} {
 
-        # Determine's whether an port is inactive or not.
+        # Determines whether a port is inactive or not.
         # Args: 
-        #           app - An array where the fourth item in it is the activity of the port.
+        #           port - An array where the fourth item in it is the activity of the port.
         # Returns:
         #           1 if inactive, 0 if active.
 
-        if {[lindex $app 4] == 0} {
-            ui_debug "App, [lindex $app 0], is inactive."
+        if {[lindex $port 4] == 0} {
+            ui_debug "Port [lindex $port 0] is inactive."
             return 1
         }
-        ui_debug "App, [lindex $app 0], is not inactive."
+        ui_debug "Port [lindex $port 0] is not inactive."
         return 0
     }
 
     proc get_info {} {
 
-        # Get's the information of all installed appliations (those returned by registry::installed), and returns it in a
+        # Gets the information of all installed ports (those returned by registry::installed), and returns it in a
         # multidimensional list.
         #
         # Args:
         #           None
         # Returns:
-        #           A multidimensional list where each app is a sublist, i.e., [{First Application Info} {Second Application Info} {...}]
+        #           A multidimensional list where each port is a sublist, i.e., [{first port info} {second port info} {...}]
         #           Indexes of each sublist are: 0 = name, 1 = version, 2 = revision, 3 = variants, 4 = activity, and 5 = epoch.
         
         if {[catch {set installed [registry::installed]} result]} {
@@ -325,7 +325,7 @@ namespace eval reclaim {
 
     proc check_last_run {} {
 
-        # Periodically warn's the user that they haven't run 'port reclaim' in two weeks, and that they should consider doing so.
+        # Periodically warns the user that they haven't run 'port reclaim' in two weeks, and that they should consider doing so.
         # 
         # Args:
         #           None
@@ -344,7 +344,7 @@ namespace eval reclaim {
 
             if {$time ne ""} {
                 if {[clock seconds] - $time > 1209600} {
-                    ui_warn "you haven't run 'port reclaim' in two weeks. It's recommended you run this once every two weeks to help save space on your computer."
+                    ui_warn "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space."
                 }
             }
         }
@@ -388,15 +388,15 @@ namespace eval reclaim {
 
                 ui_debug "Iterating through all inactive ports... again."
 
-                foreach app $inactive_ports {
-                    set name [lindex $app 0]
+                foreach port $inactive_ports {
+                    set name [lindex $port 0]
 
-                    # Get all dependents for the current port
+                    # Get all dependents of the current port
                     if {[catch {set dependents [registry::list_dependents $name [lindex 1] [lindex 2] [lindex 3]]} error]} {
-                        ui_error "something went wrong when trying to enumerate all dependents for $name"
+                        ui_error "something went wrong when trying to enumerate all dependents of $name"
                     }
                     if {${dependents} ne ""} {
-                        ui_warn "the following port $name is a dependent for $dependents. Do you want to uninstall this port with the risk of breaking other ports? \[Y/n\]"
+                        ui_warn "Port $name is a dependent of $dependents. Do you want to uninstall this port at the risk of breaking other ports? \[Y/n\]"
 
                         set input [gets stdin]
                         if { $input eq "N" || "n" } {
@@ -407,7 +407,7 @@ namespace eval reclaim {
                     ui_msg "Uninstalling: $name"
 
                     # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
-                    if {[catch {registry_uninstall::uninstall $name [lindex $app 1] [lindex $app 2] [lindex $app 3] {}} error]} {
+                    if {[catch {registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}} error]} {
                         ui_error "something went wrong when uninstalling $name"
                     }
                 }
