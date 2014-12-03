@@ -40,7 +40,7 @@
 # Catch some error-prone areas.
 # Remove the useless/structure comments and add actual docstrings.
 # Add copyright notice
-# Check if inactive files are dependents of other files.
+# Check if inactive ports are dependents of other ports.
 # Add test cases
 # Add distfile version checking.
 # Pretty sure we should be using ui_msg, instead of puts and what not. Should probably add that.
