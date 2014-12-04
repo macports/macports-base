@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT" "1" "2014\-08\-21" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT" "1" "2014\-11\-11" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -640,7 +640,9 @@ Lists the other ports that are required to build and run portname\&. This is sim
 .PP
 rdeps
 .RS 4
-Recursively lists the other ports that are required to build and run portname\&. To display the full dependency tree instead of only showing each port once, use \-\-full\&. To take dependency information from the PortIndex instead of the Portfile (faster, but does not take variant selections into account), use \-\-index\&. To exclude dependencies that are only needed at build time (i\&.e\&. depends_fetch, depends_extract, depends_build), use
+Recursively lists the other ports that are required to build and run portname\&. To display the full dependency tree instead of only showing each port once, use
+\fB\-\-full\fR\&. To take dependency information from the PortIndex instead of the Portfile (faster, but does not take variant selections into account), use
+\fB\-\-index\fR\&. To exclude dependencies that are only needed at build time (i\&.e\&. depends_fetch, depends_extract, depends_build), use
 \fB\-\-no\-build\fR\&.
 .RE
 .PP
@@ -652,7 +654,8 @@ Lists the installed ports that depend on the port
 .PP
 rdependents
 .RS 4
-Recursively lists the installed ports that depend on the port portname\&. To display the full tree of dependents instead of only showing each port once, use \-\-full\&.
+Recursively lists the installed ports that depend on the port portname\&. To display the full tree of dependents instead of only showing each port once, use
+\fB\-\-full\fR\&.
 .RE
 .PP
 install
@@ -667,7 +670,8 @@ Deactivate and uninstall portname\&. To uninstall all installed but
 \fIinactive\fR
 ports, use
 \fB\-u\fR\&. To recursively uninstall all dependents of this port, use
-\fB\-\-follow\-dependents\fR\&. To uninstall portname and then recursively uninstall all ports it depended on, use \-\-follow\-dependencies\&. This will not uninstall dependencies that are marked as requested or that have other dependents\&.
+\fB\-\-follow\-dependents\fR\&. To uninstall portname and then recursively uninstall all ports it depended on, use
+\fB\-\-follow\-dependencies\fR\&. This will not uninstall dependencies that are marked as requested or that have other dependents\&.
 .sp
 For example:
 .sp
@@ -880,12 +884,15 @@ port \-n upgrade wireshark
 \fBNote\fR
 .ps -1
 .br
-By selecting the variants to use in the upgraded build of the port, any variants specified on the command line take highest precedence, then the variants active in the latest installed version of the port, and finally the global variants specified in variants\&.conf, if any\&. Note that upgrade will not normally rebuild a port only to change the selected variants; you can either specify \-\-enforce\-variants, or deactivate the port and reinstall it with different variants\&.
+By selecting the variants to use in the upgraded build of the port, any variants specified on the command line take highest precedence, then the variants active in the latest installed version of the port, and finally the global variants specified in variants\&.conf, if any\&. Note that upgrade will not normally rebuild a port only to change the selected variants; you can either specify
+\fB\-\-enforce\-variants\fR, or deactivate the port and reinstall it with different variants\&.
 .sp .5v
 .RE
 \ \&
 .sp
-After the upgrade MacPorts will automatically run rev\-upgrade to check for broken ports that need to be rebuilt\&. If there are known problems with rev\-upgrade or other reasons why you would want to avoid running this step, you can disable it by running port upgrade with the \-\-no\-rev\-upgrade switch:
+After the upgrade MacPorts will automatically run rev\-upgrade to check for broken ports that need to be rebuilt\&. If there are known problems with rev\-upgrade or other reasons why you would want to avoid running this step, you can disable it by running port upgrade with the
+\fB\-\-no\-rev\-upgrade\fR
+switch:
 .sp
 .if n \{\
 .RS 4
@@ -900,9 +907,13 @@ port upgrade \-\-no\-rev\-upgrade outdated
 .PP
 rev\-upgrade
 .RS 4
-Manually check for broken binaries and rebuild ports containing broken binaries\&. rev\-upgrade is usually automatically run after each upgrade, unless you specify the \-\-no\-rev\-upgrade option\&.
+Manually check for broken binaries and rebuild ports containing broken binaries\&. rev\-upgrade is usually automatically run after each upgrade, unless you specify the
+\fB\-\-no\-rev\-upgrade\fR
+option\&.
 
-rev\-upgrade can run more checks against a special loadcommand in Mach\-O binaries that should always be referencing the file itself\&. This check is most helpful for maintainers to check whether their ports have been built correctly\&. It is disabled by default and can be enabled by passing \-\-id\- loadcmd\-check to rev\-upgrade\&.
+rev\-upgrade can run more checks against a special loadcommand in Mach\-O binaries that should always be referencing the file itself\&. This check is most helpful for maintainers to check whether their ports have been built correctly\&. It is disabled by default and can be enabled by passing
+\fB\-\-id\-loadcmd\-check\fR
+to rev\-upgrade\&.
 
 See also:
 \fBmacports.conf\fR(5)
@@ -1138,7 +1149,9 @@ on stdout\&.
 .PP
 edit
 .RS 4
-Opens Portfile with your default editor specified in your shell\(cqs environment variable\&. You can also use the \-\-editor flag on the command line to specify an alternative editor\&.
+Opens Portfile with your default editor specified in your shell\(cqs environment variable\&. You can also use the
+\fB\-\-editor\fR
+flag on the command line to specify an alternative editor\&.
 .sp
 For example:
 .sp
