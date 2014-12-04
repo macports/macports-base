@@ -1,0 +1,160 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-search(1)
+==============
+$Id$
+
+NAME
+----
+port-search - Search for a port using keywords
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-dq*] *search*
+     [--case-sensitive] [--line] [--exact|--glob|--regex] [--'field' ...]
+     'keyword' ...
+
+DESCRIPTION
+-----------
+*port search* helps you find ports by partial matches of the name or description
+(or other fields, depending on the given options). It is the tool of choice if
+you are looking for software in MacPorts.
+
+*search* works by searching for your given keyword(s) in a set of fields of all
+available ports. By default, a port's name and short description are searched,
+as if you had specified both *--name* and *--description*. See *OPTIONS* for
+possible values for 'field'.
+
+Note that you can specify multiple fields to be searched. A port will be printed
+when any of the fields matches your keyword(s). If you specify multiple
+keywords, *search* will run multiple separate searches, one for each given
+keyword.
+
+OPTIONS
+-------
+
+Search behavior
+~~~~~~~~~~~~~~~
+
+*--case-sensitive*::
+    Do not ignore case when searching for the given keyword.
+
+*--exact*::
+    Search for the given string exactly. Disables *--glob* (the default) and
+    *--regex*.
+
+*--glob*::
+    Treat the keyword(s) as wildcard (i.e., expand '\*', '?' and '[sets]'). This
+    is the default. See the *string match* section of man:string[n] for
+    a detailed syntax description.
+
+*--regex*::
+    Treat the given string as a Tcl regular expression. See man:re_syntax[n] for
+    a description of Tcl regular expressions.
+
+Output behavior
+~~~~~~~~~~~~~~~
+
+*--line*::
+    Print one match per line, where a line consists of name, version, categories
+    and short description.
+
+See also *-q* in the *GLOBAL OPTIONS* section below.
+
+Field selection
+~~~~~~~~~~~~~~~
+
+*--category*, *--categories*::
+    Search the category. You can use this to list all ports in a given category.
+    For example, *port search --category haskell* will print all Haskell ports
+    in MacPorts. If you don't need the description it's usually faster to use
+    the pseudo-portname selector *category:haskell* with man:port-echo[1] (i.e.,
+    *port echo category:haskell*) instead. See man:port[1] for more information
+    on pseudo-port selectors.
+
+*--depends*, *--depends_build*, *--depends_extract*, *--depends_fetch*, *--depends_lib*, *--depends_run*::
+    Search for ports that depend on the port given as keyword. *--depends* is an
+    alias for all other *--depends_* options combined. Note that only
+    dependencies present in default variants will be found by this search. As
+    with *--category*, there also are pseudo-portname selectors available for
+    dependencies.
+
+*--description*, *--long_description*::
+    Test the search string against ports' descriptions.
+
+*--homepage*::
+    Search for the keyword(s) in the homepage property.
+
+*--maintainer*::
+    Search for ports maintained by a specific maintainer. Note that there also
+    is a pseudo-portname selector available for maintainer addresses. See
+    man:port[1] for more information.
+
+*--name*::
+    Search in ports' names. Since this is the default (together with
+    *--description*), this flag is only useful when you to search 'only' in the
+    name, but not the description.
+
+*--portdir*::
+    Test the search string against the path of the directory that contains the
+    port.
+
+*--variant*, *--variants*::
+    Search for variant names.
+
+include::global-flags.txt[]
+
+*-q*::
+    Only print the name of the port that matched your query. Print one match per
+    line.
+
+EFFICIENT SEARCHING
+-------------------
+The output of *search* can be overwhelming and confusing, especially with
+a large number of results. Here are a few tips to improve your search efficiency
+with MacPorts.
+
+Suppose you are looking for PHP in MacPorts. You might start with
+----
+$> port search php
+----
+and notice your query produces a lot of output. In fact, at the time of writing
+this, this search produces 763 matches. By default, *search* searches both name
+and description of a port. While we're looking for PHP, we can reduce the number
+of hits by using the *--name* flag. Furthermore, we only want ports whose name
+starts with “php”, so we add the *--glob* flag (actually, we could leave it out
+because it is the default) and modify the search term to *php**. Note that the
+asterisk needs to be escaped or quoted to prevent the shell from interpreting
+it:
+----
+$> port search --name --glob 'php*'
+----
+Since that still produces 689 results, we can activate compressed output using
+the *--line* flag
+----
+$> port search --line --name --glob 'php*'
+----
+Scrolling over the output, we see a large number of PHP modules starting with
+php<version>-<modulename>. That tells us the main PHP ports might be named
+php<version>. Using regex we can further narrow down the results:
+----
+$> port search --line --name --regex '^php\d+$'
+----
+
+Note it is not always necessary to drill down to reduce the amount of output.
+For example, if you're looking for *rrdtool*, a popular system to store and
+graph time-series data, the simple approach works well, with only 12 ports being
+returned:
+----
+$> port search rrd
+----
+
+
+SEE ALSO
+--------
+man:port[1], man:string[n], man:re_syntax[n], man:port-install[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
