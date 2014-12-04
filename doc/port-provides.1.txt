@@ -1,0 +1,43 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-provides(1)
+================
+$Id$
+
+NAME
+----
+port-provides - Find the port that installed a file
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* *provides* 'file' ...
+
+DESCRIPTION
+-----------
+*port provides* looks up which port installed a given file, if the file has been
+installed by MacPorts. If the given file is not known to MacPorts it was either
+obtained using a different method, or has been created by a script or an
+executable after installation.
+
+All files that are part of a port will be removed when you uninstall said port.
+For this reason, configuration files are often not registered to a port to
+preserve modifications across updates.
+
+[NOTE]
+You can only use *provides* on files that you have installed on your system.
+MacPorts does currently not have a global database of files. If you're looking
+for the port that provides a specific file, *provides* is useless to you.
+
+BUGS
+----
+If MacPorts is configured to use a prefix that contains symlinks, *provides* may
+incorrectly report that a file is unknown to MacPorts.
+
+SEE ALSO
+--------
+man:port[1], man:port-contents[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Clemens Lang <cal@macports.org>
