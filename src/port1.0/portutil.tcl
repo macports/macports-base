@@ -812,7 +812,7 @@ proc platform {args} {
 # subport, and also adds it to the list of subports that are defined.
 proc subport {subname body} {
     global subport name PortInfo
-    if {$subport == $name && $subname != $name && 
+    if {$subport eq $name && $subname ne $name && 
         (![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1)} {
         lappend PortInfo(subports) $subname
     }
