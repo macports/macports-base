@@ -317,7 +317,7 @@ namespace eval reclaim {
 
         ui_debug "Updating last run information."
 
-        set path    [file join ${macports::portdbpath} last_reclaim.txt]
+        set path    [file join ${macports::portdbpath} last_reclaim]
         set fd      [open $path w]
         puts $fd    [clock seconds]
         close_file $fd
@@ -334,7 +334,7 @@ namespace eval reclaim {
 
         ui_debug "Checking time since last reclaim run"
 
-        set path [file join ${macports::portdbpath} last_reclaim.txt]
+        set path [file join ${macports::portdbpath} last_reclaim]
 
         if {[file exists $path]} {
 

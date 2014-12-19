@@ -51,14 +51,14 @@ test update_last_run {
     # Constraints:
     #               Requires root to run. 
 
-    Tests for last_reclaim.txt being updated.
+    Tests for last_reclaim file being updated.
 
 } -constraints {
     root
 
 } -body {
 
-    set path     [file join ${macports::portdbpath} last_reclaim.txt]
+    set path     [file join ${macports::portdbpath} last_reclaim]
 
     set fd          [open $path w]
     close $fd
