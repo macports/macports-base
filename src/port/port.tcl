@@ -686,7 +686,7 @@ proc unobscure_maintainers { list } {
         if {[string first "@" $m] < 0} {
             if {[string first ":" $m] >= 0} {
                 set m [regsub -- "(.*):(.*)" $m "\\2@\\1"] 
-            } else {
+            } elseif {$m ne "openmaintainer" && $m ne "nomaintainer"} {
                 set m "$m@macports.org"
             }
         }
