@@ -238,6 +238,8 @@ namespace eval doctor {
         # Returns:
         #           None
 
+        # TODO: Should we drop privileges?
+
         output "compilation errors"
 
         set filename    "test.c"
@@ -246,15 +248,24 @@ namespace eval doctor {
         puts $fd "int main() { return 0; }"
         close $fd
 
-        set output      [exec clang $filename -o main_test]
+        # 'clang' will fail when using
+        # https://trac.macports.org/wiki/UsingTheRightCompiler#testing
+        # TODO: use default C compiler
+        # TODO: skip if no C compiler installed
+        catch {exec /usr/bin/clang $filename -o main_test} output
 
         file delete $filename
         file delete "main_test"
 
-        if {"couldn't create cache file" in $output} {
-            ui_warn "found errors when attempting to compile file. To fix this issue, delete your tmp folder using:
+        if {[string length $output] > 0} {
+            # Some type of error
+            if {[string match "*couldn't create cache file*" $output]} {
+                ui_warn "found errors when attempting to compile file. To fix this issue, delete your tmp folder using:
                        rm -rf \$TMPDIR"
-            success_fail 0 
+            } else {
+                ui_warn $output
+            }
+            success_fail 0
             return
         }
 
