@@ -7,8 +7,8 @@ Release 2.4 (unreleased)
     - Added interactive questions for various use cases like 'install',
       'activate', 'uninstall --follow-dependencies'. Also added global
       flag '-N' to provide non-interactive invocations.
-	  (shasha in branch gsoc14-interactive, merge in r124243)
-    
+      (shasha in branch gsoc14-interactive, merge in r124243)
+
     - Display notes for installed or updated ports at the end of the
       installation to prevent them from getting lost in the scrolling output.
       (#24507, cal in r118304, patch by snc)
