@@ -15,7 +15,7 @@ also contains a section on guide:development.practices.portstyle[Port Style].
 
 SEE ALSO
 --------
-man:portfile[1]
+man:portfile[7]
 
 AUTHORS
 -------
