@@ -1,0 +1,23 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+portstyle(7)
+============
+$Id$
+
+NAME
+----
+portstyle - style guide for Portfiles
+
+DESCRIPTION
+-----------
+This man page previously documented the style of Portfiles. The canonical source
+for the formatting of Portfiles is now the guide:[The MacPorts Guide], which
+also contains a section on guide:development.practices.portstyle[Port Style].
+
+SEE ALSO
+--------
+man:portfile[1]
+
+AUTHORS
+-------
+ (C) 2014 The MacPorts Project
+ Rainer Mueller <raimue@macports.org>
