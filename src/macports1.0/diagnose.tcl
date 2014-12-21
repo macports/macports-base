@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# doctor.tcl
-# $Id: doctor.tcl 119177 2014-04-18 22:35:29Z cal@macports.org $
+# diagnose.tcl
+# $Id: diagnose.tcl 119177 2014-04-18 22:35:29Z cal@macports.org $
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -57,18 +57,18 @@
 # Add error catching for line's without an equals sign. 
 # Support comments for the parser
 # Check for amount of drive space
-# Move port_doctor.ini to the port tree, below _resources 
+# Move port_diagnose.ini to the port tree, below _resources 
 # Check for curl
 # Check for rsync
 # Check if macports is in /opt/local
 
 
-package provide doctor 1.0 
+package provide diagnose 1.0 
 
 package require macports
 package require reclaim 1.0
 
-namespace eval doctor {
+namespace eval diagnose {
 
     # Command line argument that determines whether or not to output things fancily. 
     variable quiet 0
@@ -85,9 +85,9 @@ namespace eval doctor {
 
         # Setting the 'quiet' variable based on what was passed in.
         if {$opts ne ""} {
-            set doctor::quiet 1
+            set diagnose::quiet 1
         } else {
-            set doctor::quiet 0
+            set diagnose::quiet 0
         }
 
         array set config_options    [list]
@@ -95,7 +95,7 @@ namespace eval doctor {
                                     "xcode_version_10.7" "xcode_version_10.6" "xcode_version_10.7" "xcode_version_10.6" "xcode_version_10.5" \
                                     "xcode_version_10.4" "xcode_build"}
 
-        set user_config_path        ${macports::portdbpath}/port_doctor.ini
+        set user_config_path        ${macports::portdbpath}/port_diagnose.ini
         set xcode_config_path       [macports::getdefaultportresourcepath "macports1.0/xcode_versions.ini"] 
 
         # Make sure at least a default copy of the xcode and user config exist
@@ -203,7 +203,7 @@ namespace eval doctor {
         # Returns:
         #           None
 
-        if {${doctor::quiet} == 0} {
+        if {${diagnose::quiet} == 0} {
             ui_msg -nonewline "Checking for $string... "
         }
     }
@@ -217,7 +217,7 @@ namespace eval doctor {
         # Returns:
         #           None
 
-        if {${doctor::quiet} eq 0} {
+        if {${diagnose::quiet} eq 0} {
 
             if {$result == 1} {
 
@@ -364,7 +364,7 @@ namespace eval doctor {
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
                                && ![macports::ui_isset ports_verbose] \
                                && [info exists macports::ui_options(progress_generic)] \
-                               && ${doctor::quiet} == 0}]
+                               && ${diagnose::quiet} == 0}]
 
         if {$fancyOutput} {
             set progress $macports::ui_options(progress_generic)
@@ -373,7 +373,7 @@ namespace eval doctor {
         if {$totalFiles > 0} {
             if {$fancyOutput} {
                 output "files installed by ports on disk"
-                if {${doctor::quiet} == 0} {
+                if {${diagnose::quiet} == 0} {
                     # we need a newline here or the progress bar will overwrite the line
                     ui_msg ""
                 }

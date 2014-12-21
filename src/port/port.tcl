@@ -2725,11 +2725,11 @@ proc action_setrequested { action portlist opts } {
     return $status
 }
 
-proc action_doctor { action portlist opts } {
+proc action_diagnose { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    macports::doctor_main $opts
+    macports::diagnose_main $opts
     return 0
 }
 
@@ -4226,7 +4226,7 @@ array set action_array [list \
     upgrade     [list action_upgrade        [ACTION_ARGS_PORTS]] \
     rev-upgrade [list action_revupgrade     [ACTION_ARGS_NONE]] \
     reclaim     [list action_reclaim        [ACTION_ARGS_NONE]] \
-    doctor      [list action_doctor         [ACTION_ARGS_NONE]] \
+    diagnose    [list action_diagnose       [ACTION_ARGS_NONE]] \
     \
     version     [list action_version        [ACTION_ARGS_NONE]] \
     platform    [list action_platform       [ACTION_ARGS_NONE]] \
@@ -4386,7 +4386,7 @@ array set cmd_opts_array {
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}
-    doctor      {quiet}
+    diagnose    {quiet}
 }
 
 ##

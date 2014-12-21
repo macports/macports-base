@@ -1,21 +1,21 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
-port-doctor(1)
+port-diagnose(1)
 ==============
 $Id$
 
 NAME
 ----
-port-doctor - Detects common issues 
+port-diagnose - Detects common issues 
 
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port doctor*
+*port diagnose*
         [--quiet]
 
 DESCRIPTION
 -----------
-*port doctor* will check a list of common issues that could affect the user or
+*port diagnose* will check a list of common issues that could affect the user or
 MacPorts in one way or another. If any issues are found, a warning will be
 shown to the user included with a possible fix for said problem.
 

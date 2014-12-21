@@ -31,11 +31,11 @@ MAN1=	\
 		port-dependents.1 \
 		port-deps.1 \
 		port-destroot.1 \
+		port-diagnose.1 \
 		port-dir.1 \
 		port-distcheck.1 \
 		port-distfiles.1 \
 		port-dmg.1 \
-		port-doctor.1 \
 		port-echo.1 \
 		port-edit.1 \
 		port-exit.1 \

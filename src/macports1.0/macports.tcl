@@ -36,7 +36,7 @@
 package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_util 1.0
-package require doctor 1.0
+package require diagnose 1.0
 package require reclaim 1.0
 package require Tclx
 
@@ -4425,16 +4425,16 @@ proc macports::arch_runnable {arch} {
     return yes
 }
 
-proc macports::doctor_main {opts} {
+proc macports::diagnose_main {opts} {
     
-    # Calls the main function for the 'port doctor' command.
+    # Calls the main function for the 'port diagnose' command.
     #
     # Args: 
     #           None
     # Returns:
     #           0 on successful execution.
 
-    doctor::main $opts
+    diagnose::main $opts
     return 0
 }
 
