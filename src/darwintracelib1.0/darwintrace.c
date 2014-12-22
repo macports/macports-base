@@ -491,7 +491,7 @@ static int dependency_check(const char *path) {
 }
 
 /**
- * Helper function to recieve a number of bytes from the tracelib communication
+ * Helper function to receive a number of bytes from the tracelib communication
  * socket and deal with any errors that might occur.
  *
  * \param[out] buf buffer to hold received data
