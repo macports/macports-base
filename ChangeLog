@@ -5,7 +5,7 @@
 
 Release 2.4 (unreleased)
     - Added "setunrequested" alias for "unsetrequested" command.
-      (ionic in r???)
+      (ionic in r130217)
 
     - Added interactive questions for various use cases like 'install',
       'activate', 'uninstall --follow-dependencies'. Also added global
