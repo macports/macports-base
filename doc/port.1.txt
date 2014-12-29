@@ -320,6 +320,9 @@ setrequested::
 unsetrequested::
     Mark portname as unrequested.
 
+setunrequested::
+    Alias for unsetrequested command.
+
 installed::
     Show the installed version, variants and activation status for each
     'portname'. If no arguments are given, all installed ports are displayed.

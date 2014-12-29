@@ -4222,6 +4222,7 @@ array set action_array [list \
     \
     setrequested   [list action_setrequested  [ACTION_ARGS_PORTS]] \
     unsetrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
+    setunrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
     \
     upgrade     [list action_upgrade        [ACTION_ARGS_PORTS]] \
     rev-upgrade [list action_revupgrade     [ACTION_ARGS_NONE]] \
@@ -4573,6 +4574,7 @@ proc lock_reg_if_needed {action} {
         deactivate -
         setrequested -
         unsetrequested -
+        setunrequested -
         upgrade -
         uninstall -
         install {
