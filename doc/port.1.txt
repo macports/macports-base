@@ -407,7 +407,8 @@ in the latest installed version of the port, and finally the global variants
 specified in variants.conf, if any. Note that upgrade will not normally rebuild
 a port only to change the selected variants; you can either specify
 *--enforce-variants*, or deactivate the port and reinstall it with different
-variants.
+variants. *--enforce-variants* will retain the variant merging procedure
+described previously. Variants will not be reset to the default values.
 
 // Forcing a new paragraph here by inserting a dummy space
 {nbsp}

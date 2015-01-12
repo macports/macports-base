@@ -891,6 +891,8 @@ port \-n upgrade wireshark
 .br
 By selecting the variants to use in the upgraded build of the port, any variants specified on the command line take highest precedence, then the variants active in the latest installed version of the port, and finally the global variants specified in variants\&.conf, if any\&. Note that upgrade will not normally rebuild a port only to change the selected variants; you can either specify
 \fB\-\-enforce\-variants\fR, or deactivate the port and reinstall it with different variants\&.
+\fB\-\-enforce\-variants\fR
+will retain the variant merging procedure described previously\&. Variants will not be reset to the default values\&.
 .sp .5v
 .RE
 \ \&
