@@ -304,15 +304,16 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         set portilist {}
         for {set j 0} {$j < [llength $alldeps]} {incr j} {
             set dep [lindex $alldeps $j]
+            set uninstalling_this_dep 0
             if {![catch {set ilist [registry::installed $dep]}]} {
                 foreach i $ilist {
-                    set dependents {}
                     set iversion [lindex $i 1]
                     set irevision [lindex $i 2]
                     set ivariants [lindex $i 3]
                     set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
                     if {![registry::property_retrieve $regref requested]} {
                         set dependentlist [registry::list_dependents $dep $iversion $irevision $ivariants]
+                        set dependents {}
                         foreach depdt $dependentlist {
                             lappend dependents [lindex $depdt 2]
                         }
@@ -326,16 +327,19 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                         if {$all_dependents_uninstalling} {
                             lappend uports $dep
                             lappend portilist $dep@${iversion}_${irevision}${ivariants}
+                            set uninstalling_this_dep 1
                         }
                     }
                 }
             }
-            set deprefs [registry::entry imaged $dep]
-            foreach depref $deprefs {
-                set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
-                foreach d $depdeps {
-                    if {[lsearch -exact $alldeps $d] == -1} {
-                        lappend alldeps $d 
+            if {$uninstalling_this_dep} {
+                set deprefs [registry::entry imaged $dep]
+                foreach depref $deprefs {
+                    set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
+                    foreach d $depdeps {
+                        if {[lsearch -exact $alldeps $d] == -1} {
+                            lappend alldeps $d 
+                        }
                     }
                 }
             }
