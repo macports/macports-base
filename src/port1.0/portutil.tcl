@@ -1363,6 +1363,8 @@ proc target_run {ditem} {
     set savedhome [file join $portdbpath home]
     set env(HOME) "${workpath}/.home"
     set env(TMPDIR) "${workpath}/.tmp"
+    # targets to run even in dry-run mode (these should have their own dry-run checks)
+    set dryrun_allow_targets {org.macports.uninstall}
 
     if {[ditem_key $ditem state] ne "no"} {
         set target_state_fd [open_statefile]
@@ -1394,7 +1396,7 @@ proc target_run {ditem} {
             }
 
             # Of course, if this is a dry run, don't do the task:
-            if {[info exists ports_dryrun] && $ports_dryrun eq "yes"} {
+            if {[info exists ports_dryrun] && $ports_dryrun eq "yes" && [lsearch -exact $dryrun_allow_targets $targetname] == -1} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
                     ui_notice "For $portname: skipping $targetname (dry run)"
