@@ -133,6 +133,8 @@ proc portconfigure::add_build_dep { type dep } {
         ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq $option_defaults(${type}.cmd)) ||
         (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq ${type})
         )} {
+            # Add dependencies if they are not already in the list
+            depends_build-delete {*}$dep
             depends_build-append {*}$dep
     }
 }
