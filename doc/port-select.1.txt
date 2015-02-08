@@ -1,0 +1,77 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-select(1)
+==============
+$Id$
+
+NAME
+----
+port-select - Switch between different implementations of a tool
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-dvp*] *select* --summary
+
+[cmdsynopsis]
+*port* [*-dvp*] *select* --show 'group'
+
+[cmdsynopsis]
+*port* [*-dvp*] *select* [--list] 'group'
+
+[cmdsynopsis]
+*port* [*-dvp*] *select* [--set] 'group' 'option'
+
+DESCRIPTION
+-----------
+*port select* provides a mechanism to choose from different implementations of
+a common tool or port. Selecting one of the options makes it the primary version
+or implementation, e.g. the one to be run by default when you do not explicitly
+select a version or implementation on the command line.
+
+One example is the set of MySQL and forks of MySQL, where there are mysql51,
+mysql55, mysql56, mariadb, mariadb-10.0, mariadb-11.0, percona, possibly among
+others. *port select* lets you choose which of these becomes the version run,
+when you simply run 'mysql' or other commands from the MySQL suite.
+
+*port select* has multiple modes of operation: It can display a summary, show
+the current primary implementation and list all available implementations given
+a group name, and change the primary implementation. See *OPTIONS* below for
+details.
+
+OPTIONS
+-------
+*--summary*::
+    Display a summary of all available selection groups, their current primary
+    implementation and a list of all available choices.
+
+*--show* 'group'::
+    Print the current primary implementation for the given group.
+
+*--list* 'group'::
+    Print a list of all currently available choices for the given group. This is
+    the default when *port select* is called with one argument.
+
+*--set* 'group' 'option'::
+    Make 'option' the primary selection for the 'group' group. This is the
+    default when *port select* is called with two arguments.
+
+include::global-flags.txt[]
+
+EXAMPLES
+--------
+If you have both the mysql56 and the percona port installed, you can switch your
+implementation of the 'mysql' command by running
+----
+$> sudo port select --set mysql $option
+----
+where '$option' is 'mysql56' if you want the version from MySQL, or 'percona',
+if you want the version from Percona.
+
+SEE ALSO
+--------
+man:port[1]
+
+AUTHORS
+-------
+ (C) 2015 The MacPorts Project
+ Clemens Lang <cal@macports.org>
