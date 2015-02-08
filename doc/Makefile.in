@@ -72,8 +72,11 @@ MAN1=	\
 		port-search.1 \
 		port-select.1 \
 		port-selfupdate.1 \
+		port-setrequested.1 \
+		port-setunrequested.1 \
 		port-uninstall.1 \
 		port-unload.1 \
+		port-unsetrequested.1 \
 		port-url.1 \
 		port-work.1 \
 		port.1 \
