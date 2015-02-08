@@ -42,6 +42,8 @@ port-select \- Switch between different implementations of a tool
 .sp
 \fBport select\fR provides a mechanism to choose from different implementations of a common tool or port\&. Selecting one of the options makes it the primary version or implementation, e\&.g\&. the one to be run by default when you do not explicitly select a version or implementation on the command line\&.
 .sp
+Note that \fBport select\fR is only for your convenience as user\&. It does not, for example, affect which compiler MacPorts uses when it compiles software, or against which copy of MySQL a port builds\&. If there is a user\-visible choice, it is usually offered as a variant on the port\&. If the \fBport select\fR mechanism affects how a port builds, that should be considered a bug\&.
+.sp
 One example is the set of MySQL and forks of MySQL, where there are mysql51, mysql55, mysql56, mariadb, mariadb\-10\&.0, mariadb\-11\&.0, percona, possibly among others\&. \fBport select\fR lets you choose which of these becomes the version run, when you simply run \fImysql\fR or other commands from the MySQL suite\&.
 .sp
 \fBport select\fR has multiple modes of operation: It can display a summary, show the current primary implementation and list all available implementations given a group name, and change the primary implementation\&. See \fBOPTIONS\fR below for details\&.
