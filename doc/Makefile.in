@@ -70,6 +70,7 @@ MAN1=	\
 		port-reload.1 \
 		port-rev-upgrade.1 \
 		port-search.1 \
+		port-select.1 \
 		port-selfupdate.1 \
 		port-uninstall.1 \
 		port-unload.1 \
