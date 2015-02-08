@@ -28,6 +28,12 @@ a common tool or port. Selecting one of the options makes it the primary version
 or implementation, e.g. the one to be run by default when you do not explicitly
 select a version or implementation on the command line.
 
+Note that *port select* is only for your convenience as user. It does not, for
+example, affect which compiler MacPorts uses when it compiles software, or
+against which copy of MySQL a port builds. If there is a user-visible choice, it
+is usually offered as a variant on the port. If the *port select* mechanism
+affects how a port builds, that should be considered a bug.
+
 One example is the set of MySQL and forks of MySQL, where there are mysql51,
 mysql55, mysql56, mariadb, mariadb-10.0, mariadb-11.0, percona, possibly among
 others. *port select* lets you choose which of these becomes the version run,
