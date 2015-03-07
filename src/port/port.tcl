@@ -4361,7 +4361,7 @@ proc action_needs_portlist { action } {
 global cmd_opts_array
 array set cmd_opts_array {
     edit        {{editor 1}}
-    info        {category categories depends_fetch depends_extract
+    info        {category categories conflicts depends_fetch depends_extract
                  depends_build depends_lib depends_run
                  depends description epoch fullname heading homepage index license
                  line long_description

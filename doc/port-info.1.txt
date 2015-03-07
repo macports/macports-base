@@ -11,12 +11,13 @@ SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-q*] [*-D* 'portdir'] *info*
-     [--categories|--category] [--depends] [--depends_fetch] [--depends_extract]
-     [--depends_build] [--depends_lib] [--depends_run] [--description] [--epoch]
-     [--fullname] [--heading] [--homepage] [--index] [--license] [--line]
-     [--long_description] [--maintainer|--maintainers] [--name] [--patchfiles]
-     [--platform|--platforms] [--portdir] [--pretty] [--replaced_by]
-     [--revision] [--subports] [--variant|--variants] [--version]
+     [--categories|--category] [--conflicts] [--depends] [--depends_fetch]
+     [--depends_extract] [--depends_build] [--depends_lib] [--depends_run]
+     [--description] [--epoch] [--fullname] [--heading] [--homepage] [--index]
+     [--license] [--line] [--long_description] [--maintainer|--maintainers]
+     [--name] [--patchfiles] [--platform|--platforms] [--portdir] [--pretty]
+     [--replaced_by] [--revision] [--subports] [--variant|--variants]
+     [--version]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
@@ -48,6 +49,9 @@ The rest of the options affect which fields will be given in the output:
 
 *--category*, *--categories*::
     List the categories of a port.
+
+*--conflicts*::
+    List other ports that cannot be active at the same time as the given port.
 
 *--depends*, *--depends_fetch*, *--depends_extract*, *--depends_build*, *--depends_lib*, *--depends_run*::
     List the specified dependencies of a port. *--depends* is a shorthand option
