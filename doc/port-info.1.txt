@@ -14,7 +14,7 @@ SYNOPSIS
      [--categories|--category] [--depends] [--depends_fetch] [--depends_extract]
      [--depends_build] [--depends_lib] [--depends_run] [--description] [--epoch]
      [--fullname] [--heading] [--homepage] [--index] [--license] [--line]
-     [--long_description] [--maintainer|--maintainers] [--name]
+     [--long_description] [--maintainer|--maintainers] [--name] [--patchfiles]
      [--platform|--platforms] [--portdir] [--pretty] [--replaced_by]
      [--revision] [--subports] [--variant|--variants] [--version]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
@@ -78,6 +78,11 @@ The rest of the options affect which fields will be given in the output:
 *--name*::
     Print the name of a port.
 
+*--patchfiles*::
+    List the patches that will be applied to the port, taking the current
+    platform and selected variants into account. This information will not be
+    available if *--index* is specified.
+
 *--platform*, *--platforms*::
     List the platforms supported by a port. This field exists for historical
     reasons only. In modern MacPorts, this is always 'darwin', i.e., OS X.
@@ -106,5 +111,5 @@ man:port[1]
 
 AUTHORS
 -------
- (C) 2014 The MacPorts Project
+ (C) 2014-2015 The MacPorts Project
  Clemens Lang <cal@macports.org>

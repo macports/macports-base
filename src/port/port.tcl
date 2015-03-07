@@ -2051,6 +2051,7 @@ proc action_info { action portlist opts } {
             variants        1
             conflicts       1
             subports        1
+            patchfiles      1
         "
 
         # Label map for pretty printing
@@ -2072,6 +2073,7 @@ proc action_info { action portlist opts } {
             conflicts   "Conflicts with"
             replaced_by "Replaced by"
             subports    "Sub-ports"
+            patchfiles  "Patchfiles"
         }
 
         # Wrap-length map for pretty printing
@@ -2092,6 +2094,7 @@ proc action_info { action portlist opts } {
             conflicts 22
             maintainers 22
             subports 22
+            patchfiles 22
         }
 
         # Interpret a convenient field abbreviation
@@ -4362,8 +4365,8 @@ array set cmd_opts_array {
                  depends_build depends_lib depends_run
                  depends description epoch fullname heading homepage index license
                  line long_description
-                 maintainer maintainers name platform platforms portdir pretty
-                 replaced_by revision subports variant variants version}
+                 maintainer maintainers name patchfiles platform platforms portdir
+                 pretty replaced_by revision subports variant variants version}
     contents    {size {units 1}}
     deps        {index no-build}
     rdeps       {index no-build full}

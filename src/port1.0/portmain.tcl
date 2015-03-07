@@ -67,7 +67,7 @@ option_proc default_variants handle_default_variants
 option_proc notes handle_option_string
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs license_noconflict
+options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs license_noconflict patchfiles
 
 default subport {[portmain::get_default_subport]}
 proc portmain::get_default_subport {} {
