@@ -3567,12 +3567,9 @@ proc action_variants { action portlist opts } {
             ui_notice "$portname has no variants"
         } else {
             array unset vinfo
-            # Use the new format if it exists.
+            # Use the variant info if it exists.
             if {[info exists portinfo(vinfo)]} {
                 array set vinfo $portinfo(vinfo)
-            # Otherwise fall back to the old format.
-            } elseif {[info exists portinfo(variant_desc)]} {
-                array set vdescriptions $portinfo(variant_desc)
             }
 
             # print out all the variants
@@ -3606,10 +3603,6 @@ proc action_variants { action portlist opts } {
                     if {[info exists variant(requires)]} {
                         set vrequires $variant(requires)
                     }
-                # Retrieve variants' information from the old format,
-                # which only consists of the description.
-                } elseif {[info exists vdescriptions($v)]} {
-                    set vdescription $vdescriptions($v)
                 }
 
                 if {[info exists vdescription]} {

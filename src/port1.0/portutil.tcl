@@ -566,9 +566,7 @@ proc variant {args} {
     # Each key in PortInfo(vinfo) maps to an array which contains the
     # following keys:
     #   * conflicts
-    #   * description: This key's mapping is duplicated in
-    #                  PortInfo(variant_desc) for backward compatibility
-    #                  reasons (specifically 1.7.0's format of PortIndex).
+    #   * description
     #   * is_default: This key exists iff the variant is a default variant.
     #   * requires
     if {![info exists PortInfo(vinfo)]} {
@@ -636,9 +634,6 @@ proc variant {args} {
         # Set description.
         if {$vdesc ne ""} {
             array set variant [list description $vdesc]
-            # XXX: The following line should be removed after 1.8.0 is
-            #      released.
-            lappend PortInfo(variant_desc) $variant_provides $vdesc
         }
 
         # Set requires.
