@@ -4,6 +4,10 @@
 ###
 
 Release 2.4 (unreleased)
+    - Added macports_version to the Portfile execution context, to allow
+      checking the current MacPorts version in Portfiles.
+      (cal in r134511)
+
     - Added "setunrequested" alias for "unsetrequested" command.
       (ionic in r130217)
 
