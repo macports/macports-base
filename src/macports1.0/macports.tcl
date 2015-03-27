@@ -80,6 +80,19 @@ namespace eval macports {
     variable ui_prefix "---> "
 }
 
+##
+# Return the version of MacPorts you are running
+#
+# This proc never fails and always returns the current version in the format
+# major.minor.patch. Note that the value of patch will not be meaningful for
+# trunk releases, but we guarantee that it will compare to be greater than any
+# released versions from the same major.minor.x series. You should use the
+# MacPorts-provided Tcl extension "vercmp" to do version number comparisons on
+# the return value of this function.
+proc macports::version {} {
+    return ${macports::autoconf::macports_version}
+}
+
 # Provided UI instantiations
 # For standard messages, the following priorities are defined
 #     debug, info, msg, warn, error
@@ -1326,6 +1339,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias ui_warn_once ui_warn_once
 
     # Export some utility functions defined here.
+    $workername alias macports_version macports::version
     $workername alias macports_create_thread macports::create_thread
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
     $workername alias getportresourcepath macports::getportresourcepath
