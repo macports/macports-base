@@ -2036,8 +2036,8 @@ proc mportexec {mport target} {
     if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target $workername]]} {
         registry::exclusive_lock
         # see if we actually need to build this port
-        if {($target ne {activate} && $target ne {install}) ||
-            ![$workername eval registry_exists \$subport \$version \$revision \$portvariants]} {
+        if {$target ni {activate install} ||
+            ![$workername eval registry_exists {$subport} {$version} {$revision} {$portvariants}]} {
 
             # upgrade dependencies that are already installed
             if {![macports::global_option_isset ports_nodeps]} {
@@ -2174,12 +2174,11 @@ proc macports::_upgrade_mport_deps {mport target} {
 
                 # check that the dep has the required archs
                 set active_archs [_get_registry_archs $dep_portname]
-                if {$deptype ne {depends_fetch} && $deptype ne {depends_extract}
-                    && $active_archs ne {} && $active_archs ne {noarch} && $required_archs ne {noarch}
-                    && [lsearch -exact $depends_skip_archcheck $dep_portname] == -1} {
+                if {$deptype ni {depends_fetch depends_extract} && $active_archs ni {{} noarch}
+                    && $required_archs ne {noarch} && $dep_portname ni $depends_skip_archcheck} {
                     set missing {}
                     foreach arch $required_archs {
-                        if {[lsearch -exact $active_archs $arch] == -1} {
+                        if {$arch ni $active_archs} {
                             lappend missing $arch
                         }
                     }
@@ -3137,7 +3136,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         flush stdout
     }
 
-    if {$target eq {} || $target eq {install} || $target eq {activate}} {
+    if {$target in {{} install activate}} {
         _mporterrorifconflictsinstalled $mport
     }
 
@@ -3199,7 +3198,8 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             }
 
             set check_archs 0
-            if {$dep_portname ne {} && $deptype ne {depends_fetch} && $deptype ne {depends_extract} && [lsearch -exact $depends_skip_archcheck $dep_portname] == -1} {
+            if {$dep_portname ne {} && $deptype ni {depends_fetch depends_extract}
+                && $dep_portname ni $depends_skip_archcheck} {
                 set check_archs 1
             }
 
@@ -3258,7 +3258,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 mportclose $depport
                 set arch_mismatch 1
                 set has_universal 0
-                if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
+                if {[info exists dep_portinfo(variants)] && {universal} in $dep_portinfo(variants)} {
                     # a universal variant is offered
                     set has_universal 1
                     if {![info exists variation_array(universal)] || $variation_array(universal) ne {+}} {
@@ -3348,7 +3348,7 @@ proc macports::_active_supports_archs {portname required_archs} {
         return 1
     }
     foreach arch $required_archs {
-        if {[lsearch -exact $provided_archs $arch] == -1} {
+        if {$arch ni $provided_archs} {
             return 0
         }
     }
