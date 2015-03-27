@@ -208,7 +208,7 @@ proc ditem_contains {ditem key args} {
 proc dlist_append_dependents {dlist ditem result} {
 	# Only append things if the root item is not in the list.
 	# (otherwise, it means we already did this sub-graph)
-	if {[lsearch $result $ditem] == -1} {
+	if {$ditem ni $result} {
 		lappend result $ditem
 
 		# Recursively append any hard dependencies.
