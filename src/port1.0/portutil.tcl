@@ -1281,7 +1281,7 @@ proc ln {args} {
 # all the globals in its scope.  This is undeniably ugly, but I haven't
 # thought of any other way to do this.
 proc makeuserproc {name body} {
-    append modified_body {global {*}[info globals]\n} $body
+    append modified_body {global {*}[info globals]} \n $body
     proc $name {} $modified_body
 }
 
