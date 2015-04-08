@@ -1,4 +1,4 @@
-eval ::tcltest::configure $::argv
+::tcltest::configure {*}$::argv
 
 set output_file "output"
 set work_dir "work"

@@ -86,8 +86,8 @@ proc portmpkg::make_dependency_list {portname destination} {
 
     # get the union of depends_run and depends_lib
     set depends {}
-    if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-    if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+    if {[info exists portinfo(depends_run)]} { lappend depends {*}$portinfo(depends_run) }
+    if {[info exists portinfo(depends_lib)]} { lappend depends {*}$portinfo(depends_lib) }
 
     foreach depspec $depends {
         set dep [_get_dep_port $depspec]

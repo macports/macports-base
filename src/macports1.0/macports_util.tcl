@@ -112,7 +112,7 @@ proc ldindex {varName args} {
     
         if {[llength $args] > 1} {
             set list [uplevel 1 [subst -nocommands {lindex [set $varName] $idx}]]
-            set item [eval ldindex list [lrange $args 1 end]]
+            set item [ldindex list {*}[lrange $args 1 end]]
             uplevel 1 [subst {lset $varName $idx [list $list]}]
         } else {
             set item [uplevel 1 [subst -nocommands {lindex [set $varName] $idx}]]
