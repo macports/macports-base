@@ -458,7 +458,7 @@ test makeuserproc {
     global MP
     set MP macports
 } -body {
-    makeuserproc test-proc "\{ if \{ \$MP == \"macports\" \} \{return \"works\"\} \}"
+    makeuserproc test-proc { if { $MP == "macports" } {return "works"} }
     set res [test-proc]
     if { $res != "works" } { return "FAIL: global var not set in proc" }
     return "Make user proc successful."
