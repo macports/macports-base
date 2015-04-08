@@ -601,7 +601,7 @@ proc variant {args} {
 
     # make a user procedure named variant-blah-blah
     # we will call this procedure during variant-run
-    makeuserproc "variant-[ditem_key $ditem name]" \{$code\}
+    makeuserproc variant-[ditem_key $ditem name] $code
 
     # Export provided variant to PortInfo
     # (don't list it twice if the variant was already defined, which can happen
@@ -1281,8 +1281,8 @@ proc ln {args} {
 # all the globals in its scope.  This is undeniably ugly, but I haven't
 # thought of any other way to do this.
 proc makeuserproc {name body} {
-    regsub -- "^\{(.*?)" $body "\{ \n foreach g \[info globals\] \{ \n global \$g \n \} \n \\1" body
-    eval "proc $name {} $body"
+    append modified_body {global {*}[info globals]\n} $body
+    proc $name {} $modified_body
 }
 
 # backup
@@ -2199,7 +2199,7 @@ proc target_provides {ditem args} {
         set origproc [ditem_key $ditem procedure]
         set ident [ditem_key $ditem name]
         if {[info commands $target] eq ""} {
-            proc $target {args} "
+            proc $target {code} "
                 variable proc_index
                 set proc_index \[llength \[ditem_key $ditem proc\]\]
                 ditem_key $ditem procedure proc-${ident}-${target}-\${proc_index}
@@ -2211,10 +2211,10 @@ proc target_provides {ditem args} {
                     }
                 \"
                 proc do-$target {} { $origproc $target }
-                makeuserproc userproc-${ident}-${target}-\${proc_index} \$args
+                makeuserproc userproc-${ident}-${target}-\${proc_index} \$code
             "
         }
-        proc pre-$target {args} "
+        proc pre-$target {code} "
             variable proc_index
             set proc_index \[llength \[ditem_key $ditem pre\]\]
             ditem_append $ditem pre proc-pre-${ident}-${target}-\${proc_index}
@@ -2225,9 +2225,9 @@ proc target_provides {ditem args} {
                     return 0
                 }
             \"
-            makeuserproc userproc-pre-${ident}-${target}-\${proc_index} \$args
+            makeuserproc userproc-pre-${ident}-${target}-\${proc_index} \$code
         "
-        proc post-$target {args} "
+        proc post-$target {code} "
             variable proc_index
             set proc_index \[llength \[ditem_key $ditem post\]\]
             ditem_append $ditem post proc-post-${ident}-${target}-\${proc_index}
@@ -2238,7 +2238,7 @@ proc target_provides {ditem args} {
                     return 0
                 }
             \"
-            makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$args
+            makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$code
         "
     }
     ditem_append $ditem provides {*}$args
