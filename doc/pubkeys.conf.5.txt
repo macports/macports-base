@@ -1,0 +1,43 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+pubkeys.conf(5)
+===============
+$Id$
+
+NAME
+----
+pubkeys.conf - public key configuration file of the MacPorts system
+
+DESCRIPTION
+-----------
+*pubkeys.conf* is the configuration file used by the MacPorts system to locate
+the public keys used to verify the integrity and authenticity of
+
+- the tree of port definitions,
+- downloaded pre-built binary archives, and
+- MacPorts updates.
+
+The file is read by the *port* command. Lines beginning with '#' are comments,
+empty lines are ignored. All other lines must contain absolute paths of
+PEM-encoded RSA public keys for use by OpenSSL.
+
+MacPorts comes pre-configured with its official public key. The authenticity of
+the public key file is provided by the MacPorts installer, which is
+cryptographically signed with an Apple Developer ID of one of the MacPorts
+developers. Unless you want to provide your own separate ports tree or your own
+pre-built binary archives, there is no need to modify the *pubkeys.conf* file.
+
+FILES
+-----
+$\{prefix\}/etc/macports/pubkeys.conf::
+    Standard system-wide MacPorts public key configuration file.
+
+User-specific configuration of public keys is not supported.
+
+SEE ALSO
+--------
+man:port[1], man:macports.conf[5]
+
+AUTHORS
+-------
+  (C) 2015 The MacPorts Project
+  Clemens Lang <cal@macports.org>
