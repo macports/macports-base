@@ -1829,7 +1829,7 @@ proc action_help { action portlist opts } {
         # Look for an action with the requested argument
         set actions [find_action $topic]
         if {[llength $actions] == 1} {
-            set page "man1/port-[lindex $actions 0].1$manext"
+            set page "man1/port-[lindex $actions 0].1${manext}"
         } else {
             if {[llength $actions] > 1} {
                 ui_error "\"port help ${action}\" is ambiguous: \n  port help [join $actions "\n  port help "]"
@@ -1838,11 +1838,26 @@ proc action_help { action portlist opts } {
 
             # No valid command specified
             set page ""
+            # Try to find the manpage in sections 5 (configuration) and 7
+            foreach section {5 7} {
+                set page_candidate "man${section}/${topic}.${section}${manext}"
+                set pagepath ${macports::prefix}/share/man/${page_candidate}
+                ui_debug "testing $pagepath..."
+                if {[file exists $pagepath]} {
+                    set page $page_candidate
+                    break
+                }
+            }
         }
     }
 
-    set pagepath ${macports::prefix}/share/man/$page
-    if {$page == "" || ![file exists $pagepath]} {
+    set pagepath ""
+    if {$page ne ""} {
+        set pagepath ${macports::prefix}/share/man/$page
+    }
+    if {$page ne "" && ![file exists $pagepath]} {
+        # command exists, but there doesn't seem to be a manpage for it; open
+        # portundocumented.7
         set page "man7/portundocumented.7$manext"
         set pagepath ${macports::prefix}/share/man/$page
     }
@@ -1860,7 +1875,7 @@ proc action_help { action portlist opts } {
         }
         array set env [array get boot_env]
 
-        if [catch {system -nodup "${macports::autoconf::man_path} $pagepath"} result] {
+        if [catch {system -nodup [list ${macports::autoconf::man_path} $pagepath]} result] {
             ui_debug "$::errorInfo"
             ui_error "Unable to show man page using ${macports::autoconf::man_path}: $result"
             return 1
