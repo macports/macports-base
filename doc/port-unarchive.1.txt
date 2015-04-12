@@ -1,0 +1,34 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-unarchive(1)
+=================
+$Id$
+
+NAME
+----
+port-unarchive - Extract the destroot of the given ports from a binary archive
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vdtoy*] [*-D* 'portdir'] *unarchive*
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+     [+/- variant ...]
+
+DESCRIPTION
+-----------
+Extract the destroot (i.e. the set of files that are installed by a port) from
+installed or downloaded binary archives. Usually, users will not have to run
+this command manually. It is run automatically by MacPorts when installing
+a port from a pre-built binary. The possibility to execute it directly exists
+for debugging purposes.
+
+include::global-flags.txt[]
+
+SEE ALSO
+--------
+man:port[1], man:port-install[1]
+
+AUTHORS
+-------
+ (C) 2015 The MacPorts Project
+ Clemens Lang <cal@macports.org>
