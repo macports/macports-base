@@ -23,15 +23,15 @@
 sources.conf \- port definition configuration file of the MacPorts system
 .SH "DESCRIPTION"
 .sp
-\fBsources\&.conf\fR is the configuration file used by the MacPorts system to locate its port definitions\&. The file is read by the \fBport\fR command to find available ports and how to install them\&. Entries in this file are URIs optionally followed by flags in square brackets\&. Each source specification is given on a separate line\&. A grammar in EBNF is given below:
+\fBsources\&.conf\fR is the configuration file used by the MacPorts system to locate its port definitions\&. The file is read by the \fBport\fR command to find available ports and how to install them\&. Lines beginning with \fI#\fR are comments, empty lines are ignored\&. Entries in this file are URIs optionally followed by flags in square brackets\&. Each source specification is given on a separate line\&. A grammar in EBNF is given below:
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-<line>  ::= <URI> [ \*(Aq[\*(Aq <flags> \*(Aq]\*(Aq ]
-<flags> ::= <flag> [ \*(Aq,\*(Aq [ \*(Aq \*(Aq | \*(Aq\et\*(Aq ] <flags> ]
-<flag>  ::= \*(Aqdefault\*(Aq | \*(Aqnosync\*(Aq
+line  = URI, [ \*(Aq[\*(Aq, flag, { space, flag }, \*(Aq]\*(Aq ] ;
+flag  = \*(Aqdefault\*(Aq | \*(Aqnosync\*(Aq ;
+space = \*(Aq \*(Aq | \*(Aq\et\*(Aq ;
 .fi
 .if n \{\
 .RE
