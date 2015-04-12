@@ -74,14 +74,24 @@ MAN1=	\
 		port-selfupdate.1 \
 		port-setrequested.1 \
 		port-setunrequested.1 \
+		port-space.1 \
+		port-sync.1 \
+		port-test.1 \
 		port-uninstall.1 \
 		port-unload.1 \
 		port-unsetrequested.1 \
+		port-upgrade.1 \
 		port-url.1 \
+		port-usage.1 \
+		port-variants.1 \
+		port-version.1 \
 		port-work.1 \
 		port.1 \
 
-MAN5=		macports.conf.5
+MAN5=		\
+		macports.conf.5 \
+		sources.conf.5 \
+
 MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7 portundocumented.7
 MAN=		${MAN1} ${MAN5} ${MAN7}
 
