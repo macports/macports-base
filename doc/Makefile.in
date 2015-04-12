@@ -91,6 +91,7 @@ MAN1=	\
 
 MAN5=		\
 		macports.conf.5 \
+		pubkeys.conf.5 \
 		sources.conf.5 \
 		variants.conf.5 \
 
