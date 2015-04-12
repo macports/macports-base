@@ -10,7 +10,7 @@ port-space - Show the disk usage of the given ports
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-D* 'portdir']  *space* [--units 'unit'] ['total']
+*port* [*-D* 'portdir'] *space* [--units 'unit'] ['total']
     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
