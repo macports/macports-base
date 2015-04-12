@@ -11,13 +11,14 @@ DESCRIPTION
 -----------
 *sources.conf* is the configuration file used by the MacPorts system to locate
 its port definitions. The file is read by the *port* command to find available
-ports and how to install them. Entries in this file are URIs optionally followed
-by flags in square brackets. Each source specification is given on a separate
-line. A grammar in EBNF is given below:
+ports and how to install them. Lines beginning with '#' are comments, empty
+lines are ignored. Entries in this file are URIs optionally followed by flags in
+square brackets. Each source specification is given on a separate line.
+A grammar in EBNF is given below:
 --------
-<line>  ::= <URI> [ '[' <flags> ']' ]
-<flags> ::= <flag> [ ',' [ ' ' | '\t' ] <flags> ]
-<flag>  ::= 'default' | 'nosync'
+line  = URI, [ '[', flag, { space, flag }, ']' ] ;
+flag  = 'default' | 'nosync' ;
+space = ' ' | '\t' ;
 --------
 
 URI FORMATS

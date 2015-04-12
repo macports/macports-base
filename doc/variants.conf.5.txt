@@ -21,9 +21,9 @@ man:port-variants[1].
 tab-delimited list of zero or more variants, where each variant is either
 explicitly enabled or disabled using a leading '+' or '-'. In EBNF:
 ----
-line    = variant, { space, variant }
-space   = ' ' | '\t'
-variant = ( '+' | '-' ), name
+line    = variant, { space, variant } ;
+space   = ' ' | '\t' ;
+variant = ( '+' | '-' ), name ;
 ----
 where 'name' is the name of the variant. Variants that are not provided by
 a port (or no port at all) are silently ignored.
