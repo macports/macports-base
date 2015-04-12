@@ -10,16 +10,16 @@ port-select - Switch between different implementations of a tool
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-dvp*] *select* --summary
+*port* [*-dv*] *select* --summary
 
 [cmdsynopsis]
-*port* [*-dvp*] *select* --show 'group'
+*port* [*-dv*] *select* --show 'group'
 
 [cmdsynopsis]
-*port* [*-dvp*] *select* [--list] 'group'
+*port* [*-dv*] *select* [--list] 'group'
 
 [cmdsynopsis]
-*port* [*-dvp*] *select* [--set] 'group' 'option'
+*port* [*-dv*] *select* [--set] 'group' 'option'
 
 DESCRIPTION
 -----------
