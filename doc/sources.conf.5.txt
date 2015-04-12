@@ -1,0 +1,122 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+sources.conf(5)
+===============
+$Id$
+
+NAME
+----
+sources.conf - port definition configuration file of the MacPorts system
+
+DESCRIPTION
+-----------
+*sources.conf* is the configuration file used by the MacPorts system to locate
+its port definitions. The file is read by the *port* command to find available
+ports and how to install them. Entries in this file are URIs optionally followed
+by flags in square brackets. Each source specification is given on a separate
+line. A grammar in EBNF is given below:
+--------
+<line>  ::= <URI> [ '[' <flags> ']' ]
+<flags> ::= <flag> [ ',' [ ' ' | '\t' ] <flags> ]
+<flag>  ::= 'default' | 'nosync'
+--------
+
+URI FORMATS
+-----------
+// Set default style for second-level labeled lists in this section
+//:listdef-labeled2.style: horizontal
+
+MacPorts supports a number of different protocols as source descriptions.
+
+'rsync://'::
+    Followed by a server name and a path on this server, this URI instructs
+    MacPorts to fetch the contents of the file or directory referenced by this
+    URI into a path of its own choosing. This is the default method of port tree
+    synchronization and is generally recommended. MacPorts will derive
+    a machine- and architecture-specific URI (in the subdirectory
+    PortIndex_$\{platform\}_$\{os_major\}_$\{os_arch\}/) and attempt to download
+    a pre-generated PortIndex (including the PortIndex.quick file) from there.
+    +
+    *Example*;;
+        rsync://rsync.macports.org/release/tarballs/ports.tar
+    *Default*;;
+        rsync://rsync.macports.org/release/tarballs/ports.tar [default]
+
+'file://'::
+    Followed by an absolute path (which will result in *three* slashes at the
+    beginning of the URI) to a local directory that should be used as port tree.
+    A port index will automatically be generated for this source. Note that
+    MacPorts will try to determine whether the given path is under source
+    control and attempt to update from the default remote server if it is.
+    Currently, Subversion and Git (including git-svn) are supported options. You
+    can add the 'nosync' tag to avoid this behavior.
+    +
+    NOTE: The MacPorts user (usually called 'macports') needs to be able to read
+    and write to this location. This usually means your home directory is not
+    a suitable place for a port tree, unless you adjust permissions accordingly.
+    +
+    *Example*;;
+        file:///opt/dports [nosync,default]
+    *Default*;;
+        none
+
+'http://', 'https://' and 'ftp://'::
+    Followed by a server name and a path on this server, this URI instructs
+    MacPorts to download a tarball snapshot of a ports tree from the URI and
+    extract it to a path of its choice. This possibility is provided as
+    a fallback to users that can use neither rsync nor subversion to sync the
+    MacPorts port tree.
+    +
+    If the tarball contains a pre-built PortIndex and PortIndex.quick file at
+    PortIndex_$\{platform\}_$\{os_major\}_$\{os_arch\}/, those will be used as
+    default. If it does not, MacPorts will build a suitable port index for the
+    local system automatically.
+
+SOURCE FORMATS
+--------------
+Port definition trees can be either directories (e.g. for the 'file://' and
+rsync methods) or tarballs (for HTTP, HTTPS, FTP and rsync). For the directory
+format, no additional verification is performed. Because transfers using rsync
+are not encrypted or authenticated, the use of this setup over rsync is
+discouraged.
+
+If the URI ends with '.tar', MacPorts assumes the source is a tarball and
+attempts to download an additional '.tar.rmd160' signature file. It then uses
+the public keys configured in man:pubkeys.conf[5] to verify this signature to
+ensure the source has not been tampered with. You are strongly encouraged to use
+this setup, and it has been the default for MacPorts since it has been
+introduced.
+
+FLAGS
+-----
+Source specifications support a number of flags that modify the behavior of
+a source:
+
+'nosync'::
+    Skip this source when *port sync* or *port selfupdate* are used. You can use
+    this flag to avoid updating your local ports tree managed by a source
+    control system such as Git or Subversion. You are responsible for generating
+    a current port index using the man:portindex[1] command for sources marked
+    with this flag.
+
+'default'::
+    Mark this source as the default. The default source is used as a fallback to
+    load additional files (such as PortGroups and mirror definitions) from the
+    '_resources/port1.0' directory.
+
+FILES
+-----
+The path of the 'sources.conf' file is specified in the *sources_conf* option of
+man:macports.conf[5]. It defaults to '$\{prefix\}/etc/macports/sources.conf'.
+There is no user-specific 'sources.conf' file, but support for this can be
+emulated by setting 'sources.conf' in the user-specific man:macports.conf[5]
+file.
+
+SEE ALSO
+--------
+man:port[1], man:port-selfupdate[1], man:port-sync[1], man:portindex[1],
+man:macports.conf[5]
+
+AUTHORS
+-------
+  (C) 2015 The MacPorts Project
+  Clemens Lang <cal@macports.org>
