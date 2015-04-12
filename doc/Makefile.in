@@ -92,6 +92,7 @@ MAN1=	\
 MAN5=		\
 		macports.conf.5 \
 		sources.conf.5 \
+		variants.conf.5 \
 
 MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7 portundocumented.7
 MAN=		${MAN1} ${MAN5} ${MAN7}
