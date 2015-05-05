@@ -2366,7 +2366,7 @@ proc adduser {name args} {
         }
     }
 
-    if {[existsuser ${name}] != 0 || [existsuser ${uid}] != 0} {
+    if {[existsuser ${name}] != -1 || [existsuser ${uid}] != -1} {
         return
     }
 
@@ -2474,7 +2474,7 @@ proc addgroup {name args} {
         }
     }
 
-    if {[existsgroup ${name}] != 0 || [existsgroup ${gid}] != 0} {
+    if {[existsgroup ${name}] != -1 || [existsgroup ${gid}] != -1} {
         return
     }
 
@@ -3042,7 +3042,7 @@ proc dropPrivileges {} {
 proc validate_macportsuser {} {
     global macportsuser
     if {[getuid] == 0 && $macportsuser ne "root" && 
-        ([existsuser $macportsuser] == 0 || [existsgroup $macportsuser] == 0 )} {
+        ([existsuser $macportsuser] == -1 || [existsgroup $macportsuser] == -1)} {
         ui_warn "configured user/group $macportsuser does not exist, will build as root"
         set macportsuser "root"
     }
