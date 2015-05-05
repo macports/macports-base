@@ -216,7 +216,7 @@ int ExistsuserCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tc
     free(user);
 
     if (pwent == NULL)
-        tcl_result = Tcl_NewIntObj(0);
+        tcl_result = Tcl_NewIntObj(-1);
     else
         tcl_result = Tcl_NewIntObj(pwent->pw_uid);
 
@@ -243,7 +243,7 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
     free(group);
 
     if (grent == NULL)
-        tcl_result = Tcl_NewIntObj(0);
+        tcl_result = Tcl_NewIntObj(-1);
     else
         tcl_result = Tcl_NewIntObj(grent->gr_gid);
 
