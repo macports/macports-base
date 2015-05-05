@@ -201,24 +201,25 @@ int ExistsuserCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tc
 {
     Tcl_Obj *tcl_result;
     struct passwd *pwent;
-    char *user;
+    const char *user;
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "user");
         return TCL_ERROR;
     }
 
-    user = strdup(Tcl_GetString(objv[1]));
-    if (isdigit(*(user)))
-        pwent = getpwuid((uid_t)strtol(user, 0, 0));
-    else
+    user = Tcl_GetString(objv[1]);
+    if (isdigit(*user)) {
+        pwent = getpwuid((uid_t) strtol(user, 0, 0));
+    } else {
         pwent = getpwnam(user);
-    free(user);
+    }
 
-    if (pwent == NULL)
+    if (pwent == NULL) {
         tcl_result = Tcl_NewIntObj(0);
-    else
+    } else {
         tcl_result = Tcl_NewIntObj(pwent->pw_uid);
+    }
 
     Tcl_SetObjResult(interp, tcl_result);
     return TCL_OK;
@@ -228,24 +229,25 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 {
     Tcl_Obj *tcl_result;
     struct group *grent;
-    char *group;
+    const char *group;
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "groupname");
         return TCL_ERROR;
     }
 
-    group = strdup(Tcl_GetString(objv[1]));
-    if (isdigit(*(group)))
-        grent = getgrgid((gid_t)strtol(group, 0, 0));
-    else
+    group = Tcl_GetString(objv[1]);
+    if (isdigit(*group)) {
+        grent = getgrgid((gid_t) strtol(group, 0, 0));
+    } else {
         grent = getgrnam(group);
-    free(group);
+    }
 
-    if (grent == NULL)
+    if (grent == NULL) {
         tcl_result = Tcl_NewIntObj(0);
-    else
+    } else {
         tcl_result = Tcl_NewIntObj(grent->gr_gid);
+    }
 
     Tcl_SetObjResult(interp, tcl_result);
     return TCL_OK;
