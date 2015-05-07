@@ -289,8 +289,8 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
-        if {[regexp {compiler\.blacklist.*\{} $line] && ![info exists portgroups(compiler_blacklist_versions)]} {
-            ui_error "Line $lineno uses compiler.blacklist in a way that requires the compiler_blacklist_versions portgroup, but this portgroup has not been included"
+        if {[regexp {compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![info exists portgroups(compiler_blacklist_versions)]} {
+            ui_error "Line $lineno uses compiler.blacklist entry $blacklist which requires the compiler_blacklist_versions portgroup which has not been included"
             incr errors
         }
 
