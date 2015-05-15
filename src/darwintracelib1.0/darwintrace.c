@@ -498,14 +498,30 @@ static int dependency_check(const char *path) {
  * \param[in]  size number of bytes to read from the socket
  */
 static void frecv(void *restrict buf, size_t size) {
-	FILE *stream = __darwintrace_sock();
-	if (1 != fread(buf, size, 1, stream)) {
-		if (ferror(stream)) {
-			perror("darwintrace: fread");
-		} else {
-			fprintf(stderr, "darwintrace: fread: end-of-file\n");
+	/* We cannot safely use fread(3) here, because we're not in control of the
+	 * application's signal handling settings (which means we must assume
+	 * SA_RESTART isn't set) and fread(3) may return short without giving us
+	 * a way to know how many bytes have actually been read, i.e. without a way
+	 * to do the call again. Because of this great API design and
+	 * implementation on OS X, we'll just use read(2) here. */
+	int fd = fileno(__darwintrace_sock());
+	size_t count = 0;
+	while (count < size) {
+		ssize_t res = read(fd, buf + count, size - count);
+		if (res < 0) {
+			if (errno == EINTR) {
+				continue;
+			}
+			perror("darwintrace: read");
+			abort();
 		}
-		abort();
+
+		if (res == 0) {
+			fprintf(stderr, "darwintrace: read: end-of-file\n");
+			abort();
+		}
+
+		count += res;
 	}
 }
 
@@ -517,16 +533,26 @@ static void frecv(void *restrict buf, size_t size) {
  * \param[in] size number of bytes in the buffer
  */
 static void fsend(const void *restrict buf, size_t size) {
-	FILE *stream = __darwintrace_sock();
-	if (1 != fwrite(buf, size, 1, stream)) {
-		if (ferror(stream)) {
-			perror("darwintrace: fwrite");
-		} else {
-			fprintf(stderr, "darwintrace: fwrite: end-of-file\n");
+	/* We cannot safely use fwrite(3) here, because we're not in control of the
+	 * application's signal handling settings (which means we must assume
+	 * SA_RESTART isn't set) and fwrite(3) may return short without giving us
+	 * a way to know how many bytes have actually been written, i.e. without
+	 * a way to do the call again. Because of this great API design and
+	 * implementation on OS X, we'll just use write(2) here. */
+	int fd = fileno(__darwintrace_sock());
+	size_t count = 0;
+	while (count < size) {
+		ssize_t res = write(fd, buf + count, size - count);
+		if (res < 0) {
+			if (errno == EINTR) {
+				continue;
+			}
+			perror("darwintrace: write");
+			abort();
 		}
-		abort();
+
+		count += res;
 	}
-	fflush(stream);
 }
 
 /**
