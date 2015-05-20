@@ -1499,7 +1499,7 @@ proc macports::fetch_port {url {local 0}} {
     }
 
     if {$local} {
-        set fetchfile $url
+        set filepath $url
     } else {
         ui_msg "$macports::ui_prefix Fetching port $url"
         set fetchfile [file tail $url]
@@ -1509,7 +1509,8 @@ proc macports::fetch_port {url {local 0}} {
         } elseif {[info exists macports::ui_options(progress_download)]} {
             set progressflag "--progress ${macports::ui_options(progress_download)}"
         }
-        if {[catch {curl fetch {*}$progressflag $url [file join $fetchdir $fetchfile]} result]} {
+        set filepath [file join $fetchdir $fetchfile]
+        if {[catch {curl fetch {*}$progressflag $url $filepath} result]} {
             return -code error "Port remote fetch failed: $result"
         }
     }
@@ -1520,9 +1521,9 @@ proc macports::fetch_port {url {local 0}} {
     # check if this is a binary archive or just the port dir by checking
     # whether the file "+CONTENTS" exists.
     set tarcmd [findBinary tar $macports::autoconf::tar_path]
-    set tarflags [get_tar_flags [file extension $fetchfile]]
+    set tarflags [get_tar_flags [file extension $filepath]]
     set qflag $macports::autoconf::tar_q
-    set cmdline [list $tarcmd ${tarflags}${qflag}xOf $fetchfile +CONTENTS]
+    set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath +CONTENTS]
     ui_debug $cmdline
     if {![catch {set contents [exec {*}$cmdline]}]} {
         # the file is probably a valid binary archive
@@ -1550,9 +1551,9 @@ proc macports::fetch_port {url {local 0}} {
     # extract the portfile (and possibly files dir if not a binary archive)
     ui_debug "extracting port archive to [pwd]"
     if {$binary} {
-        set cmdline [list $tarcmd ${tarflags}${qflag}xOf ../$fetchfile +PORTFILE > Portfile]
+        set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath +PORTFILE > Portfile]
     } else {
-        set cmdline [list $tarcmd ${tarflags}${qflag}xf $fetchfile]
+        set cmdline [list $tarcmd ${tarflags}${qflag}xf $filepath]
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
