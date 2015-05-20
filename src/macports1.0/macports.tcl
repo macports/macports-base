@@ -1556,15 +1556,19 @@ proc macports::fetch_port {url {local 0}} {
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
-        # clean up the archive, we don't need it anymore
-        file delete [file join $fetchdir $fetchfile]
+        if {!$local} {
+            # clean up the archive, we don't need it anymore
+            file delete [file join $fetchdir $fetchfile]
+        }
 
         cd $oldpwd
         return -code error "Port extract failed: $result"
     }
 
-    # clean up the archive, we don't need it anymore
-    file delete [file join $fetchdir $fetchfile]
+    if {!$local} {
+        # clean up the archive, we don't need it anymore
+        file delete [file join $fetchdir $fetchfile]
+    }
 
     cd $oldpwd
     return [file join $fetchdir $portname]
