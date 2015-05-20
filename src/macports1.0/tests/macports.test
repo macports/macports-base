@@ -596,13 +596,16 @@ test getportdir {
 } -body {
     set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
     set res [macports::getportdir $url]
-    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
-	return "FAIL: invalid port directory"
+    set expected ${pwd}/portdbpath/portdirs/db_select-0.1_2
+    if {$res ne $expected} {
+	    return "FAIL: incorrect port directory $res (expected $expected)"
     }
 
     set url file://${pwd}/local_file
-    if {[macports::getportdir $url] ne "${pwd}/local_file"} {
-	return "FAIL: invalid local port directory"
+    set res [macports::getportdir $url]
+    set expected ${pwd}/portdbpath/portdirs/local_file
+    if {$res ne $expected} {
+	    return "FAIL: incorrect local port directory $res (expected $expected)"
     }
     return "Get port dir successful."
 } -cleanup {
