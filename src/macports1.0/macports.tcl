@@ -1545,7 +1545,7 @@ proc macports::fetch_port {url {local 0}} {
         # the file is not a valid binary archive, assume it's an archive just
         # containing Portfile and the files directory
         set binary 0
-        set portname [file rootname $fetchfile]
+        set portname [file rootname [file tail $filepath]]
     }
 
     # extract the portfile (and possibly files dir if not a binary archive)
