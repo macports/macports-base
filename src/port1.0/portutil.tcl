@@ -599,6 +599,12 @@ proc variant {args} {
     }
     ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
 
+    if {![regexp {^[A-Za-z0-9_]+$} [ditem_key $ditem provides]]} {
+        set name [ditem_key $ditem provides] 
+        ditem_delete $ditem
+        return -code error "Variant name $name contains invalid characters"
+    }
+
     # make a user procedure named variant-blah-blah
     # we will call this procedure during variant-run
     makeuserproc variant-[ditem_key $ditem name] $code
