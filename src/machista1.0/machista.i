@@ -2,6 +2,7 @@
 %module machista
 
 %{
+    #include <tcl.h>
     #include "libmachista.h"
 %}
 
@@ -124,12 +125,24 @@ void macho_destroy_handle(struct macho_handle *INPUT);
  * said pointer and pass a pointer to it to macho_parse_file. Using numinputs=0
  * causes SIWG to stop expecting the parameter when calling from Tcl.
  */
+#if defined(SWIGTCL)
 %typemap(argout) const struct macho **result {
     Tcl_ListObjAppendElement(interp, $result, SWIG_NewInstanceObj(SWIG_as_voidptr(*$1), $descriptor(struct macho *), 0));
 }
 %typemap(in, numinputs=0) const struct macho ** (struct macho *res) {
     $1 = &res;
 }
+#endif
+
+#if defined(SWIGPYTHON)
+%typemap(argout) const struct macho **result {
+    PyTuple_Pack(2, $result, SWIG_NewInstanceObj(SWIG_as_voidptr(*$1), $descriptor(struct macho *), 0));
+}
+%typemap(in, numinputs=0) const struct macho ** (struct macho *res) {
+    $1 = &res;
+}
+#endif
+
 %rename(parse_file) macho_parse_file;
 int macho_parse_file(struct macho_handle *handle, const char *filename, const struct macho **result);
 
