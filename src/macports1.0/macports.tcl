@@ -4646,7 +4646,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                     if {$fancy_output} {
                                         $revupgrade_progress intermission
                                     }
-                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existant file $idloadcmdpath"
+                                    ui_warn "ID load command in ${bpath}, arch [machista::get_arch_name [$architecture cget -mat_arch]] refers to non-existent file $idloadcmdpath"
                                     ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                                 } else {
                                     set hash_this [sha256 file $bpath]
