@@ -1,0 +1,461 @@
+#! /usr/bin/env perl 
+# $Id$
+
+# cpan2port
+# Created by Marc Chantreux
+# Copyright BibLibre 2009
+# 
+# http://lists.macosforge.org/pipermail/macports-dev/2009-March/008052.html
+#
+# Permission to redistribute, modify, etc. is granted under terms of the
+# WTFPL, which can be found in the COPYING file accompanying this program, or
+# on the Web at: http://sam.zoy.org/wtfpl/COPYING
+
+# Todo:
+# - redesign 
+#   - more output ? BSD, debian, rpm, macports ? 
+#   - manage build/libs requirement 
+#   - manage the versions of perl
+
+# package PackagingSystem;
+# 
+# package Macport;
+# use base 
+# our %versions = qw(
+#     5.8 5.008006
+#     5.10 unknown
+# );
+# 
+# 
+# 
+# # perl -le 'print $]'
+# sub perl_version {
+#     $ver{shift};
+# }
+# 
+# package Debian;
+# 
+# sub perl_version { 
+#     my %ver = qw(
+#       lenny 5.10
+#       hardy 5.008008
+#     );
+# }
+
+package MSG;
+
+sub warn { print STDERR join(' ',@_),"\n";  }
+sub say { print join(' ',@_),"\n";  }
+
+package DEBUG;
+
+sub DEBUG { 1 }
+
+sub warn { DEBUG and print STDERR join(' ',@_),"\n";  }
+sub say { DEBUG and print join(' ',@_),"\n";  }
+
+package STFU;
+sub myprint {}
+sub mywarn { warn @_ }
+sub mysleep { sleep @_ }
+
+package Huggy;
+use strict;
+use warnings;
+use CPAN;
+use Module::Depends;
+use Module::Depends::Intrusive;
+use List::MoreUtils qw(any uniq);
+use Module::CoreList;
+
+sub is_corelist {
+    my $module = shift;
+    my $lc = lc $module;
+    $lc eq 'perl' and return 1;
+    any { exists $$_{$module} } values %Module::CoreList::version;
+}
+
+sub depends_on {
+    my $dep = (shift or return ())->{depends} or return ();
+    my %conf = @_;
+    my %r;
+    my $method = $conf{during} ? $conf{during} :  'requires';
+    while ( my ($k,$v) = each %{ $dep->$method or return ()} ) {
+        DEBUG::warn("candidate $k");
+        is_corelist($k) or $r{$k} = $v;
+    }
+    DEBUG::warn("end compute dependencies");
+    \%r;
+}
+
+sub package_name {
+    my ( $name ) = shift;
+    $name = lc "p5-$name";
+    $name =~ y/+/x/;
+    return $name;
+}
+
+sub dependency_name {
+    my ( $name ) = shift;
+    $name = lc "p\${perl5.major}-$name";
+    $name =~ y/+/x/;
+    return $name;
+}
+
+sub debian {
+    my ( $name ) = shift;
+    $name = lc "lib$name-perl";
+    $name =~ y/+/x/;
+    return $name;
+}
+
+sub find_dist {
+    for (@_) {
+        my $glob = "$_*";
+        print STDERR "trying to find dist in $glob\n";
+        if (my ( $dist ) = grep { -d } glob($glob) ) {
+                return $dist
+        }
+    }
+    undef;
+}
+
+sub module_depends {
+    my ($info) = @_ or return ();
+    DEBUG::warn("$$info{name} will show deps");
+    my $dist = find_dist( $info->{dist_dir}, $info->{module}->get )
+        or die "can't find dist";
+    $$info{has_makefile_pl} = (-e "$dist/Makefile.PL");
+    $$info{has_build_pl} = (-e "$dist/Build.PL");
+    $$info{depends} = (
+        -e "$dist/META.yml"
+            ? 'Module::Depends'
+            : 'Module::Depends::Intrusive'
+    ) ->new ->dist_dir($dist); 
+    $$info{depends}->find_modules ;
+    if ( my $errors = $$info{depends}->{errors} ) {
+        MSG::warn "can't parse $$info{name}: $errors";
+    }
+    $info;
+}
+
+sub from_port { (about(shift) or return () )->{dependency} }
+
+sub about {
+    my ( $module_name, $config ) = @_;
+    die 'no module' unless $module_name;
+    $config ||= {};
+
+    my $module = CPAN::Shell->expand('Module',$module_name) or die "can't expand $module_name";
+    my %info = ( name => $module_name );
+    my @info_fields = qw(file cpan_path prefix version suffix);
+    my $get_info = qr<
+        ( # file
+            (.*)/          # cpan_path
+            ([^/]+)-          # prefix
+            ((?:\d+\.?)+|v(?:\d+\.?)+)     # version
+            \.
+            (tar\.gz|tgz)   # suffix
+        )
+        \s*$              # eol
+    >x;
+
+    $info{cpan_file} = $module->cpan_file; 
+
+    $info{cpan_file} =~ /perl5-porters\@perl\.org/ and return ();
+    DEBUG::warn "$module_name is not perl porter";
+
+    $info{tarball} = "$$CPAN::Config{keep_source_where}/authors/id/$info{cpan_file}";
+    @info{@info_fields} = $info{cpan_file} =~ /$get_info/;
+    for (@info_fields) {
+        defined $info{$_} or MSG::warn "$info{name}::$info{cpan_file}: $_ not matched";
+    }
+    if ( my $desc = $module->description ) {
+        $info{description}  = $desc;
+    } else {
+        $desc = "$module_name (no description available)";
+        $info{description}  = $desc;
+        MSG::warn $desc;
+    }
+    $info{port} = package_name($info{prefix});
+    $info{dependency} = dependency_name($info{prefix});
+    $info{debian} = package_name($info{prefix});
+    $info{dist_dir} = "$$CPAN::Config{build_dir}/$info{prefix}-$info{version}";
+    $info{module} = $module;
+    \%info;
+}
+
+sub checksums {
+    my ($info) = shift;
+    my $tarball = $$info{tarball} or die;
+    my %check;
+    for my $k (qw( rmd160 sha256)) {
+        my ($sum) = qx( openssl $k $tarball);
+        my ($v)   = $sum =~ / (.*)/;
+        $check{$k} = $v;
+    }
+    $$info{checksums} = \%check;
+    if ( DEBUG::DEBUG ) {
+        use YAML;
+        print STDERR Dump $$info{checksums};
+    }
+    $info;
+}
+
+sub all_on {
+    my $depends = module_depends( about(@_ ));
+    checksums( $depends );
+}
+
+package main;
+use strict;
+use warnings;
+use YAML;
+use Getopt::Std;
+use File::Path;
+use Carp;
+use Cwd;
+use Pod::Usage;
+
+my %opt;
+
+# my %info;
+# $info{maintainers} = $ENV{maintainers} || 'nomaintainer';
+
+sub portfile {
+    my ($info) = @_ or return ();
+    $$info{maintainers} ||= 'nomaintainer';
+    my $checksums = '';
+    my $depends = '';
+    my $depends_build = '';
+    my $depends_lib = '';
+    my $use_module_build = '';
+    
+    if ( exists $$info{depends} ) {
+         if ( my $check =  $$info{checksums} ) {
+             my @hashes;
+             foreach my $key (sort(keys %{ $check })) { push @hashes, "$key ".$$check{$key}; }
+             $checksums = 'checksums           '.join(" \\\n".(' 'x20),@hashes);
+         }
+
+         if ( my $dep_ref = Huggy::depends_on($info, during=>"build_requires") ) {
+             my @depends_build = Huggy::uniq map {
+                 MSG::warn "$$info{name} build_requires $_";
+                 'port:'.Huggy::from_port $_
+             } sort(keys %{ $dep_ref });
+             if (@depends_build) {
+                 unshift(@depends_build, '    depends_build-append');
+                 $depends_build = join(" \\\n".(' 'x20), sort(@depends_build))."\n";
+             }
+         }
+         if ( my $dep_ref = Huggy::depends_on($info) ) {
+             my @depends_lib = Huggy::uniq map {
+                 MSG::warn "$$info{name} requires $_";
+                 'port:'.Huggy::from_port $_
+             } sort(keys %{ $dep_ref });
+             if (@depends_lib) {
+                 unshift(@depends_lib, '    depends_lib-append');
+                 $depends_lib = join(" \\\n".(' 'x20), sort(@depends_lib))."\n";
+             }
+         }
+         if ($depends_build.$depends_lib ne '') {
+             $depends = "\nif {\${perl5.major} != \"\"} {\n" . $depends_build . $depends_lib . "}\n";
+         }
+    }
+
+    # If no Makefile.PL is present, maybe we need use_module_build?
+    if (!($$info{has_makefile_pl})) {
+        if ($$info{has_build_pl}) {
+            $use_module_build = "perl5.use_module_build";
+        } else {
+            MSG::warn "Didn't find either Makefile.PL or Build.PL";
+        }
+    }
+
+    # Generate text for the portfile.
+    # Note that two versions of perl5.setup are generated. The second is for
+    # use when the distfile isn't in the customary location (unfortunately
+    # happening more and more often on CPAN). In the future, it would be nice
+    # to have a command line option to choose between the two, or better yet
+    # have it chosen automatically with a couple of quick Web checks. -L2G
+
+    my $portfile = <<STOP;
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# \$Id\$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.16 5.18 5.20
+perl5.setup         $$info{prefix} $$info{version}
+#perl5.setup         $$info{prefix} $$info{version} ../by-authors/id/$$info{cpan_path}
+
+platforms           darwin
+maintainers         $$info{maintainers}
+#license             {Artistic-1 GPL}
+license             unknown
+
+# Uncomment this line if you know there will be no arch-specific code:
+#supported_archs     noarch
+
+description         $$info{description}
+
+long_description    \${description}
+
+STOP
+
+    if ( $$info{suffix} ne 'tar.gz' ) {
+        $portfile .= qq{extract.suffix  .$$info{suffix}\n};
+    }
+
+    $portfile .= <<STOP;
+$checksums
+$depends
+$use_module_build
+STOP
+
+    return $portfile;
+}
+
+sub fmt {
+    my ( $format,$info ) = @_;
+    if ($format eq 'YAML' ) {
+        use YAML; print Dump $info;
+        return;
+    }
+    $format =~ s/#{(\w+)}/$$info{$1}/g;
+    $format;
+}
+
+sub next_arg {
+    shift @ARGV;
+}
+
+sub next_line {
+    my $line = <>;
+    $line or return undef;
+    chomp $line;
+    $line;
+}
+
+getopts('vtf:',\%opt) or die;
+
+exists $opt{v} or $CPAN::Frontend = 'STFU';
+
+my $next_package = @ARGV ? \&next_arg : \&next_line;
+
+sub foreach_pkg (&) {
+    my ($code) = @_;
+    local $_;
+    # return undef unless $code and $_;
+    while ( $_ = &$next_package ) {
+        eval { &$code };
+        if ($@) { croak "((($@)))" };
+    }
+}
+
+keys %opt or pod2usage {qw( -exitval 1 -verbose 2 )};
+
+my $wd = getcwd;
+
+if ( exists $opt{f} ) {
+    foreach_pkg {
+        my $info = Huggy::about $_;
+        print(fmt($opt{f},$info)); 
+    }
+} elsif ( exists $opt{t} ) {
+    foreach_pkg {
+        if (my $info = Huggy::all_on $_) {
+            chdir $wd;
+            my $dir = "perl/$$info{port}";
+            -d $dir or mkpath $dir;
+            my $portfile = "$dir/Portfile";
+            print STDERR "creating $portfile\n";
+            open PORTFILE,'>',$portfile or die "$! while creating $portfile";
+            print PORTFILE portfile($info);
+        } else { die 'Huggy did not have clue' }
+    }
+}
+
+__END__
+
+=head1 cpan2port 0.0
+
+a tool to generate MacPorts portfiles
+
+=head2 Usage
+
+cpan2port uses at least one flag and a list of module names. Module names can
+also be read from stdin.
+
+        cpan2port -t Net::LDAP Test::Harness
+
+works.
+
+        cpan2port -t < packages_list 
+
+works too.
+
+Flags tell to cpan2port what to do
+
+=over
+
+=item -v
+
+By default, cpan2port doesn't print useless CPAN messages. Use -v if you want to show them.
+
+=item -t
+
+Generate portfiles from a list of modules.
+
+Go to your local MacPorts repository and type
+
+        cpan2port -t Net::LDAP Test::Harness
+        find .
+
+and you'll see
+
+        ./perl
+        ./perl/p5-perl-ldap
+        ./perl/p5-perl-ldap/Portfile
+        ./perl/p5-test-harness
+        ./perl/p5-test-harness/Portfile
+
+cpan
+
+        cpan2port -t Net::LDAP Test::Harness
+        find .
+and the perl/p5-
+
+=item -f
+
+Format output for all package names. For example
+
+        cpan2port -f '#{port}' Net::LDAP
+
+will print
+
+        p5-perl-ldap
+
+
+special format string YAML shows a yaml dump about packages 
+
+        cpan2port -f YAML Net::LDAP
+
+so it's easy to see what information is available.
+
+=back
+
+=head2 Known bugs and to-do list 
+
+=over
+
+=item *
+
+Have to launch twice to generate packages? -v flag messes things up? 
+
+=item *
+
+Add perl version support to have a better dependencies grabbing
+
+=back
