@@ -11,4 +11,8 @@ test get_simple_name_version {} -body {
     list [get_name $tarball] [get_version $tarball]
 } -result [list git 2.4.2]
 
+test parse_cli_argument_test {} -body {
+    parse_cli_argument {-name git -version 2.4.2}
+} -result [list git 2.4.2]
+
 cleanupTests

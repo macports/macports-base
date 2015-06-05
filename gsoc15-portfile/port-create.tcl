@@ -43,3 +43,16 @@ proc read_template {file} {
 proc feed_template {template metadata} {
     return $template
 }
+
+proc parse_cli_argument {argv} {
+    package require cmdline
+    set options {
+        {name.arg     ""  "set the name of port"}
+        {version.arg  ""  "set the version of port"}
+    }
+    array set params [::cmdline::getoptions argv $options]
+
+    set name $params(name)
+    set version $params(version)
+    return [list $name $version]
+}
