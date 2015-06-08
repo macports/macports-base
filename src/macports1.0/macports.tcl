@@ -2625,7 +2625,7 @@ proc mportsync {{optionslist {}}} {
                 } catch {{POSIX SIG SIGTERM} eCode eMessage} {
                     throw
                 } catch {{*} eCode eMessage} {
-                    ui_error [msgcat::mc "Fetching %s failed: %s" $source $error]
+                    ui_error [msgcat::mc "Fetching %s failed: %s" $source $eMessage]
                     incr numfailed
                     continue
                 }
@@ -3060,7 +3060,11 @@ proc mports_generate_quickindex {index} {
                 set offset [tell $indexfd]
             }
             puts -nonewline $quickfd $quicklist
-        } catch * {
+        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+            throw
+        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+            throw
+        } catch {{*} eCode eMessage} {
             ui_warn "It looks like your PortIndex file $index may be corrupt."
             throw
         } finally {
