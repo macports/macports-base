@@ -197,9 +197,7 @@ namespace eval porttrace {
 		allow trace_sandbox "/Library"
 
 		# Allow a few configuration files
-		allow trace_sandbox "/etc/passwd"
-		allow trace_sandbox "/etc/groups"
-		allow trace_sandbox "/etc/localtime"
+		allow trace_sandbox "/etc"
 
 		# Allow temporary locations
 		allow trace_sandbox "/tmp"
