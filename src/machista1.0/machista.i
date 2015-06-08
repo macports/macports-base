@@ -2,7 +2,8 @@
 %module machista
 
 %{
-    #include "libmachista.h"
+#include <tcl.h>
+#include "libmachista.h"
 %}
 
 %inline %{
