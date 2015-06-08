@@ -55,7 +55,10 @@ if {[string equal $argv0 port-create.tcl]} {
         {version.arg  ""  "set the version of port"}
     }
     set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>]\noptions:"
-    array set params [::cmdline::getoptions argv $options $usage]
+    if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
+        puts [cmdline::usage $options $usage]
+        exit 2
+    }
 
     if {[expr {[string length $params(url)] > 0}]} {
         set tarball [get_tarball_filename $params(url)]
@@ -72,7 +75,13 @@ if {[string equal $argv0 port-create.tcl]} {
     }
 
     set template [read_template "./Portfile.template"]
-    set template [string map "__PortName__ $name" $template]
-    set template [string map "__PortVersion__ $version" $template]
+
+    if {$name ne""} {
+        set template [string map "__PortName__ $name" $template]
+    }
+    if {$version ne ""} {
+        set template [string map "__PortVersion__ $version" $template]
+    }
+
     puts $template
 }
