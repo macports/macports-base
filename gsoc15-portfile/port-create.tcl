@@ -44,15 +44,35 @@ proc feed_template {template metadata} {
     return $template
 }
 
-proc parse_cli_argument {argv} {
+if {[string equal $argv0 port-create.tcl]} {
+    set name ""
+    set version ""
+
     package require cmdline
     set options {
+        {url.arg      ""  "set the tarball URL of port"}
         {name.arg     ""  "set the name of port"}
         {version.arg  ""  "set the version of port"}
     }
-    array set params [::cmdline::getoptions argv $options]
+    set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>]\noptions:"
+    array set params [::cmdline::getoptions argv $options $usage]
 
-    set name $params(name)
-    set version $params(version)
-    return [list $name $version]
+    if {[expr {[string length $params(url)] > 0}]} {
+        set tarball [get_tarball_filename $params(url)]
+        set name [get_name $tarball]
+        set version [get_version $tarball]
+    }
+
+    if {[expr {[string length $params(name)] > 0}]} {
+        set name $params(name)
+    }
+
+    if {[expr {[string length $params(version)] > 0}]} {
+        set version $params(version)
+    }
+
+    set template [read_template "./Portfile.template"]
+    set template [string map "__PortName__ $name" $template]
+    set template [string map "__PortVersion__ $version" $template]
+    puts $template
 }

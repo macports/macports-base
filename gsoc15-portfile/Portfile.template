@@ -11,6 +11,6 @@ categories          __Categories__
 description         __Description__
 long_description    __LongDescription__
 
-platforms           __Platforms__
+platforms           darwin
 
 homepage            __Homepage__
