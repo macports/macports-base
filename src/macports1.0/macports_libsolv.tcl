@@ -38,14 +38,15 @@ package require solv
 ## Testing solv.dylib
 #global solv::Job_SOLVER_SOLVABLE
 
-proc print {} {
-    puts $solv::Job_SOLVER_SOLVABLE
-}
 
 #set pool [solv::Pool]
 #puts $pool
 
 namespace eval macports::libsolv {
+    proc print {} {
+        puts $solv::Job_SOLVER_SOLVABLE
+    }
+
     proc create_pool {} {
         global macports::sources
         set pool [solv::Pool]
