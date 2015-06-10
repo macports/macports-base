@@ -2816,6 +2816,11 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     set matches [list]
     set easy [expr {$field eq "name"}]
 
+    if {[info exists macports::global_options(ports_depengine)]} {
+        if {$macports::global_options(ports_depengine) eq "libsolv"} {
+            macports::libsolv::print
+        }
+    }
     set found 0
     foreach source $sources {
         set source [lindex $source 0]
