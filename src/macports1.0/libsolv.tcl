@@ -1,5 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# macports_libsolv.tcl
+# libsolv.tcl
 # $Id$
 #
 # Copyright (c) 2015 Jackson Isaac <ijackson@macports.org>
@@ -30,38 +30,5 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide macports_libsolv 1.0
-package require macports 1.0
 # Load solv.dylib, bindings for libsolv
-package require solv
-
-## Testing solv.dylib
-#global solv::Job_SOLVER_SOLVABLE
-
-proc print {} {
-    puts $solv::Job_SOLVER_SOLVABLE
-}
-
-#set pool [solv::Pool]
-#puts $pool
-
-namespace eval macports::libsolv {
-    proc create_pool {} {
-        global macports::sources
-        set pool [solv::Pool]
-
-        foreach source $sources {
-            set source [lindex $source 0]
-            
-            if {[catch {set fd [open [macports::getindex $source] r]} result]} {
-                ui_warn "Can't open index file for source: $source"
-            } else {
-                # pool::add_repo($fd)
-            }
-        } 
-    }
-
-    proc search {pattern} {
-        # Search using libsolv
-    }
-}
+load solv.dylib
