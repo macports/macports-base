@@ -40,6 +40,7 @@ package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
 package require Tclx
+package require macports_libsolv 1.0
 
 # catch wrapper shared with port1.0
 package require mpcommon 1.0
