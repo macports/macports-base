@@ -201,6 +201,8 @@ The port command recognizes several global flags and options.
     argument is '-', then read commands from stdin. If the option is given
     multiple times, then multiple files will be read.
 
+-l::
+    Use libsolv SAT-Solver.
 
 USER TARGETS
 ------------

@@ -4566,6 +4566,10 @@ proc parse_options { action ui_options_name global_options_name } {
                         }
                         break
                     }
+                    l {
+                      ## Option for libsolv
+                      set global_options(ports_depengine) "libsolv"
+                    }
                     default {
                         print_usage; exit 1
                     }
