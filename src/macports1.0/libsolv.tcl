@@ -31,4 +31,4 @@
 #
 
 # Load solv.dylib, bindings for libsolv
-load solv.dylib
+load /Users/JacksonIsaac/Development/gsoc/libsolv/build/bindings/tcl/solv.dylib
