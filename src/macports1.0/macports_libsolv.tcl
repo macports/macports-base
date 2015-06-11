@@ -43,23 +43,50 @@ package require solv
 #puts $pool
 
 namespace eval macports::libsolv {
+
+    ## Variable to keep check if libsolv cache is created or not.
+    variable libsolv_pool
+
     proc print {} {
         puts $solv::Job_SOLVER_SOLVABLE
     }
 
     proc create_pool {} {
-        global macports::sources
-        set pool [solv::Pool]
+        variable libsolv_pool
 
-        foreach source $sources {
-            set source [lindex $source 0]
+        if {![info exists libsolv_pool]} {
+            global macports::sources
+            set matches [list]
+
+            set pool [solv::Pool]
+
+            foreach source $sources {
+                set source [lindex $source 0]
+                set repo [$pool add_repo $source]
             
-            if {[catch {set fd [open [macports::getindex $source] r]} result]} {
-                ui_warn "Can't open index file for source: $source"
-            } else {
-                # pool::add_repo($fd)
+                if {[catch {set fd [open [macports::getindex $source] r]} result]} {
+                    ui_warn "Can't open index file for source: $source"
+                } else {
+                    try {
+                        #incr found 1
+                        while {[gets $fd line] >= 0} {
+                            #puts $line
+                            array unset portinfo
+                            set name [lindex $line 0]
+                            set len  [lindex $line 1]
+                            set line [read $fd $len]
+                            
+                            #puts "\nname = ${name}\n" 
+                            set solvable [$repo add_solv $name]
+                        }
+                    }
+                }
             }
-        } 
+            set libsovl_pool $pool
+            #puts $pool
+        } else {
+            return {}
+        }
     }
 
     proc search {pattern} {
