@@ -82,8 +82,8 @@ namespace eval macports::libsolv {
                     }
                 }
             }
-            set libsovl_pool $pool
-            #puts $pool
+            set libsolv_pool ${pool}
+            puts $libsolv_pool
         } else {
             return {}
         }
