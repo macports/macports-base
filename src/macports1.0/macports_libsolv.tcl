@@ -35,21 +35,12 @@ package require macports 1.0
 # Load solv.dylib, bindings for libsolv
 package require solv
 
-## Testing solv.dylib
-#global solv::Job_SOLVER_SOLVABLE
-
-
-#set pool [solv::Pool]
-#puts $pool
-
 namespace eval macports::libsolv {
-
-    ## Variable to keep check if libsolv cache is created or not.
-    # variable libsolv_pool
 
     ## Variable for pool
     variable pool
 
+    ## Some debugging related printing of variable contents
     proc print {} {
         variable pool
         puts $solv::Job_SOLVER_SOLVABLE
@@ -62,26 +53,32 @@ namespace eval macports::libsolv {
         }
     }
 
+    ## Procedure to create the libsolv pool. This is similar to PortIndex. \
+    #  Read the PortIndex contents and write into libsolv readable solv's.
+    #  To Do:
+    #  Add additional information regarding version, description, dependency, etc to solv.
     proc create_pool {} {
         variable pool
 
+        ## Check if libsolv cache (pool) is already created or not.
         if {![info exists pool]} {
             global macports::sources
             set matches [list]
 
+            ## Create a new pool instance by calling Pool contructor.
             set pool [solv::Pool]
 
             foreach source $sources {
                 set source [lindex $source 0]
+                ## Add a repo in the pool for each source as mentioned in sources.conf
                 set repo [$pool add_repo $source]
  
                 if {[catch {set fd [open [macports::getindex $source] r]} result]} {
                     ui_warn "Can't open index file for source: $source"
                 } else {
                     try {
-                        #incr found 1
                         while {[gets $fd line] >= 0} {
-                            # Create a solvable for each port processed
+                            # Create a solvable for each port processed.
                             set solvable [$repo add_solvable]
                             
                             array unset portinfo
@@ -89,45 +86,37 @@ namespace eval macports::libsolv {
                             set len  [lindex $line 1]
                             set line [read $fd $len]
                             
-                            #puts "\nname = ${name}\n" 
                             $solvable configure -name $name
-                            #puts [$solvable cget -name]
                         }
                     }
                 }
             }
+            ## createwhatprovides creates hash over all the provides of the package \
+            #  This method is necessary before we can run any lookups on provides.
             $pool createwhatprovides
-            # puts $pool
         } else {
             return {}
         }
     }
 
+    ## Search using libsolv. Needs some more work.
+    #  To Do list:
+    #  Add support for search options i.e. --exact, --case-sensitive, --glob, --regex.
+    #  Return portinfo to mportsearch which will pass the info to port.tcl to print results.
     proc search {pattern} {
-        ## Search using libsolv
-        # puts "pattern = $pattern"
         variable pool
-        # $pool createwhatprovides
 
         set sel [$pool Selection]
-        set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]]
-        # puts "$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]"
+        set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern \
+        [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]]
 
         while {[set data [$di __next__]] ne "NULL"} { 
-            # puts "data = $data"
-            # puts [$data cget -solvid]
             $sel add_raw $solv::Job_SOLVER_SOLVABLE [$data cget -solvid]
-            # puts [$sel __repr__]
         }
 
+        ## This prints all the solvable's information that matched the pattern.
         foreach s [$sel solvables] {
             puts "solvable = $s [$s __str__]"
         }
-
-        #if{[info exists sel]} {
-        #    puts "$pattern found by libsolv"
-        #} else {
-        #    puts "$pattern not found by libsolv"
-        #}
     }
 }
