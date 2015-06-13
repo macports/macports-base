@@ -2741,8 +2741,9 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 
     if {[info exists macports::global_options(ports_depengine)]} {
         if {$macports::global_options(ports_depengine) eq "libsolv"} {
-            macports::libsolv::print
             macports::libsolv::create_pool
+            # macports::libsolv::print
+            set search_res [macports::libsolv::search $pattern]
         }
     }
     set found 0

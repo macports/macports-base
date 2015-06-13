@@ -47,12 +47,18 @@ namespace eval macports::libsolv {
     ## Variable to keep check if libsolv cache is created or not.
     variable libsolv_pool
 
+    ## Variable for pool
+    variable pool
+
     proc print {} {
+        variable libsolv_pool
         puts $solv::Job_SOLVER_SOLVABLE
+        puts $libsolv_pool
     }
 
     proc create_pool {} {
         variable libsolv_pool
+        variable pool
 
         if {![info exists libsolv_pool]} {
             global macports::sources
@@ -63,7 +69,8 @@ namespace eval macports::libsolv {
             foreach source $sources {
                 set source [lindex $source 0]
                 set repo [$pool add_repo $source]
-            
+                set solvable [$repo add_solvable]
+ 
                 if {[catch {set fd [open [macports::getindex $source] r]} result]} {
                     ui_warn "Can't open index file for source: $source"
                 } else {
@@ -77,7 +84,8 @@ namespace eval macports::libsolv {
                             set line [read $fd $len]
                             
                             #puts "\nname = ${name}\n" 
-                            set solvable [$repo add_solv $name]
+                            $solvable configure -name $name
+                            #puts [$solvable cget -name]
                         }
                     }
                 }
@@ -91,5 +99,32 @@ namespace eval macports::libsolv {
 
     proc search {pattern} {
         # Search using libsolv
+        # puts "pattern = $pattern"
+        # global macports::libsolv::pool
+        variable pool
+
+        set sel [$pool Selection]
+        #set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_SUBSTRING | $solv::Dataiterator_SEARCH_NOCASE]]
+        #puts [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_SUBSTRING | $solv::Dataiterator_SEARCH_NOCASE]]
+       
+        #puts [$di __next__ ]
+
+        foreach data [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_SUBSTRING | $solv::Dataiterator_SEARCH_NOCASE]] {
+        #while {[$di __next__] ne "NULL"}  
+            puts "data = $data"
+            $sel add_raw $solv::Job_SOLVER_SOLVABLE $data::solvid
+        }
+
+        foreach s [$sel solvables] {
+            puts "solvable = $s"
+        }
+        
+        #puts $res
+
+        #if {[info exists res]} {
+        #    puts "$pattern found by libsolv"
+        #} else {
+        #    puts "$pattern not found by libsolv"
+        #}
     }
 }
