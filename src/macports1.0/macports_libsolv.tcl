@@ -45,22 +45,27 @@ package require solv
 namespace eval macports::libsolv {
 
     ## Variable to keep check if libsolv cache is created or not.
-    variable libsolv_pool
+    # variable libsolv_pool
 
     ## Variable for pool
     variable pool
 
     proc print {} {
-        variable libsolv_pool
+        variable pool
         puts $solv::Job_SOLVER_SOLVABLE
-        puts $libsolv_pool
+        puts $pool
+        
+        set si [$pool cget -solvables]
+        puts "-------Printing Pool solvables------"
+        while {[set s [$si __next__]] ne "NULL"} {
+            puts "$s: [$s __str__]"
+        }
     }
 
     proc create_pool {} {
-        variable libsolv_pool
         variable pool
 
-        if {![info exists libsolv_pool]} {
+        if {![info exists pool]} {
             global macports::sources
             set matches [list]
 
@@ -69,7 +74,6 @@ namespace eval macports::libsolv {
             foreach source $sources {
                 set source [lindex $source 0]
                 set repo [$pool add_repo $source]
-                set solvable [$repo add_solvable]
  
                 if {[catch {set fd [open [macports::getindex $source] r]} result]} {
                     ui_warn "Can't open index file for source: $source"
@@ -77,7 +81,9 @@ namespace eval macports::libsolv {
                     try {
                         #incr found 1
                         while {[gets $fd line] >= 0} {
-                            #puts $line
+                            # Create a solvable for each port processed
+                            set solvable [$repo add_solvable]
+                            
                             array unset portinfo
                             set name [lindex $line 0]
                             set len  [lindex $line 1]
@@ -90,38 +96,34 @@ namespace eval macports::libsolv {
                     }
                 }
             }
-            set libsolv_pool ${pool}
-            puts $libsolv_pool
+            # puts $pool
         } else {
             return {}
         }
     }
 
     proc search {pattern} {
-        # Search using libsolv
+        ## Search using libsolv
         # puts "pattern = $pattern"
-        # global macports::libsolv::pool
         variable pool
+        $pool createwhatprovides
 
         set sel [$pool Selection]
-        #set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_SUBSTRING | $solv::Dataiterator_SEARCH_NOCASE]]
-        #puts [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_SUBSTRING | $solv::Dataiterator_SEARCH_NOCASE]]
-       
-        #puts [$di __next__ ]
+        set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]]
+        # puts "$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]"
 
-        foreach data [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_SUBSTRING | $solv::Dataiterator_SEARCH_NOCASE]] {
-        #while {[$di __next__] ne "NULL"}  
-            puts "data = $data"
-            $sel add_raw $solv::Job_SOLVER_SOLVABLE $data::solvid
+        while {[set data [$di __next__]] ne "NULL"} { 
+            # puts "data = $data"
+            # puts [$data cget -solvid]
+            $sel add_raw $solv::Job_SOLVER_SOLVABLE [$data cget -solvid]
+            # puts [$sel __repr__]
         }
 
         foreach s [$sel solvables] {
-            puts "solvable = $s"
+            puts "solvable = $s [$s __str__]"
         }
-        
-        #puts $res
 
-        #if {[info exists res]} {
+        #if{[info exists sel]} {
         #    puts "$pattern found by libsolv"
         #} else {
         #    puts "$pattern not found by libsolv"
