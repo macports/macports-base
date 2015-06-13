@@ -96,6 +96,7 @@ namespace eval macports::libsolv {
                     }
                 }
             }
+            $pool createwhatprovides
             # puts $pool
         } else {
             return {}
@@ -106,7 +107,7 @@ namespace eval macports::libsolv {
         ## Search using libsolv
         # puts "pattern = $pattern"
         variable pool
-        $pool createwhatprovides
+        # $pool createwhatprovides
 
         set sel [$pool Selection]
         set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]]
