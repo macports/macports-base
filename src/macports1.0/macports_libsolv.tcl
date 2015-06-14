@@ -103,7 +103,7 @@ namespace eval macports::libsolv {
     #  To Do list:
     #  Add support for search options i.e. --exact, --case-sensitive, --glob, --regex.
     #  Return portinfo to mportsearch which will pass the info to port.tcl to print results.
-    proc search {pattern} {
+    proc search {pattern {case_sensitive yes} {matchstyle regexp}  } {
         variable pool
 
         set sel [$pool Selection]
