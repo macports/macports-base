@@ -101,14 +101,36 @@ namespace eval macports::libsolv {
 
     ## Search using libsolv. Needs some more work.
     #  To Do list:
-    #  Add support for search options i.e. --exact, --case-sensitive, --glob, --regex.
     #  Return portinfo to mportsearch which will pass the info to port.tcl to print results.
+    #  Done:
+    #  Add support for search options i.e. --exact, --case-sensitive, --glob, --regex.
     proc search {pattern {case_sensitive yes} {matchstyle regexp}  } {
         variable pool
 
         set sel [$pool Selection]
-        set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern \
-        [expr $solv::Dataiterator_SEARCH_GLOB | $solv::Dataiterator_SEARCH_NOCASE]]
+       
+        ## Initialize search option flag depending on the option passed to port search
+        switch -- $matchstyle {
+            exact {
+                set di_flag [expr $solv::Dataiterator_SEARCH_STRING]
+            }
+            glob {
+                set di_flag [expr $solv::Dataiterator_SEARCH_GLOB]
+            }
+            regexp {
+                set di_flag [expr $solv::Dataiterator_SEARCH_REGEX]
+            }
+            default {
+                return -code error "mportsearch: Unsupported matching style: ${matchstyle}."
+            }
+        }
+
+        ## If --case-sensitive is not passed, Binary OR "|" with no_case flag.
+        if {!${case_sensitive}} {
+            set di_flag [expr $di_flag | $solv::Dataiterator_SEARCH_NOCASE]
+        }
+        
+        set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern $di_flag]
 
         while {[set data [$di __next__]] ne "NULL"} { 
             $sel add_raw $solv::Job_SOLVER_SOLVABLE [$data cget -solvid]
