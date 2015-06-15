@@ -40,6 +40,9 @@ namespace eval macports::libsolv {
     ## Variable for pool
     variable pool
 
+    ## Variable for portindexinfo
+    variable portindexinfo
+
     ## Some debugging related printing of variable contents
     proc print {} {
         variable pool
@@ -59,11 +62,11 @@ namespace eval macports::libsolv {
     #  Add additional information regarding version, description, dependency, etc to solv.
     proc create_pool {} {
         variable pool
+        variable portindexinfo
 
         ## Check if libsolv cache (pool) is already created or not.
         if {![info exists pool]} {
             global macports::sources
-            set matches [list]
 
             ## Create a new pool instance by calling Pool contructor.
             set pool [solv::Pool]
@@ -87,7 +90,15 @@ namespace eval macports::libsolv {
                             set line [read $fd $len]
                             
                             $solvable configure -name $name
+
+                            ## Set portinfo of each solv object. Map it to correct solvid.
+                            set portindexinfo([$solvable cget -id]) $line
                         }
+                    } catch * {
+                        ui_warn "It looks like your PortIndex file for $source may be corrupt."
+                        throw
+                    } finally {
+                        close $fd
                     }
                 }
             }
@@ -101,12 +112,16 @@ namespace eval macports::libsolv {
 
     ## Search using libsolv. Needs some more work.
     #  To Do list:
-    #  Return portinfo to mportsearch which will pass the info to port.tcl to print results.
+    #  Add more info to the solv's to search into more details of the ports (description, \
+    #  license, version, etc.
     #  Done:
     #  Add support for search options i.e. --exact, --case-sensitive, --glob, --regex.
+    #  Return portinfo to mportsearch which will pass the info to port.tcl to print results.
     proc search {pattern {case_sensitive yes} {matchstyle regexp}  } {
         variable pool
+        variable portindexinfo
 
+        set matches [list]
         set sel [$pool Selection]
        
         ## Initialize search option flag depending on the option passed to port search
@@ -138,7 +153,10 @@ namespace eval macports::libsolv {
 
         ## This prints all the solvable's information that matched the pattern.
         foreach s [$sel solvables] {
-            puts "solvable = $s [$s __str__]"
+            lappend matches [$s cget -name]
+            lappend matches $portindexinfo([$s cget -id])
         }
+
+        return $matches
     }
 }
