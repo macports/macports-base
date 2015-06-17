@@ -1,7 +1,7 @@
 # port-create
 
 ## Installation
-tcllib and jq is now require to run port-create, to install, use
+tcllib and jq are now required to run port-create, to install, use
 
     $ sudo port install tcllib
     $ sudo port install jq
