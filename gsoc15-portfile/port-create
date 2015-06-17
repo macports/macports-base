@@ -53,8 +53,10 @@ set options {
     {url.arg      ""  "set the tarball URL of port"}
     {name.arg     ""  "set the name of port"}
     {version.arg  ""  "set the version of port"}
+    {outfile.arg  ""  "write output to file"}
 }
-set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>]\noptions:"
+
+set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>] \[-outfile <outfile>]\noptions:"
 if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
     puts [cmdline::usage $options $usage]
     exit 2
@@ -83,4 +85,10 @@ if {$version ne ""} {
     set template [string map "PortVersion $version" $template]
 }
 
-puts -nonewline $template
+if {[expr {[string length $params(outfile)] > 0}]} {
+    set outfile [open $params(outfile) w]
+    puts -nonewline $outfile $template
+    close $outfile
+} else {
+    puts -nonewline $template
+}
