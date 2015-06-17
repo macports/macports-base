@@ -34,6 +34,26 @@ proc get_version {tarball} {
     }
 }
 
+# jq(1) wrapper
+proc parse_group_json {query} {
+    set json groups.json
+    return [exec jq $query $json]
+}
+
+proc get_group {group} {
+    switch $group {
+        github {
+            set github(PortGroup)            [parse_group_json .github.PortGroup]
+            set github(github.setup)         [parse_group_json .github.setup]
+            set github(github.tarball_from)  [parse_group_json .github.tarball_from]
+            return [array get github]
+        }
+        default {
+            error "Unsupported group $group"
+        }
+    }
+}
+
 proc read_template {file} {
     set fp [open $file r]
     set template [read $fp]
@@ -53,10 +73,11 @@ set options {
     {url.arg      ""  "set the tarball URL of port"}
     {name.arg     ""  "set the name of port"}
     {version.arg  ""  "set the version of port"}
+    {group.arg    ""  "set the group of port"}
     {outfile.arg  ""  "write output to file"}
 }
 
-set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>] \[-outfile <outfile>]\noptions:"
+set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>] \[-group <group>] \[-outfile <outfile>]\noptions:"
 if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
     puts [cmdline::usage $options $usage]
     exit 2
@@ -91,4 +112,9 @@ if {[expr {[string length $params(outfile)] > 0}]} {
     close $outfile
 } else {
     puts -nonewline $template
+}
+
+# Test github group option
+if {[expr {[string length $params(group)] > 0}]} {
+    puts [get_group $params(group)]
 }

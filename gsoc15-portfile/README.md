@@ -1,5 +1,5 @@
 # port-create
 
 ## TODO
-- [-] Add option to write output to file
-- [ ] Add github group option
+- [x] Add option to write output to file
+- [x] Add github group option

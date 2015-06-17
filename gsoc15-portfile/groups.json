@@ -1,0 +1,7 @@
+{
+    "github": {
+        "PortGroup":  "github 1.0",
+        "setup": "author project version [tag_prefix]",
+        "tarball_from": "releases"
+    }
+}
