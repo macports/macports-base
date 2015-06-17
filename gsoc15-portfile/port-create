@@ -45,8 +45,6 @@ proc feed_template {template metadata} {
     return $template
 }
 
-puts $argv0
-
 set name ""
 set version ""
 
