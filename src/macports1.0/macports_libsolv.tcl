@@ -59,7 +59,9 @@ namespace eval macports::libsolv {
     ## Procedure to create the libsolv pool. This is similar to PortIndex. \
     #  Read the PortIndex contents and write into libsolv readable solv's.
     #  To Do:
-    #  Add additional information regarding version, description, dependency, etc to solv.
+    #  Add additional information regarding arch, vendor, description, dependency, etc to solv.
+    #  Done:
+    #  Add epoch, version and revision to each solv.
     proc create_pool {} {
         variable pool
         variable portindexinfo
@@ -83,13 +85,18 @@ namespace eval macports::libsolv {
                         while {[gets $fd line] >= 0} {
                             # Create a solvable for each port processed.
                             set solvable [$repo add_solvable]
-                            
+
+                            ## Clear the portinfo contents to prevent attribute leak from previous iterations
                             array unset portinfo
                             set name [lindex $line 0]
                             set len  [lindex $line 1]
                             set line [read $fd $len]
                             
-                            $solvable configure -name $name
+                            array set portinfo $line
+
+                            $solvable configure -name $name \
+                            -evr "$portinfo(epoch)@$portinfo(version)-$portinfo(revision)" \
+                            -arch "i386"
 
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
@@ -153,6 +160,9 @@ namespace eval macports::libsolv {
 
         ## This prints all the solvable's information that matched the pattern.
         foreach s [$sel solvables] {
+            ## Print information about mathed solvable on debug option.
+            ui_debug "solvable = [$s __str__]"
+
             lappend matches [$s cget -name]
             lappend matches $portindexinfo([$s cget -id])
         }
