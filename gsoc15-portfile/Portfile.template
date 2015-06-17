@@ -3,14 +3,17 @@
 
 PortSystem          1.0
 
-name                __PortName__
-version             __PortVersion__
-maintainers         __MaintainerHandle__
-
-categories          __Categories__
-description         __Description__
-long_description    __LongDescription__
-
+name                PortName
+version             PortVersion
+categories          Categories
 platforms           darwin
+license             License
+maintainers         MaintainerHandle
+description         Description
+long_description    LongDescription
+homepage            Homepage
 
-homepage            __Homepage__
+master_sites        MasterSites
+
+checksums           rmd160  RMD160 \
+                    sha256  SHA256

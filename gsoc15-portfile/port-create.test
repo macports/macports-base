@@ -4,7 +4,7 @@
 package require tcltest
 namespace import ::tcltest::*
 
-source port-create.tcl
+source port-create
 
 test get_simple_name_version {} -body {
     set tarball [get_tarball_filename https://www.kernel.org/pub/software/scm/git/git-2.4.2.tar.gz]
