@@ -20,10 +20,10 @@ if {$argc != 1} {
 set url [lindex $argv 0]
 
 # TODO: 1. extract these using URL
-set author tmux
-set project tmux
-set version 2.0
-set prefix ""; # tag_prefix
+set author author
+set project project
+set version 1.0
+set tag_prefix ""; # tag_prefix
 
 # TODO: 2. extract this according to URL
 set tarball_from releases
@@ -35,12 +35,17 @@ puts "PortSystem          1.0"
 
 puts "PortGroup           github 1.0"
 puts ""
-puts "github.setup        ${author} ${project} ${version} ${prefix}"
+puts "github.setup        ${author} ${project} ${version} ${tag_prefix}"
 
+# TODO: 6. (optional) Query categories, license etc from other Package Manager
+puts "categories          replaceme"
 puts "platforms           darwin"
+
+# TODO: 5. (optional) Support environment variable like MaintainerHandle, use USER as fallback
 puts "maintainers         replaceme"
 puts "license             replaceme"
 
+# TODO: 4. (optional) Get description using github API
 puts ""
 puts "description         replaceme"
 puts "long_description    replaceme"
