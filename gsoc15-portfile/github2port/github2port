@@ -1,0 +1,46 @@
+#!/usr/bin/env tclsh
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+#
+# Generate a github group template Portfile given tarball URL
+#
+# https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz
+# https://github.com/JuliaLang/julia/releases/download/v0.3.8/julia-0.3.8_79599ada44.tar.gz
+# https://github.com/ali-rantakari/trash/archive/v0.8.5.tar.gz
+
+# TODO: 0. Parse command line argument
+set url https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz
+
+# TODO: 1. extract these using URL
+set author tmux
+set project tmux
+set version 2.0
+set prefix ""; # tag_prefix
+
+# TODO: 2. extract this according to URL
+set tarball_from releases
+
+puts "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
+puts "# \$Id\$"
+puts ""
+puts "PortSystem          1.0"
+
+puts "PortGroup           github 1.0"
+puts ""
+puts "github.setup        ${author} ${project} ${version} ${prefix}"
+
+puts "platforms           darwin"
+puts "maintainers         replaceme"
+puts "license             replaceme"
+
+puts ""
+puts "description         replaceme"
+puts "long_description    replaceme"
+puts ""
+
+# TODO: 3. loop possible cases including null, and then handle this
+puts "# github.tarball_from replaceme"
+
+puts ""
+puts "checksums           rmd160  12345 \\"
+puts "                    sha256  6789a"
