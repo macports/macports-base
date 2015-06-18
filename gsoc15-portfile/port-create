@@ -94,6 +94,7 @@ if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
     exit 2
 }
 
+# Question: duplicate code, how to merge the following five code block?
 set query $params(homebrew)
 if {[expr {[string length $query] > 0}]} {
     exec open "https://github.com/Homebrew/homebrew/search?l=ruby&q=$query"
