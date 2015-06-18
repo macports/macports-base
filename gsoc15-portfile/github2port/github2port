@@ -76,8 +76,6 @@ proc parse_json {query} {
     set tmp [exec jq $query $json]
     set tmp [string range $tmp 1 [expr [string length $tmp] - 2]]
 
-    puts $tmp
-
     if {[expr {[string length $tmp] > 0}]} {
         return $tmp
     } else {
@@ -108,8 +106,13 @@ puts "github.setup        ${author} ${project} ${version} ${tag_prefix}"
 puts "categories          replaceme"
 puts "platforms           darwin"
 
-# TODO: 5. (optional) Support environment variable like MaintainerHandle, use USER as fallback
-puts "maintainers         replaceme"
+set maintainers "replaceme"
+
+if {[info exist env(EMAIL)] && ![string equal $env(EMAIL) ""]} {
+    set maintainers $env(EMAIL)
+}
+
+puts "maintainers         $maintainers"
 
 if {![string equal $homepage ""]} {
     puts "homepage            $homepage"
