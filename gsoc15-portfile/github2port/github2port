@@ -63,6 +63,38 @@ if {[string match */releases/download/* $url]} {
     exit 1
 }
 
+set description replaceme
+set homepage ""
+
+set json "/tmp/${author}-${project}.json"
+set api "https://api.github.com/repos/${author}/${project}"
+exec curl --silent --max-time 5 --output $json $api
+
+# Question: Is it possible to change the value of passed variable?
+proc parse_json {query} {
+    global json
+    set tmp [exec jq $query $json]
+    set tmp [string range $tmp 1 [expr [string length $tmp] - 2]]
+
+    puts $tmp
+
+    if {[expr {[string length $tmp] > 0}]} {
+        return $tmp
+    } else {
+        return ""
+    }
+}
+
+set tmp [parse_json .description]
+if {[expr {[string length $tmp] > 0}]} {
+    set description $tmp
+}
+
+set tmp [parse_json .homepage]
+if {[expr {[string length $tmp] > 0}]} {
+    set homepage $tmp
+}
+
 puts "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
 puts "# \$Id\$"
 puts ""
@@ -78,11 +110,15 @@ puts "platforms           darwin"
 
 # TODO: 5. (optional) Support environment variable like MaintainerHandle, use USER as fallback
 puts "maintainers         replaceme"
+
+if {![string equal $homepage ""]} {
+    puts "homepage            $homepage"
+}
+
 puts "license             replaceme"
 
-# TODO: 4. (optional) Get description using github API
 puts ""
-puts "description         replaceme"
+puts "description         $description"
 puts "long_description    replaceme"
 puts ""
 
