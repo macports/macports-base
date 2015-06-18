@@ -70,17 +70,64 @@ set version ""
 
 package require cmdline
 set options {
-    {url.arg      ""  "set the tarball URL of port"}
-    {name.arg     ""  "set the name of port"}
-    {version.arg  ""  "set the version of port"}
-    {group.arg    ""  "set the group of port"}
-    {outfile.arg  ""  "write output to file"}
+    {url.arg         ""   "set the tarball URL of port"}
+    {name.arg        ""   "set the name of port"       }
+    {version.arg     ""   "set the version of port"    }
+    {group.arg       ""   "set the group of port"      }
+    {outfile.arg     ""   "write output to file"       }
+    {homebrew.arg    ""   "Search Homebrew"            }
+    {fink.arg        ""   "Search Fink"                }
+    {debian.arg      ""   "Search Debian"              }
+    {opensuse.arg    ""   "Search openSUSE"            }
+    {fedora.arg      ""   "Search Fedora"              }
+    {ubuntu.arg      ""   "Search Ubuntu"              }
 }
 
-set usage ": $argv0 \[-url <url>] \[-name <name>] \[-version <version>] \[-group <group>] \[-outfile <outfile>]\noptions:"
+set usage ": $argv0
+               \[-url <url>] \[-name <name>] \[-version <version>] \[-group <group>]
+               \[-outfile <outfile>]
+               \[-homebrew|-fink|-debian|-opensuse|-fedora|-ubuntu <query>]
+options:"
+
 if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
     puts [cmdline::usage $options $usage]
     exit 2
+}
+
+set query $params(homebrew)
+if {[expr {[string length $query] > 0}]} {
+    exec open "https://github.com/Homebrew/homebrew/search?l=ruby&q=$query"
+    exit 0
+}
+
+set query $params(fink)
+if {[expr {[string length $query] > 0}]} {
+    exec open "http://pdb.finkproject.org/pdb/browse.php?summary=$query"
+    exit 0
+}
+
+set query $params(debian)
+if {[expr {[string length $query] > 0}]} {
+    exec open "https://packages.debian.org/search?keywords=${query}&searchon=names&suite=all&section=all"
+    exit 0
+}
+
+set query $params(opensuse)
+if {[expr {[string length $query] > 0}]} {
+    exec open "https://software.opensuse.org/search?q=${query}"
+    exit 0
+}
+
+set query $params(fedora)
+if {[expr {[string length $query] > 0}]} {
+    exec open "https://admin.fedoraproject.org/pkgdb/packages/%2A${query}%2A/"
+    exit 0
+}
+
+set query $params(ubuntu)
+if {[expr {[string length $query] > 0}]} {
+    exec open "http://packages.ubuntu.com/search?keywords=${query}&searchon=names&suite=all&section=all"
+    exit 0
 }
 
 if {[expr {[string length $params(url)] > 0}]} {
