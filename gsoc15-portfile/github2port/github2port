@@ -7,6 +7,7 @@
 # https://github.com/JuliaLang/julia/releases/download/v0.3.8/julia-0.3.8_79599ada44.tar.gz
 # https://github.com/ali-rantakari/trash/archive/v0.8.5.tar.gz
 
+# TODO: Create a usage proc
 if {$argc != 1} {
     puts stderr "Usage: $argv0 URL"
     puts stderr ""
@@ -19,14 +20,43 @@ if {$argc != 1} {
 
 set url [lindex $argv 0]
 
-# TODO: 1. extract these using URL
 set author author
 set project project
 set version 1.0
-set tag_prefix ""; # tag_prefix
+set tag_prefix "";              # tag_prefix, usually is empty or "v"
 
-# TODO: 2. extract this according to URL
-set tarball_from releases
+set tarball_from "";            # tarball type, including release and others
+
+# 2.0, v0.3.8, release-v1.5.8, v0.8.5.tar.gz => version and tag_prefix if has
+proc parse_fancy_version {v} {
+    global version
+    global tag_prefix
+    if {[regexp {[0-9]+([.-][0-9]+)+} $v version]} {
+        if {[string length $version] < [string length $v]} {
+            set tag_prefix [string range $v 0 [expr [string first $version $v] -1]]
+        }
+    }
+}
+
+if {[string match */releases/download/* $url]} {
+    set tarball_from releases
+
+    set tmp [split $url /]
+    set author [lindex $tmp 3]
+    set project [lindex $tmp 4]
+    # 2.0, v0.3.0
+    set github_version [lindex $tmp 7]
+    parse_fancy_version $github_version
+} elseif {[string match */archive/* $url]} {
+    set tarball_from ""
+
+    set tmp [split $url /]
+    set author [lindex $tmp 3]
+    set project [lindex $tmp 4]
+    # v0.8.5.tar.gz
+    set tarball [lindex $tmp 6]
+    parse_fancy_version $tarball
+}
 
 puts "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
 puts "# \$Id\$"
@@ -51,8 +81,9 @@ puts "description         replaceme"
 puts "long_description    replaceme"
 puts ""
 
-# TODO: 3. loop possible cases including null, and then handle this
-puts "# github.tarball_from replaceme"
+if {![string equal $tarball_from ""]} {
+    puts "github.tarball_from releases"
+}
 
 puts ""
 puts "checksums           rmd160  12345 \\"
