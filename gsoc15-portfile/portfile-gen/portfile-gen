@@ -11,9 +11,6 @@
 
 set MY_VERSION 0.2
 
-set supportedGroups [list perl5 php python ruby]
-
-
 proc printUsage {{channel stderr}} {
     puts $channel "Usage: $::argv0 \[-h\] \[-g portgroup\] <portname> <portversion>"
     puts $channel "   -g   Specify a port group to use (perl5, python, etc)"
@@ -36,11 +33,6 @@ while {[string index [lindex $::argv 0] 0] eq "-"} {
                 exit 1
             }
             set groupCode [lindex $::argv 1]
-            if {[lsearch ${supportedGroups} ${groupCode}] == -1} {
-                puts "Sorry, port group ${groupCode} is currently not supported"
-                puts "Supported: [join ${supportedGroups}]"
-                exit 1
-            }
             set ::argv [lrange $::argv 1 end]
         }
         h {
@@ -98,6 +90,7 @@ switch ${groupCode} {
         puts "categories-append   replaceme"
     }
     default {
+        puts "PortGroup           ${groupCode}"
         puts ""
         puts "name                ${portname}"
         puts "version             ${portversion}"
