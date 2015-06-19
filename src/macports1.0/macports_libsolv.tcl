@@ -77,6 +77,7 @@ namespace eval macports::libsolv {
                 set source [lindex $source 0]
                 ## Add a repo in the pool for each source as mentioned in sources.conf
                 set repo [$pool add_repo $source]
+                set repodata [$repo add_repodata]
  
                 if {[catch {set fd [open [macports::getindex $source] r]} result]} {
                     ui_warn "Can't open index file for source: $source"
@@ -86,7 +87,8 @@ namespace eval macports::libsolv {
                             # Create a solvable for each port processed.
                             set solvable [$repo add_solvable]
 
-                            ## Clear the portinfo contents to prevent attribute leak from previous iterations
+                            ## Clear the portinfo contents to prevent attribute leak \
+                            #  from previous iterations
                             array unset portinfo
                             set name [lindex $line 0]
                             set len  [lindex $line 1]
@@ -98,6 +100,21 @@ namespace eval macports::libsolv {
                             -evr "$portinfo(epoch)@$portinfo(version)-$portinfo(revision)" \
                             -arch "i386"
 
+                            ## Add extra info to repodata i.e. Summary, Description, etc to the solvables
+                            #  Valid constant fields can be found at src/knownid.h of libsolv.
+                            if {[info exists portinfo(description)]} {
+                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_SUMMARY \
+                                $portinfo(description)
+                            }
+                            if {[info exists portinfo(long_description)]} {
+                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_DESCRIPTION \
+                                $portinfo(long_description)
+                            }
+                            if {[info exists portinfo(license)]} {
+                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_LICENSE \
+                                $portinfo(license)
+                            }
+
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
                         }
@@ -105,6 +122,10 @@ namespace eval macports::libsolv {
                         ui_warn "It looks like your PortIndex file for $source may be corrupt."
                         throw
                     } finally {
+                        ## Internalize should be run on the repodata so that the extra info \
+                        #  is available for lookup and dataiterator functions. Do this after\
+                        #  all the solvables are added to repo as it is a costly operation.
+                        $repodata internalize
                         close $fd
                     }
                 }
@@ -162,6 +183,9 @@ namespace eval macports::libsolv {
         foreach s [$sel solvables] {
             ## Print information about mathed solvable on debug option.
             ui_debug "solvable = [$s __str__]"
+            ui_debug "summary = [$s lookup_str $solv::SOLVABLE_SUMMARY]"
+            ui_debug "description = [$s lookup_str $solv::SOLVABLE_DESCRIPTION]"
+            ui_debug "license = [$s lookup_str $solv::SOLVABLE_LICENSE]"
 
             lappend matches [$s cget -name]
             lappend matches $portindexinfo([$s cget -id])
