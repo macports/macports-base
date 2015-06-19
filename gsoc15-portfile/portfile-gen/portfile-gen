@@ -11,13 +11,12 @@
 
 set MY_VERSION 0.2
 
-set supportedGroups [list perl5 php python ruby github]
+set supportedGroups [list perl5 php python ruby]
 
 
 proc printUsage {{channel stderr}} {
-    global supportedGroups
     puts $channel "Usage: $::argv0 \[-h\] \[-g portgroup\] <portname> <portversion>"
-    puts $channel "   -g   Specify a port group to use ($supportedGroups)"
+    puts $channel "   -g   Specify a port group to use (perl5, python, etc)"
     puts $channel "   -h   This help"
     puts $channel ""
     puts $channel "portname      name to use for the port; for group-based ports, don't"
@@ -98,11 +97,6 @@ switch ${groupCode} {
         puts "ruby.setup          ${portname} ${portversion}"
         puts "categories-append   replaceme"
     }
-    github {
-        puts "PortGroup           github 1.0"
-        puts ""
-        puts "github.setup        ${portname} ${portversion}"
-    }
     default {
         puts ""
         puts "name                ${portname}"
@@ -136,10 +130,6 @@ switch ${groupCode} {
         puts {distname            ${portname}-${version}}
     }
     ruby {
-    }
-    github {
-        puts ""
-        puts "github.tarball_from replaceme"
     }
     default {
         puts ""
