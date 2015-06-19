@@ -114,6 +114,14 @@ namespace eval macports::libsolv {
                                 $repodata set_str [$solvable cget -id] $solv::SOLVABLE_LICENSE \
                                 $portinfo(license)
                             }
+                            if {[info exists portinfo(homepage)]} {
+                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_URL \
+                                $portinfo(homepage)
+                            }
+                            if {[info exists portinfo(categories)]} {
+                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_CATEGORY \
+                                $portinfo(categories)
+                            }
 
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
@@ -186,6 +194,8 @@ namespace eval macports::libsolv {
             ui_debug "summary = [$s lookup_str $solv::SOLVABLE_SUMMARY]"
             ui_debug "description = [$s lookup_str $solv::SOLVABLE_DESCRIPTION]"
             ui_debug "license = [$s lookup_str $solv::SOLVABLE_LICENSE]"
+            ui_debug "URL = [$s lookup_str $solv::SOLVABLE_URL]"
+            ui_debug "category = [$s lookup_str $solv::SOLVABLE_CATEGORY]"
 
             lappend matches [$s cget -name]
             lappend matches $portindexinfo([$s cget -id])
