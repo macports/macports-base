@@ -74,7 +74,7 @@ exec curl --silent --max-time 5 --output $json $api
 proc parse_json {query} {
     global json
     set tmp [exec jq $query $json]
-    set tmp [string range $tmp 1 [expr [string length $tmp] - 2]]
+    set tmp [string range $tmp 1 end-1]
 
     if {[expr {[string length $tmp] > 0}]} {
         return $tmp
