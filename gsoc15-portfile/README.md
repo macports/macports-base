@@ -10,9 +10,6 @@ tcllib and jq are now required to run port-create, to install, use
 TODO
 
 ## TODO
-- [x] Add option to write output to file
-- [x] Add github group option
-- [ ] Remove github github option in port-create and portfile-gen
 - [ ] Support more simple groups by adding to portfile-gen
 - [ ] Support bitbucket group
 - [ ] Allow update Portfile, e.g., port-create -update Portfile -license GPLv3
