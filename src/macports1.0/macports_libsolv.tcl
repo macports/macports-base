@@ -100,27 +100,24 @@ namespace eval macports::libsolv {
                             -evr "$portinfo(epoch)@$portinfo(version)-$portinfo(revision)" \
                             -arch "i386"
 
+                            set solvid [$solvable cget -id]
+
                             ## Add extra info to repodata i.e. Summary, Description, etc to the solvables
                             #  Valid constant fields can be found at src/knownid.h of libsolv.
                             if {[info exists portinfo(description)]} {
-                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_SUMMARY \
-                                $portinfo(description)
+                                $repodata set_str $solvid $solv::SOLVABLE_SUMMARY $portinfo(description)
                             }
                             if {[info exists portinfo(long_description)]} {
-                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_DESCRIPTION \
-                                $portinfo(long_description)
+                                $repodata set_str $solvid $solv::SOLVABLE_DESCRIPTION $portinfo(long_description)
                             }
                             if {[info exists portinfo(license)]} {
-                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_LICENSE \
-                                $portinfo(license)
+                                $repodata set_str $solvid $solv::SOLVABLE_LICENSE $portinfo(license)
                             }
                             if {[info exists portinfo(homepage)]} {
-                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_URL \
-                                $portinfo(homepage)
+                                $repodata set_str $solvid $solv::SOLVABLE_URL $portinfo(homepage)
                             }
                             if {[info exists portinfo(categories)]} {
-                                $repodata set_str [$solvable cget -id] $solv::SOLVABLE_CATEGORY \
-                                $portinfo(categories)
+                                $repodata set_str $solvid $solv::SOLVABLE_CATEGORY $portinfo(categories)
                             }
 
                             ## Set portinfo of each solv object. Map it to correct solvid.
