@@ -59,9 +59,10 @@ namespace eval macports::libsolv {
     ## Procedure to create the libsolv pool. This is similar to PortIndex. \
     #  Read the PortIndex contents and write into libsolv readable solv's.
     #  To Do:
-    #  Add additional information regarding arch, vendor, description, dependency, etc to solv.
+    #  Add additional information regarding arch, vendor, dependency, etc to solv.
     #  Done:
     #  Add epoch, version and revision to each solv.
+    #  Add more info to solv about its description, long_description, license, category and homepage.
     proc create_pool {} {
         variable pool
         variable portindexinfo
@@ -145,17 +146,20 @@ namespace eval macports::libsolv {
 
     ## Search using libsolv. Needs some more work.
     #  To Do list:
-    #  Add more info to the solv's to search into more details of the ports (description, \
-    #  license, version, etc.
+    #  Add support for searching in License and other fields too. Some changes to be made port.tcl to
+    #  support these options to be passed i.e. --license
     #  Done:
     #  Add support for search options i.e. --exact, --case-sensitive, --glob, --regex.
     #  Return portinfo to mportsearch which will pass the info to port.tcl to print results.
-    proc search {pattern {case_sensitive yes} {matchstyle regexp}  } {
+    #  Add more info to the solv's to search into more details of the ports (description, \
+    #  homepage, category, etc.
+    proc search {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
         variable pool
         variable portindexinfo
 
         set matches [list]
         set sel [$pool Selection]
+        variable search_option
        
         ## Initialize search option flag depending on the option passed to port search
         switch -- $matchstyle {
@@ -177,8 +181,21 @@ namespace eval macports::libsolv {
         if {!${case_sensitive}} {
             set di_flag [expr $di_flag | $solv::Dataiterator_SEARCH_NOCASE]
         }
+
+        ## Set options for search. Binary OR the $search_option to lookup more fields.
+        if {$field eq "name"} {
+            set search_option $solv::SOLVABLE_NAME
+        } elseif {$field eq "description"} {
+            set search_option $solv::SOLVABLE_SUMMARY
+        } elseif {$field eq "long_description"} {
+            set search_option $solv::SOLVABLE_DESCRIPTION
+        } elseif {$field eq "homepage"} {
+            set search_option $solv::SOLVABLE_URL
+        } elseif {$field eq "categories"} {
+            set search_option $solv::SOLVABLE_CATEGORY
+        }
         
-        set di [$pool Dataiterator $solv::SOLVABLE_NAME $pattern $di_flag]
+        set di [$pool Dataiterator $search_option $pattern $di_flag]
 
         while {[set data [$di __next__]] ne "NULL"} { 
             $sel add_raw $solv::Job_SOLVER_SOLVABLE [$data cget -solvid]
