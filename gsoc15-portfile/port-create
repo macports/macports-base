@@ -61,12 +61,13 @@ set options {
     {opensuse.arg    ""   "Search openSUSE"            }
     {fedora.arg      ""   "Search Fedora"              }
     {ubuntu.arg      ""   "Search Ubuntu"              }
+    {arch.arg        ""   "Search Archlinux"           }
 }
 
 set usage ": $argv0
                \[-url <url>] \[-name <name>] \[-version <version>] \[-group <group>]
                \[-outfile <outfile>]
-               \[-homebrew|-fink|-debian|-opensuse|-fedora|-ubuntu <query>]
+               \[-homebrew|-fink|-debian|-opensuse|-fedora|-ubuntu|-arch <query>]
 options:"
 
 if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
@@ -108,6 +109,12 @@ if {[expr {[string length $query] > 0}]} {
 set query $params(ubuntu)
 if {[expr {[string length $query] > 0}]} {
     exec open "http://packages.ubuntu.com/search?keywords=${query}&searchon=names&suite=all&section=all"
+    exit 0
+}
+
+set query $params(arch)
+if {[expr {[string length $query] > 0}]} {
+    exec open "https://www.archlinux.org/packages/?q=${query}"
     exit 0
 }
 
