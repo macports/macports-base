@@ -164,16 +164,16 @@ namespace eval macports::libsolv {
         ## Initialize search option flag depending on the option passed to port search
         switch -- $matchstyle {
             exact {
-                set di_flag [expr $solv::Dataiterator_SEARCH_STRING]
+                set di_flag $solv::Dataiterator_SEARCH_STRING
             }
             glob {
-                set di_flag [expr $solv::Dataiterator_SEARCH_GLOB]
+                set di_flag $solv::Dataiterator_SEARCH_GLOB
             }
             regexp {
-                set di_flag [expr $solv::Dataiterator_SEARCH_REGEX]
+                set di_flag $solv::Dataiterator_SEARCH_REGEX
             }
             default {
-                return -code error "mportsearch: Unsupported matching style: ${matchstyle}."
+                return -code error "Libsolv search: Unsupported matching style: ${matchstyle}."
             }
         }
 
@@ -183,16 +183,28 @@ namespace eval macports::libsolv {
         }
 
         ## Set options for search. Binary OR the $search_option to lookup more fields.
-        if {$field eq "name"} {
-            set search_option $solv::SOLVABLE_NAME
-        } elseif {$field eq "description"} {
-            set search_option $solv::SOLVABLE_SUMMARY
-        } elseif {$field eq "long_description"} {
-            set search_option $solv::SOLVABLE_DESCRIPTION
-        } elseif {$field eq "homepage"} {
-            set search_option $solv::SOLVABLE_URL
-        } elseif {$field eq "categories"} {
-            set search_option $solv::SOLVABLE_CATEGORY
+        switch -- $field {
+            name {
+                set search_option $solv::SOLVABLE_NAME
+            }
+            description {
+                set search_option $solv::SOLVABLE_SUMMARY
+            } 
+            long_description {
+                set search_option $solv::SOLVABLE_DESCRIPTION
+            } 
+            homepage {
+                set search_option $solv::SOLVABLE_URL
+            } 
+            categories {
+                set search_option $solv::SOLVABLE_CATEGORY
+            }
+            ## $field is yes in alternate iteration i.e. description, yes, name, yes and so on.
+            yes {
+            }
+            default {
+                return -code error "Libsolv search: Unsupported field: ${field}."
+            }
         }
         
         set di [$pool Dataiterator $search_option $pattern $di_flag]
