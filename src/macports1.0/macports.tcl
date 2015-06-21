@@ -2742,11 +2742,16 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     ## Use libsolv search if -l is passed
     if {[info exists macports::global_options(ports_depengine)]} {
         if {$macports::global_options(ports_depengine) eq "libsolv"} {
-            macports::libsolv::create_pool
-            # macports::libsolv::print
-            set search_res [macports::libsolv::search $pattern \
-            $case_sensitive $matchstyle $field]
-            return $search_res
+            ## If $field == "yes" do not call libsolv search
+            #  as nothing useful is done in libsolv search for "yes"
+            #  and save some computation time.
+            if {$field ne "yes"} {
+                macports::libsolv::create_pool
+                # macports::libsolv::print
+                set search_res [macports::libsolv::search $pattern \
+                $case_sensitive $matchstyle $field]
+                return $search_res
+            }
         }
     } else {
         ## Use builtin search algorithm.

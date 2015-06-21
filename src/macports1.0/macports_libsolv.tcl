@@ -199,9 +199,6 @@ namespace eval macports::libsolv {
             categories {
                 set search_option $solv::SOLVABLE_CATEGORY
             }
-            ## $field is yes in alternate iteration i.e. description, yes, name, yes and so on.
-            yes {
-            }
             default {
                 return -code error "Libsolv search: Unsupported field: ${field}."
             }
