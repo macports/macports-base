@@ -3843,6 +3843,19 @@ proc action_list { action portlist opts } {
 }
 
 
+proc action_create { action portlist opts } {
+    puts "Creating Portfile Template..."
+
+    set idx 0
+    foreach arg $portlist {
+        puts "$idx = $arg"
+        incr idx
+    }
+
+    return 0
+}
+
+
 proc action_echo { action portlist opts } {
     global global_options
 
@@ -4257,6 +4270,8 @@ array set action_array [list \
     \
     search      [list action_search         [ACTION_ARGS_STRINGS]] \
     list        [list action_list           [ACTION_ARGS_PORTS]] \
+    \
+    create      [list action_create         [ACTION_ARGS_STRINGS]] \
     \
     edit        [list action_portcmds       [ACTION_ARGS_PORTS]] \
     cat         [list action_portcmds       [ACTION_ARGS_PORTS]] \
