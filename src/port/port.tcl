@@ -3713,7 +3713,7 @@ proc action_search { action portlist opts } {
 
         set res {}
         set portfound 0
-        foreach { opt } [array get filters] {
+        foreach { opt } [array names filters] {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
