@@ -1,13 +1,10 @@
 #!/opt/local/libexec/macports/bin/tclsh8.5
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # $Id$
-
-# Create Portfile
 #
-# Workflow:
-# 1. Gather metadata
-# 2. Feed template
-# 3. Print result
+# Create Portfile
+
+package require cmdline
 
 # Get tarball filename from tarball URL
 proc get_tarball_filename {url} {
@@ -55,14 +52,10 @@ proc read_template {file} {
     return $template
 }
 
-proc feed_template {template metadata} {
-    return $template
+proc val_or_def {val def} {
+    expr {$val ne "" ? $val : $def}
 }
 
-set name ""
-set version ""
-
-package require cmdline
 set options {
     {url.arg         ""   "set the tarball URL of port"}
     {name.arg        ""   "set the name of port"       }
@@ -89,7 +82,7 @@ if {[catch {array set params [cmdline::getoptions ::argv $options $usage]}]} {
     exit 2
 }
 
-# Question: duplicate code, how to merge the following five code block?
+# Parse search on other sites options
 set query $params(homebrew)
 if {[expr {[string length $query] > 0}]} {
     exec open "https://github.com/Homebrew/homebrew/search?l=ruby&q=$query"
@@ -132,42 +125,50 @@ if {[expr {[string length $query] > 0}]} {
     exit 0
 }
 
+# Parse -group
 if {[expr {[string length $params(group)] > 0}]} {
     get_group $params(group) $argv
     exit 0
 }
 
+set name "replaceme"
+set version "replaceme"
+set maintainers "replaceme"
+
+# Parse -url
 if {[expr {[string length $params(url)] > 0}]} {
     set tarball [get_tarball_filename $params(url)]
-    set name [get_name $tarball]
-    set version [get_version $tarball]
+    set name [val_or_def [get_name $tarball] $name]
+    set version [val_or_def [get_version $tarball] $version]
 }
 
-if {[expr {[string length $params(name)] > 0}]} {
-    set name $params(name)
+# Parse -name and -version
+set name    [val_or_def $params(name)    $name]
+set version [val_or_def $params(version) $version]
+
+if {[info exist env(EMAIL)]} {
+    set maintainers $env(EMAIL)
 }
 
-if {[expr {[string length $params(version)] > 0}]} {
-    set version $params(version)
-}
-
-set template [read_template "./Portfile.template"]
-
-if {$name ne""} {
-    set template [string map "PortName $name" $template]
-}
-if {$version ne ""} {
-    set template [string map "PortVersion $version" $template]
-}
-
-if {[info exist env(EMAIL)] && ![string equal $env(EMAIL) ""]} {
-    set template [string map "MaintainerHandle $env(EMAIL)" $template]
-}
-
-if {[expr {[string length $params(outfile)] > 0}]} {
-    set outfile [open $params(outfile) w]
-    puts -nonewline $outfile $template
-    close $outfile
-} else {
-    puts -nonewline $template
-}
+##################
+## Print Result ##
+##################
+puts "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
+puts "# \$Id\$"
+puts ""
+puts "PortSystem          1.0"
+puts ""
+puts "name                ${name}"
+puts "version             ${version}"
+puts "categories          replaceme"
+puts "platforms           darwin"
+puts "maintainers         replaceme"
+puts "license             replaceme"
+puts "maintainers         ${maintainers}"
+puts ""
+puts "description         replaceme"
+puts ""
+puts "long_description    replaceme"
+puts ""
+puts "checksums           rmd160  12345 \\"
+puts "                    sha256  6789a"
