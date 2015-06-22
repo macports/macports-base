@@ -141,6 +141,10 @@ if {$version ne ""} {
     set template [string map "PortVersion $version" $template]
 }
 
+if {[info exist env(EMAIL)] && ![string equal $env(EMAIL) ""]} {
+    set template [string map "MaintainerHandle $env(EMAIL)" $template]
+}
+
 if {[expr {[string length $params(outfile)] > 0}]} {
     set outfile [open $params(outfile) w]
     puts -nonewline $outfile $template
