@@ -6,6 +6,10 @@
 
 package require cmdline
 
+package require portutil 1.0
+package require Pextlib 1.0
+package require portchecksum 1.0
+
 # Get tarball filename from tarball URL
 proc get_tarball_filename {url} {
     set length [string length $url]
@@ -134,12 +138,20 @@ if {[expr {[string length $params(group)] > 0}]} {
 set name "replaceme"
 set version "replaceme"
 set maintainers "replaceme"
+set rmd160 "replaceme"
+set sha256 "replaceme"
 
 # Parse -url
 if {[expr {[string length $params(url)] > 0}]} {
     set tarball [get_tarball_filename $params(url)]
     set name [val_or_def [get_name $tarball] $name]
     set version [val_or_def [get_version $tarball] $version]
+
+    set file_url "/tmp/$tarball.TMP"
+    curl fetch  $params(url) $file_url
+
+    set rmd160 [val_or_def [portchecksum::calc_rmd160 $file_url] $rmd160]
+    set sha256 [val_or_def [portchecksum::calc_sha256 $file_url] $sha256]
 }
 
 # Parse -name and -version
@@ -170,5 +182,5 @@ puts "description         replaceme"
 puts ""
 puts "long_description    replaceme"
 puts ""
-puts "checksums           rmd160  12345 \\"
-puts "                    sha256  6789a"
+puts "checksums           rmd160  ${rmd160} \\"
+puts "                    sha256  ${sha256}"
