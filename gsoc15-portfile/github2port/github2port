@@ -15,6 +15,10 @@ proc usage {{channel stderr}} {
     puts $channel "  $argv0 https://github.com/jonas/tig/archive/tig-2.1.1.tar.gz"
 }
 
+proc val_or_def {val def} {
+    expr {$val ne "" ? $val : $def}
+}
+
 if {$argc != 1} {
     usage
     exit 1
@@ -66,13 +70,7 @@ if {[string match */releases/download/* $url]} {
 set description replaceme
 set homepage ""
 
-set json "/tmp/${author}-${project}.json"
-set api "https://api.github.com/repos/${author}/${project}"
-exec curl --silent --max-time 5 --output $json $api
-
-# Question: Is it possible to change the value of passed variable?
-proc parse_json {query} {
-    global json
+proc parse_json {query json} {
     set tmp [exec jq $query $json]
     set tmp [string range $tmp 1 end-1]
 
@@ -83,15 +81,19 @@ proc parse_json {query} {
     }
 }
 
-set tmp [parse_json .description]
-if {[expr {[string length $tmp] > 0}]} {
-    set description $tmp
+proc request_github {} {
+    global author project
+    global description homepage
+
+    set json "/tmp/${author}-${project}.json"
+    set api "https://api.github.com/repos/${author}/${project}"
+    exec curl --silent --max-time 5 --output $json $api
+
+    set description [val_or_def [parse_json .description $json] $description]
+    set homepage [val_or_def [parse_json .description $json] $homepage]
 }
 
-set tmp [parse_json .homepage]
-if {[expr {[string length $tmp] > 0}]} {
-    set homepage $tmp
-}
+# request_github
 
 puts "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
 puts "# \$Id\$"

@@ -1,11 +1,5 @@
 # port-create
 
-## Installation
-`jq` and `curl` is needed to run `github2port`, to install:
-
-    $ sudo port install jq
-    $ sudo port install curl
-
 ## Usage
 TODO
 
