@@ -14,7 +14,8 @@ Create Portfile template using tarball URL, port name and port version:
 
 Create Portfile template using PortGroup:
 
-    # Github tarball URL
+    # Github project or tarball URL
+    $ ./port-create -group github https://github.com/tmux/tmux
     $ ./port-create -group github https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz
     # Bitbucket project URL
     $ ./port-create -group bitbucket https://bitbucket.org/sshguard/sshguard

@@ -1,16 +1,17 @@
 #!/usr/bin/env tclsh
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 #
-# Generate a github group template Portfile given tarball URL
+# Generate a github group template Portfile given tarball or project URL
 #
 
 proc usage {{channel stderr}} {
     global argv0
     puts $channel "Usage: $argv0 URL"
     puts $channel ""
-    puts $channel "URL is the github tarball URL"
+    puts $channel "URL is the github tarball or project URL"
     puts $channel ""
     puts $channel "Example:"
+    puts $channel "  $argv0 https://github.com/tmux/tmux"
     puts $channel "  $argv0 https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz"
     puts $channel "  $argv0 https://github.com/jonas/tig/archive/tig-2.1.1.tar.gz"
 }
@@ -62,6 +63,10 @@ if {[string match */releases/download/* $url]} {
     # v0.8.5.tar.gz
     set tarball [lindex $tmp 6]
     parse_fancy_version $tarball
+} elseif {[string match *github* $url]} {
+    set tmp [split $url /]
+    set author [lindex $tmp 3]
+    set project [lindex $tmp 4]
 } else {
     usage
     exit 1
