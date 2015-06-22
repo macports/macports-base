@@ -34,6 +34,17 @@ proc get_version {tarball} {
     }
 }
 
+proc get_group {group} {
+    switch $group {
+        github {
+            puts [exec github2port/github2port https://github.com/jonas/tig/archive/tig-2.1.1.tar.gz]
+        }
+        default {
+            error "Unsupported group $group"
+        }
+    }
+}
+
 proc read_template {file} {
     set fp [open $file r]
     set template [read $fp]
@@ -115,6 +126,11 @@ if {[expr {[string length $query] > 0}]} {
 set query $params(arch)
 if {[expr {[string length $query] > 0}]} {
     exec open "https://www.archlinux.org/packages/?q=${query}"
+    exit 0
+}
+
+if {[expr {[string length $params(group)] > 0}]} {
+    get_group $params(group)
     exit 0
 }
 
