@@ -138,6 +138,7 @@ if {[expr {[string length $params(group)] > 0}]} {
 set name "replaceme"
 set version "replaceme"
 set maintainers "replaceme"
+set master_sites "replaceme"
 set rmd160 "replaceme"
 set sha256 "replaceme"
 
@@ -146,6 +147,8 @@ if {[expr {[string length $params(url)] > 0}]} {
     set tarball [get_tarball_filename $params(url)]
     set name [val_or_def [get_name $tarball] $name]
     set version [val_or_def [get_version $tarball] $version]
+
+    set master_sites [val_or_def [string range $params(url) 0 end-[string length $tarball]] $master_sites]
 
     set file_url "/tmp/$tarball.TMP"
     curl fetch  $params(url) $file_url
@@ -181,6 +184,8 @@ puts ""
 puts "description         replaceme"
 puts ""
 puts "long_description    replaceme"
+puts ""
+puts "master_sites        ${master_sites}"
 puts ""
 puts "checksums           rmd160  ${rmd160} \\"
 puts "                    sha256  ${sha256}"
