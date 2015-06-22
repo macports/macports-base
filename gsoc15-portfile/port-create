@@ -34,16 +34,16 @@ proc get_version {tarball} {
     }
 }
 
-proc get_group {group} {
+proc get_group {group argv} {
     switch $group {
         github {
-            puts [exec github2port/github2port https://github.com/jonas/tig/archive/tig-2.1.1.tar.gz]
+            puts [exec github2port/github2port {*}$argv]
         }
         bitbucket {
-            puts [exec github2port/bitbucket2port https://bitbucket.org/sshguard/sshguard]
+            puts [exec github2port/bitbucket2port {*}$argv]
         }
         default {
-            puts [exec portfile-gen/portfile-gen -g $group pylint 1.4.3]
+            puts [exec portfile-gen/portfile-gen -g $group {*}$argv]
         }
     }
 }
@@ -133,7 +133,7 @@ if {[expr {[string length $query] > 0}]} {
 }
 
 if {[expr {[string length $params(group)] > 0}]} {
-    get_group $params(group)
+    get_group $params(group) $argv
     exit 0
 }
 
