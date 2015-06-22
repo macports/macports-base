@@ -39,8 +39,11 @@ proc get_group {group} {
         github {
             puts [exec github2port/github2port https://github.com/jonas/tig/archive/tig-2.1.1.tar.gz]
         }
+        bitbucket {
+            puts [exec github2port/bitbucket2port https://bitbucket.org/sshguard/sshguard]
+        }
         default {
-            error "Unsupported group $group"
+            puts [exec portfile-gen/portfile-gen -g $group pylint 1.4.3]
         }
     }
 }
