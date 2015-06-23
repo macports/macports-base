@@ -41,21 +41,14 @@ proc parse_github_url {url} {
             "expected github url but got \"$url\""
     }
 
-    set res {}
-
     set path [split $urlparts(path) /]
-    set author [lindex $path 0] ; lappend res $author
-    set project [lindex $path 1] ; lappend res $project
+    set author [lindex $path 0]
+    set project [lindex $path 1]
 
     set tarball [lindex $path end]
-    foreach i [parse_tarball_name $tarball] {
-        lappend res $i
-    }
-
     set tarball_from [expr {[string match */releases/download/* $url] ? "release" : ""}]
-    lappend res $tarball_from
 
-    return $res
+    return [list $author $project {*}[parse_tarball_name $tarball] $tarball_from]
 }
 
 proc parse_bitbucket_url {url} {
@@ -65,18 +58,13 @@ proc parse_bitbucket_url {url} {
             "expected bitbucket url but got \"$url\""
     }
 
-    set res {}
-
     set path [split $urlparts(path) /]
-    set author [lindex $path 0] ; lappend res $author
-    set project [lindex $path 1] ; lappend res $project
+    set author [lindex $path 0]
+    set project [lindex $path 1]
 
     set tarball [lindex $path end]
-    foreach i [parse_tarball_name $tarball] {
-        lappend res $i
-    }
 
-    return $res
+    return [list $author $project {*}[parse_tarball_name $tarball]]
 }
 
 proc request_github {author project} {
