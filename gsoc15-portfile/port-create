@@ -38,10 +38,10 @@ proc get_version {tarball} {
 proc get_group {group argv} {
     switch $group {
         github {
-            puts [exec github2port/github2port {*}$argv]
+            puts [exec github2port/github2port -github {*}$argv]
         }
         bitbucket {
-            puts [exec github2port/bitbucket2port {*}$argv]
+            puts [exec github2port/github2port -bitbucket {*}$argv]
         }
         default {
             puts [exec portfile-gen/portfile-gen -g $group {*}$argv]

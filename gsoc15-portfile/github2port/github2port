@@ -8,14 +8,14 @@ package require uri
 
 proc usage {{channel stderr}} {
     global argv0
-    puts $channel "Usage: $argv0 URL"
+    puts $channel "Usage: $argv0 \[-github|-bitbucket <URL>\]"
     puts $channel ""
-    puts $channel "URL is the github tarball or project URL"
+    puts $channel "URL is the github/bitbucket tarball or project URL"
     puts $channel ""
     puts $channel "Example:"
-    puts $channel "  $argv0 https://github.com/tmux/tmux"
-    puts $channel "  $argv0 https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz"
-    puts $channel "  $argv0 https://github.com/jonas/tig/archive/tig-2.1.1.tar.gz"
+    puts $channel "  $argv0 -github https://github.com/tmux/tmux"
+    puts $channel "  $argv0 -github https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz"
+    puts $channel "  $argv0 -bitbucket https://bitbucket.org/sshguard/sshguard"
 }
 
 proc val_or_def {val def} {
@@ -52,6 +52,22 @@ proc parse_github_url {url} {
     return [concat $author $project [parse_tarball_name $tarball] $tarball_from]
 }
 
+proc parse_bitbucket_url {url} {
+    array set urlparts [uri::split $url]
+
+    if {![string equal $urlparts(host) bitbucket.org]} {
+        return -code error \
+            "expected bitbucket url but got \"$url\""
+    }
+
+    set path [split $urlparts(path) /]
+    set author [lindex $path 0]
+    set project [lindex $path 1]
+    set tarball [lindex $path end]
+
+    return [concat $author $project [parse_tarball_name $tarball]]
+}
+
 proc request_github {author project} {
     set json "/tmp/${author}-${project}.json"
     set api "https://api.github.com/repos/${author}/${project}"
@@ -73,31 +89,59 @@ proc parse_json {query json} {
     }
 }
 
-if {$argc != 1} {
-    usage
-    exit 1
-}
+set PortGroup ""
 
-set url [lindex $argv 0]
-set tmp [parse_github_url $url]
+set author author
+set project project
+set version version
+set tag_prefix tag_prefix
 
-set author        [val_or_def [lindex $tmp 0] "author"]
-set project       [val_or_def [lindex $tmp 1] "project"]
-set version       [val_or_def [lindex $tmp 2] "version"]
-set tag_prefix    [val_or_def [lindex $tmp 3] "tag_prefix"]
-set tarball_from  [val_or_def [lindex $tmp 4] ""]
+set tarball_from ""
 
 set description replaceme
 set homepage ""
 
-# request_github
+if {$argc != 2} {
+    usage ; exit 1
+} else {
+    if {[string equal [lindex $argv 0] "-github"]} {
+        set PortGroup "github 1.0"
+
+        set url [lindex $argv 1]
+        set tmp [parse_github_url $url]
+
+        set author        [val_or_def [lindex $tmp 0] "author"]
+        set project       [val_or_def [lindex $tmp 1] "project"]
+        set version       [val_or_def [lindex $tmp 2] "version"]
+        set tag_prefix    [val_or_def [lindex $tmp 3] "tag_prefix"]
+        set tarball_from  [val_or_def [lindex $tmp 4] ""]
+
+        set description replaceme
+        set homepage ""
+
+        # request_github
+
+    } elseif {[string equal [lindex $argv 0] "-bitbucket"]} {
+        set PortGroup "bitbucket 1.0"
+
+        set url [lindex $argv 1]
+        set tmp [parse_bitbucket_url $url]
+
+        set author     [val_or_def [lindex $tmp 0] "author"]
+        set project    [val_or_def [lindex $tmp 1] "project"]
+        set version    [val_or_def [lindex $tmp 2] "version"]
+        set tag_prefix [val_or_def [lindex $tmp 3] "tag_prefix"]
+    } else {
+        usage ; exit 1
+    }
+}
 
 puts "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
 puts "# \$Id\$"
 puts ""
 puts "PortSystem          1.0"
 
-puts "PortGroup           github 1.0"
+puts "PortGroup           ${PortGroup}"
 puts ""
 puts "github.setup        ${author} ${project} ${version} ${tag_prefix}"
 
