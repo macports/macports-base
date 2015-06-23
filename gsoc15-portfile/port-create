@@ -65,7 +65,6 @@ set options {
     {name.arg        ""   "set the name of port"       }
     {version.arg     ""   "set the version of port"    }
     {group.arg       ""   "set the group of port"      }
-    {outfile.arg     ""   "write output to file"       }
     {homebrew.arg    ""   "Search Homebrew"            }
     {fink.arg        ""   "Search Fink"                }
     {debian.arg      ""   "Search Debian"              }
@@ -77,7 +76,6 @@ set options {
 
 set usage ": $argv0
                \[-url <url>] \[-name <name>] \[-version <version>] \[-group <group>]
-               \[-outfile <outfile>]
                \[-homebrew|-fink|-debian|-opensuse|-fedora|-ubuntu|-arch <query>]
 options:"
 
