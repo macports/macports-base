@@ -120,10 +120,51 @@ namespace eval macports::libsolv {
                             if {[info exists portinfo(categories)]} {
                                 $repodata set_str $solvid $solv::SOLVABLE_CATEGORY $portinfo(categories)
                             }
+                            ## Add dependency information to solvable using portinfo
+                            #  $marker i.e last arg to add_deparray is set to 1 for build dependencies
+                            #  and -1 for runtime dependencies
+                            ## Add Build dependencies:
+                            if {[info exists portinfo(depends_fetch)]} {
+                                foreach dep $portinfo(depends_fetch) {
+                                    set dep_name [lindex [split $dep :] end]
+                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
+                                    [$pool str2id $dep_name 1] 1
+                                }
+                            }
+                            if {[info exists portinfo(depends_extract)]} {
+                                foreach dep $portinfo(depends_extract) {
+                                    set dep_name [lindex [split $dep :] end]
+                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
+                                    [$pool str2id $dep_name 1] 1
+                                }
+                            }
+                            if {[info exists portinfo(depends_build)]} {
+                                foreach dep $portinfo(depends_build) {
+                                    set dep_name [lindex [split $dep :] end]
+                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
+                                    [$pool str2id $dep_name 1] 1
+                                }
+                            }
+                            ## Add Runtime dependencies
+                            if {[info exists portinfo(depends_lib)]} {
+                                foreach dep $portinfo(depends_lib) {
+                                    set dep_name [lindex [split $dep :] end]
+                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
+                                    [$pool str2id $dep_name 1] -1
+                                }
+                            }
+                            if {[info exists portinfo(depends_run)]} {
+                                foreach dep $portinfo(depends_run) {
+                                    set dep_name [lindex [split $dep :] end]
+                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
+                                    [$pool str2id $dep_name 1] -1
+                                }
+                            }
 
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
                         }
+
                     } catch * {
                         ui_warn "It looks like your PortIndex file for $source may be corrupt."
                         throw
