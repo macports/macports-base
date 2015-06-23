@@ -22,50 +22,61 @@ proc val_or_def {val def} {
     expr {$val ne "" ? $val : $def}
 }
 
-proc parse_tarball_name {v} {
+# Extract version and tag_prefix from tarball name, e.g., v0.2.3.tar.gz and v_0.1.2.tar.gz
+proc parse_tarball_name {tarball_name} {
     set version ""
     set tag_prefix ""
 
-    if {[regexp {[0-9]+([.-][0-9]+)+} $v version]} {
-        if {[string length $version] < [string length $v]} {
-            set tag_prefix [string range $v 0 [expr [string first $version $v] -1]]
-        }
+    if {[regexp -indices {[0-9]+([.-][0-9]+)+} $tarball_name location]} {
+        set version [string range $tarball_name {*}$location]
+        set tag_prefix [string range $tarball_name 0 [expr [lindex $location 0]-1]]
     }
     return [list $version $tag_prefix]
 }
 
 proc parse_github_url {url} {
     array set urlparts [uri::split $url]
-
     if {![string equal $urlparts(host) github.com]} {
         return -code error \
             "expected github url but got \"$url\""
     }
 
+    set res {}
+
     set path [split $urlparts(path) /]
-    set author [lindex $path 0]
-    set project [lindex $path 1]
+    set author [lindex $path 0] ; lappend res $author
+    set project [lindex $path 1] ; lappend res $project
+
     set tarball [lindex $path end]
+    foreach i [parse_tarball_name $tarball] {
+        lappend res $i
+    }
 
     set tarball_from [expr {[string match */releases/download/* $url] ? "release" : ""}]
+    lappend res $tarball_from
 
-    return [concat $author $project [parse_tarball_name $tarball] $tarball_from]
+    return $res
 }
 
 proc parse_bitbucket_url {url} {
     array set urlparts [uri::split $url]
-
     if {![string equal $urlparts(host) bitbucket.org]} {
         return -code error \
             "expected bitbucket url but got \"$url\""
     }
 
-    set path [split $urlparts(path) /]
-    set author [lindex $path 0]
-    set project [lindex $path 1]
-    set tarball [lindex $path end]
+    set res {}
 
-    return [concat $author $project [parse_tarball_name $tarball]]
+    set path [split $urlparts(path) /]
+    set author [lindex $path 0] ; lappend res $author
+    set project [lindex $path 1] ; lappend res $project
+
+    set tarball [lindex $path end]
+    foreach i [parse_tarball_name $tarball] {
+        lappend res $i
+    }
+
+    return $res
 }
 
 proc request_github {author project} {
