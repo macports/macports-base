@@ -1,8 +1,10 @@
-#!/usr/bin/env tclsh
+#!/usr/bin/env port-tclsh
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 #
 # Generate a github group template Portfile given tarball or project URL
 #
+
+package require uri
 
 proc usage {{channel stderr}} {
     global argv0
@@ -20,60 +22,45 @@ proc val_or_def {val def} {
     expr {$val ne "" ? $val : $def}
 }
 
-if {$argc != 1} {
-    usage
-    exit 1
-}
+proc parse_tarball_name {v} {
+    set version ""
+    set tag_prefix ""
 
-set url [lindex $argv 0]
-
-set author author
-set project project
-set version 1.0
-set tag_prefix "";              # tag_prefix, usually is empty or "v"
-
-set tarball_from "";            # tarball type, including release and others
-
-# 2.0, v0.3.8, release-v1.5.8, v0.8.5.tar.gz => version and tag_prefix if has
-proc parse_fancy_version {v} {
-    global version
-    global tag_prefix
     if {[regexp {[0-9]+([.-][0-9]+)+} $v version]} {
         if {[string length $version] < [string length $v]} {
             set tag_prefix [string range $v 0 [expr [string first $version $v] -1]]
         }
     }
+    return [list $version $tag_prefix]
 }
 
-if {[string match */releases/download/* $url]} {
-    set tarball_from releases
+proc parse_github_url {url} {
+    array set urlparts [uri::split $url]
 
-    set tmp [split $url /]
-    set author [lindex $tmp 3]
-    set project [lindex $tmp 4]
-    # 2.0, v0.3.0
-    set github_version [lindex $tmp 7]
-    parse_fancy_version $github_version
-} elseif {[string match */archive/* $url]} {
-    set tarball_from ""
+    if {![string equal $urlparts(host) github.com]} {
+        return -code error \
+            "expected github url but got \"$url\""
+    }
 
-    set tmp [split $url /]
-    set author [lindex $tmp 3]
-    set project [lindex $tmp 4]
-    # v0.8.5.tar.gz
-    set tarball [lindex $tmp 6]
-    parse_fancy_version $tarball
-} elseif {[string match *github* $url]} {
-    set tmp [split $url /]
-    set author [lindex $tmp 3]
-    set project [lindex $tmp 4]
-} else {
-    usage
-    exit 1
+    set path [split $urlparts(path) /]
+    set author [lindex $path 0]
+    set project [lindex $path 1]
+    set tarball [lindex $path end]
+
+    set tarball_from [expr {[string match */releases/download/* $url] ? "release" : ""}]
+
+    return [concat $author $project [parse_tarball_name $tarball] $tarball_from]
 }
 
-set description replaceme
-set homepage ""
+proc request_github {author project} {
+    set json "/tmp/${author}-${project}.json"
+    set api "https://api.github.com/repos/${author}/${project}"
+    exec curl --silent --max-time 5 --output $json $api
+
+    set description [val_or_def [parse_json .description $json] $description]
+    set homepage [val_or_def [parse_json .description $json] $homepage]
+    return [list description homepage]
+}
 
 proc parse_json {query json} {
     set tmp [exec jq $query $json]
@@ -86,17 +73,22 @@ proc parse_json {query json} {
     }
 }
 
-proc request_github {} {
-    global author project
-    global description homepage
-
-    set json "/tmp/${author}-${project}.json"
-    set api "https://api.github.com/repos/${author}/${project}"
-    exec curl --silent --max-time 5 --output $json $api
-
-    set description [val_or_def [parse_json .description $json] $description]
-    set homepage [val_or_def [parse_json .description $json] $homepage]
+if {$argc != 1} {
+    usage
+    exit 1
 }
+
+set url [lindex $argv 0]
+set tmp [parse_github_url $url]
+
+set author        [val_or_def [lindex $tmp 0] "author"]
+set project       [val_or_def [lindex $tmp 1] "project"]
+set version       [val_or_def [lindex $tmp 2] "version"]
+set tag_prefix    [val_or_def [lindex $tmp 3] "tag_prefix"]
+set tarball_from  [val_or_def [lindex $tmp 4] ""]
+
+set description replaceme
+set homepage ""
 
 # request_github
 
@@ -109,7 +101,6 @@ puts "PortGroup           github 1.0"
 puts ""
 puts "github.setup        ${author} ${project} ${version} ${tag_prefix}"
 
-# TODO: 6. (optional) Query categories, license etc from other Package Manager
 puts "categories          replaceme"
 puts "platforms           darwin"
 

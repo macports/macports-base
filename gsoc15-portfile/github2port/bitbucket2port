@@ -44,9 +44,6 @@ proc parse_bitbucket_url {url} {
     set project [lindex $path 1]
     set tarball [lindex $path end]
 
-    set version "version"
-    set tag_prefix ""
-
     return [concat $author $project [parse_tarball_name $tarball]]
 }
 
