@@ -337,7 +337,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                 foreach depref $deprefs {
                     set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
                     foreach d $depdeps {
-                        if {[lsearch -exact $alldeps $d] == -1} {
+                        if {[lsearch -exact [lrange $alldeps $j+1 end] $d] == -1} {
                             lappend alldeps $d 
                         }
                     }
