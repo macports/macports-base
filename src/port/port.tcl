@@ -4158,6 +4158,21 @@ proc action_target { action portlist opts } {
 }
 
 
+proc action_mirror { action portlist opts } {
+    global macports::portdbpath
+    # handle --new option here so we only delete the db once
+    array set options $opts
+    set mirror_filemap_path [file join $macports::portdbpath distfiles_mirror.db]
+    if {[info exists options(ports_mirror_new)]
+        && [string is true -strict $options(ports_mirror_new)]
+        && [file exists $mirror_filemap_path]} {
+            # Trash the map file if it existed.
+            file delete -force $mirror_filemap_path
+    }
+
+    action_target $action $portlist $opts
+}
+
 proc action_exit { action portlist opts } {
     # Return a semaphore telling the main loop to quit
     return -999
@@ -4245,6 +4260,8 @@ array set action_array [list \
     \
     uninstall   [list action_uninstall      [ACTION_ARGS_PORTS]] \
     \
+    mirror      [list action_mirror         [ACTION_ARGS_PORTS]] \
+    \
     installed   [list action_installed      [ACTION_ARGS_PORTS]] \
     outdated    [list action_outdated       [ACTION_ARGS_PORTS]] \
     contents    [list action_contents       [ACTION_ARGS_PORTS]] \
@@ -4281,7 +4298,6 @@ array set action_array [list \
     lint        [list action_target         [ACTION_ARGS_PORTS]] \
     livecheck   [list action_target         [ACTION_ARGS_PORTS]] \
     distcheck   [list action_target         [ACTION_ARGS_PORTS]] \
-    mirror      [list action_target         [ACTION_ARGS_PORTS]] \
     load        [list action_target         [ACTION_ARGS_PORTS]] \
     unload      [list action_target         [ACTION_ARGS_PORTS]] \
     reload      [list action_target         [ACTION_ARGS_PORTS]] \
