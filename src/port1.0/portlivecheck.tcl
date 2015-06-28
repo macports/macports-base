@@ -130,7 +130,7 @@ proc portlivecheck::livecheck_main {args} {
             }
         }
     }
-    if {[lsearch -exact [split $available_types "|"] ${livecheck.type}] != -1} {
+    if {${livecheck.type} in [split $available_types "|"]} {
         # Load the defaults from _resources/port1.0/livecheck/${livecheck.type}.tcl.
         set defaults_file "$types_dir/${livecheck.type}.tcl"
         ui_debug "Loading the defaults from '$defaults_file'"

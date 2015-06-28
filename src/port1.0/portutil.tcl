@@ -702,8 +702,7 @@ proc variant_remove_ditem {name} {
 # determine if a variant exists.
 proc variant_exists {name} {
     global PortInfo
-    if {[info exists PortInfo(variants)] &&
-      [lsearch -exact $PortInfo(variants) $name] >= 0} {
+    if {[info exists PortInfo(variants)] && $name in $PortInfo(variants)} {
         return 1
     }
 
@@ -814,7 +813,7 @@ proc platform {args} {
 proc subport {subname body} {
     global subport name PortInfo
     if {$subport eq $name && $subname ne $name && 
-        (![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1)} {
+        (![info exists PortInfo(subports)] || $subname ni $PortInfo(subports))} {
         lappend PortInfo(subports) $subname
     }
     if {[string equal -nocase $subname $subport]} {
@@ -1395,7 +1394,7 @@ proc target_run {ditem} {
             }
 
             # Of course, if this is a dry run, don't do the task:
-            if {[tbool ports_dryrun] && [lsearch -exact $dryrun_allow_targets $targetname] == -1} {
+            if {[tbool ports_dryrun] && $targetname ni $dryrun_allow_targets} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
                     ui_notice "For $portname: skipping $targetname (dry run)"
@@ -1489,11 +1488,9 @@ proc target_run {ditem} {
 
                         # If portname is empty, the dependency is already satisfied by other means,
                         # for example a bin: dependency on a file not installed by MacPorts
-                        if {$name ne ""} {
-                            if {[lsearch -exact $deplist $name] == -1} {
-                                lappend deplist $name
-                                set deplist [recursive_collect_deps $name $deplist]
-                            }
+                        if {$name ne "" && $name ni $deplist} {
+                            lappend deplist $name
+                            set deplist [recursive_collect_deps $name $deplist]
                         }
                     }
 
@@ -1629,7 +1626,7 @@ proc recursive_collect_deps {portname {depsfound {}}} \
 
     foreach item $deplist {
         set name [lindex $item 0]
-        if {[lsearch -exact $depsfound $name] == -1} {
+        if {$name ni $depsfound} {
             lappend depsfound $name
             set depsfound [recursive_collect_deps $name $depsfound]
         }
@@ -2048,7 +2045,7 @@ proc eval_variants {variations} {
     array set requested_variations [array get upvariations]
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
-            [lsearch $PortInfo(variants) $key] == -1} {
+            $key ni $PortInfo(variants)} {
             ui_debug "Requested variant $upvariations($key)$key is not provided by port $portname."
             array unset upvariations $key
         }

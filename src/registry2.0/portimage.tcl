@@ -534,7 +534,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                 # we'll set the directory attributes properly for all
                 # directories.
                 set directory [::file dirname $file]
-                while { [lsearch -exact $files $directory] == -1 } {
+                while {$directory ni $files} {
                     lappend files $directory
                     set directory [::file dirname $directory]
                 }
@@ -688,7 +688,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
 
             # Split out the filename's subpaths and add them to the image list
             # as well.
-            while { [lsearch -exact $files $directory] == -1 } {
+            while {$directory ni $files} {
                 lappend files $directory
                 set directory [::file dirname $directory]
             }

@@ -403,7 +403,7 @@ proc portlint::lint_main {args} {
 
     if {[info exists platforms]} {
         foreach platform $platforms {
-            if {[lsearch -exact $lint_platforms $platform] == -1} {
+            if {$platform ni $lint_platforms} {
                 ui_error "Unknown platform: $platform"
                 incr errors
             } else {
@@ -450,7 +450,7 @@ proc portlint::lint_main {args} {
 
             if {![info exists variantdesc] || $variantdesc eq ""} {
                 # don't warn about missing descriptions for global variants
-                if {[lsearch -exact $local_variants $variantname] != -1 &&
+                if {$variantname in $local_variants &&
                     [variant_desc $porturl $variantname] eq ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings

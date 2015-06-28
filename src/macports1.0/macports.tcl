@@ -690,7 +690,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set fd [open $file r]
             while {[gets $fd line] >= 0} {
                 if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                    if {[lsearch -exact $bootstrap_options $option] >= 0} {
+                    if {$option in $bootstrap_options} {
                         set macports::$option [string trim $val]
                         global macports::$option
                     }
@@ -706,7 +706,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
             if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                if {[lsearch -exact $user_options $option] >= 0} {
+                if {$option in $user_options} {
                     set macports::$option $val
                     global macports::$option
                 }
@@ -725,7 +725,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
                 set flags [split $flags ,]
                 foreach flag $flags {
-                    if {[lsearch -exact [list nosync default] $flag] == -1} {
+                    if {$flag ni [list nosync default]} {
                         ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
                     }
                     if {$flag eq "default"} {
@@ -1080,7 +1080,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     set env_names [array names env]
     foreach envkey $env_names {
-        if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+        if {$envkey ni $keepenvkeys} {
             unset env($envkey)
         }
     }
@@ -1088,7 +1088,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # unset environment an extra time, to work around bugs in Leopard Tcl
     if {$macosx_version eq "10.5"} {
         foreach envkey $env_names {
-            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+            if {$envkey ni $keepenvkeys} {
                 unsetenv $envkey
             }
         }
@@ -2206,13 +2206,13 @@ proc macports::_upgrade_mport_deps {mport target} {
                         }
                     }
                     if {[llength $missing] > 0} {
-                        if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
+                        if {[info exists dep_portinfo(variants)] && "universal" in $dep_portinfo(variants)} {
                             # dep offers a universal variant
                             if {[llength $active_archs] == 1} {
                                 # not installed universal
                                 set missing {}
                                 foreach arch $required_archs {
-                                    if {[lsearch -exact $macports::universal_archs $arch] == -1} {
+                                    if {$arch ni $macports::universal_archs} {
                                         lappend missing $arch
                                     }
                                 }
@@ -2422,7 +2422,7 @@ proc mportsync {{optionslist {}}} {
     foreach source $sources {
         set flags [lrange $source 1 end]
         set source [lindex $source 0]
-        if {[lsearch -exact $flags nosync] != -1} {
+        if {"nosync" in $flags} {
             ui_debug "Skipping $source"
             continue
         }
@@ -3341,7 +3341,7 @@ proc macports::_mport_supports_archs {mport required_archs} {
         return 1
     }
     foreach arch $required_archs {
-        if {[lsearch -exact $provided_archs $arch] == -1} {
+        if {$arch ni $provided_archs} {
             return 0
         }
     }
@@ -3397,7 +3397,7 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     if {$supported_archs ne ""} {
         set ss [expr {[llength $supported_archs] == 1 ? "" : "s"}]
         foreach arch $required_archs {
-            if {[lsearch -exact $supported_archs $arch] == -1} {
+            if {$arch ni $supported_archs} {
                 ui_error "its dependency $dep only supports the arch${ss} '$supported_archs'."
                 return
             }
@@ -3405,7 +3405,7 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     }
     if {$has_universal} {
         foreach arch $required_archs {
-            if {[lsearch -exact $universal_archs $arch] == -1} {
+            if {$arch ni $universal_archs} {
                 ui_error "its dependency $dep does not build for the required arch${s} by default"
                 ui_error "and the configured universal_archs '$universal_archs' are not sufficient."
                 return
@@ -5088,7 +5088,7 @@ proc macports::get_archive_sites_conf_values {} {
             set fd [open $conf_file r]
             while {[gets $fd line] >= 0} {
                 if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                    if {[lsearch -exact $conf_options $option] >= 0} {
+                    if {$option in $conf_options} {
                         if {$option eq "name"} {
                             set cur_name $val
                             lappend all_names $val

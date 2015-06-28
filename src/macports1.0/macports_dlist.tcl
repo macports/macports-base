@@ -415,7 +415,7 @@ proc ditem_contains {ditem key args} {
 		return [info exists [set ditem]($key)]
 	} else {
 		set x [lindex [array get $ditem $key] 1]
-		if {[llength $x] > 0 && [lsearch -exact $x [lindex $args 0]] != -1} {
+		if {[llength $x] > 0 && [lindex $args 0] in $x} {
 			return 1
 		} else {
 			return 0

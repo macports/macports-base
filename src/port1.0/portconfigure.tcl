@@ -325,16 +325,16 @@ proc portconfigure::choose_supported_archs {archs} {
     }
     set ret {}
     foreach arch $archs {
-        if {[lsearch -exact $supported_archs $arch] != -1} {
+        if {$arch in $supported_archs} {
             set add_arch $arch
-        } elseif {$arch eq "x86_64" && [lsearch -exact $supported_archs "i386"] != -1} {
+        } elseif {$arch eq "x86_64" && "i386" in $supported_archs} {
             set add_arch "i386"
-        } elseif {$arch eq "ppc64" && [lsearch -exact $supported_archs "ppc"] != -1} {
+        } elseif {$arch eq "ppc64" && "ppc" in $supported_archs} {
             set add_arch "ppc"
         } else {
             continue
         }
-        if {[lsearch -exact $ret $add_arch] == -1} {
+        if {$add_arch ni $ret} {
             lappend ret $add_arch
         }
     }

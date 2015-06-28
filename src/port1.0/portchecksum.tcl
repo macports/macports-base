@@ -84,7 +84,7 @@ proc portchecksum::parse_checksums {checksums_str} {
     if {[llength $all_dist_files] == 1
         && [expr {$nb_checksum % 2}] == 0
         && [expr {$nb_checksum / 2}] <= $checksum_types_count
-        && [lsearch -exact $checksum_types [lindex $checksums_str 0]] >= 0} {
+        && [lindex $checksums_str 0] in $checksum_types} {
         # Convert to format #2
         set checksums_str [linsert $checksums_str 0 [lindex $all_dist_files 0]]
         # We increased the size.
@@ -113,7 +113,7 @@ proc portchecksum::parse_checksums {checksums_str} {
             incr ix_checksum
             while {1} {
                 set checksum_type [lindex $checksums_str $ix_checksum]
-                if {[lsearch -exact $checksum_types $checksum_type] >= 0} {
+                if {$checksum_type in $checksum_types} {
                     # append the type and the value.
                     incr ix_checksum
                     set checksum_value [lindex $checksums_str $ix_checksum]
