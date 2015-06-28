@@ -249,7 +249,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         ui_msg "For $portname @${composite_spec}: skipping uninstall (dry run)"
         # allow deps to not be excluded from the list below just because this port is still a dependent
         if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
-            set uports [list $portname]
+            set uports [list [list $portname $version $revision $variants]]
         }
     } else {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
@@ -307,25 +307,21 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             set uninstalling_this_dep 0
             if {![catch {set ilist [registry::installed $dep]}]} {
                 foreach i $ilist {
-                    set iversion [lindex $i 1]
-                    set irevision [lindex $i 2]
-                    set ivariants [lindex $i 3]
+                    lassign $i dep iversion irevision ivariants
+                    if {[list $dep $iversion $irevision $ivariants] in $uports} {
+                        continue
+                    }
                     set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
                     if {![registry::property_retrieve $regref requested]} {
-                        set dependentlist [registry::list_dependents $dep $iversion $irevision $ivariants]
-                        set dependents {}
-                        foreach depdt $dependentlist {
-                            lappend dependents [lindex $depdt 2]
-                        }
                         set all_dependents_uninstalling 1
-                        foreach depdt $dependents {
-                            if {[lsearch -exact $uports $depdt] == -1} {
+                        foreach depdt [$regref dependents] {
+                            if {[list [$depdt name] [$depdt version] [$depdt revision] [$depdt variants]] ni $uports} {
                                 set all_dependents_uninstalling 0
                                 break
                             }
                         }
                         if {$all_dependents_uninstalling} {
-                            lappend uports $dep
+                            lappend uports [list $dep $iversion $irevision $ivariants]
                             lappend portilist $dep@${iversion}_${irevision}${ivariants}
                             set uninstalling_this_dep 1
                         }
@@ -337,7 +333,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                 foreach depref $deprefs {
                     set depdeps [registry_uninstall::generate_deplist $depref $optionslist]
                     foreach d $depdeps {
-                        if {[lsearch -exact [lrange $alldeps $j+1 end] $d] == -1} {
+                        if {$d ni [lrange $alldeps $j+1 end]} {
                             lappend alldeps $d 
                         }
                     }
@@ -354,20 +350,15 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
 
     # uninstall all dependencies in order from uports
     foreach dp $uports {
-        if {![catch {set ilist [registry::installed $dp]}]} {
-            foreach i $ilist {
-                set iversion [lindex $i 1]
-                set irevision [lindex $i 2]
-                set ivariants [lindex $i 3]
-                set regref [registry::open_entry $dp $iversion $irevision $ivariants [lindex $i 5]]
-                if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
-                    if {$dp ne $portname} {
-                        ui_msg "For $dp @${iversion}_${irevision}${ivariants}: skipping uninstall (dry run)"
-                    }
-                } else {
-                    if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall [array get options]]} {
-                        registry_uninstall::uninstall $dp $iversion $irevision $ivariants [array get options]
-                    }
+        lassign $dp iname iversion irevision ivariants
+        if {![catch {registry::open_entry $iname $iversion $irevision $ivariants ""} regref]} {
+            if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
+                if {$iname ne $portname} {
+                    ui_msg "For $iname @${iversion}_${irevision}${ivariants}: skipping uninstall (dry run)"
+                }
+            } else {
+                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall [array get options]]} {
+                    registry_uninstall::uninstall $iname $iversion $irevision $ivariants [array get options]
                 }
             }
         }
