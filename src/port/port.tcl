@@ -1870,9 +1870,6 @@ proc action_help { action portlist opts } {
         global env boot_env
         array unset env_save; array set env_save [array get env]
         array unset env *
-        if {${macports::macosx_version} == "10.5"} {
-            unsetenv *
-        }
         array set env [array get boot_env]
 
         if [catch {system -nodup [list ${macports::autoconf::man_path} $pagepath]} result] {
@@ -1883,9 +1880,6 @@ proc action_help { action portlist opts } {
 
         # Restore internal MacPorts environment
         array unset env *
-        if {${macports::macosx_version} == "10.5"} {
-            unsetenv *
-        }
         array set env [array get env_save]
     } else {
         ui_error "Sorry, no help for this topic is available."
@@ -3927,9 +3921,6 @@ proc action_portcmds { action portlist opts } {
                     # may want stuff from it as well, like TERM.
                     array unset env_save; array set env_save [array get env]
                     array unset env *
-                    if {${macports::macosx_version} eq "10.5"} {
-                        unsetenv *
-                    }
                     array set env [array get boot_env]
                     
                     # Find an editor to edit the portfile
@@ -3958,9 +3949,6 @@ proc action_portcmds { action portlist opts } {
                     
                     # Restore internal MacPorts environment
                     array unset env *
-                    if {${macports::macosx_version} eq "10.5"} {
-                        unsetenv *
-                    }
                     array set env [array get env_save]
                 }
 

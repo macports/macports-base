@@ -461,9 +461,6 @@ proc command_exec {command args} {
 
     # Restore the environment.
     array unset env *
-    if {$macosx_version eq "10.5"} {
-        unsetenv *
-    }
     array set env [array get saved_env]
 
     # Return as if system had been called directly.
@@ -1020,9 +1017,6 @@ proc reinplace {args}  {
                     set env(LC_CTYPE) $oldlocale
                 } else {
                     unset env(LC_CTYPE)
-                    if {$macosx_version eq "10.5"} {
-                        unsetenv LC_CTYPE
-                    }
                 }
             }
             close $tmpfd
@@ -1034,9 +1028,6 @@ proc reinplace {args}  {
                 set env(LC_CTYPE) $oldlocale
             } else {
                 unset env(LC_CTYPE)
-                if {$macosx_version eq "10.5"} {
-                    unsetenv LC_CTYPE
-                }
             }
         }
         close $tmpfd
@@ -1607,9 +1598,6 @@ proc target_run {ditem} {
     set env(HOME) $savedhome
     if {[info exists env(TMPDIR)]} {
         unset env(TMPDIR)
-        if {$macosx_version eq "10.5"} {
-            unsetenv TMPDIR
-        }
     }
 
     return $result

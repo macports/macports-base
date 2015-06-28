@@ -1085,15 +1085,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    # unset environment an extra time, to work around bugs in Leopard Tcl
-    if {$macosx_version eq "10.5"} {
-        foreach envkey $env_names {
-            if {$envkey ni $keepenvkeys} {
-                unsetenv $envkey
-            }
-        }
-    }
-
     if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
         # We'll resolve these later (if needed)
         trace add variable macports::xcodeversion read macports::setxcodeinfo
