@@ -893,13 +893,11 @@ proc getdistname {name} {
 
 # tbool (testbool)
 # If the variable exists in the calling procedure's namespace
-# and is set to "yes", return 1. Otherwise, return 0
+# and is set to a boolean true value, return 1. Otherwise, return 0
 proc tbool {key} {
     upvar $key $key
     if {[info exists $key]} {
-        if {[string equal -nocase [set $key] "yes"]} {
-            return 1
-        }
+        return [string is true -strict [set $key]]
     }
     return 0
 }
@@ -1397,7 +1395,7 @@ proc target_run {ditem} {
             }
 
             # Of course, if this is a dry run, don't do the task:
-            if {[info exists ports_dryrun] && $ports_dryrun eq "yes" && [lsearch -exact $dryrun_allow_targets $targetname] == -1} {
+            if {[tbool ports_dryrun] && [lsearch -exact $dryrun_allow_targets $targetname] == -1} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
                     ui_notice "For $portname: skipping $targetname (dry run)"
@@ -1428,8 +1426,7 @@ proc target_run {ditem} {
 
                 #start tracelib
                 if {($result ==0
-                  && [info exists ports_trace]
-                  && $ports_trace eq "yes"
+                  && [tbool ports_trace]
                   && $target ne "clean"
                   && $target ne "uninstall")} {
                     # uninstall will open a portfile from registry and call
@@ -1541,8 +1538,7 @@ proc target_run {ditem} {
                 }
 
                 # Check dependencies & file creations outside workpath.
-                if {[info exists ports_trace]
-                  && $ports_trace eq "yes"
+                if {[tbool ports_trace]
                   && $target ne "clean"
                   && $target ne "uninstall"} {
 
@@ -2139,8 +2135,7 @@ proc check_variants {target} {
             break
         }
     }
-    if { $statereq &&
-        !([info exists ports_force] && $ports_force eq "yes")} {
+    if {$statereq && ![tbool ports_force]} {
 
         set state_fd [open_statefile]
 
@@ -2149,7 +2144,7 @@ proc check_variants {target} {
             ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\"."
             ui_error "Please use the same variants again, perform 'port clean [option subport]' or specify the force option (-f)."
             set result 1
-        } elseif {!([info exists ports_dryrun] && $ports_dryrun eq "yes")} {
+        } elseif {![tbool ports_dryrun]} {
             # Write variations out to the statefile
             foreach key [array names variations *] {
                 write_statefile variant $variations($key)$key $state_fd
