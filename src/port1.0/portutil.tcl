@@ -1817,10 +1817,10 @@ proc open_statefile {args} {
 
     set fd [open $statefile a+]
     if {![tbool ports_dryrun]} {
-        if {[catch {flock $fd -exclusive -noblock} result]} {
+        if {[catch {adv-flock $fd -exclusive -noblock} result]} {
             if {"$result" == "EAGAIN"} {
                 ui_notice "Waiting for lock on $statefile"
-                flock $fd -exclusive
+                adv-flock $fd -exclusive
             } elseif {"$result" == "EOPNOTSUPP"} {
                 # Locking not supported, just return
                 return $fd

@@ -89,7 +89,7 @@
 #include "strsed.h"
 #include "readdir.h"
 #include "pipe.h"
-#include "flock.h"
+#include "adv-flock.h"
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
@@ -608,7 +608,7 @@ int Pextlib_Init(Tcl_Interp *interp)
         return TCL_ERROR;
 
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "adv-flock", AdvFlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);
