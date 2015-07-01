@@ -163,7 +163,6 @@ namespace eval macports::libsolv {
                             ## Add Conflicts to the solvables
                             if {[info exists portinfo(conflicts)]} {
                                 foreach conf $portinfo(conflicts) {
-                                    puts "Conflicts: $conf"
                                     $solvable add_deparray $solv::SOLVABLE_CONFLICTS \
                                     [$pool str2id $conf 1]
                                 }
@@ -171,7 +170,6 @@ namespace eval macports::libsolv {
                             ## Add Obsoletes(replaced_by) to the solvables
                             if {[info exists portinfo(replaced_by)]} {
                                 foreach conf $portinfo(replaced_by) {
-                                    puts "Conflicts: $conf"
                                     $solvable add_deparray $solv::SOLVABLE_OBSOLETES \
                                     [$pool str2id $conf 1]
                                 }
@@ -287,6 +285,10 @@ namespace eval macports::libsolv {
     ## Dependency calculation using libsolv
     proc dep_calc {portname} {
         ui_msg -nonewline "$macports::ui_prefix Computing dependencies for $portname using libsolv"
-
+        set jobs [list]
+        foreach arg $portname {
+            lappend jobs [$solv::pool_Job $solv::Job_SOLVER_SOLVABLE [$arg cget -id]]
+            puts "Jobs = $jobs"
+        }
     }
 }
