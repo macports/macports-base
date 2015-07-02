@@ -21,11 +21,3 @@ Create Portfile template using PortGroup:
     $ ./port-create -group bitbucket https://bitbucket.org/sshguard/sshguard
     # Python program name and version
     $ ./port-create -group python foo 1.0
-
-## TODO
-- Make port-create becomes the entry point
-- Consider merging `port-create`, `portfile-gen`, `github2port` and `bitbucket2port`
-- Split gathering meta data (i.e, Portfile variables) and generating Portfile.
-- Support more groups at a time
-- Allow updating Portfile, e.g., `port-create -update Portfile -license GPLv3`
-- Integrate port-create into base, invoke with `port create`
