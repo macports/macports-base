@@ -66,6 +66,16 @@ namespace eval macports::libsolv {
     proc create_pool {} {
         variable pool
         variable portindexinfo
+        
+        ## set fields for adding dependency information to the solv's by looping over $fields.
+        set fields [list]
+        lappend fields "depends_fetch" $solv::SOLVABLE_REQUIRES [list 1]
+        lappend fields "depends_extract" $solv::SOLVABLE_REQUIRES [list 1]
+        lappend fields "depends_build" $solv::SOLVABLE_REQUIRES [list 1]
+        lappend fields "depends_lib" $solv::SOLVABLE_REQUIRES [list -1]
+        lappend fields "depends_run" $solv::SOLVABLE_REQUIRES [list -1]
+        lappend fields "conflicts" $solv::SOLVABLE_CONFLICTS [list]
+        lappend fields "replaced_by" $solv::SOLVABLE_OBSOLETES [list]
 
         ## Check if libsolv cache (pool) is already created or not.
         if {![info exists pool]} {
@@ -120,58 +130,14 @@ namespace eval macports::libsolv {
                             if {[info exists portinfo(categories)]} {
                                 $repodata set_str $solvid $solv::SOLVABLE_CATEGORY $portinfo(categories)
                             }
+                            
                             ## Add dependency information to solvable using portinfo
                             #  $marker i.e last arg to add_deparray is set to 1 for build dependencies
                             #  and -1 for runtime dependencies
-                            ## Add Build dependencies:
-                            if {[info exists portinfo(depends_fetch)]} {
-                                foreach dep $portinfo(depends_fetch) {
-                                    set dep_name [lindex [split $dep :] end]
-                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
-                                    [$pool str2id $dep_name 1] 1
-                                }
-                            }
-                            if {[info exists portinfo(depends_extract)]} {
-                                foreach dep $portinfo(depends_extract) {
-                                    set dep_name [lindex [split $dep :] end]
-                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
-                                    [$pool str2id $dep_name 1] 1
-                                }
-                            }
-                            if {[info exists portinfo(depends_build)]} {
-                                foreach dep $portinfo(depends_build) {
-                                    set dep_name [lindex [split $dep :] end]
-                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
-                                    [$pool str2id $dep_name 1] 1
-                                }
-                            }
-                            ## Add Runtime dependencies
-                            if {[info exists portinfo(depends_lib)]} {
-                                foreach dep $portinfo(depends_lib) {
-                                    set dep_name [lindex [split $dep :] end]
-                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
-                                    [$pool str2id $dep_name 1] -1
-                                }
-                            }
-                            if {[info exists portinfo(depends_run)]} {
-                                foreach dep $portinfo(depends_run) {
-                                    set dep_name [lindex [split $dep :] end]
-                                    $solvable add_deparray $solv::SOLVABLE_REQUIRES \
-                                    [$pool str2id $dep_name 1] -1
-                                }
-                            }
-                            ## Add Conflicts to the solvables
-                            if {[info exists portinfo(conflicts)]} {
-                                foreach conf $portinfo(conflicts) {
-                                    $solvable add_deparray $solv::SOLVABLE_CONFLICTS \
-                                    [$pool str2id $conf 1]
-                                }
-                            }
-                            ## Add Obsoletes(replaced_by) to the solvables
-                            if {[info exists portinfo(replaced_by)]} {
-                                foreach conf $portinfo(replaced_by) {
-                                    $solvable add_deparray $solv::SOLVABLE_OBSOLETES \
-                                    [$pool str2id $conf 1]
+                            foreach {fieldname deptype marker} $fields {
+                                if {[info exists portinfo($fieldname)]} {
+                                    set dep_name [lindex [split $portinfo($fieldname) :] end]
+                                    $solvable add_deparray $deptype [$pool str2id $dep_name 1] {*}$marker
                                 }
                             }
 
@@ -284,11 +250,15 @@ namespace eval macports::libsolv {
 
     ## Dependency calculation using libsolv
     proc dep_calc {portname} {
+        variable pool
         ui_msg -nonewline "$macports::ui_prefix Computing dependencies for $portname using libsolv"
         set jobs [list]
         foreach arg $portname {
-            lappend jobs [$solv::pool_Job $solv::Job_SOLVER_SOLVABLE [$arg cget -id]]
-            puts "Jobs = $jobs"
+            # lappend jobs [$solv::Pool_Job $solv::Job_SOLVER_SOLVABLE [$arg cget -id]]
+            # puts "Jobs = $jobs"
+            set portid [$pool str2id $portname]
+            set dep_results [[$sel solvables] lookup_deparray $portid]
+            puts "Dep list = $dep_results"
         }
     }
 }
