@@ -251,14 +251,18 @@ namespace eval macports::libsolv {
     ## Dependency calculation using libsolv
     proc dep_calc {portname} {
         variable pool
-        ui_msg -nonewline "$macports::ui_prefix Computing dependencies for $portname using libsolv"
+        ui_msg "$macports::ui_prefix Computing dependencies for $portname using libsolv"
         set jobs [list]
         foreach arg $portname {
-            # lappend jobs [$solv::Pool_Job $solv::Job_SOLVER_SOLVABLE [$arg cget -id]]
-            # puts "Jobs = $jobs"
             set portid [$pool str2id $portname]
-            set dep_results [[$sel solvables] lookup_deparray $portid]
-            puts "Dep list = $dep_results"
+            set flags [expr $solv::Selection_SELECTION_NAME | $solv::Selection_SELECTION_PROVIDES \
+            | $solv::Selection_SELECTION_CANON | $solv::Selection_SELECTION_DOTARCH \
+            | $solv::Selection_SELECTION_REL]
+            set sel [$pool select $arg $flags]
+            if {[$sel isempty]} {
+                set sel [$pool select $arg [expr $flags | $solv::Selection_SELECTION_NOCASE]]
+            }
+            lappend jobs [$sel jobs $solv::Job_SOLVER_INSTALL]
         }
     }
 }

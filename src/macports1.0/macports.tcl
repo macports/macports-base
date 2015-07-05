@@ -2069,9 +2069,12 @@ proc mportexec {mport target} {
         }
     }
 
-    if {[macports::_target_needs_deps $target]} {
-        macports::libsolv::create_pool
-        set dep_res [macports::libsolv::dep_calc $portname]
+    ## Use libsolv Dependency Calculation if -l is passed
+    if {[info exists macports::global_options(ports_depengine)]} {
+        if {[macports::_target_needs_deps $target]} {
+            macports::libsolv::create_pool
+            set dep_res [macports::libsolv::dep_calc $portname]
+        }
     }
 
     # Before we build the port, we must build its dependencies.
