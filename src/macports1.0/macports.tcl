@@ -2049,9 +2049,10 @@ proc mportexec {mport target} {
 
     ## Use libsolv Dependency Calculation if -l is passed
     if {[info exists macports::global_options(ports_depengine)]} {
-        if {[macports::_target_needs_deps $target]} {
-            macports::libsolv::create_pool
-            set dep_res [macports::libsolv::dep_calc $portname]
+        if {$macports::global_options(ports_depengine) eq "libsolv"} {
+            if {[macports::_target_needs_deps $target]} {
+                set dep_res [macports::libsolv::dep_calc $portname]
+            }
         }
     }
 
@@ -2750,7 +2751,6 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     ## Use libsolv search if -l is passed
     if {[info exists macports::global_options(ports_depengine)]} {
         if {$macports::global_options(ports_depengine) eq "libsolv"} {
-            macports::libsolv::create_pool
             # macports::libsolv::print
             set search_res [macports::libsolv::search $pattern \
             $case_sensitive $matchstyle $field]
