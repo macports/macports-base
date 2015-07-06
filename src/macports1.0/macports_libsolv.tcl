@@ -160,9 +160,8 @@ namespace eval macports::libsolv {
             ## createwhatprovides creates hash over all the provides of the package \
             #  This method is necessary before we can run any lookups on provides.
             $pool createwhatprovides
-        } else {
-            return {}
         }
+        return $pool
     }
 
     ## Search using libsolv. Needs some more work.
@@ -175,7 +174,7 @@ namespace eval macports::libsolv {
     #  Add more info to the solv's to search into more details of the ports (description, \
     #  homepage, category, etc.
     proc search {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
-        variable pool
+        set pool [create_pool]
         variable portindexinfo
 
         set matches [list]
@@ -250,7 +249,7 @@ namespace eval macports::libsolv {
 
     ## Dependency calculation using libsolv
     proc dep_calc {portname} {
-        variable pool
+        set pool [create_pool]
         ui_msg "$macports::ui_prefix Computing dependencies for $portname using libsolv"
         set jobs [list]
         foreach arg $portname {
@@ -262,7 +261,10 @@ namespace eval macports::libsolv {
             if {[$sel isempty]} {
                 set sel [$pool select $arg [expr $flags | $solv::Selection_SELECTION_NOCASE]]
             }
-            lappend jobs [$sel jobs $solv::Job_SOLVER_INSTALL]
+            lappend jobs {*}[$sel jobs $solv::Job_SOLVER_INSTALL]
+        }
+        foreach job $jobs { 
+            $job configure -how $solv::Job_SOLVER_INSTALL
         }
     }
 }
