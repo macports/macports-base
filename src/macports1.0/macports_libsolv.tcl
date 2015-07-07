@@ -141,6 +141,9 @@ namespace eval macports::libsolv {
                                 }
                             }
 
+                            ## Set SOLVABLE_PROVIDES for the solv so that the package can be found during depcalc.
+                            $solvable add_deparray $solv::SOLVABLE_PROVIDES [$pool str2id $name 0]
+                            
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
                         }
@@ -255,16 +258,68 @@ namespace eval macports::libsolv {
         foreach arg $portname {
             set portid [$pool str2id $portname]
             set flags [expr $solv::Selection_SELECTION_NAME | $solv::Selection_SELECTION_PROVIDES \
-            | $solv::Selection_SELECTION_CANON | $solv::Selection_SELECTION_DOTARCH \
-            | $solv::Selection_SELECTION_REL]
+                | $solv::Selection_SELECTION_CANON | $solv::Selection_SELECTION_DOTARCH \
+                | $solv::Selection_SELECTION_REL]
             set sel [$pool select $arg $flags]
+            
+            ## If selection is empty, try with NOCASE.
             if {[$sel isempty]} {
                 set sel [$pool select $arg [expr $flags | $solv::Selection_SELECTION_NOCASE]]
             }
+
+            ## Append the list of jobs from selection to $jobs. Use {*} so that whole list can be appended.
             lappend jobs {*}[$sel jobs $solv::Job_SOLVER_INSTALL]
         }
-        foreach job $jobs { 
-            $job configure -how $solv::Job_SOLVER_INSTALL
+
+        ## Solve the jobs
+        set solver [$pool Solver]
+        while {yes} {
+            set jobs_list [list]
+            foreach job $jobs { 
+                puts "Jobs = [$job __str__]"
+                lappend jobs_list [$job cget -how] [$job cget -what]
+            }
+
+            set problems [$solver solve_helper $jobs_list]
+
+            ## If no problems found, break, else find a solution.
+            if {[llength $problems] == 0} {
+                break
+            }
+
+            ## Find a solution for the problems found.
+            foreach problem $problems {
+                ui_debug "Problem [$problem cget -id]/[llength $problems]"
+                ui_debug "prob = [$problem __str__]"
+                set solutions [$problem solutions]
+                set solutions_str [list]
+                foreach solution $solutions {
+                    set solution_str "Solution [$solution cget -id]"
+                    set elements [$solution elements yes]
+                    foreach element $elements {
+                        append solution_str "\n     - [$element str]"
+                    }
+                    lappend solution_strs $solution_str
+                }
+                
+                if {![info exists macports::ui_options(questions_singlechoice)]} {
+                    error "A conflict occurred"
+                }
+                set ret [$macports::ui_options(questions_singlechoice) \
+                    "[$problem __str__]: Please choose a solution:" "solver" $solution_strs]
+                set idx [expr {$ret - 1}]
+                set solution [lindex $solutions $idx]
+                foreach element [$solution elements] {
+                    set newjob [$element Job]
+                    if {[$element cget -type] == $solv::Solver_SOLVER_SOLUTION_JOB} {
+                        lset jobs [$element cget -jobidx] $newjob
+                    } elseif {$newjob ne "NULL" && $newjob ni $jobs} {
+                        lappend jobs $newjob
+                    }
+                }
+            }
         }
+
+        ## Transaction Part
     }
 }
