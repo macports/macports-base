@@ -321,5 +321,45 @@ namespace eval macports::libsolv {
         }
 
         ## Transaction Part
+        set trans [$solver transaction]
+        if {[$trans isempty]} {
+            puts "Nothing to do"
+            return {}
+        }
+        ui_msg "Transaction summary:"
+        set clflag [expr $solv::Transaction_SOLVER_TRANSACTION_SHOW_OBSOLETES \
+            | $solv::Transaction_SOLVER_TRANSACTION_OBSOLETE_IS_UPGRADE] 
+        
+        foreach cl [$trans classify $clflag] {
+            if {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_ERASE} {
+                puts "[$cl cget -count] Erased packages:"
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_INSTALL} {
+                puts "[$cl cget -count] Installed packages:"
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_REINSTALLED} {
+                puts "[$cl cget -count] Reinstalled packages:"
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED} {
+                puts "[$cl cget -count] Downgraded packages:"
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_CHANGED} {
+                puts "[$cl cget -count] Changed packages:"
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_UPGRADED} {
+                puts "[$cl cget -count] Upgraded packages:"
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_VENDORCHANGE} {
+                puts "[$cl cget -count] Vendor changes from [$cl cget -fromstr] to [$cl cget -tostr]" 
+            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_ARCHCHANGE} {
+                puts "[$cl cget -count] Arch changes from [$cl cget -fromstr] to [$cl cget -tostr]"
+            } else {
+                continue
+            }
+            foreach p [$cl solvables] {
+                set upflag $solv::Transaction_SOLVER_TRANSACTION_UPGRADED
+                set downflag $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED
+                if {[$cl cget -type] == $upflag || [$cl cget -type] == $downflag} { 
+                        set op [$trans othersolvable $p]
+                        puts "[$p __str__] -> [$op __str__]"
+                } else {
+                    puts [$p __str__]
+                }
+            }
+        }
     }
 }
