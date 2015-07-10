@@ -3166,7 +3166,7 @@ proc action_uninstall { action portlist opts } {
             return 1
         }
     }
-    if {[prefix_unwritable]} {
+    if {[prefix_unwritable] && ![macports::global_option_isset ports_dryrun]} {
         return 1
     }
 
