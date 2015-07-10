@@ -2755,7 +2755,7 @@ proc action_reclaim { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    if {[require_portlist portlist "yes"] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
+    if {[require_portlist portlist "yes"] || (![macports::global_option_isset ports_dryrun] && [prefix_unwritable])} {
         return 1
     }
 
@@ -3166,7 +3166,7 @@ proc action_uninstall { action portlist opts } {
             return 1
         }
     }
-    if {[prefix_unwritable] && ![macports::global_option_isset ports_dryrun]} {
+    if {![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
         return 1
     }
 
@@ -4049,7 +4049,7 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    if {($action eq "install" || $action eq "archive") && [prefix_unwritable] && ![macports::global_option_isset ports_dryrun]} {
+    if {($action eq "install" || $action eq "archive") && ![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
