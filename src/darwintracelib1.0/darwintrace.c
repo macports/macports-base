@@ -133,6 +133,13 @@ pthread_key_t sock_key;
  */
 static char *filemap;
 
+static void __darwintrace_sock_destructor(FILE *dtsock) {
+	__darwintrace_close_sock = fileno(dtsock);
+	fclose(dtsock);
+	__darwintrace_close_sock = -1;
+	pthread_setspecific(sock_key, NULL);
+}
+
 /**
  * Setup method called as constructor to set up thread-local storage for the
  * thread id and the darwintrace socket.
@@ -142,7 +149,7 @@ static void __darwintrace_setup_tls() {
 		perror("darwintrace: pthread_key_create");
 		abort();
 	}
-	if (0 != (errno = pthread_key_create(&sock_key, NULL))) {
+	if (0 != (errno = pthread_key_create(&sock_key, (void (*)(void *)) __darwintrace_sock_destructor))) {
 		perror("darwintrace: pthread_key_create");
 		abort();
 	}
