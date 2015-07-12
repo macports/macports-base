@@ -137,7 +137,7 @@ static void __darwintrace_sock_destructor(FILE *dtsock) {
 	__darwintrace_close_sock = fileno(dtsock);
 	fclose(dtsock);
 	__darwintrace_close_sock = -1;
-	pthread_setspecific(sock_key, NULL);
+	__darwintrace_sock_set(NULL);
 }
 
 /**
@@ -340,7 +340,7 @@ void __darwintrace_close() {
 		__darwintrace_close_sock = fileno(dtsock);
 		fclose(dtsock);
 		__darwintrace_close_sock = -1;
-		pthread_setspecific(sock_key, NULL);
+		__darwintrace_sock_set(NULL);
 	}
 }
 
