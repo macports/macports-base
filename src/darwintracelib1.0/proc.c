@@ -221,6 +221,8 @@ static inline int check_interpreter(const char *restrict path) {
 	 * That _does_ save us another ugly loop to get things right. */
 	bytes_read = read(fd, buffer, sizeof(buffer) - 1);
 	buffer[bytes_read] = '\0';
+	close(fd);
+
 	const char *buffer_end = buffer + bytes_read;
 	if (bytes_read > 2 && buffer[0] == '#' && buffer[1] == '!') {
 		char *interp = buffer + 2;
@@ -238,12 +240,10 @@ static inline int check_interpreter(const char *restrict path) {
 
 		/* check the iterpreter against the sandbox */
 		if (!__darwintrace_is_in_sandbox(interp, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
-			close(fd);
 			return ENOENT;
 		}
 	}
 
-	close(fd);
 	return 0;
 #undef open
 #undef close
