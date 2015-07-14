@@ -4064,89 +4064,103 @@ proc action_target { action portlist opts } {
     if {($action eq "install" || $action eq "archive") && [prefix_unwritable] && ![macports::global_option_isset ports_dryrun]} {
         return 1
     }
-    foreachport $portlist {
-        array unset portinfo
-        # If we have a url, use that, since it's most specific
-        # otherwise try to map the portname to a url
-        if {$porturl eq ""} {
-            # Verify the portname, getting portinfo to map to a porturl
-            if {[catch {set res [mportlookup $portname]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                break_softcontinue "lookup of portname $portname failed: $result" 1 status
+    
+    ## Use libsolv Dependency Calculation if -l is passed
+    if {[info exists macports::global_options(ports_depengine)]} {
+        if {$macports::global_options(ports_depengine) eq "libsolv"} {
+            if {$action eq "install"} {
+                if {![info exists options(ports_install_unrequested)]} {
+                    set options(ports_requested) 1
+                }
+                # we actually activate as well
+                set target activate
+                set dep_res [mportinstall $portlist $target]
             }
-            if {[llength $res] < 2} {
-                # don't error for ports that are installed but not in the tree
-                if {[registry::entry_exists_for_name $portname]} {
-                    ui_warn "Skipping $portname (not in the ports tree)"
-                    continue
-                } else {
-                    break_softcontinue "Port $portname not found" 1 status
+        }
+    } else {
+        foreachport $portlist {
+            array unset portinfo
+            # If we have a url, use that, since it's most specific
+            # otherwise try to map the portname to a url
+            if {$porturl eq ""} {
+                # Verify the portname, getting portinfo to map to a porturl
+                if {[catch {set res [mportlookup $portname]} result]} {
+                    global errorInfo
+                    ui_debug "$errorInfo"
+                    break_softcontinue "lookup of portname $portname failed: $result" 1 status
+                }
+                if {[llength $res] < 2} {
+                    # don't error for ports that are installed but not in the tree
+                    if {[registry::entry_exists_for_name $portname]} {
+                        ui_warn "Skipping $portname (not in the ports tree)"
+                        continue
+                    } else {
+                        break_softcontinue "Port $portname not found" 1 status
+                    }
+                }
+                array set portinfo [lindex $res 1]
+                set porturl $portinfo(porturl)
+            }
+
+            # use existing variants iff none were explicitly requested
+            if {[array get requested_variations] eq "" && [array get variations] ne ""} {
+                array unset requested_variations
+                array set requested_variations [array get variations]
+            }
+
+            # Add any global_variations to the variations
+            # specified for the port
+            foreach { variation value } [array get global_variations] {
+                if { ![info exists requested_variations($variation)] } {
+                    set requested_variations($variation) $value
                 }
             }
-            array set portinfo [lindex $res 1]
-            set porturl $portinfo(porturl)
-        }
 
-        # use existing variants iff none were explicitly requested
-        if {[array get requested_variations] eq "" && [array get variations] ne ""} {
-            array unset requested_variations
-            array set requested_variations [array get variations]
-        }
-
-        # Add any global_variations to the variations
-        # specified for the port
-        foreach { variation value } [array get global_variations] {
-            if { ![info exists requested_variations($variation)] } {
-                set requested_variations($variation) $value
+            # If version was specified, save it as a version glob for use
+            # in port actions (e.g. clean).
+            if {[string length $portversion]} {
+                set options(ports_version_glob) $portversion
             }
-        }
-
-        # If version was specified, save it as a version glob for use
-        # in port actions (e.g. clean).
-        if {[string length $portversion]} {
-            set options(ports_version_glob) $portversion
-        }
-        # if installing, mark the port as explicitly requested
-        if {$action eq "install"} {
-            if {![info exists options(ports_install_unrequested)]} {
-                set options(ports_requested) 1
-            }
-            # we actually activate as well
-            set target activate
-        } elseif {$action eq "archive"} {
-            set target install
-        } else {
-            set target $action
-        }
-        if {![info exists options(subport)]} {
-            if {[info exists portinfo(name)]} {
-                set options(subport) $portinfo(name)
+            # if installing, mark the port as explicitly requested
+            if {$action eq "install"} {
+                if {![info exists options(ports_install_unrequested)]} {
+                    set options(ports_requested) 1
+                }
+                # we actually activate as well
+                set target activate
+            } elseif {$action eq "archive"} {
+                set target install
             } else {
-                set options(subport) $portname
+                set target $action
+            }
+            if {![info exists options(subport)]} {
+                if {[info exists portinfo(name)]} {
+                    set options(subport) $portinfo(name)
+                } else {
+                    set options(subport) $portname
+                }
+            }
+            if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "Unable to open port: $result" 1 status
+            }
+            if {[catch {set result [mportexec $workername $target]} result]} {
+                global errorInfo
+                mportclose $workername
+                ui_debug "$errorInfo"
+                break_softcontinue "Unable to execute port: $result" 1 status
+            }
+
+            mportclose $workername
+            
+            # Process any error that wasn't thrown and handled already
+            if {$result} {
+                print_tickets_url
+                break_softcontinue "Processing of port $portname failed" 1 status
             }
         }
-        if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "Unable to open port: $result" 1 status
-        }
-        if {[catch {set result [mportexec $workername $target]} result]} {
-            global errorInfo
-            mportclose $workername
-            ui_debug "$errorInfo"
-            break_softcontinue "Unable to execute port: $result" 1 status
-        }
-
-        mportclose $workername
-        
-        # Process any error that wasn't thrown and handled already
-        if {$result} {
-            print_tickets_url
-            break_softcontinue "Processing of port $portname failed" 1 status
-        }
-    }
-    
+    } 
     if {$status == 0 && $action eq "install" && ![macports::global_option_isset ports_dryrun]} {
         array set options $opts
         if {![info exists options(ports_nodeps)] && ![info exists options(ports_install_no-rev-upgrade)] && ${macports::revupgrade_autorun}} {
