@@ -45,7 +45,7 @@ namespace eval macports::libsolv {
 
     ## Some debugging related printing of variable contents
     proc print {} {
-        variable pool
+        set pool [create_pool]
         puts $solv::Job_SOLVER_SOLVABLE
         puts $pool
         
@@ -69,11 +69,11 @@ namespace eval macports::libsolv {
         
         ## set fields for adding dependency information to the solv's by looping over $fields.
         set fields [list]
-        lappend fields "depends_fetch" $solv::SOLVABLE_REQUIRES [list 1]
-        lappend fields "depends_extract" $solv::SOLVABLE_REQUIRES [list 1]
-        lappend fields "depends_build" $solv::SOLVABLE_REQUIRES [list 1]
-        lappend fields "depends_lib" $solv::SOLVABLE_REQUIRES [list -1]
-        lappend fields "depends_run" $solv::SOLVABLE_REQUIRES [list -1]
+        lappend fields "depends_fetch" $solv::SOLVABLE_REQUIRES [list]
+        lappend fields "depends_extract" $solv::SOLVABLE_REQUIRES [list]
+        lappend fields "depends_build" $solv::SOLVABLE_REQUIRES [list]
+        lappend fields "depends_lib" $solv::SOLVABLE_REQUIRES [list]
+        lappend fields "depends_run" $solv::SOLVABLE_REQUIRES [list]
         lappend fields "conflicts" $solv::SOLVABLE_CONFLICTS [list]
         lappend fields "replaced_by" $solv::SOLVABLE_OBSOLETES [list]
 
@@ -136,8 +136,10 @@ namespace eval macports::libsolv {
                             #  and -1 for runtime dependencies
                             foreach {fieldname deptype marker} $fields {
                                 if {[info exists portinfo($fieldname)]} {
-                                    set dep_name [lindex [split $portinfo($fieldname) :] end]
-                                    $solvable add_deparray $deptype [$pool str2id $dep_name 1] {*}$marker
+                                    foreach dep $portinfo($fieldname) {
+                                        set dep_name [lindex [split $dep :] end]
+                                        $solvable add_deparray $deptype [$pool str2id $dep_name 1] {*}$marker
+                                    }
                                 }
                             }
 
@@ -251,8 +253,20 @@ namespace eval macports::libsolv {
     }
 
     ## Dependency calculation using libsolv
-    proc dep_calc {portname} {
+    proc dep_calc {portlist} {
         set pool [create_pool]
+        # $pool set_debuglevel 3
+        
+        ## List of ports to be installed
+        set portname [list]
+        ## Append portname to $portname after extracting them from $portlist
+        foreach portspec $portlist {
+            array set portinfo $portspec
+            set pname $portinfo(name)
+            lappend portname $pname
+            array unset -nocomplain portinfo
+        }
+
         ui_msg "$macports::ui_prefix Computing dependencies for $portname using libsolv"
         set jobs [list]
         foreach arg $portname {
@@ -330,6 +344,8 @@ namespace eval macports::libsolv {
         set clflag [expr $solv::Transaction_SOLVER_TRANSACTION_SHOW_OBSOLETES \
             | $solv::Transaction_SOLVER_TRANSACTION_OBSOLETE_IS_UPGRADE] 
         
+        set install_list [list]
+
         foreach cl [$trans classify $clflag] {
             if {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_ERASE} {
                 puts "[$cl cget -count] Erased packages:"
@@ -358,8 +374,10 @@ namespace eval macports::libsolv {
                         puts "[$p __str__] -> [$op __str__]"
                 } else {
                     puts [$p __str__]
+                    lappend install_list [$p cget -name]
                 }
             }
         }
+        return $install_list
     }
 }
