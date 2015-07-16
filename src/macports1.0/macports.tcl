@@ -2034,7 +2034,9 @@ proc _mportexec {target mport} {
 # mportinstall
 # Execute when libsolv is used for installing packages.
 proc mportinstall {portlist target} {
-    set dep_res [macports::libsolv::dep_calc $portlist]
+    if {[macports::_target_needs_deps $target]} {
+        set dep_res [macports::libsolv::dep_calc $portlist]
+    }
 }
 
 # mportexec
