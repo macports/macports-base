@@ -2020,14 +2020,7 @@ proc _mportexec {target mport} {
 # mportinstall
 # Execute when libsolv is used for installing packages.
 proc mportinstall {portlist target} {
-    ## Use libsolv Dependency Calculation if -l is passed
-    if {[info exists macports::global_options(ports_depengine)]} {
-        if {$macports::global_options(ports_depengine) eq "libsolv"} {
-            if {[macports::_target_needs_deps $target]} {
-                set dep_res [macports::libsolv::dep_calc $portlist]
-            }
-        }
-    }
+    set dep_res [macports::libsolv::dep_calc $portlist]
 }
 
 # mportexec
