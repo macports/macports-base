@@ -43,6 +43,9 @@ namespace eval macports::libsolv {
     ## Variable for portindexinfo
     variable portindexinfo
 
+    ## Variable to track registry changes.
+    variable regupdate
+
     ## Some debugging related printing of variable contents
     proc print {} {
         set pool [create_pool]
@@ -83,7 +86,22 @@ namespace eval macports::libsolv {
 
             ## Create a new pool instance by calling Pool contructor.
             set pool [solv::Pool]
+            ## Repo for installed ports
+            set repo_installed [$pool add_repo "installed"]
 
+            ## Create a list of installed ports by reading registry::installed.
+            array set installed_ports [list]
+            try {
+                foreach installed [registry::installed] {
+                    lassign $installed name version revision variants active epoch
+                    if {$active != 0} {
+                        set installed_ports($name,$epoch,$version,$revision) $installed
+                    }
+                }
+            } catch * {
+                ui_warn "No installed ports found in registry"
+            }
+            
             foreach source $sources {
                 set source [lindex $source 0]
                 ## Add a repo in the pool for each source as mentioned in sources.conf
@@ -95,9 +113,6 @@ namespace eval macports::libsolv {
                 } else {
                     try {
                         while {[gets $fd line] >= 0} {
-                            # Create a solvable for each port processed.
-                            set solvable [$repo add_solvable]
-
                             ## Clear the portinfo contents to prevent attribute leak \
                             #  from previous iterations
                             array unset portinfo
@@ -106,6 +121,15 @@ namespace eval macports::libsolv {
                             set line [read $fd $len]
                             
                             array set portinfo $line
+
+                            # Create a solvable for each port processed.
+                            # If the port is already installed add it to $repo_installed. Also add it to $repo
+                            if {[info exists installed_ports($name,$portinfo(epoch),$portinfo(version),$portinfo(revision))]} {
+                                    set solvable [$repo_installed add_solvable]
+                            } else {
+                                set solvable [$repo add_solvable]
+                            }
+                            # set solvable [$repo add_solvable]
 
                             $solvable configure -name $name \
                             -evr "$portinfo(epoch)@$portinfo(version)-$portinfo(revision)" \
@@ -158,6 +182,7 @@ namespace eval macports::libsolv {
                         #  is available for lookup and dataiterator functions. Do this after\
                         #  all the solvables are added to repo as it is a costly operation.
                         $repodata internalize
+                        $pool configure -installed $repo_installed
                         close $fd
                     }
                 }
@@ -165,8 +190,9 @@ namespace eval macports::libsolv {
             ## createwhatprovides creates hash over all the provides of the package \
             #  This method is necessary before we can run any lookups on provides.
             $pool createwhatprovides
+    
+            return $pool
         }
-        return $pool
     }
 
     ## Search using libsolv. Needs some more work.
