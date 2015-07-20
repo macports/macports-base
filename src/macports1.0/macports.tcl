@@ -2753,6 +2753,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
             # macports::libsolv::print
             set search_res [macports::libsolv::search $pattern \
             $case_sensitive $matchstyle $field]
+            # macports::libsolv::create_installed_pool
             return $search_res
         }
     } else {
