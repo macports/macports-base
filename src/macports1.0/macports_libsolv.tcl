@@ -168,7 +168,8 @@ namespace eval macports::libsolv {
                             }
 
                             ## Set SOLVABLE_PROVIDES for the solv so that the package can be found during depcalc.
-                            $solvable add_deparray $solv::SOLVABLE_PROVIDES [$pool str2id $name 0]
+                            set provides [$pool rel2id [$solvable cget -nameid] [$solvable cget -evrid] $solv::REL_EQ 1]
+                            $solvable add_deparray $solv::SOLVABLE_PROVIDES $provides
                             
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
