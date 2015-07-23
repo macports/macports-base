@@ -44,6 +44,7 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <pthread.h>
 #include <string.h>
@@ -377,6 +378,7 @@ void __darwintrace_setup() {
 
 	if (__darwintrace_sock() == NULL) {
 		int sock;
+		int sockflags;
 		FILE *stream;
 		struct sockaddr_un sun;
 
@@ -389,6 +391,29 @@ void __darwintrace_setup() {
 
 		if (-1 == (sock = socket(PF_LOCAL, SOCK_STREAM, 0))) {
 			perror("darwintrace: socket");
+			abort();
+		}
+
+		/* Set the close-on-exec flag as early as possible after the socket
+		 * creation. On OS X, there is no way to do this race-condition free
+		 * unless you synchronize around creation and fork(2) -- however,
+		 * blocking in this function is not acceptable for darwintrace, because
+		 * it could possibly run in a signal handler, leading to a deadlock.
+		 *
+		 * The close-on-exec flag is needed because we're using a thread-local
+		 * variable to hold a reference to this socket, but multi-threaded
+		 * programs that fork will only clone the thread that calls fork(2),
+		 * which leaves us with no reference to the other sockets (which are
+		 * inherited, because FDs are process-wide). Consequently, this can
+		 * lead to a resource leak.
+		 */
+		if (-1 == (sockflags = fcntl(sock, F_GETFD))) {
+			perror("darwintrace: fcntl(F_GETFD)");
+			abort();
+		}
+		sockflags |= FD_CLOEXEC;
+		if (-1 == fcntl(sock, F_SETFD, sockflags)) {
+			perror("darwintrace: fcntl(F_SETFD, flags | FD_CLOEXEC)");
 			abort();
 		}
 
