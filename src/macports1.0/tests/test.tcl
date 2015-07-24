@@ -15,7 +15,7 @@ while {[gets $fp line] != -1} {
 }
 
 proc print_help {arg} {
-    if { $arg eq "tests" } {
+    if {$arg eq "tests"} {
         puts "The list of available tests is:"
         cd tests
         set test_suite [glob *.test]
@@ -34,19 +34,19 @@ proc print_help {arg} {
 
 # Process args
 foreach arg $argv {
-    if { $arg eq "-h" || $arg eq "-help" } {
+    if {$arg eq "-h" || $arg eq "-help"} {
         print_help ""
         exit 0
-    } elseif { $arg eq "-debug" } {
+    } elseif {$arg eq "-debug"} {
         set index [expr {[lsearch $argv $arg] + 1}]
         set level [lindex $argv $index]
-        if { $level >= 0 && $level <= 3 } {
-            lappend arguments -debug $level
+        if {$level >= 0 && $level <= 3} {
+            lappend arguments "-debug" $level
         } else {
             puts "Invalid debug level."
             exit 1
         }
-    } elseif { $arg eq "-t" } {
+    } elseif {$arg eq "-t"} {
         set index [expr {[lsearch $argv $arg] + 1}]
         set test_name [lindex $argv $index]
         set no 0
@@ -74,7 +74,6 @@ foreach arg $argv {
 if {$test_name ne ""} {
     set result [exec -ignorestderr $tcl $test_name {*}$arguments]
     puts $result
-
 } else {
     cd tests
     set test_suite [glob *.test]
@@ -84,8 +83,13 @@ if {$test_name ne ""} {
         set lastline [lindex [split $result "\n"] end]
 
         if {[lrange [split $lastline "\t"] 1 1] ne "Total"} {
-            set lastline [lindex [split $result "\n"] end-2]
-            set errmsg [lindex [split $result "\n"] end]
+            if {[lrange [split $lastline "\t"] 1 1] eq ""} {
+                set lastline [lindex [split $result "\n"] 0]
+                set errmsg [lindex [split $result "\n"] 2]
+            } else {
+                set lastline [lindex [split $result "\n"] end-2]
+                set errmsg [lindex [split $result "\n"] end]
+            }
         }
 
         set splitresult [split $lastline "\t"]
@@ -95,10 +99,18 @@ if {$test_name ne ""} {
         set fail [lindex $splitresult 8]
 
         # Format output
-        if {$total < 10} { set total "0${total}"}
-        if {$pass < 10} { set pass "0${pass}"}
-        if {$skip < 10} { set skip "0${skip}"}
-        if {$fail < 10} { set fail "0${fail}"}
+        if {$total < 10} {
+            set total "0${total}"
+        }
+        if {$pass < 10} {
+            set pass "0${pass}"
+        }
+        if {$skip < 10} {
+            set skip "0${skip}"
+        }
+        if {$fail < 10} {
+            set fail "0${fail}"
+        }
 
         # Check for errors.
         if {$fail != 0} {
