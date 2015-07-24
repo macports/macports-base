@@ -288,10 +288,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                     pos = 0;
                 }
 
-                if (ui_info(interp, sbuf) != TCL_OK) {
-                    read_failed = 1;
-                    break;
-                }
+                ui_info(interp, "%s", sbuf);
             }
             fclose(pdes);
         } else {
@@ -307,21 +304,11 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         if (WEXITSTATUS(ret) == 0) {
             status = TCL_OK;
         } else {
-            char *errorstr;
-            size_t errorstrlen;
             Tcl_Obj* errorCode;
 
             /* print error */
-            /* get buffer large enough for additional message or the error code */
-            errorstrlen = strlen(cmdstring) + strlen("Command failed: ") + 12;
-            errorstr = malloc(errorstrlen);
-            if (errorstr) {
-                snprintf(errorstr, errorstrlen, "Command failed: %s", cmdstring);
-                ui_info(interp, errorstr);
-                snprintf(errorstr, errorstrlen, "Exit code: %d", WEXITSTATUS(ret));
-                ui_info(interp, errorstr);
-                free(errorstr);
-            }
+            ui_info(interp, "Command failed: %s", cmdstring);
+            ui_info(interp, "Exit code: %d", WEXITSTATUS(ret));
 
             /* set errorCode [list CHILDSTATUS <pid> <code>] */
             errorCode = Tcl_NewListObj(0, NULL);
