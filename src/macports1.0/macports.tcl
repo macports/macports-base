@@ -223,7 +223,7 @@ proc ui_message {priority prefix phase args} {
        0 - 1 {}
        2 {
            if {[lindex $args 0] ne "-nonewline"} {
-               set hint "error: when 5 arguments are given, 2nd last must be \"-newnewline\""
+               set hint "error: when 5 arguments are given, 2nd last must be \"-nonewline\""
                error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
            }
        }
