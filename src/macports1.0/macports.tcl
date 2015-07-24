@@ -41,7 +41,7 @@ package require reclaim 1.0
 package require Tclx
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases
+    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
@@ -74,7 +74,6 @@ namespace eval macports {
     variable open_mports {}
 
     variable ui_priorities "error warn msg notice info debug any"
-    variable port_phases "any fetch checksum"
     variable current_phase main
 
     variable ui_prefix "---> "
@@ -276,14 +275,10 @@ proc macports::ui_init {priority args} {
     } catch * {
         set prefix [ui_prefix_default $priority]
     }
-    set phases {fetch checksum}
     try {
         ::ui_init $priority $prefix $channels($priority) {*}$args
     } catch * {
         interp alias {} ui_$priority {} ui_message $priority $prefix {}
-        foreach phase $phases {
-            interp alias {} ui_${priority}_$phase {} ui_message $priority $prefix $phase
-        }
     }
 }
 
@@ -1303,9 +1298,6 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # instantiate the UI call-backs
     foreach priority $macports::ui_priorities {
         $workername alias ui_$priority ui_$priority
-        foreach phase $macports::port_phases {
-            $workername alias ui_${priority}_$phase ui_${priority}_$phase
-        }
     }
     # add the UI progress call-back
     if {[info exists macports::ui_options(progress_download)]} {
