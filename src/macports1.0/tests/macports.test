@@ -246,33 +246,46 @@ test set_phase {
 test ui_message {
     UI message unit test.
 } -setup {
-    set fd [open $pwd/message w+]
-    set fd2 [open $pwd/log w+]
+    set fd [open $pwd/message w]
+    set fd2 [open $pwd/log w]
     set macports::channels(0) $fd
-    set macports::channels(debuglog) $fd2
     set macports::current_phase test
     set ::debuglog $fd2
 } -body {
     set res [ui_message 0 prefix args]
     close $fd
     close $fd2
-    set fd2 [open $pwd/message r]
-    set line [read $fd2]
-    if {$line ne "prefixargs\n"} {
-	return "FAIL: wrong message: $line"
-    }
-    close $fd2
 
-    set fd [open $pwd/message w+]
-    set fd2 [open $pwd/log w+]
-    set res [ui_message debuglog prefix -nonewline arg]
+    set fd [open $pwd/message r]
+    set fd2 [open $pwd/log r]
+    set line [read $fd]
+    if {$line ne "prefixargs\n"} {
+        return "FAIL: wrong message: $line"
+    }
+    set line [read $fd2]
+    if {$line ne ":0:test args\n"} {
+        return "FAIL: wrong log: $line"
+    }
     close $fd
     close $fd2
+
+    set fd [open $pwd/message w]
+    set fd2 [open $pwd/log w]
+    set res [ui_message 0 prefix -nonewline arg]
+    close $fd
+    close $fd2
+
+    set fd [open $pwd/message r]
     set fd2 [open $pwd/log r]
-    set line [read $fd2]
+    set line [read $fd]
     if {$line ne "prefixarg"} {
-	return "FAIL: wrong message: $line"
+        return "FAIL: wrong message: $line"
     }
+    set line [read $fd2]
+    if {$line ne ":0:test arg"} {
+        return "FAIL: wrong log: $line"
+    }
+    close $fd
     close $fd2
 
     return "UI message successful."
