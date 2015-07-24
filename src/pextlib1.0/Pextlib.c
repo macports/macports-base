@@ -107,9 +107,13 @@ extern char **environ;
 
 __printflike(3, 0)
 static void ui_message(Tcl_Interp *interp, const char *severity, const char *format, va_list va) {
-    char buf[1024], tclcmd[32];
+    char tclcmd[32];
+    char *buf;
 
-    vsnprintf(buf, sizeof(buf), format, va);
+    if (vasprintf(&buf, format, va) < 0) {
+        perror("vasprintf");
+        return;
+    }
 
     snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
 
@@ -118,6 +122,7 @@ static void ui_message(Tcl_Interp *interp, const char *severity, const char *for
         fprintf(stderr, "Error evaluating tcl statement `%s': %s\n", tclcmd, Tcl_GetStringResult(interp));
     }
     Tcl_UnsetVar(interp, "warn", 0);
+    free(buf);
 }
 
 __printflike(2, 3)
