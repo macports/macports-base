@@ -253,25 +253,25 @@ test ui_message {
     set macports::current_phase test
     set ::debuglog $fd2
 } -body {
-    set res [ui_message 0 prefix phase args]
+    set res [ui_message 0 prefix args]
     close $fd
     close $fd2
     set fd2 [open $pwd/message r]
     set line [read $fd2]
     if {$line ne "prefixargs\n"} {
-	return "FAIL: wrong message"
+	return "FAIL: wrong message: $line"
     }
     close $fd2
 
     set fd [open $pwd/message w+]
     set fd2 [open $pwd/log w+]
-    set res [ui_message debuglog prefix phase -nonewline arg]
+    set res [ui_message debuglog prefix -nonewline arg]
     close $fd
     close $fd2
     set fd2 [open $pwd/log r]
     set line [read $fd2]
     if {$line ne "prefixarg"} {
-	return "FAIL: wrong message"
+	return "FAIL: wrong message: $line"
     }
     close $fd2
 

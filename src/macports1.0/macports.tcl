@@ -213,7 +213,7 @@ proc set_phase {phase} {
     }
 }
 
-proc ui_message {priority prefix phase args} {
+proc ui_message {priority prefix args} {
     global macports::channels ::debuglog macports::current_phase
 
     # 
@@ -223,13 +223,13 @@ proc ui_message {priority prefix phase args} {
        0 - 1 {}
        2 {
            if {[lindex $args 0] ne "-nonewline"} {
-               set hint "error: when 5 arguments are given, 2nd last must be \"-nonewline\""
-               error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
+               set hint "error: when 4 arguments are given, 3rd must be \"-nonewline\""
+               error "$hint\nusage: ui_message priority prefix ?-nonewline? string"
            }
        }
        default {
            set hint "error: too many arguments specified"
-           error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
+           error "$hint\nusage: ui_message priority prefix ?-nonewline? string"
        }
     } 
 
@@ -278,7 +278,7 @@ proc macports::ui_init {priority args} {
     try {
         ::ui_init $priority $prefix $channels($priority) {*}$args
     } catch * {
-        interp alias {} ui_$priority {} ui_message $priority $prefix {}
+        interp alias {} ui_$priority {} ui_message $priority $prefix
     }
 }
 
