@@ -138,10 +138,6 @@ proc macports::init_logging {mport} {
         ui_debug "Logging disabled, error opening log file: $err"
         return 1
     }
-    # Add our log-channel to all already initialized channels
-    foreach key [array names channels] {
-        set macports::channels($key) [concat $macports::channels($key) debuglog]
-    }
     return 0
 }
 proc macports::ch_logging {mport} {
@@ -234,27 +230,27 @@ proc ui_message {priority prefix args} {
     } 
 
     foreach chan $macports::channels($priority) {
-        if {[info exists ::debuglog] && ($chan eq "debuglog")} {
-            set chan $::debuglog
-            if {[info exists macports::current_phase]} {
-                set phase $macports::current_phase
-            }
-            set strprefix ":${priority}:$phase "
-            if {[lindex $args 0] eq "-nonewline"} {
-                puts -nonewline $chan $strprefix[lindex $args 1]
-            } else {
-                puts $chan $strprefix[lindex $args 0]
-            }
-
+        if {[lindex $args 0] eq "-nonewline"} {
+            puts -nonewline $chan $prefix[lindex $args 1]
         } else {
-            if {[lindex $args 0] eq "-nonewline"} {
-                puts -nonewline $chan $prefix[lindex $args 1]
-            } else {
-                puts $chan $prefix[lindex $args 0]
-            }
+            puts $chan $prefix[lindex $args 0]
+        }
+    }
+
+    if {[info exists ::debuglog]} {
+        set chan $::debuglog
+        if {[info exists macports::current_phase]} {
+            set phase $macports::current_phase
+        }
+        set strprefix ":${priority}:$phase "
+        if {[lindex $args 0] eq "-nonewline"} {
+            puts -nonewline $chan $strprefix[lindex $args 1]
+        } else {
+            puts $chan $strprefix[lindex $args 0]
         }
     }
 }
+
 proc macports::ui_init {priority args} {
     global macports::channels ::debuglog
     set default_channel [macports::ui_channels_default $priority]
@@ -265,10 +261,6 @@ proc macports::ui_init {priority args} {
         set channels($priority) $default_channel
     }
 
-    # if some priority initialized after log file is being created
-    if {[info exists ::debuglog]} {
-        set channels($priority) [concat $channels($priority) debuglog]
-    }
     # Simplify ui_$priority.
     try {
         set prefix [ui_prefix $priority]
