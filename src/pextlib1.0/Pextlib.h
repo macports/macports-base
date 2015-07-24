@@ -30,4 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int ui_info(Tcl_Interp *, char *);
+void ui_error(Tcl_Interp *interp, const char *format, ...) __printflike(2, 3);
+void ui_warn(Tcl_Interp *interp, const char *format, ...) __printflike(2, 3);
+void ui_msg(Tcl_Interp *interp, const char *format, ...) __printflike(2, 3);
+void ui_notice(Tcl_Interp *interp, const char *format, ...) __printflike(2, 3);
+void ui_info(Tcl_Interp *interp, const char *format, ...) __printflike(2, 3);
+void ui_debug(Tcl_Interp *interp, const char *format, ...) __printflike(2, 3);

@@ -105,72 +105,71 @@ extern char **environ;
 #include "setmode.h"
 #endif
 
-static char *
-ui_escape(const char *source)
-{
-    char *d, *dest;
-    const char *s;
-    size_t dlen;
+__printflike(3, 0)
+static void ui_message(Tcl_Interp *interp, const char *severity, const char *format, va_list va) {
+    char buf[1024], tclcmd[32];
 
-    s = source;
-    dlen = strlen(source) * 2 + 1;
-    d = dest = malloc(dlen);
-    if (dest == NULL) {
-        return NULL;
+    vsnprintf(buf, sizeof(buf), format, va);
+
+    snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
+
+    Tcl_SetVar(interp, "warn", buf, 0);
+    if (TCL_OK != Tcl_Eval(interp, tclcmd)) {
+        fprintf(stderr, "Error evaluating tcl statement `%s': %s\n", tclcmd, Tcl_GetStringResult(interp));
     }
-    while(*s != '\0') {
-        switch(*s) {
-            case '\\':
-            case '}':
-            case '{':
-                *d = '\\';
-                d++;
-                *d = *s;
-                d++;
-                s++;
-                break;
-            case '\n':
-                s++;
-                break;
-            default:
-                *d = *s;
-                d++;
-                s++;
-                break;
-        }
-    }
-    *d = '\0';
-    return dest;
+    Tcl_UnsetVar(interp, "warn", 0);
 }
 
-int
-ui_info(Tcl_Interp *interp, char *mesg)
-{
-    const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
-    const char ui_proc_end[] = "}]";
-    char *script, *string;
-    size_t scriptlen, len, remaining;
-    int rval;
+__printflike(2, 3)
+void ui_error(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+    va_start(va, format);
+    ui_message(interp, "error", format, va);
+    va_end(va);
+}
 
-    string = ui_escape(mesg);
-    if (string == NULL)
-        return TCL_ERROR;
+__printflike(2, 3)
+void ui_warn(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
 
-    len = strlen(string);
-    scriptlen = sizeof(ui_proc_start) + len + sizeof(ui_proc_end) - 1;
-    script = malloc(scriptlen);
-    if (script == NULL)
-        return TCL_ERROR;
+    va_start(va, format);
+    ui_message(interp, "warn", format, va);
+    va_end(va);
+}
 
-    memcpy(script, ui_proc_start, sizeof(ui_proc_start));
-    remaining = scriptlen - sizeof(ui_proc_start);
-    strncat(script, string, remaining);
-    remaining -= len;
-    strncat(script, ui_proc_end, remaining);
-    free(string);
-    rval = Tcl_EvalEx(interp, script, -1, 0);
-    free(script);
-    return rval;
+__printflike(2, 3)
+void ui_msg(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+    va_start(va, format);
+    ui_message(interp, "msg", format, va);
+    va_end(va);
+}
+
+__printflike(2, 3)
+void ui_notice(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_message(interp, "notice", format, va);
+    va_end(va);
+}
+
+__printflike(2, 3)
+void ui_info(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_message(interp, "info", format, va);
+    va_end(va);
+}
+
+__printflike(2, 3)
+void ui_debug(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_message(interp, "debug", format, va);
+    va_end(va);
 }
 
 int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
