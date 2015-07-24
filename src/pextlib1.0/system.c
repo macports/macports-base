@@ -165,6 +165,13 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
 
+    /* print debug command info */
+    if (path) {
+        ui_debug(interp, "system -W %s: %s", path, cmdstring);
+    } else {
+        ui_debug(interp, "system: %s", cmdstring);
+    }
+
     /* check if and how we should use sandbox-exec */
     sandbox = check_sandboxing(interp, &sandbox_exec_path, &profilestr);
 
