@@ -246,7 +246,9 @@ proc ui_message {priority prefix args} {
         if {[lindex $args 0] eq "-nonewline"} {
             puts -nonewline $chan $strprefix[lindex $args 1]
         } else {
-            puts $chan $strprefix[lindex $args 0]
+            foreach str [split [lindex $args 0] "\n"] {
+                puts $chan $strprefix$str
+            }
         }
     }
 }
