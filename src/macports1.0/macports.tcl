@@ -2036,6 +2036,17 @@ proc _mportexec {target mport} {
 proc mportinstall {portlist target} {
     if {[macports::_target_needs_deps $target]} {
         set dep_res [macports::libsolv::dep_calc $portlist]
+        ## Install each port. First use mportopen and then _mportexec.
+        foreach port $dep_res {
+            set portname [lindex $port 0]
+            set porturl [lindex $port 1]
+            ui_debug "Installing $portname"
+            set options(subport) $portname
+            puts "mportopen $porturl [list subport $portname]"
+            set mport [mportopen $porturl [list subport $portname]]
+            set result [_mportexec $mport activate]
+        }
+        return $result
     }
 }
 
