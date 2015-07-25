@@ -105,7 +105,7 @@ extern char **environ;
 #include "setmode.h"
 #endif
 
-__printflike(3, 0)
+__attribute__((format(printf, 3, 0)))
 static void ui_message(Tcl_Interp *interp, const char *severity, const char *format, va_list va) {
     char tclcmd[32];
     char *buf;
@@ -125,7 +125,7 @@ static void ui_message(Tcl_Interp *interp, const char *severity, const char *for
     free(buf);
 }
 
-__printflike(2, 3)
+__attribute__((format(printf, 2, 3)))
 void ui_error(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
     va_start(va, format);
@@ -133,7 +133,7 @@ void ui_error(Tcl_Interp *interp, const char *format, ...) {
     va_end(va);
 }
 
-__printflike(2, 3)
+__attribute__((format(printf, 2, 3)))
 void ui_warn(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
 
@@ -142,7 +142,7 @@ void ui_warn(Tcl_Interp *interp, const char *format, ...) {
     va_end(va);
 }
 
-__printflike(2, 3)
+__attribute__((format(printf, 2, 3)))
 void ui_msg(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
     va_start(va, format);
@@ -150,7 +150,7 @@ void ui_msg(Tcl_Interp *interp, const char *format, ...) {
     va_end(va);
 }
 
-__printflike(2, 3)
+__attribute__((format(printf, 2, 3)))
 void ui_notice(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
 
@@ -159,7 +159,7 @@ void ui_notice(Tcl_Interp *interp, const char *format, ...) {
     va_end(va);
 }
 
-__printflike(2, 3)
+__attribute__((format(printf, 2, 3)))
 void ui_info(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
 
@@ -168,7 +168,7 @@ void ui_info(Tcl_Interp *interp, const char *format, ...) {
     va_end(va);
 }
 
-__printflike(2, 3)
+__attribute__((format(printf, 2, 3)))
 void ui_debug(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
 
