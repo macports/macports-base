@@ -401,7 +401,8 @@ namespace eval macports::libsolv {
                         puts "[$p __str__] -> [$op __str__]"
                 } else {
                     puts [$p __str__]
-                    lappend install_list [$p cget -name]
+                    set purl [$p lookup_str $solv::SOLVABLE_URL]
+                    lappend install_list [list [$p cget -name] $purl] 
                 }
             }
         }
