@@ -43,6 +43,8 @@
 #define _BSD_SOURCE
 /* required for clearenv(3)/setenv(3)/unsetenv(3) on OS X */
 #define _DARWIN_C_SOURCE
+/* required for vasprintf(3) on Linux */
+#define _GNU_SOURCE
 
 #include <sys/types.h>
 #include <sys/socket.h>
