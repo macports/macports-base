@@ -109,7 +109,7 @@ namespace eval macports::libsolv {
             foreach source $sources {
                 set source [lindex $source 0]
                 ## Add a repo in the pool for each source as mentioned in sources.conf
-                set repo [$pool add_repo $source]
+                set repo [$pool add_repo [macports::getsourcepath $source]]
                 set repodata [$repo add_repodata]
  
                 if {[catch {set fd [open [macports::getindex $source] r]} result]} {
@@ -285,6 +285,7 @@ namespace eval macports::libsolv {
     ## Dependency calculation using libsolv
     proc dep_calc {portlist} {
         set pool [create_pool]
+        variable portindexinfo
         # $pool set_debuglevel 3
         
         ## List of ports to be installed
@@ -404,8 +405,10 @@ namespace eval macports::libsolv {
                         puts "[$p __str__] -> [$op __str__]"
                 } else {
                     puts [$p __str__]
-                    set purl [$p lookup_str $solv::SOLVABLE_URL]
-                    lappend install_list [list [$p cget -name] $purl] 
+                    array set portinfo $portindexinfo([$p cget -id])
+                    set porturl "file://[[$p cget -repo] cget -name]/${portinfo(portdir)}"
+                    lappend install_list [list [$p cget -name] $porturl] 
+                    array unset -nocomplain portinfo
                 }
             }
         }

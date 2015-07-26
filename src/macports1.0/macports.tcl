@@ -2028,9 +2028,9 @@ proc mportinstall {portlist target} {
             set porturl [lindex $port 1]
             ui_debug "Installing $portname"
             set options(subport) $portname
-            puts "mportopen $porturl [list subport $portname]"
+            ui_debug "mportopen $porturl [list subport $portname]"
             set mport [mportopen $porturl [list subport $portname]]
-            set result [_mportexec $mport activate]
+            set result [_mportexec activate $mport]
         }
         return $result
     }
