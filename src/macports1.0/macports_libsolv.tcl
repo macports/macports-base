@@ -62,10 +62,14 @@ namespace eval macports::libsolv {
     ## Procedure to create the libsolv pool. This is similar to PortIndex. \
     #  Read the PortIndex contents and write into libsolv readable solv's.
     #  To Do:
-    #  Add additional information regarding arch, vendor, dependency, etc to solv.
+    #  Add additional information regarding arch, vendor, etc to solv.
+    #  Add obsoletes information to solv by parsing the replaced_by field in PortIndex. \
+    #  They mean the converse of each other, hence cannot assign them directly.
     #  Done:
     #  Add epoch, version and revision to each solv.
     #  Add more info to solv about its description, long_description, license, category and homepage.
+    #  Add dependency information to each solv.
+    #  Create a repo of installed packages for dependency calculation and Transaction summary.
     proc create_pool {} {
         variable pool
         variable portindexinfo
@@ -129,7 +133,6 @@ namespace eval macports::libsolv {
                             } else {
                                 set solvable [$repo add_solvable]
                             }
-                            # set solvable [$repo add_solvable]
 
                             $solvable configure -name $name \
                             -evr "$portinfo(epoch)@$portinfo(version)-$portinfo(revision)" \
@@ -192,8 +195,8 @@ namespace eval macports::libsolv {
             #  This method is necessary before we can run any lookups on provides.
             $pool createwhatprovides
     
-            return $pool
         }
+        return $pool
     }
 
     ## Search using libsolv. Needs some more work.
