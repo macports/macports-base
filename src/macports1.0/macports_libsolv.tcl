@@ -82,7 +82,12 @@ namespace eval macports::libsolv {
         lappend fields "depends_lib" $solv::SOLVABLE_REQUIRES [list]
         lappend fields "depends_run" $solv::SOLVABLE_REQUIRES [list]
         lappend fields "conflicts" $solv::SOLVABLE_CONFLICTS [list]
-        lappend fields "replaced_by" $solv::SOLVABLE_OBSOLETES [list]
+
+        ## Variable for replace_by to set obsoletes of solv.
+        variable replaced_by
+
+        ## Variable to map portname to its solv
+        variable solvs
 
         ## Check if libsolv cache (pool) is already created or not.
         if {![info exists pool]} {
@@ -170,12 +175,37 @@ namespace eval macports::libsolv {
                                 }
                             }
 
+                            ## Set up map from port to its solvable if replaced_by another package.
+                            if {[info exists portinfo(replaced_by)]} {
+                                set replaced_by($name) $solvable
+                            }
+
                             ## Set SOLVABLE_PROVIDES for the solv so that the package can be found during depcalc.
                             set provides [$pool rel2id [$solvable cget -nameid] [$solvable cget -evrid] $solv::REL_EQ 1]
                             $solvable add_deparray $solv::SOLVABLE_PROVIDES $provides
                             
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
+
+                            ## Set solv's to its portname
+                            set solvs($name) $solvable
+                        }
+
+                        ## Set obsoletes by reading the replaced_by contents.
+                        ## Obsoletes: A replaced_by B means B obsoletes A.
+                        if {[array exists replaced_by] && [array size replaced_by] > 0} {
+                            foreach name [array names replaced_by] {
+                                array set portinfo $portindexinfo([$replaced_by($name) cget -id])
+                                set A $name
+                                set B $portinfo(replaced_by)
+                                ## Check if the replaced_by port actually exists or not.
+                                if {![info exists solvs($B)]} {
+                                    ui_msg "No port with the name $B exists. Skipping adding obsoletes for $A."
+                                } else {
+                                    $solvs($B) add_deparray $solv::SOLVABLE_OBSOLETES [$pool str2id $A 1]
+                                }
+                                array unset -nocomplain portinfo
+                            }
                         }
 
                     } catch * {
