@@ -2038,21 +2038,38 @@ proc mportinstall {portlist target} {
         set dep_res [macports::libsolv::dep_calc $portlist]
         ## Install each port. First use mportopen and then _mportexec.
         if {[info exists dep_res]} {
+            set dlist [list]
+            set portlist [list]
             foreach port $dep_res {
-                set portname [lindex $port 0]
-                set porturl [lindex $port 1]
-                ui_debug "Installing $portname"
-                set options(subport) $portname
-                ui_debug "mportopen $porturl [list subport $portname]"
-                set mport [mportopen $porturl [list subport $portname]]
-                set result [_mportexec activate $mport]
+                set portsolv [lindex $port 0]
+                lappend portlist [$portsolv cget -name]
             }
+            ui_debug "Printing portlist"
+            ui_debug $portlist
+            foreach port $dep_res {
+                set portsolv [lindex $port 0]
+                set portname [$portsolv cget -name]
+                set porturl [lindex $port 1]
+                set options(subport) $portname
+                
+                puts "Current: $portname"  
+                set mport [mportopen $porturl [list subport $portname]]
+                foreach dep [$portsolv lookup_deparray $solv::SOLVABLE_REQUIRES] {
+                    set depname [$dep __str__]
+                    if {$depname ni $portlist} {
+                        continue
+                    }
+                    puts "Adding $depname to requires"
+                    ditem_append_unique $mport requires $depname
+                }
+                lappend dlist $mport
+            }
+            set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
             if {[info exists result]} {
                 return $result
-            } else {
-                return {}
             }
         }
+        return {}
     }
 }
 
