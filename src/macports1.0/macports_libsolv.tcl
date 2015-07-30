@@ -437,7 +437,7 @@ namespace eval macports::libsolv {
                     puts [$p __str__]
                     array set portinfo $portindexinfo([$p cget -id])
                     set porturl "file://[[$p cget -repo] cget -name]/${portinfo(portdir)}"
-                    lappend install_list [list [$p cget -name] $porturl] 
+                    lappend install_list [list $p $porturl] 
                     array unset -nocomplain portinfo
                 }
             }
