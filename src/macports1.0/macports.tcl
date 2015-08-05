@@ -4384,7 +4384,10 @@ proc mportselect {command {group ""} {version {}}} {
         show {
             set selected_version ${conf_path}/current
 
-            if {![file exists $selected_version]} {
+            if {[catch {file type $selected_version} err]} {
+                # this might be okay if nothing was selected yet,
+                # just log the error for debugging purposes
+                ui_debug "cannot determine selected version for $group: $err"
                 return none
             } else {
                 return [file readlink $selected_version]
