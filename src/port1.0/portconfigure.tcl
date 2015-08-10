@@ -759,7 +759,7 @@ proc portconfigure::configure_main {args} {
         # add SDK flags if cross-compiling (or universal on ppc tiger)
         if {${configure.sdkroot} ne ""} {
             foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
-                append_to_environment_value configure $env_var -isysroot ${configure.sdkroot}
+                append_to_environment_value configure $env_var -isysroot${configure.sdkroot}
             }
             append_to_environment_value configure "LDFLAGS" -Wl,-syslibroot,${configure.sdkroot}
         }
