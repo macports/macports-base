@@ -2052,14 +2052,12 @@ proc mportinstall {portlist target} {
                 set porturl [lindex $port 1]
                 set options(subport) $portname
                 
-                puts "Current: $portname"  
                 set mport [mportopen $porturl [list subport $portname]]
                 foreach dep [$portsolv lookup_deparray $solv::SOLVABLE_REQUIRES] {
                     set depname [$dep __str__]
                     if {$depname ni $portlist} {
                         continue
                     }
-                    puts "Adding $depname to requires"
                     ditem_append_unique $mport requires $depname
                 }
                 lappend dlist $mport
