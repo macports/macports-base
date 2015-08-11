@@ -406,7 +406,7 @@ namespace eval macports::libsolv {
             | $solv::Transaction_SOLVER_TRANSACTION_OBSOLETE_IS_UPGRADE] 
         
         set install_list [list]
-
+        set dep_list [list]
         foreach cl [$trans classify $clflag] {
             if {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_ERASE} {
                 puts "[$cl cget -count] Erased packages:"
@@ -435,12 +435,21 @@ namespace eval macports::libsolv {
                         puts "[$p __str__] -> [$op __str__]"
                 } else {
                     puts [$p __str__]
+                    lappend dep_list [$p __str__]
                     array set portinfo $portindexinfo([$p cget -id])
                     set porturl "file://[[$p cget -repo] cget -name]/${portinfo(portdir)}"
                     lappend install_list [list $p $porturl] 
                     array unset -nocomplain portinfo
                 }
             }
+        }
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            set retvalue [$macports::ui_options(questions_yesno) "The following dependencies will be installed by libsolv: " "" [lsort $dep_list] {y} 0]
+            if {$retvalue == 1} {
+                return {}
+            }
+        } else {
+            set depstring "$macports::ui_prefix Dependencies to be installed by libsolv:"
         }
         return $install_list
     }
