@@ -367,6 +367,15 @@ VENDOR_TCLLIB_INSTALL="install-libraries"
 AC_SUBST(VENDOR_TCLLIB_SUBDIR)
 AC_SUBST(VENDOR_TCLLIB_INSTALL)
 
+## Libsolv package
+#  Libsolv is required to support libsolv SAT Solver for
+#  dependency calculation.
+MP_CONFIG_TARBALL([vendor/libsolv.tar.gz], [vendor/libsolv], [--prefix=${macports_libexec_dir}], [--with-tcl=@VENDOR_TCL_SUBDIR@])
+VENDOR_LIBSOLV_SUBDIR=libsolv
+VENDOR_LIBSOLV_INSTALL="install"
+AC_SUBST(VENDOR_LIBSOLV_SUBDIR)
+AC_SUBST(VENDOR_LIBSOLV_INSTALL)
+
 # Load tclConfig.sh from our private install of Tcl
 AC_MSG_CHECKING([for Tcl configuration])
 TCL_BIN_DIR=`(cd vendor/tcl${tcl_version}/unix; pwd)`
