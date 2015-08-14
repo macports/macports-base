@@ -21,6 +21,10 @@ global fields
 
 foreach var $skel_required_variables {
     set fields($var) "replaceme"
+
+    # "port lint" also checks these fields' values.
+    set fields(PortSystem) 1.0
+    set fields(platforms) darwin
 }
 
 proc build_portfile {} {
