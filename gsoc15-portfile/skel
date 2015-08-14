@@ -8,6 +8,7 @@ set skel_required_variables \
       version          \
       categories       \
       platforms        \
+      homepage         \
       license          \
       maintainers      \
       description      \
