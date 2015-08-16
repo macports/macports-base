@@ -395,10 +395,10 @@ proc exclusive_lock {} {
         }
         set lockfd [::open $lockpath w]
     }
-    if {[catch {flock $lockfd -exclusive -noblock} result]} {
+    if {[catch {adv-flock $lockfd -exclusive -noblock} result]} {
         if {$result eq "EAGAIN"} {
             ui_msg "Waiting for lock on $lockpath"
-            flock $lockfd -exclusive
+            adv-flock $lockfd -exclusive
         } elseif {$result eq "EOPNOTSUPP"} {
             # Locking not supported, just return
             ui_debug "flock not supported, not locking registry"
@@ -420,7 +420,7 @@ proc exclusive_unlock {} {
     }
     if {[info exists lockfd]} {
         # not much point trying to handle errors
-        catch {flock $lockfd -unlock}
+        catch {adv-flock $lockfd -unlock}
     }
 }
 

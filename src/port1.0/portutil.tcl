@@ -367,7 +367,6 @@ proc command_string {command} {
         }
     }
 
-    ui_debug "Assembled command: '$cmdstring'"
     return $cmdstring
 }
 
@@ -450,7 +449,6 @@ proc command_exec {command args} {
     array set env [array get ${varprefix}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
-    ui_debug "Executing command line: $fullcmdstring"
     set code [catch {system {*}$notty {*}$nice $fullcmdstring} result]
     # Save variables in order to re-throw the same error code.
     set errcode $::errorCode
@@ -461,9 +459,6 @@ proc command_exec {command args} {
 
     # Restore the environment.
     array unset env *
-    if {$macosx_version eq "10.5"} {
-        unsetenv *
-    }
     array set env [array get saved_env]
 
     # Return as if system had been called directly.
@@ -702,8 +697,7 @@ proc variant_remove_ditem {name} {
 # determine if a variant exists.
 proc variant_exists {name} {
     global PortInfo
-    if {[info exists PortInfo(variants)] &&
-      [lsearch -exact $PortInfo(variants) $name] >= 0} {
+    if {[info exists PortInfo(variants)] && $name in $PortInfo(variants)} {
         return 1
     }
 
@@ -814,7 +808,7 @@ proc platform {args} {
 proc subport {subname body} {
     global subport name PortInfo
     if {$subport eq $name && $subname ne $name && 
-        (![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1)} {
+        (![info exists PortInfo(subports)] || $subname ni $PortInfo(subports))} {
         lappend PortInfo(subports) $subname
     }
     if {[string equal -nocase $subname $subport]} {
@@ -893,13 +887,11 @@ proc getdistname {name} {
 
 # tbool (testbool)
 # If the variable exists in the calling procedure's namespace
-# and is set to "yes", return 1. Otherwise, return 0
+# and is set to a boolean true value, return 1. Otherwise, return 0
 proc tbool {key} {
     upvar $key $key
     if {[info exists $key]} {
-        if {[string equal -nocase [set $key] "yes"]} {
-            return 1
-        }
+        return [string is true -strict [set $key]]
     }
     return 0
 }
@@ -1023,9 +1015,6 @@ proc reinplace {args}  {
                     set env(LC_CTYPE) $oldlocale
                 } else {
                     unset env(LC_CTYPE)
-                    if {$macosx_version eq "10.5"} {
-                        unsetenv LC_CTYPE
-                    }
                 }
             }
             close $tmpfd
@@ -1037,9 +1026,6 @@ proc reinplace {args}  {
                 set env(LC_CTYPE) $oldlocale
             } else {
                 unset env(LC_CTYPE)
-                if {$macosx_version eq "10.5"} {
-                    unsetenv LC_CTYPE
-                }
             }
         }
         close $tmpfd
@@ -1397,7 +1383,7 @@ proc target_run {ditem} {
             }
 
             # Of course, if this is a dry run, don't do the task:
-            if {[info exists ports_dryrun] && $ports_dryrun eq "yes" && [lsearch -exact $dryrun_allow_targets $targetname] == -1} {
+            if {[tbool ports_dryrun] && $targetname ni $dryrun_allow_targets} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
                     ui_notice "For $portname: skipping $targetname (dry run)"
@@ -1428,8 +1414,7 @@ proc target_run {ditem} {
 
                 #start tracelib
                 if {($result ==0
-                  && [info exists ports_trace]
-                  && $ports_trace eq "yes"
+                  && [tbool ports_trace]
                   && $target ne "clean"
                   && $target ne "uninstall")} {
                     # uninstall will open a portfile from registry and call
@@ -1492,11 +1477,9 @@ proc target_run {ditem} {
 
                         # If portname is empty, the dependency is already satisfied by other means,
                         # for example a bin: dependency on a file not installed by MacPorts
-                        if {$name ne ""} {
-                            if {[lsearch -exact $deplist $name] == -1} {
-                                lappend deplist $name
-                                set deplist [recursive_collect_deps $name $deplist]
-                            }
+                        if {$name ne "" && $name ni $deplist} {
+                            lappend deplist $name
+                            set deplist [recursive_collect_deps $name $deplist]
                         }
                     }
 
@@ -1541,8 +1524,7 @@ proc target_run {ditem} {
                 }
 
                 # Check dependencies & file creations outside workpath.
-                if {[info exists ports_trace]
-                  && $ports_trace eq "yes"
+                if {[tbool ports_trace]
                   && $target ne "clean"
                   && $target ne "uninstall"} {
 
@@ -1614,9 +1596,6 @@ proc target_run {ditem} {
     set env(HOME) $savedhome
     if {[info exists env(TMPDIR)]} {
         unset env(TMPDIR)
-        if {$macosx_version eq "10.5"} {
-            unsetenv TMPDIR
-        }
     }
 
     return $result
@@ -1633,7 +1612,7 @@ proc recursive_collect_deps {portname {depsfound {}}} \
 
     foreach item $deplist {
         set name [lindex $item 0]
-        if {[lsearch -exact $depsfound $name] == -1} {
+        if {$name ni $depsfound} {
             lappend depsfound $name
             set depsfound [recursive_collect_deps $name $depsfound]
         }
@@ -1836,10 +1815,10 @@ proc open_statefile {args} {
 
     set fd [open $statefile a+]
     if {![tbool ports_dryrun]} {
-        if {[catch {flock $fd -exclusive -noblock} result]} {
+        if {[catch {adv-flock $fd -exclusive -noblock} result]} {
             if {"$result" == "EAGAIN"} {
                 ui_notice "Waiting for lock on $statefile"
-                flock $fd -exclusive
+                adv-flock $fd -exclusive
             } elseif {"$result" == "EOPNOTSUPP"} {
                 # Locking not supported, just return
                 return $fd
@@ -2052,7 +2031,7 @@ proc eval_variants {variations} {
     array set requested_variations [array get upvariations]
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
-            [lsearch $PortInfo(variants) $key] == -1} {
+            $key ni $PortInfo(variants)} {
             ui_debug "Requested variant $upvariations($key)$key is not provided by port $portname."
             array unset upvariations $key
         }
@@ -2139,17 +2118,16 @@ proc check_variants {target} {
             break
         }
     }
-    if { $statereq &&
-        !([info exists ports_force] && $ports_force eq "yes")} {
+    if {$statereq && ![tbool ports_force]} {
 
         set state_fd [open_statefile]
 
         array set oldvariations {}
         if {[check_statefile_variants variations oldvariations $state_fd]} {
-            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\"."
-            ui_error "Please use the same variants again, perform 'port clean [option subport]' or specify the force option (-f)."
+            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match those the build was started with: \"[canonicalize_variants [array get oldvariations]]\"."
+            ui_error "Please use the same variants again, or run 'port clean [option subport]' first to remove the existing partially completed build."
             set result 1
-        } elseif {!([info exists ports_dryrun] && $ports_dryrun eq "yes")} {
+        } elseif {![tbool ports_dryrun]} {
             # Write variations out to the statefile
             foreach key [array names variations *] {
                 write_statefile variant $variations($key)$key $state_fd

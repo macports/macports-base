@@ -27,7 +27,6 @@ ifdef SWIG
 else
 	@echo "Building ${SWIG_SRCS} requires swig, which you apparently did not have installed when configuring MacPorts." >&2
 	@echo "Please install swig and re-run configure" >&2
-	@echo "I recommend installing SWIG 1.x in /opt/swig, because as of this writing SWIG 2.x-generated code does not compile warning-free" >&2
 	@echo "To use this SWIG, run configure as follows:" >&2
 	@echo "    SWIG=/opt/swig/bin/swig ./configure --your-usual-config-flags" >&2
 	@echo "If you checked out from svn you can also run svn revert in base/src/machista1.0 to get rid of this error" >&2

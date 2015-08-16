@@ -53,28 +53,19 @@ namespace eval portmirror {
 # It also records the path in a database.
 
 proc portmirror::mirror_main {args} {
-    global fetch.type mirror_filemap ports_mirror_new portdbpath
+    global fetch.type mirror_filemap portdbpath
 
     set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
-    if {![info exists mirror_filemap]
-        && [info exists ports_mirror_new]
-        && $ports_mirror_new eq "yes"
-        && [file exists $mirror_filemap_path]} {
-        # Trash the map file if it existed.
-        file delete -force $mirror_filemap_path
-    }
-
     filemap open mirror_filemap $mirror_filemap_path
 
     # Check the distfiles if it's a regular fetch phase.
-    if {"${fetch.type}" == "standard"} {
+    if {${fetch.type} eq "standard"} {
         # fetch the files.
         portfetch::fetch_init $args
         portfetch::fetch_start $args
         portfetch::fetch_main $args
 
         # checksum the files.
-        #checksum_start
         if {[catch {portchecksum::checksum_main $args}]} {
             # delete the files.
             portfetch::fetch_deletefiles $args

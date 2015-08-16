@@ -1,5 +1,5 @@
 /*
- * flock.h
+ * adv-flock.h
  * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
@@ -30,4 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int FlockCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int AdvFlockCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);

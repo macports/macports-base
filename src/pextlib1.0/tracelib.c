@@ -63,6 +63,8 @@
 
 #include "tracelib.h"
 
+#include "Pextlib.h"
+
 #include "strlcat.h"
 
 #ifdef HAVE_TRACEMODE_SUPPORT
@@ -105,12 +107,6 @@ typedef enum {
     SANDBOX_VIOLATION
 } sandbox_violation_t;
 static void sandbox_violation(int sock, const char *path, sandbox_violation_t type);
-
-static void ui_warn(const char *format, ...) __printflike(1, 2);
-#if 0
-static void ui_info(const char *format, ...) __printflike(1, 2);
-#endif
-static void ui_error(const char *format, ...) __printflike(1, 2);
 
 #define MAX_SOCKETS (1024)
 #define BUFSIZE     (4096)
@@ -420,7 +416,7 @@ static void dep_check(int sock, char *path) {
     reg_error error;
 
     if (NULL == (reg = registry_for(interp, reg_attached))) {
-        ui_error("%s", Tcl_GetStringResult(interp));
+        ui_error(interp, "%s", Tcl_GetStringResult(interp));
         /* send unexpected output to make the build fail */
         answer(sock, "#");
     }
@@ -438,7 +434,7 @@ static void dep_check(int sock, char *path) {
     /* find the port's name to compare with out list */
     if (!reg_entry_propget(&entry, "name", &port, &error)) {
         /* send unexpected output to make the build fail */
-        ui_error("%s", error.description);
+        ui_error(interp, "%s", error.description);
         answer(sock, "#");
     }
 
@@ -453,50 +449,6 @@ static void dep_check(int sock, char *path) {
 
     free(port);
     answer(sock, "!");
-}
-
-__printflike(2, 0)
-static void ui_msg(const char *severity, const char *format, va_list va) {
-    char buf[1024], tclcmd[32];
-
-    vsnprintf(buf, sizeof(buf), format, va);
-
-    snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
-
-    Tcl_SetVar(interp, "warn", buf, 0);
-    if (TCL_OK != Tcl_Eval(interp, tclcmd)) {
-        fprintf(stderr, "Error evaluating tcl statement `%s': %s\n", tclcmd, Tcl_GetStringResult(interp));
-    }
-    Tcl_UnsetVar(interp, "warn", 0);
-
-}
-
-__printflike(1, 2)
-static void ui_warn(const char *format, ...) {
-    va_list va;
-
-    va_start(va, format);
-    ui_msg("warn", format, va);
-    va_end(va);
-}
-
-#if 0
-__printflike(1, 2)
-static void ui_info(const char *format, ...) {
-    va_list va;
-
-    va_start(va, format);
-    ui_msg("info", format, va);
-    va_end(va);
-}
-#endif
-
-__printflike(1, 2)
-static void ui_error(const char *format, ...) {
-    va_list va;
-    va_start(va, format);
-    ui_msg("error", format, va);
-    va_end(va);
 }
 
 static int TracelibOpenSocketCmd(Tcl_Interp *in) {
@@ -520,7 +472,7 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     /* raise the limit of open files to the maximum from the default soft limit
      * of 256 */
     if (getrlimit(RLIMIT_NOFILE, &rl) == -1) {
-        ui_warn("getrlimit failed (%d), skipping setrlimit", errno);
+        ui_warn(interp, "getrlimit failed (%d), skipping setrlimit", errno);
     } else {
 #ifdef OPEN_MAX
         if (rl.rlim_max > OPEN_MAX) {
@@ -529,7 +481,7 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
 #endif
         rl.rlim_cur = rl.rlim_max;
         if (setrlimit(RLIMIT_NOFILE, &rl) == -1) {
-            ui_warn("setrlimit failed (%d)", errno);
+            ui_warn(interp, "setrlimit failed (%d)", errno);
         }
     }
 
@@ -720,7 +672,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
 
                     flags = fcntl(s, F_GETFL, 0);
                     if (-1 == fcntl(s, F_SETFL, flags & ~O_NONBLOCK)) {
-                        ui_warn("tracelib: couldn't mark socket as blocking");
+                        ui_warn(interp, "tracelib: couldn't mark socket as blocking");
                         close(s);
                         continue;
                     }
@@ -728,7 +680,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                     /* register the new socket in the kqueue */
                     EV_SET(&kev, s, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
                     if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
-                        ui_warn("tracelib: error adding socket to kqueue");
+                        ui_warn(interp, "tracelib: error adding socket to kqueue");
                         close(s);
                         continue;
                     }
@@ -736,7 +688,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                      * always be returned. When a filter is successfully added, the data field
                      * will be zero. */
                     if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
-                        ui_warn("tracelib: error adding socket to kqueue");
+                        ui_warn(interp, "tracelib: error adding socket to kqueue");
                         close(s);
                         continue;
                     }

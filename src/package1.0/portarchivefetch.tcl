@@ -294,7 +294,7 @@ proc portarchivefetch::fetchfiles {args} {
         }
         return 0
     }
-    if {[info exists ports_binary_only] && $ports_binary_only eq "yes"} {
+    if {([info exists ports_binary_only] && $ports_binary_only eq "yes") || [_archive_available]} {
         if {[info exists lastError] && $lastError ne ""} {
             error [msgcat::mc "version @[option version]_[option revision][option portvariants]: %s" $lastError]
         } else {
