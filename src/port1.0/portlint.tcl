@@ -659,18 +659,18 @@ proc portlint::lint_main {args} {
     }
 
     # these checks are only valid for ports stored in the regular tree directories
-    if {[info exists category] && $portcatdir != $category} {
-        ui_error "Portfile parent directory $portcatdir does not match primary category $category"
-        incr errors
-    } else {
-        ui_info "OK: Portfile parent directory matches primary category"
-    }
-    if {$portdir != $name} {
-        ui_error "Portfile directory $portdir does not match port name $name"
-        incr errors
-    } else {
-        ui_info "OK: Portfile directory matches port name"
-    }
+    # if {[info exists category] && $portcatdir != $category} {
+    #     ui_error "Portfile parent directory $portcatdir does not match primary category $category"
+    #     incr errors
+    # } else {
+    #     ui_info "OK: Portfile parent directory matches primary category"
+    # }
+    # if {$portdir != $name} {
+    #     ui_error "Portfile directory $portdir does not match port name $name"
+    #     incr errors
+    # } else {
+    #     ui_info "OK: Portfile directory matches port name"
+    # }
 
     if {$nitpick && [info exists patchfiles]} {
         foreach patchfile $patchfiles {
