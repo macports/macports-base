@@ -25,22 +25,24 @@ foreach var $skel_required_variables {
     # "port lint" also checks these fields' values.
     set fields(PortSystem) 1.0
     set fields(platforms) darwin
+    set fields(version) 2.0
 }
 
 proc build_portfile {} {
-    global fields
+    global fields skel_required_variables
 
     set modeline "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"
     set svn_id_tag_line "# \$Id\$"
 
     puts $modeline
     puts $svn_id_tag_line
+    puts {}
 
-    # NOTE: the order of iterating assoc array in this clean way is not
-    # predictable, it can be resolved by using $skel_required_variables, but
-    # it's fine for now since "port lint" seems to be unable to check order.
-    foreach {name val} [array get fields] {
-        puts [format "%-20s%s" $name $val]
+    foreach name $skel_required_variables {
+        puts [format "%-20s%s" $name $fields($name)]
+        if {$name eq "PortSystem"} {
+            puts {}
+        }
     }
 }
 
