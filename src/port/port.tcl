@@ -4412,7 +4412,7 @@ array set cmd_opts_array {
     variants    {index}
     clean       {all archive dist work logs}
     mirror      {new}
-    lint        {nitpick}
+    lint        {nitpick nodir}
     select      {list set show summary}
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace no-rev-upgrade}

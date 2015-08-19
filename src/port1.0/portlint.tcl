@@ -123,7 +123,7 @@ proc portlint::lint_start {args} {
 }
 
 proc portlint::lint_main {args} {
-    global UI_PREFIX name portpath porturl ports_lint_nitpick
+    global UI_PREFIX name portpath porturl ports_lint_nitpick ports_lint_nodir
     set portfile ${portpath}/Portfile
     set portdirs [split ${portpath} /]
     set last [llength $portdirs]
@@ -142,6 +142,12 @@ proc portlint::lint_main {args} {
         set nitpick true
     } else {
         set nitpick false
+    }
+
+    if {[info exists ports_lint_nodir] && $ports_lint_nodir eq "yes"} {
+        set nodir true
+    } else {
+        set nodir false
     }
 
     set topline_number 1
@@ -658,19 +664,21 @@ proc portlint::lint_main {args} {
 
     }
 
-    # these checks are only valid for ports stored in the regular tree directories
-    # if {[info exists category] && $portcatdir != $category} {
-    #     ui_error "Portfile parent directory $portcatdir does not match primary category $category"
-    #     incr errors
-    # } else {
-    #     ui_info "OK: Portfile parent directory matches primary category"
-    # }
-    # if {$portdir != $name} {
-    #     ui_error "Portfile directory $portdir does not match port name $name"
-    #     incr errors
-    # } else {
-    #     ui_info "OK: Portfile directory matches port name"
-    # }
+    if !{$nodir} {
+        # these checks are only valid for ports stored in the regular tree directories
+        if {[info exists category] && $portcatdir != $category} {
+            ui_error "Portfile parent directory $portcatdir does not match primary category $category"
+            incr errors
+        } else {
+            ui_info "OK: Portfile parent directory matches primary category"
+        }
+        if {$portdir != $name} {
+            ui_error "Portfile directory $portdir does not match port name $name"
+            incr errors
+        } else {
+            ui_info "OK: Portfile directory matches port name"
+        }
+    }
 
     if {$nitpick && [info exists patchfiles]} {
         foreach patchfile $patchfiles {
