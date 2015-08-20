@@ -60,16 +60,16 @@ namespace eval macports::libsolv {
     }
 
     ## Procedure to create the libsolv pool. This is similar to PortIndex. \
-    #  Read the PortIndex contents and write into libsolv readable solv's.
+    #  Read the PortIndex contents and write into libsolv readable solv's (solvables).
     #  To Do:
     #  Add additional information regarding arch, vendor, etc to solv.
-    #  Add obsoletes information to solv by parsing the replaced_by field in PortIndex. \
-    #  They mean the converse of each other, hence cannot assign them directly.
     #  Done:
     #  Add epoch, version and revision to each solv.
     #  Add more info to solv about its description, long_description, license, category and homepage.
     #  Add dependency information to each solv.
     #  Create a repo of installed packages for dependency calculation and Transaction summary.
+    #  Add obsoletes information to solv by parsing the replaced_by field in PortIndex. \
+    #  They mean the converse of each other, hence cannot assign them directly.
     proc create_pool {} {
         variable pool
         variable portindexinfo
@@ -86,7 +86,7 @@ namespace eval macports::libsolv {
         ## Variable for replace_by to set obsoletes of solv.
         variable replaced_by
 
-        ## Variable to map portname to its solv
+        ## Variable to map portname to its corresponding solvable.
         variable solvs
 
         ## Check if libsolv cache (pool) is already created or not.
@@ -145,7 +145,7 @@ namespace eval macports::libsolv {
 
                             set solvid [$solvable cget -id]
 
-                            ## Add extra info to repodata i.e. Summary, Description, etc to the solvables
+                            ## Add extra info to repodata i.e. Summary, Description, License, homepage, category to the solvables
                             #  Valid constant fields can be found at src/knownid.h of libsolv.
                             if {[info exists portinfo(description)]} {
                                 $repodata set_str $solvid $solv::SOLVABLE_SUMMARY $portinfo(description)
@@ -165,7 +165,7 @@ namespace eval macports::libsolv {
                             
                             ## Add dependency information to solvable using portinfo
                             #  $marker i.e last arg to add_deparray is set to 1 for build dependencies
-                            #  and -1 for runtime dependencies
+                            #  and -1 for runtime dependencies (Still need to figure this out correctly).
                             foreach {fieldname deptype marker} $fields {
                                 if {[info exists portinfo($fieldname)]} {
                                     foreach dep $portinfo($fieldname) {
@@ -187,7 +187,7 @@ namespace eval macports::libsolv {
                             ## Set portinfo of each solv object. Map it to correct solvid.
                             set portindexinfo([$solvable cget -id]) $line
 
-                            ## Set solv's to its portname
+                            ## Map portname to its correspoding solvable.
                             set solvs($name) $solvable
                         }
 
@@ -229,7 +229,7 @@ namespace eval macports::libsolv {
         return $pool
     }
 
-    ## Search using libsolv. Needs some more work.
+    ## Search using libsolv.
     #  To Do list:
     #  Add support for searching in License and other fields too. Some changes to be made port.tcl to
     #  support these options to be passed i.e. --license
@@ -289,8 +289,10 @@ namespace eval macports::libsolv {
             }
         }
         
+        ## Dataiterator procedure will iterate over the solvables and return the matched solv's.
         set di [$pool Dataiterator $search_option $pattern $di_flag]
 
+        ## Add the matched solvables to the Selection (set of solvables).
         while {[set data [$di __next__]] ne "NULL"} { 
             $sel add_raw $solv::Job_SOLVER_SOLVABLE [$data cget -solvid]
         }
@@ -312,15 +314,19 @@ namespace eval macports::libsolv {
         return $matches
     }
 
-    ## Dependency calculation using libsolv
+    ## Dependency calculation using libsolv.
+    #  Pass the complete list of ports to dep_calc instead of calling
+    #  it for every single portname. This helps to optimize the end result
+    #  and resolving conflicts between multiple ports.
     proc dep_calc {portlist} {
         set pool [create_pool]
         variable portindexinfo
+        ## Uncomment the following line for debuging output related to solvables and pool information.
         # $pool set_debuglevel 3
         
-        ## List of ports to be installed
+        ## Create list of ports to be installed.
         set portname [list]
-        ## Append portname to $portname after extracting them from $portlist
+        ## Append portnames to $portname list after extracting them from $portlist.
         foreach portspec $portlist {
             array set portinfo $portspec
             set pname $portinfo(name)
@@ -346,7 +352,7 @@ namespace eval macports::libsolv {
             lappend jobs {*}[$sel jobs $solv::Job_SOLVER_INSTALL]
         }
 
-        ## Solve the jobs
+        ## Solve the jobs.
         set solver [$pool Solver]
         while {yes} {
             set jobs_list [list]
@@ -362,6 +368,7 @@ namespace eval macports::libsolv {
                 break
             }
 
+            ## Conflict Resolution.
             ## Find a solution for the problems found.
             foreach problem $problems {
                 ui_debug "Problem [$problem cget -id]/[llength $problems]"
@@ -395,7 +402,11 @@ namespace eval macports::libsolv {
             }
         }
 
-        ## Transaction Part
+        ## Create Transaction.
+        #  To Do:
+        #  Add support for uninstall, reinstall, upgrade and downgrade (Versioned portname required).
+        #  Done:
+        #  Create list of ports to be installed.
         set trans [$solver transaction]
         if {[$trans isempty]} {
             puts "Nothing to do"
