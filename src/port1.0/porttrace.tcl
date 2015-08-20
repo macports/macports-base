@@ -263,9 +263,6 @@ namespace eval porttrace {
 
 		foreach var {DYLD_INSERT_LIBRARIES DARWINTRACE_LOG} {
 			array unset env $var
-			if {$macosx_version eq "10.5"} {
-				unsetenv $var
-			}
 		}
 
 		# Kill socket

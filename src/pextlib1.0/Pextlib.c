@@ -43,6 +43,8 @@
 #define _BSD_SOURCE
 /* required for clearenv(3)/setenv(3)/unsetenv(3) on OS X */
 #define _DARWIN_C_SOURCE
+/* required for vasprintf(3) on Linux */
+#define _GNU_SOURCE
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -89,7 +91,7 @@
 #include "strsed.h"
 #include "readdir.h"
 #include "pipe.h"
-#include "flock.h"
+#include "adv-flock.h"
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
@@ -105,72 +107,76 @@ extern char **environ;
 #include "setmode.h"
 #endif
 
-static char *
-ui_escape(const char *source)
-{
-    char *d, *dest;
-    const char *s;
-    size_t dlen;
+__attribute__((format(printf, 3, 0)))
+static void ui_message(Tcl_Interp *interp, const char *severity, const char *format, va_list va) {
+    char tclcmd[32];
+    char *buf;
 
-    s = source;
-    dlen = strlen(source) * 2 + 1;
-    d = dest = malloc(dlen);
-    if (dest == NULL) {
-        return NULL;
+    if (vasprintf(&buf, format, va) < 0) {
+        perror("vasprintf");
+        return;
     }
-    while(*s != '\0') {
-        switch(*s) {
-            case '\\':
-            case '}':
-            case '{':
-                *d = '\\';
-                d++;
-                *d = *s;
-                d++;
-                s++;
-                break;
-            case '\n':
-                s++;
-                break;
-            default:
-                *d = *s;
-                d++;
-                s++;
-                break;
-        }
+
+    snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
+
+    Tcl_SetVar(interp, "warn", buf, 0);
+    if (TCL_OK != Tcl_Eval(interp, tclcmd)) {
+        fprintf(stderr, "Error evaluating tcl statement `%s': %s\n", tclcmd, Tcl_GetStringResult(interp));
     }
-    *d = '\0';
-    return dest;
+    Tcl_UnsetVar(interp, "warn", 0);
+    free(buf);
 }
 
-int
-ui_info(Tcl_Interp *interp, char *mesg)
-{
-    const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
-    const char ui_proc_end[] = "}]";
-    char *script, *string;
-    size_t scriptlen, len, remaining;
-    int rval;
+__attribute__((format(printf, 2, 3)))
+void ui_error(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+    va_start(va, format);
+    ui_message(interp, "error", format, va);
+    va_end(va);
+}
 
-    string = ui_escape(mesg);
-    if (string == NULL)
-        return TCL_ERROR;
+__attribute__((format(printf, 2, 3)))
+void ui_warn(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
 
-    len = strlen(string);
-    scriptlen = sizeof(ui_proc_start) + len + sizeof(ui_proc_end) - 1;
-    script = malloc(scriptlen);
-    if (script == NULL)
-        return TCL_ERROR;
+    va_start(va, format);
+    ui_message(interp, "warn", format, va);
+    va_end(va);
+}
 
-    memcpy(script, ui_proc_start, sizeof(ui_proc_start));
-    remaining = scriptlen - sizeof(ui_proc_start);
-    strncat(script, string, remaining);
-    remaining -= len;
-    strncat(script, ui_proc_end, remaining);
-    free(string);
-    rval = Tcl_EvalEx(interp, script, -1, 0);
-    free(script);
-    return rval;
+__attribute__((format(printf, 2, 3)))
+void ui_msg(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+    va_start(va, format);
+    ui_message(interp, "msg", format, va);
+    va_end(va);
+}
+
+__attribute__((format(printf, 2, 3)))
+void ui_notice(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_message(interp, "notice", format, va);
+    va_end(va);
+}
+
+__attribute__((format(printf, 2, 3)))
+void ui_info(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_message(interp, "info", format, va);
+    va_end(va);
+}
+
+__attribute__((format(printf, 2, 3)))
+void ui_debug(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_message(interp, "debug", format, va);
+    va_end(va);
 }
 
 int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -608,7 +614,7 @@ int Pextlib_Init(Tcl_Interp *interp)
         return TCL_ERROR;
 
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "adv-flock", AdvFlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);

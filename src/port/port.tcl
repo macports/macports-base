@@ -1870,9 +1870,6 @@ proc action_help { action portlist opts } {
         global env boot_env
         array unset env_save; array set env_save [array get env]
         array unset env *
-        if {${macports::macosx_version} == "10.5"} {
-            unsetenv *
-        }
         array set env [array get boot_env]
 
         if [catch {system -nodup [list ${macports::autoconf::man_path} $pagepath]} result] {
@@ -1883,9 +1880,6 @@ proc action_help { action portlist opts } {
 
         # Restore internal MacPorts environment
         array unset env *
-        if {${macports::macosx_version} == "10.5"} {
-            unsetenv *
-        }
         array set env [array get env_save]
     } else {
         ui_error "Sorry, no help for this topic is available."
@@ -2761,7 +2755,7 @@ proc action_reclaim { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    if {[require_portlist portlist "yes"] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
+    if {[require_portlist portlist "yes"] || (![macports::global_option_isset ports_dryrun] && [prefix_unwritable])} {
         return 1
     }
 
@@ -3172,7 +3166,7 @@ proc action_uninstall { action portlist opts } {
             return 1
         }
     }
-    if {[prefix_unwritable]} {
+    if {![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
         return 1
     }
 
@@ -3927,9 +3921,6 @@ proc action_portcmds { action portlist opts } {
                     # may want stuff from it as well, like TERM.
                     array unset env_save; array set env_save [array get env]
                     array unset env *
-                    if {${macports::macosx_version} eq "10.5"} {
-                        unsetenv *
-                    }
                     array set env [array get boot_env]
                     
                     # Find an editor to edit the portfile
@@ -3958,9 +3949,6 @@ proc action_portcmds { action portlist opts } {
                     
                     # Restore internal MacPorts environment
                     array unset env *
-                    if {${macports::macosx_version} eq "10.5"} {
-                        unsetenv *
-                    }
                     array set env [array get env_save]
                 }
 
@@ -4061,7 +4049,7 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    if {($action eq "install" || $action eq "archive") && [prefix_unwritable] && ![macports::global_option_isset ports_dryrun]} {
+    if {($action eq "install" || $action eq "archive") && ![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
         return 1
     }
     
@@ -4172,6 +4160,21 @@ proc action_target { action portlist opts } {
 }
 
 
+proc action_mirror { action portlist opts } {
+    global macports::portdbpath
+    # handle --new option here so we only delete the db once
+    array set options $opts
+    set mirror_filemap_path [file join $macports::portdbpath distfiles_mirror.db]
+    if {[info exists options(ports_mirror_new)]
+        && [string is true -strict $options(ports_mirror_new)]
+        && [file exists $mirror_filemap_path]} {
+            # Trash the map file if it existed.
+            file delete -force $mirror_filemap_path
+    }
+
+    action_target $action $portlist $opts
+}
+
 proc action_exit { action portlist opts } {
     # Return a semaphore telling the main loop to quit
     return -999
@@ -4259,6 +4262,8 @@ array set action_array [list \
     \
     uninstall   [list action_uninstall      [ACTION_ARGS_PORTS]] \
     \
+    mirror      [list action_mirror         [ACTION_ARGS_PORTS]] \
+    \
     installed   [list action_installed      [ACTION_ARGS_PORTS]] \
     outdated    [list action_outdated       [ACTION_ARGS_PORTS]] \
     contents    [list action_contents       [ACTION_ARGS_PORTS]] \
@@ -4295,7 +4300,6 @@ array set action_array [list \
     lint        [list action_target         [ACTION_ARGS_PORTS]] \
     livecheck   [list action_target         [ACTION_ARGS_PORTS]] \
     distcheck   [list action_target         [ACTION_ARGS_PORTS]] \
-    mirror      [list action_target         [ACTION_ARGS_PORTS]] \
     load        [list action_target         [ACTION_ARGS_PORTS]] \
     unload      [list action_target         [ACTION_ARGS_PORTS]] \
     reload      [list action_target         [ACTION_ARGS_PORTS]] \

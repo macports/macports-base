@@ -341,7 +341,7 @@ proc portdestroot::destroot_finish {args} {
                         if {$pfile eq "." || $pfile eq ".."} {
                             continue
                         }
-                        if {[lsearch -exact $prefixPaths $pfile] == -1} {
+                        if {$pfile ni $prefixPaths} {
                             ui_warn "violation by [file join $dfile $pfile]"
                             set mtree_violation "yes"
                         }

@@ -54,7 +54,7 @@ foreach arg $argv {
         set test_suite [glob *.test]
         foreach test $test_suite {
             if {$test_name ne $test} {
-                set no [expr {$no + 1}]
+                incr no
             }
         }
         if {$no == [llength $test_suite]} {
@@ -83,8 +83,13 @@ if {$test_name ne ""} {
         set lastline [lindex [split $result "\n"] end]
 
         if {[lrange [split $lastline "\t"] 1 1] ne "Total"} {
-            set lastline [lindex [split $result "\n"] end-2]
-            set errmsg [lindex [split $result "\n"] end]
+            if {[lrange [split $lastline "\t"] 1 1] eq ""} {
+                set lastline [lindex [split $result "\n"] 0]
+                set errmsg [lindex [split $result "\n"] 2]
+            } else {
+                set lastline [lindex [split $result "\n"] end-2]
+                set errmsg [lindex [split $result "\n"] end]
+            }
         }
 
         set splitresult [split $lastline "\t"]

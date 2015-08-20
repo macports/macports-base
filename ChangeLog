@@ -4,6 +4,14 @@
 ###
 
 Release 2.4 (unreleased)
+    - Replaced the strings previously printed by "port help" with much more
+      detailed and current manpages written using asciidoc that open
+      automatically. Added documentation for almost all commands currently
+      implemented by MacPorts.
+      (raimue in branch new-help-system, merge in r123002,
+       manpages written by cal, jmr, raimue, ionic, jeremyhu,
+       #44530, #15467)
+
     - Added macports_version to the Portfile execution context, to allow
       checking the current MacPorts version in Portfiles.
       (cal in r134511)
@@ -22,7 +30,8 @@ Release 2.4 (unreleased)
 
     - Handle SIGTERM and SIGINT (^C) in MacPorts to prevent inconsistencies in
       the registry database when MacPorts is aborted during a critical
-      operation. (cal in r118297 and r118298)
+      operation.
+      (cal in r118297 and r118298)
 
     - Remove "support" for rpm and deb packages in MacPorts, leaving pkg/mpkg.
       (afb in r123004)

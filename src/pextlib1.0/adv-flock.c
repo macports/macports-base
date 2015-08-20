@@ -1,5 +1,5 @@
 /*
- * flock.c
+ * adv-flock.c
  * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
@@ -51,7 +51,7 @@
 
 #include <tcl.h>
 
-#include "flock.h"
+#include "adv-flock.h"
 
 static volatile int alarmReceived = 0;
 
@@ -60,7 +60,7 @@ static void alarmHandler(int sig UNUSED) {
 }
 
 int
-FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+AdvFlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
     int operation = 0, fd, i, ret, sigret = TCL_OK;
     int errnoval = 0;

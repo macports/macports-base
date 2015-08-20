@@ -341,7 +341,7 @@ proc portlint::lint_main {args} {
            maintainers license homepage master_sites checksums patchfiles \
            depends_fetch depends_extract depends_lib depends_build \
            depends_run distfiles fetch.type lint_portsystem lint_platforms \
-           lint_required lint_optional
+           lint_required lint_optional replaced_by conflicts
     set portarch [get_canonical_archs]
 
     if (!$seen_portsystem) {
@@ -403,7 +403,7 @@ proc portlint::lint_main {args} {
 
     if {[info exists platforms]} {
         foreach platform $platforms {
-            if {[lsearch -exact $lint_platforms $platform] == -1} {
+            if {$platform ni $lint_platforms} {
                 ui_error "Unknown platform: $platform"
                 incr errors
             } else {
@@ -450,7 +450,7 @@ proc portlint::lint_main {args} {
 
             if {![info exists variantdesc] || $variantdesc eq ""} {
                 # don't warn about missing descriptions for global variants
-                if {[lsearch -exact $local_variants $variantname] != -1 &&
+                if {$variantname in $local_variants &&
                     [variant_desc $porturl $variantname] eq ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
@@ -534,6 +534,45 @@ proc portlint::lint_main {args} {
                     # Report each depspec only once
                     set depwarned($depspec) yes
                 }
+            }
+        }
+    }
+
+    if {[info exists replaced_by]} {
+        if {[regexp {[^[:alnum:]_.-]} $replaced_by]} {
+            ui_error "replaced_by should be a single port name, invalid value: $replaced_by"
+            incr errors
+        } else {
+            if {[catch {set res [mport_lookup $replaced_by]} error]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+            }
+            if {$res eq ""} {
+                ui_error "replaced_by references unknown port: $replaced_by"
+                incr errors
+            } else {
+                ui_info "OK: replaced_by $replaced_by"
+            }
+        }
+    }
+
+    if {[info exists conflicts]} {
+        foreach cport $conflicts {
+            if {[regexp {[^[:alnum:]_.-]} $cport]} {
+                ui_error "conflicts lists invalid value, should be port name: $cport"
+                incr errors
+                continue
+            }
+            if {[catch {set res [mport_lookup $cport]} error]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                continue
+            }
+            if {$res eq ""} {
+                ui_error "conflicts references unknown port: $cport"
+                incr errors
+            } else {
+                ui_info "OK: conflicts $cport"
             }
         }
     }

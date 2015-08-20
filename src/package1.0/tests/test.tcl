@@ -15,7 +15,7 @@ while {[gets $fp line] != -1} {
 }
 
 proc print_help {arg} {
-    if { $arg eq "tests" } {
+    if {$arg eq "tests"} {
         puts "The list of available tests is:"
         cd tests
         set test_suite [glob *.test]
@@ -54,7 +54,7 @@ foreach arg $argv {
         set test_suite [glob *.test]
         foreach test $test_suite {
             if {$test_name ne $test} {
-                set no [expr {$no + 1}]
+                incr no
             }
         }
         if {$no == [llength $test_suite]} {

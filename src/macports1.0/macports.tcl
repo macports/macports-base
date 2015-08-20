@@ -42,7 +42,7 @@ package require Tclx
 package require macports_libsolv 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases
+    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
@@ -75,7 +75,6 @@ namespace eval macports {
     variable open_mports {}
 
     variable ui_priorities "error warn msg notice info debug any"
-    variable port_phases "any fetch checksum"
     variable current_phase main
 
     variable ui_prefix "---> "
@@ -139,10 +138,6 @@ proc macports::init_logging {mport} {
     if {[catch {macports::ch_logging $mport} err]} {
         ui_debug "Logging disabled, error opening log file: $err"
         return 1
-    }
-    # Add our log-channel to all already initialized channels
-    foreach key [array names channels] {
-        set macports::channels($key) [concat $macports::channels($key) debuglog]
     }
     return 0
 }
@@ -215,7 +210,7 @@ proc set_phase {phase} {
     }
 }
 
-proc ui_message {priority prefix phase args} {
+proc ui_message {priority prefix args} {
     global macports::channels ::debuglog macports::current_phase
 
     # 
@@ -225,38 +220,40 @@ proc ui_message {priority prefix phase args} {
        0 - 1 {}
        2 {
            if {[lindex $args 0] ne "-nonewline"} {
-               set hint "error: when 5 arguments are given, 2nd last must be \"-newnewline\""
-               error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
+               set hint "error: when 4 arguments are given, 3rd must be \"-nonewline\""
+               error "$hint\nusage: ui_message priority prefix ?-nonewline? string"
            }
        }
        default {
            set hint "error: too many arguments specified"
-           error "$hint\nusage: ui_message priority prefix phase ?-nonewline? string"
+           error "$hint\nusage: ui_message priority prefix ?-nonewline? string"
        }
     } 
 
     foreach chan $macports::channels($priority) {
-        if {[info exists ::debuglog] && ($chan eq "debuglog")} {
-            set chan $::debuglog
-            if {[info exists macports::current_phase]} {
-                set phase $macports::current_phase
-            }
-            set strprefix ":${priority}:$phase "
-            if {[lindex $args 0] eq "-nonewline"} {
-                puts -nonewline $chan $strprefix[lindex $args 1]
-            } else {
-                puts $chan $strprefix[lindex $args 0]
-            }
-
+        if {[lindex $args 0] eq "-nonewline"} {
+            puts -nonewline $chan $prefix[lindex $args 1]
         } else {
-            if {[lindex $args 0] eq "-nonewline"} {
-                puts -nonewline $chan $prefix[lindex $args 1]
-            } else {
-                puts $chan $prefix[lindex $args 0]
+            puts $chan $prefix[lindex $args 0]
+        }
+    }
+
+    if {[info exists ::debuglog]} {
+        set chan $::debuglog
+        if {[info exists macports::current_phase]} {
+            set phase $macports::current_phase
+        }
+        set strprefix ":${priority}:$phase "
+        if {[lindex $args 0] eq "-nonewline"} {
+            puts -nonewline $chan $strprefix[lindex $args 1]
+        } else {
+            foreach str [split [lindex $args 0] "\n"] {
+                puts $chan $strprefix$str
             }
         }
     }
 }
+
 proc macports::ui_init {priority args} {
     global macports::channels ::debuglog
     set default_channel [macports::ui_channels_default $priority]
@@ -267,24 +264,16 @@ proc macports::ui_init {priority args} {
         set channels($priority) $default_channel
     }
 
-    # if some priority initialized after log file is being created
-    if {[info exists ::debuglog]} {
-        set channels($priority) [concat $channels($priority) debuglog]
-    }
     # Simplify ui_$priority.
     try {
         set prefix [ui_prefix $priority]
     } catch * {
         set prefix [ui_prefix_default $priority]
     }
-    set phases {fetch checksum}
     try {
         ::ui_init $priority $prefix $channels($priority) {*}$args
     } catch * {
-        interp alias {} ui_$priority {} ui_message $priority $prefix {}
-        foreach phase $phases {
-            interp alias {} ui_${priority}_$phase {} ui_message $priority $prefix $phase
-        }
+        interp alias {} ui_$priority {} ui_message $priority $prefix
     }
 }
 
@@ -691,7 +680,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set fd [open $file r]
             while {[gets $fd line] >= 0} {
                 if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                    if {[lsearch -exact $bootstrap_options $option] >= 0} {
+                    if {$option in $bootstrap_options} {
                         set macports::$option [string trim $val]
                         global macports::$option
                     }
@@ -707,7 +696,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
             if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                if {[lsearch -exact $user_options $option] >= 0} {
+                if {$option in $user_options} {
                     set macports::$option $val
                     global macports::$option
                 }
@@ -726,7 +715,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
                 set flags [split $flags ,]
                 foreach flag $flags {
-                    if {[lsearch -exact [list nosync default] $flag] == -1} {
+                    if {$flag ni [list nosync default]} {
                         ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
                     }
                     if {$flag eq "default"} {
@@ -1081,17 +1070,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     set env_names [array names env]
     foreach envkey $env_names {
-        if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+        if {$envkey ni $keepenvkeys} {
             unset env($envkey)
-        }
-    }
-
-    # unset environment an extra time, to work around bugs in Leopard Tcl
-    if {$macosx_version eq "10.5"} {
-        foreach envkey $env_names {
-            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
-                unsetenv $envkey
-            }
         }
     }
 
@@ -1313,9 +1293,6 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # instantiate the UI call-backs
     foreach priority $macports::ui_priorities {
         $workername alias ui_$priority ui_$priority
-        foreach phase $macports::port_phases {
-            $workername alias ui_${priority}_$phase ui_${priority}_$phase
-        }
     }
     # add the UI progress call-back
     if {[info exists macports::ui_options(progress_download)]} {
@@ -2247,13 +2224,13 @@ proc macports::_upgrade_mport_deps {mport target} {
                         }
                     }
                     if {[llength $missing] > 0} {
-                        if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
+                        if {[info exists dep_portinfo(variants)] && "universal" in $dep_portinfo(variants)} {
                             # dep offers a universal variant
                             if {[llength $active_archs] == 1} {
                                 # not installed universal
                                 set missing {}
                                 foreach arch $required_archs {
-                                    if {[lsearch -exact $macports::universal_archs $arch] == -1} {
+                                    if {$arch ni $macports::universal_archs} {
                                         lappend missing $arch
                                     }
                                 }
@@ -2463,7 +2440,7 @@ proc mportsync {{optionslist {}}} {
     foreach source $sources {
         set flags [lrange $source 1 end]
         set source [lindex $source 0]
-        if {[lsearch -exact $flags nosync] != -1} {
+        if {"nosync" in $flags} {
             ui_debug "Skipping $source"
             continue
         }
@@ -3395,7 +3372,7 @@ proc macports::_mport_supports_archs {mport required_archs} {
         return 1
     }
     foreach arch $required_archs {
-        if {[lsearch -exact $provided_archs $arch] == -1} {
+        if {$arch ni $provided_archs} {
             return 0
         }
     }
@@ -3451,7 +3428,7 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     if {$supported_archs ne ""} {
         set ss [expr {[llength $supported_archs] == 1 ? "" : "s"}]
         foreach arch $required_archs {
-            if {[lsearch -exact $supported_archs $arch] == -1} {
+            if {$arch ni $supported_archs} {
                 ui_error "its dependency $dep only supports the arch${ss} '$supported_archs'."
                 return
             }
@@ -3459,7 +3436,7 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     }
     if {$has_universal} {
         foreach arch $required_archs {
-            if {[lsearch -exact $universal_archs $arch] == -1} {
+            if {$arch ni $universal_archs} {
                 ui_error "its dependency $dep does not build for the required arch${s} by default"
                 ui_error "and the configured universal_archs '$universal_archs' are not sufficient."
                 return
@@ -4461,7 +4438,10 @@ proc mportselect {command {group ""} {version {}}} {
         show {
             set selected_version ${conf_path}/current
 
-            if {![file exists $selected_version]} {
+            if {[catch {file type $selected_version} err]} {
+                # this might be okay if nothing was selected yet,
+                # just log the error for debugging purposes
+                ui_debug "cannot determine selected version for $group: $err"
                 return none
             } else {
                 return [file readlink $selected_version]
@@ -5142,7 +5122,7 @@ proc macports::get_archive_sites_conf_values {} {
             set fd [open $conf_file r]
             while {[gets $fd line] >= 0} {
                 if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-                    if {[lsearch -exact $conf_options $option] >= 0} {
+                    if {$option in $conf_options} {
                         if {$option eq "name"} {
                             set cur_name $val
                             lappend all_names $val

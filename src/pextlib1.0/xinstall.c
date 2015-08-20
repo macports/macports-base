@@ -310,10 +310,7 @@ InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *
 			return TCL_ERROR;
 		}
 		else {
-			char msg[255];
-
-			snprintf(msg, sizeof msg, "%s: chdir(%s)\n", funcname, curdir);
-			ui_info(interp, msg);
+                        ui_info(interp, "%s: chdir(%s)\n", funcname, curdir);
 		}
 	}
 
@@ -443,9 +440,6 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	int tempcopy, temp_fd, to_fd = 0;
 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
 
-        /* message contains function name, two paths and a little bit extra formatting */
-        char msg[MAXPATHLEN * 2 + 32];
-
 	files_match = 0;
 
 	/* If try to install NULL file to a directory, fails. */
@@ -547,8 +541,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
-			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
-			ui_info(interp, msg);
+			ui_info(interp, "%s: %s -> %s\n", funcname, from_name, to_name);
 		}
 		if (!devnull) {
 			if (copy(interp, from_fd, from_name, to_fd,
@@ -650,8 +643,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
-			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, to_name, backup);
-			ui_info(interp, msg);
+                        ui_info(interp, "%s: %s -> %s\n", funcname, to_name, backup);
 			if (rename(to_name, backup) < 0) {
 				char errmsg[255];
 
@@ -664,8 +656,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				return TCL_ERROR;
 			}
 		}
-		snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
-		ui_info(interp, msg);
+                ui_info(interp, "%s: %s -> %s\n", funcname, from_name, to_name);
 		if (rename(tempfile, to_name) < 0) {
 			char errmsg[255];
 
@@ -885,7 +876,6 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 	char backup[MAXPATHLEN];
 	int saved_errno = 0;
 	int newfd;
-	char msg[256];
 
 	if (target) {
 		/*
@@ -909,8 +899,7 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 				return -1;
 			}
 			(void)snprintf(backup, MAXPATHLEN, "%s%s", path, suffix);
-			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, path, backup);
-			ui_info(interp, msg);
+                        ui_info(interp, "%s: %s -> %s\n", funcname, path, backup);
 			if (rename(path, backup) < 0) {
 				char errmsg[255];
 
@@ -1068,10 +1057,7 @@ install_dir(Tcl_Interp *interp, char *path)
 					return TCL_ERROR;
 				}
 				else {
-					char msg[255];
-
-					snprintf(msg, sizeof msg, "%s: mkdir %s\n", funcname, path);
-					ui_info(interp, msg);
+                                        ui_info(interp, "%s: mkdir %s\n", funcname, path);
 				}
 			} else if (!S_ISDIR(sb.st_mode)) {
 				char errmsg[255];
