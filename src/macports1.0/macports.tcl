@@ -3099,7 +3099,7 @@ proc mportclose {mport} {
 
 proc _mportkey {mport key} {
     set workername [ditem_key $mport workername]
-    return [$workername eval "return \$$key"]
+    return [$workername eval [list set $key]]
 }
 
 # mportdepends builds the list of mports which the given port depends on.
