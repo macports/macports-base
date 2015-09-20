@@ -3437,7 +3437,7 @@ proc macports::_deptypes_for_target {target workername} {
         patch       {return "depends_fetch depends_extract"}
         configure   -
         build       {return "depends_fetch depends_extract depends_build depends_lib"}
-        test        -
+        test        {return "depends_fetch depends_extract depends_build depends_lib depends_run depends_test"}
         destroot    {return "depends_fetch depends_extract depends_build depends_lib depends_run"}
         dmg         -
         pkg         -

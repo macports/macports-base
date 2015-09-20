@@ -44,7 +44,7 @@ namespace eval registry_uninstall {
 # generate list of all dependencies of the port
 proc generate_deplist {port {optslist ""}} {
 
-    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
     set all_dependencies {}
     # look up deps from the saved portfile if possible
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optslist]}]} {

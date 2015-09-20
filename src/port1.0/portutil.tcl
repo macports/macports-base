@@ -1444,8 +1444,7 @@ proc target_run {ditem} {
                         patch       { set deptypes "depends_fetch depends_extract" }
                         configure   -
                         build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
-
-                        test        -
+                        test        { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run depends_test" }
                         destroot    -
                         dmg         -
                         pkg         -

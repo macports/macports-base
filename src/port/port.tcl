@@ -101,6 +101,7 @@ These pseudo-portnames expand to the set of ports named.
 
 Pseudo-portnames starting with variants:, variant:, description:, depends:,
 depends_lib:, depends_run:, depends_build:, depends_fetch:, depends_extract:,
+depends_test:,
 portdir:, homepage:, epoch:, platforms:, platform:, name:, long_description:,
 maintainers:, maintainer:, categories:, category:, version:, revision:, and
 license: each select a set of ports based on a regex search of metadata
@@ -1073,7 +1074,7 @@ proc get_dep_ports {portname recursive} {
 
     # gather its deps
     set results {}
-    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
 
     set deplist {}
     foreach type $deptypes {
@@ -1367,6 +1368,7 @@ proc element { resname } {
         ^depends_run:       -
         ^depends_extract:   -
         ^depends_fetch:     -
+        ^depends_test:      -
         ^replaced_by:       -
         ^revision:          -
         ^subport:           -
@@ -1395,6 +1397,7 @@ proc element { resname } {
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_run"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_extract"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_fetch"]
+            add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_test"]
 
             set el 1
         }
@@ -2055,6 +2058,7 @@ proc action_info { action portlist opts } {
             depends_build   1
             depends_lib     1
             depends_run     1
+            depends_test    1
             maintainers     1
             platforms       1
             variants        1
@@ -2072,6 +2076,7 @@ proc action_info { action portlist opts } {
             depends_build "Build Dependencies"
             depends_run "Runtime Dependencies"
             depends_lib "Library Dependencies"
+            depends_test "Test Dependencies"
             description "Brief Description"
             long_description "Description"
             fullname    "Full Name: "
@@ -2095,6 +2100,7 @@ proc action_info { action portlist opts } {
             depends_build 22
             depends_run 22
             depends_lib 22
+            depends_test 22
             description 22
             long_description 22
             homepage 22
@@ -2114,6 +2120,7 @@ proc action_info { action portlist opts } {
             set options(ports_info_depends_build) yes
             set options(ports_info_depends_lib) yes
             set options(ports_info_depends_run) yes
+            set options(ports_info_depends_test) yes
         }
                 
         # Set up our field separators
@@ -2164,6 +2171,7 @@ proc action_info { action portlist opts } {
                 ports_info_skip_line ports_info_depends_fetch
                 ports_info_depends_extract ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
+                ports_info_depends_test
                 ports_info_conflicts
                 ports_info_platforms ports_info_license
                 ports_info_maintainers
@@ -2938,7 +2946,7 @@ proc action_deps { action portlist opts } {
         if {[info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)]} {
             set deptypes {depends_lib depends_run}
         } else {
-            set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+            set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
         }
 
         array unset portinfo
@@ -3013,7 +3021,7 @@ proc action_deps { action portlist opts } {
         set deplist {}
         set deps_output {}
         set ndeps 0
-        array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime}
+        array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime depends_test Test}
         # get list of direct deps
         foreach type $deptypes {
             if {[info exists portinfo($type)]} {
@@ -3651,6 +3659,7 @@ proc action_search { action portlist opts } {
         set options(ports_search_depends_build) yes
         set options(ports_search_depends_lib) yes
         set options(ports_search_depends_run) yes
+        set options(ports_search_depends_test) yes
     }
 
     # Array to hold given filters
@@ -4374,7 +4383,7 @@ global cmd_opts_array
 array set cmd_opts_array {
     edit        {{editor 1}}
     info        {category categories conflicts depends_fetch depends_extract
-                 depends_build depends_lib depends_run
+                 depends_build depends_lib depends_run depends_test
                  depends description epoch fullname heading homepage index license
                  line long_description
                  maintainer maintainers name patchfiles platform platforms portdir
@@ -4384,7 +4393,7 @@ array set cmd_opts_array {
     rdeps       {index no-build full}
     rdependents {full}
     search      {case-sensitive category categories depends_fetch
-                 depends_extract depends_build depends_lib depends_run
+                 depends_extract depends_build depends_lib depends_run depends_test
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}

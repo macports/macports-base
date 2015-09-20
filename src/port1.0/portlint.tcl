@@ -339,8 +339,8 @@ proc portlint::lint_main {args} {
     global os.platform os.arch os.version version revision epoch \
            description long_description platforms categories all_variants \
            maintainers license homepage master_sites checksums patchfiles \
-           depends_fetch depends_extract depends_lib depends_build \
-           depends_run distfiles fetch.type lint_portsystem lint_platforms \
+           depends_fetch depends_extract depends_lib depends_build depends_run \
+           depends_test distfiles fetch.type lint_portsystem lint_platforms \
            lint_required lint_optional replaced_by conflicts
     set portarch [get_canonical_archs]
 
@@ -507,6 +507,9 @@ proc portlint::lint_main {args} {
     if {[info exists depends_run]} {
         lappend all_depends {*}$depends_run
     }
+    if {[info exists depends_test]} {
+        lappend all_depends {*}$depends_test
+    }
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
@@ -523,7 +526,7 @@ proc portlint::lint_main {args} {
     }
 
     # Check for multiple dependencies
-    foreach deptype {depends_extract depends_lib depends_build depends_run} {
+    foreach deptype {depends_extract depends_lib depends_build depends_run depends_test} {
         if {[info exists $deptype]} {
             array set depwarned {}
             foreach depspec [set $deptype] {
