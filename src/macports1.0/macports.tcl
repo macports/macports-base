@@ -2005,8 +2005,10 @@ proc mportexec {mport target} {
         return 1
     }
     set portname [_mportkey $mport subport]
+    set log_needs_pop no
     if {$target ne "clean"} {
         macports::push_log $mport
+        set log_needs_pop yes
     }
 
     # Use _target_needs_deps as a proxy for whether we're going to
@@ -2015,10 +2017,16 @@ proc mportexec {mport target} {
     if {[macports::_target_needs_deps $target]} {
         # possibly warn or error out depending on how old xcode is
         if {[$workername eval _check_xcode_version] != 0} {
+            if {$log_needs_pop} {
+                macports::pop_log
+            }
             return 1
         }
         # error out if selected arch(s) not supported by this port
         if {[$workername eval check_supported_archs] != 0} {
+            if {$log_needs_pop} {
+                macports::pop_log
+            }
             return 1
         }
     }
@@ -2043,6 +2051,9 @@ proc mportexec {mport target} {
             ui_msg {}
         }
         if {[mportdepends $mport $target] != 0} {
+            if {$log_needs_pop} {
+                macports::pop_log
+            }
             return 1
         }
         if {![macports::ui_isset ports_debug]} {
@@ -2067,6 +2078,12 @@ proc mportexec {mport target} {
                 }
                 set retvalue [$macports::ui_options(questions_yesno) "The following dependencies will be installed: " "TestCase#2" [lsort $deplist] {y} 0]
                 if {$retvalue == 1} {
+                    if {$log_needs_pop} {
+                        macports::pop_log
+                    }
+                    foreach ditem $dlist {
+                        mportclose $ditem
+                    }
                     return 0
                 } 
             } else {
@@ -2077,7 +2094,7 @@ proc mportexec {mport target} {
                 ui_msg $depstring
             }
         }
-		
+
         # install them
         set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
 
@@ -2097,6 +2114,9 @@ proc mportexec {mport target} {
             foreach ditem $dlist {
                 catch {mportclose $ditem}
             }
+            if {$log_needs_pop} {
+                macports::pop_log
+            }
             return 1
         }
 
@@ -2107,7 +2127,12 @@ proc mportexec {mport target} {
     } else {
         # No dependencies, but we still need to check for conflicts.
         if {$target eq "" || $target eq "install" || $target eq "activate"} {
-            _mporterrorifconflictsinstalled $mport
+            if {[catch {_mporterrorifconflictsinstalled $mport}]} {
+                if {$log_needs_pop} {
+                    macports::pop_log
+                }
+                return 1
+            }
         }
     }
 
@@ -2129,10 +2154,11 @@ proc mportexec {mport target} {
     }
 
     global ::logenabled ::debuglogname
-    if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
-        if {$result != 0} {
-            ui_error "See $::debuglogname for details."
-        }
+    if {$result != 0 && [info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
+        ui_error "See $::debuglogname for details."
+    }
+
+    if {$log_needs_pop} {
         macports::pop_log
     }
 
@@ -3133,7 +3159,9 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
     }
 
     if {$target in {{} install activate}} {
-        _mporterrorifconflictsinstalled $mport
+        if {[catch {_mporterrorifconflictsinstalled $mport}]} {
+            return 1
+        }
     }
 
     set workername [ditem_key $mport workername]
@@ -3268,7 +3296,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 }
                 if {$arch_mismatch} {
                     macports::_explain_arch_mismatch [_mportkey $mport subport] $dep_portname $required_archs $supported_archs $has_universal
-                    return -code error "architecture mismatch"
+                    return 1
                 }
             }
 
