@@ -42,7 +42,9 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,6 +63,11 @@
 #include <cregistry/entry.h>
 #include <registry2.0/registry.h>
 #include <darwintracelib1.0/sandbox_actions.h>
+
+#if defined(LOCAL_PEERPID) && defined(HAVE_LIBPROC_H)
+#include <libproc.h>
+#define HAVE_PEERPID_LIST
+#endif /* defined(LOCAL_PEERPID) && defined(HAVE_LIBPROC_H) */
 
 #include "tracelib.h"
 
@@ -86,6 +93,14 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 }
 #endif
 
+#ifdef HAVE_PEERPID_LIST
+static bool peerpid_list_enqueue(int sock, pid_t pid);
+static pid_t peerpid_list_dequeue(int sock);
+static pid_t peerpid_list_get(int sock, const char **progname);
+static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *progname));
+#endif /* defined(HAVE_PEERPID_LIST) */
+
+
 static char *name;
 static char *sandbox;
 static size_t sandboxLength;
@@ -108,6 +123,130 @@ typedef enum {
     SANDBOX_VIOLATION
 } sandbox_violation_t;
 static void sandbox_violation(int sock, const char *path, sandbox_violation_t type);
+
+#ifdef HAVE_PEERPID_LIST
+typedef struct _peerpid {
+    struct _peerpid *ppid_next;
+    char            *ppid_prog;
+    int              ppid_sock;
+    pid_t            ppid_pid;
+} peerpid_entry_t;
+
+static peerpid_entry_t *peer_list = NULL;
+
+/**
+ * Add a new entry to the list of PIDs of peers. Call this once for each
+ * accepted socket with the socket and the peer's PID.
+ *
+ * @param sock The new socket that was opened by the process with the given PID
+ *             and should be added to the list of peers.
+ * @param pid The PID of the new peer.
+ * @return boolean indicating success.
+ */
+static bool peerpid_list_enqueue(int sock, pid_t pid) {
+    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+    const char *progname = "<unknown>";
+
+    peerpid_entry_t *ppid = malloc(sizeof(peerpid_entry_t));
+    if (!ppid) {
+        return false;
+    }
+
+    if (proc_pidpath(pid, pathbuf, sizeof(pathbuf))) {
+        progname = pathbuf;
+    }
+
+    ppid->ppid_prog = strdup(progname);
+    if (!ppid->ppid_prog) {
+        free(ppid);
+        return false;
+    }
+    ppid->ppid_sock = sock;
+    ppid->ppid_pid = pid;
+    ppid->ppid_next = peer_list;
+    peer_list = ppid;
+    return true;
+}
+
+/**
+ * Given a socket, dequeue a peer from the current list of peers. Use this when
+ * a socket is closed.
+ *
+ * @param sock The socket that is being closed and should be dequeued.
+ * @return The PID of the socket that has been dequeued, or (pid_t) -1
+ */
+static pid_t peerpid_list_dequeue(int sock) {
+    peerpid_entry_t **ref = &peer_list;
+    while (*ref) {
+        peerpid_entry_t *curr = *ref;
+        if (curr->ppid_sock == sock) {
+            // dequeue the element
+            *ref = curr->ppid_next;
+            pid_t pid = curr->ppid_pid;
+            free(curr->ppid_prog);
+            free(curr);
+            return pid;
+        }
+
+        ref = &curr->ppid_next;
+    }
+
+    return (pid_t) -1;
+}
+
+/**
+ * Return the peer PID given a socket.
+ *
+ * @param sock The socket for which the peer PID is needed.
+ * @param progname A pointer that will point to the string that holds the
+ *                 command line corresponding to the PID at the time of
+ *                 enqueuing. Set to NULL if not needed.
+ * @return The peer's PID or (pid_t) -1, if the socket could not be found in the list.
+ */
+static pid_t peerpid_list_get(int sock, const char **progname) {
+    peerpid_entry_t *curr = peer_list;
+    while (curr) {
+        if (curr->ppid_sock == sock) {
+            if (progname) {
+                *progname = curr->ppid_prog;
+            }
+            return curr->ppid_pid;
+        }
+
+        curr = curr->ppid_next;
+    }
+
+    return (pid_t) -1;
+}
+
+/**
+ * Walk the current list of (socket, peer PID) pairs and call a callback
+ * function for each pair.
+ *
+ * @param func Callback function to call for each tuple of socket, peer PID and
+ *             peer command line. The function should take an integer (the
+ *             socket), a pid_t (the peer's PID) and a const char * (the peer's
+ *             command line) and return a boolean (true, if the element should
+ *             be removed from the list, false otherwise). The callback must
+ *             not modify the list using peerpid_list_enqueue() or
+ *             peerpid_list_dequeue().
+ */
+static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *progname)) {
+    peerpid_entry_t **ref = &peer_list;
+    while (*ref) {
+        peerpid_entry_t *curr = *ref;
+        if (callback(curr->ppid_sock, curr->ppid_pid, curr->ppid_prog)) {
+            // dequeue the element
+            *ref = curr->ppid_next;
+            free(curr->ppid_prog);
+            free(curr);
+            continue;
+        }
+
+        ref = &curr->ppid_next;
+    }
+}
+#endif /* defined(HAVE_PEERPID_LIST) */
 
 #define MAX_SOCKETS (1024)
 #define BUFSIZE     (4096)
@@ -310,7 +449,11 @@ static int process_line(int sock) {
     }
 
     if (len > BUFSIZE - 1) {
-        fprintf(stderr, "tracelib: transfer too large: %" PRIu32 " bytes sent, but buffer holds %d on socket %d\n", len, BUFSIZE - 1, sock);
+        pid_t pid = (pid_t) -1;
+#ifdef HAVE_PEERPID_LIST
+        pid = peerpid_list_get(sock, NULL);
+#endif
+        fprintf(stderr, "tracelib: transfer too large: %" PRIu32 " bytes sent, but buffer holds %d on socket %d from pid %ld\n", len, BUFSIZE - 1, sock, (unsigned long) pid);
         return 0;
     }
 
@@ -509,6 +652,32 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
 
     return TCL_OK;
 }
+
+#ifdef HAVE_PEERPID_LIST
+/**
+ * Callback to be passed to peerpid_list_walk(). Closes the open sockets and
+ * sends SIGTERM to the associated processes. Leaves the list unmodified.
+ */
+static bool close_and_send_sigterm(int sock UNUSED, pid_t pid, const char *progname) {
+    ui_warn(interp, "Sending SIGTERM to process %ld: %s", (unsigned long) pid, progname);
+    kill(pid, SIGTERM);
+
+    // keep the elements in the list
+    return false;
+}
+
+/**
+ * Callback to be passed to peerpid_list_walk(). Sends SIGKILL to the processes
+ * and deletes the elements from the list.
+ */
+static bool send_sigkill_and_free(int sock, pid_t pid, const char *progname UNUSED) {
+    close(sock);
+    kill(pid, SIGKILL);
+
+    // remove the elements from the list
+    return true;
+}
+#endif
 
 /* create this on heap rather than stack, due to its rather large size */
 static struct kevent res_kevents[MAX_SOCKETS];
@@ -718,8 +887,16 @@ static int TracelibRunCmd(Tcl_Interp *in) {
     }
 
     /* NOTE: We aren't necessarily closing all client sockets here! */
+
+    // Close remainig sockets to avoid dangling processes
     if (opensockcount > 0) {
-        fprintf(stderr, "tracelib: %d open sockets will leak at end of runcmd\n", opensockcount);
+#ifdef HAVE_PEERPID_LIST
+        ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd, closing, sending SIGTERM and SIGKILL\n", opensockcount);
+        peerpid_list_walk(close_and_send_sigterm);
+        peerpid_list_walk(send_sigkill_and_free);
+#else
+        ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd\n", opensockcount);
+#endif
     }
     pthread_mutex_lock(&sock_mutex);
     close(kq);
