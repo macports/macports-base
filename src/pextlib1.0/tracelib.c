@@ -939,7 +939,11 @@ error_locked:
 }
 
 static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
-#define safe_free(x) do{free(x); x=0;}while(0);
+#define safe_free(x) do{ \
+        free(x); \
+        x = NULL; \
+    } while(0);
+
     if (sock != -1) {
         close(sock);
         sock = -1;
