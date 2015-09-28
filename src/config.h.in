@@ -101,6 +101,9 @@
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
+/* Define to 1 if you have the <libproc.h> header file. */
+#undef HAVE_LIBPROC_H
+
 /* Define to 1 if you have the 'readline' library (-lreadline). */
 #undef HAVE_LIBREADLINE
 
