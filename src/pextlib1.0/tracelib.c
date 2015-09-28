@@ -5,7 +5,7 @@
  * $Id$
  *
  * Copyright (c) 2007-2008 Eugene Pimenov (GSoC)
- * Copyright (c) 2008-2010, 2012-2013 The MacPorts Project
+ * Copyright (c) 2008-2010, 2012-2013, 2014-2015 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -303,13 +304,13 @@ static int process_line(int sock) {
         } else if (ret == 0) {
             /* this usually means the socket was closed by the remote side */
         } else {
-            fprintf(stderr, "tracelib: partial data received: expected %ld, but got %ld on socket %d\n", (unsigned long) sizeof(len), (unsigned long) ret, sock);
+            fprintf(stderr, "tracelib: partial data received: expected %zu, but got %zd on socket %d\n", sizeof(len), ret, sock);
         }
         return 0;
     }
 
     if (len > BUFSIZE - 1) {
-        fprintf(stderr, "tracelib: transfer too large: %ld bytes sent, but buffer holds %d on socket %d\n", (unsigned long) len, (int) (BUFSIZE - 1), sock);
+        fprintf(stderr, "tracelib: transfer too large: %" PRIu32 " bytes sent, but buffer holds %d on socket %d\n", len, BUFSIZE - 1, sock);
         return 0;
     }
 
@@ -317,7 +318,7 @@ static int process_line(int sock) {
         if (ret < 0) {
             perror("tracelib: recv");
         } else {
-            fprintf(stderr, "tracelib: partial data received: expected %ld, but got %ld on socket %d\n", (unsigned long) len, (unsigned long) ret, sock);
+            fprintf(stderr, "tracelib: partial data received: expected %" PRIu32 ", but got %zd on socket %d\n", len, ret, sock);
         }
         return 0;
     }
