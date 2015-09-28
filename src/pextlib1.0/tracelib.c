@@ -268,7 +268,7 @@ static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *
 }
 #endif /* defined(HAVE_PEERPID_LIST) */
 
-#define MAX_SOCKETS (1024)
+#define MAX_SOCKETS (64)
 #define BUFSIZE     (4096)
 
 /**
