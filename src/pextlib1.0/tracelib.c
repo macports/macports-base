@@ -374,14 +374,14 @@ static void send_file_map(int sock) {
  * \param[in] path the offending path to be passed to the callback
  */
 static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violation_t type) {
-    Tcl_SetVar(interp, "path", path, 0);
+    Tcl_SetVar(interp, "_sandbox_viol_path", path, 0);
     int retVal = TCL_OK;
     switch (type) {
         case SANDBOX_VIOLATION:
-            retVal = Tcl_Eval(interp, "slave_add_sandbox_violation $path");
+            retVal = Tcl_Eval(interp, "slave_add_sandbox_violation ${_sandbox_viol_path}");
             break;
         case SANDBOX_UNKNOWN:
-            retVal = Tcl_Eval(interp, "slave_add_sandbox_unknown $path");
+            retVal = Tcl_Eval(interp, "slave_add_sandbox_unknown ${_sandbox_viol_path}");
             break;
     }
 
@@ -389,7 +389,7 @@ static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violati
         fprintf(stderr, "Error evaluating Tcl statement to add sandbox violation: %s\n", Tcl_GetStringResult(interp));
     }
 
-    Tcl_UnsetVar(interp, "path", 0);
+    Tcl_UnsetVar(interp, "_sandbox_viol_path", 0);
 }
 
 /**
