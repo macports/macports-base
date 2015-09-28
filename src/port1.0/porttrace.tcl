@@ -266,6 +266,7 @@ namespace eval porttrace {
 		}
 
 		# Kill socket
+		tracelib closesocket
 		tracelib clean
 		# Delete the socket file
 		file delete -force $fifo

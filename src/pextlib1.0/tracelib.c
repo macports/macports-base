@@ -112,8 +112,28 @@ static int kq = -1;
 static int selfpipe[2];
 static int enable_fence = 0;
 static Tcl_Interp *interp;
-static pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int cleanuping = 0;
+
+/**
+ * Mutex that shall be acquired to exclusively lock checking and acting upon
+ * the value of kq, indicating whether the event loop has started. If it has
+ * started, shutdown of the event loop shall occur by writing to the write end
+ * of the selfpipe (which is non-blocking), which will in turn trigger the
+ * event loop termination and a signal on the evloop_signal condition variable
+ * when the loop has been terminated and it is safe to free the resources that
+ * were used by the loop.
+ *
+ * If kq is -1, the event loop has not been started and resources can
+ * immediately be free(3)d (under the lock to avoid concurrent set up of the
+ * event loop in a different thread).
+ */
+static pthread_mutex_t evloop_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/**
+ * Condition variable that shall be used to signal the end of the event loop
+ * after a termination signal has been sent to it via the write end of
+ * selfpipe. The associated mutex is evloop_mtx.
+ */
+static pthread_cond_t evloop_signal = PTHREAD_COND_INITIALIZER;
 
 static void send_file_map(int sock);
 static void dep_check(int sock, char *path);
@@ -275,6 +295,38 @@ static void answer_s(int sock, const char *buf, uint32_t size) {
  */
 static void answer(int sock, const char *buf) {
     answer_s(sock, buf, (uint32_t) strlen(buf));
+}
+
+/**
+ * Closes the two sockets given in \a p and sets their values to -1.
+ */
+static void pipe_cleanup(int p[2]) {
+    for (size_t i = 0; i < 2; ++i) {
+        if (p[i] != -1) {
+            close(p[i]);
+            p[i] = -1;
+        }
+    }
+}
+
+/**
+ * Helper function to simplify error handling. Converts the error indicated by
+ * \a msg, appended with a string representation of the UNIX error \a errno
+ * into a Tcl error by setting up the result of the Tcl interpreter \a interp
+ * accordingly.
+ *
+ * Returns TCL_ERROR to be used as the return value of the caller.
+ */
+static int error2tcl(const char *msg, int err, Tcl_Interp *interp) {
+    Tcl_SetErrno(err);
+    Tcl_ResetResult(interp);
+    if (err != 0) {
+        Tcl_AppendResult(interp, msg, (char *) Tcl_PosixError(interp), NULL);
+    } else {
+        Tcl_AppendResult(interp, msg, NULL);
+    }
+
+    return TCL_ERROR;
 }
 
 /**
@@ -599,19 +651,9 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     struct sockaddr_un sun;
     struct rlimit rl;
 
-    cleanuping = 0;
-
-    pthread_mutex_lock(&sock_mutex);
     if (-1 == (sock = socket(PF_LOCAL, SOCK_STREAM, 0))) {
-        Tcl_SetErrno(errno);
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "socket: ", (char *) Tcl_PosixError(interp), NULL);
-        pthread_mutex_unlock(&sock_mutex);
-        return TCL_ERROR;
+        return error2tcl("socket: ", errno, in);
     }
-    pthread_mutex_unlock(&sock_mutex);
-
-    interp = in;
 
     /* raise the limit of open files to the maximum from the default soft limit
      * of 256 */
@@ -633,22 +675,21 @@ static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     strlcpy(sun.sun_path, name, sizeof(sun.sun_path));
 
     if (-1 == (bind(sock, (struct sockaddr *) &sun, sizeof(sun)))) {
-        Tcl_SetErrno(errno);
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "bind: ", (char *) Tcl_PosixError(interp), NULL);
+        int err = errno;
         close(sock);
         sock = -1;
-        return TCL_ERROR;
+        return error2tcl("bind: ", err, in);
     }
 
     if (-1 == listen(sock, SOMAXCONN)) {
-        Tcl_SetErrno(errno);
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "listen: ", (char *) Tcl_PosixError(interp), NULL);
+        int err = errno;
         close(sock);
         sock = -1;
-        return TCL_ERROR;
+        return error2tcl("bind: ", err, in);
     }
+
+    // keep a reference to the interpreter that opened the socket
+    interp = in;
 
     return TCL_OK;
 }
@@ -684,210 +725,192 @@ static struct kevent res_kevents[MAX_SOCKETS];
 
 static int TracelibRunCmd(Tcl_Interp *in) {
     struct kevent kev;
+    int retval = TCL_ERROR;
     int flags;
-    int oldsock;
     int opensockcount = 0;
+    bool break_eventloop = false;
 
-    pthread_mutex_lock(&sock_mutex);
+    pthread_mutex_lock(&evloop_mutex);
+    /* bring all variables into a defined state so the cleanup code can be
+     * called from anywhere */
+    selfpipe[0] = -1;
+    selfpipe[1] = -1;
+    kq = -1;
+
     if (-1 == (kq = kqueue())) {
-        Tcl_SetErrno(errno);
-        Tcl_ResetResult(in);
-        Tcl_AppendResult(in, "kqueue: ", (char *) Tcl_PosixError(in), NULL);
-        return TCL_ERROR;
+        error2tcl("kqueue: ", errno, in);
+        goto error_locked;
     }
 
     if (sock != -1) {
-        oldsock = sock;
-
         /* mark listen socket non-blocking in order to prevent a race condition
          * that would occur between kevent(2) and accept(2), if a incoming
          * connection is aborted before it is accepted. Using a non-blocking
          * accept(2) prevents the problem.*/
-        flags = fcntl(oldsock, F_GETFL, 0);
-        if (-1 == fcntl(oldsock, F_SETFL, flags | O_NONBLOCK)) {
-            Tcl_SetErrno(errno);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "fcntl(F_SETFL, += O_NONBLOCK): ", (char *) Tcl_PosixError(in), NULL);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+        flags = fcntl(sock, F_GETFL, 0);
+        if (-1 == fcntl(sock, F_SETFL, flags | O_NONBLOCK)) {
+            error2tcl("fcntl(F_SETFL, += O_NONBLOCK): ", errno, in);
+            goto error_locked;
         }
 
         /* register the listen socket in the kqueue */
-        EV_SET(&kev, oldsock, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
+        EV_SET(&kev, sock, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
         if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
-            Tcl_SetErrno(errno);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "kevent (listen socket): ", (char *) Tcl_PosixError(in), NULL);
-            close(kq);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+            error2tcl("kevent (listen socket): ", errno, in);
+            goto error_locked;
         }
         /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
          * always be returned. When a filter is successfully added, the data field
          * will be zero. */
         if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
-            Tcl_SetErrno(kev.data);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "kevent (listen socket receipt): ", (char *) Tcl_PosixError(in), NULL);
-            close(kq);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+            error2tcl("kevent (listen socket receipt): ", kev.data, in);
+            goto error_locked;
         }
 
 
         /* use the self-pipe trick to trigger returning from kevent(2) when
          * tracelib closesocket is called. */
         if (-1 == pipe(selfpipe)) {
-            Tcl_SetErrno(errno);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "pipe: ", (char *) Tcl_PosixError(in), NULL);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+            error2tcl("pipe: ", errno, in);
+            goto error_locked;
         }
 
         /* mark the write side of the pipe non-blocking */
         flags = fcntl(selfpipe[1], F_GETFL, 0);
         if (-1 == fcntl(selfpipe[1], F_SETFL, flags | O_NONBLOCK)) {
-            Tcl_SetErrno(errno);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "fcntl(F_SETFL, += O_NONBLOCK): ", (char *) Tcl_PosixError(in), NULL);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+            error2tcl("fcntl(F_SETFL, += O_NONBLOCK): ", errno, in);
+            goto error_locked;
         }
 
         /* wait for the user event on the listen socket, as sent by CloseCmd as
          * deathpill */
         EV_SET(&kev, selfpipe[0], EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
         if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
-            Tcl_SetErrno(errno);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "kevent (selfpipe): ", (char *) Tcl_PosixError(in), NULL);
-            close(kq);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+            error2tcl("kevent (selfpipe): ", errno, in);
+            goto error_locked;
         }
         /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
          * always be returned. When a filter is successfully added, the data field
          * will be zero. */
         if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
-            Tcl_SetErrno(kev.data);
-            Tcl_ResetResult(in);
-            Tcl_AppendResult(in, "kevent (selfpipe receipt): ", (char *) Tcl_PosixError(in), NULL);
-            close(kq);
-            pthread_mutex_unlock(&sock_mutex);
-            return TCL_ERROR;
+            error2tcl("kevent (selfpipe receipt): ", kev.data, in);
+            goto error_locked;
         }
     }
-    pthread_mutex_unlock(&sock_mutex);
+    pthread_mutex_unlock(&evloop_mutex);
 
-    while (sock != -1 && !cleanuping) {
+    while (sock != -1 && !break_eventloop) {
         int keventstatus;
-        int i;
+        bool incoming = false;
 
         /* run kevent(2) until new activity is available */
         do {
             if (-1 == (keventstatus = kevent(kq, NULL, 0, res_kevents, MAX_SOCKETS, NULL))) {
-                Tcl_SetErrno(errno);
-                Tcl_ResetResult(in);
-                Tcl_AppendResult(in, "kevent (main loop): ", (char *) Tcl_PosixError(in), NULL);
-                close(kq);
-                return TCL_ERROR;
+                error2tcl("kevent (main loop): ", errno, in);
+                goto error_unlocked;
             }
         } while (keventstatus == 0);
 
-        for (i = 0; i < keventstatus; ++i) {
+        for (int i = 0; i < keventstatus; ++i) {
             /* handle traffic on the selfpipe */
             if ((int) res_kevents[i].ident == selfpipe[0]) {
-                pthread_mutex_lock(&sock_mutex);
-                close(selfpipe[0]);
-                close(selfpipe[1]);
-                selfpipe[0] = -1;
-                selfpipe[1] = -1;
-                pthread_mutex_unlock(&sock_mutex);
-                break;
-            }
-
-            /* the control socket has activity – we might have a new
-             * connection. We use a copy of sock here, because sock might have
-             * been set to -1 by the close command */
-            if ((int) res_kevents[i].ident == oldsock) {
-                int s;
-
-                /* handle error conditions */
-                if ((res_kevents[i].flags & (EV_ERROR | EV_EOF)) > 0) {
-                    if (cleanuping) {
-                        break;
-                    }
-                    Tcl_ResetResult(in);
-                    Tcl_SetResult(in, "control socket closed", NULL);
-                    close(kq);
-                    return TCL_ERROR;
-                }
-
-                /* else: new connection attempt(s) */
-                for (;;) {
-                    if (-1 == (s = accept(sock, NULL, NULL))) {
-                        if (cleanuping) {
-                            break;
-                        }
-                        if (errno == EWOULDBLOCK) {
-                            break;
-                        }
-                        Tcl_SetErrno(errno);
-                        Tcl_ResetResult(in);
-                        Tcl_AppendResult(in, "accept: ", (char *) Tcl_PosixError(in), NULL);
-                        close(kq);
-                        return TCL_ERROR;
-                    }
-
-                    flags = fcntl(s, F_GETFL, 0);
-                    if (-1 == fcntl(s, F_SETFL, flags & ~O_NONBLOCK)) {
-                        ui_warn(interp, "tracelib: couldn't mark socket as blocking");
-                        close(s);
-                        continue;
-                    }
-
-                    /* register the new socket in the kqueue */
-                    EV_SET(&kev, s, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
-                    if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
-                        ui_warn(interp, "tracelib: error adding socket to kqueue");
-                        close(s);
-                        continue;
-                    }
-                    /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
-                     * always be returned. When a filter is successfully added, the data field
-                     * will be zero. */
-                    if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
-                        ui_warn(interp, "tracelib: error adding socket to kqueue");
-                        close(s);
-                        continue;
-                    }
-
-                    opensockcount++;
-                }
-
-                if (cleanuping) {
-                    break;
-                }
-            } else {
+                /* traffic on the selfpipe means we should clean up */
+                break_eventloop = true;
+                /* finish processing this batch */
+                continue;
+            } else if ((int) res_kevents[i].ident != sock) {
                 /* if the socket is to be closed, or */
                 if ((res_kevents[i].flags & (EV_EOF | EV_ERROR)) > 0
                     /* new data is available, and its processing tells us to
                      * close the socket */
                     || (!process_line(res_kevents[i].ident))) {
-                    /* an error occured or process_line suggested closing this
-                     * socket */
-                    close(res_kevents[i].ident);
-                    /* closing the socket will automatically remove it from the
-                     * kqueue :) */
-                    opensockcount--;
+                        /* an error occured or process_line suggested closing
+                         * this socket */
+                        close(res_kevents[i].ident);
+                        /* closing the socket will automatically remove it from the
+                         * kqueue :) */
+                        opensockcount--;
+
+#ifdef HAVE_PEERPID_LIST
+                        if (peerpid_list_dequeue(res_kevents[i].ident) == (pid_t) -1) {
+                            fprintf(stderr, "tracelib: didn't find PID for closed socket %d\n", (int) res_kevents[i].ident);
+                        }
+#endif
                 }
+            } else {
+                /* the control socket has activity – we might have a new
+                 * connection. */
+
+                /* handle error conditions */
+                if ((res_kevents[i].flags & (EV_ERROR | EV_EOF)) > 0) {
+                    error2tcl("control socket closed", 0, in);
+                    goto error_unlocked;
+                }
+
+                /* delay processing, process data on existing sockets first */
+                incoming = true;
+            }
+        }
+
+        if (incoming) {
+            /* new connection attempt(s) */
+            for (;;) {
+                int s;
+
+                if (-1 == (s = accept(sock, NULL, NULL))) {
+                    if (errno == EWOULDBLOCK) {
+                        break;
+                    }
+
+                    error2tcl("accept: ", errno, in);
+                    goto error_unlocked;
+                }
+
+                flags = fcntl(s, F_GETFL, 0);
+                if (-1 == fcntl(s, F_SETFL, flags & ~O_NONBLOCK)) {
+                    ui_warn(interp, "tracelib: couldn't mark socket as blocking");
+                    close(s);
+                    continue;
+                }
+
+                /* register the new socket in the kqueue */
+                EV_SET(&kev, s, EVFILT_READ, EV_ADD | EV_RECEIPT, 0, 0, NULL);
+                if (1 != kevent(kq, &kev, 1, &kev, 1, NULL)) {
+                    ui_warn(interp, "tracelib: error adding socket to kqueue");
+                    close(s);
+                    continue;
+                }
+                /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
+                 * always be returned. When a filter is successfully added, the data field
+                 * will be zero. */
+                if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+                    ui_warn(interp, "tracelib: error adding socket to kqueue (receipt)");
+                    close(s);
+                    continue;
+                }
+
+#ifdef HAVE_PEERPID_LIST
+                pid_t peer_pid = (pid_t) -1;
+                socklen_t peer_pid_len = sizeof(peer_pid);
+                if (getsockopt(s, SOL_LOCAL, LOCAL_PEERPID, &peer_pid, &peer_pid_len) == 0) {
+                    // We found a PID for the remote side
+                    peerpid_list_enqueue(s, peer_pid);
+                } else {
+                    // Error occured, process has probably already terminated
+                    close(s);
+                    continue;
+                }
+#endif
+                opensockcount++;
             }
         }
     }
 
-    /* NOTE: We aren't necessarily closing all client sockets here! */
+    retval = TCL_OK;
 
+error_unlocked:
+    pthread_mutex_lock(&evloop_mutex);
+error_locked:
     // Close remainig sockets to avoid dangling processes
     if (opensockcount > 0) {
 #ifdef HAVE_PEERPID_LIST
@@ -898,51 +921,67 @@ static int TracelibRunCmd(Tcl_Interp *in) {
         ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd\n", opensockcount);
 #endif
     }
-    pthread_mutex_lock(&sock_mutex);
-    close(kq);
-    kq = -1;
-    pthread_mutex_unlock(&sock_mutex);
 
-    return TCL_OK;
+    // cleanup selfpipe and set it to -1
+    pipe_cleanup(selfpipe);
+
+    // close kqueue(2) socket
+    if (kq != -1) {
+        close(kq);
+        kq = -1;
+    }
+
+    pthread_mutex_unlock(&evloop_mutex);
+    // wake up any waiting threads in TracelibCloseSocketCmd
+    pthread_cond_broadcast(&evloop_signal);
+
+    return retval;
 }
 
 static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
 #define safe_free(x) do{free(x); x=0;}while(0);
-    cleanuping = 1;
-    pthread_mutex_lock(&sock_mutex);
     if (sock != -1) {
         close(sock);
         sock = -1;
     }
-    pthread_mutex_unlock(&sock_mutex);
+
     if (name) {
         unlink(name);
         safe_free(name);
     }
-    if (depends) {
-        safe_free(depends);
-    }
+
+    safe_free(depends);
+
     enable_fence = 0;
-#undef safe_free
     return TCL_OK;
+
+#undef safe_free
 }
 
 static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
-    cleanuping = 1;
-    pthread_mutex_lock(&sock_mutex);
-    if (sock != -1) {
-        close(sock);
-        sock = -1;
+    pthread_mutex_lock(&evloop_mutex);
+    if (kq != -1 && selfpipe[1] != -1) {
+        /* We know the pipes have been created because kq != -1 and we have the
+         * lock. We don't have to check for errors, because none should occur
+         * but when the pipe is full, which we wouldn't care about. */
+        write(selfpipe[1], "!", 1);
 
-        if (kq != -1) {
-            /* We know the pipes have been created because kq != -1 and we have
-             * the lock. We don't have to check for errors, because none should
-             * occur but when the pipe is full, which we wouldn't care about.
-             * */
-            write(selfpipe[1], "!", 1);
+        /* Wait for the kqueue event loop to terminate. We must not return
+         * earlier than that because the next call will be to tracelib clean,
+         * and that frees up memory that would be used by the event loop
+         * otherwise. */
+        pthread_cond_wait(&evloop_signal, &evloop_mutex);
+    } else {
+        /* The kqueue(2) loop isn't running yet, so we can just close the
+         * socket and make sure it stays closed. In this situation, the kqueue
+         * will not be created. */
+        if (sock != -1) {
+            close(sock);
+            sock = -1;
         }
     }
-    pthread_mutex_unlock(&sock_mutex);
+    pthread_mutex_unlock(&evloop_mutex);
+
     return TCL_OK;
 }
 
