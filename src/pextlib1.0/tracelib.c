@@ -295,7 +295,7 @@ static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 static int process_line(int sock) {
     char *f;
     char buf[BUFSIZE];
-    uint32_t len;
+    uint32_t len = 0;
     ssize_t ret;
 
     if ((ret = recv(sock, &len, sizeof(len), MSG_WAITALL)) != sizeof(len)) {
