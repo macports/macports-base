@@ -67,28 +67,14 @@ namespace eval porttrace {
         # Escape equal signs with \=
         lappend mapping "=" "\\="
 
-        set normalizedPath [file normalize $path]
         # file normalize will leave symlinks as the very last
         # path component intact. This will, for instance, prevent /tmp from
         # being resolved to /private/tmp.
-        # Also use file readlink to counter this behavior.
-        # file readlink returns an error, if the last component is not
-        # a symlink. Catch that.
-        set resolvedPath {}
-        if {![catch {file readlink $path}]} {
-          set resolvedPath [file readlink $path]
-
-          if {[string length $resolvedPath] > 0 && [string index $resolvedPath 0] ne "/"} {
-              # Canonicalize.
-              set resolvedPath [file normalize [file dirname $path]/$resolvedPath]
-          }
-        }
+        # Use realpath to avoid this behavior.
+        set normalizedPath [realpath $path]
         lappend sndbxlst "[string map $mapping $path]=$action"
         if {$normalizedPath ne $path} {
             lappend sndbxlst "[string map $mapping $normalizedPath]=$action"
-        }
-        if {[string length $resolvedPath] > 0 && $resolvedPath ne $path} {
-            lappend sndbxlst "[string map $mapping $resolvedPath]=$action"
         }
     }
 
