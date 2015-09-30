@@ -614,9 +614,9 @@ test get_tar_flags {
 test fetch_port {
     Fetch port unit test.
 } -body {
-    set url http://packages.macports.org/fondu/fondu-060102_1.darwin_10.x86_64.tbz2
+    set url http://packages.macports.org/ruby_select/ruby_select-1.0_0.darwin_14.noarch.tbz2
     set res [macports::fetch_port $url]
-    if {$res != "${pwd}/portdbpath/portdirs/fondu-060102_1"} {
+    if {$res != "${pwd}/portdbpath/portdirs/ruby_select-1.0_0"} {
 	return "FAIL: cannot fetch port"
     }
     return "Fetch port successful."
@@ -661,9 +661,9 @@ test getportresourcepath {
     Get port resource path. Doesn't check for 'file' protocol.
 } -body {
     set macports::portdbpath $pwd/portdbpath
-    set url "http://packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2"
+    set url "http://packages.macports.org/ruby_select/ruby_select-1.0_0.darwin_14.noarch.tbz2"
     set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
-    set fallback_path $pwd/portdbpath/sources/packages.macports.org/fondu/fondu-060102_1.darwin_12.x86_64.tbz2/_resources
+    set fallback_path $pwd/portdbpath/sources/packages.macports.org/ruby_select/ruby_select-1.0_0.darwin_14.noarch.tbz2/_resources
 
     if {[macports::getportresourcepath $url "" yes] != $default_path} {
        return "FAIL: wrong resource path"
