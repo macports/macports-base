@@ -39,6 +39,23 @@ Release 2.4 (unreleased)
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
 
+Release 2.3.4 (unreleased)
+    - Installation will now abort when an archive is found on a server but
+      downloading it fails, rather than trying to build from source without
+      the correct dependencies (jmr in r138461)
+
+    - Re-added macports-llvm-gcc-4.2 and apple-gcc-4.2 to the compiler
+      fallback list on Yosemite now that they work (jmr in r136965)
+
+    - Changed the existsuser and existsgroup procs to return -1 on failure
+      instead of 0, since 0 is root's uid (#45737, cal in r135851)
+
+    - The MacPorts version is now available to Portfiles through a proc called
+      macports_version (cal in r134511)
+
+    - Fix failure to activate ports that install files with backslashes in
+      their names (#47283, cal in r134501, r134502)
+
 Release 2.3.3 (2014-11-21 by jmr)
     - Fix database performance regressions with SQLite 3.8 by specifying a
       good index for some queries (#45645, cal in r128113, r128274, r128276)
