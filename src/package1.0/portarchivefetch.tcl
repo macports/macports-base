@@ -284,7 +284,7 @@ proc portarchivefetch::fetchfiles {args} {
         }
         return 0
     }
-    if {[info exists ports_binary_only] && $ports_binary_only eq "yes"} {
+    if {([info exists ports_binary_only] && $ports_binary_only eq "yes") || [_archive_available]} {
         return -code error "archivefetch failed for [option subport] @[option version]_[option revision][option portvariants]"
     } else {
         return 0
