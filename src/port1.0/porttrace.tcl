@@ -71,7 +71,11 @@ namespace eval porttrace {
         # path component intact. This will, for instance, prevent /tmp from
         # being resolved to /private/tmp.
         # Use realpath to avoid this behavior.
-        set normalizedPath [realpath $path]
+        set normalizedPath [file normalize $path]
+        # realpath only works on files that exist
+        if {![catch {file type $normalizedPath}]} {
+            set normalizedPath [realpath $normalizedPath]
+        }
         lappend sndbxlst "[string map $mapping $path]=$action"
         if {$normalizedPath ne $path} {
             lappend sndbxlst "[string map $mapping $normalizedPath]=$action"
