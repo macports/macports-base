@@ -39,7 +39,7 @@ Release 2.4 (unreleased)
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
 
-Release 2.3.4 (unreleased)
+Release 2.3.4 (2015-10-01 by jmr)
     - Installation will now abort when an archive is found on a server but
       downloading it fails, rather than trying to build from source without
       the correct dependencies (jmr in r138461)
