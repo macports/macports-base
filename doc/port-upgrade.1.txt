@@ -31,7 +31,11 @@ When specifying variants during upgrade, the order of precedence is
 
 In most cases, you should specify the *outdated* pseudo-port expression as
 argument to *port upgrade* to upgrade all ports where a newer version is
-available. See man:port[1] for more information on pseudo-port expressions.
+available. This is the recommended upgrade method for end users.
+See man:port[1] for more information on pseudo-port expressions.
+Upgrading individual packages should only be performed by expert users who
+know what they are doing, since a mix of upgraded and non-upgraded packages
+can lead to various software errors.
 
 OPTIONS
 -------

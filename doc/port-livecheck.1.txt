@@ -23,7 +23,7 @@ number is different from the one the port packages, a message is printed.
 *port livecheck* is useful for maintainers that want to check whether new
 versions of their ports are available so they can be updated. It can also be
 used by users that encounter a problem, because updating to the latest upstream
-version is generally one of the first steps in case of an error of when
+version is generally one of the first steps in case of an error or when
 encountering a bug.
 
 include::global-flags.txt[]

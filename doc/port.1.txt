@@ -369,15 +369,25 @@ upgrade::
     *-R* (dependents) above.
 +
 --
-Upgrade the installed 'portname'. For example:
---------
-port upgrade vim
---------
-
-To upgrade all outdated ports:
+Upgrade all outdated ports:
 
 --------
 port upgrade outdated
+--------
+
+[NOTE]
+It is recommended to always upgrade all ports with the command indicated above.
+Upgrading single ports as indicated in the subsequent examples should only be
+performed if you know what you are doing, since this might lead to unexpected
+software errors from ports that have not yet been upgraded.
+
+// Forcing a new paragraph here by inserting a dummy space
+{nbsp}
+
+Upgrade the installed 'portname'. For example:
+
+--------
+port upgrade vim
 --------
 
 To upgrade 'portname' and the ports that depend on it:

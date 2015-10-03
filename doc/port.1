@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT" "1" "2014\-11\-11" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT" "1" "2015\-01\-12" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -807,6 +807,35 @@ The upgrade target works on a port and its dependencies\&. If you want to change
 \fB\-R\fR
 (dependents) above\&.
 .sp
+Upgrade all outdated ports:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port upgrade outdated
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+It is recomended to always upgrade all ports with the command indicated above\&. Upgrading single ports as indicated in the subsequent examples should only be performed if you know what you are doing, since this might lead to unexpected software errors from ports that have not yet been upgraded\&.
+.sp .5v
+.RE
+\ \&
+.sp
 Upgrade the installed
 \fIportname\fR\&. For example:
 .sp
@@ -815,18 +844,6 @@ Upgrade the installed
 .\}
 .nf
 port upgrade vim
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-To upgrade all outdated ports:
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-port upgrade outdated
 .fi
 .if n \{\
 .RE
