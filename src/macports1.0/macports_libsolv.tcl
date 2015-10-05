@@ -114,9 +114,13 @@ namespace eval macports::libsolv {
             foreach source $sources {
                 set source [lindex $source 0]
                 ## Add a repo in the pool for each source as mentioned in sources.conf
-                set repo [$pool add_repo [macports::getsourcepath $source]]
+                if {[macports::getprotocol $source] eq "file"} {
+                    set repo [$pool add_repo [macports::getportdir $source]]
+                } else {
+                    set repo [$pool add_repo [macports::getsourcepath $source]]
+                }
                 set repodata [$repo add_repodata]
- 
+
                 if {[catch {set fd [open [macports::getindex $source] r]} result]} {
                     ui_warn "Can't open index file for source: $source"
                 } else {
@@ -419,38 +423,42 @@ namespace eval macports::libsolv {
         set install_list [list]
         set dep_list [list]
         foreach cl [$trans classify $clflag] {
-            if {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_ERASE} {
-                puts "[$cl cget -count] Erased packages:"
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_INSTALL} {
-                puts "[$cl cget -count] Installed packages:"
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_REINSTALLED} {
-                puts "[$cl cget -count] Reinstalled packages:"
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED} {
-                puts "[$cl cget -count] Downgraded packages:"
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_CHANGED} {
-                puts "[$cl cget -count] Changed packages:"
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_UPGRADED} {
-                puts "[$cl cget -count] Upgraded packages:"
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_VENDORCHANGE} {
-                puts "[$cl cget -count] Vendor changes from [$cl cget -fromstr] to [$cl cget -tostr]" 
-            } elseif {[$cl cget -type] == $solv::Transaction_SOLVER_TRANSACTION_ARCHCHANGE} {
-                puts "[$cl cget -count] Arch changes from [$cl cget -fromstr] to [$cl cget -tostr]"
-            } else {
-                continue
-            }
+            switch -- [$cl cget -type] \
+                $solv::Transaction_SOLVER_TRANSACTION_ERASE {
+                    puts "[$cl cget -count] Erased packages:"
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_INSTALL {
+                    puts "[$cl cget -count] Installed packages:"
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_REINSTALLED {
+                    puts "[$cl cget -count] Reinstalled packages:"
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED {
+                    puts "[$cl cget -count] Downgraded packages:"
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_CHANGED {
+                    puts "[$cl cget -count] Changed packages:"
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_UPGRADED {
+                    puts "[$cl cget -count] Upgraded packages:"
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_VENDORCHANGE {
+                    puts "[$cl cget -count] Vendor changes from [$cl cget -fromstr] to [$cl cget -tostr]" 
+                } \
+                $solv::Transaction_SOLVER_TRANSACTION_ARCHCHANGE {
+                    puts "[$cl cget -count] Arch changes from [$cl cget -fromstr] to [$cl cget -tostr]"
+                } \
+                default continue
+            
             foreach p [$cl solvables] {
+                set cltype [$cl cget -type]
                 set upflag $solv::Transaction_SOLVER_TRANSACTION_UPGRADED
                 set downflag $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED
-                if {[$cl cget -type] == $upflag || [$cl cget -type] == $downflag} { 
+                if {$cltype == $upflag || $cltype == $downflag} { 
                         set op [$trans othersolvable $p]
                         puts "[$p __str__] -> [$op __str__]"
                 } else {
-                    puts [$p __str__]
                     lappend dep_list [$p __str__]
-                    array set portinfo $portindexinfo([$p cget -id])
-                    set porturl "file://[[$p cget -repo] cget -name]/${portinfo(portdir)}"
-                    lappend install_list [list $p $porturl] 
-                    array unset -nocomplain portinfo
                 }
             }
         }
@@ -461,6 +469,16 @@ namespace eval macports::libsolv {
             }
         } else {
             set depstring "$macports::ui_prefix Dependencies to be installed by libsolv:"
+        }
+
+        # Commiting Transaction.
+        $trans order
+        ui_msg "Comitting Transaction:"
+        foreach p [$trans steps] {
+            array set portinfo $portindexinfo([$p cget -id])
+            set porturl "file://[[$p cget -repo] cget -name]/${portinfo(portdir)}"
+            lappend install_list [list $p $porturl] 
+            array unset -nocomplain portinfo
         }
         return $install_list
     }
