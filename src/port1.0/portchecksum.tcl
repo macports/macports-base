@@ -328,6 +328,16 @@ proc portchecksum::checksum_main {args} {
                     lappend default_sums $distfile
                 }
 
+                # get the full path of the distfile.
+                set fullpath [file join $distpath $distfile]
+                if {![file isfile $fullpath]} {
+                    if {!$usealtworkpath && [file isfile "${altprefix}${fullpath}"]} {
+                        set fullpath "${altprefix}${fullpath}"
+                    } else {
+                        return -code error "$distfile does not exist in $distpath"
+                    }
+                }
+
                 foreach type $default_checksum_types {
                     lappend default_sums [format "%-8s%s" $type [calc_$type $fullpath]]
                 }
