@@ -473,28 +473,58 @@ proc portconfigure::configure_get_default_compiler {} {
 
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot
+    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot configure.cxx_stdlib os.major
+
+    # Check our override
     if {[info exists default_compilers]} {
         return $default_compilers
-    } elseif {$xcodeversion eq "none" || $xcodeversion eq ""} {
-        return {cc}
-    } elseif {[vercmp $xcodeversion 5.0] >= 0} {
-        return {clang macports-clang-3.4 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2}
-    } elseif {[vercmp $xcodeversion 4.3] >= 0} {
-        return {clang llvm-gcc-4.2 macports-clang-3.4 macports-clang-3.3 apple-gcc-4.2}
-    } elseif {[vercmp $xcodeversion 4.0] >= 0} {
-        return {llvm-gcc-4.2 clang gcc-4.2 macports-clang-3.4 macports-clang-3.3 apple-gcc-4.2}
-    } elseif {[vercmp $xcodeversion 3.2] >= 0} {
-        if {[string match *10.4u* ${configure.sdkroot}]} {
-            return {gcc-4.0}
-        } else {
-            return {gcc-4.2 clang llvm-gcc-4.2 macports-clang-3.4 macports-clang-3.3 macports-llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
-        }
-    } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-        return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
-    } else {
-        return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-clang-3.3}
     }
+
+    # Check for platforms without Xcode
+    if {$xcodeversion eq "none" || $xcodeversion eq ""} {
+        return {cc}
+    }
+
+    # Legacy cases
+    if {[vercmp $xcodeversion 4.0] < 0} {
+        if {[vercmp $xcodeversion 3.2] >= 0} {
+            if {[string match *10.4u* ${configure.sdkroot}]} {
+                return {gcc-4.0}
+            }
+        } elseif {[vercmp $xcodeversion 3.0] >= 0} {
+            return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
+        } else {
+            return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-clang-3.3}
+        }
+    }
+
+    set compilers {}
+
+    # Set our preferred Xcode-provided compilers
+    if {[vercmp $xcodeversion 5.0] >= 0} {
+        lappend compilers clang
+    } elseif {[vercmp $xcodeversion 4.3] >= 0} {
+        lappend compilers clang llvm-gcc-4.2
+    } elseif {[vercmp $xcodeversion 4.0] >= 0} {
+        lappend compilers llvm-gcc-4.2 clang
+    } else {
+        lappend compilers gcc-4.2 clang llvm-gcc-4.2
+    }
+
+    # Determine which versions of clang we prefer
+    if {${configure.cxx_stdlib} eq "libc++"} { # clang-3.5+ require libc++
+        lappend compilers macports-clang-3.7 macports-clang-3.6 macports-clang-3.5 macports-clang-3.4
+    } else {
+        lappend compilers macports-clang-3.4 macports-clang-3.3
+    }
+
+    # Determine if we have MacPorts-provided legacy gcc fallbacks
+    if {${os.major} < 15} {
+        lappend compilers macports-llvm-gcc-4.2 apple-gcc-4.2
+    }
+
+    ui_debug "Preferred compilers: $compilers"
+    return $compilers
 }
 
 # Find a developer tool
