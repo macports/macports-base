@@ -320,7 +320,20 @@ proc portchecksum::checksum_main {args} {
         } else {
             # Show the desired checksum line for easy cut-paste
             ui_info "The correct checksum line may be:"
-            ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
+            #ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
+
+            set default_sums {}
+            foreach distfile $all_dist_files {
+                if {[llength $all_dist_files] > 1} {
+                    lappend default_sums $distfile
+                }
+
+                foreach type $default_checksum_types {
+                    lappend default_sums [format "%-8s%s" $type [calc_$type $fullpath]]
+                }
+            }
+
+            ui_info [format "%-20s%s" "checksums" [join $default_sums [format " \\\n%-20s" ""]]]
         }
 
         return -code error "[msgcat::mc "Unable to verify file checksums"]"
