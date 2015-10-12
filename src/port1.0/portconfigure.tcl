@@ -519,7 +519,7 @@ proc portconfigure::get_compiler_fallback {} {
     }
 
     # Determine if we have MacPorts-provided legacy gcc fallbacks
-    if {${os.major} < 15} {
+    if {${os.major} < 16} {
         lappend compilers macports-llvm-gcc-4.2 apple-gcc-4.2
     }
 
