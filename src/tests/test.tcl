@@ -100,16 +100,16 @@ if {$test_name ne ""} {
 
         # Format output
         if {$total < 10} {
-            set total "0${total}"
+            set total " ${total}"
         }
         if {$pass < 10} {
-            set pass "0${pass}"
+            set pass " ${pass}"
         }
         if {$skip < 10} {
-            set skip "0${skip}"
+            set skip " ${skip}"
         }
         if {$fail < 10} {
-            set fail "0${fail}"
+            set fail " ${fail}"
         }
 
         # Check for errors.
