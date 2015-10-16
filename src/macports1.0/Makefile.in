@@ -18,7 +18,7 @@ endif
 pkgIndex.tcl: $(SRCS)
 
 test::
-	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor
+	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_test_autoconf.tcl ${SHLIB_NAME}
