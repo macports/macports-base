@@ -1,29 +1,28 @@
 # $Id$
 
 PortSystem 1.0
+
 name		site-tags
-version		1
+version		2
 categories	test
-maintainers	pguyot@kallisys.net
+maintainers	kallisys.net:pguyot
 description	Test port for site:tags functionalities
 homepage	http://www.macports.org/
 platforms	darwin
 
 long_description ${description}
 
-master_sites	http://www.douglas.stebila.ca/files/code/vim/app/:app_aqua \
-				http://www.douglas.stebila.ca/files/code/vim/doc/:doc_aqua
-distfiles		app-bm.tar.gz:app_aqua \
-				doc.tar.gz:doc_aqua
+master_sites	http://distfiles.macports.org/py-importlib/:importlib \
+				http://distfiles.macports.org/py-errorhandler/:errorhandler
+distfiles		importlib-1.0.2.tar.gz:importlib \
+				errorhandler-1.1.1.tar.gz:errorhandler
 
-checksums		app-bm.tar.gz \
-					md5 418b9e615a34ae5aad918f5c5a694a44 \
-					sha1 e8f8939b16665394686284681036e71fb2d3974d \
-					rmd160 756bca16c69bb3b051c581d671e824ca1495a05b \
-				doc.tar.gz \
-					md5 692f7874fc617162d0fe110daf39a98a \
-					sha1 51d62b8ab344eaf9c1e95d6563766b2453c27e99 \
-					rmd160 3cbae7e39e8c78eca03a0db709cf520003896a12
+checksums		importlib-1.0.2.tar.gz \
+					rmd160 0bd0d01f4e419340066c29e3e09ddc182b96f8d1 \
+					sha256 24d0966aa76859b288485803f310076512f87377e6c9afe9c28c52a8ccdd328c \
+				errorhandler-1.1.1.tar.gz \
+					rmd160 3a60f826eb1bae0e249fdefd3d6c4eb3c598832f \
+					sha256 2baa97a8a256fe72960d196bbdee4404162186f539c4d73b3f1c072db18463e9
 
 extract		{}
 use_configure no
