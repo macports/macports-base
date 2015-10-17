@@ -214,9 +214,17 @@ proc portclean::clean_work {args} {
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"
-        if {[catch {delete $subbuildpath} result]} {
+        try {
+            delete $subbuildpath
+        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted due to SIGINT"]
+            throw
+        } catch {{POSIX SIG SINTERM} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted due to SIGTERM"]
+            throw
+        } catch {{*} eCode eMessage} {
             ui_debug "$::errorInfo"
-            ui_error "$result"
+            ui_error "$eMessage"
         }
         # silently fail if non-empty (other subports might be using portbuildpath)
         catch {file delete $portbuildpath}
@@ -226,9 +234,17 @@ proc portclean::clean_work {args} {
 
     if {!$usealtworkpath && [file isdirectory ${altprefix}${subbuildpath}]} {
         ui_debug "Removing directory: ${altprefix}${subbuildpath}"
-        if {[catch {delete ${altprefix}${subbuildpath}} result]} {
+        try {
+            delete ${altprefix}${subbuildpath}
+        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted due to SIGINT"]
+            throw
+        } catch {{POSIX SIG SINTERM} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted due to SIGTERM"]
+            throw
+        } catch {{*} eCode eMessage} {
             ui_debug "$::errorInfo"
-            ui_error "$result"
+            ui_error "$eMessage"
         }
         catch {file delete ${altprefix}${portbuildpath}}
     } else {
