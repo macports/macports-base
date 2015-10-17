@@ -1950,7 +1950,8 @@ proc _mporterrorifconflictsinstalled {mport} {
             if {![macports::ui_isset ports_debug]} {
                 ui_msg {}
             }
-            return -code error "Can't install $portinfo(name) because conflicting ports are active: $conflictlist"
+            ui_error "Can't install $portinfo(name) because conflicting ports are active: $conflictlist"
+            return -code error "conflicting ports"
         }
     }
 }
