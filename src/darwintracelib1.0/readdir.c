@@ -71,6 +71,7 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 	__darwintrace_setup();
 
 	size_t sz = __getdirentries64(fd, buf, bufsize, basep);
+	// FIXME Support longer paths
 	char dirname[MAXPATHLEN];
 	size_t dnamelen;
 
@@ -91,6 +92,7 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 	for (offset = 0; offset < sz;) {
 		struct dirent64 *dent = (struct dirent64 *)(((char *) buf) + offset);
 		dirname[dnamelen] = '\0';
+		// FIXME This crashes sometimes
 		strcat(dirname, dent->d_name);
 		if (!__darwintrace_is_in_sandbox(dirname, DT_ALLOWDIR)) {
 			debug_printf("__getdirentries64: filtered %s\n", dirname);
