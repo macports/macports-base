@@ -306,23 +306,36 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
     status = TCL_ERROR;
 
-    if (wait(&ret) == pid && WIFEXITED(ret) && !read_failed) {
+    if (wait(&ret) == pid && (WIFEXITED(ret) || WIFSIGNALED(ret)) && !read_failed) {
         /* Normal exit, and reading from the pipe didn't fail. */
-        if (WEXITSTATUS(ret) == 0) {
+        if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
             status = TCL_OK;
         } else {
             Tcl_Obj* errorCode;
 
             /* print error */
             ui_info(interp, "Command failed: %s", cmdstring);
-            ui_info(interp, "Exit code: %d", WEXITSTATUS(ret));
+            if (WIFEXITED(ret)) {
+                ui_info(interp, "Exit code: %d", WEXITSTATUS(ret));
+            } else if(WIFSIGNALED(ret)) {
+                ui_info(interp, "Killed by signal: %d", WTERMSIG(ret));
+            }
 
-            /* set errorCode [list CHILDSTATUS <pid> <code>] */
             errorCode = Tcl_NewListObj(0, NULL);
-            Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
-            Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-            Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
-            Tcl_SetObjErrorCode(interp, errorCode);
+            if (WIFEXITED(ret)) {
+                /* set errorCode [list CHILDSTATUS <pid> <code>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
+                Tcl_SetObjErrorCode(interp, errorCode);
+            } else if (WIFSIGNALED(ret)) {
+                /* set errorCode [list CHILDKILLED <pid> <SIGNAME> <signal descripton>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDKILLED", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(WTERMSIG(ret)), -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(WTERMSIG(ret)), -1));
+                Tcl_SetObjErrorCode(interp, errorCode);
+            }
 
             Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
         }
