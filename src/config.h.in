@@ -6,6 +6,10 @@
 /* Define if using the Apple Objective-C runtime and compiler. */
 #undef APPLE_RUNTIME
 
+/* Absolute path to a directory used by darwintrace to copy SIP-protected
+   files before executing */
+#undef DARWINTRACE_SIP_WORKAROUND_PATH
+
 /* Define if using the GNUstep Foundation library */
 #undef GNUSTEP_FOUNDATION
 
