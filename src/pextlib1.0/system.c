@@ -245,7 +245,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             args[3] = NULL;
             execve("/bin/sh", args, environ);
         }
-        _exit(1);
+        exit(128);
         /*NOTREACHED*/
     default: /* parent */
         break;
