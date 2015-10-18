@@ -5,30 +5,62 @@ include ../../Mk/macports.autoconf.mk
 
 # This Makefile will only be run on Darwin systems; we can safely use
 # Apple-specifics here
-SRCS=		$(wildcard *.c)
-OBJS=		$(SRCS:%.c=%.o)
-SHLIB_NAME=	darwintrace${SHLIB_SUFFIX}
-INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/darwintrace1.0
+SRCS = \
+	access.c \
+	close.c \
+	darwintrace.c \
+	dup2.c \
+	mkdir.c \
+	open.c \
+	proc.c \
+	readdir.c \
+	readlink.c \
+	rename.c \
+	rmdir.c \
+	sip_copy_proc.c \
+	stat.c \
+	unlink.c
+
+OBJS = $(SRCS:%.c=%.o)
+SHLIB_NAME = darwintrace$(SHLIB_SUFFIX)
+INSTALLDIR = $(DESTDIR)$(TCL_PACKAGE_PATH)/darwintrace1.0
 
 # Yes, we know having $ signs in identifiers is not a very good idea; in the
 # case of darwintrace we still need them, though.
-CFLAGS_PEDANTIC=
-CFLAGS+= -fPIC ${UNIVERSAL_ARCHFLAGS}
-SHLIB_LDFLAGS+=${UNIVERSAL_ARCHFLAGS}
+CFLAGS_PEDANTIC =
+CFLAGS += -fPIC $(UNIVERSAL_ARCHFLAGS)
+SHLIB_LDFLAGS += $(UNIVERSAL_ARCHFLAGS)
 
-all:: ${SHLIB_NAME}
+# Generate dependency information
+CPPFLAGS += -MMD -MP
 
-$(SHLIB_NAME):: ${OBJS}
-	${SHLIB_LD} ${OBJS} -o ${SHLIB_NAME} ${SHLIB_LDFLAGS} ${LIBS}
+all:: $(SHLIB_NAME)
+
+# Copy sip_copy_proc.{c,h} from pextlib1.0 where they are also needed
+sip_copy_proc.c: ../pextlib1.0/sip_copy_proc.c sip_copy_proc.h 
+	cp $< $@
+
+sip_copy_proc.h: ../pextlib1.0/sip_copy_proc.h
+	cp $< $@
+
+# This won't be automatically detected during the first run of make, where the
+# .d files do not exist yet
+proc.c: sip_copy_proc.h
+
+$(SHLIB_NAME):: $(OBJS)
+	$(SHLIB_LD) $(OBJS) -o $(SHLIB_NAME) $(SHLIB_LDFLAGS) $(LIBS)
 
 clean::
-	rm -f ${OBJS} ${SHLIB_NAME} so_locations
+	rm -f $(OBJS) $(SHLIB_NAME) so_locations sip_copy_proc.c sip_copy_proc.h $(SRCS:%.c=%.d)
 
 distclean:: clean
 	rm -f Makefile
 
 install:: all
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "${SHLIB_NAME}" "${INSTALLDIR}"
+	$(INSTALL) -d -o "$(DSTUSR)" -g "$(DSTGRP)" -m "$(DSTMODE)" "$(INSTALLDIR)"
+	$(INSTALL)    -o "$(DSTUSR)" -g "$(DSTGRP)" -m 444 "$(SHLIB_NAME)" "$(INSTALLDIR)"
 
 test::
+
+# Include dependency information
+-include $(SRCS:%.c=%.d)

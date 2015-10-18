@@ -312,6 +312,14 @@ fi
 eval "prefix_expanded=$prefix"
 eval "exec_prefix_expanded=$exec_prefix"
 AC_SUBST(prefix_expanded)
+
+# Define a path where our trace mode workaround for SIP-protected binaries on
+# >= 10.11 puts copies
+AC_DEFINE_UNQUOTED(
+	[DARWINTRACE_SIP_WORKAROUND_PATH],
+	["${prefix}/var/macports/sip-workaround"],
+	[Absolute path to a directory used by darwintrace to copy SIP-protected files before executing])
+
 # do this twice, since there is a nested variable of
 # ${prefix} inside of ${sysconfdir}
 eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"

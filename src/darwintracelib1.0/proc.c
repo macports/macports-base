@@ -37,6 +37,7 @@
 
 #define DARWINTRACE_USE_PRIVATE_API 1
 #include "darwintrace.h"
+#include "sip_copy_proc.h"
 
 #include <ctype.h>
 #include <dlfcn.h>
@@ -278,7 +279,7 @@ static int _dt_execve(const char *path, char *const argv[], char *const envp[]) 
 
 			// Call the original execve function, but restore environment
 			char **newenv = restore_env(envp);
-			result = execve(path, argv, newenv);
+			result = sip_copy_execve(path, argv, newenv);
 			free(newenv);
 		}
 	}
@@ -334,7 +335,7 @@ static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const
 			 * we need to call the original posix_spawn from here. */
 			// call the original posix_spawn function, but restore environment
 			char **newenv = restore_env(envp);
-			result = posix_spawn(pid, path, file_actions, attrp, argv, newenv);
+			result = sip_copy_posix_spawn(pid, path, file_actions, attrp, argv, newenv);
 			free(newenv);
 		}
 	}

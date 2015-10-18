@@ -42,7 +42,7 @@ default portsandbox_profile {}
 # command line usage would be:
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
-    global os.major portsandbox_profile workpath distpath altprefix \
+    global os.major portsandbox_profile workpath distpath prefix altprefix \
         package.destpath configure.ccache ccache_dir
 
     switch $target {
@@ -78,6 +78,7 @@ proc portsandbox::set_profile {target} {
 
     # TODO: remove altprefix support
     lappend allow_dirs $workpath $altprefix
+    lappend allow_dirs $prefix/var/macports/sip-workaround
     if {${configure.ccache}} {
         lappend allow_dirs $ccache_dir
     }

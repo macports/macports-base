@@ -58,6 +58,7 @@
 #include <errno.h>
 
 #include "system.h"
+#include "sip_copy_proc.h"
 #include "Pextlib.h"
 
 #if HAVE_CRT_EXTERNS_H
@@ -237,13 +238,13 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             args[4] = "-c";
             args[5] = cmdstring;
             args[6] = NULL;
-            execve(sandbox_exec_path, args, environ);
+            sip_copy_execve(sandbox_exec_path, args, environ);
         } else {
             args[0] = "sh";
             args[1] = "-c";
             args[2] = cmdstring;
             args[3] = NULL;
-            execve("/bin/sh", args, environ);
+            sip_copy_execve("/bin/sh", args, environ);
         }
         exit(128);
         /*NOTREACHED*/
