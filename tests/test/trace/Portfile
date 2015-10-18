@@ -24,6 +24,8 @@ test {
         if {![catch $operation]} {
             ui_error "Operation ${operation} succeeded although it should have failed!"
             error "test failure"
+        } else {
+            ui_info "${operation} failed as expected"
         }
     }
     # the port directory is outside of the sandbox; make sure files can't be
