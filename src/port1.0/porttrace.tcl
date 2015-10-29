@@ -228,6 +228,8 @@ namespace eval porttrace {
 			}
 		}
 
+		# Grant access to the directory we use to mirror binaries under SIP
+		allow trace_sandbox [file join $prefix var macports sip-workaround]
 		# Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
 		# or it'll be used instead of more specific rules.
 		ask trace_sandbox $prefix
