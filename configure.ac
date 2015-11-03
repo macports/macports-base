@@ -334,10 +334,10 @@ prefix=$oldprefix
 exec_prefix=$oldexec_prefix
 
 ## Tcl package
-tcl_version=8.5.15
-tcl_thread_version=2.7.0
+tcl_version=8.5.18
+tcl_thread_version=2.7.2
 tclx_version=8.4.1
-tcllib_version=1.15
+tcllib_version=1.17
 MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
 VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
 VENDOR_TCL_INSTALL="install-binaries install-libraries"
