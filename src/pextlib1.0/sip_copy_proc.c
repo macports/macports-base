@@ -59,14 +59,14 @@
  * Frees an array of strings and the array itself.
  */
 static void free_argv(char *argv[]) {
-	char **arg = argv;
-	while (arg && *arg) {
-		free(*arg);
-		*arg = NULL;
-		arg++;
-	}
+    char **arg = argv;
+    while (arg && *arg) {
+        free(*arg);
+        *arg = NULL;
+        arg++;
+    }
 
-	free(argv);
+    free(argv);
 }
 
 typedef enum _copy_needed_return_t {
@@ -119,149 +119,149 @@ typedef enum _copy_needed_return_t {
 static copy_needed_return_t copy_needed(const char *path, char *const argv[],
         char **outargv[], char *const environ[], struct stat *st) {
 #ifndef SF_RESTRICTED /* no system integrity protection */
-	return copy_not_needed;
+    return copy_not_needed;
 #else /* defined(SF_RESTRICTED) */
-	// check whether DYLD_INSERT_LIBRARIES is set
-	bool dyld_insert_libraries_present = false;
-	char *const *env = environ;
-	while (env && *env) {
-		if (strncmp("DYLD_INSERT_LIBRARIES=", *env, strlen("DYLD_INSERT_LIBRARIES=")) == 0) {
-			dyld_insert_libraries_present = true;
-			break;
-		}
-		env++;
-	}
-	// if we didn't find DYLD_INSERT_LIBRARIES, a copy isn't needed
-	if (!dyld_insert_libraries_present) {
-		return copy_not_needed;
-	}
+    // check whether DYLD_INSERT_LIBRARIES is set
+    bool dyld_insert_libraries_present = false;
+    char *const *env = environ;
+    while (env && *env) {
+        if (strncmp("DYLD_INSERT_LIBRARIES=", *env, strlen("DYLD_INSERT_LIBRARIES=")) == 0) {
+            dyld_insert_libraries_present = true;
+            break;
+        }
+        env++;
+    }
+    // if we didn't find DYLD_INSERT_LIBRARIES, a copy isn't needed
+    if (!dyld_insert_libraries_present) {
+        return copy_not_needed;
+    }
 
-	// open file to check for shebangs
-	const char *realpath = path;
-	size_t new_argc = 0;
-	char **new_argv = NULL;
-	FILE *f = fopen(path, "r");
-	if (!f) {
-		// if opening fails we won't be able to copy anyway
-		return copy_not_needed;
-	}
+    // open file to check for shebangs
+    const char *realpath = path;
+    size_t new_argc = 0;
+    char **new_argv = NULL;
+    FILE *f = fopen(path, "r");
+    if (!f) {
+        // if opening fails we won't be able to copy anyway
+        return copy_not_needed;
+    }
 
-	/* no error checking for fgetc(3) here, because this isn't a shebang if an
-	 * error occurs */
-	if (fgetc(f) == '#' && fgetc(f) == '!') {
-		/* This is an interpreted script. The interpreter's flags are what
-		 * affects whether DYLD_* is stripped, so read the interpreter's path
-		 * from the file to check that instead. Additionally, read any flags
-		 * that may be passed to the interpreter, since we'll have to do the
-		 * shebang expansion in user space if we move the interpreter. */
-		char *linep = NULL;
-		size_t linecapp = 0;
-		// read first line to get the interpreter and its arguments
-		if (getline(&linep, &linecapp, f) > 0) {
-			char *ctxt;
+    /* no error checking for fgetc(3) here, because this isn't a shebang if an
+     * error occurs */
+    if (fgetc(f) == '#' && fgetc(f) == '!') {
+        /* This is an interpreted script. The interpreter's flags are what
+         * affects whether DYLD_* is stripped, so read the interpreter's path
+         * from the file to check that instead. Additionally, read any flags
+         * that may be passed to the interpreter, since we'll have to do the
+         * shebang expansion in user space if we move the interpreter. */
+        char *linep = NULL;
+        size_t linecapp = 0;
+        // read first line to get the interpreter and its arguments
+        if (getline(&linep, &linecapp, f) > 0) {
+            char *ctxt;
             char *word;
             size_t idx;
-			// do word splitting on the interpreter line and store it in new_argv
-			for (idx = 0, word = strtok_r(linep, " \t\n", &ctxt);
-					word != NULL;
-					idx++, word = strtok_r(NULL, " \t\n", &ctxt)) {
-				// make sure we have enough space allocated
-				if (new_argv == NULL) {
-					if ((new_argv = malloc(2 * sizeof(*new_argv))) == NULL) {
+            // do word splitting on the interpreter line and store it in new_argv
+            for (idx = 0, word = strtok_r(linep, " \t\n", &ctxt);
+                    word != NULL;
+                    idx++, word = strtok_r(NULL, " \t\n", &ctxt)) {
+                // make sure we have enough space allocated
+                if (new_argv == NULL) {
+                    if ((new_argv = malloc(2 * sizeof(*new_argv))) == NULL) {
                         free(linep);
                         return copy_needed_error;
-					}
-					new_argc = 1;
+                    }
+                    new_argc = 1;
 
-					// new_argv[0] will be overwritten in a second
-					// new_argv[1] is the terminating NULL
-					new_argv[0] = NULL;
-					new_argv[1] = NULL;
-				} else if (idx >= new_argc) {
-					// realloc to increase the size
-					char **oldargv = new_argv;
-					if ((new_argv = realloc(oldargv, (idx + 2) * sizeof(*new_argv))) == NULL) {
-						free_argv(oldargv);
+                    // new_argv[0] will be overwritten in a second
+                    // new_argv[1] is the terminating NULL
+                    new_argv[0] = NULL;
+                    new_argv[1] = NULL;
+                } else if (idx >= new_argc) {
+                    // realloc to increase the size
+                    char **oldargv = new_argv;
+                    if ((new_argv = realloc(oldargv, (idx + 2) * sizeof(*new_argv))) == NULL) {
+                        free_argv(oldargv);
                         free(linep);
                         return copy_needed_error;
-					}
-					new_argc = idx + 1;
-				}
+                    }
+                    new_argc = idx + 1;
+                }
 
-				// store a copy of the word in new_argv
-				new_argv[idx] = strdup(word);
-				if (!new_argv[idx]) {
-					free_argv(new_argv);
+                // store a copy of the word in new_argv
+                new_argv[idx] = strdup(word);
+                if (!new_argv[idx]) {
+                    free_argv(new_argv);
                     free(linep);
                     return copy_needed_error;
-				}
+                }
                 new_argv[idx + 1] = NULL;
-			}
+            }
 
-			free(linep);
+            free(linep);
 
-			if (new_argv && *new_argv) {
-				// interpreter found, check that instead of given path
-				realpath = *new_argv;
-			}
-		}
-	}
+            if (new_argv && *new_argv) {
+                // interpreter found, check that instead of given path
+                realpath = *new_argv;
+            }
+        }
+    }
 
-	// check whether the binary has SF_RESTRICTED and isn't SUID/SGID
-	if (-1 == stat(realpath, st)) {
-		// on error, return and let execve(2) deal with it
-		free_argv(new_argv);
-		return copy_not_needed;
-	} else {
-		if (!(st->st_flags & SF_RESTRICTED)) {
-			// no SIP on this binary
-			free_argv(new_argv);
-			return copy_not_needed;
-		}
-		if ((st->st_flags & (S_ISUID | S_ISGID)) > 0) {
-			// the binary is SUID/SGID, which would get lost when copying;
-			// DYLD_ variables are stripped for SUID/SGID binaries anyway
-			free_argv(new_argv);
-			return copy_not_needed;
-		}
-	}
+    // check whether the binary has SF_RESTRICTED and isn't SUID/SGID
+    if (-1 == stat(realpath, st)) {
+        // on error, return and let execve(2) deal with it
+        free_argv(new_argv);
+        return copy_not_needed;
+    } else {
+        if (!(st->st_flags & SF_RESTRICTED)) {
+            // no SIP on this binary
+            free_argv(new_argv);
+            return copy_not_needed;
+        }
+        if ((st->st_flags & (S_ISUID | S_ISGID)) > 0) {
+            // the binary is SUID/SGID, which would get lost when copying;
+            // DYLD_ variables are stripped for SUID/SGID binaries anyway
+            free_argv(new_argv);
+            return copy_not_needed;
+        }
+    }
 
-	// prefix the shebang line to the original argv
-	if (new_argv != NULL) {
+    // prefix the shebang line to the original argv
+    if (new_argv != NULL) {
         size_t argc = 0;
         for (char *const *argvwalk = argv; argvwalk && *argvwalk; ++argvwalk) {
             argc++;
         }
 
-		// realloc to increase the size
-		char **oldargv = new_argv;
-		if ((new_argv = realloc(oldargv, (new_argc + argc + 1) * sizeof(*new_argv))) == NULL) {
-			free_argv(oldargv);
+        // realloc to increase the size
+        char **oldargv = new_argv;
+        if ((new_argv = realloc(oldargv, (new_argc + argc + 1) * sizeof(*new_argv))) == NULL) {
+            free_argv(oldargv);
             return copy_needed_error;
-		}
+        }
 
-		new_argv[new_argc] = strdup(path);
-		if (!new_argv[new_argc]) {
+        new_argv[new_argc] = strdup(path);
+        if (!new_argv[new_argc]) {
             free_argv(new_argv);
             return copy_needed_error;
-		}
+        }
         new_argv[new_argc + 1] = NULL;
 
-		for (size_t idx = 1; idx < argc; ++idx) {
-			new_argv[new_argc + idx] = strdup(argv[idx]);
-			if (!new_argv[new_argc + idx]) {
+        for (size_t idx = 1; idx < argc; ++idx) {
+            new_argv[new_argc + idx] = strdup(argv[idx]);
+            if (!new_argv[new_argc + idx]) {
                 free_argv(new_argv);
                 return copy_needed_error;
-			}
+            }
             new_argv[new_argc + idx + 1] = NULL;
-		}
+        }
 
-		new_argc = new_argc + argc;
+        new_argc = new_argc + argc;
 
-		*outargv = new_argv;
-	}
+        *outargv = new_argv;
+    }
 
-	return copy_is_needed;
+    return copy_is_needed;
 #endif /* defined(SF_RESTRICTED) */
 }
 
