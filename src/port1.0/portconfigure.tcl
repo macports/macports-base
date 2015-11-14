@@ -287,6 +287,7 @@ proc portconfigure::configure_start {args} {
     if {![info exists compiler_name]} {
         return -code error "Invalid value for configure.compiler: $compiler"
     }
+    ui_debug "Preferred compilers: $compilers"
     ui_debug "Using compiler '$compiler_name'"
 
     # Additional ccache directory setup
@@ -523,7 +524,6 @@ proc portconfigure::get_compiler_fallback {} {
         lappend compilers macports-llvm-gcc-4.2 apple-gcc-4.2
     }
 
-    ui_debug "Preferred compilers: $compilers"
     return $compilers
 }
 
