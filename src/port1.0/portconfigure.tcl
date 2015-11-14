@@ -287,7 +287,7 @@ proc portconfigure::configure_start {args} {
     if {![info exists compiler_name]} {
         return -code error "Invalid value for configure.compiler: $compiler"
     }
-    ui_debug "Preferred compilers: $compilers"
+    ui_debug "Preferred compilers: [option compiler.fallback]"
     ui_debug "Using compiler '$compiler_name'"
 
     # Additional ccache directory setup
