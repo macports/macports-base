@@ -294,6 +294,14 @@ proc portlint::lint_main {args} {
             incr errors
         }
 
+        if {[regexp {(^.*)(\meval\s+)(.*)(\[glob\M)(.*$)} $line -> match_before match_eval match_between match_glob match_after]} {
+            ui_warn "Line $lineno should use the expansion operator instead of the eval procedure. Change"
+            ui_warn "$line"
+            ui_warn "to"
+            ui_warn "$match_before$match_between{*}$match_glob$match_after"
+            incr warnings
+        }
+
         # Check for hardcoded version numbers
         if {$nitpick} {
             # Support for skipping checksums lines
