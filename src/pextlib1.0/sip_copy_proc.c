@@ -330,8 +330,13 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         goto lazy_copy_out;
     }
 
+#ifdef O_CLOEXEC
     if (-1 == (infd = open(path, O_RDONLY | O_CLOEXEC))) {
         fprintf(stderr, "sip_copy_proc: open(%s, O_RDONLY | O_CLOEXEC): %s\n", path, strerror(errno));
+#else
+    if (-1 == (infd = open(path, O_RDONLY))) {
+        fprintf(stderr, "sip_copy_proc: open(%s, O_RDONLY): %s\n", path, strerror(errno));
+#endif
         goto lazy_copy_out;
     }
 
