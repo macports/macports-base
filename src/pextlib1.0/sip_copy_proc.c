@@ -119,6 +119,11 @@ typedef enum _copy_needed_return_t {
 static copy_needed_return_t copy_needed(const char *path, char *const argv[],
         char **outargv[], char *const environ[], struct stat *st) {
 #ifndef SF_RESTRICTED /* no system integrity protection */
+    (void) path;
+    (void) argv;
+    (void) outargv;
+    (void) environ;
+    (void) st;
     return copy_not_needed;
 #else /* defined(SF_RESTRICTED) */
     // check whether DYLD_INSERT_LIBRARIES is set
