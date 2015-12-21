@@ -4,6 +4,9 @@
 ###
 
 Release 2.4 (unreleased)
+    - Add depends_test to handle the dependencies for the test phase of ports.
+      (khindenburg in r140488, #38208)
+
     - Replaced the strings previously printed by "port help" with much more
       detailed and current manpages written using asciidoc that open
       automatically. Added documentation for almost all commands currently
