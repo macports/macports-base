@@ -581,9 +581,9 @@ test get_tar_flags {
 test fetch_port {
     Fetch port unit test.
 } -body {
-    set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
+    set url http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2
     set res [macports::fetch_port $url]
-    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
+    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_3"} {
 	return "FAIL: cannot fetch port"
     }
     return "Fetch port successful."
@@ -607,9 +607,9 @@ test getportdir {
 } -setup {
     close [open $pwd/local_file w+]
 } -body {
-    set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
+    set url http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2
     set res [macports::getportdir $url]
-    set expected ${pwd}/portdbpath/portdirs/db_select-0.1_2
+    set expected ${pwd}/portdbpath/portdirs/db_select-0.1_3
     if {$res ne $expected} {
 	    return "FAIL: incorrect port directory $res (expected $expected)"
     }
@@ -631,9 +631,9 @@ test getportresourcepath {
     Get port resource path. Doesn't check for 'file' protocol.
 } -body {
     set macports::portdbpath $pwd/portdbpath
-    set url "http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2"
+    set url "http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2"
     set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
-    set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2/_resources
+    set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2/_resources
 
     if {[macports::getportresourcepath $url "" yes] ne $default_path} {
        return "FAIL: wrong resource path"
