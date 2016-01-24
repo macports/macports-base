@@ -523,13 +523,10 @@ proc handle_option_string {option action args} {
             set fulllist {}
             # args is a list of strings/list
             foreach arg $args {
-                # Strip trailing empty lines
-                if {[string index $arg 0] eq "\n"} {
-                    set arg [string range $arg 1 end]
-                }
-                if {[string index $arg end] eq "\n"} {
-                    set arg [string range $arg 0 end-1]
-                }
+                # Strip empty lines at beginning
+                set arg [string trimleft $arg "\n"]
+                # Strip all trailing whitespace
+                set arg [string trimright $arg]
 
                 # Determine indent level
                 set indent ""
@@ -540,6 +537,7 @@ proc handle_option_string {option action args} {
                     }
                     append indent $c
                 }
+
                 # Remove indent on first line
                 set arg [string replace $arg 0 [expr {$i - 1}]]
                 # Remove indent on each other line
