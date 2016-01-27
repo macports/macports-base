@@ -2115,12 +2115,12 @@ proc check_variants {target} {
             break
         }
     }
-    if {$statereq && ![tbool ports_force]} {
+    if {$statereq} {
 
         set state_fd [open_statefile]
 
         array set oldvariations {}
-        if {[check_statefile_variants variations oldvariations $state_fd]} {
+        if {![tbool ports_force] && [check_statefile_variants variations oldvariations $state_fd]} {
             ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match those the build was started with: \"[canonicalize_variants [array get oldvariations]]\"."
             ui_error "Please use the same variants again, or run 'port clean [option subport]' first to remove the existing partially completed build."
             set result 1
