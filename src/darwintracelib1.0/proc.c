@@ -4,7 +4,7 @@
  * All rights reserved.
  * Copyright (c) 2006-2013 The MacPorts Project
  *
- * $Id: darwintrace.h 112642 2013-10-28 18:59:19Z cal@macports.org $
+ * $Id$
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  *

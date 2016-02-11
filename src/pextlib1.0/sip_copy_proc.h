@@ -1,7 +1,7 @@
 /* vim: set et sw=4 ts=4 sts=4: */
 /*
  * system.c
- * $Id: system.c 138943 2015-07-24 20:35:45Z raimue@macports.org $
+ * $Id$
  *
  * Copyright (c) 2015 Clemens Lang <cal@macports.org>
  * Copyright (c) 2015 The MacPorts Project
