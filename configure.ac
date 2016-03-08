@@ -335,7 +335,7 @@ exec_prefix=$oldexec_prefix
 
 ## Tcl package
 tcl_version=8.5.18
-tcl_thread_version=2.7.2
+tcl_thread_version=2.7.3
 tclx_version=8.4.1
 tcllib_version=1.17
 MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
