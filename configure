@@ -9644,7 +9644,7 @@ exec_prefix=$oldexec_prefix
 
 ## Tcl package
 tcl_version=8.5.18
-tcl_thread_version=2.7.2
+tcl_thread_version=2.7.3
 tclx_version=8.4.1
 tcllib_version=1.17
 	mp_fn_var_prepend() {
