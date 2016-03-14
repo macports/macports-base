@@ -2621,13 +2621,8 @@ proc mportsync {{optionslist {}}} {
                     set progressflag "--progress ${macports::ui_options(progress_download)}"
                     set verboseflag ""
                 }
-
-                try {
+                try -pass_signal {
                     curl fetch {*}$progressflag $source $tarpath
-                } catch {{POSIX SIG SIGINT} eCode eMessage} {
-                    throw
-                } catch {{POSIX SIG SIGTERM} eCode eMessage} {
-                    throw
                 } catch {{*} eCode eMessage} {
                     ui_error [msgcat::mc "Fetching %s failed: %s" $source $eMessage]
                     incr numfailed
@@ -2749,7 +2744,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
         if {[catch {set fd [open [macports::getindex $source] r]} result]} {
             ui_warn "Can't open index file for source: $source"
         } else {
-            try {
+            try -pass_signal {
                 incr found 1
                 while {[gets $fd line] >= 0} {
                     array unset portinfo
@@ -3049,7 +3044,7 @@ proc mports_generate_quickindex {index} {
         ui_warn "Can't open index file: $index"
         return -code error
     } else {
-        try {
+        try -pass_signal {
             set offset [tell $indexfd]
             set quicklist {}
             while {[gets $indexfd line] >= 0} {
@@ -3064,10 +3059,6 @@ proc mports_generate_quickindex {index} {
                 set offset [tell $indexfd]
             }
             puts -nonewline $quickfd $quicklist
-        } catch {{POSIX SIG SIGINT} eCode eMessage} {
-            throw
-        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
-            throw
         } catch {{*} eCode eMessage} {
             ui_warn "It looks like your PortIndex file $index may be corrupt."
             throw
