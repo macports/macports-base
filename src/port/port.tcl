@@ -4635,7 +4635,15 @@ proc process_cmd { argv } {
             break
         }
 
-        set locked [lock_reg_if_needed $action]
+        try {
+            set locked [lock_reg_if_needed $action]
+        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+            set action_status 1
+            break
+        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+            set action_status 1
+            break
+        }
         # Always start out processing an action in current_portdir
         cd $current_portdir
         
