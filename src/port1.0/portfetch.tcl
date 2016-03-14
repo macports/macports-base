@@ -514,7 +514,7 @@ proc portfetch::fetchfiles {args} {
 
     foreach {url_var distfile} $fetch_urls {
         if {![file isfile "${distpath}/${distfile}"]} {
-            ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
+            ui_info "$UI_PREFIX [format [msgcat::mc "%s does not exist in %s"] $distfile $distpath]"
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
