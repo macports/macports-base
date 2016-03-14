@@ -320,10 +320,6 @@ proc portfetch::bzrfetch {args} {
         }
     }
 
-    if {[info exists patchfiles]} {
-        return [portfetch::fetchfiles]
-    }
-
     return 0
 }
 
@@ -367,9 +363,6 @@ proc portfetch::cvsfetch {args} {
         return -code error [msgcat::mc "CVS check out failed"]
     }
 
-    if {[info exists patchfiles]} {
-        return [portfetch::fetchfiles]
-    }
     return 0
 }
 
@@ -418,10 +411,6 @@ proc portfetch::svnfetch {args} {
         return -code error [msgcat::mc "Subversion check out failed"]
     }
 
-    if {[info exists patchfiles]} {
-        return [portfetch::fetchfiles]
-    }
-
     return 0
 }
 
@@ -465,10 +454,6 @@ proc portfetch::gitfetch {args} {
     }
     file rename -force "${generatedfile}.TMP" "${generatedfile}"
 
-    if {[info exists patchfiles]} {
-        return [portfetch::fetchfiles]
-    }
-
     return 0
 }
 
@@ -486,10 +471,6 @@ proc portfetch::hgfetch {args} {
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
-    }
-
-    if {[info exists patchfiles]} {
-        return [portfetch::fetchfiles]
     }
 
     return 0
@@ -656,12 +637,14 @@ proc portfetch::fetch_main {args} {
 
     # Fetch the files
     switch -- "${fetch.type}" {
-        bzr     { return [bzrfetch] }
-        cvs     { return [cvsfetch] }
-        svn     { return [svnfetch] }
-        git     { return [gitfetch] }
-        hg      { return [hgfetch] }
-        standard -
-        default { return [portfetch::fetchfiles] }
+        bzr     { bzrfetch }
+        cvs     { cvsfetch }
+        svn     { svnfetch }
+        git     { gitfetch }
+        hg      { hgfetch }
+    }
+
+    if {${fetch.type} eq "standard" || ${fetch.type} eq "default" || [info exists patchfiles]} {
+        return [portfetch::fetchfiles]
     }
 }
