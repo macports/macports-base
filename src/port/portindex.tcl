@@ -106,7 +106,7 @@ proc pindex {portdir} {
     set portfile [file join $absportdir Portfile]
     # try to reuse the existing entry if it's still valid
     if {$full_reindex != 1 && [info exists qindex($qname)]} {
-        try {
+        try -pass_signal {
             set mtime [file mtime $portfile]
             if {$oldmtime >= $mtime} {
                 lassign [_read_index $qname] name len line
@@ -129,10 +129,6 @@ proc pindex {portdir} {
 
                 return
             }
-        } catch {{POSIX SIG SIGINT} eCode eMessage} {
-            throw
-        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
-            throw
         } catch {{*} eCode eMessage} {
             ui_warn "Failed to open old entry for ${portdir}, making a new one"
             if {[info exists ui_options(ports_debug)]} {
@@ -142,7 +138,7 @@ proc pindex {portdir} {
     }
 
     incr stats(total)
-    try {
+    try -pass_signal {
         _open_port portinfo $portdir $absportdir port_options
         puts "Adding port $portdir"
 
@@ -158,24 +154,16 @@ proc pindex {portdir} {
         }
         foreach sub $portinfo(subports) {
             incr stats(total)
-            try {
+            try -pass_signal {
                 _open_port portinfo $portdir $absportdir port_options $sub
                 puts "Adding subport $sub"
 
                 _write_index_from_portinfo portinfo yes
-            } catch {{POSIX SIG SIGINT} eCode eMessage} {
-                throw
-            } catch {{POSIX SIG SIGTERM} eCode eMessage} {
-                throw
             } catch {{*} eCode eMessage} {
                 puts stderr "Failed to parse file $portdir/Portfile with subport '${sub}': $eMessage"
                 incr stats(failed)
             }
         }
-    } catch {{POSIX SIG SIGINT} eCode eMessage} {
-        throw
-    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
-        throw
     } catch {{*} eCode eMessage} {
         puts stderr "Failed to parse file $portdir/Portfile: $eMessage"
         incr stats(failed)
