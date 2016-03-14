@@ -220,22 +220,23 @@ proc throw {args} {
     }
 }
 
-# try body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
+# try ?-pass_signal? body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
 # implementation of try as specified in TIP #89
+# option -pass_signal passes SIGINT and SIGTERM signals up the stack
 proc try {args} {
     # validate and interpret the arguments
     set catchList {}
     if {[llength $args] == 0} {
         return -code error "wrong # args: \
-            should be \"try body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
+            should be \"try ?-pass_signal? body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
     }
     if {[lindex $args 0] eq "-pass_signal"} {
         lpush catchList {{POSIX SIG SIGINT} eCode eMessage} {
-            ui_debug [msgcat::mc "Aborted: SIGINT received"]
+            ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
             throw
         }
         lpush catchList {{POSIX SIG SIGTERM} eCode eMessage} {
-            ui_debug [msgcat::mc "Aborted: SIGTERM received"]
+            ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
             throw
         }
         lshift args
