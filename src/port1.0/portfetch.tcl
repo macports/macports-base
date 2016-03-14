@@ -97,6 +97,8 @@ default svn.post_args ""
 default git.cmd {[findBinary git $portutil::autoconf::git_path]}
 default git.dir {${workpath}}
 default git.branch {}
+default git.file {${distname}.${fetch.type}.tar.xz}
+default git.file_prefix {${distname}}
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
@@ -191,6 +193,7 @@ proc portfetch::set_fetch_type {option action args} {
             }
             git {
                 depends_fetch-append bin:git:git
+                default distname {${name}-${git.branch}}
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
@@ -418,13 +421,12 @@ proc portfetch::svnfetch {args} {
 proc portfetch::gitfetch {args} {
     global distpath workpath worksrcpath patchfiles \
            git.url git.branch git.cmd \
-           name fetch.type
+           name distname fetch.type
 
-    set generatedtar "${distpath}/${name}-${git.branch}.${fetch.type}.tar"
-    set generatedfile "${generatedtar}.xz"
+    set generatedfile "${distpath}/${git.file}"
 
     if {${git.branch} ne "" && [file isfile "${generatedfile}"]} {
-        return 0
+        return "${generatedfile}"
     }
 
     set options "-q"
@@ -437,24 +439,30 @@ proc portfetch::gitfetch {args} {
     set cmdstring "${git.cmd} clone $options ${git.url} ${generatedpath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
+        if {[file exists "${generatedpath}"]} {
+            delete ${generatedpath}
+        }
         return -code error [msgcat::mc "Git clone failed"]
     }
 
     if {${git.branch} eq ""} {
         file rename ${generatedpath} ${worksrcpath}
-        return 0
+        return ""
     }
 
     # generate tarball
     set xz [findBinary xz ${portutil::autoconf::xz_path}]
-    set cmdstring "${git.cmd} -c \"tar.tar.xz.command=xz -c\" archive --format=tar.xz --output=${generatedfile}.TMP ${git.branch} 2>&1"
+    set cmdstring "${git.cmd} -c \"tar.tar.xz.command=xz -c\" archive --prefix=\"${git.file_prefix}/\" --format=tar.xz --output=${generatedfile}.TMP ${git.branch} 2>&1"
     ui_debug "Executing $cmdstring"
     if {[catch {system -W ${generatedpath} $cmdstring} result]} {
+        if {[file exists "${generatedfile}.TMP"]} {
+            delete "${generatedfile}.TMP"
+        }
         return -code error [msgcat::mc "Git archive creation failed"]
     }
     file rename -force "${generatedfile}.TMP" "${generatedfile}"
 
-    return 0
+    return "${generatedfile}"
 }
 
 # Perform a mercurial fetch.
@@ -589,9 +597,19 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
+    global fetch.type distname git.branch all_dist_files
     variable fetch_urls
 
     portfetch::checkfiles fetch_urls
+
+    switch -- "${fetch.type}" {
+        git {
+            if {${git.branch} ne ""} {
+                lappend all_dist_files ${distname}.${fetch.type}.tar.xz
+                distfiles-append ${distname}.${fetch.type}.tar.xz
+            }
+        }
+    }
 }
 
 proc portfetch::fetch_start {args} {
