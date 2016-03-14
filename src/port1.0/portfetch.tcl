@@ -419,7 +419,8 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global distpath workpath worksrcpath patchfiles \
+    global UI_PREFIX \
+           distpath workpath worksrcpath patchfiles \
            git.url git.branch git.file git.file_prefix git.cmd \
            name distname fetch.type
 
@@ -435,6 +436,7 @@ proc portfetch::gitfetch {args} {
         set options "$options --depth=1"
     }
 
+    ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
     set generatedpath "${workpath}/${fetch.type}"
     set cmdstring "${git.cmd} clone $options ${git.url} ${generatedpath} 2>&1"
     ui_debug "Executing: $cmdstring"
@@ -451,6 +453,7 @@ proc portfetch::gitfetch {args} {
     }
 
     # generate tarball
+    ui_info "$UI_PREFIX Generating tarball ${git.file}"
     set xz [findBinary xz ${portutil::autoconf::xz_path}]
     set cmdstring "${git.cmd} -c \"tar.tar.xz.command=xz -c\" archive --prefix=\"${git.file_prefix}/\" --format=tar.xz --output=${generatedfile}.TMP ${git.branch} 2>&1"
     ui_debug "Executing $cmdstring"
