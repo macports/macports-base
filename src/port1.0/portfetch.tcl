@@ -194,6 +194,7 @@ proc portfetch::set_fetch_type {option action args} {
             git {
                 depends_fetch-append bin:git:git
                 default distname {${name}-${git.branch}}
+                use_xz yes
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
