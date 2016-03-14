@@ -428,7 +428,7 @@ proc portfetch::svnfetch {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global worksrcpath patchfiles \
-           git.url git.branch git.sha1 git.cmd
+           git.url git.branch git.cmd
 
     set options "-q"
     if {${git.branch} eq ""} {
