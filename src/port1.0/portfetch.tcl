@@ -427,28 +427,43 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global worksrcpath patchfiles \
-           git.url git.branch git.cmd
+    global distpath workpath worksrcpath patchfiles \
+           git.url git.branch git.cmd \
+           name fetch.type
+
+    set generatedtar "${distpath}/${name}-${git.branch}.${fetch.type}.tar"
+    set generatedfile "${generatedtar}.xz"
+
+    if {${git.branch} ne "" && [file isfile "${generatedfile}"]} {
+        return 0
+    }
 
     set options "-q"
     if {${git.branch} eq ""} {
         # if we're just using HEAD, we can make a shallow repo
         set options "$options --depth=1"
     }
-    set cmdstring "${git.cmd} clone $options ${git.url} ${worksrcpath} 2>&1"
+
+    set generatedpath "${workpath}/${fetch.type}"
+    set cmdstring "${git.cmd} clone $options ${git.url} ${generatedpath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
     }
 
-    if {${git.branch} ne ""} {
-        set env "GIT_DIR=${worksrcpath}/.git GIT_WORK_TREE=${worksrcpath}"
-        set cmdstring "$env ${git.cmd} checkout -q ${git.branch} 2>&1"
-        ui_debug "Executing $cmdstring"
-        if {[catch {system $cmdstring} result]} {
-            return -code error [msgcat::mc "Git checkout failed"]
-        }
+    if {${git.branch} eq ""} {
+        file rename ${generatedpath} ${worksrcpath}
+        return 0
     }
+
+    # generate tarball
+    set xz [findBinary xz ${portutil::autoconf::xz_path}]
+    set cmdstring "${git.cmd} -c \"tar.tar.xz.command=xz -c\" archive --format=tar.xz --output=${generatedfile}.TMP ${git.branch} 2>&1"
+    ui_debug "Executing $cmdstring"
+    if {[catch {system -W ${generatedpath} $cmdstring} result]} {
+        return -code error [msgcat::mc "Git archive creation failed"]
+    }
+    file rename -force "${generatedfile}.TMP" "${generatedfile}"
 
     if {[info exists patchfiles]} {
         return [portfetch::fetchfiles]
