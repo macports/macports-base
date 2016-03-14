@@ -229,6 +229,17 @@ proc try {args} {
         return -code error "wrong # args: \
             should be \"try body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
     }
+    if {[lindex $args 0] eq "-pass_signal"} {
+        lpush catchList {{POSIX SIG SIGINT} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted: SIGINT received"]
+            throw
+        }
+        lpush catchList {{POSIX SIG SIGTERM} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted: SIGTERM received"]
+            throw
+        }
+        lshift args
+    }
     set body [lshift args]
     while {[llength $args] > 0} {
         set arg [lshift args]
