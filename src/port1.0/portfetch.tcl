@@ -426,7 +426,7 @@ proc portfetch::gitfetch {args} {
     set generatedfile "${distpath}/${git.file}"
 
     if {${git.branch} ne "" && [file isfile "${generatedfile}"]} {
-        return "${generatedfile}"
+        return 0
     }
 
     set options "-q"
@@ -447,7 +447,7 @@ proc portfetch::gitfetch {args} {
 
     if {${git.branch} eq ""} {
         file rename ${generatedpath} ${worksrcpath}
-        return ""
+        return 0
     }
 
     # generate tarball
@@ -462,7 +462,7 @@ proc portfetch::gitfetch {args} {
     }
     file rename -force "${generatedfile}.TMP" "${generatedfile}"
 
-    return "${generatedfile}"
+    return 0
 }
 
 # Perform a mercurial fetch.
