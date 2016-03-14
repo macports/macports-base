@@ -420,7 +420,7 @@ proc portfetch::svnfetch {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global distpath workpath worksrcpath patchfiles \
-           git.url git.branch git.cmd \
+           git.url git.branch git.file git.file_prefix git.cmd \
            name distname fetch.type
 
     set generatedfile "${distpath}/${git.file}"
