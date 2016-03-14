@@ -5391,7 +5391,7 @@ namespace eval portclient::questions {
 	#        The default answer to the question.
 	# @param time
 	# 		 The amount of time for which a timeout is to occur.
-	proc ui_ask_yesno {msg name ports def {timeout 0}} {
+	proc ui_ask_yesno {msg name ports def {timeout 0} {question "Continue?"}} {
 		# Set number default to the given letter default
 		if {$def == {y}} {
 			set default 0
@@ -5406,6 +5406,7 @@ namespace eval portclient::questions {
 		if {[llength $ports] == 1} {
 			puts -nonewline " "
 			puts [string map {@ " @"} $ports]
+		} elseif {[llength $ports] == 0} {
 		} else {
 			puts ""
 			foreach port $ports {
@@ -5422,10 +5423,10 @@ namespace eval portclient::questions {
 				
 		# Check for the default and print accordingly
 		if {$def == {y}} {
-			puts -nonewline "Continue? \[Y/n\]: "
+			puts -nonewline "${question} \[Y/n\]: "
 			flush stdout
 		} else {
-			puts -nonewline "Continue? \[y/N\]: "
+			puts -nonewline "${question} \[y/N\]: "
 			flush stdout
 		}
 		
