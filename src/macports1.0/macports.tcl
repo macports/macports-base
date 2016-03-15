@@ -354,10 +354,11 @@ proc macports::findBinary {prog {autoconf_hint {}}} {
     if {$autoconf_hint ne "" && [file executable $autoconf_hint]} {
         return $autoconf_hint
     } else {
-        if {[catch {set cmd_path [macports::binaryInPath $prog]} result] == 0} {
+        try -pass_signal {
+            set cmd_path [macports::binaryInPath $prog]
             return $cmd_path
-        } else {
-            return -code error "$result or at its MacPorts configuration time location, did you move it?"
+        } catch {{*} eCode eMessage} {
+            error "$eMessage or at its MacPorts configuration time location, did you move it?"
         }
     }
 }
@@ -387,11 +388,13 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
-    if {![catch {findBinary xcodebuild $macports::autoconf::xcodebuild_path} xcodebuild]} {
+    try -pass_signal {
+        findBinary xcodebuild $macports::autoconf::xcodebuild_path
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion 2.0orlower
-            if {[catch {set xcodebuildversion [exec -- $xcodebuild -version 2> /dev/null]}] == 0} {
+            try -pass_signal {
+                set xcodebuildversion [exec -- $xcodebuild -version 2> /dev/null]
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
                     set macports::xcodeversion $xcode_v
                 } elseif {[regexp {DevToolsCore-(.*);} $xcodebuildversion - devtoolscore_v] == 1} {
@@ -421,7 +424,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion 2.1
                     }
                 }
-            } else {
+            } catch {*} {
                 ui_warn "xcodebuild exists but failed to execute"
                 set macports::xcodeversion none
             }
@@ -429,7 +432,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
         if {![info exists xcodebuildcmd]} {
             set macports::xcodebuildcmd $xcodebuild
         }
-    } else {
+    } catch {*} {
         if {![info exists xcodeversion]} {
             set macports::xcodeversion none
         }
@@ -446,24 +449,29 @@ proc macports::set_developer_dir {name1 name2 op} {
     trace remove variable macports::developer_dir read macports::set_developer_dir
 
     # Look for xcodeselect, and make sure it has a valid value
-    if {![catch {findBinary xcode-select $macports::autoconf::xcode_select_path} xcodeselect]} {
+    try -pass_signal {
+        findBinary xcode-select $macports::autoconf::xcode_select_path
 
         # We have xcode-select: ask it where xcode is and check if it's valid.
         # If no xcode is selected, xcode-select will fail, so catch that
-        if {![catch {exec $xcodeselect -print-path 2> /dev/null} devdir] &&
-            [_is_valid_developer_dir $devdir]} {
-            set macports::developer_dir $devdir
-            return
-        }
+        try -pass_signal {
+            set devdir [exec $xcodeselect -print-path 2> /dev/null]
+            if {[_is_valid_developer_dir $devdir]} {
+                set macports::developer_dir $devdir
+                return
+            }
+        } catch {*} {}
 
         # The directory from xcode-select isn't correct.
 
         # Ask mdfind where Xcode is and make some suggestions for the user,
         # searching by bundle identifier for various Xcode versions (3.x and 4.x)
         set installed_xcodes {}
-        if {![catch {findBinary mdfind $macports::autoconf::mdfind_path} mdfind]} {
+
+        try -pass_signal {
+            findBinary mdfind $macports::autoconf::mdfind_path
             set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
-        }
+        } catch {*} {}
 
         # In case mdfind metadata wasn't complete, also look in two well-known locations for Xcode.app
         foreach app {/Applications/Xcode.app /Developer/Applications/Xcode.app} {
@@ -477,7 +485,13 @@ proc macports::set_developer_dir {name1 name2 op} {
 
         # Present instructions to the user
         ui_error
-        if {[llength $installed_xcodes] > 0 && ![catch {findBinary mdls $macports::autoconf::mdls_path} mdls]} {
+        try -pass_signal {
+            if {[llength $installed_xcodes] == 0} {
+                error "No Xcode installation was found."
+            }
+
+            findBinary mdls $macports::autoconf::mdls_path
+
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected."
             ui_error "Please use xcode-select to select an Xcode installation:"
@@ -499,12 +513,12 @@ proc macports::set_developer_dir {name1 name2 op} {
                     ui_error "    # malformed Xcode at ${xcode}, version $vers"
                 }
             }
-        } else {
+        } catch {*} {
             ui_error "No Xcode installation was found."
             ui_error "Please install Xcode and/or run xcode-select to specify its location."
         }
         ui_error
-    }
+    } catch {*} {}
 
     # Try the default
     if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
@@ -627,9 +641,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
     set macosx_version {}
     if {$os_platform eq "darwin" && [file executable /usr/bin/sw_vers]} {
-        if {![catch {exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.} result]} {
-            set macosx_version $result
-        } else {
+
+        try -pass_signal {
+            set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
+        } catch {*} {
             ui_debug "sw_vers exists but running it failed: $result"
         }
     }
@@ -1053,8 +1068,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # might slow builds down considerably. You can avoid this by touching
     # $portdbpath/.nohide.
     if {$os_platform eq "darwin" && [vercmp [info tclversion] 8.5] >= 0 && ![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
-        if {[catch {file attributes $portdbpath -hidden yes} result]} {
-            ui_debug "error setting hidden flag for $portdbpath: $result"
+        try -pass_signal {
+            file attributes $portdbpath -hidden yes
+        } catch {{*} eCode eMessage} {
+            ui_debug "error setting hidden flag for $portdbpath: $eMessage"
         }
     }
 
@@ -1159,11 +1176,17 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set env(CCACHE_DIR) $macports::ccache_dir
 
     # load cached ping times
-    if {[catch {
+    try -pass_signal {
+        set pingfile -1
         set pingfile [open ${macports::portdbpath}/pingtimes r]
         array set macports::ping_cache [gets $pingfile]
-        close $pingfile
-    }]} {array set macports::ping_cache {}}
+    } catch {*} {
+        array set macports::ping_cache {}
+    } finally {
+        if {$pingfile != -1} {
+            close $pingfile
+        }
+    }
     # set up arrays of blacklisted and preferred hosts
     if {[info exists macports::host_blacklist]} {
         foreach host $macports::host_blacklist {
@@ -1199,6 +1222,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # convert any flat receipts if we just created a new db
     if {$db_exists == 0 && [file exists ${registry.path}/receipts] && [file writable $db_path]} {
         ui_warn "Converting your registry to sqlite format, this might take a while..."
+        # XXX: catch, leave unfixed, code should go away.
         if {[catch {registry::convert_to_sqlite}]} {
             ui_debug $::errorInfo
             file delete -force $db_path
@@ -2869,7 +2893,7 @@ proc mportlookup {name} {
         if {[catch {set fd [open [macports::getindex $source] r]} result]} {
             ui_warn "Can't open index file for source: $source"
         } else {
-            try {
+            try -pass_signal {
                 seek $fd $offset
                 gets $fd line
                 set name [lindex $line 0]
@@ -2896,14 +2920,10 @@ proc mportlookup {name} {
                 }
                 lappend matches $name
                 lappend matches $line
-                close $fd
-                set fd -1
             } catch * {
                 ui_warn "It looks like your PortIndex file for $source may be corrupt."
             } finally {
-                if {$fd != -1} {
-                    close $fd
-                }
+                close $fd
             }
             if {[llength $matches] > 0} {
                 # if we have a match, exit. If we don't, continue with the next
@@ -2933,7 +2953,7 @@ proc mportlistall {} {
         set source [lindex $source 0]
         set protocol [macports::getprotocol $source]
         if {![catch {set fd [open [macports::getindex $source] r]} result]} {
-            try {
+            try -pass_signal {
                 incr found 1
                 while {[gets $fd line] >= 0} {
                     array unset portinfo
@@ -4550,12 +4570,26 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     ui_debug "Updating binary flag for file $i of ${files_count}: $fpath"
                     incr i
 
-                    if {0 != [catch {$f binary [fileIsBinary $fpath]} fileIsBinaryError]} {
-                        # handle errors (e.g. file not found, permission denied) gracefully
+                    try {
+                        $f binary [fileIsBinary $fpath]
+                    } catch {{POSIX SIG SIGINT} eCode eMessage} {
                         if {$fancy_output} {
                             $revupgrade_progress intermission
                         }
-                        ui_warn "Error determining file type of `$fpath': $fileIsBinaryError"
+                        ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
+                        throw
+                    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                        if {$fancy_output} {
+                            $revupgrade_progress intermission
+                        }
+                        ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
+                        throw
+                    } catch {{*} eCode eMessage} {
+                        if {$fancy_output} {
+                            $revupgrade_progress intermission
+                        }
+                        # handle errors (e.g. file not found, permission denied) gracefully
+                        ui_warn "Error determining file type of `$fpath': $eMessage"
                         ui_warn "A file belonging to the `[[registry::entry owner $fpath] name]' port is missing or unreadable. Consider reinstalling it."
                     }
                 }
@@ -4624,7 +4658,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         if {[$architecture cget -mat_install_name] ne "NULL" && [$architecture cget -mat_install_name] ne ""} {
                             # check if this lib's install name actually refers to this file itself
                             # if this is not the case software linking against this library might have erroneous load commands
-                            if {0 == [catch {set idloadcmdpath [revupgrade_handle_special_paths $bpath [$architecture cget -mat_install_name]]}]} {
+
+                            try {
+                                set idloadcmdpath [revupgrade_handle_special_paths $bpath [$architecture cget -mat_install_name]]
                                 if {[string index $idloadcmdpath 0] ne "/"} {
                                     set port [registry::entry owner $bpath]
                                     if {$port ne ""} {
@@ -4666,7 +4702,19 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                         ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                                     }
                                 }
-                            }
+                            } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                                if {$fancy_output} {
+                                    $revupgrade_progress intermission
+                                }
+                                ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
+                                throw
+                            } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                                if {$fancy_output} {
+                                    $revupgrade_progress intermission
+                                }
+                                ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
+                                throw
+                            } catch {*} {}
                         }
                     }
 
@@ -4680,7 +4728,21 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     set loadcommand [$architecture cget -mat_loadcmds]
 
                     while {$loadcommand ne "NULL"} {
-                        if {0 != [catch {set filepath [revupgrade_handle_special_paths $bpath [$loadcommand cget -mlt_install_name]]}]} {
+                        try {
+                            set filepath [revupgrade_handle_special_paths $bpath [$loadcommand cget -mlt_install_name]]
+                        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                            if {$fancy_output} {
+                                $revupgrade_progress intermission
+                            }
+                            ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
+                            throw
+                        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                            if {$fancy_output} {
+                                $revupgrade_progress intermission
+                            }
+                            ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
+                            throw
+                        } catch {*} {
                             set loadcommand [$loadcommand cget -next]
                             continue;
                         }
