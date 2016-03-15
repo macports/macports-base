@@ -381,38 +381,24 @@ namespace eval reclaim {
         } else {
 
             ui_msg "Found inactive ports: $inactive_names."
-            ui_msg "Would you like to uninstall these ports? \[y/N\]: "
+            if {[info exists macports::ui_options(questions_multichoice)]} {
+                set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these ports?" "" $inactive_names]
 
-            set input [gets stdin]
-            if {$input eq "Y" || $input eq "y" } {
+                if {[llength $retstring] > 0} {
+                    foreach i $retstring {
+                        set port [lindex $inactive_ports $i]
+                        set name [lindex $port 0]
 
-                ui_debug "Iterating through all inactive ports... again."
+                        ui_msg "Uninstalling: $name"
 
-                foreach port $inactive_ports {
-                    set name [lindex $port 0]
-
-                    # Get all dependents of the current port
-                    if {[catch {set dependents [registry::list_dependents $name [lindex 1] [lindex 2] [lindex 3]]} error]} {
-                        ui_error "something went wrong when trying to enumerate all dependents of $name"
-                    }
-                    if {${dependents} ne ""} {
-                        ui_warn "Port $name is a dependent of $dependents. Do you want to uninstall this port at the risk of breaking other ports? \[Y/n\]"
-
-                        set input [gets stdin]
-                        if { $input eq "N" || "n" } {
-                            ui_msg "Skipping port."
-                            continue
+                        # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
+                        if {[catch {registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}} error]} {
+                            ui_error "something went wrong when uninstalling $name"
                         }
                     }
-                    ui_msg "Uninstalling: $name"
-
-                    # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
-                    if {[catch {registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}} error]} {
-                        ui_error "something went wrong when uninstalling $name"
-                    }
+                } else {
+                    ui_msg "Not uninstalling ports."
                 }
-            } else {
-                ui_msg "Not uninstalling ports."
             }
         }
         return 0
