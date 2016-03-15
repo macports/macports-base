@@ -4478,7 +4478,6 @@ proc macports::diagnose_main {opts} {
 }
 
 proc macports::reclaim_main {} {
-
     # Calls the main function for the 'port reclaim' command.
     #
     # Args:
@@ -4486,7 +4485,19 @@ proc macports::reclaim_main {} {
     # Returns:
     #           None
 
-    reclaim::main
+    try {
+        reclaim::main
+    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+        ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
+        return 2
+    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+        ui_error [msgcat::mc "reclaim aborted: SIGTERM received."]
+        return 2
+    } catch {{*} eCode eMessage} {
+        ui_debug "reclaim failed: $::errorInfo"
+        ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
+        return 1
+    }
     return 0
 }
 
