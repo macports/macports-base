@@ -5330,206 +5330,206 @@ namespace eval portclient::notifications {
 
 # Create namespace for questions
 namespace eval portclient::questions {
-	
-	package require Tclx
-	##
-	# Function that handles printing of a timeout.
-	#
-	# @param time
-	#        The amount of time for which a timeout is to occur.
-	# @param def
-	#        The default action to be taken in the occurence of a timeout.
-	proc ui_timeout {def timeout} {
-		fconfigure stdin -blocking 0
+    
+    package require Tclx
+    ##
+    # Function that handles printing of a timeout.
+    #
+    # @param time
+    #        The amount of time for which a timeout is to occur.
+    # @param def
+    #        The default action to be taken in the occurence of a timeout.
+    proc ui_timeout {def timeout} {
+        fconfigure stdin -blocking 0
 
-		signal error {TERM INT}
-		while {$timeout >= 0} {
-			if {[catch {set inp [read stdin]} err]} {
-				return -code error "Ctrl-C"
-			}
-			if {$inp eq "\n"} {
-				return $def
-			}
-			puts -nonewline "\r"
-			puts -nonewline [format "Continuing in %02d s. Press Ctrl-C to exit: " $timeout]
-			flush stdout
-			after 1000
-			incr timeout -1
-		}
-		puts ""
-		fconfigure stdin -blocking 1
-		signal -restart error {TERM INT}
-		return $def
-	}
-	
-	##
-	# Main function that displays numbered choices for a multiple choice question.
-	#
-	# @param msg
-	#        The question specific message that is to be printed before asking the question.
-	# @param ???name???
-	#        May be a qid will be of better use instead as the client does not do anything port specific.
-	# @param ports
-	#        The list of ports for which the question is being asked.
-	proc ui_choice {msg name ports} {
-		# Print the main message
-		puts $msg
-		
-		# Print portname or port list suitably
-		set i 1
-		foreach port $ports {
-			puts -nonewline " $i) "
-			puts [string map {@ " @" ( " ("} $port]
-			incr i
-		}
-	}
-	
-	##
-	# Displays a question with 'yes' and 'no' as options. 
-	# Waits for user input indefinitely unless a timeout is specified.
-	# Shows the list of port passed to it without any numbers.
-	#
-	# @param msg
-	#        The question specific message that is to be printed before asking the question.
-	# @param ???name???
-	#        May be a qid will be of better use instead as the client does not do anything port specific.
-	# @param ports
-	#        The port/list of ports for which the question is being asked.
-	# @param def
-	#        The default answer to the question.
-	# @param timeout
-	# 		 The amount of time for which a timeout is to occur.
-	# @param question
-	#        Custom question message. Defaults to "Continue?".
-	proc ui_ask_yesno {msg name ports def {timeout 0} {question "Continue?"}} {
-		# Set number default to the given letter default
-		if {$def == {y}} {
-			set default 0
-		} else {
-			set default 1
-		}
-		
-		puts -nonewline $msg
-		set leftmargin " "
-		
-		# Print portname or port list suitably
-		if {[llength $ports] == 1} {
-			puts -nonewline " "
-			puts [string map {@ " @"} $ports]
-		} elseif {[llength $ports] == 0} {
-		} else {
-			puts ""
-			foreach port $ports {
-				puts -nonewline $leftmargin  
-				puts [string map {@ " @"} $port]
-			}
-		}
-		
-		# Check if timeout is set or not
-		if {$timeout > 0} {
-			# Run ui_timeout and skip the rest of the stuff here
-			return [ui_timeout $default $timeout] 
-		}
-				
-		# Check for the default and print accordingly
-		if {$def == {y}} {
-			puts -nonewline "${question} \[Y/n\]: "
-			flush stdout
-		} else {
-			puts -nonewline "${question} \[y/N\]: "
-			flush stdout
-		}
-		
-		# User input (probably requires some input error checking code) 
-		while 1 {
-			signal error {TERM INT}
-			if {[catch {set input [gets stdin]} err]} {
-				return -code error "Ctrl-C"
-			}
-			signal -restart error {TERM INT}
-			if {$input in {y Y}} {
-				return 0
-			} elseif {$input in {n N}} {
-				return 1
-			} elseif {$input == ""} {
-				return $default
-			} else {
-				puts "Please enter either 'y' or 'n'."
-			}
-		}
-	}
-	
-	##
-	# Displays a question with a list of numbered choices and asks the user to enter a number to specify their choice.
-	# Waits for user input indefinitely.
-	#
-	# @param msg
-	#        The question specific message that is to be printed before asking the question.
-	# @param ???name???
-	#        May be a qid will be of better use instead as the client does not do anything port specific.
-	# @param ports
-	#        The port/list of ports for which the question is being asked.
-	proc ui_ask_singlechoice {msg name ports} {
-		ui_choice $msg $name $ports
-				
-		# User Input (single input restriction)
-		while 1 {
-			puts -nonewline "Enter a number to select an option: "
-			flush stdout
-			signal error {TERM INT}
-			if {[catch {set input [gets stdin]} err]} {
-				return -code error "Ctrl-C"
-			}
-			signal -restart error {TERM INT}
-			if {($input <= [llength $ports] && [string is integer -strict $input])} {
-				return $input
-			} else {
-				puts "Please enter an index from the above list."
-			}
-		}
-	}
-	
-	##
-	# Displays a question with a list of numbered choices and asks the user to enter a space separated string of numbers to specify their choice.
-	# Waits for user input indefinitely.
-	#
-	# @param msg
-	#        The question specific message that is to be printed before asking the question.
-	# @param ???name???
-	#        May be a qid will be of better use instead as the client does not do anything port specific.
-	# @param ports
-	#        The list of ports for which the question is being asked.
-	proc ui_ask_multichoice {msg name ports} {
-		
-		ui_choice $msg $name $ports
-				
-		# User Input (with Multiple input parsing) 
-		while 1 {
-			puts -nonewline "Enter the numbers to select the options: "
-			flush stdout
-			signal error {TERM INT}
-			if {[catch {set input [gets stdin]} err]} {
-				return -code error "Ctrl-C"
-			}
-			signal -restart error {TERM INT}
-			set count 0
-			# check if input is non-empty and otherwise fine
-			if {$input == ""} {
-				continue
-			}
-			foreach num $input {
-				if {($num <= [llength $ports] && [string is integer -strict $num])} {
-					incr count
-				} else {
-					puts "Please enter numbers separated by a space which are indices from the above list."
-					break
-				}
-			}
-			if {$count == [llength $input]} {
-				return $input
-			}
-		}
-	}
+        signal error {TERM INT}
+        while {$timeout >= 0} {
+            if {[catch {set inp [read stdin]} err]} {
+                return -code error "Ctrl-C"
+            }
+            if {$inp eq "\n"} {
+                return $def
+            }
+            puts -nonewline "\r"
+            puts -nonewline [format "Continuing in %02d s. Press Ctrl-C to exit: " $timeout]
+            flush stdout
+            after 1000
+            incr timeout -1
+        }
+        puts ""
+        fconfigure stdin -blocking 1
+        signal -restart error {TERM INT}
+        return $def
+    }
+    
+    ##
+    # Main function that displays numbered choices for a multiple choice question.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param ports
+    #        The list of ports for which the question is being asked.
+    proc ui_choice {msg name ports} {
+        # Print the main message
+        puts $msg
+        
+        # Print portname or port list suitably
+        set i 1
+        foreach port $ports {
+            puts -nonewline " $i) "
+            puts [string map {@ " @" ( " ("} $port]
+            incr i
+        }
+    }
+    
+    ##
+    # Displays a question with 'yes' and 'no' as options. 
+    # Waits for user input indefinitely unless a timeout is specified.
+    # Shows the list of port passed to it without any numbers.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param ports
+    #        The port/list of ports for which the question is being asked.
+    # @param def
+    #        The default answer to the question.
+    # @param timeout
+    #          The amount of time for which a timeout is to occur.
+    # @param question
+    #        Custom question message. Defaults to "Continue?".
+    proc ui_ask_yesno {msg name ports def {timeout 0} {question "Continue?"}} {
+        # Set number default to the given letter default
+        if {$def == {y}} {
+            set default 0
+        } else {
+            set default 1
+        }
+        
+        puts -nonewline $msg
+        set leftmargin " "
+        
+        # Print portname or port list suitably
+        if {[llength $ports] == 1} {
+            puts -nonewline " "
+            puts [string map {@ " @"} $ports]
+        } elseif {[llength $ports] == 0} {
+        } else {
+            puts ""
+            foreach port $ports {
+                puts -nonewline $leftmargin  
+                puts [string map {@ " @"} $port]
+            }
+        }
+        
+        # Check if timeout is set or not
+        if {$timeout > 0} {
+            # Run ui_timeout and skip the rest of the stuff here
+            return [ui_timeout $default $timeout] 
+        }
+                
+        # Check for the default and print accordingly
+        if {$def == {y}} {
+            puts -nonewline "${question} \[Y/n\]: "
+            flush stdout
+        } else {
+            puts -nonewline "${question} \[y/N\]: "
+            flush stdout
+        }
+        
+        # User input (probably requires some input error checking code) 
+        while 1 {
+            signal error {TERM INT}
+            if {[catch {set input [gets stdin]} err]} {
+                return -code error "Ctrl-C"
+            }
+            signal -restart error {TERM INT}
+            if {$input in {y Y}} {
+                return 0
+            } elseif {$input in {n N}} {
+                return 1
+            } elseif {$input == ""} {
+                return $default
+            } else {
+                puts "Please enter either 'y' or 'n'."
+            }
+        }
+    }
+    
+    ##
+    # Displays a question with a list of numbered choices and asks the user to enter a number to specify their choice.
+    # Waits for user input indefinitely.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param ports
+    #        The port/list of ports for which the question is being asked.
+    proc ui_ask_singlechoice {msg name ports} {
+        ui_choice $msg $name $ports
+                
+        # User Input (single input restriction)
+        while 1 {
+            puts -nonewline "Enter a number to select an option: "
+            flush stdout
+            signal error {TERM INT}
+            if {[catch {set input [gets stdin]} err]} {
+                return -code error "Ctrl-C"
+            }
+            signal -restart error {TERM INT}
+            if {($input <= [llength $ports] && [string is integer -strict $input])} {
+                return $input
+            } else {
+                puts "Please enter an index from the above list."
+            }
+        }
+    }
+    
+    ##
+    # Displays a question with a list of numbered choices and asks the user to enter a space separated string of numbers to specify their choice.
+    # Waits for user input indefinitely.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param ports
+    #        The list of ports for which the question is being asked.
+    proc ui_ask_multichoice {msg name ports} {
+        
+        ui_choice $msg $name $ports
+                
+        # User Input (with Multiple input parsing) 
+        while 1 {
+            puts -nonewline "Enter the numbers to select the options: "
+            flush stdout
+            signal error {TERM INT}
+            if {[catch {set input [gets stdin]} err]} {
+                return -code error "Ctrl-C"
+            }
+            signal -restart error {TERM INT}
+            set count 0
+            # check if input is non-empty and otherwise fine
+            if {$input == ""} {
+                continue
+            }
+            foreach num $input {
+                if {($num <= [llength $ports] && [string is integer -strict $num])} {
+                    incr count
+                } else {
+                    puts "Please enter numbers separated by a space which are indices from the above list."
+                    break
+                }
+            }
+            if {$count == [llength $input]} {
+                return $input
+            }
+        }
+    }
 }
 
 ##########################################
@@ -5587,12 +5587,12 @@ if {[isatty stdout]
 }
 
 if {[isatty stdin]
-	&& [isatty stdout]
-	&& (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")
-	&& (![info exists ui_options(ports_noninteractive)] || $ui_options(ports_noninteractive) ne "yes")} {
-	set ui_options(questions_yesno) portclient::questions::ui_ask_yesno
-	set ui_options(questions_singlechoice) portclient::questions::ui_ask_singlechoice
-	set ui_options(questions_multichoice) portclient::questions::ui_ask_multichoice
+    && [isatty stdout]
+    && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")
+    && (![info exists ui_options(ports_noninteractive)] || $ui_options(ports_noninteractive) ne "yes")} {
+    set ui_options(questions_yesno) portclient::questions::ui_ask_yesno
+    set ui_options(questions_singlechoice) portclient::questions::ui_ask_singlechoice
+    set ui_options(questions_multichoice) portclient::questions::ui_ask_multichoice
 }
 
 set ui_options(notifications_append) portclient::notifications::append
