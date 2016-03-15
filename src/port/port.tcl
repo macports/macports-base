@@ -5397,8 +5397,10 @@ namespace eval portclient::questions {
 	#        The port/list of ports for which the question is being asked.
 	# @param def
 	#        The default answer to the question.
-	# @param time
+	# @param timeout
 	# 		 The amount of time for which a timeout is to occur.
+	# @param question
+	#        Custom question message. Defaults to "Continue?".
 	proc ui_ask_yesno {msg name ports def {timeout 0} {question "Continue?"}} {
 		# Set number default to the given letter default
 		if {$def == {y}} {
