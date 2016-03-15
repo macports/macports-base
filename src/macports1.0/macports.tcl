@@ -389,7 +389,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
     try -pass_signal {
-        findBinary xcodebuild $macports::autoconf::xcodebuild_path
+        set xcodebuild [findBinary xcodebuild $macports::autoconf::xcodebuild_path]
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion 2.0orlower
@@ -450,7 +450,7 @@ proc macports::set_developer_dir {name1 name2 op} {
 
     # Look for xcodeselect, and make sure it has a valid value
     try -pass_signal {
-        findBinary xcode-select $macports::autoconf::xcode_select_path
+        set xcodeselect [findBinary xcode-select $macports::autoconf::xcode_select_path]
 
         # We have xcode-select: ask it where xcode is and check if it's valid.
         # If no xcode is selected, xcode-select will fail, so catch that
@@ -469,7 +469,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         set installed_xcodes {}
 
         try -pass_signal {
-            findBinary mdfind $macports::autoconf::mdfind_path
+            set mdfind [findBinary mdfind $macports::autoconf::mdfind_path]
             set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
         } catch {*} {}
 
@@ -490,7 +490,7 @@ proc macports::set_developer_dir {name1 name2 op} {
                 error "No Xcode installation was found."
             }
 
-            findBinary mdls $macports::autoconf::mdls_path
+            set mdls [findBinary mdls $macports::autoconf::mdls_path]
 
             # One, or more than one, Xcode installations found
             ui_error "No valid Xcode installation is properly selected."
