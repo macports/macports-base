@@ -13,18 +13,10 @@ array set ui_options {}
 mportinit ui_options
 
 test remove_distfiles {
-
-    # Regression test for remove_distfiles.
-    # 
-    # Constraints:
-    #               Requires root to run.
-
     Test for distfiles being successfully removed.
-
 } -constraints {
     root
 } -body {
-    
     set path [file join ${macports::portdbpath} distfiles]
     set file [file join $path "test.txt"]
 
@@ -38,26 +30,15 @@ test remove_distfiles {
     }
 
     return "Successfully removed distfile."
-
 } -cleanup {
     file delete -force $file
-
 } -result "Successfully removed distfile."
 
 test update_last_run {
-
-    # Regression test for update_last_run.
-    # 
-    # Constraints:
-    #               Requires root to run. 
-
     Tests for last_reclaim file being updated.
-
 } -constraints {
     root
-
 } -body {
-
     set path     [file join ${macports::portdbpath} last_reclaim]
 
     set fd          [open $path w]
@@ -83,24 +64,14 @@ test update_last_run {
     set fd  [open $path w]
     puts $fd $old_time
     close $fd
-
 } -result "Successfully updated to the correct time."
 
 
 test walk_files {
-
-    # Regression test for walk_files.
-    # 
-    # Constraints:
-    #               Require's root to run. 
-
     Tests if walking through the files, and deleting distfiles, ignoring normal files, and removing directory trees works.
-
 } -constraints {
     root
-
 } -body {
-    
     set path        [file join ${macports::portdbpath} distfiles]
     set dir         [file join $path tmp_dir]
     set subdir      [file join $dir other_tmp_dir]
@@ -129,11 +100,8 @@ test walk_files {
     }
 
     return "Successfully deleted all files that needed to be deleted."
-    
 } -cleanup {
     file delete -force $dir  
-
 } -result "Successfully deleted all files that needed to be deleted."
 
 cleanupTests
-
