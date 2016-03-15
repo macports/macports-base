@@ -112,15 +112,6 @@ test init_logging {
     if {[macports::init_logging $mport] != 0} {
        return "FAIL: incorrect channels"
     }
-
-    set portname [_mportkey $mport subport]
-    set portpath [_mportkey $mport portpath]
-    set logname [file join [macports::getportlogpath $portpath $portname] main.log]
-
-    if {![file exists $logname]} {
-        return "FAIL: log file was not created at $logname"
-    }
-
     return "Init logging successful."
 } -cleanup {
     mportclose $mport
