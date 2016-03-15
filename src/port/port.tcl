@@ -5512,21 +5512,28 @@ namespace eval portclient::questions {
                 return -code error "Ctrl-C"
             }
             signal -restart error {TERM INT}
-            set count 0
             # check if input is non-empty and otherwise fine
             if {$input == ""} {
                 continue
             }
+
+            if {[llength $input] > [llength $ports]} {
+                puts "Extra indices present. Please enter option(s) only once."
+                continue
+            }
+
+            set selected_opt []
+
             foreach num $input {
-                if {($num <= [llength $ports] && [string is integer -strict $num])} {
-                    incr count
+                if {([string is integer -strict $num] && $num <= [llength $ports] && $num > 0)} {
+                    lappend selected_opt [expr {$num -1}]
                 } else {
                     puts "Please enter numbers separated by a space which are indices from the above list."
                     break
                 }
             }
-            if {$count == [llength $input]} {
-                return $input
+            if {[llength $input] == [llength $selected_opt]} {
+                return $selected_opt
             }
         }
     }
