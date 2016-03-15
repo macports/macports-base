@@ -112,13 +112,15 @@ test init_logging {
     if {[macports::init_logging $mport] != 0} {
        return "FAIL: incorrect channels"
     }
-    if {$macports::channels(any) ne "stdout debuglog"} {
-       return "FAIL: incorrect channels(any)"
+
+    set portname [_mportkey $mport subport]
+    set portpath [_mportkey $mport portpath]
+    set logname [file join [macports::getportlogpath $portpath $portname] main.log]
+
+    if {![file exists $logname]} {
+        return "FAIL: log file was not created at $logname"
     }
-    if {(![info exists ui_options(ports_debug)] && $macports::channels(debug) ne "debuglog") || 
-        ([info exists ui_options(ports_debug)] && $macports::channels(debug) ne "stderr debuglog")} {
-       return "FAIL: incorrect channels(debug)"
-    }
+
     return "Init logging successful."
 } -cleanup {
     mportclose $mport
