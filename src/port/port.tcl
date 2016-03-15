@@ -154,58 +154,6 @@ proc const {name args} {
     proc $name {} [list return [expr $args]]
 }
 
-# Format an integer representing bytes using given units
-proc bytesize {siz {unit {}} {format {%.3f}}} {
-    if {$unit == {}} {
-        if {$siz > 0x40000000} {
-            set unit "GiB"
-        } elseif {$siz > 0x100000} {
-            set unit "MiB"
-        } elseif {$siz > 0x400} {
-            set unit "KiB"
-        } else {
-            set unit "B"
-        }
-    }
-    switch -- $unit {
-        KiB {
-            set siz [expr {$siz / 1024.0}]
-        }
-        kB {
-            set siz [expr {$siz / 1000.0}]
-        }
-        MiB {
-            set siz [expr {$siz / 1048576.0}]
-        }
-        MB {
-            set siz [expr {$siz / 1000000.0}]
-        }
-        GiB {
-            set siz [expr {$siz / 1073741824.0}]
-        }
-        GB {
-            set siz [expr {$siz / 1000000000.0}]
-        }
-        B { }
-        default {
-            ui_warn "Unknown file size unit '$unit' specified"
-            set unit "B"
-        }
-    }
-    if {[expr {round($siz)}] != $siz} {
-        set siz [format $format $siz]
-    }
-    return "$siz $unit"
-}
-
-proc filesize {fil {unit {}}} {
-    set siz {@}
-    catch {
-        set siz [bytesize [file size $fil] $unit]
-    }
-    return $siz
-}
-
 # Produce an error message, and exit, unless
 # we're handling errors in a soft fashion, in which
 # case we continue
