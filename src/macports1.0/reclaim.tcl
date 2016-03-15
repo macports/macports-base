@@ -137,9 +137,11 @@ namespace eval reclaim {
             set variants [lindex $port 3]
 
             # Get mport reference
-            if {[catch {set mport [mportopen_installed $name $version $revision $variants {}]} error]} {
+            try -pass_signal {
+                set mport [mportopen_installed $name $version $revision $variants {}]
+            } catch {{*} eCode eMessage} {
                 $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $error]
+                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $eMessage]
                 continue
             }
 
@@ -207,7 +209,7 @@ namespace eval reclaim {
                             set root_length [string length "${root_dist}/"]
                             set home_length [string length "${home_dist}/"]
 
-                            try {
+                            try -pass_signal {
                                 ui_info [msgcat::mc "Deleting unused file %s" $f]
                                 file delete -- $f
 
@@ -225,7 +227,7 @@ namespace eval reclaim {
                                     }
 
                                     ui_info [msgcat::mc "Deleting empty directory %s" $directory]
-                                    try {
+                                    try -pass_signal {
                                         file delete -- $directory
                                     } catch {{*} eCode eMessage} {
                                         ui_warn [msgcat::mc "Could not delete empty directory %s: %s" $directory $eMesage]
@@ -258,19 +260,6 @@ namespace eval reclaim {
         return 0
     }
 
-    proc close_file {file} {
-
-        # Closes the file, handling error catching if needed.
-        #
-        # Args: 
-        #           file - The file handler
-        # Returns:
-        #           None
-        if {[catch {close $file} error]} {
-            ui_error "something went wrong when closing file, $file."
-        }
-    }
-
     proc is_inactive {port} {
 
         # Determines whether a port is inactive or not.
@@ -298,12 +287,12 @@ namespace eval reclaim {
         #           A multidimensional list where each port is a sublist, i.e., [{first port info} {second port info} {...}]
         #           Indexes of each sublist are: 0 = name, 1 = version, 2 = revision, 3 = variants, 4 = activity, and 5 = epoch.
         
-        if {[catch {set installed [registry::installed]} result]} {
+        try -pass_signal {
+            return [registry::installed]
+        } catch {*} {
             ui_error "no installed ports found."
             return {}
         }
-
-        return $installed
     }
 
     proc update_last_run {} {
@@ -317,10 +306,16 @@ namespace eval reclaim {
 
         ui_debug "Updating last run information."
 
-        set path    [file join ${macports::portdbpath} last_reclaim]
-        set fd      [open $path w]
-        puts $fd    [clock seconds]
-        close_file $fd
+        set path [file join ${macports::portdbpath} last_reclaim]
+        set fd -1
+        try -pass_signal {
+            set fd [open $path w]
+            puts $fd [clock seconds]
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
+        }
     }
 
     proc check_last_run {} {
@@ -336,16 +331,19 @@ namespace eval reclaim {
 
         set path [file join ${macports::portdbpath} last_reclaim]
 
-        if {[file exists $path]} {
-
-            set fd      [open $path r]
-            set time    [gets $fd]
-            close_file $fd
-
-            if {$time ne ""} {
-                if {[clock seconds] - $time > 1209600} {
-                    ui_warn "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space."
-                }
+        set fd -1
+        set time ""
+        try -pass_signal {
+            set fd [open $path r]
+            set time [gets $fd]
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
+        }
+        if {$time ne ""} {
+            if {[clock seconds] - $time > 1209600} {
+                ui_warn "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space."
             }
         }
     }
@@ -392,8 +390,10 @@ namespace eval reclaim {
                         ui_msg "Uninstalling: $name"
 
                         # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
-                        if {[catch {registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}} error]} {
-                            ui_error "something went wrong when uninstalling $name"
+                        try -pass_signal {
+                            registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}
+                        } catch {{*} eCode eMessage} {
+                            ui_error "Error uninstalling $name: $eMessage"
                         }
                     }
                 } else {
