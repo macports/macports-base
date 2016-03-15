@@ -17,12 +17,15 @@ file delete -force $pwd/tmpdir
 init_tmp_prefix $pwd $pwd/tmpdir
 
 array set ui_options {}
+set ui_options(ports_noninteractive) yes
 mportinit ui_options
 
+# reclaim nees to be fixed to honor the noninteractive flag
 test remove_distfiles {
     Test for distfiles being successfully removed.
 } -constraints {
     root
+    userInteraction
 } -body {
     set path [file join ${macports::portdbpath} distfiles]
     set file [file join $path "test.txt"]

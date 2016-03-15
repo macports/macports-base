@@ -23,8 +23,7 @@ init_tmp_prefix $pwd $pwd/tmpdir
 
 # Debug options
 array set ui_options {}
-#set ui_options(ports_debug)   yes
-#set ui_options(ports_verbose) yes
+set ui_options(ports_noninteractive) yes
 mportinit ui_options
 
 
