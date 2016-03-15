@@ -89,6 +89,7 @@ test walk_files {
     set bad_dist2   [file join $dir bad_distfile2.txt]
     set good_dist   [file join $dir good_distfile.txt]
     set dist_list   [list]
+    set unused_list [list]
 
     lappend dist_list $good_dist
 
@@ -103,10 +104,19 @@ test walk_files {
     set $fd         [open $good_dist w] 
     close $fd
 
-    reclaim::walk_files $dir yes $dist_list 
+    reclaim::walk_files $dir $dist_list unused_list 
 
-    if {[file exists $bad_dist] || [file exists $bad_dist2] || [file exists $subdir] || ![file exists $good_dist] || ![file exists $dir]} {
-        return "FAIL: Did not delete the correct files, or deleted files that should not have been deleted."
+    if {[lsearch -exact $unused_list $bad_dist] == -1} {
+        return "FAIL: bad_dist should be deleted"
+    }
+    if {[lsearch -exact $unused_list $bad_dist2] == -1} {
+        return "FAIL: bad_dist2 should be deleted"
+    }
+    if {[lsearch -exact $unused_list $good_dist] != -1} {
+        return "FAIL: good_dist should NOT be deleted"
+    }
+    if {[lsearch -exact $unused_list $dir] != -1} {
+        return "FAIL: good_dist should NOT be deleted"
     }
 
     return "Successfully deleted all files that needed to be deleted."
