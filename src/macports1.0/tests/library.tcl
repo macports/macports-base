@@ -63,3 +63,25 @@ proc macports_worker_init {} {
     # We don't need to handle portinterp_deferred_options, they're
     # automatically handled correctly.
 }
+
+# Set up a custom environment with its own configuration
+proc init_tmp_prefix {srcpath dstpath} {
+    global env
+
+    # use custom macports.conf and sources.conf
+    makeDirectory $dstpath
+    makeDirectory $dstpath/share
+    makeDirectory $dstpath/var/macports/registry
+    set fd [open $dstpath/macports.conf w+]
+    puts $fd "portdbpath $dstpath/var/macports"
+    puts $fd "prefix $dstpath"
+    puts $fd "variants_conf $dstpath/variants.conf"
+    puts $fd "sources_conf $srcpath/sources.conf"
+    puts $fd "applications_dir $dstpath/Applications"
+    puts $fd "frameworks_dir $dstpath/Library/Frameworks"
+    close $fd
+    file link -symbolic $dstpath/share/macports $macports::autoconf::prefix/share/macports
+    close [open $dstpath/variants.conf w+]
+
+    set env(PORTSRC) $dstpath/macports.conf
+}
