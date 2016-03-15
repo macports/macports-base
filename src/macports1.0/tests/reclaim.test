@@ -9,6 +9,13 @@ set pwd [file dirname [file normalize $argv0]]
 source ../macports_test_autoconf.tcl
 package require macports 1.0
 
+source ./library.tcl
+
+# clean leftovers from interrupted tests
+file delete -force $pwd/tmpdir
+# use a local, temporary prefix for testing
+init_tmp_prefix $pwd $pwd/tmpdir
+
 array set ui_options {}
 mportinit ui_options
 
