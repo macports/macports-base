@@ -5417,6 +5417,7 @@ namespace eval portclient::questions {
             puts -nonewline " "
             puts [string map {@ " @"} $ports]
         } elseif {[llength $ports] == 0} {
+            puts -nonewline " "
         } else {
             puts ""
             foreach port $ports {
