@@ -5521,7 +5521,12 @@ namespace eval portclient::questions {
 
         # User Input (with Multiple input parsing)
         while 1 {
-            puts -nonewline "Enter the numbers to select the options: "
+            if {[llength $ports] > 1} {
+                set option_range "1-[llength $ports]"
+            } else {
+                set option_range "1"
+            }
+            puts -nonewline "Enter option(s) \[$option_range/all\]: "
             flush stdout
             signal error {TERM INT}
             try {
@@ -5535,7 +5540,17 @@ namespace eval portclient::questions {
             signal -restart error {TERM INT}
             # check if input is non-empty and otherwise fine
             if {$input == ""} {
-                continue
+                return []
+            }
+
+            if {[string equal -nocase $input "all"]} {
+                set count 0
+                set options_seq []
+                foreach port $ports {
+                    lappend options_seq $count
+                    incr count
+                }
+                return $options_seq    
             }
 
             if {[llength $input] > [llength $ports]} {
