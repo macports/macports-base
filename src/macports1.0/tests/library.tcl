@@ -72,6 +72,7 @@ proc init_tmp_prefix {srcpath dstpath} {
     makeDirectory $dstpath
     makeDirectory $dstpath/share
     makeDirectory $dstpath/var/macports/registry
+    makeDirectory $dstpath/var/macports/distfiles
     set fd [open $dstpath/macports.conf w+]
     puts $fd "portdbpath $dstpath/var/macports"
     puts $fd "prefix $dstpath"
