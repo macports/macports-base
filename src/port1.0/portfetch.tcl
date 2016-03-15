@@ -418,6 +418,16 @@ proc portfetch::svnfetch {args} {
     return 0
 }
 
+# Check if a tarball can be produced for git
+proc portfetch::git_tarballable {args} {
+    global git.branch
+    if {${git.branch} eq ""} {
+        return no
+    } else {
+        return yes
+    }
+}
+
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global UI_PREFIX \
@@ -427,7 +437,7 @@ proc portfetch::gitfetch {args} {
 
     set generatedfile "${distpath}/${git.file}"
 
-    if {${git.branch} ne "" && [file isfile "${generatedfile}"]} {
+    if {[git_tarballable] && [file isfile "${generatedfile}"]} {
         return 0
     }
 
@@ -448,7 +458,7 @@ proc portfetch::gitfetch {args} {
         return -code error [msgcat::mc "Git clone failed"]
     }
 
-    if {${git.branch} eq ""} {
+    if {![git_tarballable]} {
         file rename ${generatedpath} ${worksrcpath}
         return 0
     }
@@ -608,7 +618,7 @@ proc portfetch::fetch_init {args} {
 
     switch -- "${fetch.type}" {
         git {
-            if {${git.branch} ne ""} {
+            if {[git_tarballable]} {
                 lappend all_dist_files ${distname}.${fetch.type}.tar.xz
                 distfiles-append ${distname}.${fetch.type}.tar.xz
             }
