@@ -1250,13 +1250,13 @@ proc mportshutdown {} {
             close $pingfile
         }
     }
-    # close it down so the cleanup stuff is called, e.g. vacuuming the db
-    registry::close
-
-    # Check the last time 'reclaim' was run
+    # Check the last time 'reclaim' was run and run it
     if {![macports::ui_isset ports_quiet]} {
         reclaim::check_last_run
     }
+
+    # close it down so the cleanup stuff is called, e.g. vacuuming the db
+    registry::close
 }
 
 # link plist for xcode 4.3's benefit
