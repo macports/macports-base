@@ -351,12 +351,19 @@ test ui_channels_default {
 
 test ui_warn_once {
     UI warn once unit test.
+} -setup {
+    # suppress test warning to avoid noise on terminal output
+    set channel_saved $macports::channels(warn)
+    set macports::channels(warn) {}
 } -body {
     set res [ui_warn_once 0 test]
+
     if {$macports::warning_done(0) != 1} {
 	return "FAIL: warning flag not set"
     }
     return "UI warn once successful."
+} -cleanup {
+    set macports::channels(warn) $channel_saved
 } -result "UI warn once successful."
 
 
