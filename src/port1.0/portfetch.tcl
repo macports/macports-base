@@ -290,7 +290,7 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
-    global env patchfiles
+    global env 
 
     # Behind a proxy bzr will fail with the following error if proxies
     # listed in macports.conf appear in the environment in their
@@ -332,7 +332,7 @@ proc portfetch::bzrfetch {args} {
 proc portfetch::cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args \
            cvs.root cvs.date cvs.tag cvs.method cvs.password
-           patch_sites patchfiles filespath
+           patch_sites filespath
 
     set cvs.args "${cvs.method} ${cvs.args}"
     if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
@@ -397,7 +397,7 @@ proc portfetch::svn_proxy_args {url} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url patchfiles
+    global svn.args svn.method svn.revision svn.url 
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -421,7 +421,7 @@ proc portfetch::svnfetch {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global UI_PREFIX \
-           distpath workpath worksrcpath patchfiles \
+           distpath workpath worksrcpath \
            git.url git.branch git.file git.file_prefix git.cmd \
            name distname fetch.type
 
@@ -471,7 +471,7 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen patchfiles hg.url hg.tag hg.cmd \
+    global worksrcpath prefix_frozen hg.url hg.tag hg.cmd \
            fetch.ignore_sslcert
 
     set insecureflag ""
@@ -650,7 +650,7 @@ proc portfetch::fetch_start {args} {
 # there are no files to download. Otherwise, either do a cvs checkout
 # or call the standard fetchfiles procedure
 proc portfetch::fetch_main {args} {
-    global all_dist_files fetch.type
+    global all_dist_files fetch.type patchfiles
 
     # Check for files, download if necessary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
