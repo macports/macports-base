@@ -347,7 +347,13 @@ namespace eval reclaim {
         }
         if {$time ne ""} {
             if {[clock seconds] - $time > 1209600} {
-                ui_warn "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space."
+                if {[info exists macports::ui_options(questions_yesno)]} {
+                    set retval [$macports::ui_options(questions_yesno)  "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space." "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
+                    if {$retval == 0} {
+                        # User said yes, run port reclaim
+                        macports::reclaim_main
+                    }
+                }
             }
         }
     }
