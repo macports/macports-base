@@ -194,7 +194,10 @@ proc portfetch::set_fetch_type {option action args} {
             git {
                 depends_fetch-append bin:git:git
                 default distname {${name}-${git.branch}}
+                # xz will not be used for non-tarballable fetches,
+                # but we cannot decide this yet, so we just add it anyway
                 use_xz yes
+                depends_fetch-append bin:xz:xz
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
