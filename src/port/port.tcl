@@ -5344,8 +5344,13 @@ namespace eval portclient::questions {
 
         signal error {TERM INT}
         while {$timeout >= 0} {
-            if {[catch {set inp [read stdin]} err]} {
-                return -code error "Ctrl-C"
+            try {
+                set inp [read stdin]
+            } catch {*} {
+                # An error occurred, print a newline so the error message
+                # doesn't occur on the prompt line and re-throw
+                puts ""
+                throw
             }
             if {$inp eq "\n"} {
                 return $def
@@ -5444,8 +5449,13 @@ namespace eval portclient::questions {
         # User input (probably requires some input error checking code)
         while 1 {
             signal error {TERM INT}
-            if {[catch {set input [gets stdin]} err]} {
-                return -code error "Ctrl-C"
+            try {
+                set input [gets stdin]
+            } catch {*} {
+                # An error occurred, print a newline so the error message
+                # doesn't occur on the prompt line and re-throw
+                puts ""
+                throw
             }
             signal -restart error {TERM INT}
             if {$input in {y Y}} {
@@ -5478,8 +5488,13 @@ namespace eval portclient::questions {
             puts -nonewline "Enter a number to select an option: "
             flush stdout
             signal error {TERM INT}
-            if {[catch {set input [gets stdin]} err]} {
-                return -code error "Ctrl-C"
+            try {
+                set input [gets stdin]
+            } catch {*} {
+                # An error occurred, print a newline so the error message
+                # doesn't occur on the prompt line and re-throw
+                puts ""
+                throw
             }
             signal -restart error {TERM INT}
             if {($input <= [llength $ports] && [string is integer -strict $input])} {
@@ -5509,8 +5524,13 @@ namespace eval portclient::questions {
             puts -nonewline "Enter the numbers to select the options: "
             flush stdout
             signal error {TERM INT}
-            if {[catch {set input [gets stdin]} err]} {
-                return -code error "Ctrl-C"
+            try {
+                set input [gets stdin]
+            } catch {*} {
+                # An error occurred, print a newline so the error message
+                # doesn't occur on the prompt line and re-throw
+                puts ""
+                throw
             }
             signal -restart error {TERM INT}
             # check if input is non-empty and otherwise fine
