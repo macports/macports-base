@@ -311,6 +311,8 @@ namespace eval reclaim {
         try -pass_signal {
             set fd [open $path w]
             puts $fd [clock seconds]
+        } catch {*} {
+            # Ignore error silently
         } finally {
             if {$fd != -1} {
                 close $fd
@@ -336,6 +338,8 @@ namespace eval reclaim {
         try -pass_signal {
             set fd [open $path r]
             set time [gets $fd]
+        } catch {*} {
+            # Ignore error silently; the file might not have been created yet
         } finally {
             if {$fd != -1} {
                 close $fd
