@@ -3800,8 +3800,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     # check if the port is in tree
+    set result ""
     try {
-        mportlookup $portname
+        set result [mportlookup $portname]
     } catch {{*} eCode eMessage} {
         global errorInfo
         ui_debug $errorInfo
