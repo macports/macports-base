@@ -891,7 +891,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Set noninteractive mode if specified in config
     if {[info exists ui_interactive] && !$ui_interactive} {
         set macports::ui_options(ports_noninteractive) yes
-        unset -nocomplain macports::ui_options(questions_yesno) macports::ui_options(questions_singlechoice) macports::ui_options(questions_multichoice)
+        unset -nocomplain macports::ui_options(questions_yesno) \
+                            macports::ui_options(questions_singlechoice) \
+                            macports::ui_options(questions_multichoice) \
+                            macports::ui_options(questions_alternative)
+
     }
 
     # Archive type, what type of binary archive to use (CPIO, gzipped

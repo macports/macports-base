@@ -5521,6 +5521,61 @@ namespace eval portclient::questions {
             }
         }
     }
+
+    ##
+    # Displays alternative actions a user has to select by typing the text
+    # within the square brackets of the desired action name.
+    # Waits for user input indefinitely.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param ???name???
+    #        May be a qid will be of better use instead as the client does not do anything port specific.
+    # @param alts
+    #        An array of action-text.
+    # @param def
+    #        The default action. If empty, the first action is set as default
+    proc ui_ask_alternative {msg name alts def} {
+        puts $msg
+        upvar $alts alternatives
+
+        if {$def eq ""} {
+            # Default to first action
+            set def [lindex [array names alternatives] 0]
+        }
+
+        set alt_names []
+        foreach key [array names alternatives] {
+            set key_match [string first $key $alternatives($key)]
+            append alt_name [string range $alternatives($key) 0 [expr {$key_match - 1}]] \
+                            \[ [expr {$def eq $key ? [string toupper $key] : $key}] \] \
+                            [string range $alternatives($key) [expr {$key_match + [string length $key]}] end]
+            lappend alt_names $alt_name
+            unset alt_name
+        }
+
+        while 1 {
+            puts -nonewline "[join $alt_names /]: "
+            flush stdout
+            signal error {TERM INT}
+            try {
+                set input [gets stdin]
+            } catch {*} {
+                # An error occurred, print a newline so the error message
+                # doesn't occur on the prompt line and re-throw
+                puts ""
+                throw
+            }
+            set input [string tolower $input]
+            if {[info exists alternatives($input)]} {
+                return $input
+            } elseif {$input eq ""} {
+                return $def
+            } else {
+                puts "Please enter one of the alternatives"
+            }
+        }
+    }
 }
 
 ##########################################
@@ -5584,6 +5639,7 @@ if {[isatty stdin]
     set ui_options(questions_yesno) portclient::questions::ui_ask_yesno
     set ui_options(questions_singlechoice) portclient::questions::ui_ask_singlechoice
     set ui_options(questions_multichoice) portclient::questions::ui_ask_multichoice
+    set ui_options(questions_alternative) portclient::questions::ui_ask_alternative
 }
 
 set ui_options(notifications_append) portclient::notifications::append
