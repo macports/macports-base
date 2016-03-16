@@ -449,6 +449,7 @@ proc command_exec {command args} {
     array set env [array get ${varprefix}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
+    ui_info "Executing: $fullcmdstring"
     set code [catch {system {*}$notty {*}$nice $fullcmdstring} result]
     # Save variables in order to re-throw the same error code.
     set errcode $::errorCode
