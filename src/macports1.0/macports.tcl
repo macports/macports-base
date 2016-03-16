@@ -154,8 +154,8 @@ proc macports::ch_logging {mport} {
 
     set ::debuglogname $logname
 
-    # Truncate the file if already exists
-    set ::debuglog [open $::debuglogname w]
+    # Append to the file if it already exists
+    set ::debuglog [open $::debuglogname a]
     puts $::debuglog version:1
 }
 proc macports::push_log {mport} {
