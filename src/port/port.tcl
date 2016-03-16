@@ -5508,15 +5508,31 @@ namespace eval portclient::questions {
 
             set selected_opt []
 
+            set err_flag 1
             foreach num $input {
-                if {([string is integer -strict $num] && $num <= [llength $ports] && $num > 0)} {
+                if {[string is integer -strict $num] && $num <= [llength $ports] && $num > 0} {
                     lappend selected_opt [expr {$num -1}]
+                } elseif {[regexp {(\d+)-(\d+)} $input _ start end]
+                          && $start <= [llength $ports]
+                          && $start > 0
+                          && $end <= [llength $ports]
+                          && $end > 0
+                } then {
+                    if {$start > $end} {
+                        set tmp $start
+                        set start $end
+                        set end $tmp
+                    }
+                    for {set x $start} {$x <= $end} {incr x} {
+                        lappend selected_opt [expr {$x -1}]
+                    }
                 } else {
                     puts "Please enter numbers separated by a space which are indices from the above list."
+                    set err_flag 0
                     break
                 }
             }
-            if {[llength $input] == [llength $selected_opt]} {
+            if {$err_flag == 1} {
                 return $selected_opt
             }
         }
