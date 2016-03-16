@@ -197,11 +197,11 @@ namespace eval reclaim {
         if {[llength $superfluous_files] > 0} {
             if {[info exists macports::ui_options(questions_alternative)]} {
                 array set alternatives {d delete k keep l list}
-                set retstring [$macports::ui_options(questions_alternative) [msgcat::mc \
-                    "Found %d files (total %s) that are no longer needed and can be deleted." \
-                    $num_superfluous_files [bytesize $size_superfluous_files]] "deleteFilesQ" "alternatives" {k}]
-                
                 while 1 {
+                    set retstring [$macports::ui_options(questions_alternative) [msgcat::mc \
+                        "Found %d files (total %s) that are no longer needed and can be deleted." \
+                        $num_superfluous_files [bytesize $size_superfluous_files]] "deleteFilesQ" "alternatives" {k}]
+                
                     switch $retstring {
                         d {
                             ui_msg "Deleting..."
