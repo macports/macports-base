@@ -195,60 +195,58 @@ namespace eval reclaim {
             incr size_superfluous_files [file size $f]
         }
         if {[llength $superfluous_files] > 0} {
-            ui_msg [msgcat::mc \
-                "Found %d files (total %s) that are no longer needed and can be deleted." \
-                $num_superfluous_files \
-                [bytesize $size_superfluous_files]]
-            while {1} {
-                ui_msg "\[D]elete / \[k]eep / \[l]ist: "
-                switch [gets stdin] {
-                    d -
-                    D {
-                        ui_msg "Deleting..."
-                        foreach f $superfluous_files {
-                            set root_length [string length "${root_dist}/"]
-                            set home_length [string length "${home_dist}/"]
+            if {[info exists macports::ui_options(questions_alternative)]} {
+                array set alternatives {d delete k keep l list}
+                set retstring [$macports::ui_options(questions_alternative) [msgcat::mc \
+                    "Found %d files (total %s) that are no longer needed and can be deleted." \
+                    $num_superfluous_files [bytesize $size_superfluous_files]] "deleteFilesQ" "alternatives" {k}]
+                
+                while 1 {
+                    switch $retstring {
+                        d {
+                            ui_msg "Deleting..."
+                            foreach f $superfluous_files {
+                                set home_length [string length "${home_dist}/"]
 
-                            try -pass_signal {
-                                ui_info [msgcat::mc "Deleting unused file %s" $f]
-                                file delete -- $f
+                                try -pass_signal {
+                                    ui_info [msgcat::mc "Deleting unused file %s" $f]
+                                    file delete -- $f
 
-                                set directory [file dirname $f]
-                                while {1} {
-                                    set is_below_root [string equal -length $root_length $directory "${root_dist}/"]
-                                    set is_below_home [string equal -length $home_length $directory "${home_dist}/"]
+                                    set directory [file dirname $f]
+                                    while {1} {
+                                        set is_below_root [string equal -length $root_length $directory "${root_dist}/"]
+                                        set is_below_home [string equal -length $home_length $directory "${home_dist}/"]
 
-                                    if {!$is_below_root && !$is_below_home} {
-                                        break
+                                        if {!$is_below_root && !$is_below_home} {
+                                            break
+                                        }
+
+                                        if {[llength [readdir $directory]] > 0} {
+                                            break
+                                        }
+
+                                        ui_info [msgcat::mc "Deleting empty directory %s" $directory]
+                                        try -pass_signal {
+                                            file delete -- $directory
+                                        } catch {{*} eCode eMessage} {
+                                            ui_warn [msgcat::mc "Could not delete empty directory %s: %s" $directory $eMesage]
+                                        }
+                                        set directory [file dirname $directory]
                                     }
-
-                                    if {[llength [readdir $directory]] > 0} {
-                                        break
-                                    }
-
-                                    ui_info [msgcat::mc "Deleting empty directory %s" $directory]
-                                    try -pass_signal {
-                                        file delete -- $directory
-                                    } catch {{*} eCode eMessage} {
-                                        ui_warn [msgcat::mc "Could not delete empty directory %s: %s" $directory $eMesage]
-                                    }
-                                    set directory [file dirname $directory]
+                                } catch {{*} eCode eMessage} {
+                                    ui_warn [msgcat::mc "Could not delete %s: %s" $f $eMessage]
                                 }
-                            } catch {{*} eCode eMessage} {
-                                ui_warn [msgcat::mc "Could not delete %s: %s" $f $eMessage]
                             }
+                            break
                         }
-                        break
-                    }
-                    k -
-                    K {
-                        ui_msg "OK, keeping the files."
-                        break
-                    }
-                    l -
-                    L {
-                        foreach f $superfluous_files {
-                            ui_msg "  $f"
+                        k {
+                            ui_msg "OK, keeping the files."
+                            break
+                        }
+                        l {
+                            foreach f $superfluous_files {
+                                ui_msg "  $f"
+                            }
                         }
                     }
                 }
