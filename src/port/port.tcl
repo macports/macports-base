@@ -5446,7 +5446,7 @@ namespace eval portclient::questions {
             }
             signal -restart error {TERM INT}
             if {($input <= [llength $ports] && [string is integer -strict $input])} {
-                return $input
+                return [expr {$input - 1}]
             } else {
                 puts "Please enter an index from the above list."
             }
