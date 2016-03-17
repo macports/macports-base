@@ -3218,6 +3218,10 @@ proc action_installed { action portlist opts } {
                 if {$archs != 0 && $archs ne ""} {
                     append extra " archs='$archs'"
                 }
+                set date [registry::property_retrieve $regref date]
+                if {$date ne ""} {
+                    append extra " date='[clock format $date -format "%Y-%m-%d %T"]'"
+                }
             }
             if { $iactive == 0 } {
                 puts "  $iname @${iversion}_${irevision}${ivariants}${nvariants}${extra}"
