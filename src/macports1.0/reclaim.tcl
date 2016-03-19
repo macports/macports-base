@@ -206,6 +206,7 @@ namespace eval reclaim {
                         d {
                             ui_msg "Deleting..."
                             foreach f $superfluous_files {
+                                set root_length [string length "${root_dist}/"]
                                 set home_length [string length "${home_dist}/"]
 
                                 try -pass_signal {
