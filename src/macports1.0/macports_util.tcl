@@ -176,6 +176,64 @@ proc lunshift {varName args} {
 }
 macports_util::method_wrap lunshift
 
+
+# bytesize filesize ?unit? ?format?
+# Format an integer representing bytes using given units
+proc bytesize {siz {unit {}} {format {%.3f}}} {
+    if {$unit == {}} {
+        if {$siz > 0x40000000} {
+            set unit "GiB"
+        } elseif {$siz > 0x100000} {
+            set unit "MiB"
+        } elseif {$siz > 0x400} {
+            set unit "KiB"
+        } else {
+            set unit "B"
+        }
+    }
+    switch -- $unit {
+        KiB {
+            set siz [expr {$siz / 1024.0}]
+        }
+        kB {
+            set siz [expr {$siz / 1000.0}]
+        }
+        MiB {
+            set siz [expr {$siz / 1048576.0}]
+        }
+        MB {
+            set siz [expr {$siz / 1000000.0}]
+        }
+        GiB {
+            set siz [expr {$siz / 1073741824.0}]
+        }
+        GB {
+            set siz [expr {$siz / 1000000000.0}]
+        }
+        B { }
+        default {
+            ui_warn "Unknown file size unit '$unit' specified"
+            set unit "B"
+        }
+    }
+    if {[expr {round($siz)}] != $siz} {
+        set siz [format $format $siz]
+    }
+    return "$siz $unit"
+}
+
+# filesize file ?unit?
+# Return size of file in human-readable format
+# In case of any errors, returns -1
+proc filesize {fil {unit {}}} {
+    set siz -1
+    catch {
+        set siz [bytesize [file size $fil] $unit]
+    }
+    return $siz
+}
+
+
 ################################
 # try/catch exception handling #
 ################################
@@ -220,14 +278,26 @@ proc throw {args} {
     }
 }
 
-# try body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
+# try ?-pass_signal? body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
 # implementation of try as specified in TIP #89
+# option -pass_signal passes SIGINT and SIGTERM signals up the stack
 proc try {args} {
     # validate and interpret the arguments
     set catchList {}
     if {[llength $args] == 0} {
         return -code error "wrong # args: \
-            should be \"try body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
+            should be \"try ?-pass_signal? body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
+    }
+    if {[lindex $args 0] eq "-pass_signal"} {
+        lpush catchList {{POSIX SIG SIGINT} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
+            throw
+        }
+        lpush catchList {{POSIX SIG SIGTERM} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
+            throw
+        }
+        lshift args
     }
     set body [lshift args]
     while {[llength $args] > 0} {

@@ -19,36 +19,68 @@ source ./library.tcl
 macports_worker_init
 
 
-test activate_start {
-    Activate start unit test.
-    Requires root for setting euid.
-} -constraints {
-    root
-} -setup {
+set activate_start_fixture_setup {
+    global prefix
+
+    set _save_prefix ${prefix}
+    file mkdir ${pwd}/tmpdir
+    set prefix ${pwd}/tmpdir
+
+    rename getuid _save_getuid
+    rename geteuid _save_geteuid
+
+    set fake_uid 0
+    set fake_euid 0
+    set elevateToRootCalls [list]
+
+    proc getuid {} {
+        global fake_uid
+        return ${fake_uid}
+    }
+    proc geteuid {} {
+        global fake_euid
+        return ${fake_euid}
+    }
+
+    proc elevateToRoot {phase} {
+        global elevateToRootCalls
+        lappend elevateToRootCalls $phase
+    }
+}
+set activate_start_fixture_cleanup {
+    rename getuid ""
+    rename geteuid ""
+
+    rename _save_getuid getuid
+    rename _save_geteuid geteuid
+
+    file delete -force ${pwd}/tmpdir
+}
+
+test activate_start_elevate {
+    Test portactivate::activate_start to make sure it elevates to root if necessary
+} -setup $activate_start_fixture_setup -cleanup $activate_start_fixture_cleanup -body {
     # file writable $prefix is used to determine whether privilege escalation
     # is needed, so set prefix to a directory unwritable for this user
     set prefix /usr/bin
+    set fake_uid 0
+    set fake_euid 500
 
-    # elevateToRoot uses $euid and $egid as the IDs to set
-    set euid 0
-    set egid 0
+    portactivate::activate_start
 
-} -body {
-    # drop privileges; the code won't attempt to elevate privileges without
-    # that
-    seteuid 333
-    if {[catch {portactivate::activate_start args}] != 0} {
-        return "FAIL: couldn't elevate privileges"
-    }
+    return ${elevateToRootCalls}
+} -result [list "activate"] -errorOutput ""
 
-    # when uid == 0 and euid == 0, the code will not attempt to elevate
-    # privileges
-    seteuid 0
-    if {[catch {portactivate::activate_start args}] != 0} {
-        return "FAIL: couldn't elevate privileges"
-    }
-    return "Activate_start successful."
-} -result "Activate_start successful."
+test activate_start_noelevate {
+    Test portactivate::activate_start to make sure that it does not elevate to root if it cannot
+} -setup $activate_start_fixture_setup -cleanup $activate_start_fixture_cleanup -body {
+    set fake_uid 500
+    set fake_euid 500
+
+    portactivate::activate_start
+
+    return ${elevateToRootCalls}
+} -result [list] -errorOutput ""
 
 
 test activate_main {
@@ -100,7 +132,7 @@ test activate_main {
     array set macports::channels $oldchannels
 
     mportclose $mport
-} -result "Port activate successful."
+} -result "Port activate successful." -errorOutput ""
 
 
 cleanupTests

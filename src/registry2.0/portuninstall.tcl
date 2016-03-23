@@ -174,7 +174,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         if {[info exists macports::ui_options(questions_multichoice)]} {
             set retstring [$macports::ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
             foreach index $retstring {
-                set uport [lindex $sortedlist [expr { $index - 1 }]]
+                set uport [lindex $sortedlist $index]
                 uninstall [$uport name] [$uport version] [$uport revision] [$uport variants]
             }
             return 0

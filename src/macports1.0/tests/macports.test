@@ -12,34 +12,19 @@ source ../macports_test_autoconf.tcl
 testConstraint darwin [expr {$macports::autoconf::os_platform eq "darwin"}]
 
 package require macports 1.0
+package require Thread
+
+source ./library.tcl
 
 # clean leftovers from interrupted tests
 file delete -force $pwd/tmpdir
-
-# use custom macports.conf and sources.conf
-makeDirectory $pwd/tmpdir
-makeDirectory $pwd/tmpdir/share
-makeDirectory $pwd/tmpdir/var/macports/registry
-set fd [open $pwd/tmpdir/macports.conf w+]
-puts $fd "portdbpath $pwd/tmpdir/var/macports"
-puts $fd "prefix $pwd/tmpdir"
-puts $fd "variants_conf $pwd/tmpdir/variants.conf"
-puts $fd "sources_conf $pwd/sources.conf"
-puts $fd "applications_dir $pwd/tmpdir/Applications"
-puts $fd "frameworks_dir $pwd/tmpdir/Library/Frameworks"
-close $fd
-set env(PORTSRC) $pwd/tmpdir/macports.conf
-file link -symbolic $pwd/tmpdir/share/macports $macports::autoconf::prefix/share/macports
-close [open $pwd/tmpdir/variants.conf w+]
+# use a local, temporary prefix for testing
+init_tmp_prefix $pwd $pwd/tmpdir
 
 # Debug options
 array set ui_options {}
-#set ui_options(ports_debug)   yes
-#set ui_options(ports_verbose) yes
+set ui_options(ports_noninteractive) yes
 mportinit ui_options
-
-package require Thread
-source ./library.tcl
 
 
 test mportclose {
@@ -111,13 +96,6 @@ test init_logging {
 } -body {
     if {[macports::init_logging $mport] != 0} {
        return "FAIL: incorrect channels"
-    }
-    if {$macports::channels(any) ne "stdout debuglog"} {
-       return "FAIL: incorrect channels(any)"
-    }
-    if {(![info exists ui_options(ports_debug)] && $macports::channels(debug) ne "debuglog") || 
-        ([info exists ui_options(ports_debug)] && $macports::channels(debug) ne "stderr debuglog")} {
-       return "FAIL: incorrect channels(debug)"
     }
     return "Init logging successful."
 } -cleanup {
@@ -351,12 +329,19 @@ test ui_channels_default {
 
 test ui_warn_once {
     UI warn once unit test.
+} -setup {
+    # suppress test warning to avoid noise on terminal output
+    set channel_saved $macports::channels(warn)
+    set macports::channels(warn) {}
 } -body {
     set res [ui_warn_once 0 test]
+
     if {$macports::warning_done(0) != 1} {
 	return "FAIL: warning flag not set"
     }
     return "UI warn once successful."
+} -cleanup {
+    set macports::channels(warn) $channel_saved
 } -result "UI warn once successful."
 
 

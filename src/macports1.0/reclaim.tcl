@@ -137,9 +137,11 @@ namespace eval reclaim {
             set variants [lindex $port 3]
 
             # Get mport reference
-            if {[catch {set mport [mportopen_installed $name $version $revision $variants {}]} error]} {
+            try -pass_signal {
+                set mport [mportopen_installed $name $version $revision $variants {}]
+            } catch {{*} eCode eMessage} {
                 $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $error]
+                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $eMessage]
                 continue
             }
 
@@ -193,60 +195,59 @@ namespace eval reclaim {
             incr size_superfluous_files [file size $f]
         }
         if {[llength $superfluous_files] > 0} {
-            ui_msg [msgcat::mc \
-                "Found %d files (total %s) that are no longer needed and can be deleted." \
-                $num_superfluous_files \
-                [bytesize $size_superfluous_files]]
-            while {1} {
-                ui_msg "\[D]elete / \[k]eep / \[l]ist: "
-                switch [gets stdin] {
-                    d -
-                    D {
-                        ui_msg "Deleting..."
-                        foreach f $superfluous_files {
-                            set root_length [string length "${root_dist}/"]
-                            set home_length [string length "${home_dist}/"]
+            if {[info exists macports::ui_options(questions_alternative)]} {
+                array set alternatives {d delete k keep l list}
+                while 1 {
+                    set retstring [$macports::ui_options(questions_alternative) [msgcat::mc \
+                        "Found %d files (total %s) that are no longer needed and can be deleted." \
+                        $num_superfluous_files [bytesize $size_superfluous_files]] "deleteFilesQ" "alternatives" {k}]
+                
+                    switch $retstring {
+                        d {
+                            ui_msg "Deleting..."
+                            foreach f $superfluous_files {
+                                set root_length [string length "${root_dist}/"]
+                                set home_length [string length "${home_dist}/"]
 
-                            try {
-                                ui_info [msgcat::mc "Deleting unused file %s" $f]
-                                file delete -- $f
+                                try -pass_signal {
+                                    ui_info [msgcat::mc "Deleting unused file %s" $f]
+                                    file delete -- $f
 
-                                set directory [file dirname $f]
-                                while {1} {
-                                    set is_below_root [string equal -length $root_length $directory "${root_dist}/"]
-                                    set is_below_home [string equal -length $home_length $directory "${home_dist}/"]
+                                    set directory [file dirname $f]
+                                    while {1} {
+                                        set is_below_root [string equal -length $root_length $directory "${root_dist}/"]
+                                        set is_below_home [string equal -length $home_length $directory "${home_dist}/"]
 
-                                    if {!$is_below_root && !$is_below_home} {
-                                        break
+                                        if {!$is_below_root && !$is_below_home} {
+                                            break
+                                        }
+
+                                        if {[llength [readdir $directory]] > 0} {
+                                            break
+                                        }
+
+                                        ui_info [msgcat::mc "Deleting empty directory %s" $directory]
+                                        try -pass_signal {
+                                            file delete -- $directory
+                                        } catch {{*} eCode eMessage} {
+                                            ui_warn [msgcat::mc "Could not delete empty directory %s: %s" $directory $eMesage]
+                                        }
+                                        set directory [file dirname $directory]
                                     }
-
-                                    if {[llength [readdir $directory]] > 0} {
-                                        break
-                                    }
-
-                                    ui_info [msgcat::mc "Deleting empty directory %s" $directory]
-                                    try {
-                                        file delete -- $directory
-                                    } catch {{*} eCode eMessage} {
-                                        ui_warn [msgcat::mc "Could not delete empty directory %s: %s" $directory $eMesage]
-                                    }
-                                    set directory [file dirname $directory]
+                                } catch {{*} eCode eMessage} {
+                                    ui_warn [msgcat::mc "Could not delete %s: %s" $f $eMessage]
                                 }
-                            } catch {{*} eCode eMessage} {
-                                ui_warn [msgcat::mc "Could not delete %s: %s" $f $eMessage]
                             }
+                            break
                         }
-                        break
-                    }
-                    k -
-                    K {
-                        ui_msg "OK, keeping the files."
-                        break
-                    }
-                    l -
-                    L {
-                        foreach f $superfluous_files {
-                            ui_msg "  $f"
+                        k {
+                            ui_msg "OK, keeping the files."
+                            break
+                        }
+                        l {
+                            foreach f $superfluous_files {
+                                ui_msg "  $f"
+                            }
                         }
                     }
                 }
@@ -256,19 +257,6 @@ namespace eval reclaim {
         }
 
         return 0
-    }
-
-    proc close_file {file} {
-
-        # Closes the file, handling error catching if needed.
-        #
-        # Args: 
-        #           file - The file handler
-        # Returns:
-        #           None
-        if {[catch {close $file} error]} {
-            ui_error "something went wrong when closing file, $file."
-        }
     }
 
     proc is_inactive {port} {
@@ -298,12 +286,12 @@ namespace eval reclaim {
         #           A multidimensional list where each port is a sublist, i.e., [{first port info} {second port info} {...}]
         #           Indexes of each sublist are: 0 = name, 1 = version, 2 = revision, 3 = variants, 4 = activity, and 5 = epoch.
         
-        if {[catch {set installed [registry::installed]} result]} {
+        try -pass_signal {
+            return [registry::installed]
+        } catch {*} {
             ui_error "no installed ports found."
             return {}
         }
-
-        return $installed
     }
 
     proc update_last_run {} {
@@ -317,10 +305,18 @@ namespace eval reclaim {
 
         ui_debug "Updating last run information."
 
-        set path    [file join ${macports::portdbpath} last_reclaim]
-        set fd      [open $path w]
-        puts $fd    [clock seconds]
-        close_file $fd
+        set path [file join ${macports::portdbpath} last_reclaim]
+        set fd -1
+        try -pass_signal {
+            set fd [open $path w]
+            puts $fd [clock seconds]
+        } catch {*} {
+            # Ignore error silently
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
+        }
     }
 
     proc check_last_run {} {
@@ -336,15 +332,26 @@ namespace eval reclaim {
 
         set path [file join ${macports::portdbpath} last_reclaim]
 
-        if {[file exists $path]} {
-
-            set fd      [open $path r]
-            set time    [gets $fd]
-            close_file $fd
-
-            if {$time ne ""} {
-                if {[clock seconds] - $time > 1209600} {
-                    ui_warn "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space."
+        set fd -1
+        set time ""
+        try -pass_signal {
+            set fd [open $path r]
+            set time [gets $fd]
+        } catch {*} {
+            # Ignore error silently; the file might not have been created yet
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
+        }
+        if {$time ne ""} {
+            if {[clock seconds] - $time > 1209600} {
+                if {[info exists macports::ui_options(questions_yesno)]} {
+                    set retval [$macports::ui_options(questions_yesno)  "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space." "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
+                    if {$retval == 0} {
+                        # User said yes, run port reclaim
+                        macports::reclaim_main
+                    }
                 }
             }
         }
@@ -381,38 +388,26 @@ namespace eval reclaim {
         } else {
 
             ui_msg "Found inactive ports: $inactive_names."
-            ui_msg "Would you like to uninstall these ports? \[y/N\]: "
+            if {[info exists macports::ui_options(questions_multichoice)]} {
+                set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these ports?" "" $inactive_names]
 
-            set input [gets stdin]
-            if {$input eq "Y" || $input eq "y" } {
+                if {[llength $retstring] > 0} {
+                    foreach i $retstring {
+                        set port [lindex $inactive_ports $i]
+                        set name [lindex $port 0]
 
-                ui_debug "Iterating through all inactive ports... again."
+                        ui_msg "Uninstalling: $name"
 
-                foreach port $inactive_ports {
-                    set name [lindex $port 0]
-
-                    # Get all dependents of the current port
-                    if {[catch {set dependents [registry::list_dependents $name [lindex 1] [lindex 2] [lindex 3]]} error]} {
-                        ui_error "something went wrong when trying to enumerate all dependents of $name"
-                    }
-                    if {${dependents} ne ""} {
-                        ui_warn "Port $name is a dependent of $dependents. Do you want to uninstall this port at the risk of breaking other ports? \[Y/n\]"
-
-                        set input [gets stdin]
-                        if { $input eq "N" || "n" } {
-                            ui_msg "Skipping port."
-                            continue
+                        # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
+                        try -pass_signal {
+                            registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}
+                        } catch {{*} eCode eMessage} {
+                            ui_error "Error uninstalling $name: $eMessage"
                         }
                     }
-                    ui_msg "Uninstalling: $name"
-
-                    # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
-                    if {[catch {registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}} error]} {
-                        ui_error "something went wrong when uninstalling $name"
-                    }
+                } else {
+                    ui_msg "Not uninstalling ports."
                 }
-            } else {
-                ui_msg "Not uninstalling ports."
             }
         }
         return 0
