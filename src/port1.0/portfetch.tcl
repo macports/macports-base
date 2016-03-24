@@ -651,7 +651,7 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
-    global fetch.type distname git.branch all_dist_files
+    global fetch.type distname git.branch git.file all_dist_files
     variable fetch_urls
 
     portfetch::checkfiles fetch_urls
@@ -659,8 +659,8 @@ proc portfetch::fetch_init {args} {
     switch -- "${fetch.type}" {
         git {
             if {[git_tarballable]} {
-                lappend all_dist_files ${distname}.${fetch.type}.tar.xz
-                distfiles-append ${distname}.${fetch.type}.tar.xz
+                lappend all_dist_files ${git.file}
+                distfiles-append ${git.file}
             }
         }
     }
