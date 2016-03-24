@@ -451,18 +451,18 @@ proc portfetch::gitfetch {args} {
     }
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
-    set generatedpath "${workpath}/${fetch.type}"
-    set cmdstring "${git.cmd} clone $options ${git.url} ${generatedpath} 2>&1"
+    set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
+    set cmdstring "${git.cmd} clone $options ${git.url} ${tmppath} 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
-        if {[file exists "${generatedpath}"]} {
-            delete ${generatedpath}
+        if {[file exists "${tmppath}"]} {
+            delete ${tmppath}
         }
         return -code error [msgcat::mc "Git clone failed"]
     }
 
     if {![git_tarballable]} {
-        file rename ${generatedpath} ${worksrcpath}
+        file rename ${tmppath} ${worksrcpath}
         return 0
     }
 
@@ -471,13 +471,18 @@ proc portfetch::gitfetch {args} {
     set xz [findBinary xz ${portutil::autoconf::xz_path}]
     set cmdstring "${git.cmd} -c \"tar.tar.xz.command=xz -c\" archive --prefix=\"${git.file_prefix}/\" --format=tar.xz --output=${generatedfile}.TMP ${git.branch} 2>&1"
     ui_debug "Executing $cmdstring"
-    if {[catch {system -W ${generatedpath} $cmdstring} result]} {
+    if {[catch {system -W ${tmppath} $cmdstring} result]} {
         if {[file exists "${generatedfile}.TMP"]} {
             delete "${generatedfile}.TMP"
         }
         return -code error [msgcat::mc "Git archive creation failed"]
     }
     file rename -force "${generatedfile}.TMP" "${generatedfile}"
+
+    # cleanup
+    if {[file exists "${tmppath}"]} {
+        delete ${tmppath}
+    }
 
     return 0
 }
