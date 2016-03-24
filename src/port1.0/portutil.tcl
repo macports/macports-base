@@ -2984,10 +2984,9 @@ proc elevateToRoot {action} {
 
     if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
-        ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
         seteuid $euid
         setegid $egid
-        ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+        ui_debug "elevating privileges for $action: euid changed to [geteuid], egid changed to [getegid]."
     } elseif { [getuid] != 0 } {
         return -code error "MacPorts requires root privileges for this action"
     }
@@ -3001,15 +3000,12 @@ proc dropPrivileges {} {
     if { [geteuid] == 0 } {
         if { [catch {
                 if {[name_to_uid "$macportsuser"] != 0} {
-                    ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-
                     #seteuid [name_to_uid [file attributes $workpath -owner]]
                     #setegid [name_to_gid [file attributes $workpath -group]]
 
                     setegid [uname_to_gid "$macportsuser"]
                     seteuid [name_to_uid "$macportsuser"]
-                    ui_debug "egid changed to: [getegid]"
-                    ui_debug "euid changed to: [geteuid]"
+                    ui_debug "dropping privileges: euid changed to [geteuid], egid changed to [getegid]."
                 }
             }]
         } {
