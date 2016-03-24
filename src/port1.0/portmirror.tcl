@@ -53,13 +53,13 @@ namespace eval portmirror {
 # It also records the path in a database.
 
 proc portmirror::mirror_main {args} {
-    global fetch.type mirror_filemap portdbpath
+    global mirror_filemap portdbpath
 
     set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
     filemap open mirror_filemap $mirror_filemap_path
 
     # Check the distfiles if it's a regular fetch phase.
-    if {${fetch.type} eq "standard"} {
+    if {[portfetch::mirrorable]} {
         # fetch the files.
         portfetch::fetch_init $args
         portfetch::fetch_start $args

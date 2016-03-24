@@ -421,6 +421,16 @@ proc portfetch::svnfetch {args} {
     return 0
 }
 
+# Check if port can be mirrored
+proc portfetch::mirrorable {args} {
+    global fetch.type
+    switch -- "${fetch.type}" {
+        git     { return [git_tarballable] }
+        standard -
+        default { return yes }
+    }
+}
+
 # Check if a tarball can be produced for git
 proc portfetch::git_tarballable {args} {
     global git.branch
