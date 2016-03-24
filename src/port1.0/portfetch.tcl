@@ -53,7 +53,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
-    git.cmd git.url git.branch \
+    git.cmd git.url git.branch git.file git.file_prefix \
     hg.cmd hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
