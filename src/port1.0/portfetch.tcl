@@ -421,13 +421,25 @@ proc portfetch::svnfetch {args} {
     return 0
 }
 
-# Check if port can be mirrored
+# Returns true if port can be mirrored
 proc portfetch::mirrorable {args} {
     global fetch.type
     switch -- "${fetch.type}" {
-        git     { return [git_tarballable] }
+        git {
+            if {[option checksums] eq ""} {
+                ui_debug "port cannot be mirrored, no checksums for ${fetch.type}"
+                return no
+            }
+            if {![git_tarballable]} {
+                ui_debug "port cannot be mirrored, not tarballable for ${fetch.type}"
+                return no
+            }
+            return yes
+        }
         standard -
-        default { return yes }
+        default {
+            return yes
+        }
     }
 }
 
@@ -601,22 +613,38 @@ proc portfetch::fetchfiles {args} {
 
 # Utility function to delete fetched files.
 proc portfetch::fetch_deletefiles {args} {
-    global distpath
+    global distpath git.file fetch.type
     variable fetch_urls
     foreach {url_var distfile} $fetch_urls {
         if {[file isfile $distpath/$distfile]} {
             file delete -force "${distpath}/${distfile}"
         }
     }
+
+    switch -- "${fetch.type}" {
+        git {
+            if {[git_tarballable] && [file isfile "${distpath}/${git.file}"]} {
+                file delete -force "${distpath}/${git.file}"
+            }
+        }
+    }
 }
 
 # Utility function to add files to a list of fetched files.
 proc portfetch::fetch_addfilestomap {filemapname} {
-    global distpath $filemapname
+    global distpath fetch.type git.file $filemapname
     variable fetch_urls
     foreach {url_var distfile} $fetch_urls {
         if {[file isfile $distpath/$distfile]} {
             filemap set $filemapname $distpath/$distfile 1
+        }
+    }
+
+    switch -- "${fetch.type}" {
+        git {
+            if {[git_tarballable] && [file isfile "${distpath}/${git.file}"]} {
+                filemap set $filemapname ${distpath}/${git.file} 1
+            }
         }
     }
 }
