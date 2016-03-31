@@ -56,6 +56,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "system.h"
 #include "sip_copy_proc.h"
@@ -187,6 +188,22 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
 
+    /*
+     * Ignore SIGINT and SIGQUIT, just like system(3)
+     *
+     * system(3) also blocks SIGCHLD during the execution of the program.
+     * However, that would make our wait(2) call more complicated. As we are
+     * not relying on delivery of SIGCHLD anywhere else, we just do not change
+     * the handling here at all.
+     */
+    struct sigaction sa, old_sa_int, old_sa_quit;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, &old_sa_int);
+    sigaction(SIGQUIT, &sa, &old_sa_quit);
+
+    /* fork a new process */
     pid = fork();
     switch (pid) {
     case -1: /* error */
@@ -228,6 +245,10 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 exit(1);
             }
         }
+
+        /* restore original signal handling */
+        sigaction(SIGINT, &old_sa_int, NULL);
+        sigaction(SIGQUIT, &old_sa_quit, NULL);
 
         /* XXX ugly string constants */
         if (sandbox) {
@@ -341,6 +362,10 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
         }
     }
+
+    /* restore original signal handling */
+    sigaction(SIGINT, &old_sa_int, NULL);
+    sigaction(SIGQUIT, &old_sa_quit, NULL);
 
     if (odup) {
         /* Cleanup. */
