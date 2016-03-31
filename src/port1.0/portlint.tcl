@@ -709,6 +709,15 @@ proc portlint::lint_main {args} {
         }
     }
 
+    if {${fetch.type} eq "git"} {
+        if {![info exists checksums] || $checksums eq ""} {
+            ui_error "Using fetch.type git, but no checksums for mirroring"
+            incr errors
+        } else {
+            ui_info "OK: checksums defined for fetch.type git"
+        }
+    }
+
     ### TODO: more checks to Tcl variables/sections
 
     ui_debug "Name: $name"
