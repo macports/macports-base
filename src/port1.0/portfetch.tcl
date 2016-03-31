@@ -469,7 +469,7 @@ proc portfetch::gitfetch {args} {
     set options "-q"
     if {${git.branch} eq ""} {
         # if we're just using HEAD, we can make a shallow repo
-        set options "$options --depth=1"
+        append options "--depth=1"
     }
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
