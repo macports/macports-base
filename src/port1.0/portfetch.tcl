@@ -53,7 +53,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
-    git.cmd git.url git.branch git.file git.file_prefix \
+    git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
@@ -99,6 +99,7 @@ default git.dir {${workpath}}
 default git.branch {}
 default git.file {${distname}.${fetch.type}.tar.xz}
 default git.file_prefix {${distname}}
+default git.fetch_submodules "yes"
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
@@ -457,7 +458,7 @@ proc portfetch::git_tarballable {args} {
 proc portfetch::gitfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
-           git.url git.branch git.file git.file_prefix git.cmd \
+           git.url git.branch git.fetch_submodules git.file git.file_prefix git.cmd \
            name distname fetch.type
 
     set generatedfile "${distpath}/${git.file}"
@@ -466,21 +467,44 @@ proc portfetch::gitfetch {args} {
         return 0
     }
 
-    set options "-q"
+    set options ""
     if {${git.branch} eq ""} {
-        # if we're just using HEAD, we can make a shallow repo
+        # If we're just using HEAD, we can make a shallow repo. In other cases,
+        # it might cause a failure for some repos if the requested sha1 is not
+        # reachable from any head.
         append options " --depth=1"
     }
+    # XXX: this might be usable in some cases to reduce transfers, but does not always work
+    #append options " --single-branch"
+    #append options " --branch ${git.branch}"
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
     set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
-    set cmdstring "${git.cmd} clone $options ${git.url} ${tmppath} 2>&1"
-    ui_debug "Executing: $cmdstring"
+    set cmdstring "${git.cmd} clone -q $options ${git.url} ${tmppath} 2>&1"
     if {[catch {system $cmdstring} result]} {
-        if {[file exists "${tmppath}"]} {
-            delete ${tmppath}
-        }
+        delete ${tmppath}
         return -code error [msgcat::mc "Git clone failed"]
+    }
+
+    # checkout branch
+    # required to have the right version of .gitmodules
+    if {${git.branch} ne ""} {
+        ui_debug "Checking out branch ${git.branch}"
+        set cmdstring "${git.cmd} checkout -q ${git.branch} 2>&1"
+        if {[catch {system -W $tmppath $cmdstring} result]} {
+            delete $tmppath
+            return -code error [msgcat::mc "Git checkout failed"]
+        }
+    }
+
+    # XXX: this does not support multiple recursive levels of submodules
+    if {[file isfile "$tmppath/.gitmodules"] && [tbool git.fetch_submodules]} {
+        ui_info "$UI_PREFIX Cloning git submodules"
+        set cmdstring "${git.cmd} submodule -q update --init 2>&1"
+        if {[catch {system -W $tmppath $cmdstring} result]} {
+            delete ${tmppath}
+            return -code error [msgcat::mc "Git submodule init failed"]
+        }
     }
 
     if {![git_tarballable]} {
@@ -488,23 +512,49 @@ proc portfetch::gitfetch {args} {
         return 0
     }
 
-    # generate tarball
     ui_info "$UI_PREFIX Generating tarball ${git.file}"
-    set xz [findBinary xz ${portutil::autoconf::xz_path}]
-    set cmdstring "${git.cmd} -c \"tar.tar.xz.command=xz -c\" archive --prefix=\"${git.file_prefix}/\" --format=tar.xz --output=${generatedfile}.TMP ${git.branch} 2>&1"
-    ui_debug "Executing $cmdstring"
-    if {[catch {system -W ${tmppath} $cmdstring} result]} {
-        if {[file exists "${generatedfile}.TMP"]} {
-            delete "${generatedfile}.TMP"
-        }
+
+    # generate main tarball
+    set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+    set cmdstring "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\" --output=${tardst} ${git.branch} 2>&1"
+    if {[catch {system -W $tmppath $cmdstring} result]} {
+        delete $tardst
         return -code error [msgcat::mc "Git archive creation failed"]
     }
-    file rename -force "${generatedfile}.TMP" "${generatedfile}"
+
+    # generate tarballs for submodules and merge them into the main tarball
+    if {[file isfile "$tmppath/.gitmodules"] && [tbool git.fetch_submodules]} {
+        set xz [findBinary xz ${portutil::autoconf::xz_path}]
+        # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
+        set tar [findBinary bsdtar tar]
+        set tartmp [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+        set cmdstring [join [list \
+            "${git.cmd} submodule -q foreach '" \
+            "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\$path/\" \$sha1 " \
+            "| tar -cf ${tartmp} @- @${tardst} " \
+            "&& mv ${tartmp} ${tardst}" \
+            "' 2>&1"] ""]
+        if {[catch {system -W $tmppath $cmdstring} result]} {
+            delete $tardst
+            delete $tartmp
+            return -code error [msgcat::mc "Git submodule archive creation failed"]
+        }
+    }
+
+    # compress resulting tarball
+    set xz [findBinary xz ${portutil::autoconf::xz_path}]
+    set cmdstring "$xz ${tardst}"
+    if {[catch {system $cmdstring} result]} {
+        delete "${tardst}"
+        delete "${tardst}.xz"
+        return -code error [msgcat::mc "Git submodule archive creation failed"]
+    }
+    file rename -force "${tardst}.xz" "${generatedfile}"
+
+    ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
 
     # cleanup
-    if {[file exists "${tmppath}"]} {
-        delete ${tmppath}
-    }
+    delete ${tmppath}
 
     return 0
 }
