@@ -1259,7 +1259,7 @@ proc element { resname } {
     array unset options
 
     set token [lookahead]
-    switch -regex -- $token {
+    switch -regex -matchvar matchvar -- $token {
         ^\\)$               -
         ^\;                 -
         ^_EOF_$             { # End of expression/cmd/file
@@ -1273,59 +1273,60 @@ proc element { resname } {
             }
         }
 
-        ^all(@.*)?$         -
-        ^installed(@.*)?$   -
-        ^uninstalled(@.*)?$ -
-        ^active(@.*)?$      -
-        ^inactive(@.*)?$    -
-        ^actinact(@.*)?$    -
-        ^leaves(@.*)?$      -
-        ^outdated(@.*)?$    -
-        ^obsolete(@.*)?$    -
-        ^requested(@.*)?$   -
-        ^unrequested(@.*)?$ -
-        ^current(@.*)?$     {
+        ^(all)(@.*)?$         -
+        ^(installed)(@.*)?$   -
+        ^(uninstalled)(@.*)?$ -
+        ^(active)(@.*)?$      -
+        ^(inactive)(@.*)?$    -
+        ^(actinact)(@.*)?$    -
+        ^(leaves)(@.*)?$      -
+        ^(outdated)(@.*)?$    -
+        ^(obsolete)(@.*)?$    -
+        ^(requested)(@.*)?$   -
+        ^(unrequested)(@.*)?$ -
+        ^(current)(@.*)?$     {
             # A simple pseudo-port name
             advance
 
             # Break off the version component, if there is one
-            regexp {^(\w+)(@.*)?} $token matchvar name remainder
+            set name [lindex $matchvar 1]
+            set remainder [lindex $matchvar 2]
 
             add_multiple_ports reslist [get_${name}_ports] $remainder
 
             set el 1
         }
 
-        ^variants:          -
-        ^variant:           -
-        ^description:       -
-        ^portdir:           -
-        ^homepage:          -
-        ^epoch:             -
-        ^platforms:         -
-        ^platform:          -
-        ^name:              -
-        ^long_description:  -
-        ^maintainers:       -
-        ^maintainer:        -
-        ^categories:        -
-        ^category:          -
-        ^version:           -
-        ^depends_lib:       -
-        ^depends_build:     -
-        ^depends_run:       -
-        ^depends_extract:   -
-        ^depends_fetch:     -
-        ^depends_test:      -
-        ^replaced_by:       -
-        ^revision:          -
-        ^subport:           -
-        ^subports:          -
-        ^license:           { # Handle special port selectors
+        ^(variants):(.*)         -
+        ^(variant):(.*)          -
+        ^(description):(.*)      -
+        ^(portdir):(.*)          -
+        ^(homepage):(.*)         -
+        ^(epoch):(.*)            -
+        ^(platforms):(.*)        -
+        ^(platform):(.*)         -
+        ^(name):(.*)             -
+        ^(long_description):(.*) -
+        ^(maintainers):(.*)      -
+        ^(maintainer):(.*)       -
+        ^(categories):(.*)       -
+        ^(category):(.*)         -
+        ^(version):(.*)          -
+        ^(depends_lib):(.*)      -
+        ^(depends_build):(.*)    -
+        ^(depends_run):(.*)      -
+        ^(depends_extract):(.*)  -
+        ^(depends_fetch):(.*)    -
+        ^(depends_test):(.*)     -
+        ^(replaced_by):(.*)      -
+        ^(revision):(.*)         -
+        ^(subport):(.*)          -
+        ^(subports):(.*)         -
+        ^(license):(.*)          { # Handle special port selectors
             advance
 
-            # Break up the token, because older Tcl switch doesn't support -matchvar
-            regexp {^(\w+):(.*)} $token matchvar field pat
+            set field [lindex $matchvar 1]
+            set pat [lindex $matchvar 2]
 
             # Remap friendly names to actual names
             set field [map_friendly_field_names $field]
@@ -1334,11 +1335,11 @@ proc element { resname } {
             set el 1
         }
 
-        ^depends:           { # A port selector shorthand for depends_{lib,build,run,fetch,extract}
+        ^(depends):(.*)     { # A port selector shorthand for depends_{lib,build,run,fetch,extract}
             advance
 
-            # Break up the token, because older Tcl switch doesn't support -matchvar
-            regexp {^(\w+):(.*)} $token matchvar field pat
+            set field [lindex $matchvar 1]
+            set pat [lindex $matchvar 2]
 
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_lib"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_build"]
@@ -1350,12 +1351,12 @@ proc element { resname } {
             set el 1
         }
 
-        ^dependentof:       -
-        ^rdependentof:      {
+        ^(dependentof):(.*)  -
+        ^(rdependentof):(.*) {
             advance
 
-            # Break up the token, because older Tcl switch doesn't support -matchvar
-            regexp {^(\w+):(.*)} $token matchvar selector portname
+            set selector [lindex $matchvar 1]
+            set portname [lindex $matchvar 2]
 
             set recursive [string equal $selector "rdependentof"]
             add_multiple_ports reslist [get_dependent_ports $portname $recursive]
@@ -1363,12 +1364,12 @@ proc element { resname } {
             set el 1
         }
 
-        ^depof:             -
-        ^rdepof:            {
+        ^(depof):(.*)       -
+        ^(rdepof):(.*)      {
             advance
 
-            # Break up the token, because older Tcl switch doesn't support -matchvar
-            regexp {^(\w+):(.*)} $token matchvar selector portname
+            set selector [lindex $matchvar 1]
+            set portname [lindex $matchvar 2]
 
             set recursive [string equal $selector "rdepof"]
             add_multiple_ports reslist [get_dep_ports $portname $recursive]
@@ -1376,11 +1377,11 @@ proc element { resname } {
             set el 1
         }
 
-        ^subportof:         {
+        ^(subportof):(.*)   {
             advance
 
-            # Break up the token, because older Tcl switch doesn't support -matchvar
-            regexp {^(\w+):(.*)} $token matchvar selector portname
+            set selector [lindex $matchvar 1]
+            set portname [lindex $matchvar 2]
 
             add_multiple_ports reslist [get_subports $portname]
 
