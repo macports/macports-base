@@ -497,10 +497,10 @@ proc portfetch::gitfetch {args} {
         }
     }
 
-    # XXX: this does not support multiple recursive levels of submodules
+    # fetch all submodules
     if {[file isfile "$tmppath/.gitmodules"] && [tbool git.fetch_submodules]} {
         ui_info "$UI_PREFIX Cloning git submodules"
-        set cmdstring "${git.cmd} submodule -q update --init 2>&1"
+        set cmdstring "${git.cmd} submodule -q update --init --recursive 2>&1"
         if {[catch {system -W $tmppath $cmdstring} result]} {
             delete ${tmppath}
             return -code error [msgcat::mc "Git submodule init failed"]
@@ -528,9 +528,13 @@ proc portfetch::gitfetch {args} {
         # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
         set tar [findBinary bsdtar tar]
         set tartmp [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+        # determine tmppath again in shell, as the real path might be different
+        # due to symlinks (/tmp vs. /private/tmp), pass it as MPTOPDIR in
+        # environment
         set cmdstring [join [list \
-            "${git.cmd} submodule -q foreach '" \
-            "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\$path/\" \$sha1 " \
+            "MPTOPDIR=\$PWD " \
+            "${git.cmd} submodule -q foreach --recursive '" \
+            "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\${PWD#\$MPTOPDIR/}/\" \$sha1 " \
             "| tar -cf ${tartmp} @- @${tardst} " \
             "&& mv ${tartmp} ${tardst}" \
             "' 2>&1"] ""]
