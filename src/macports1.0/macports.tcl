@@ -2320,12 +2320,16 @@ proc macports::getsourcepath {url} {
 # (private)
 #
 # @param url source URL to check
-# @return a list containing filename and extension or an empty list
-proc _source_is_snapshot {url {filename {}} {extension {}}} {
+# @param filename upvar variable name for filename
+# @param extension upvar variable name for extension
+# @param extension upvar variable name for URL excluding the filename
+proc _source_is_snapshot {url {filename {}} {extension {}} {rooturl {}}} {
+    upvar $rooturl myrooturl
     upvar $filename myfilename
     upvar $extension myextension
 
-    if {[regexp {^(?:https?|ftp|rsync)://.+/(.+\.(tar\.gz|tar\.bz2|tar))$} $url -> f e]} {
+    if {[regexp {^((?:https?|ftp|rsync)://.+/)(.+\.(tar\.gz|tar\.bz2|tar))$} $url -> u f e]} {
+        set myrooturl $u
         set myfilename $f
         set myextension $e
 
@@ -2494,13 +2498,15 @@ proc mportsync {{optionslist {}}} {
                 # Where to, boss?
                 set indexfile [macports::getindex $source]
                 set destdir [file dirname $indexfile]
-                set is_tarball [_source_is_snapshot $source]
+                set is_tarball [_source_is_snapshot $source filename extension rooturl]
                 file mkdir $destdir
 
                 if {$is_tarball} {
-                    set exclude_option {}
+                    set exclude_option "--exclude=*"
+                    set include_option "--include=/${filename} --include=/${filename}.rmd160"
                     # need to do a few things before replacing the ports tree in this case
                     set destdir [file dirname $destdir]
+                    set srcstr $rooturl
                 } else {
                     # Keep rsync happy with a trailing slash
                     if {[string index $source end] ne "/"} {
@@ -2508,9 +2514,11 @@ proc mportsync {{optionslist {}}} {
                     }
                     # don't sync PortIndex yet; we grab the platform specific one afterwards
                     set exclude_option '--exclude=/PortIndex*'
+                    set include_option {}
+                    set srcstr $source
                 }
                 # Do rsync fetch
-                set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $exclude_option $source $destdir"
+                set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
                 try -pass_signal {
                     system $rsync_commandline
                 } catch {*} {
@@ -2522,14 +2530,6 @@ proc mportsync {{optionslist {}}} {
                 if {$is_tarball} {
                     # verify signature for tarball
                     global macports::archivefetch_pubkeys
-                    set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $exclude_option ${source}.rmd160 $destdir"
-                    try -pass_signal {
-                        system $rsync_commandline
-                    } catch {*} {
-                        ui_error "Synchronization of the ports tree signature failed doing rsync"
-                        incr numfailed
-                        continue
-                    }
                     set tarball ${destdir}/[file tail $source]
                     set signature ${tarball}.rmd160
                     set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
