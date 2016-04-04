@@ -137,7 +137,9 @@ proc portarchivefetch::checkarchivefiles {urls} {
 # returns full path to mirror list file
 proc portarchivefetch::get_full_archive_sites_path {} {
     global archive_sites.listfile archive_sites.listpath porturl
-    return [getportresourcepath $porturl [file join ${archive_sites.listpath} ${archive_sites.listfile}]]
+    # look up archive sites only from this ports tree,
+    # do not fallback to the default
+    return [getportresourcepath $porturl [file join ${archive_sites.listpath} ${archive_sites.listfile}] no]
 }
 
 # Perform the full checksites/checkarchivefiles sequence.
