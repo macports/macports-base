@@ -2023,6 +2023,7 @@ proc action_info { action portlist opts } {
             conflicts       1
             subports        1
             patchfiles      1
+            portgroups      1
         "
 
         # Label map for pretty printing
@@ -2046,6 +2047,7 @@ proc action_info { action portlist opts } {
             replaced_by "Replaced by"
             subports    "Sub-ports"
             patchfiles  "Patchfiles"
+            portgroups  "Port Groups"
         }
 
         # Wrap-length map for pretty printing
@@ -2068,6 +2070,7 @@ proc action_info { action portlist opts } {
             maintainers 22
             subports 22
             patchfiles 22
+            portgroups 22
         }
 
         # Interpret a convenient field abbreviation
@@ -2164,7 +2167,13 @@ proc action_info { action portlist opts } {
                 if {![info exists portinfo($ropt)]} {
                     set inf ""
                 } else {
-                    set inf [join $portinfo($ropt)]
+                    if {$ropt eq "portgroups"} {
+                        # preserve nested lists
+                        set inf $portinfo($ropt)
+                    } else {
+                        # flatten list
+                        set inf [join $portinfo($ropt)]
+                    }
                 }
             }
 
@@ -2183,6 +2192,12 @@ proc action_info { action portlist opts } {
             # Format the data
             if { $ropt eq "maintainers" } {
                 set inf [unobscure_maintainers $inf]
+            } elseif {$ropt eq "portgroups"} {
+                set groups $inf
+                set inf {}
+                foreach x $groups {
+                    lappend inf "[lindex $x 0]-[lindex $x 1]"
+                }
             }
             #     ... special formatting for certain fields when prettyprinting
             if {$pretty_print} {
@@ -4345,10 +4360,10 @@ global cmd_opts_array
 array set cmd_opts_array {
     edit        {{editor 1}}
     info        {category categories conflicts depends_fetch depends_extract
-                 depends_build depends_lib depends_run depends_test
-                 depends description epoch fullname heading homepage index license
-                 line long_description
-                 maintainer maintainers name patchfiles platform platforms portdir
+                 depends_build depends_lib depends_run depends_test depends
+                 description epoch fullname group groups heading homepage
+                 index license line long_description maintainer maintainers
+                 name patchfiles platform platforms portdir portgroup portgroups
                  pretty replaced_by revision subports variant variants version}
     contents    {size {units 1}}
     deps        {index no-build}
