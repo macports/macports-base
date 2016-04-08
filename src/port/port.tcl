@@ -252,6 +252,11 @@ proc map_friendly_field_names { field } {
         category {
             set field "categories"
         }
+        group -
+        groups -
+        portgroup {
+            set field "portgroups"
+        }
     }
 
     return $field
@@ -1322,6 +1327,10 @@ proc element { resname } {
         ^(revision):(.*)         -
         ^(subport):(.*)          -
         ^(subports):(.*)         -
+        ^(group):(.*)            -
+        ^(groups):(.*)           -
+        ^(portgroup):(.*)        -
+        ^(portgroups):(.*)       -
         ^(license):(.*)          { # Handle special port selectors
             advance
 
