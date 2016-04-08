@@ -261,7 +261,8 @@ set save_prefix ${macports::prefix}
 foreach key {categories depends_fetch depends_extract depends_build \
              depends_lib depends_run depends_test description epoch homepage \
              long_description maintainers name platforms revision variants \
-             version portdir replaced_by license installs_libs conflicts} {
+             version portdir replaced_by license installs_libs conflicts \
+             portgroups} {
     set keepkeys($key) 1
 }
 
