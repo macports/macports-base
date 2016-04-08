@@ -4355,10 +4355,11 @@ array set cmd_opts_array {
     rdeps       {index no-build full}
     rdependents {full}
     search      {case-sensitive category categories depends_fetch
-                 depends_extract depends_build depends_lib depends_run depends_test
-                 depends description epoch exact glob homepage line
-                 long_description maintainer maintainers name platform
-                 platforms portdir regex revision variant variants version}
+                 depends_extract depends_build depends_lib depends_run
+                 depends_test depends description epoch exact glob group groups
+                 homepage line long_description maintainer maintainers name
+                 platform platforms portdir portgroup portgroups regex revision
+                 variant variants version}
     selfupdate  {nosync}
     space       {{units 1} total}
     activate    {no-exec}
