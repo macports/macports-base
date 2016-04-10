@@ -5246,35 +5246,8 @@ namespace eval portclient::notifications {
                 set notes $notificationsToPrint($name)
                 ui_notice "  $name has the following notes:"
 
-                # If env(COLUMNS) exists, limit each line's width to this width.
-                if {[info exists env(COLUMNS)]} {
-                    set maxlen $env(COLUMNS)
-
-                    foreach note $notes {
-                        foreach line [split $note "\n"] {
-                            set joiner ""
-                            set lines ""
-                            set newline "    "
-
-                            foreach word [split $line " "] {
-                                if {[string length $newline] + [string length $word] >= $maxlen} {
-                                    lappend lines $newline
-                                    set newline "    "
-                                    set joiner ""
-                                }
-                                ::append newline $joiner $word
-                                set joiner " "
-                            }
-                            if {$newline ne {}} {
-                                lappend lines $newline
-                            }
-                            ui_notice [join $lines "\n"]
-                        }
-                    }
-                } else {
-                    foreach note $notes {
-                        ui_notice $note
-                    }
+                foreach note $notes {
+                    ui_notice [wrap $note 0 "    "]
                 }
             }
         }
