@@ -5306,10 +5306,13 @@ namespace eval portclient::questions {
         # Print the main message
         puts $msg
 
+        # Find maximum number length
+        set maxlen [string length [llength $ports]]
+
         # Print portname or port list suitably
         set i 1
         foreach port $ports {
-            puts -nonewline " $i) "
+            puts -nonewline [format " %*d) " $maxlen $i]
             puts [string map {@ " @" ( " ("} $port]
             incr i
         }
