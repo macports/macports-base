@@ -160,12 +160,16 @@ proc portlivecheck::livecheck_main {args} {
                     set data [read $chan]
                     if {[regexp $the_re $data matched updated_version]} {
                         set foundmatch 1
+                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                         if {$updated_version ne ${livecheck.version}} {
-                            set updated 1
+                            if {[vercmp $updated_version ${livecheck.version}] > 0} {
+                                set updated 1
+                            } else {
+                                ui_error "livecheck failed for ${subport}: extracted version '$updated_version' is older than livecheck.version '${livecheck.version}'"
+                            }
                         } else {
                             set updated 0
                         }
-                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                     }
                 } else {
                     set updated_version 0
