@@ -346,12 +346,16 @@ namespace eval reclaim {
         }
         if {$time ne ""} {
             if {[clock seconds] - $time > 1209600} {
-                if {[info exists macports::ui_options(questions_yesno)]} {
-                    set retval [$macports::ui_options(questions_yesno)  "You haven't run 'port reclaim' in two weeks. It's recommended you run this every two weeks to reclaim disk space." "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
+                set msg "You haven't run 'sudo port reclaim' in two weeks. It's recommended you run this regularly to reclaim disk space."
+
+                if {[file writable $macports::portdbpath] && [info exists macports::ui_options(questions_yesno)]} {
+                    set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
                     if {$retval == 0} {
                         # User said yes, run port reclaim
                         macports::reclaim_main
                     }
+                } else {
+                    ui_warn $msg
                 }
             }
         }
