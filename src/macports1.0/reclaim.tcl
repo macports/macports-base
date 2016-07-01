@@ -353,6 +353,10 @@ namespace eval reclaim {
                     if {$retval == 0} {
                         # User said yes, run port reclaim
                         macports::reclaim_main
+                    } else {
+                        # User said no, ask again in two weeks
+                        # Change this time frame if a consensus is agreed upon
+                        update_last_run
                     }
                 } else {
                     ui_warn $msg
