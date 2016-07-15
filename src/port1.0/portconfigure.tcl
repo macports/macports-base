@@ -513,8 +513,10 @@ proc portconfigure::get_compiler_fallback {} {
     }
 
     # Determine which versions of clang we prefer
-    if {${configure.cxx_stdlib} eq "libc++"} { # clang-3.5+ require libc++
-        lappend compilers macports-clang-3.7 macports-clang-3.6 macports-clang-3.5 macports-clang-3.4
+    if {${os.major} >= 16} {
+        lappend compilers macports-clang-3.8 macports-clang-3.7
+    } elseif {${configure.cxx_stdlib} eq "libc++"} { # clang-3.5+ require libc++
+        lappend compilers macports-clang-3.8 macports-clang-3.7 macports-clang-3.6 macports-clang-3.5 macports-clang-3.4
     } else {
         lappend compilers macports-clang-3.4 macports-clang-3.3
     }
