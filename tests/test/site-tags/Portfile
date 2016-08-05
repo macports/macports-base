@@ -7,7 +7,7 @@ version		2
 categories	test
 maintainers	kallisys.net:pguyot
 description	Test port for site:tags functionalities
-homepage	http://www.macports.org/
+homepage	https://www.macports.org/
 platforms	darwin
 
 long_description ${description}

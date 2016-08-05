@@ -273,6 +273,6 @@ fi
 # Postflight script is done with its job, update MacPorts and exit gracefully!
 update_macports
 echo "You have successfully installed the MacPorts system. Launch a terminal and try it out!"
-echo "Read the port(1) manual page and http://guide.macports.org/ for help."
-echo "See http://www.macports.org/contact.php if you need to get in touch with The MacPorts Project."
+echo "Read the port(1) manual page and https://guide.macports.org/ for help."
+echo "See https://www.macports.org/contact.php if you need to get in touch with The MacPorts Project."
 exit 0

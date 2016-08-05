@@ -102,7 +102,7 @@ endif
 ifndef SELFUPDATING
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
-	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at https://trac.macports.org/ for full documentation."; echo ""
+	@echo "Please read \"man port\", the MacPorts guide at https://guide.macports.org/ and Wiki at https://trac.macports.org/ for full documentation."; echo ""
 else
 	@echo ""; echo "Congratulations, you have successfully upgraded the MacPorts system."; echo ""
 endif

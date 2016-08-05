@@ -65,7 +65,7 @@ test worker_init {
 } -setup {
     set name [interp create]
     set portpath $pwd/portpath
-    set porturl http://www.macports.org
+    set porturl https://www.macports.org
     set portbuildpath $pwd/build
     set options {a b}
     set variations {1 2}
@@ -580,7 +580,7 @@ test fetch_port {
 test getprotocol {
     Get protocol unit test.
 } -body {
-    if {[macports::getprotocol http://www.macports.org] ne "http"} {
+    if {[macports::getprotocol https://www.macports.org] ne "https"} {
        return "FAIL: wrong protocol"
     }
     return "Get protocol successful."

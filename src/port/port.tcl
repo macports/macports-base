@@ -124,7 +124,7 @@ combined using expressions consisting of and, or, not, !, (, and ).
 For more information
 --------------------
 See man pages: port(1), macports.conf(5), portfile(7), portgroup(7),
-porthier(7), portstyle(7). Also, see http://www.macports.org.
+porthier(7), portstyle(7). Also, see https://www.macports.org.
     }
 
     puts "$cmdText$text"
@@ -185,7 +185,7 @@ proc break_softcontinue { msg status name_status } {
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
     if {${macports::prefix} ne "/usr/local" && ${macports::prefix} ne "/usr"} {
-        ui_error "Follow http://guide.macports.org/#project.tickets to report a bug."
+        ui_error "Follow https://guide.macports.org/#project.tickets to report a bug."
     }
 }
 
