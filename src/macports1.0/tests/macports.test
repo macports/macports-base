@@ -617,7 +617,7 @@ test getportresourcepath {
 } -body {
     set macports::portdbpath $pwd/portdbpath
     set url "http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2"
-    set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
+    set default_path $pwd/portdbpath/sources/rsync.macports.org/macports/release/tarballs/ports/_resources
     set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2/_resources
 
     if {[macports::getportresourcepath $url "" yes] ne $default_path} {

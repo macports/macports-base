@@ -915,7 +915,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     if {![info exists rsync_dir]} {
         global macports::rsync_dir
-        set macports::rsync_dir release/tarballs/base.tar
+        set macports::rsync_dir macports/release/tarballs/base.tar
     }
     if {![info exists rsync_options]} {
         global macports::rsync_options

@@ -116,7 +116,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # and will be used to verify its integrity. See
 # https://trac.macports.org/wiki/Mirrors#MacPortsSource to find the
 # correct rsync_dir for a particular rsync_server.
-#rsync_dir           	release/tarballs/base.tar
+#rsync_dir           	macports/release/tarballs/base.tar
 
 # Options to pass to rsync when fetching MacPorts base and the ports tree.
 #rsync_options       	-rtzv --delete-after

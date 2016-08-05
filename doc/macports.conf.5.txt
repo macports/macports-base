@@ -155,7 +155,7 @@ rsync_server::
 
 rsync_dir::
     Rsync directory from which to pull MacPorts sources from the rsync server.
-    *Default:*;; release/base/ (which pulls sources for the currently shipping
+    *Default:*;; macports/release/base/ (which pulls sources for the currently shipping
     MacPorts release)
 
 rsync_options::

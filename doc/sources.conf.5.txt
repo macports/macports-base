@@ -38,9 +38,9 @@ MacPorts supports a number of different protocols as source descriptions.
     a pre-generated PortIndex (including the PortIndex.quick file) from there.
     +
     *Example*;;
-        rsync://rsync.macports.org/release/tarballs/ports.tar
+        rsync://rsync.macports.org/macports/release/tarballs/ports.tar
     *Default*;;
-        rsync://rsync.macports.org/release/tarballs/ports.tar [default]
+        rsync://rsync.macports.org/macports/release/tarballs/ports.tar [default]
 
 'file://'::
     Followed by an absolute path (which will result in *three* slashes at the
