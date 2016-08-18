@@ -1,12 +1,7 @@
-*.dSYM
-*.dylib
-*.[ao]
-*_autoconf.tcl
-
-config.log
-config.status
-Doxyfile
-setupenv.bash
+/config.log
+/config.status
+/Doxyfile
+/setupenv.bash
 
 doc/*.gz
 doc/*.mtree
@@ -19,23 +14,26 @@ Mk/macports.autoconf.mk
 
 portmgr/dmg/postflight
 
-src/*.tcl
-src/config.h
-src/pkg_mkindex.sh
+src/*
+!src/*/
+src/*/*.dylib
+src/*/*_autoconf.tcl
 src/cregistry/macports.sqlext
 src/darwintracelib1.0/*.d
 src/darwintracelib1.0/sip_copy_proc.[ch]
 src/machista1.0/tests/libmachista-test
-src/port/port
-src/port/portindex
-src/port/portmirror
+src/port/*
+!src/port/*.tcl
 src/programs/daemondo/build/
+src/**/*.[ao]
 
 tests/test.tcl
 tests/test/library.tcl
 tests/test/trace/test.tcl
 
 vendor/*/
+
+!*.in
 
 Makefile
 pkgIndex.tcl
