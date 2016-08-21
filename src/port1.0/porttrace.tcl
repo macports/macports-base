@@ -48,12 +48,13 @@ namespace eval porttrace {
 	variable thread
 
 	##
-	# A list of files to which access was denied by trace mode.
+	# An ordered duplicate-free list of files to which access was denied by
+	# trace mode.
 	variable sandbox_violation_list [list]
 
 	##
-	# A list of files inside the MacPorts prefix but unknown to MacPorts that
-	# were used by the current trace session.
+	# An ordered duplicate-free list of files inside the MacPorts prefix but
+	# unknown to MacPorts that were used by the current trace session.
 	variable sandbox_unknown_list [list]
 
     proc appendEntry {sandbox path action} {
@@ -466,7 +467,7 @@ namespace eval porttrace {
 	proc slave_add_sandbox_violation {path} {
 		variable sandbox_violation_list
 
-		lappend sandbox_violation_list $path
+		sorted_list_insert sandbox_violation_list $path
 	}
 
 	##
@@ -492,6 +493,36 @@ namespace eval porttrace {
 	proc slave_add_sandbox_unknown {path} {
 		variable sandbox_unknown_list
 
-		lappend sandbox_unknown_list $path
+		sorted_list_insert sandbox_unknown_list $path
+	}
+
+	##
+	# Insert an element into a sorted list, keeping the list sorted. If the
+	# element is already present in the list, do nothing. This should run in
+	# O(log n) to be useful.
+	proc sorted_list_insert {listname element} {
+		upvar $listname l
+
+		set rboundary [llength $l]
+		set lboundary 0
+
+		while {[set distance [expr {$rboundary - $lboundary}]] > 0} {
+			set index [expr {$lboundary + ($distance / 2)}]
+
+			set cmp [string compare $element [lindex $l $index]]
+			if {$cmp == 0} {
+				# element already present, do nothing
+				return
+			} elseif {$cmp < 0} {
+				# continue left
+				set rboundary $index
+			} else {
+				# continue right
+				set lboundary [expr {$index + 1}]
+			}
+		}
+
+		# we're at the end, lets insert here
+		set l [linsert $l $lboundary $element]
 	}
 }

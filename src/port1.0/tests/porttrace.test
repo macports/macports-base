@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+package require Tclx
+package require porttrace 1.0
+
+test sorted_list_insert {
+    Test porttrace::sorted_list_insert
+} -setup {
+    set numbers [list]
+    for {set i 0} {$i < 1000} {incr i} {
+        lappend numbers [random 2000]
+    }
+    set sorted_numbers [lsort -unique $numbers]
+} -body {
+    # random is provided by TclX
+    set l [list]
+
+    foreach num $numbers {
+        porttrace::sorted_list_insert l $num
+    }
+
+    set differences [list]
+    set l_len [llength $l]
+    set s_len [llength $sorted_numbers]
+    if {$l_len != $s_len} {
+        lappend differences [list "length" $l_len $s_len]
+    }
+    for {set i 0} {$i < [expr {min($l_len, $s_len)}]} {incr i} {
+        if {[lindex $l $i] ne [lindex $sorted_numbers $i]} {
+            lappend differences [list $i [lindex $l $i] [lindex $sorted_numbers $i]]
+        }
+    }
+
+    return $differences
+} -result [list]
+
+cleanupTests
