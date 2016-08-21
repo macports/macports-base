@@ -292,7 +292,7 @@ namespace eval porttrace {
 
 		set existingFiles [list]
 		set missingFiles  [list]
-		foreach violation [lsort -unique $violations] {
+		foreach violation $violations {
 			if {![catch {file lstat $violation _}]} {
 				lappend existingFiles $violation
 			} else {
@@ -326,7 +326,7 @@ namespace eval porttrace {
 
 		set unknowns [slave_send porttrace::slave_get_sandbox_unknowns]
 		set existingUnknowns [list]
-		foreach unknown [lsort -unique $unknowns] {
+		foreach unknown $unknowns {
 			if {![catch {file lstat $unknown _}]} {
 				lappend existingUnknowns $unknown
 			}
