@@ -705,17 +705,36 @@ test variant_new {
 test handle_default_variants {
     Handle default variants unit test.
 } -body {
-    array set variations {
-        target.run org.macports.checksum
+    global PortInfo
+    global variations
+
+    array set variations {}
+
+    handle_default_variants "default_variants" "set" {+var -var2}
+
+    # Check that +var was recorded
+    array set vinfo $PortInfo(vinfo)
+    if {![info exists vinfo(var)]} {
+        return "FAIL: PortInfo(vinfo)(var) does not exist after default_variants +var"
+    }
+    array set info $vinfo(var)
+    if {![info exists info(is_default)]} {
+        return "FAIL: PortInfo(vinfo)(var)(is_default) does not exist after default_variants +var"
+    }
+    if {$info(is_default) ne "+"} {
+        return "FAIL: PortInfo(vinfo)(var)(is_default) should be + but is ${info(is_default)}"
     }
 
-    set res [handle_default_variants target set {+org -org2}]
-
-    if {[lindex $PortInfo(vinfo) 0] != "org" || [lindex $PortInfo(vinfo) 1] != "is_default +"} {
-        return "FAIL: default variant not set"
+    # Check that -var2 was recorded
+    if {![info exists vinfo(var2)]} {
+        return "FAIL: PortInfo(vinfo)(var2) does not exist after default_variants -var"
     }
-    if {[lindex $PortInfo(vinfo) 2] != "org2" || [lindex $PortInfo(vinfo) 3] != "is_default -"} {
-        return "FAIL: nondefault variant not set"
+    array set info $vinfo(var2)
+    if {![info exists info(is_default)]} {
+        return "FAIL: PortInfo(vinfo)(var2)(is_default) does not exist after default_variants -var2"
+    }
+    if {$info(is_default) ne "-"} {
+        return "FAIL: PortInfo(vinfo)(var2)(is_default) should be - but is ${info(is_default)}"
     }
 
     return "Handle default variant successful."
