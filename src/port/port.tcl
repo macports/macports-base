@@ -3221,7 +3221,7 @@ proc action_installed { action portlist opts } {
                 }
                 set date [registry::property_retrieve $regref date]
                 if {$date ne ""} {
-                    append extra " date='[clock format $date -format "%Y-%m-%d %T"]'"
+                    append extra " date='[clock format $date -format "%Y-%m-%dT%H:%M:%S%z"]'"
                 }
             }
             if { $iactive == 0 } {
