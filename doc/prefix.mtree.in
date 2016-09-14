@@ -20,6 +20,8 @@
     sbin
     ..
     share
+        doc
+        ..
         info
         ..
         man
@@ -240,6 +242,16 @@
     src
     ..
     var
+      cache
+      ..
+      db
+      ..
+      log
+      ..
+      run
+      ..
+      spool
+      ..
     ..
     www
     ..
