@@ -2314,6 +2314,10 @@ proc mportsync {{optionslist {}}} {
                     } {
                         ui_debug $::errorInfo
                         ui_error "Synchronization of the local ports tree failed doing an svn update"
+                        if {[getuid] == 0} {
+                            seteuid $euid
+                            setegid $egid
+                        }
                         incr numfailed
                         continue
                     }
@@ -2344,6 +2348,10 @@ proc mportsync {{optionslist {}}} {
                     } {
                         ui_debug $::errorInfo
                         ui_error "Synchronization of the local ports tree failed doing a git update"
+                        if {[getuid] == 0} {
+                            seteuid $euid
+                            setegid $egid
+                        }
                         incr numfailed
                         continue
                     }
