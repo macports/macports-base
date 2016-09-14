@@ -42,6 +42,35 @@ Release 2.4 (unreleased)
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
 
+Release 2.3.5 (2016-09-?? by ??)
+    - Updated compiler selection for macOS 10.12 Sierra
+      (jeremyhu in r141134 and r150305)
+
+    - Do not use default archive_sites for custom ports trees
+      (raimue in r147456)
+
+    - Prune symlinks to deleted libtool archives (.la)
+      (#40935, jmr in r119571, r119594, r119595)
+
+    - Return an error livecheck matched a version older than the current
+      version.
+      (jmr, raimue in r127797, r149299)
+
+    - Permit pkg phase to be run as root, if needed for additional
+      modifications in destroot.
+      (ctreleaven in r152115)
+
+    - Ignore warnings on stderr for archive extraction to allow use of gnutar.
+      (#42492, cal in r132312)
+
+    - Create the documented porthier(7) directory structure in ${prefix}/var
+      and ${prefix}/share for destroot phase.
+      (#45434, #47688, ryandesign in r135998, r135999)
+
+    - When syncing a ports tree failed, operation could continue with the
+      wrong uid.
+      (#43202, cal in r118570)
+
 Release 2.3.4 (2015-10-01 by jmr)
     - Installation will now abort when an archive is found on a server but
       downloading it fails, rather than trying to build from source without
