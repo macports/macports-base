@@ -71,9 +71,7 @@ proc portlivecheck::livecheck_main {args} {
     set has_homepage [info exists homepage]
 
     set tempfile [mktemp "/tmp/mports.livecheck.XXXXXXXX"]
-    set port_moddate [file mtime ${portpath}/Portfile]
 
-    ui_debug "Portfile modification date is [clock format $port_moddate]"
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
     set curl_options {}
@@ -212,6 +210,7 @@ proc portlivecheck::livecheck_main {args} {
         }
         "moddate" {
             set port_moddate [file mtime ${portpath}/Portfile]
+            ui_debug "Portfile modification date is [clock format $port_moddate]"
             if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
                 set updated -1
