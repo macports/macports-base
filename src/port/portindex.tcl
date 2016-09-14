@@ -12,7 +12,7 @@ set full_reindex 0
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
-array set ui_options        [list]
+array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list]
 array set global_variations [list]
 set port_options            [list]
