@@ -4,6 +4,9 @@
 ###
 
 Release 2.4 (unreleased)
+    - Show date in verbose output of 'port installed'
+      (raimue in r146757, r152685)
+
     - Add depends_test to handle the dependencies for the test phase of ports.
       (khindenburg in r140488, #38208)
 
