@@ -74,10 +74,11 @@ buildfromsource::
     *Default:*;; ifneeded
 
 portarchivetype::
-    Format of archives in which to store port images. This controls both the
-    type of archive cre- ated locally after building from source, and the type
-    to request from remote servers. Changing this will not affect the usability
-    of already installed archives; they can be of any supported type.
+    Format of archives in which to store port images. This controls the
+    type of archive created locally after building from source, but not the
+    type to request from remote servers (that is controlled by
+    'archive_sites.conf'). Changing this will not affect the usability of
+    already installed archives; they can be of any supported type.
     *Supported types:*;; tgz, tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
     *Default:*;; tbz2
 
