@@ -914,11 +914,11 @@ error_locked:
     // Close remainig sockets to avoid dangling processes
     if (opensockcount > 0) {
 #ifdef HAVE_PEERPID_LIST
-        ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd, closing, sending SIGTERM and SIGKILL\n", opensockcount);
+        ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd, closing, sending SIGTERM and SIGKILL", opensockcount);
         peerpid_list_walk(close_and_send_sigterm);
         peerpid_list_walk(send_sigkill_and_free);
 #else
-        ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd\n", opensockcount);
+        ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd", opensockcount);
 #endif
     }
 
