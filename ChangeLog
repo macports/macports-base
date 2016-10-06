@@ -74,6 +74,9 @@ Release 2.3.5 (2016-09-?? by ??)
       wrong uid.
       (#43202, cal in r118570)
 
+    - Change default of livecheck.ignore_sslcert to "no".
+      (#52515, raimue in r153648)
+
 Release 2.3.4 (2015-10-01 by jmr)
     - Installation will now abort when an archive is found on a server but
       downloading it fails, rather than trying to build from source without
