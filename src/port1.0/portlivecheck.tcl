@@ -57,7 +57,7 @@ default livecheck.regex ""
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
-default livecheck.ignore_sslcert yes
+default livecheck.ignore_sslcert no
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
