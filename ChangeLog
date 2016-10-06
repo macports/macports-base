@@ -31,6 +31,9 @@ Release 2.3.5 (2016-09-?? by ??)
       wrong uid.
       (#43202, cal in r118570)
 
+    - Change default of livecheck.ignore_sslcert to "no".
+      (#52515, raimue in r153648)
+
     - No longer check Subversion properties in 'port lint'
       (#48577, ryandesign in r153865)
 
