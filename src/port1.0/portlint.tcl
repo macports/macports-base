@@ -719,32 +719,6 @@ proc portlint::lint_main {args} {
 
     ###################################################################
 
-    set svn_cmd ""
-    catch {set svn_cmd [findBinary svn]}
-    if {$svn_cmd ne "" && ([file exists $portpath/.svn] || ![catch {exec $svn_cmd info $portpath > /dev/null 2>@1}])} {
-        ui_debug "Checking svn properties"
-        if {[catch {exec $svn_cmd propget svn:keywords $portfile 2>@1} output]} {
-            ui_warn "Unable to check for svn:keywords property: $output"
-        } else {
-            ui_debug "Property svn:keywords is \"$output\", should be \"Id\""
-            if {$output ne "Id"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:keywords Id Portfile"
-                incr errors
-            }
-        }
-        if {[catch {exec $svn_cmd propget svn:eol-style $portfile 2>@1} output]} {
-            ui_warn "Unable to check for svn:eol-style property: $output"
-        } else {
-            ui_debug "Property svn:eol-style is \"$output\", should be \"native\""
-            if {$output ne "native"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:eol-style native Portfile"
-                incr errors
-            }
-        }
-    }
-
-    ###################################################################
-
     ui_notice "$UI_PREFIX [format [msgcat::mc "%d errors and %d warnings found."] $errors $warnings]"
 
     return {$errors > 0}
