@@ -77,6 +77,9 @@ Release 2.3.5 (2016-09-?? by ??)
     - Change default of livecheck.ignore_sslcert to "no".
       (#52515, raimue in r153648)
 
+    - No longer check Subversion properties in 'port lint'
+      (#48577, ryandesign in r153865)
+
 Release 2.3.4 (2015-10-01 by jmr)
     - Installation will now abort when an archive is found on a server but
       downloading it fails, rather than trying to build from source without
