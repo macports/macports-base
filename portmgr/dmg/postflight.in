@@ -39,15 +39,15 @@
 VERSION=2.3.1
 
 # Abstraction variables:
-PREFIX=@prefix@
+PREFIX="@prefix@"
 BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
 DSCL=/usr/bin/dscl
 RUNUSR=macports
-TCLSH=@TCLSH@
-TCL_PACKAGE_PATH=@TCL_PACKAGE_PATH@
+TCLSH="@TCLSH@"
+TCL_PACKAGE_PATH="@TCL_PACKAGE_PATH@"
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
 OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
@@ -60,25 +60,25 @@ function setup_configs {
     for f in archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf ; do
         if [[ ! -f ${CONFIGPATH}/${f} ]]; then
             echo "Copying ${f}.default to ${f}"
-            /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}
-            /bin/chmod 644 ${CONFIGPATH}/${f}
+            /bin/cp "${CONFIGPATH}/${f}.default" "${CONFIGPATH}/${f}"
+            /bin/chmod 644 "${CONFIGPATH}/${f}"
         fi
     done
 }
 
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
-    SCRIPT_DIR=$(dirname $0)
+    SCRIPT_DIR=$(dirname "$0")
     # Add [default] tag to the central MacPorts repository, if it isn't already
     echo "Adding [default] tag to sources.conf if needed..."
-    ${TCLSH} ${SCRIPT_DIR}/upgrade_sources_conf_default.tcl ${PREFIX}
+    "${TCLSH}" "${SCRIPT_DIR}/upgrade_sources_conf_default.tcl" "${PREFIX}"
     # Convert image directories (and direct mode installs) to image archives
     echo "Updating port image format..."
-    ${TCLSH} ${SCRIPT_DIR}/images_to_archives.tcl
-    ${TCLSH} ${SCRIPT_DIR}/dedup_portfiles.tcl
+    "${TCLSH}" "${SCRIPT_DIR}/images_to_archives.tcl"
+    "${TCLSH}" "${SCRIPT_DIR}/dedup_portfiles.tcl"
 
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
-    if ! ${BINPATH}/port -v selfupdate; then 
+    if ! "${BINPATH}/port" -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
         echo "Please run 'sudo port -d selfupdate' manually to find out the cause of the error."
     else
@@ -99,10 +99,12 @@ function write_setting () {
         }
         echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> "${HOME}/.${CONF_FILE}"
     fi
-    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> "${HOME}/.${CONF_FILE}"
-    echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> "${HOME}/.${CONF_FILE}"
-    echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> "${HOME}/.${CONF_FILE}"
-    chown ${USER} "${HOME}/.${CONF_FILE}" || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
+    {
+        echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts."
+        echo "${ENV_COMMAND} ${1}${ASSIGN}${2}"
+        echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n"
+    } >> "${HOME}/.${CONF_FILE}"
+    chown "${USER}" "${HOME}/.${CONF_FILE}" || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
 }
 
@@ -112,9 +114,9 @@ function cleanup_man () {
     MAN1="port.1"
     MAN5="macports.conf.5"
     MAN7="portfile.7 portstyle.7 porthier.7 portgroup.7"
-    for m in ${MAN1}; do rm -vf ${MANPAGES}/man1/$m ; done
-    for m in ${MAN5}; do rm -vf ${MANPAGES}/man5/$m ; done
-    for m in ${MAN7}; do rm -vf ${MANPAGES}/man7/$m ; done
+    for m in ${MAN1}; do rm -vf "${MANPAGES}/man1/$m" ; done
+    for m in ${MAN5}; do rm -vf "${MANPAGES}/man5/$m" ; done
+    for m in ${MAN7}; do rm -vf "${MANPAGES}/man7/$m" ; done
     echo -e "Done.\n"
 }
 
@@ -141,44 +143,44 @@ function delete_old_tcl_packages {
 # create the user to use for privilege dropping
 function create_run_user {
     DSEDITGROUP=/usr/sbin/dseditgroup
-    if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then
+    if ! ${DSCL} -q . -read "/Groups/${RUNUSR}" > /dev/null 2>&1 ; then
         echo "Creating group \"${RUNUSR}\""
-        ${DSEDITGROUP} -q -o create ${RUNUSR}
+        ${DSEDITGROUP} -q -o create "${RUNUSR}"
     fi
-    if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
+    if ! ${DSCL} -q . -list "/Users/${RUNUSR}" > /dev/null 2>&1 ; then
         echo "Creating user \"${RUNUSR}\""
         NEXTUID=501
-        while [[ -n "`${DSCL} -q /Search -search /Users UniqueID $NEXTUID`" ]]; do
+        while [[ -n "$(${DSCL} -q /Search -search /Users UniqueID $NEXTUID)" ]]; do
             let "NEXTUID=NEXTUID+1"
         done
-        ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $NEXTUID
+        ${DSCL} -q . -create "/Users/${RUNUSR}" UniqueID $NEXTUID
 
         # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
         # causes the user to be visible in the Users & Groups Preference Pane,
         # and the others are just noise, so delete them.
         # https://trac.macports.org/ticket/30168
-        ${DSCL} -q . -delete /Users/${RUNUSR} AuthenticationAuthority
-        ${DSCL} -q . -delete /Users/${RUNUSR} PasswordPolicyOptions
-        ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:KerberosKeys
-        ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:ShadowHashData
+        ${DSCL} -q . -delete "/Users/${RUNUSR}" AuthenticationAuthority
+        ${DSCL} -q . -delete "/Users/${RUNUSR}" PasswordPolicyOptions
+        ${DSCL} -q . -delete "/Users/${RUNUSR}" dsAttrTypeNative:KerberosKeys
+        ${DSCL} -q . -delete "/Users/${RUNUSR}" dsAttrTypeNative:ShadowHashData
 
-        ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
-        ${DSCL} -q . -create /Users/${RUNUSR} Password \*
-        ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
-        ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${PREFIX}/var/macports/home
-        ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
+        ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
+        ${DSCL} -q . -create "/Users/${RUNUSR}" Password "*"
+        ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')"
+        ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
+        ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false
     fi
     if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $2}') -eq 4 ]]; then
-        GID=$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
-        if [[ "$(${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
+        GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
+        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
             echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
-            ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $GID
-            ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts
+            ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
+            ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
         fi
     fi
-    if [[ "$(${DSCL} -q . -read /Users/${RUNUSR} NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ]]; then
+    if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ]]; then
         echo "Updating home directory location for user \"${RUNUSR}\""
-        ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory ${PREFIX}/var/macports/home
+        ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
     fi
 }
 
@@ -196,7 +198,7 @@ delete_old_tcl_packages
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL=$(${DSCL} . -read /Users/${USER} shell | awk -F'/' '{print $NF}') || {
+USHELL=$(${DSCL} . -read "/Users/${USER}" shell | awk -F'/' '{print $NF}') || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1
@@ -237,20 +239,20 @@ esac
 
 
 # Adding our setting to the PATH variable if not already there:
-if ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv PATH" | grep ${PREFIX} > /dev/null; then
+if "${SHELL}" ${LOGIN_FLAG} -c "/usr/bin/printenv PATH" | grep "${PREFIX}" > /dev/null; then
     echo "Your shell already has the right PATH environment variable for use with MacPorts!"
 else
     write_setting PATH "\"${BINPATH}:${SBINPATH}:\$PATH\""
 fi
 
 # We gather the path into a variable of our own for faster operation:
-ORIGINAL_MANPATH="$(${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv MANPATH")"
+ORIGINAL_MANPATH="$("${SHELL}" ${LOGIN_FLAG} -c "/usr/bin/printenv MANPATH")"
 # Adding our setting to the MANPATH variable only if it exists:
-if ! ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
+if ! "${SHELL}" ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
 # and following that, if it's not empty:
   [[ -z "${ORIGINAL_MANPATH}" ]] || \
 # or if it doesn't already contain our path:
-  echo "${ORIGINAL_MANPATH}" | grep ${MANPAGES} > /dev/null || \
+  echo "${ORIGINAL_MANPATH}" | grep "${MANPAGES}" > /dev/null || \
 # or if there's no empty component somewhere in the middle of it:
   echo "${ORIGINAL_MANPATH}" | grep :: > /dev/null || \
 # or at the start of it:
@@ -263,7 +265,7 @@ else
 fi
 
 # Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
-if (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep DISPLAY" > /dev/null; then
+if (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || "${SHELL}" ${LOGIN_FLAG} -c "/usr/bin/env | grep DISPLAY" > /dev/null; then
     echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
 else
     write_setting DISPLAY ":0"
