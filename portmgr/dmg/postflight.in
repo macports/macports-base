@@ -50,7 +50,8 @@ TCLSH="@TCLSH@"
 TCL_PACKAGE_PATH="@TCL_PACKAGE_PATH@"
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
-OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
+OUR_BASESTRING="MacPorts Installer addition"
+OUR_STRING="${OUR_BASESTRING} on ${TIMESTAMP}"
 
 OLD_MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 OLD_TCL_PACKAGE_DIR=/Library/Tcl
@@ -90,7 +91,7 @@ function update_macports {
 # backing up the original only if it exists and if it doesn't contain the ${OUR_STRING} identification string,
 # which hints that we've already tweaked it and therefore already backed it up.
 function write_setting () {
-    if [[ -f "${HOME}/.${CONF_FILE}" ]] && ! grep "${OUR_STRING}" "${HOME}/.${CONF_FILE}" > /dev/null; then
+    if [[ -f "${HOME}/.${CONF_FILE}" ]] && ! grep "${OUR_BASESTRING}" "${HOME}/.${CONF_FILE}" > /dev/null; then
         echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
         /bin/cp -fp "${HOME}/.${CONF_FILE}" "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
