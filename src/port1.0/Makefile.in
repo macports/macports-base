@@ -30,14 +30,14 @@ distclean:: clean
 	rm -f port_autoconf.tcl port_test_autoconf.tcl
 
 install:: all
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
 	$(SILENT)set -x; for file in ${SRCS}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $(srcdir)/$$file ${INSTALLDIR}; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$(srcdir)/$$file" "${INSTALLDIR}"; \
 	done
 	$(SILENT)set -x; for file in ${SRCS_AUTOCONF}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${INSTALLDIR}"; \
 	done
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
+	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${INSTALLDIR}"
 
 test::
 	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor

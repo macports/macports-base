@@ -36,58 +36,58 @@ include $(srcdir)/Mk/macports.subdir.mk
 
 install::
 	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} "$(DESTDIR)${datadir}/macports/"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
 # create run user if it doesn't exist
 	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
-        if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then \
+        if ! ${DSCL} -q . -read "/Groups/${RUNUSR}" > /dev/null 2>&1 ; then \
             if test `id -u` -eq 0; then \
                 echo "Creating group \"${RUNUSR}\"" ; \
-                ${DSEDITGROUP} -q -o create ${RUNUSR} ; \
+                ${DSEDITGROUP} -q -o create "${RUNUSR}" ; \
             else \
                 echo "Not creating group \"${RUNUSR}\" (not root)" ; \
             fi ; \
         fi ; \
-        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then \
+        if ! ${DSCL} -q . -list "/Users/${RUNUSR}" > /dev/null 2>&1 ; then \
             if test `id -u` -eq 0; then \
                 echo "Creating user \"${RUNUSR}\"" ; \
                 NEXTUID=501; \
                 while test -n "`${DSCL} -q /Search -search /Users UniqueID $$NEXTUID`"; do \
                     let "NEXTUID=NEXTUID+1"; \
                 done; \
-                ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$NEXTUID ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" UniqueID $$NEXTUID ; \
                 \
-                ${DSCL} -q . -delete /Users/${RUNUSR} AuthenticationAuthority ; \
-                ${DSCL} -q . -delete /Users/${RUNUSR} PasswordPolicyOptions ; \
-                ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:KerberosKeys ; \
-                ${DSCL} -q . -delete /Users/${RUNUSR} dsAttrTypeNative:ShadowHashData ; \
+                ${DSCL} -q . -delete "/Users/${RUNUSR}" AuthenticationAuthority ; \
+                ${DSCL} -q . -delete "/Users/${RUNUSR}" PasswordPolicyOptions ; \
+                ${DSCL} -q . -delete "/Users/${RUNUSR}" dsAttrTypeNative:KerberosKeys ; \
+                ${DSCL} -q . -delete "/Users/${RUNUSR}" dsAttrTypeNative:ShadowHashData ; \
                 \
-                ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory "${localstatedir}/macports/home" ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" Password \* ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false ; \
             else \
                 echo "Not creating user \"${RUNUSR}\" (not root)" ; \
             fi ; \
         fi ; \
-        if test "$$(${DSCL} -q . -read /Users/${RUNUSR} NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ; then \
+        if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ; then \
             if test `id -u` -eq 0; then \
                 echo "Updating home directory location for user \"${RUNUSR}\"" ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory "${localstatedir}/macports/home" ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
             else \
                 echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
             fi ; \
         fi ; \
         if test `sw_vers -productVersion | /usr/bin/awk -F . '{print $$2}'` -eq 4 -a `id -u` -eq 0; then \
-            GID=`${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
-            if test "`${DSCL} -q . -read /Users/${RUNUSR} PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
+            GID=`${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
+            if test "`${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
                 echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$GID ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} RealName MacPorts ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$GID ; \
+                ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts ; \
             fi ; \
         fi ; \
     else \
