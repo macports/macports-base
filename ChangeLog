@@ -83,6 +83,9 @@ Release 2.3.5 (2016-09-?? by ??)
     - Fix problems with the postflight script in the installer.
       (#43875, #43749, cal in r122042, r122044, r154073, r154110)
 
+    - Warn when the obsolete Subversion repository is used.
+      (raimue in r154451)
+
 Release 2.3.4 (2015-10-01 by jmr)
     - Installation will now abort when an archive is found on a server but
       downloading it fails, rather than trying to build from source without
