@@ -2232,6 +2232,25 @@ proc _source_is_snapshot {url {filename {}} {extension {}} {rooturl {}}} {
     return 0
 }
 
+##
+# Checks whether a local source directory is a checkout of the obsolete Subversion repository
+#
+# @param source_dir local directory check
+proc _source_is_obsolete_svn_repo {source_dir} {
+    if {![catch {macports::findBinary svn} svn] &&
+        ([file exists ${source_dir}/.svn] ||
+         ![catch {exec $svn info ${source_dir} >/dev/null 2>@1}])
+    } then {
+        if {![catch {exec $svn info ${source_dir}} svninfo]} {
+            if {[regexp -line {^Repository Root: https://svn\.macports\.org/repository/macports} $svninfo] ||
+                    [regexp -line {^Repository UUID: d073be05-634f-4543-b044-5fe20cf6d1d6$} $svninfo]} {
+                return 1
+            }
+        }
+    }
+    return 0
+}
+
 proc macports::getportbuildpath {id {portname {}}} {
     global macports::portdbpath
     regsub {://} $id {.} port_path
@@ -2274,6 +2293,7 @@ proc mportsync {{optionslist {}}} {
     }
 
     set numfailed 0
+    set obsoletesvn 0
 
     ui_msg "$macports::ui_prefix Updating the ports tree"
     foreach source $sources {
@@ -2288,6 +2308,9 @@ proc mportsync {{optionslist {}}} {
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
                 set portdir [macports::getportdir $source]
+                if {[_source_is_obsolete_svn_repo $portdir]} {
+                    set obsoletesvn 1
+                }
                 set svn_cmd {}
                 catch {set svn_cmd [macports::findBinary svn]}
                 set git_cmd {}
@@ -2589,6 +2612,11 @@ proc mportsync {{optionslist {}}} {
 
     if {$numfailed > 0} {
         return -code error "Synchronization of $numfailed source(s) failed"
+    }
+
+    if {$obsoletesvn != 0} {
+        ui_warn "The Subversion repository at svn.macports.org is no longer updated."
+        ui_warn "Please switch to Git: https://trac.macports.org/wiki/howto/SyncingWithGit"
     }
 }
 
