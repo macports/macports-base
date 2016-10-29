@@ -2349,7 +2349,7 @@ proc _source_is_obsolete_svn_repo {source_dir} {
          ![catch {exec $svn info ${source_dir} >/dev/null 2>@1}])
     } then {
         if {![catch {exec $svn info ${source_dir}} svninfo]} {
-            if {[regexp -line {^Repository Root: https://svn\.macports\.org/repository/macports} $svninfo] ||
+            if {[regexp -line {^Repository Root: https?://svn\.macports\.org/repository/macports} $svninfo] ||
                     [regexp -line {^Repository UUID: d073be05-634f-4543-b044-5fe20cf6d1d6$} $svninfo]} {
                 return 1
             }
