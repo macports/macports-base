@@ -2,6 +2,7 @@
 /config.status
 /Doxyfile
 /setupenv.bash
+/autom4te.cache
 
 doc/*.gz
 doc/*.mtree
