@@ -2427,7 +2427,11 @@ proc macports::GetVCSUpdateCmd portDir {
             return [list git-svn "cd $portDir && $git svn rebase || true"]
         }
         # regular git repository
-        return [list Git "cd $portDir && $git pull --rebase || true"]
+        set autostash ""
+        if {![catch {exec $git --version} gitversion] && [vercmp [lindex [split $gitversion] end] 1.8.4] >= 0} {
+            set autostash " --autostash"
+        }
+        return [list Git "cd $portDir && $git pull --rebase${autostash} || true"]
     }
 
     # Add new VCSes here!
