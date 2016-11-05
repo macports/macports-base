@@ -58,7 +58,7 @@ namespace eval macports {
     variable user_options {}
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
-        registry.path registry.format user_home user_path \
+        registry.path registry.format user_home user_path user_ssh_auth_sock \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -676,6 +676,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Save the path for future processing
     set macports::user_path $env(PATH)
+
+    # Save SSH_AUTH_SOCK for ports tree sync
+    if {[info exists env(SSH_AUTH_SOCK)]} {
+        set macports::user_ssh_auth_sock $env(SSH_AUTH_SOCK)
+    }
 
     # Configure the search path for configuration files
     set conf_files {}
@@ -2449,7 +2454,7 @@ proc macports::GetVCSUpdateCmd portDir {
 # This proc could probably be generalized and used elsewhere.
 #
 proc macports::UpdateVCS {cmd dir} {
-    global env
+    global env macports::user_ssh_auth_sock
     if {[getuid] == 0} {
         # Must change egid before dropping root euid.
         set oldEGID [getegid]
@@ -2458,18 +2463,23 @@ proc macports::UpdateVCS {cmd dir} {
         set oldEUID [geteuid]
         set newEUID [name_to_uid [file attributes $dir -owner]]
         seteuid $newEUID
-        set oldHOME $env(HOME)
-        set newHOME [getpwuid $newEUID dir]
-        set env(HOME) $newHOME
-        ui_debug "euid/egid changed to: $newEUID/$newEGID, HOME changed to: $newHOME"
+        array set oldEnv [array get env]
+        set env(HOME) [getpwuid $newEUID dir]
+        set envdebug "HOME=$env(HOME)"
+        if {[info exists macports::user_ssh_auth_sock]} {
+            set env(SSH_AUTH_SOCK) $macports::user_ssh_auth_sock
+            append envdebug " SSH_AUTH_SOCK=$env(SSH_AUTH_SOCK)"
+        }
+        ui_debug "euid/egid changed to: $newEUID/$newEGID, env: $envdebug"
     }
     ui_debug $cmd
     catch {system -W $dir $cmd} result options
     if {[getuid] == 0} {
         seteuid $oldEUID
         setegid $oldEGID
-        set env(HOME) $oldHOME
-        ui_debug "euid/egid restored to: $oldEUID/$oldEGID, HOME restored to: $oldHOME"
+        array unset env *
+        array set env [array get oldEnv]
+        ui_debug "euid/egid restored to: $oldEUID/$oldEGID, env restored"
     }
     return -options $options $result
 }
