@@ -2449,6 +2449,7 @@ proc macports::GetVCSUpdateCmd portDir {
 # This proc could probably be generalized and used elsewhere.
 #
 proc macports::UpdateVCS {cmd portDir} {
+    global env
     if {[getuid] == 0} {
         # Must change egid before dropping root euid.
         set oldEGID [getegid]
@@ -2459,6 +2460,10 @@ proc macports::UpdateVCS {cmd portDir} {
         set newEUID [name_to_uid [file attributes $portDir -owner]]
         seteuid $newEUID
         ui_debug "Changed effective user ID from $oldEUID to $newEUID"
+        set oldHOME $env(HOME)
+        set newHOME [getpwuid $newEUID dir]
+        set env(HOME) $newHOME
+        ui_debug "Changed HOME to $newHOME"
     }
     ui_debug $cmd
     catch {system $cmd} result options
@@ -2467,6 +2472,8 @@ proc macports::UpdateVCS {cmd portDir} {
         ui_debug "Changed effective user ID from $newEUID to $oldEUID"
         setegid $oldEGID
         ui_debug "Changed effective group ID from $newEGID to $oldEGID"
+        set env(HOME) $oldHOME
+        ui_debug "Changed HOME to $oldHOME"
     }
     return -options $options $result
 }
