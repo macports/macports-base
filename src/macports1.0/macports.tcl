@@ -2455,25 +2455,21 @@ proc macports::UpdateVCS {cmd portDir} {
         set oldEGID [getegid]
         set newEGID [name_to_gid [file attributes $portDir -group]]
         setegid $newEGID
-        ui_debug "Changed effective group ID from $oldEGID to $newEGID"
         set oldEUID [geteuid]
         set newEUID [name_to_uid [file attributes $portDir -owner]]
         seteuid $newEUID
-        ui_debug "Changed effective user ID from $oldEUID to $newEUID"
         set oldHOME $env(HOME)
         set newHOME [getpwuid $newEUID dir]
         set env(HOME) $newHOME
-        ui_debug "Changed HOME to $newHOME"
+        ui_debug "euid/egid changed to: $newEUID/$newEGID, HOME changed to: $newHOME"
     }
     ui_debug $cmd
     catch {system $cmd} result options
     if {[getuid] == 0} {
         seteuid $oldEUID
-        ui_debug "Changed effective user ID from $newEUID to $oldEUID"
         setegid $oldEGID
-        ui_debug "Changed effective group ID from $newEGID to $oldEGID"
         set env(HOME) $oldHOME
-        ui_debug "Changed HOME to $oldHOME"
+        ui_debug "euid/egid restored to: $oldEUID/$oldEGID, HOME restored to: $oldHOME"
     }
     return -options $options $result
 }
