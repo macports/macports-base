@@ -66,7 +66,7 @@ In preparation for a release, several things should be completed within the code
    the latter.
  * Preserve the file base/config/mp_version at the 1.800 fixed value if selfupdate backwards compatibility
    with pre 1.8.0 MacPorts installations is still desired (cf. svn's r43571).
- * Update the autoconf 'configure' script through the provided base/regen.sh script once the version number
+ * Update the autoconf 'configure' script through the provided base/autogen.sh script once the version number
    in mp_version has been changed, since the former reads the latter.
  * Make sure that these and any other changes or bug fixes are made on and/or merged between the release branch
    and trunk as needed. For instance, if you've made changes to ChangeLog only on the release branch,
