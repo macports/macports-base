@@ -2415,7 +2415,7 @@ proc macports::GetVCSUpdateCmd portDir {
         ([file exists .svn] ||
          ![catch {exec $svn info >/dev/null 2>@1}])
     } then {
-        return [list Subversion "$svn update --non-interactive $portDir"]
+        return [list Subversion "$svn update --non-interactive" $portDir]
     }
 
     # Git
@@ -2424,14 +2424,14 @@ proc macports::GetVCSUpdateCmd portDir {
     } then {
         if {![catch {exec $git config --local --get svn-remote.svn.url}]} {
             # git-svn repository
-            return [list git-svn "cd $portDir && $git svn rebase || true"]
+            return [list git-svn "$git svn rebase || true" $portDir]
         }
         # regular git repository
         set autostash ""
         if {![catch {exec $git --version} gitversion] && [vercmp [lindex [split $gitversion] end] 1.8.4] >= 0} {
             set autostash " --autostash"
         }
-        return [list Git "cd $portDir && $git pull --rebase${autostash} || true"]
+        return [list Git "$git pull --rebase${autostash} || true" $portDir]
     }
 
     # Add new VCSes here!
@@ -2448,15 +2448,15 @@ proc macports::GetVCSUpdateCmd portDir {
 #
 # This proc could probably be generalized and used elsewhere.
 #
-proc macports::UpdateVCS {cmd portDir} {
+proc macports::UpdateVCS {cmd dir} {
     global env
     if {[getuid] == 0} {
         # Must change egid before dropping root euid.
         set oldEGID [getegid]
-        set newEGID [name_to_gid [file attributes $portDir -group]]
+        set newEGID [name_to_gid [file attributes $dir -group]]
         setegid $newEGID
         set oldEUID [geteuid]
-        set newEUID [name_to_uid [file attributes $portDir -owner]]
+        set newEUID [name_to_uid [file attributes $dir -owner]]
         seteuid $newEUID
         set oldHOME $env(HOME)
         set newHOME [getpwuid $newEUID dir]
@@ -2464,7 +2464,7 @@ proc macports::UpdateVCS {cmd portDir} {
         ui_debug "euid/egid changed to: $newEUID/$newEGID, HOME changed to: $newHOME"
     }
     ui_debug $cmd
-    catch {system $cmd} result options
+    catch {system -W $dir $cmd} result options
     if {[getuid] == 0} {
         seteuid $oldEUID
         setegid $oldEGID
@@ -2512,9 +2512,9 @@ proc mportsync {{optionslist {}}} {
                     continue
                 }
                 if {[llength $repoInfo]} {
-                    lassign $repoInfo vcs cmd
+                    lassign $repoInfo vcs cmd dir
                     try -pass_signal {
-                        macports::UpdateVCS $cmd $portdir
+                        macports::UpdateVCS $cmd $dir
                     } catch {*} {
                         ui_debug $::errorInfo
                         ui_info "Syncing local $vcs ports tree failed"
