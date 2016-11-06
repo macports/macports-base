@@ -1,7 +1,6 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 variants.conf(5)
 ================
-$Id$
 
 NAME
 ----
