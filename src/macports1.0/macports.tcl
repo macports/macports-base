@@ -5142,3 +5142,16 @@ proc macports::shellescape {arg} {
     # Add a single quote at the start, escape all single quotes in the argument, and add a single quote at the end
     return "'[string map $mapping $arg]'"
 }
+
+##
+# Given a list of maintainers as recorded in a Portfile, return a list of lists
+# in [key value ...] format describing all maintainers. Valid keys are 'email'
+# which denotes a maintainer's email address, 'github', which preceeds the
+# GitHub username of the maintainer and 'keyword', which contains a special
+# maintainer keyword such as 'openmaintainer' or 'nomaintainer'.
+#
+# @param list A list of obscured maintainers
+# @return A list of associative arrays in serialized list format
+proc macports::unobscure_maintainers {list} {
+    return [macports_util::unobscure_maintainers $list]
+}
