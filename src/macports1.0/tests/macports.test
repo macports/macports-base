@@ -734,15 +734,24 @@ test GetVCSUpdateCmd-svn {
 } -cleanup {
     removeDirectory macports-test-svn-wc $tempdir
     removeDirectory macports-test-svn-repo $tempdir
-} -result {Subversion {SVN update --non-interactive WC}}
+} -result {Subversion {SVN update --non-interactive} WC}
 
 
 testConstraint hasGit [expr {![catch {macports::findBinary git} git]}]
+testConstraint hasGitAutostash [expr {
+    ![catch {macports::findBinary git} git] &&
+    ![catch {exec $git --version} gitversion] &&
+    [package vcompare [lindex [split $gitversion] end] 1.8.4] >= 0}]
+testConstraint hasNoGitAutostash [expr {
+    ![catch {macports::findBinary git} git] &&
+    ![catch {exec $git --version} gitversion] &&
+    [package vcompare [lindex [split $gitversion] end] 1.8.4] < 0}]
 
 test GetVCSUpdateCmd-git {
-    Tests GetVCSUpdateCmd on a valid Git repository
+    Tests GetVCSUpdateCmd on a valid Git repository with Git >= 1.8.4
 } -constraints {
     hasGit
+    hasGitAutostash
 } -setup {
     set repo [makeDirectory macports-test-git-repo $tempdir]
     exec $git init $repo
@@ -750,7 +759,21 @@ test GetVCSUpdateCmd-git {
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
 } -cleanup {
     removeDirectory macports-test-git-repo $tempdir
-} -result {Git {cd REPO && GIT pull --rebase || true}}
+} -result {Git {GIT pull --rebase --autostash} REPO}
+
+test GetVCSUpdateCmd-git-noautostash {
+    Tests GetVCSUpdateCmd on a valid Git repository with Git < 1.8.4
+} -constraints {
+    hasGit
+    hasNoGitAutostash
+} -setup {
+    set repo [makeDirectory macports-test-git-repo $tempdir]
+    exec $git init $repo
+} -body {
+    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
+} -cleanup {
+    removeDirectory macports-test-git-repo $tempdir
+} -result {Git {GIT pull --rebase} REPO}
 
 
 testConstraint hasGitSvn [expr {
@@ -769,7 +792,7 @@ test GetVCSUpdateCmd-gitsvn {
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
 } -cleanup {
     removeDirectory macports-test-git-svn-repo $tempdir
-} -result {git-svn {cd REPO && GIT svn rebase || true}}
+} -result {git-svn {GIT svn rebase} REPO}
 
 
 test GetVCSUpdateCmd-none {
