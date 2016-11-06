@@ -30,6 +30,49 @@ test method_wrap {
 } -result "Method wrap successful."
 
 
+test unobscure_maintainers_github {
+    Test macports::unobscure_maintainers with a GitHub handle
+} -body {
+    return [macports::unobscure_maintainers {@github-user}]
+} -result {{github github-user}}
+
+test unobscure_maintainers_email {
+    Test macports::unobscure_maintainers with unobfuscated email addresses
+} -body {
+    return [macports::unobscure_maintainers {localpart@example.com}]
+} -result {{email localpart@example.com}}
+
+test unobscure_maintainers_obfuscated_email {
+    Test macports::unobscure_maintainers with obfuscated email addresses
+} -body {
+    return [macports::unobscure_maintainers {example.com:localpart}]
+} -result {{email localpart@example.com}}
+
+test unobscure_maintainers_handle {
+    Test macports::unobscure_maintainers with MacPorts handles
+} -body {
+    return [macports::unobscure_maintainers {handle}]
+} -result {{email handle@macports.org}}
+
+test unobscure_maintainers_keywords {
+    Test macports::unobscure_maintainers with nomaintainer and openmaintainer keywords
+} -body {
+    return [macports::unobscure_maintainers {nomaintainer openmaintainer}]
+} -result {{keyword nomaintainer} {keyword openmaintainer}}
+
+test unobscure_maintainers_multiple {
+    Test macports::unobscure_maintainers with multiple maintainers
+} -body {
+    return [macports::unobscure_maintainers {@github-user example.com:localpart}]
+} -result {{github github-user} {email localpart@example.com}}
+
+test unobscure_maintainers_multivalue {
+    Test macports::unobscure_maintainers with multi-value maintainers
+} -body {
+    return [macports::unobscure_maintainers {{handle @github-user}}]
+} -result {{email handle@macports.org github github-user}}
+
+
 test ldindex {
     Ldindex unit test.
 } -body {
