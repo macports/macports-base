@@ -738,43 +738,44 @@ test GetVCSUpdateCmd-svn {
 
 
 testConstraint hasGit [expr {![catch {macports::findBinary git} git]}]
-testConstraint hasGitAutostash [expr {
-    ![catch {macports::findBinary git} git] &&
-    ![catch {exec $git --version} gitversion] &&
-    [package vcompare [lindex [split $gitversion] end] 1.8.4] >= 0}]
-testConstraint hasNoGitAutostash [expr {
-    ![catch {macports::findBinary git} git] &&
-    ![catch {exec $git --version} gitversion] &&
-    [package vcompare [lindex [split $gitversion] end] 1.8.4] < 0}]
+set git_vcsupdate_fixture {
+    set repo [makeDirectory macports-test-git-repo $tempdir]
+    exec $git init $repo
+    rename exec _save_exec
+
+    proc exec {cmd args} {
+        global gitversion
+        if {$cmd ne [macports::findBinary git] || [lindex $args 0] ne "--version"} {
+            return [_save_exec $cmd {*}$args]
+        }
+        return "git version $gitversion (Apple Git-23)"
+    }
+}
+set git_vcsupdate_cleanup {
+    removeDirectory macports-test-git-repo $tempdir
+    rename exec ""
+    rename _save_exec exec
+}
 
 test GetVCSUpdateCmd-git {
     Tests GetVCSUpdateCmd on a valid Git repository with Git >= 1.8.4
 } -constraints {
     hasGit
-    hasGitAutostash
-} -setup {
-    set repo [makeDirectory macports-test-git-repo $tempdir]
-    exec $git init $repo
-} -body {
+} -setup $git_vcsupdate_fixture -body {
+    global gitversion
+    set gitversion "1.8.6"
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
-} -cleanup {
-    removeDirectory macports-test-git-repo $tempdir
-} -result {Git {GIT pull --rebase --autostash} REPO}
+} -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase --autostash} REPO}
 
 test GetVCSUpdateCmd-git-noautostash {
     Tests GetVCSUpdateCmd on a valid Git repository with Git < 1.8.4
 } -constraints {
     hasGit
-    hasNoGitAutostash
-} -setup {
-    set repo [makeDirectory macports-test-git-repo $tempdir]
-    exec $git init $repo
-} -body {
+} -setup $git_vcsupdate_fixture -body {
+    global giversion
+    set gitversion "1.8.2"
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
-} -cleanup {
-    removeDirectory macports-test-git-repo $tempdir
-} -result {Git {GIT pull --rebase} REPO}
-
+} -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase} REPO}
 
 testConstraint hasGitSvn [expr {
     ![catch {macports::findBinary git} git] &&
