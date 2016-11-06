@@ -470,26 +470,6 @@ test makeuserproc {
 # test lipo -
 
 
-test unobscure_maintainers {
-    Unobscure maintainers unit test.
-} -body {
-    set list { port }
-    if { [unobscure_maintainers $list] != "port@macports.org" } {
-        return "FAIL: invalid maintainer name"
-    }
-    set list { google.com:port }
-    if { [unobscure_maintainers $list] != "port@google.com" } {
-        return "FAIL: invalid maintainer name"
-    }
-
-    set list { port@google.com }
-    if { [unobscure_maintainers $list] != "port@google.com" } {
-        return "FAIL: invalid maintainer name"
-    }
-    return "unobscure_maintainers successful."
-} -result "unobscure_maintainers successful."
-
-
 # test target_run
 # test recursive_collect_deps
 

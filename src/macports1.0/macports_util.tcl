@@ -37,6 +37,56 @@ namespace eval macports_util {
     ###################
     # Private methods #
     ###################
+
+    ##
+    # Given a list of maintainers as recorded in a Portfile, return a list of
+    # lists in [key value ...] format describing all maintainers. Valid keys
+    # are 'email' which denotes a maintainer's email address, 'github', which
+    # preceeds the GitHub username of the maintainer and 'keyword', which
+    # contains a special maintainer keyword such as 'openmaintainer' or
+    # 'nomaintainer'.
+    #
+    # @param list A list of obscured maintainers
+    # @return A list of associative arrays in serialized list format
+    proc unobscure_maintainers {list} {
+        set result {}
+        foreach sublist $list {
+            array set maintainer {}
+            foreach token $sublist {
+                if {[string index $token 0] eq "@"} {
+                    # Strings starting with @ are GitHub usernames
+                    set maintainer(github) [string range $token 1 end]
+                } elseif {[string first "@" $token] >= 0} {
+                    # Other strings that contain @ are plain email addresses
+                    set maintainer(email) $token
+                    continue
+                } elseif {[string first ":" $token] >= 0} {
+                    # Strings that contain a colon are obfuscated email
+                    # addresses
+
+                    # Split at :, assign the first part to $domain, re-assemble
+                    # the rest and assign it to $localpart
+                    set localpart [join [lassign [split $token ":"] domain] ":"]
+                    set maintainer(email) "${localpart}@${domain}"
+                } elseif {$token in {"openmaintainer" "nomaintainer"}} {
+                    # Filter openmaintainer and nomaintainer
+                    set maintainer(keyword) $token
+                } else {
+                    # All other entries must be MacPorts handles
+                    set maintainer(email) "${token}@macports.org"
+                }
+            }
+            set serialized [array get maintainer]
+            array unset maintainer
+            if {[llength $serialized]} {
+                # Filter empty maintainers
+                lappend result $serialized
+            }
+        }
+
+        return $result
+    }
+
     proc method_wrap {name} {
         variable argdefault
     

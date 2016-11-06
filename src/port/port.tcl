@@ -689,22 +689,6 @@ proc wraplabel {label string maxlen {indent ""}} {
     return "$label[wrap $string $maxlen $indent 0]"
 }
 
-proc unobscure_maintainers { list } {
-    set result {}
-    foreach m $list {
-        if {[string first "@" $m] < 0} {
-            if {[string first ":" $m] >= 0} {
-                set m [regsub -- "(.*):(.*)" $m "\\2@\\1"] 
-            } else {
-                set m "$m@macports.org"
-            }
-        }
-        lappend result $m
-    }
-    return $result
-}
-
-
 ##########################################
 # Port selection
 ##########################################
@@ -2025,19 +2009,19 @@ proc action_info { action portlist opts } {
         # Understand which info items are actually lists
         # (this could be overloaded to provide a generic formatting code to
         # allow us to, say, split off the prefix on libs)
-        array set list_map "
-            categories      1
-            depends_fetch   1
-            depends_extract 1
-            depends_build   1
-            depends_lib     1
-            depends_run     1
-            maintainers     1
-            platforms       1
-            variants        1
-            conflicts       1
-            subports        1
-        "
+        array set list_map {
+            categories      ", "
+            depends_fetch   ", "
+            depends_extract ", "
+            depends_build   ", "
+            depends_lib     ", "
+            depends_run     ", "
+            maintainers     "\n"
+            platforms       ", "
+            variants        ", "
+            conflicts       ", "
+            subports        ", "
+        }
 
         # Label map for pretty printing
         array set pretty_label {
@@ -2172,7 +2156,7 @@ proc action_info { action portlist opts } {
                 if {![info exists portinfo($ropt)]} {
                     set inf ""
                 } else {
-                    set inf [join $portinfo($ropt)]
+                    set inf $portinfo($ropt)
                 }
             }
 
@@ -2187,10 +2171,41 @@ proc action_info { action portlist opts } {
             } elseif {$show_label} {
                 set label "$opt: "
             }
-            
+
+            if {$ropt in {"description" "long_description"}} {
+                # These fields support newlines, we need to [join ...] to make
+                # them newlines
+                set inf [join $inf]
+            }
+
             # Format the data
             if { $ropt eq "maintainers" } {
-                set inf [unobscure_maintainers $inf]
+                set infresult {}
+                foreach serialized [macports::unobscure_maintainers $inf] {
+                    set parts {}
+                    array set maintainer $serialized
+
+                    if {[info exists maintainer(email)]} {
+                        lappend parts "Email: $maintainer(email)"
+                    }
+                    if {[info exists maintainer(github)]} {
+                        lappend parts "GitHub: $maintainer(github)"
+                    }
+                    if {[info exists maintainer(keyword)]} {
+                        switch $maintainer(keyword) {
+                            nomaintainer {
+                                lappend parts "none"
+                            }
+                            openmaintainer {
+                                lappend parts "Policy: openmaintainer"
+                            }
+                        }
+                    }
+
+                    array unset maintainer
+                    lappend infresult [join $parts ", "]
+                }
+                set inf $infresult
             }
             #     ... special formatting for certain fields when prettyprinting
             if {$pretty_print} {
@@ -2234,7 +2249,7 @@ proc action_info { action portlist opts } {
             } 
             #End of special pretty-print formatting for certain fields
             if {[info exists list_map($ropt)]} {
-                set field [join $inf $subfield_sep]
+                set field [join $inf $list_map($ropt)]
             } else {
                 set field $inf
             }
