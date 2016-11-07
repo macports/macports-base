@@ -2435,7 +2435,8 @@ proc macports::GetVCSUpdateCmd portDir {
         set autostash ""
         if {![catch {exec $git --version} git_version_string] && \
             [regexp -nocase "git version (\[^ ]+)" $git_version_string -> gitversion] && \
-            [vercmp $gitversion 1.8.4] >= 0} {
+            [vercmp $gitversion 2.9.0] >= 0} {
+            # https://github.com/git/git/blob/v2.9.0/Documentation/RelNotes/2.9.0.txt#L84-L86
             set autostash " --autostash"
         }
         return [list Git "$git pull --rebase${autostash}" $portDir]
