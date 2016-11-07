@@ -758,17 +758,17 @@ set git_vcsupdate_cleanup {
 }
 
 test GetVCSUpdateCmd-git {
-    Tests GetVCSUpdateCmd on a valid Git repository with Git >= 1.8.4
+    Tests GetVCSUpdateCmd on a valid Git repository with Git >= 2.9.0
 } -constraints {
     hasGit
 } -setup $git_vcsupdate_fixture -body {
     global gitversion
-    set gitversion "1.8.6"
+    set gitversion "2.10.1"
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
 } -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase --autostash} REPO}
 
 test GetVCSUpdateCmd-git-noautostash {
-    Tests GetVCSUpdateCmd on a valid Git repository with Git < 1.8.4
+    Tests GetVCSUpdateCmd on a valid Git repository with Git < 2.9.0
 } -constraints {
     hasGit
 } -setup $git_vcsupdate_fixture -body {
