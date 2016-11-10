@@ -200,6 +200,13 @@ dmg mounts in the Finder when double-clicked, and that the pkg contained therein
 when it's double-clicked.
 
 
+== Create Release on GitHub ==
+
+All of our distfiles should also be available as downloads from a new
+GitHub release. Create a new release matching the previously created tag
+on GitHub and attach all tarballs and installers to it.
+
+
 === Make the Release Available through Self-Update ===
 
 In order to make the release version available through selfupdate, the config/RELEASE_URL file in the
