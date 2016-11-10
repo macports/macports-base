@@ -203,16 +203,10 @@ to first create the destroot of the port and examine it for:
                   ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
                   ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
                   ${destroot}/opt/local/bin/daemondo (for architecture i386): Mach-O executable i386
- * tclsh shell invoked by our scripts: all scripts installed in
-   ${destroot}/opt/local/bin (that is port, portindex and portmirror) should
+ * tclsh invocation: all scripts installed in ${destroot}/opt/local/bin should
    invoke the tclsh shell through a call like:
-             #!/bin/sh
-             #\
-             exec /usr/bin/tclsh "$0" "$@"
-   thus ensuring that the default Mac OS X bundled Tcl is used in our scripts.
- * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off
-   its location in /opt/local/libexec/macports/lib/macports1.0
-   in every single one of our scripts in ${destroot}/opt/local/bin.
+             #!/opt/local/bin/port-tclsh
+   thus ensuring that our bundled Tcl interpreter is used in our scripts.
  * Miscellaneous: anything else that might seem out of the ordinary for a fully
    default-configured MacPorts installation.
 
