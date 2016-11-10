@@ -1,8 +1,6 @@
-
 = MacPorts Release Process =
 
 This file documents the evolving MacPorts release process.
-$Id$
 
 
 == Goals of a Release ==
@@ -20,10 +18,10 @@ There are several goals in the release process:
 
 The following steps to a release are documented in more detail below:
 
- * Create an svn branch to carry the release.
+ * Create a release branch to carry the release.
  * Prepare the code for release.
  * Tag the release.
- * Create release products: tarballs and dmgs.
+ * Create release products: tarballs and installers.
  * Post release products.
  * Make release version available through selfupdate.
  * Notify public of the release.
@@ -31,41 +29,41 @@ The following steps to a release are documented in more detail below:
 
 === Create a Release Branch ===
 
-For each major release (i.e. 1.9.x, 2.0.x, etc.) an appropriate branch is created with a
-consistent name. To do this, two things are required:
+For each major release (i.e. 1.9.x, 2.0.x, etc.) an appropriate branch is created with
+a consistent name. To do this, two things are required:
 
- * Choose the svn revision from which to create the branch, most likely based off trunk.
- * Create the branch (e.g. release_2_0) through the svn "copy" command for history preservation,
-   first creating the needed branch directory to preserve the required directory structure
-   (the 'base' directory level *needs* to exist in each release branch, otherwise selfupdate breaks):
+ * Choose the git revision from which to create the branch, most likely based off master.
+ * Create the branch (e.g. release-2.0) with git. The following commands assume
+   the remote "origin" points to macports/macports-base on GitHub.
 
- svn mkdir -m "commit-message" https://svn.macports.org/repository/macports/branches/release_2_0
- svn cp [-r<rev>] -m "commit-message" https://svn.macports.org/repository/macports/trunk/base \
-     https://svn.macports.org/repository/macports/branches/release_2_0
+    git branch release-2.0 origin/master
+    git push origin release-2.0
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all
-live on this branch, and tagged appropriately and if necessary (a must for the actual releases,
-optional for beta snapshots) into the /tags svn directory.
+live on this branch. Releases of any kind will need to be tagged appropriately and point to
+commits on this branch.
 
-Only the base subdirectory, not the ports subdirectory, is branched for a given release.
+Only this base repository, not the ports tree kept in another repository, will be branched for
+a given release.
 
-It is strongly recommended to use the latest version of the subversion port so that merge
-tracking information can be maintained between release branches and trunk/base if you intend
-to merge revisions back and forth between them, which is a very likely scenario.
+Once master is to be used for development of the next major version, increase its version information to
+indicate it's moved past the release version by setting the patch-level version to 99, e.g. 2.0.99 in
+config/macports_version.
 
 
 === Prepare the code for Release ===
 
 In preparation for a release, several things should be completed within the code:
 
- * Update the file base/ChangeLog in both trunk and the release branch to reflect the appropriate changes.
- * Update the file base/config/macports_version with the target release number. The content of this file
+ * Update the file ChangeLog in both trunk and the release branch to reflect the appropriate changes.
+ * Update the file config/macports_version with the target release number. The content of this file
    is recorded as the MacPorts version at MacPorts build time, as displayed by the port command, and it's
    also used by the selfupdate procedure to determine whether a newer version of code is available.
    It should be different between trunk and the release branch, the former greater to differentiate it from
    the latter.
- * Preserve the file base/config/mp_version at the 1.800 fixed value if selfupdate backwards compatibility
-   with pre 1.8.0 MacPorts installations is still desired (cf. svn's r43571).
+ * Preserve config/mp_version and config/dp_version at the 1.800 or 1.710 fixed values, respectively, 
+   if selfupdate backwards compatibility with old MacPorts installations is still desired.
+   (see https://trac.macports.org/changeset/43571/trunk/base or ce8a77c)
  * Update the autoconf 'configure' script through the provided base/autogen.sh script once the version number
    in mp_version has been changed, since the former reads the latter.
  * Make sure that these and any other changes or bug fixes are made on and/or merged between the release branch
@@ -81,68 +79,60 @@ approved as the actual release, an additional tag is created that names the same
 
 Tagging conventions:
 
- * release_2_0_0-beta2 (beta 2 for release 2.0.0)
- * release_2_0_0-rc1 (release candidate 1 for release 2.0.0)
- * release_2_0_0 (tagged release 2.0.0)
- * release_2_0_0-archive (tagged release 2.0.0 -- complete archive)
- * release_2_0_1 (2.0.1 release)
+ * v2.0.0-beta2 (beta 2 for release 2.0.0)
+ * v2.0.0-rc1 (release candidate 1 for release 2.0.0)
+ * v2.0.0 (tagged release 2.0.0)
+ * v2.0.1 (2.0.1 release)
 
-We first tag the branched base directory to make up the final release:
+We first create an annotated tag pointing to the release branch to make up the final release. Annotated
+tags preserve who made the tag and when. Additionally the tag should be signed with GPG by using the `-s`
+flag in order to allow later verification of the signature.
 
- svn cp -m "commit-message" https://svn.macports.org/repository/macports/branches/release_2_0 \
-     https://svn.macports.org/repository/macports/tags/release_2_0_0
+ git tag -a -s v2.0.0 release-2.0
+ git push origin v2.0.0
 
-Although only the base subdirectory is branched and tagged for a given major release, we also create a
-separate tag for the entire tree (base sources and full ports tree) at the time the final release tag is
-created (only for major releases, x.y.0), in order to provide a stake in the ground that specifies a set
-of ports intended to work with that release. Note that this tag incorporates the entire svn trunk directory
-at the revision number at which the final release was tagged.
+Although only base repository is branched and tagged for a given major release, we also create a separate
+tag in the ports tree at the time the final release tag is created for a major release (x.y.0). This
+intends to provide a set of ports intended to work with that release.
 
-The necessary working copy to create such a tag is created by checking out all of trunk at the specific
-revision of the final tagging of base and then switching the base directory to the appropriate release
-tag URL. For instance:
-
- svn co [-r<rev>] https://svn.macports.org/repository/macports/trunk release_2.0.0-archive
- cd release_2.0.0-archive
- svn rm base
- svn cp https://svn.macports.org/repository/macports/tags/release_2_0_0/base base
-
-And finally we tag the entire directory as release_2_0_0-archive:
-
- cd ..
- svn cp -m "commit-message" release_2.0.0-archive https://svn.macports.org/repository/macports/tags/release_2_0_0-archive
+ git clone macports/macports-ports macports-ports
+ cd macports-ports
+ git tag -a -s v2.0.0-archive origin/master
+ git push origin v2.0.0-archive
 
 
 === Create & Post Release Tarballs ===
 
-The release tarballs are tar.bz2 and tar.gz archives of the base directory only and of the entire svn tree
-for a particular release. They are named with the following naming convention:
+The release tarballs are .tar.bz2 and .tar.gz archives of the base repository. They are named with the
+following naming convention:
 
- MacPorts-2.0.0.tar.{bz2,gz} (base directory only, corresponding to tag release_2_0_0)
- MacPorts-2.0.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_2_0_0-archive)
+ MacPorts-2.0.0.tar.{bz2,gz} (base repository, corresponding to tag v2.0.0)
 
 The following commands issued to the top level Makefile will generate all the tarballs and checksums:
 
- make ARC=yes DISTVER=2.0.0 distfromsvn
+ make DISTVER=2.0.0 distfromgit
 
-Note that if you omit the "ARC=yes" flag at the start of the make call then the full archive tarballs will not be produced.
+The release should be signed with a detached GPG signature in order to allow cryptographic verification:
 
-All these tarballs are uploaded to the http://distfiles.macports.org/MacPorts/ directory. At present, this must
-be done with the help of the MacOSForge sysadmin.
+ for ext in bz2 gz; do
+   gpg --sign --detach-sig --armor MacPorts-2.0.0.tar.${ext}
+ done
 
-Additionally, a file is created, and posted to the same location, that contains md5, sha1, rmd160, and sha256 checksums
+Additionally, a file with checksums is created, that contains md5, sha1, rmd160, and sha256 checksums
 for each of the files:
 
- MacPorts-2.0.0.chk.txt
- (We should have a way to sign these checksums, and have the signer's keys posted somewhere.
- Security experts in the project, would you be interested in leading this effort? Eric? Mark? Anyone else?)
+ for type in -md5 -rmd160 -sha1 -sha256; do
+  openssl dgst ${type} MacPorts-2.0.0.tar.{gz,bz2} >> MacPorts-2.0.0.chk.txt
+ done
+
+These tarballs and the checksums are uploaded to the https://distfiles.macports.org/MacPorts/ directory.
+At present, this must be done with the help of the infrastructure team.
 
 
 === Create Release Packages and Disk Image(s) ===
 
-The dmg is a Mac OS X disk image that contains a standalone installer, configured in the usual way, for major
-MacPorts releases (x.y.0), named in a consistent fashion and incorporating the OS version for which it
-was built.
+The dmg is a Mac OS X disk image that contains a standalone installer, configured in the usual way, named
+in a consistent fashion and incorporating the OS version for which it was built.
 
 For 10.6 and newer, we now build flat packages, so an enclosing dmg is not necessary.
 
@@ -168,7 +158,9 @@ Installer certificate, not the Application one):
 After signing, generate checksums, which will need to be added to the existing checksums
 file in the downloads directory:
 
- for pkg in MacPorts-2.0.0-*.{pkg,dmg}; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $pkg; done >> MacPorts-2.0.0.chk.txt; done
+ for type in -md5 -sha1 -ripemd160 -sha256; do
+   openssl dgst $type MacPorts-2.0.0-*.{pkg,dmg} >> MacPorts-2.0.0.chk.txt
+ done
 
 These new products, along with the new checksums, also have to be posted to the appropriate
 directory of the MacPorts distfiles server. Developers are required to validate the generated installer as
@@ -198,7 +190,7 @@ create the destroot of the port and examine it for:
              #\
              exec /usr/bin/tclsh "$0" "$@"
    thus ensuring that the default Mac OS X bundled Tcl is used in our scripts.
- * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its location in /opt/local/share/macports/Tcl/macports1.0
+ * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its location in /opt/local/libexec/macports/lib/macports1.0
    in every single one of our scripts in ${destroot}/opt/local/bin.
  * Miscellaneous: anything else that might seem out of the ordinary for a fully default-configured MacPorts
    installation.
@@ -210,17 +202,9 @@ when it's double-clicked.
 
 === Make the Release Available through Self-Update ===
 
-In order to make the release version available through selfupdate, the base/config/RELEASE_URL file in svn
-trunk needs to be updated with the tag of the release to distribute. This file is read by the cron job that
-makes the code available via rsync. See base/portmgr/mprsyncup. Though not strictly necessary, it's also good
-practice to update the same file accordingly in its branched guise.
-
-
-=== Update trunk's version for next release ===
-
-Once trunk is to be used for development of the next major version, increase its version information to
-indicate it's moved past the release version by setting the patch-level version to 99, e.g. 2.0.99 (in
-trunk/base/config/macports_version).
+In order to make the release version available through selfupdate, the config/RELEASE_URL file in the
+base repository needs to be updated with the tag of the release to distribute. This file is read by the
+cron job that makes the code available via rsync. See jobs/mprsyncup in the macports-infra repository.
 
 
 === Notify the Public of the Release ===
@@ -229,12 +213,15 @@ Once the release has been posted, notification of the release should be sent/pos
 
  * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
  * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as
-   appropriate in the trunk/www/includes/common.inc file.
- * The &macports-version; entity in trunk/doc-new/guide/xml/installing.xml.
- * [https://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
- * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
- * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: rhwood@)
- * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
+   appropriate in the includes/common.inc file in the macports-www repository.
+ * [https://macports.github.io/news/] The website's news section, see macports.github.io repository
+   (submitter: portmgr@)
+ * The &macports-version; entity in xml/installing.xml in the guide repository.
+
+External websites:
+
+ * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: portmgr@)
+ * [https://www.macupdate.com/app/mac/21309/macports MacUpdate] (submitter: ???)
  * [http://twitter.com/macports twitter] (submitter: raimue@)
  * [https://plus.google.com/communities/110287630398071712872 Google+ Community] (submitter: raimue@)
  * (Where else?)
