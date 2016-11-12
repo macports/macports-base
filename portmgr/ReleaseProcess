@@ -124,18 +124,12 @@ tarballs and checksums:
  make dist DISTVER=2.0.0
 
 The release should be signed with a detached GPG signature in order to allow
-cryptographic verification:
+cryptographic verification. To do this automatically, use the additional
+argument DISTGPGID= on the make command. The value specifies a key ID either in
+hexadecimal format or a email address matching exactly one key. For details, see
+HOW TO SPECIFY A USER ID in gpg(1) for details.
 
- for ext in bz2 gz; do
-   gpg --sign --detach-sig --armor MacPorts-2.0.0.tar.${ext}
- done
-
-Additionally, a file with checksums is created, that contains md5, sha1, rmd160,
-and sha256 checksums for each of the files:
-
- for type in -md5 -rmd160 -sha1 -sha256; do
-  openssl dgst ${type} MacPorts-2.0.0.tar.{gz,bz2} >> MacPorts-2.0.0.chk.txt
- done
+ make dist DISTVER=2.0.0 DISTGPGID=<handle>@macports.org
 
 These tarballs and the checksums are uploaded to the https://distfiles.macports.org/MacPorts/
 directory. At present, this must be done with the help of the infrastructure

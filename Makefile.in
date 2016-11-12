@@ -9,6 +9,7 @@ DISTDIR		= dist
 DISTVER		=
 DISTTAG		= v${DISTVER}
 DISTNAME	= MacPorts-${DISTVER}
+DISTGPGID	=
 
 
 include Mk/macports.autoconf.mk
@@ -132,6 +133,9 @@ dist:
 		for type in -md5 -sha1 -ripemd160 -sha256; do \
 			openssl dgst $$type $$tarball; \
 		done >> ${DISTNAME}.chk.txt; \
+		if [ -n "${DISTGPGID}" ]; then \
+			gpg --sign --detach-sig --armor --local-user ${DISTGPGID} $$tarball; \
+		fi; \
 	done
 
 
