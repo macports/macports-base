@@ -122,7 +122,8 @@ distclean::
 	rm -f setupenv.bash
 	rm -f portmgr/dmg/postflight
 
-_disttarballs:
+dist:
+	@[ -n "${DISTVER}" ] || { echo "Usage: make dist DISTVER=2.3.4"; exit 1; }
 	mkdir -p ${DISTDIR}
 	git archive --format=tar ${DISTTAG} | gzip -cn > ${DISTDIR}/${DISTNAME}.tar.gz
 	git archive --format=tar ${DISTTAG} | bzip2 -c > ${DISTDIR}/${DISTNAME}.tar.bz2
@@ -133,9 +134,6 @@ _disttarballs:
 		}; done >> ${DISTNAME}.chk.txt; \
 	}; done
 
-dist:
-	@[ -n "${DISTVER}" ] || { echo "Usage: make dist DISTVER=2.3.4"; exit 1; }
-	${MAKE} DISTVER=${DISTVER} _disttarballs
 
 docs:
 	@[ -e "${prefix}/bin/doxygen" -a -e "${prefix}/bin/dot" ] \
