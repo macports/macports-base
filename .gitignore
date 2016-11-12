@@ -38,3 +38,5 @@ vendor/*/
 
 Makefile
 pkgIndex.tcl
+
+/dist/

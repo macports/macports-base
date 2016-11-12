@@ -7,11 +7,8 @@ PATH		= @PATH_CLEANED@
 SUBDIR		= vendor doc src tests
 DISTDIR		= dist
 DISTVER		=
-DISTTAG		= release_${subst .,_,${DISTVER}}
+DISTTAG		= v${DISTVER}
 DISTNAME	= MacPorts-${DISTVER}
-DISTARCTAG	= ${DISTTAG}-archive
-DISTARCNAME	= ${DISTNAME}-archive
-SVNURL		= https://svn.macports.org/repository/macports
 
 
 include Mk/macports.autoconf.mk
@@ -125,31 +122,20 @@ distclean::
 	rm -f setupenv.bash
 	rm -f portmgr/dmg/postflight
 
-_gettag:
-	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${PKGNAME}-svn
-
-_pkgdist:
-	[ ! -d ${DISTDIR}/${PKGNAME} ] || rm -rf ${DISTDIR}/${PKGNAME}
-	cd ${DISTDIR}; svn export ${PKGNAME}-svn ${PKGNAME}
-	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
-	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
-	cd ${DISTDIR}; for tarball in ${PKGNAME}.tar.*; do { \
+_disttarballs:
+	mkdir -p ${DISTDIR}
+	git archive --format=tar ${DISTTAG} | gzip -cn > ${DISTDIR}/${DISTNAME}.tar.gz
+	git archive --format=tar ${DISTTAG} | bzip2 -c > ${DISTDIR}/${DISTNAME}.tar.bz2
+	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
+	cd $(DISTDIR) && for tarball in ${DISTNAME}.tar.*; do { \
 		for type in -md5 -sha1 -ripemd160 -sha256; do { \
 			openssl dgst $$type $$tarball; \
 		}; done >> ${DISTNAME}.chk.txt; \
 	}; done
 
-_dopkg: _gettag _pkgdist
-
-# This target fetches a tagged distribution from svn, and generates tarballs and checksums for it
-distfromsvn:
-	@[ -n "${DISTVER}" ] || { echo Must specify DISTVER, like: make DISTVER=1.4.0 distfromsvn; exit 1; }
-	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
-	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
-	${MAKE} SVNTAG=${DISTTAG}/base/ PKGNAME=${DISTNAME} _dopkg
-ifeq ($(ARC),yes) 
-	${MAKE} SVNTAG=${DISTARCTAG} PKGNAME=${DISTARCNAME} _dopkg
-endif
+dist:
+	@[ -n "${DISTVER}" ] || { echo "Usage: make dist DISTVER=2.3.4"; exit 1; }
+	${MAKE} DISTVER=${DISTVER} _disttarballs
 
 docs:
 	@[ -e "${prefix}/bin/doxygen" -a -e "${prefix}/bin/dot" ] \
