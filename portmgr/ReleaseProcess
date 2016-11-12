@@ -121,7 +121,7 @@ They are named with the following naming convention:
 The following commands issued to the top level Makefile will generate all the
 tarballs and checksums:
 
- make DISTVER=2.0.0 distfromgit
+ make dist DISTVER=2.0.0
 
 The release should be signed with a detached GPG signature in order to allow
 cryptographic verification:
