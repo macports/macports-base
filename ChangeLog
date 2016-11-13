@@ -43,6 +43,10 @@ Release 2.3.5 (2016-09-?? by ??)
     - port lint: warn if obsolete $Id$ keyword is used.
       (#52757)
 
+    - Support multi-valued entries in the maintainers field and allow GitHub
+      usernames as mainainers
+      (cal in 30c27d5)
+
 Release 2.3.4 (2015-10-01 by jmr)
     - Installation will now abort when an archive is found on a server but
       downloading it fails, rather than trying to build from source without
