@@ -84,15 +84,14 @@ proc portfetch::assemble_url {site distfile} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
-    global UI_PREFIX name dist_subdir \
-           global_mirror_site fallback_mirror_site
+    global UI_PREFIX name dist_subdir global_mirror_site
 
     if {[file exists $mirrorfile]} {
         source $mirrorfile
     }
 
     if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
-        if {$mirrors != $global_mirror_site && $mirrors != $fallback_mirror_site} {
+        if {$mirrors != $global_mirror_site} {
             ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         }
         return {}
@@ -162,10 +161,10 @@ proc portfetch::checksites {sitelists mirrorfile} {
             continue
         }
         global ${listname}.mirror_subdir
-        # add the specified global, fallback and user-defined mirrors
-        set sglobal [lindex $extras 0]; set sfallback [lindex $extras 1]; set senv [lindex $extras 2]
+        # add the specified global and user-defined mirrors
+        set sglobal [lindex $extras 0]; set senv [lindex $extras 1]
         set full_list [set $listname]
-        append full_list " $sglobal $sfallback"
+        append full_list " $sglobal"
         if {[info exists env($senv)]} {
             set full_list [concat $env($senv) $full_list]
         }
@@ -189,14 +188,11 @@ proc portfetch::checksites {sitelists mirrorfile} {
             }
         }
 
-        # add in the global, fallback and user-defined mirrors for each tag
+        # add in the global and user-defined mirrors for each tag
         foreach site $site_list {
             if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag] && ![info exists extras_added($tag)]} {
                 if {$sglobal ne ""} {
                     set site_list [concat $site_list [mirror_sites $sglobal $tag "" $mirrorfile]]
-                }
-                if {$sfallback ne ""} {
-                    set site_list [concat $site_list [mirror_sites $sfallback $tag "" $mirrorfile]]
                 }
                 if {[info exists env($senv)]} {
                     set site_list [concat [list $env($senv)] $site_list]
@@ -216,7 +212,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
 }
 
 # sorts fetch_urls in order of ping time
-proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
+proc portfetch::sortsites {urls default_listvar} {
     global $default_listvar
     upvar $urls fetch_urls
     variable urlmap
@@ -234,7 +230,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         set hosts {}
         set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 
-        if {[llength $urllist] - [llength $fallback_mirror_list] <= 1} {
+        if {[llength $urllist] <= 1} {
             # there is only one mirror, no need to ping or sort
             continue
         }
@@ -257,15 +253,6 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
             if { [info exists seen($host)] } {
                 continue
             }
-            foreach fallback $fallback_mirror_list {
-                if {[string match ${fallback}* $site]} {
-                    # don't bother pinging fallback mirrors
-                    set seen($host) yes
-                    # and make them sort to the very end of the list
-                    set pingtimes($host) 20000
-                    break
-                }
-            }
             if { ![info exists seen($host)] } {
                 # first check the persistent cache
                 set pingtimes($host) [get_pingtime $host]
@@ -285,7 +272,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         foreach host $hosts {
             gets $fds($host) pingtimes($host)
             if { [catch { close $fds($host) }] || ![string is double -strict $pingtimes($host)] } {
-                # ping failed, so put it last in the list (but before the fallback mirrors)
+                # ping failed, so put it last in the list
                 set pingtimes($host) 10000
             }
             # cache it

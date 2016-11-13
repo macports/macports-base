@@ -209,7 +209,7 @@ proc portarchivefetch::fetchfiles {args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $incoming_path]
             }
             if {!$sorted} {
-                portfetch::sortsites archivefetch_urls {} archive_sites
+                portfetch::sortsites archivefetch_urls archive_sites
                 set sorted yes
             }
             if {![info exists urlmap($url_var)]} {
