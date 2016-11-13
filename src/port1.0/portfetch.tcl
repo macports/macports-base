@@ -116,7 +116,6 @@ default fetch.ignore_sslcert "no"
 # Use remote timestamps
 default fetch.remote_time "no"
 
-default fallback_mirror_site "macports"
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
@@ -274,11 +273,11 @@ proc portfetch::get_full_mirror_sites_path {} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
-    global global_mirror_site fallback_mirror_site
+    global global_mirror_site
     upvar $urls fetch_urls
 
-    checksites [list patch_sites [list $global_mirror_site $fallback_mirror_site PATCH_SITE_LOCAL] \
-                master_sites [list $global_mirror_site $fallback_mirror_site MASTER_SITE_LOCAL]] \
+    checksites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \
+                master_sites [list $global_mirror_site MASTER_SITE_LOCAL]] \
                [get_full_mirror_sites_path]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
@@ -485,7 +484,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
-           fallback_mirror_site portverbose usealtworkpath altprefix
+           portverbose usealtworkpath altprefix
     variable fetch_urls
     variable urlmap
 
@@ -527,7 +526,7 @@ proc portfetch::fetchfiles {args} {
                 continue
             }
             if {!$sorted} {
-                sortsites fetch_urls [mirror_sites $fallback_mirror_site {} {} [get_full_mirror_sites_path]] master_sites
+                sortsites fetch_urls master_sites
                 set sorted yes
             }
             if {![info exists urlmap($url_var)]} {
