@@ -162,7 +162,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         }
         global ${listname}.mirror_subdir
         # add the specified global and user-defined mirrors
-        set sglobal [lindex $extras 0]; set senv [lindex $extras 2]
+        set sglobal [lindex $extras 0]; set senv [lindex $extras 1]
         set full_list [set $listname]
         append full_list " $sglobal"
         if {[info exists env($senv)]} {
