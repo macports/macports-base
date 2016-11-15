@@ -86,7 +86,7 @@ Release 2.3.5 (2016-09-?? by ??)
       (raimue in r154451)
 
     - port lint: warn if obsolete $Id$ keyword is used.
-      (#52757)
+      (#52757, raimue in fc45aaf)
 
     - Support multi-valued entries in the maintainers field and allow GitHub
       usernames as mainainers
