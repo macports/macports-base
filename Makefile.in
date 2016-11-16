@@ -129,7 +129,7 @@ dist:
 	git archive --format=tar ${DISTTAG} | gzip -cn > ${DISTDIR}/${DISTNAME}.tar.gz
 	git archive --format=tar ${DISTTAG} | bzip2 -c > ${DISTDIR}/${DISTNAME}.tar.bz2
 	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
-	cd $(DISTDIR) && for tarball in ${DISTNAME}.tar.*; do \
+	cd $(DISTDIR) && for tarball in ${DISTNAME}.tar.{gz,bz2}; do \
 		for type in -md5 -sha1 -ripemd160 -sha256; do \
 			openssl dgst $$type $$tarball; \
 		done >> ${DISTNAME}.chk.txt; \
