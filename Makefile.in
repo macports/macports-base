@@ -126,8 +126,8 @@ distclean::
 dist:
 	@[ -n "${DISTVER}" ] || { echo "Usage: make dist DISTVER=2.3.4"; exit 1; }
 	mkdir -p ${DISTDIR}
-	git archive --format=tar ${DISTTAG} | gzip -cn > ${DISTDIR}/${DISTNAME}.tar.gz
-	git archive --format=tar ${DISTTAG} | bzip2 -c > ${DISTDIR}/${DISTNAME}.tar.bz2
+	git archive --format=tar --prefix=MacPorts-${DISTVER}/ ${DISTTAG} | gzip -cn > ${DISTDIR}/${DISTNAME}.tar.gz
+	git archive --format=tar --prefix=MacPorts-${DISTVER}/ ${DISTTAG} | bzip2 -c > ${DISTDIR}/${DISTNAME}.tar.bz2
 	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
 	cd $(DISTDIR) && for tarball in ${DISTNAME}.tar.{gz,bz2}; do \
 		for type in -md5 -sha1 -ripemd160 -sha256; do \
