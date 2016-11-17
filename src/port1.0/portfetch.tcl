@@ -527,7 +527,6 @@ proc portfetch::gitfetch {args} {
         set xz [findBinary xz ${portutil::autoconf::xz_path}]
         # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
         set tar [findBinary bsdtar tar]
-        set tartmp [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
         # determine tmppath again in shell, as the real path might be different
         # due to symlinks (/tmp vs. /private/tmp), pass it as MPTOPDIR in
         # environment
@@ -535,12 +534,10 @@ proc portfetch::gitfetch {args} {
             "MPTOPDIR=\$PWD " \
             "${git.cmd} submodule -q foreach --recursive '" \
             "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\${PWD#\$MPTOPDIR/}/\" \$sha1 " \
-            "| tar -cf ${tartmp} @- @${tardst} " \
-            "&& mv ${tartmp} ${tardst}" \
+            "| tar -uf ${tardst} @-" \
             "' 2>&1"] ""]
         if {[catch {system -W $tmppath $cmdstring} result]} {
             delete $tardst
-            delete $tartmp
             return -code error [msgcat::mc "Git submodule archive creation failed"]
         }
     }
