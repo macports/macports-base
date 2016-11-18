@@ -260,4 +260,4 @@ installations to the new release. This delay matches the warning about outdated
 ports tree sources.
 
 
-# vim:set fenc=utf-8 ft=text tw=80 et:
+<!-- vim:set fenc=utf-8 ft=markdown tw=80 et sw=4 sts=4: -->
