@@ -98,18 +98,18 @@ final release. Annotated tags preserve who made the tag and when. Additionally
 the tag should be signed with GPG by using the `-s` flag in order to allow
 later verification of the signature.
 
- git tag -a -s v2.0.0 release-2.0
- git push origin v2.0.0
+    git tag -a -s v2.0.0 release-2.0
+    git push origin v2.0.0
 
 Although only base repository is branched and tagged for a given major
 release, we also create a separate tag in the ports tree at the time the final
 release tag is created for a major release (x.y.0). This intends to provide
 a set of ports intended to work with that release.
 
- git clone macports/macports-ports macports-ports
- cd macports-ports
- git tag -a -s v2.0.0-archive origin/master
- git push origin v2.0.0-archive
+    git clone macports/macports-ports macports-ports
+    cd macports-ports
+    git tag -a -s v2.0.0-archive origin/master
+    git push origin v2.0.0-archive
 
 
 ### Create & Post Release Tarballs ###
@@ -117,12 +117,12 @@ a set of ports intended to work with that release.
 The release tarballs are .tar.bz2 and .tar.gz archives of the base repository.
 They are named with the following naming convention:
 
- MacPorts-2.0.0.tar.{bz2,gz} (base repository, corresponding to tag v2.0.0)
+    MacPorts-2.0.0.tar.{bz2,gz} (base repository, corresponding to tag v2.0.0)
 
 The following commands issued to the top level Makefile will generate all the
 tarballs and checksums:
 
- make dist DISTVER=2.0.0
+    make dist DISTVER=2.0.0
 
 The release should be signed with a detached GPG signature in order to allow
 cryptographic verification. To do this automatically, use the additional
@@ -130,7 +130,7 @@ argument DISTGPGID= on the make command. The value specifies a key ID either
 in hexadecimal format or a email address matching exactly one key. For
 details, see HOW TO SPECIFY A USER ID in gpg(1) for details.
 
- make dist DISTVER=2.0.0 DISTGPGID=<handle>@macports.org
+    make dist DISTVER=2.0.0 DISTGPGID=<handle>@macports.org
 
 These tarballs and the checksums are uploaded to the
 https://distfiles.macports.org/MacPorts/ directory. At present, this must be
@@ -146,9 +146,9 @@ the OS version for which it was built.
 For 10.6 and newer, we now build flat packages, so an enclosing dmg is not
 necessary.
 
- MacPorts-2.0.0-10.5-Leopard.dmg
- MacPorts-2.0.0-10.6-SnowLeopard.pkg
- MacPorts-2.0.0-10.7-Lion.pkg
+*   MacPorts-2.0.0-10.5-Leopard.dmg
+*   MacPorts-2.0.0-10.6-SnowLeopard.pkg
+*   MacPorts-2.0.0-10.7-Lion.pkg
 
 To create a pkg or dmg, use the MacPorts port. The Portfile will need to be
 updated to incorporate the proper release version and checksums, and the
@@ -157,22 +157,22 @@ the site (wherefrom the sources are fetched by the MacPorts port to build the
 pkg for the release). Make sure the ports tree you're using to build the pkgs
 is fully up to date.
 
- sudo port -d pkg MacPorts
- sudo port -d dmg MacPorts
+    sudo port -d pkg MacPorts
+    sudo port -d dmg MacPorts
 
 Name each pkg/dmg appropriately, and then sign the pkgs with a Developer ID
 (make sure to use the Installer certificate, not the Application one):
 
- cd work
- mv MacPorts-2.0.0.pkg unsigned/MacPorts-2.0.0-10.7-Lion.pkg
- productsign --sign "Developer ID Installer: John Doe" unsigned/MacPorts-2.0.0-10.7-Lion.pkg MacPorts-2.0.0-10.7-Lion.pkg
+    cd work
+    mv MacPorts-2.0.0.pkg unsigned/MacPorts-2.0.0-10.7-Lion.pkg
+    productsign --sign "Developer ID Installer: John Doe" unsigned/MacPorts-2.0.0-10.7-Lion.pkg MacPorts-2.0.0-10.7-Lion.pkg
 
 After signing, generate checksums, which will need to be added to the existing
 checksums file in the downloads directory:
 
- for type in -md5 -sha1 -ripemd160 -sha256; do
-   openssl dgst $type MacPorts-2.0.0-*.{pkg,dmg} >> MacPorts-2.0.0.chk.txt
- done
+    for type in -md5 -sha1 -ripemd160 -sha256; do
+      openssl dgst $type MacPorts-2.0.0-*.{pkg,dmg} >> MacPorts-2.0.0.chk.txt
+    done
 
 These new products, along with the new checksums, also have to be posted to
 the appropriate directory of the MacPorts distfiles server. Developers are
@@ -195,13 +195,17 @@ installer is to first create the destroot of the port and examine it for:
     step above also need to be confirmed to be universal (i386/ppc on 10.5 and
     earlier, i386/x86_64 on 10.6 and later). A way to do this is with the
     file(1) command:
-             file ${destroot}/opt/local/bin/daemondo:
-                  ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
-                  ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
-                  ${destroot}/opt/local/bin/daemondo (for architecture i386): Mach-O executable i386
+
+        $ file ${destroot}/opt/local/bin/daemondo:
+        ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
+        ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
+        ${destroot}/opt/local/bin/daemondo (for architecture i386): Mach-O executable i386
+
 *   tclsh invocation: all scripts installed in ${destroot}/opt/local/bin
     should invoke the tclsh shell through a call like:
-             #!/opt/local/bin/port-tclsh
+
+        #!/opt/local/bin/port-tclsh
+
     thus ensuring that our bundled Tcl interpreter is used in our scripts.
 *   Miscellaneous: anything else that might seem out of the ordinary for
     a fully default-configured MacPorts installation.
