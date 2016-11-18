@@ -10,7 +10,8 @@ There are several goals in the release process:
  * Make a specific version of MacPorts available to users.
  * Archive the materials (code, documentation, etc) that compose the release.
  * Replicatability: enable the release to be regenerated.
- * Consistency: codify naming, network locations, etc, for released components.
+ * Consistency: codify naming, network locations, etc, for released
+   components.
  * Ensure that the user base and public is notified of the release.
 
 
@@ -34,8 +35,8 @@ created with a consistent name. To do this, two things are required:
 
  * Choose the git revision from which to create the branch, most likely based
    off master.
- * Create the branch (e.g. release-2.0) with git. The following commands assume
-   the remote "origin" points to macports/macports-base on GitHub.
+ * Create the branch (e.g. release-2.0) with git. The following commands
+   assume the remote "origin" points to macports/macports-base on GitHub.
 
     git branch release-2.0 origin/master
     git push origin release-2.0
@@ -57,18 +58,18 @@ setting the patch-level version to 99, e.g. 2.0.99 in config/macports_version.
 In preparation for a release, several things should be completed within the
 code:
 
- * Update the file ChangeLog in both master and the release branch to reflect the
-   appropriate changes.
+ * Update the file ChangeLog in both master and the release branch to reflect
+   the appropriate changes.
  * Update the file config/macports_version with the target release number. The
    content of this file is recorded as the MacPorts version at MacPorts build
-   time, as displayed by the port command, and it's also used by the selfupdate
-   procedure to determine whether a newer version of code is available. It
-   should be different between master and the release branch, the former greater
-   to differentiate it from the latter.
- * Preserve config/mp_version and config/dp_version at the 1.800 or 1.710 fixed
-   values, respectively, if selfupdate backwards compatibility with old MacPorts
-   installations is still desired.
-   (see https://trac.macports.org/changeset/43571/trunk/base or ce8a77c)
+   time, as displayed by the port command, and it's also used by the
+   selfupdate procedure to determine whether a newer version of code is
+   available. It should be different between master and the release branch,
+   the former greater to differentiate it from the latter.
+ * Preserve config/mp_version and config/dp_version at the 1.800 or 1.710
+   fixed values, respectively, if selfupdate backwards compatibility with old
+   MacPorts installations is still desired. (see
+   https://trac.macports.org/changeset/43571/trunk/base or ce8a77c)
  * Update the autoconf 'configure' script through the provided base/autogen.sh
    script once the version number in mp_version has been changed, since the
    former reads the latter.
@@ -80,8 +81,8 @@ code:
 
 === Tag the Release ===
 
-Once the release is ready, it must be tagged so that the release components may
-be fetched in the future, to ensure replicability. Generally, a release
+Once the release is ready, it must be tagged so that the release components
+may be fetched in the future, to ensure replicability. Generally, a release
 candidate is first tagged and built. When and if it is approved as the actual
 release, an additional tag is created that names the same sources.
 
@@ -94,16 +95,16 @@ Tagging conventions:
 
 We first create an annotated tag pointing to the release branch to make up the
 final release. Annotated tags preserve who made the tag and when. Additionally
-the tag should be signed with GPG by using the `-s` flag in order to allow later
-verification of the signature.
+the tag should be signed with GPG by using the `-s` flag in order to allow
+later verification of the signature.
 
  git tag -a -s v2.0.0 release-2.0
  git push origin v2.0.0
 
-Although only base repository is branched and tagged for a given major release,
-we also create a separate tag in the ports tree at the time the final release
-tag is created for a major release (x.y.0). This intends to provide a set of
-ports intended to work with that release.
+Although only base repository is branched and tagged for a given major
+release, we also create a separate tag in the ports tree at the time the final
+release tag is created for a major release (x.y.0). This intends to provide
+a set of ports intended to work with that release.
 
  git clone macports/macports-ports macports-ports
  cd macports-ports
@@ -125,35 +126,36 @@ tarballs and checksums:
 
 The release should be signed with a detached GPG signature in order to allow
 cryptographic verification. To do this automatically, use the additional
-argument DISTGPGID= on the make command. The value specifies a key ID either in
-hexadecimal format or a email address matching exactly one key. For details, see
-HOW TO SPECIFY A USER ID in gpg(1) for details.
+argument DISTGPGID= on the make command. The value specifies a key ID either
+in hexadecimal format or a email address matching exactly one key. For
+details, see HOW TO SPECIFY A USER ID in gpg(1) for details.
 
  make dist DISTVER=2.0.0 DISTGPGID=<handle>@macports.org
 
-These tarballs and the checksums are uploaded to the https://distfiles.macports.org/MacPorts/
-directory. At present, this must be done with the help of the infrastructure
-team.
+These tarballs and the checksums are uploaded to the
+https://distfiles.macports.org/MacPorts/ directory. At present, this must be
+done with the help of the infrastructure team.
 
 
 === Create Release Packages and Disk Image(s) ===
 
 The dmg is a Mac OS X disk image that contains a standalone installer,
-configured in the usual way, named in a consistent fashion and incorporating the
-OS version for which it was built.
+configured in the usual way, named in a consistent fashion and incorporating
+the OS version for which it was built.
 
-For 10.6 and newer, we now build flat packages, so an enclosing dmg is not necessary.
+For 10.6 and newer, we now build flat packages, so an enclosing dmg is not
+necessary.
 
  MacPorts-2.0.0-10.5-Leopard.dmg
  MacPorts-2.0.0-10.6-SnowLeopard.pkg
  MacPorts-2.0.0-10.7-Lion.pkg
 
 To create a pkg or dmg, use the MacPorts port. The Portfile will need to be
-updated to incorporate the proper release version and checksums, and the release
-tarballs will need to be already uploaded to the downloads section of the site
-(wherefrom the sources are fetched by the MacPorts port to build the pkg for the
-release). Make sure the ports tree you're using to build the pkgs is fully up to
-date.
+updated to incorporate the proper release version and checksums, and the
+release tarballs will need to be already uploaded to the downloads section of
+the site (wherefrom the sources are fetched by the MacPorts port to build the
+pkg for the release). Make sure the ports tree you're using to build the pkgs
+is fully up to date.
 
  sudo port -d pkg MacPorts
  sudo port -d dmg MacPorts
@@ -172,27 +174,27 @@ checksums file in the downloads directory:
    openssl dgst $type MacPorts-2.0.0-*.{pkg,dmg} >> MacPorts-2.0.0.chk.txt
  done
 
-These new products, along with the new checksums, also have to be posted to the
-appropriate directory of the MacPorts distfiles server. Developers are required
-to validate the generated installer as thoroughly as possible through extensive
-testing, which is mainly why this step of the release process is not automated
-through a Makefile target or similar. A good way of validating the installer is
-to first create the destroot of the port and examine it for:
+These new products, along with the new checksums, also have to be posted to
+the appropriate directory of the MacPorts distfiles server. Developers are
+required to validate the generated installer as thoroughly as possible through
+extensive testing, which is mainly why this step of the release process is not
+automated through a Makefile target or similar. A good way of validating the
+installer is to first create the destroot of the port and examine it for:
 
- * Linking: libraries and binaries should not be linked against anything that's
-   not present by default on a vanilla Mac OS X installation + developer tools,
-   excluding even the MacPorts installation prefix; this can be accomplished
-   through the use of otool's -L flag. Currently the libraries and binaries in
-   need of linking validation are:
+ * Linking: libraries and binaries should not be linked against anything
+   that's not present by default on a vanilla Mac OS X installation
+   + developer tools, excluding even the MacPorts installation prefix; this
+   can be accomplished through the use of otool's -L flag. Currently the
+   libraries and binaries in need of linking validation are:
              ${destroot}/opt/local/bin/daemondo
              ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib
              ${destroot}/opt/local/share/macports/Tcl/macports1.0/MacPorts.dylib
              ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
              ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
- * Universal building: All the files that need linking confirmation in the step
-   above also need to be confirmed to be universal (i386/ppc on 10.5 and
-   earlier, i386/x86_64 on 10.6 and later). A way to do this is with the file(1)
-   command:
+ * Universal building: All the files that need linking confirmation in the
+   step above also need to be confirmed to be universal (i386/ppc on 10.5 and
+   earlier, i386/x86_64 on 10.6 and later). A way to do this is with the
+   file(1) command:
              file ${destroot}/opt/local/bin/daemondo:
                   ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
                   ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
@@ -201,28 +203,29 @@ to first create the destroot of the port and examine it for:
    invoke the tclsh shell through a call like:
              #!/opt/local/bin/port-tclsh
    thus ensuring that our bundled Tcl interpreter is used in our scripts.
- * Miscellaneous: anything else that might seem out of the ordinary for a fully
-   default-configured MacPorts installation.
+ * Miscellaneous: anything else that might seem out of the ordinary for
+   a fully default-configured MacPorts installation.
 
 Once the above requirements have been positively asserted, the one remaining
-test is to make sure that the dmg mounts in the Finder when double-clicked, and
-that the pkg contained therein properly starts up Installer.app when it's
+test is to make sure that the dmg mounts in the Finder when double-clicked,
+and that the pkg contained therein properly starts up Installer.app when it's
 double-clicked.
 
 
 == Create Release on GitHub ==
 
-All of our distfiles should also be available as downloads from a new
-GitHub release. Create a new release matching the previously created tag
-on GitHub and attach all tarballs and installers to it.
+All of our distfiles should also be available as downloads from a new GitHub
+release. Create a new release matching the previously created tag on GitHub
+and attach all tarballs and installers to it.
 
 
 === Make the Release Available through Self-Update ===
 
 In order to make the release version available through selfupdate, the
-config/RELEASE_URL file in the base repository needs to be updated with the tag
-of the release to distribute. This file is read by the cron job that makes the
-code available via rsync. See jobs/mprsyncup in the macports-infra repository.
+config/RELEASE_URL file in the base repository needs to be updated with the
+tag of the release to distribute. This file is read by the cron job that makes
+the code available via rsync. See jobs/mprsyncup in the macports-infra
+repository.
 
 
 === Notify the Public of the Release ===
@@ -232,12 +235,12 @@ sent/posted to the following places:
 
  * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
  * The MacPorts website, by adapting the $macports_version_major and
-   $macports_version_latest variables as appropriate in the includes/common.inc
-   file in the macports-www repository.
+   $macports_version_latest variables as appropriate in the
+   includes/common.inc file in the macports-www repository.
  * The website's news section at https://macports.github.io/news/,
    see the macports.github.io repository 
- * The &macports-version; entity in xml/installing.xml and xml/using.xml in the
-   guide repository.
+ * The &macports-version; entity in xml/installing.xml and xml/using.xml in
+   the guide repository.
 
 External websites:
 
@@ -256,8 +259,8 @@ External websites:
 
 Using new features introduced by a release should be delayed for 14 days until
 being deployed in the ports tree. This should allow users to upgrade their
-installations to the new release. This delay matches the warning about outdated
-ports tree sources.
+installations to the new release. This delay matches the warning about
+outdated ports tree sources.
 
 
-<!-- vim:set fenc=utf-8 ft=markdown tw=80 et sw=4 sts=4: -->
+<!-- vim:set fenc=utf-8 ft=markdown tw=78 et sw=4 sts=4: -->
