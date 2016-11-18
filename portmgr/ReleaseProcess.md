@@ -1,9 +1,9 @@
-= MacPorts Release Process =
+# MacPorts Release Process #
 
 This file documents the evolving MacPorts release process.
 
 
-== Goals of a Release ==
+## Goals of a Release ##
 
 There are several goals in the release process:
 
@@ -15,7 +15,7 @@ There are several goals in the release process:
  * Ensure that the user base and public is notified of the release.
 
 
-== Steps to a Release ==
+## Steps to a Release ##
 
 The following steps to a release are documented in more detail below:
 
@@ -28,7 +28,7 @@ The following steps to a release are documented in more detail below:
  * Notify public of the release.
 
 
-=== Create a Release Branch ===
+### Create a Release Branch ###
 
 For each major release (i.e. 1.9.x, 2.0.x, etc.) an appropriate branch is
 created with a consistent name. To do this, two things are required:
@@ -53,7 +53,7 @@ its version information to indicate it's moved past the release version by
 setting the patch-level version to 99, e.g. 2.0.99 in config/macports_version.
 
 
-=== Prepare the code for Release ===
+### Prepare the code for Release ###
 
 In preparation for a release, several things should be completed within the
 code:
@@ -79,7 +79,7 @@ code:
    should be merged back into master as well.
 
 
-=== Tag the Release ===
+### Tag the Release ###
 
 Once the release is ready, it must be tagged so that the release components
 may be fetched in the future, to ensure replicability. Generally, a release
@@ -112,7 +112,7 @@ a set of ports intended to work with that release.
  git push origin v2.0.0-archive
 
 
-=== Create & Post Release Tarballs ===
+### Create & Post Release Tarballs ###
 
 The release tarballs are .tar.bz2 and .tar.gz archives of the base repository.
 They are named with the following naming convention:
@@ -137,7 +137,7 @@ https://distfiles.macports.org/MacPorts/ directory. At present, this must be
 done with the help of the infrastructure team.
 
 
-=== Create Release Packages and Disk Image(s) ===
+### Create Release Packages and Disk Image(s) ###
 
 The dmg is a Mac OS X disk image that contains a standalone installer,
 configured in the usual way, named in a consistent fashion and incorporating
@@ -212,14 +212,14 @@ and that the pkg contained therein properly starts up Installer.app when it's
 double-clicked.
 
 
-== Create Release on GitHub ==
+## Create Release on GitHub ##
 
 All of our distfiles should also be available as downloads from a new GitHub
 release. Create a new release matching the previously created tag on GitHub
 and attach all tarballs and installers to it.
 
 
-=== Make the Release Available through Self-Update ===
+### Make the Release Available through Self-Update ###
 
 In order to make the release version available through selfupdate, the
 config/RELEASE_URL file in the base repository needs to be updated with the
@@ -228,7 +228,7 @@ the code available via rsync. See jobs/mprsyncup in the macports-infra
 repository.
 
 
-=== Notify the Public of the Release ===
+### Notify the Public of the Release ###
 
 Once the release has been posted, notification of the release should be
 sent/posted to the following places:
@@ -255,7 +255,7 @@ External websites:
  * (Where else?)
 
 
-=== Use of new features in Portfiles ===
+### Use of new features in Portfiles ###
 
 Using new features introduced by a release should be delayed for 14 days until
 being deployed in the ports tree. This should allow users to upgrade their
