@@ -30,7 +30,7 @@ The following steps to a release are documented in more detail below:
 
 ### Create a Release Branch ###
 
-For each major release (i.e. 1.9.x, 2.0.x, etc.) an appropriate branch is
+For each major release (i.e. 1.9._x_, 2.0._x_, etc.) an appropriate branch is
 created with a consistent name. To do this, two things are required:
 
 *   Choose the git revision from which to create the branch, most likely based
@@ -71,7 +71,7 @@ code:
     MacPorts installations is still desired. (see
     https://trac.macports.org/changeset/43571/trunk/base or ce8a77c)
 *   Update the autoconf 'configure' script through the provided
-    base/autogen.sh script once the version number in mp_version has been
+    base/autogen.sh script once the version number in `mp_version` has been
     changed, since the former reads the latter.
 *   Make sure that these and any other changes or bug fixes are made on and/or
     merged between the release branch and master as needed. For instance, if
@@ -103,7 +103,7 @@ later verification of the signature.
 
 Although only base repository is branched and tagged for a given major
 release, we also create a separate tag in the ports tree at the time the final
-release tag is created for a major release (x.y.0). This intends to provide
+release tag is created for a major release (_x_._y_.0). This intends to provide
 a set of ports intended to work with that release.
 
     git clone macports/macports-ports macports-ports
@@ -126,7 +126,7 @@ tarballs and checksums:
 
 The release should be signed with a detached GPG signature in order to allow
 cryptographic verification. To do this automatically, use the additional
-argument DISTGPGID= on the make command. The value specifies a key ID either
+argument `DISTGPGID` on the make command. The value specifies a key ID either
 in hexadecimal format or a email address matching exactly one key. For
 details, see HOW TO SPECIFY A USER ID in gpg(1) for details.
 
@@ -184,24 +184,24 @@ installer is to first create the destroot of the port and examine it for:
 *   Linking: libraries and binaries should not be linked against anything
     that's not present by default on a vanilla Mac OS X installation +
     developer tools, excluding even the MacPorts installation prefix; this can
-    be accomplished through the use of otool's -L flag. Currently the
-    libraries and binaries in need of linking validation are:
-    *   ${destroot}/opt/local/bin/daemondo
-    *   ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib
-    *   ${destroot}/opt/local/share/macports/Tcl/macports1.0/MacPorts.dylib
-    *   ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
-    *   ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
+    be accomplished through the use of `otool -L`. Currently the libraries and
+    binaries in need of linking validation are:
+    *   `${destroot}/opt/local/bin/daemondo`
+    *   `${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib`
+    *   `${destroot}/opt/local/share/macports/Tcl/macports1.0/MacPorts.dylib`
+    *   `${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib`
+    *   `${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib`
 *   Universal building: All the files that need linking confirmation in the
     step above also need to be confirmed to be universal (i386/ppc on 10.5 and
     earlier, i386/x86_64 on 10.6 and later). A way to do this is with the
-    file(1) command:
+    `file(1)` command:
 
         $ file ${destroot}/opt/local/bin/daemondo:
         ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
         ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
         ${destroot}/opt/local/bin/daemondo (for architecture i386): Mach-O executable i386
 
-*   tclsh invocation: all scripts installed in ${destroot}/opt/local/bin
+*   tclsh invocation: all scripts installed in `${destroot}/opt/local/bin`
     should invoke the tclsh shell through a call like:
 
         #!/opt/local/bin/port-tclsh
@@ -238,12 +238,12 @@ Once the release has been posted, notification of the release should be
 sent/posted to the following places:
 
 *   The macports-announce@, macports-users@ and macports-dev@ mailing lists.
-*   The MacPorts website, by adapting the $macports_version_major and
-    $macports_version_latest variables as appropriate in the
+*   The MacPorts website, by adapting the `$macports_version_major` and
+    `$macports_version_latest` variables as appropriate in the
     includes/common.inc file in the macports-www repository.
 *   The website's news section at https://macports.github.io/news/, see the
     macports.github.io repository 
-*   The &macports-version; entity in xml/installing.xml and xml/using.xml in
+*   The `&macports-version;` entity in xml/installing.xml and xml/using.xml in
     the guide repository.
 *   External websites
     *   [http://sourceforge.net/projects/macports/ sourceforge]
