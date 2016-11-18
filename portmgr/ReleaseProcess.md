@@ -50,7 +50,8 @@ be branched for a given release.
 
 Once master is to be used for development of the next major version, increase
 its version information to indicate it's moved past the release version by
-setting the patch-level version to 99, e.g. 2.0.99 in config/macports_version.
+setting the patch-level version to 99, e.g. 2.0.99 in
+[`config/macports_version`][macports_version].
 
 
 ### Prepare the code for Release ###
@@ -58,25 +59,27 @@ setting the patch-level version to 99, e.g. 2.0.99 in config/macports_version.
 In preparation for a release, several things should be completed within the
 code:
 
-*   Update the file ChangeLog in both master and the release branch to reflect
-    the appropriate changes.
-*   Update the file config/macports_version with the target release number.
-    The content of this file is recorded as the MacPorts version at MacPorts
-    build time, as displayed by the port command, and it's also used by the
-    selfupdate procedure to determine whether a newer version of code is
-    available. It should be different between master and the release branch,
-    the former greater to differentiate it from the latter.
-*   Preserve config/mp_version and config/dp_version at the 1.800 or 1.710
-    fixed values, respectively, if selfupdate backwards compatibility with old
-    MacPorts installations is still desired. (see
-    https://trac.macports.org/changeset/43571/trunk/base or ce8a77c)
-*   Update the autoconf 'configure' script through the provided
-    base/autogen.sh script once the version number in `mp_version` has been
-    changed, since the former reads the latter.
+*   Update the file [`ChangeLog`][ChangeLog] in both master and the release
+    branch to reflect the appropriate changes.
+*   Update the file [`config/macports_version`][macports_version] with the
+    target release number. The content of this file is recorded as the
+    MacPorts version at MacPorts build time, as displayed by the port command,
+    and it's also used by the selfupdate procedure to determine whether
+    a newer version of code is available. It should be different between
+    master and the release branch, the former greater to differentiate it from
+    the latter.
+*   Preserve [`config/mp_version`][mp_version] and
+    [`config/dp_version`][dp_version] at the 1.800 or 1.710 fixed values,
+    respectively, if selfupdate backwards compatibility with old MacPorts
+    installations is still desired. (see
+    https://trac.macports.org/changeset/43571/trunk/base or [ce8a77c][])
+*   Update the autoconf [`configure`][configure] script through the provided
+    [`autogen.sh`][autogen.sh] script once the version number in `mp_version`
+    has been changed, since the former reads the latter.
 *   Make sure that these and any other changes or bug fixes are made on and/or
     merged between the release branch and master as needed. For instance, if
-    you've made changes to ChangeLog only on the release branch, those changes
-    should be merged back into master as well.
+    you've made changes to `ChangeLog` only on the release branch, those
+    changes should be merged back into master as well.
 
 
 ### Tag the Release ###
@@ -128,7 +131,7 @@ The release should be signed with a detached GPG signature in order to allow
 cryptographic verification. To do this automatically, use the additional
 argument `DISTGPGID` on the make command. The value specifies a key ID either
 in hexadecimal format or a email address matching exactly one key. For
-details, see HOW TO SPECIFY A USER ID in gpg(1) for details.
+details, see [HOW TO SPECIFY A USER ID in gpg(1)][gpg-user-id] for details.
 
     make dist DISTVER=2.0.0 DISTGPGID=<handle>@macports.org
 
@@ -226,10 +229,10 @@ and attach all tarballs and installers to it.
 ### Make the Release Available through Self-Update ###
 
 In order to make the release version available through selfupdate, the
-config/RELEASE_URL file in the base repository needs to be updated with the
-tag of the release to distribute. This file is read by the cron job that makes
-the code available via rsync. See jobs/mprsyncup in the macports-infra
-repository.
+[`config/RELEASE_URL`][RELEASE_URL] file in the base repository needs to be
+updated with the tag of the release to distribute. This file is read by the
+cron job that makes the code available via rsync. See
+[`jobs/mprsyncup`][mprsyncup] in the macports-infra repository.
 
 
 ### Notify the Public of the Release ###
@@ -237,22 +240,24 @@ repository.
 Once the release has been posted, notification of the release should be
 sent/posted to the following places:
 
-*   The macports-announce@, macports-users@ and macports-dev@ mailing lists.
+*   The [macports-announce][]@, [macports-users][]@ and [macports-dev][]@
+    mailing lists.
 *   The MacPorts website, by adapting the `$macports_version_major` and
     `$macports_version_latest` variables as appropriate in the
-    includes/common.inc file in the macports-www repository.
-*   The website's news section at https://macports.github.io/news/, see the
-    macports.github.io repository 
-*   The `&macports-version;` entity in xml/installing.xml and xml/using.xml in
-    the guide repository.
+    [`includes/common.inc`][common.inc] file in the macports-www repository.
+*   The [news section][news] of the website (see the [macports.github.io][]
+    repository)
+*   The `&macports-version;` entity in
+    [`guide/xml/installing.xml`][installing.xml] and
+    [`guide/xml/using.xml`][using.xml] in the guide repository.
 *   External websites
-    *   [http://sourceforge.net/projects/macports/ sourceforge]
+    *   [SourceForge][]
         (submitter: portmgr@)
-    *   [https://www.macupdate.com/app/mac/21309/macports MacUpdate]
+    *   [MacUpdate][]
         (submitter: ???)
-    *   [http://twitter.com/macports twitter]
+    *   [Twitter][]
         (submitter: raimue@)
-    *   [https://plus.google.com/communities/110287630398071712872 Google+ Community]
+    *   [Google+ Community][Google+]
         (submitter: raimue@)
     *   (Where else?)
 
@@ -264,5 +269,28 @@ being deployed in the ports tree. This should allow users to upgrade their
 installations to the new release. This delay matches the warning about
 outdated ports tree sources.
 
+
+[autogen.sh]: /autogen.sh
+[ce8a77c]: https://github.com/macports/macports-base/commit/ce8a77c858c679f2d7627a3cd613436b2ead82e7
+[ChangeLog]: /ChangeLog
+[common.inc]: https://github.com/macports/macports-www/blob/master/includes/common.inc
+[configure]: /configure
+[dp_version]: /config/dp_version
+[Google+]: https://plus.google.com/communities/110287630398071712872
+[gpg-user-id]: https://gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html
+[installing.xml]: https://github.com/macports/macports-guide/blob/master/guide/xml/installing.xml
+[macports-announce]: mailto:macports-announce@lists.macports.org
+[macports-dev]: mailto:macports-dev@lists.macports.org
+[macports-users]: mailto:macports-users@lists.macports.org
+[macports.github.io]: https://github.com/macports/macports.github.io
+[macports_version]: /config/macports_version
+[MacUpdate]: https://www.macupdate.com/app/mac/21309/macports
+[mp_version]: /config/mp_version
+[mprsyncup]: https://github.com/macports/macports-infrastructure/blob/master/jobs/mprsyncup
+[news]: https://www.macports.org/news
+[RELEASE_URL]: /config/RELEASE_URL
+[SourceForge]: http://sourceforge.net/projects/macports
+[Twitter]: http://twitter.com/macports
+[using.xml]: https://github.com/macports/macports-guide/blob/master/guide/xml/using.xml
 
 <!-- vim:set fenc=utf-8 ft=markdown tw=78 et sw=4 sts=4: -->
