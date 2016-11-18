@@ -236,7 +236,8 @@ sent/posted to the following places:
    file in the macports-www repository.
  * The website's news section at https://macports.github.io/news/,
    see the macports.github.io repository 
- * The &macports-version; entity in xml/installing.xml in the guide repository.
+ * The &macports-version; entity in xml/installing.xml and xml/using.xml in the
+   guide repository.
 
 External websites:
 
