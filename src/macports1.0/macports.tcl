@@ -41,6 +41,9 @@ package require reclaim 1.0
 package require selfupdate 1.0
 package require Tclx
 
+# catch wrapper shared with port1.0
+package require mpcommon 1.0
+
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\

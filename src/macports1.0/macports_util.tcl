@@ -378,8 +378,10 @@ proc try {args} {
         }
     }
 
-    # at this point, we've processed all args
-    if {[set err [catch {uplevel 1 $body} result]] == 1} {
+    # at this point, we've processed all args'
+    # builtin_catch is the normal Tcl catch command, rather than the wrapper
+    # defined in common/catch.tcl and sourced by macports.tcl
+    if {[set err [builtin_catch {uplevel 1 $body} result]] == 1} {
         set savedErrorCode $::errorCode
         set savedErrorInfo $::errorInfo
         # rip out the last "invoked from within" - we want to hide our internals
@@ -410,7 +412,7 @@ proc try {args} {
                 if {[set infovar [lshift elem]] ne ""} {
                     uplevel 1 set [list $infovar] [list $savedErrorInfo]
                 }
-                if {[set err [catch {uplevel 1 $catchBody} result]] == 1} {
+                if {[set err [builtin_catch {uplevel 1 $catchBody} result]] == 1} {
                     # error in the catch block, save it
                     set savedErrorCode $::errorCode
                     set savedErrorInfo $::errorInfo
@@ -433,7 +435,7 @@ proc try {args} {
         # catch errors here so we can strip our uplevel
         set savedErr $err
         set savedResult $result
-        if {[set err [catch {uplevel 1 $finallyBody} result]] == 1} {
+        if {[set err [builtin_catch {uplevel 1 $finallyBody} result]] == 1} {
             set savedErrorCode $::errorCode
             set savedErrorInfo $::errorInfo
             # rip out the last "invoked from within" - we want to hide our internals
