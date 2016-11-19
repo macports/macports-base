@@ -7,7 +7,8 @@ TCLPKG=		cregistry \
 			port1.0 \
 			package1.0 \
 			pextlib1.0 \
-			machista1.0
+			machista1.0 \
+			mpcommon1.0
 SUBDIR=		${TCLPKG} port programs
 
 ifeq (@TRACEMODE_SUPPORT@,1)

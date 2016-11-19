@@ -430,6 +430,7 @@ AC_CONFIG_FILES([
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/macports1.0/macports_test_autoconf.tcl
+	src/mpcommon1.0/Makefile
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
