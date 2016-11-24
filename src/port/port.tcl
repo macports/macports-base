@@ -2181,8 +2181,8 @@ proc action_info { action portlist opts } {
                 set inf [join $inf]
             }
 
-            # Format the data
-            if { $ropt eq "maintainers" } {
+            # Format list of maintainers
+            if {$ropt eq "maintainers"} {
                 set infresult {}
                 foreach serialized [macports::unobscure_maintainers $inf] {
                     set parts {}
