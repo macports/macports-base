@@ -1981,23 +1981,23 @@ proc action_info { action portlist opts } {
         }
         array unset options ports_info_index
 
-        # Understand which info items are actually lists
-        # (this could be overloaded to provide a generic formatting code to
-        # allow us to, say, split off the prefix on libs)
+        # Understand which info items are actually lists by specifying
+        # separators for the output. The list items correspond to the
+        # normal, --pretty, and --line output formats.
         array set list_map {
-            categories      ", "
-            depends_fetch   ", "
-            depends_extract ", "
-            depends_build   ", "
-            depends_lib     ", "
-            depends_run     ", "
-            depends_test    ", "
-            maintainers     "\n"
-            platforms       ", "
-            variants        ", "
-            conflicts       ", "
-            subports        ", "
-            patchfiles      ", "
+            categories      {", "  ", "  ","}
+            depends_fetch   {", "  ", "  ","}
+            depends_extract {", "  ", "  ","}
+            depends_build   {", "  ", "  ","}
+            depends_lib     {", "  ", "  ","}
+            depends_run     {", "  ", "  ","}
+            depends_test    {", "  ", "  ","}
+            maintainers     {", "  "\n"  ","}
+            platforms       {", "  ", "  ","}
+            variants        {", "  ", "  ","}
+            conflicts       {", "  ", "  ","}
+            subports        {", "  ", "  ","}
+            patchfiles      {", "  ", "  ","}
         }
 
         # Label map for pretty printing
@@ -2059,14 +2059,16 @@ proc action_info { action portlist opts } {
         # Set up our field separators
         set show_label 1
         set field_sep "\n"
-        set subfield_sep ", "
         set pretty_print 0
+        set list_map_index 0
 
         # For human-readable summary, which is the default with no options
         if {[llength [array get options ports_info_*]] == 0} {
             set pretty_print 1
+            set list_map_index 1
         } elseif {[info exists options(ports_info_pretty)]} {
             set pretty_print 1
+            set list_map_index 1
             array unset options ports_info_pretty
         }
 
@@ -2076,7 +2078,7 @@ proc action_info { action portlist opts } {
             set noseparator 1
             set show_label 0
             set field_sep "\t"
-            set subfield_sep ","
+            set list_map_index 2
         }
 
         # Figure out whether to show field name
@@ -2232,7 +2234,7 @@ proc action_info { action portlist opts } {
             }
             #End of special pretty-print formatting for certain fields
             if {[info exists list_map($ropt)]} {
-                set field [join $inf $list_map($ropt)]
+                set field [join $inf [lindex $list_map($ropt) $list_map_index]]
             } else {
                 set field $inf
             }
