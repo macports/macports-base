@@ -2220,47 +2220,48 @@ proc action_info { action portlist opts } {
                 }
                 set inf $infresult
             }
-            #     ... special formatting for certain fields when prettyprinting
-            if {$pretty_print} {
-                if {$ropt eq "variants"} {
-                    # Use the new format for variants iff it exists in
-                    # PortInfo. This key currently does not exist outside of
-                    # trunk (1.8.0).
-                    array unset vinfo
-                    if {[info exists portinfo(vinfo)]} {
-                        array set vinfo $portinfo(vinfo)
-                    }
 
-                    set pi_vars $inf
-                    set inf {}
-                    foreach v [lsort $pi_vars] {
-                        set varmodifier ""
-                        if {[info exists variations($v)]} {
-                            # selected by command line, prefixed with +/-
-                            set varmodifier $variations($v)
-                        } elseif {[info exists global_variations($v)]} {
-                            # selected by variants.conf, prefixed with (+)/(-)
-                            set varmodifier "($global_variations($v))"
-                            # Retrieve additional information from the new key.
-                        } elseif {[info exists vinfo]} {
-                            array unset variant
-                            array set variant $vinfo($v)
-                            if {[info exists variant(is_default)]} {
-                                set varmodifier "\[$variant(is_default)]"
-                            }
-                        }
-                        lappend inf "$varmodifier$v"
-                    }
-                } elseif {[string match "depend*" $ropt] 
-                          && ![macports::ui_isset ports_verbose]} {
-                    set pi_deps $inf
-                    set inf {}
-                    foreach d $pi_deps {
-                        lappend inf [lindex [split $d :] end]
-                    }
+            # Format variants
+            if {$pretty_print && $ropt eq "variants"} {
+                array unset vinfo
+                if {[info exists portinfo(vinfo)]} {
+                    array set vinfo $portinfo(vinfo)
                 }
-            } 
-            #End of special pretty-print formatting for certain fields
+
+                set pi_vars $inf
+                set inf {}
+                foreach v [lsort $pi_vars] {
+                    set varmodifier ""
+                    if {[info exists variations($v)]} {
+                        # selected by command line, prefixed with +/-
+                        set varmodifier $variations($v)
+                    } elseif {[info exists global_variations($v)]} {
+                        # selected by variants.conf, prefixed with (+)/(-)
+                        set varmodifier "($global_variations($v))"
+                        # Retrieve additional information from the new key.
+                    } elseif {[info exists vinfo]} {
+                        array unset variant
+                        array set variant $vinfo($v)
+                        if {[info exists variant(is_default)]} {
+                            set varmodifier "\[$variant(is_default)]"
+                        }
+                    }
+                    lappend inf "$varmodifier$v"
+                }
+            }
+
+            # Show full depspec only in verbose mode
+            if {[string match "depend*" $ropt]
+                        && ![macports::ui_isset ports_verbose]} {
+                set pi_deps $inf
+                set inf {}
+                foreach d $pi_deps {
+                    lappend inf [lindex [split $d :] end]
+                }
+            }
+
+            # End of special pretty-print formatting for certain fields
+
             if {[info exists list_map($ropt)]} {
                 set field [join $inf [lindex $list_map($ropt) $list_map_index]]
             } else {
