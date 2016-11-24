@@ -2171,24 +2171,30 @@ proc action_info { action portlist opts } {
                     array set maintainer $serialized
 
                     if {[info exists maintainer(email)]} {
-                        lappend parts "Email: $maintainer(email)"
+                        set item [expr {$pretty_print ? "Email: " : ""}]
+                        append item $maintainer(email)
+                        lappend parts $item
                     }
                     if {[info exists maintainer(github)]} {
-                        lappend parts "GitHub: $maintainer(github)"
+                        set item [expr {$pretty_print ? "GitHub: " : ""}]
+                        append item $maintainer(github)
+                        lappend parts $item
                     }
                     if {[info exists maintainer(keyword)]} {
                         switch $maintainer(keyword) {
                             nomaintainer {
-                                lappend parts "none"
+                                lappend parts [expr {$pretty_print ? "none" : ""}]
                             }
                             openmaintainer {
-                                lappend parts "Policy: openmaintainer"
+                                set item [expr {$pretty_print ? "Policy: " : ""}]
+                                append item "openmaintainer"
+                                lappend parts $item
                             }
                         }
                     }
 
                     array unset maintainer
-                    lappend infresult [join $parts ", "]
+                    lappend infresult [join $parts [expr {$pretty_print ? ", " : " "}]]
                 }
                 set inf $infresult
             }
