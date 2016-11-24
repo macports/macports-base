@@ -2179,6 +2179,10 @@ proc action_info { action portlist opts } {
                 # These fields support newlines, we need to [join ...] to make
                 # them newlines
                 set inf [join $inf]
+                # Flatten value to a single line unless we are pretty printing
+                if {!$pretty_print} {
+                    set inf [string map {"\n" {\n}} $inf]
+                }
             }
 
             # Format list of maintainers
