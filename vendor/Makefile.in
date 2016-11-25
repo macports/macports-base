@@ -43,6 +43,9 @@ all-tclx: all-tcl
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ $(@:%-tcllib=%)
 
+# tcllib requires a working tclsh
+all-tcllib: all-tcl
+
 destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
