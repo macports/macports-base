@@ -388,7 +388,7 @@ STLIB_LD=${TCL_STLIB_LD}
 SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
-INTREE_TCLSH=${TCL_BIN_DIR}/tclsh
+INTREE_TCLSH=`(cd vendor; pwd)`/tclsh
 # strip possible whitespace at the end of TCL_PACKAGE_PATH
 eval "TCL_PACKAGE_PATH=${TCL_PACKAGE_PATH}"
 
@@ -401,6 +401,7 @@ AC_SUBST(TCL_VERSION)
 AC_SUBST(TCL_PACKAGE_PATH)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_SRC_DIR)
+AC_SUBST(TCL_BIN_DIR)
 AC_SUBST(TCLSH)
 AC_SUBST(INTREE_TCLSH)
 
@@ -448,6 +449,7 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])

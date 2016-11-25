@@ -33,6 +33,7 @@ tests/test/library.tcl
 tests/test/trace/test.tcl
 
 vendor/*/
+vendor/tclsh
 
 !*.in
 
