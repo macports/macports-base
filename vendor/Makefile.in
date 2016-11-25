@@ -41,7 +41,7 @@ all-tclx: all-tcl
 
 %-tcllib:
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ $(@:%-tcllib=%)
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ $(@:%-tcllib=%)
 
 destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib
 destroot-tcl: all-tcl
@@ -58,7 +58,7 @@ destroot-tclx: all-tclx
 
 destroot-tcllib: all-tcllib
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 
 install: install-tcl install-tclthread install-tclx install-tcllib
 install-tcl:
