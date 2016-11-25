@@ -1386,6 +1386,7 @@ proc target_run {ditem} {
                 }
 
                 #start tracelib
+                set tracing no
                 if {($result ==0
                   && [tbool ports_trace]
                   && $target ne "clean"
@@ -1404,6 +1405,8 @@ proc target_run {ditem} {
                       && $target ne "install"} {
                         porttrace::trace_enable_fence
                     }
+
+                    set tracing yes
 
                     # collect deps
                     set depends {}
@@ -1497,6 +1500,7 @@ proc target_run {ditem} {
 
                 # Check dependencies & file creations outside workpath.
                 if {[tbool ports_trace]
+                  && $tracing
                   && $target ne "clean"
                   && $target ne "uninstall"} {
 
@@ -1506,6 +1510,8 @@ proc target_run {ditem} {
 
                     # End of trace.
                     porttrace::trace_stop
+
+                    set tracing no
                 }
 
                 # Execute post-run procedure
