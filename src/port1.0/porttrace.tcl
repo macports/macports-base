@@ -443,7 +443,9 @@ namespace eval porttrace {
     proc slave_send {command} {
         variable thread
 
-        thread::send $thread "$command" result
+        if {[thread::send $thread "$command" result]} {
+            return -code error "thread::send \"$command\" failed: $result"
+        }
         return $result
     }
 
