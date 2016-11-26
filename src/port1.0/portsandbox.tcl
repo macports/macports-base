@@ -78,7 +78,7 @@ proc portsandbox::set_profile {target} {
 
     # TODO: remove altprefix support
     lappend allow_dirs $workpath $altprefix
-    lappend allow_dirs $prefix/var/macports/sip-workaround
+    lappend allow_dirs ${portutil::autoconf::trace_sipworkaround_path}
     if {${configure.ccache}} {
         lappend allow_dirs $ccache_dir
     }

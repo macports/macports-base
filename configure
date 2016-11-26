@@ -654,6 +654,7 @@ VENDOR_TCL_INSTALL
 VENDOR_TCL_SUBDIR
 localstatedir_expanded
 MPCONFIGDIR_EXPANDED
+DARWINTRACE_SIP_WORKAROUND_PATH
 prefix_expanded
 TRACEMODE_SUPPORT
 LDFLAGS_SQLITE3
@@ -9623,9 +9624,11 @@ eval "exec_prefix_expanded=$exec_prefix"
 
 # Define a path where our trace mode workaround for SIP-protected binaries on
 # >= 10.11 puts copies
+eval DARWINTRACE_SIP_WORKAROUND_PATH="${prefix}/var/macports/sip-workaround"
+
 
 cat >>confdefs.h <<_ACEOF
-#define DARWINTRACE_SIP_WORKAROUND_PATH "${prefix}/var/macports/sip-workaround"
+#define DARWINTRACE_SIP_WORKAROUND_PATH "$DARWINTRACE_SIP_WORKAROUND_PATH"
 _ACEOF
 
 

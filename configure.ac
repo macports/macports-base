@@ -315,9 +315,11 @@ AC_SUBST(prefix_expanded)
 
 # Define a path where our trace mode workaround for SIP-protected binaries on
 # >= 10.11 puts copies
+eval DARWINTRACE_SIP_WORKAROUND_PATH="${prefix}/var/macports/sip-workaround"
+AC_SUBST(DARWINTRACE_SIP_WORKAROUND_PATH)
 AC_DEFINE_UNQUOTED(
 	[DARWINTRACE_SIP_WORKAROUND_PATH],
-	["${prefix}/var/macports/sip-workaround"],
+	["$DARWINTRACE_SIP_WORKAROUND_PATH"],
 	[Absolute path to a directory used by darwintrace to copy SIP-protected files before executing])
 
 # do this twice, since there is a nested variable of
