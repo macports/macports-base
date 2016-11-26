@@ -100,7 +100,7 @@ proc port_trace {pwd} {
     set back [pwd]
     cd $pwd
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port -t test >&output 2>@1} ]
+    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port -d -N -t test >&output 2>@1} ]
     cd $back
     return $result
 }
