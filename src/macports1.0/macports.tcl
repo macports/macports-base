@@ -1308,7 +1308,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     interp hide $workername exit
 
     # cd: This is necessary for some code in port1.0, but should be hidden
-    interp eval $workername "rename cd _cd"
+    interp eval $workername {rename cd _cd}
 
     # Tell the sub interpreter about all the Tcl packages we already
     # know about so it won't glob for packages.
@@ -1320,8 +1320,9 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
 
     # Create package require abstraction procedure
-    $workername eval "proc PortSystem \{version\} \{ \n\
-            package require port \$version \}"
+    $workername eval {proc PortSystem {version} {
+            package require port $version
+        }}
 
     # Clearly separate slave interpreters and the master interpreter.
     $workername alias mport_exec mportexec
@@ -1405,8 +1406,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
             global macports::$opt
         }
         if {[info exists $opt]} {
-            $workername eval set system_options($opt) \{[set $opt]\}
-            $workername eval set $opt \{[set $opt]\}
+            $workername eval "set system_options($opt) \{[set $opt]\}"
+            $workername eval "set $opt \{[set $opt]\}"
         }
     }
 
@@ -1422,16 +1423,16 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
         # next access will actually define the variable.
         $workername eval "trace add variable ::$opt read ::trace_$opt"
         # define some value now
-        $workername eval set $opt ?
+        $workername eval "set $opt ?"
     }
 
     foreach {opt val} $options {
-        $workername eval set user_options($opt) $val
-        $workername eval set $opt $val
+        $workername eval "set user_options($opt) \{$val\}"
+        $workername eval "set $opt \{$val\}"
     }
 
     foreach {var val} $variations {
-        $workername eval set variations($var) $val
+        $workername eval "set variations($var) $val"
     }
 }
 
@@ -1759,21 +1760,21 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $variations
 
-    $workername eval source Portfile
+    $workername eval {source Portfile}
 
     # add the default universal variant if appropriate, and set up flags that
     # are conditional on whether universal is set
-    $workername eval universal_setup
+    $workername eval {universal_setup}
 
     # evaluate the variants
-    if {[$workername eval eval_variants variations] != 0} {
+    if {[$workername eval {eval_variants variations}] != 0} {
         mportclose $mport
         error "Error evaluating variants"
     }
 
-    $workername eval port::run_callbacks
+    $workername eval {port::run_callbacks}
 
-    ditem_key $mport provides [$workername eval return \$subport]
+    ditem_key $mport provides [$workername eval {set subport}]
 
     return $mport
 }
@@ -1901,13 +1902,13 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    return [$workername eval registry_exists_for_name \$subport]
+    return [$workername eval {registry_exists_for_name $subport}]
 }
 
 # Determine if a port is active
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {![catch {set reslist [$workername eval registry_active \$subport]}] && [llength $reslist] > 0} {
+    if {![catch {set reslist [$workername eval {registry_active $subport}]}] && [llength $reslist] > 0} {
         set i [lindex $reslist 0]
         set name [lindex $i 0]
         set version [lindex $i 1]
@@ -1952,9 +1953,9 @@ proc _mportispresent {mport depspec} {
         set workername [ditem_key $mport workername]
         set type [lindex [split $depspec :] 0]
         switch -- $type {
-            lib {return [$workername eval _libtest $depspec]}
-            bin {return [$workername eval _bintest $depspec]}
-            path {return [$workername eval _pathtest $depspec]}
+            lib {return [$workername eval "_libtest $depspec"]}
+            bin {return [$workername eval "_bintest $depspec"]}
+            path {return [$workername eval "_pathtest $depspec"]}
             port {return 0}
             default {return -code error "unknown depspec type: $type"}
         }
@@ -2005,10 +2006,10 @@ proc _mportexec {target mport} {
     macports::push_log $mport
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
-    $workername eval validate_macportsuser
-    if {![catch {$workername eval check_variants $target} result] && $result == 0 &&
-        ![catch {$workername eval check_supported_archs} result] && $result == 0 &&
-        ![catch {$workername eval eval_targets $target} result] && $result == 0} {
+    $workername eval {validate_macportsuser}
+    if {![catch {$workername eval "check_variants $target"} result] && $result == 0 &&
+        ![catch {$workername eval {check_supported_archs}} result] && $result == 0 &&
+        ![catch {$workername eval "eval_targets $target"} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
         if {$macports::portautoclean} {
             # Make sure we are back in the port path before clean
@@ -2018,7 +2019,7 @@ proc _mportexec {target mport} {
             # error since the directory it was in is now gone.
             set portpath [ditem_key $mport portpath]
             catch {cd $portpath}
-            $workername eval eval_targets clean
+            $workername eval {eval_targets clean}
         }
         # XXX hack to avoid running out of fds due to sqlite temp files, ticket #24857
         interp delete $workername
@@ -2042,9 +2043,9 @@ proc mportexec {mport target} {
     set workername [ditem_key $mport workername]
 
     # check for existence of macportsuser and use fallback if necessary
-    $workername eval validate_macportsuser
+    $workername eval {validate_macportsuser}
     # check variants
-    if {[$workername eval check_variants $target] != 0} {
+    if {[$workername eval "check_variants $target"] != 0} {
         return 1
     }
     set portname [_mportkey $mport subport]
@@ -2059,14 +2060,14 @@ proc mportexec {mport target} {
     # supported_archs.
     if {[macports::_target_needs_deps $target]} {
         # possibly warn or error out depending on how old xcode is
-        if {[$workername eval _check_xcode_version] != 0} {
+        if {[$workername eval {_check_xcode_version}] != 0} {
             if {$log_needs_pop} {
                 macports::pop_log
             }
             return 1
         }
         # error out if selected arch(s) not supported by this port
-        if {[$workername eval check_supported_archs] != 0} {
+        if {[$workername eval {check_supported_archs}] != 0} {
             if {$log_needs_pop} {
                 macports::pop_log
             }
@@ -2080,7 +2081,7 @@ proc mportexec {mport target} {
         registry::exclusive_lock
         # see if we actually need to build this port
         if {$target ni {activate install} ||
-            ![$workername eval registry_exists {$subport} {$version} {$revision} {$portvariants}]} {
+            ![$workername eval {registry_exists $subport $version $revision $portvariants}]} {
 
             # upgrade dependencies that are already installed
             if {![macports::global_option_isset ports_nodeps]} {
@@ -2186,14 +2187,14 @@ proc mportexec {mport target} {
     }
 
     # Build this port with the specified target
-    set result [$workername eval eval_targets $target]
+    set result [$workername eval "eval_targets $target"]
 
     # If auto-clean mode and successful install, clean-up after install
     if {$result == 0 && $clean == 1} {
         # Make sure we are back in the port path, just in case
         set portpath [ditem_key $mport portpath]
         catch {cd $portpath}
-        $workername eval eval_targets clean
+        $workername eval {eval_targets clean}
     }
 
     global ::logenabled ::debuglogname
@@ -2216,7 +2217,7 @@ proc macports::_upgrade_mport_deps {mport target} {
     array set portinfo [mportinfo $mport]
     array set depscache {}
 
-    set required_archs [$workername eval get_canonical_archs]
+    set required_archs [$workername eval {get_canonical_archs}]
     set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
 
     # Pluralize "arch" appropriately.
@@ -2229,7 +2230,7 @@ proc macports::_upgrade_mport_deps {mport target} {
             continue
         }
         foreach depspec $portinfo($deptype) {
-            set dep_portname [$workername eval _get_dep_port $depspec]
+            set dep_portname [$workername eval "_get_dep_port $depspec"]
             if {$dep_portname ne "" && ![info exists depscache(port:$dep_portname)] && [$test $dep_portname]} {
                 set variants {}
 
@@ -3184,7 +3185,7 @@ proc mports_generate_quickindex {index} {
 
 proc mportinfo {mport} {
     set workername [ditem_key $mport workername]
-    return [$workername eval array get ::PortInfo]
+    return [$workername eval {array get ::PortInfo}]
 }
 
 proc mportclose {mport} {
@@ -3275,7 +3276,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         unset -nocomplain optionsarray(subport)
         set options [array get optionsarray]
         set variations [ditem_key $mport variations]
-        set required_archs [$workername eval get_canonical_archs]
+        set required_archs [$workername eval {get_canonical_archs}]
         set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
     }
 
@@ -3286,7 +3287,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         }
         foreach depspec $portinfo($deptype) {
             # get the portname that satisfies the depspec
-            set dep_portname [$workername eval _get_dep_port $depspec]
+            set dep_portname [$workername eval "_get_dep_port $depspec"]
             # skip port/archs combos we've already seen, and ones with the same port but less archs than ones we've seen (or noarch)
             set seenkey ${dep_portname},[join $required_archs ,]
             set seen 0
@@ -3379,7 +3380,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
                 set supported_archs [_mportkey $depport supported_archs]
                 array unset variation_array
-                array set variation_array [[ditem_key $depport workername] eval "array get variations"]
+                array set variation_array [[ditem_key $depport workername] eval {array get variations}]
                 mportclose $depport
                 set arch_mismatch 1
                 set has_universal 0
@@ -3457,7 +3458,7 @@ proc macports::_mport_supports_archs {mport required_archs} {
 # return the archs of the given mport
 proc macports::_mport_archs {mport} {
     set workername [ditem_key $mport workername]
-    return [$workername eval get_canonical_archs]
+    return [$workername eval {get_canonical_archs}]
 }
 
 # check if the active version of a port supports the given archs
@@ -3573,7 +3574,7 @@ proc macports::_deptypes_for_target {target workername} {
         mdmg        -
         mpkg        {
             if {[global_option_isset ports_binary_only] ||
-                (![global_option_isset ports_source_only] && [$workername eval _archive_available])} {
+                (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
                 return "depends_lib depends_run"
             } else {
                 return "depends_fetch depends_extract depends_build depends_lib depends_run"
@@ -3583,8 +3584,8 @@ proc macports::_deptypes_for_target {target workername} {
         activate    -
         {}          {
             if {[global_option_isset ports_binary_only] ||
-                [$workername eval registry_exists \$subport \$version \$revision \$portvariants]
-                || (![global_option_isset ports_source_only] && [$workername eval _archive_available])} {
+                [$workername eval {registry_exists $subport $version $revision $portvariants}]
+                || (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
                 return "depends_lib depends_run"
             } else {
                 return "depends_fetch depends_extract depends_build depends_lib depends_run"
@@ -4008,7 +4009,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # Ideally this would be done in the interp_options when we mportopen,
             # but we don't know if we want to do this at that point.
             set workername [ditem_key $mport workername]
-            $workername eval "set force_archive_refresh yes"
+            $workername eval {set force_archive_refresh yes}
 
             # run archivefetch and destroot for version_in_tree
             # doing this instead of just running install ensures that we have the
@@ -4205,7 +4206,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     foreach dtype $dtypes {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
-                set d [$parentworker eval _get_dep_port $i]
+                set d [$parentworker eval "_get_dep_port $i"]
                 if {![llength [array get depscache port:$d]] && ![llength [array get depscache $i]]} {
                     if {$d ne ""} {
                         set dspec port:$d
