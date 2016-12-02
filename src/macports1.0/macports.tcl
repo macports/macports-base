@@ -2228,7 +2228,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                 set variants {}
 
                 # check that the dep has the required archs
-                set active_archs [_get_registry_archs $dep_portname]
+                set active_archs [_active_archs $dep_portname]
                 if {$deptype ni {depends_fetch depends_extract} && $active_archs ni {{} noarch}
                     && $required_archs ne "noarch" && $dep_portname ni $depends_skip_archcheck} {
                     set missing {}
@@ -2290,16 +2290,6 @@ proc macports::_upgrade_mport_deps {mport target} {
             }
         }
     }
-}
-
-# get the archs with which the active version of portname is installed
-proc macports::_get_registry_archs {portname} {
-    set ilist [registry::entry installed $portname]
-    set i [lindex $ilist 0]
-    if {[catch {$i archs} archs]} {
-        set archs {}
-    }
-    return $archs
 }
 
 proc macports::getsourcepath {url} {

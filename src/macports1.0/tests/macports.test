@@ -697,7 +697,6 @@ test mporttraverse {
 # test _mportexec
 # test mportexec
 # test _upgrade_mport_deps
-# test _get_registry_archs
 # test getsourcepath
 # test _source_is_snapshot
 # test getportbuildpath
