@@ -388,6 +388,7 @@ proc portinstall::install_main {args} {
         set portfile_reg_path ${portfile_reg_dir}/Portfile
         if {![file isfile $portfile_reg_path] || [file size $portfile_reg_path] != $portfile_size || [sha256 file $portfile_reg_path] ne $portfile_sha256} {
             file copy -force $portfile_path $portfile_reg_dir
+            file attributes $portfile_reg_path -permissions 0644
         }
         $regref portfile ${portfile_sha256}-${portfile_size}
 
@@ -406,6 +407,7 @@ proc portinstall::install_main {args} {
                         file mkdir $pg_reg_dir
                         file copy -force $groupFile $pg_reg_dir
                     }
+                    file attributes $pg_reg_path -permissions 0644
                     $regref addgroup $pgname $pgversion $pgsha256 $pgsize
                 } else {
                     ui_debug "install_main: no portgroup ${pgname}-${pgversion}.tcl found"
