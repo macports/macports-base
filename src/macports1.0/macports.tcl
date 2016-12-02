@@ -1907,16 +1907,13 @@ proc _mportinstalled {mport} {
 
 # Determine if a port is active
 proc _mportactive {mport} {
-    set workername [ditem_key $mport workername]
-    if {![catch {set reslist [$workername eval {registry_active $subport}]}] && [llength $reslist] > 0} {
+    set portname [ditem_key $mport provides]
+    set reslist [registry::entry installed $portname]
+    if {$reslist ne {}} {
         set i [lindex $reslist 0]
-        set name [lindex $i 0]
-        set version [lindex $i 1]
-        set revision [lindex $i 2]
-        set variants [lindex $i 3]
         array set portinfo [mportinfo $mport]
-        if {$name eq $portinfo(name) && $version eq $portinfo(version)
-            && $revision == $portinfo(revision) && $variants eq $portinfo(canonical_active_variants)} {
+        if {[$i version] eq $portinfo(version) && [$i revision] == $portinfo(revision)
+             && [$i variants] eq $portinfo(canonical_active_variants)} {
             return 1
         }
     }
@@ -1925,11 +1922,7 @@ proc _mportactive {mport} {
 
 # Determine if the named port is active
 proc _portnameactive {portname} {
-    if {[catch {set reslist [registry::active $portname]}]} {
-        return 0
-    } else {
-        return [expr {[llength $reslist] > 0}]
-    }
+    return [expr {[registry::entry installed $portname] ne {}}]
 }
 
 ### _mportispresent is private; may change without notice
@@ -2301,11 +2294,9 @@ proc macports::_upgrade_mport_deps {mport target} {
 
 # get the archs with which the active version of portname is installed
 proc macports::_get_registry_archs {portname} {
-    set ilist [registry::active $portname]
+    set ilist [registry::entry installed $portname]
     set i [lindex $ilist 0]
-    set regref [registry::open_entry [lindex $i 0] [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-    set archs [registry::property_retrieve $regref archs]
-    if {$archs == 0} {
+    if {[catch {$i archs} archs]} {
         set archs {}
     }
     return $archs
@@ -3466,11 +3457,11 @@ proc macports::_active_supports_archs {portname required_archs} {
     if {$required_archs eq "noarch"} {
         return 1
     }
-    if {[catch {registry::active $portname}]} {
+    if {[registry::entry installed $portname] eq ""} {
         return 0
     }
     set provided_archs [_active_archs $portname]
-    if {$provided_archs eq "noarch" || $provided_archs eq "" || $provided_archs == 0} {
+    if {$provided_archs eq "noarch" || $provided_archs eq ""} {
         return 1
     }
     foreach arch $required_archs {
@@ -3483,12 +3474,12 @@ proc macports::_active_supports_archs {portname required_archs} {
 
 # get the archs for a given active port
 proc macports::_active_archs {portname} {
-    if {[catch {set ilist [registry::active $portname]}]} {
-        return {}
-    }
+    set ilist [registry::entry installed $portname]
     set i [lindex $ilist 0]
-    set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-    return [registry::property_retrieve $regref archs]
+    if {[catch {$i archs} archs]} {
+        set archs {}
+    }
+    return $archs
 }
 
 # print an error message explaining why a port's archs are not provided by a dependency
@@ -3608,7 +3599,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar {}}} {
 #   3 = port not installed
 proc macports::upgrade {portname dspec variationslist optionslist {depscachename {}}} {
     # only installed ports can be upgraded
-    if {![registry::entry_exists_for_name $portname]} {
+    if {[registry::entry imaged $portname] eq {}} {
         ui_error "$portname is not installed"
         return 3
     }
