@@ -136,10 +136,10 @@ namespace eval macports_util {
 # If no indexes are provided, deletes the entire list and returns it
 # If varName does not exists an exception is raised
 proc ldindex {varName args} {
-    set varName [list $varName]
+    upvar 1 $varName var
     if {[llength $args] > 0} {
         set idx [lindex $args 0]
-        set size [uplevel 1 [subst -nocommands {llength [set $varName]}]]
+        set size [llength $var]
         set badrange? 0
         if {[string is integer -strict $idx]} {
             if {$idx < 0 || $idx >= $size} {
@@ -162,16 +162,16 @@ proc ldindex {varName args} {
         }
     
         if {[llength $args] > 1} {
-            set list [uplevel 1 [subst -nocommands {lindex [set $varName] $idx}]]
+            set list [lindex $var $idx]
             set item [ldindex list {*}[lrange $args 1 end]]
-            uplevel 1 [subst {lset $varName $idx [list $list]}]
+            lset var $idx $list
         } else {
-            set item [uplevel 1 [subst -nocommands {lindex [set $varName] $idx}]]
-            uplevel 1 [subst -nocommands {set $varName [lreplace [set $varName] $idx $idx]}]
+            set item [lindex $var $idx]
+            set var [lreplace $var $idx $idx]
         }
     } else {
-        set item [uplevel 1 [subst {set $varName}]]
-        uplevel 1 [subst {set $varName {}}]
+        set item $var
+        set var {}
     }
     return $item
 }
@@ -181,11 +181,12 @@ macports_util::method_wrap ldindex
 # Removes the last list element from a variable
 # If varName is an empty list an empty string is returned
 proc lpop {varName} {
-    set varName [list $varName]
-    set size [uplevel 1 [subst -nocommands {llength [set $varName]}]]
+    upvar 1 $varName var
+    set size [llength $var]
     if {$size != 0} {
-        uplevel 1 [subst -nocommands {ldindex $varName end}]
+        return [ldindex var end]
     }
+    return {}
 }
 macports_util::method_wrap lpop
 
@@ -194,8 +195,8 @@ macports_util::method_wrap lpop
 # If varName does not exist then it is created
 # really just an alias for lappend
 proc lpush {varName args} {
-    set varName [list $varName]
-    uplevel 1 [subst -nocommands {lappend $varName $args}]
+    upvar 1 $varName var
+    lappend var {*}$args
 }
 macports_util::method_wrap lpush
 
@@ -203,11 +204,12 @@ macports_util::method_wrap lpush
 # Removes the first list element from a variable
 # If varName is an empty list an empty string is returned
 proc lshift {varName} {
-    set varName [list $varName]
-    set size [uplevel 1 [subst -nocommands {llength [set $varName]}]]
+    upvar 1 $varName var
+    set size [llength $var]
     if {$size != 0} {
-        uplevel 1 [subst -nocommands {ldindex $varName 0}]
+        return [ldindex var 0]
     }
+    return {}
 }
 macports_util::method_wrap lshift
 
@@ -215,14 +217,11 @@ macports_util::method_wrap lshift
 # Prepends list elements onto a variable
 # If varName does not exist then it is created
 proc lunshift {varName args} {
-    set varName [list $varName]
-    uplevel 1 [subst -nocommands {
-        if {![info exists $varName]} {
-            set $varName {}
-        }
-    }]
-    set value [concat $args [uplevel 1 set $varName]]
-    uplevel 1 set $varName [list $value]
+    upvar 1 $varName var
+    if {![info exists var]} {
+        set var {}
+    }
+    set var [list {*}$args {*}$var]
 }
 macports_util::method_wrap lunshift
 
