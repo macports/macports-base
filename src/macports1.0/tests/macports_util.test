@@ -78,19 +78,26 @@ test ldindex {
 } -body {
     set list {0 1 2 3}
     if {[ldindex list 1] != 1} {
-       return "FAIL: element not poped"
+       return "FAIL: correct element not popped, single index"
     }
-    if {$list != {0 2 3}} {
-       return "FAIL: wrong list remaining"
+    if {$list ne {0 2 3}} {
+       return "FAIL: wrong list remaining, single index"
     }
     if {[catch {ldindex list 4}] != 1} {
        return "FAIL: error not detected"
     }
-    if {[ldindex list] != {0 2 3}} {
-       return "FAIL: not all elements poped"
+    if {[ldindex list] ne {0 2 3}} {
+       return "FAIL: not all elements popped"
     }
     if {$list ne ""} {
        return "FAIL: list not emptied"
+    }
+    set list {{{0 1} {2 3}} {{4 5} {6 7}}}
+    if {[ldindex list 1 1 1] != 7} {
+        return "FAIL: correct element not popped, multiple indices"
+    }
+    if {$list ne {{{0 1} {2 3}} {{4 5} 6}}} {
+        return "FAIL: wrong list remaining, multiple indices"
     }
     return "ldindex successful."
 } -result "ldindex successful."
@@ -101,10 +108,10 @@ test lpop {
 } -body {
     set list {0 1 2}
     if {[lpop list] != 2} {
-       return "FAIL: element not poped"
+       return "FAIL: element not popped"
     }
     if {$list != {0 1}} {
-       return "FAIL: wrong element poped"
+       return "FAIL: wrong element popped"
     }
     return "lpop successful."
 } -result "lpop successful."
@@ -134,7 +141,7 @@ test lshift {
     set list1 {}
 
     if {[lshift list] != 0} {
-       return "FAIL: wrong element poped"
+       return "FAIL: wrong element popped"
     }
     if {$list != {1 2}} {
        return "FAIL: wrong list remaining"
