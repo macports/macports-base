@@ -148,11 +148,9 @@ proc ldindex {varName args} {
 # If varName is an empty list an empty string is returned
 proc lpop {varName} {
     upvar 1 $varName var
-    set size [llength $var]
-    if {$size != 0} {
-        return [ldindex var end]
-    }
-    return {}
+    set element [lindex $var end]
+    set var [lrange $var 0 end-1]
+    return $element
 }
 
 # lpush varName ?value ...?
@@ -169,11 +167,9 @@ proc lpush {varName args} {
 # If varName is an empty list an empty string is returned
 proc lshift {varName} {
     upvar 1 $varName var
-    set size [llength $var]
-    if {$size != 0} {
-        return [ldindex var 0]
-    }
-    return {}
+    set element [lindex $var 0]
+    set var [lrange $var 1 end]
+    return $element
 }
 
 # lunshift varName ?value ...?
