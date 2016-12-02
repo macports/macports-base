@@ -63,7 +63,7 @@ proc dlist_match_multi {dlist criteria} {
 	foreach ditem $dlist {
 		set match 1
 		foreach {key value} $criteria {
-			if {[ditem_key $ditem $key] != $value} {
+			if {[ditem_key $ditem $key] ne $value} {
 				set match 0
 				break
 			}
