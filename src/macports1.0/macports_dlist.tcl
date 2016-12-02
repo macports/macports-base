@@ -158,14 +158,7 @@ proc ditem_delete {ditem} {
 #   value - optional value to set the key to
 
 proc ditem_key {ditem args} {
-	set nbargs [llength $args]
-	if {$nbargs > 1} {
-		return [macports_dlist::ditem_key $ditem [lindex $args 0] [lindex $args 1]]
-	} elseif {$nbargs == 1} {
-		return [macports_dlist::ditem_key $ditem [lindex $args 0]]
-	} else {
-		return [macports_dlist::ditem_key $ditem]
-	}
+	return [macports_dlist::ditem_key $ditem {*}$args]
 }
 
 # ditem_append
