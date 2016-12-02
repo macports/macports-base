@@ -7,29 +7,6 @@ source ../macports_test_autoconf.tcl
 package require macports 1.0
 
 
-test method_wrap {
-    Method wrap unit test.
-} -setup {
-    proc test_proc {a} {
-       if { $a == 1} {
-           return -code error $a -errorcode 7
-       } else {
-            return $a
-       }
-    }
-
-} -body {
-    macports_util::method_wrap test_proc
-    if {[test_proc 1] != 7} {
-       return "FAIL: no wrap around method"
-    }
-    if {[test_proc arg] ne "arg"} {
-       return "FAIL: no wrap around method"
-    }
-    return "Method wrap successful."
-} -result "Method wrap successful."
-
-
 test unobscure_maintainers_github {
     Test macports::unobscure_maintainers with a GitHub handle
 } -body {

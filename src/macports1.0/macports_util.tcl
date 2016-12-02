@@ -87,39 +87,6 @@ namespace eval macports_util {
 
         return $result
     }
-
-    proc method_wrap {name} {
-        variable argdefault
-    
-        set name [list $name]
-        # reconstruct the args list
-        set args [uplevel 1 [subst -nocommands {info args $name}]]
-        set arglist {}
-        foreach arg $args {
-            set argname [list $arg]
-            if {[uplevel 1 [subst -nocommands {info default $name $argname argdefault}]]} {
-                lappend arglist [list $arg $argdefault]
-            } else {
-                lappend arglist $arg
-            }
-        }
-        # modify the proc
-        set arglist [list $arglist]
-        set body [uplevel 1 [subst -nocommands {info body $name}]]
-        uplevel 1 [subst -nocommands {
-            proc $name $arglist {
-                if {[set err [catch {$body} result]] && [set err] != 2} {
-                    if {[set err] == 1} {
-                        return -code [set err] -errorcode [set ::errorCode] [set result]
-                    } else {
-                        return -code [set err] [set result]
-                    }
-                } else {
-                    return [set result]
-                }
-            }
-        }]
-    }
 }
 
 ###################
@@ -175,7 +142,6 @@ proc ldindex {varName args} {
     }
     return $item
 }
-macports_util::method_wrap ldindex
 
 # lpop varName
 # Removes the last list element from a variable
@@ -188,7 +154,6 @@ proc lpop {varName} {
     }
     return {}
 }
-macports_util::method_wrap lpop
 
 # lpush varName ?value ...?
 # Appends list elements onto a variable
@@ -198,7 +163,6 @@ proc lpush {varName args} {
     upvar 1 $varName var
     lappend var {*}$args
 }
-macports_util::method_wrap lpush
 
 # lshift varName
 # Removes the first list element from a variable
@@ -211,7 +175,6 @@ proc lshift {varName} {
     }
     return {}
 }
-macports_util::method_wrap lshift
 
 # lunshift varName ?value ...?
 # Prepends list elements onto a variable
@@ -223,7 +186,6 @@ proc lunshift {varName args} {
     }
     set var [list {*}$args {*}$var]
 }
-macports_util::method_wrap lunshift
 
 
 # bytesize filesize ?unit? ?format?
