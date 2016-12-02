@@ -3987,7 +3987,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {[llength deplist] > 0} {
                 foreach dep $deplist {
                     set mpname [lindex $dep 2]
-                    if {![llength [array get depscache port:$mpname]]} {
+                    if {![info exists depscache(port:$mpname)]} {
                         set status [macports::_upgrade $mpname port:$mpname $variationslist [array get options] depscache]
                         if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                             catch {mportclose $mport}
@@ -4130,7 +4130,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {[llength deplist] > 0} {
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
-                if {![llength [array get depscache port:$mpname]]} {
+                if {![info exists depscache(port:$mpname)]} {
                     set status [macports::_upgrade $mpname port:$mpname $variationslist [array get options] depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                         catch {mportclose $mport}
@@ -4207,7 +4207,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [$parentworker eval "_get_dep_port $i"]
-                if {![llength [array get depscache port:$d]] && ![llength [array get depscache $i]]} {
+                if {![info exists depscache(port:$d)] && ![info exists depscache($i)]} {
                     if {$d ne ""} {
                         set dspec port:$d
                     } else {
