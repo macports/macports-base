@@ -32,7 +32,8 @@ CFLAGS += -fPIC $(UNIVERSAL_ARCHFLAGS)
 SHLIB_LDFLAGS += $(UNIVERSAL_ARCHFLAGS)
 
 # Generate dependency information
-CPPFLAGS += -MMD -MP
+%.d : %.c
+	$(CC) -MM -MP $(CPPFLAGS) $< > $@
 
 all:: $(SHLIB_NAME)
 
