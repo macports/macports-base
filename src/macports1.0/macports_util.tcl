@@ -38,37 +38,54 @@ namespace eval macports_util {
     ###################
     # Private methods #
     ###################
-    proc method_wrap {name} {
-        variable argdefault
-    
-        set name [list $name]
-        # reconstruct the args list
-        set args [uplevel 1 [subst -nocommands {info args $name}]]
-        set arglist {}
-        foreach arg $args {
-            set argname [list $arg]
-            if {[uplevel 1 [subst -nocommands {info default $name $argname argdefault}]]} {
-                lappend arglist [list $arg $argdefault]
-            } else {
-                lappend arglist $arg
-            }
-        }
-        # modify the proc
-        set arglist [list $arglist]
-        set body [uplevel 1 [subst -nocommands {info body $name}]]
-        uplevel 1 [subst -nocommands {
-            proc $name $arglist {
-                if {[set err [catch {$body} result]] && [set err] != 2} {
-                    if {[set err] == 1} {
-                        return -code [set err] -errorcode [set ::errorCode] [set result]
-                    } else {
-                        return -code [set err] [set result]
-                    }
+
+    ##
+    # Given a list of maintainers as recorded in a Portfile, return a list of
+    # lists in [key value ...] format describing all maintainers. Valid keys
+    # are 'email' which denotes a maintainer's email address, 'github', which
+    # preceeds the GitHub username of the maintainer and 'keyword', which
+    # contains a special maintainer keyword such as 'openmaintainer' or
+    # 'nomaintainer'.
+    #
+    # @param list A list of obscured maintainers
+    # @return A list of associative arrays in serialized list format
+    proc unobscure_maintainers {list} {
+        set result {}
+        foreach sublist $list {
+            array set maintainer {}
+            foreach token $sublist {
+                if {[string index $token 0] eq "@"} {
+                    # Strings starting with @ are GitHub usernames
+                    set maintainer(github) [string range $token 1 end]
+                } elseif {[string first "@" $token] >= 0} {
+                    # Other strings that contain @ are plain email addresses
+                    set maintainer(email) $token
+                    continue
+                } elseif {[string first ":" $token] >= 0} {
+                    # Strings that contain a colon are obfuscated email
+                    # addresses
+
+                    # Split at :, assign the first part to $domain, re-assemble
+                    # the rest and assign it to $localpart
+                    set localpart [join [lassign [split $token ":"] domain] ":"]
+                    set maintainer(email) "${localpart}@${domain}"
+                } elseif {$token in {"openmaintainer" "nomaintainer"}} {
+                    # Filter openmaintainer and nomaintainer
+                    set maintainer(keyword) $token
                 } else {
-                    return [set result]
+                    # All other entries must be MacPorts handles
+                    set maintainer(email) "${token}@macports.org"
                 }
             }
-        }]
+            set serialized [array get maintainer]
+            array unset maintainer
+            if {[llength $serialized]} {
+                # Filter empty maintainers
+                lappend result $serialized
+            }
+        }
+
+        return $result
     }
 }
 
@@ -86,10 +103,10 @@ namespace eval macports_util {
 # If no indexes are provided, deletes the entire list and returns it
 # If varName does not exists an exception is raised
 proc ldindex {varName args} {
-    set varName [list $varName]
+    upvar 1 $varName var
     if {[llength $args] > 0} {
         set idx [lindex $args 0]
-        set size [uplevel 1 [subst -nocommands {llength [set $varName]}]]
+        set size [llength $var]
         set badrange? 0
         if {[string is integer -strict $idx]} {
             if {$idx < 0 || $idx >= $size} {
@@ -112,69 +129,117 @@ proc ldindex {varName args} {
         }
     
         if {[llength $args] > 1} {
-            set list [uplevel 1 [subst -nocommands {lindex [set $varName] $idx}]]
+            set list [lindex $var $idx]
             set item [ldindex list {*}[lrange $args 1 end]]
-            uplevel 1 [subst {lset $varName $idx [list $list]}]
+            lset var $idx $list
         } else {
-            set item [uplevel 1 [subst -nocommands {lindex [set $varName] $idx}]]
-            uplevel 1 [subst -nocommands {set $varName [lreplace [set $varName] $idx $idx]}]
+            set item [lindex $var $idx]
+            set var [lreplace $var $idx $idx]
         }
     } else {
-        set item [uplevel 1 [subst {set $varName}]]
-        uplevel 1 [subst {set $varName {}}]
+        set item $var
+        set var {}
     }
     return $item
 }
-macports_util::method_wrap ldindex
 
 # lpop varName
 # Removes the last list element from a variable
 # If varName is an empty list an empty string is returned
 proc lpop {varName} {
-    set varName [list $varName]
-    set size [uplevel 1 [subst -nocommands {llength [set $varName]}]]
-    if {$size != 0} {
-        uplevel 1 [subst -nocommands {ldindex $varName end}]
-    }
+    upvar 1 $varName var
+    set element [lindex $var end]
+    set var [lrange $var 0 end-1]
+    return $element
 }
-macports_util::method_wrap lpop
 
 # lpush varName ?value ...?
 # Appends list elements onto a variable
 # If varName does not exist then it is created
 # really just an alias for lappend
 proc lpush {varName args} {
-    set varName [list $varName]
-    uplevel 1 [subst -nocommands {lappend $varName $args}]
+    upvar 1 $varName var
+    lappend var {*}$args
 }
-macports_util::method_wrap lpush
 
 # lshift varName
 # Removes the first list element from a variable
 # If varName is an empty list an empty string is returned
 proc lshift {varName} {
-    set varName [list $varName]
-    set size [uplevel 1 [subst -nocommands {llength [set $varName]}]]
-    if {$size != 0} {
-        uplevel 1 [subst -nocommands {ldindex $varName 0}]
-    }
+    upvar 1 $varName var
+    set element [lindex $var 0]
+    set var [lrange $var 1 end]
+    return $element
 }
-macports_util::method_wrap lshift
 
 # lunshift varName ?value ...?
 # Prepends list elements onto a variable
 # If varName does not exist then it is created
 proc lunshift {varName args} {
-    set varName [list $varName]
-    uplevel 1 [subst -nocommands {
-        if {![info exists $varName]} {
-            set $varName {}
-        }
-    }]
-    set value [concat $args [uplevel 1 set $varName]]
-    uplevel 1 set $varName [list $value]
+    upvar 1 $varName var
+    if {![info exists var]} {
+        set var {}
+    }
+    set var [list {*}$args {*}$var]
 }
-macports_util::method_wrap lunshift
+
+
+# bytesize filesize ?unit? ?format?
+# Format an integer representing bytes using given units
+proc bytesize {siz {unit {}} {format {%.3f}}} {
+    if {$unit == {}} {
+        if {$siz > 0x40000000} {
+            set unit "GiB"
+        } elseif {$siz > 0x100000} {
+            set unit "MiB"
+        } elseif {$siz > 0x400} {
+            set unit "KiB"
+        } else {
+            set unit "B"
+        }
+    }
+    switch -- $unit {
+        KiB {
+            set siz [expr {$siz / 1024.0}]
+        }
+        kB {
+            set siz [expr {$siz / 1000.0}]
+        }
+        MiB {
+            set siz [expr {$siz / 1048576.0}]
+        }
+        MB {
+            set siz [expr {$siz / 1000000.0}]
+        }
+        GiB {
+            set siz [expr {$siz / 1073741824.0}]
+        }
+        GB {
+            set siz [expr {$siz / 1000000000.0}]
+        }
+        B { }
+        default {
+            ui_warn "Unknown file size unit '$unit' specified"
+            set unit "B"
+        }
+    }
+    if {[expr {round($siz)}] != $siz} {
+        set siz [format $format $siz]
+    }
+    return "$siz $unit"
+}
+
+# filesize file ?unit?
+# Return size of file in human-readable format
+# In case of any errors, returns -1
+proc filesize {fil {unit {}}} {
+    set siz -1
+    catch {
+        set siz [bytesize [file size $fil] $unit]
+    }
+    return $siz
+}
+
 
 ################################
 # try/catch exception handling #
@@ -220,14 +285,26 @@ proc throw {args} {
     }
 }
 
-# try body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
+# try ?-pass_signal? body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
 # implementation of try as specified in TIP #89
+# option -pass_signal passes SIGINT and SIGTERM signals up the stack
 proc try {args} {
     # validate and interpret the arguments
     set catchList {}
     if {[llength $args] == 0} {
         return -code error "wrong # args: \
-            should be \"try body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
+            should be \"try ?-pass_signal? body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
+    }
+    if {[lindex $args 0] eq "-pass_signal"} {
+        lpush catchList {{POSIX SIG SIGINT} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
+            throw
+        }
+        lpush catchList {{POSIX SIG SIGTERM} eCode eMessage} {
+            ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
+            throw
+        }
+        lshift args
     }
     set body [lshift args]
     while {[llength $args] > 0} {
@@ -258,8 +335,10 @@ proc try {args} {
         }
     }
 
-    # at this point, we've processed all args
-    if {[set err [catch {uplevel 1 $body} result]] == 1} {
+    # at this point, we've processed all args'
+    # builtin_catch is the normal Tcl catch command, rather than the wrapper
+    # defined in common/catch.tcl and sourced by macports.tcl
+    if {[set err [builtin_catch {uplevel 1 $body} result]] == 1} {
         set savedErrorCode $::errorCode
         set savedErrorInfo $::errorInfo
         # rip out the last "invoked from within" - we want to hide our internals
@@ -290,7 +369,7 @@ proc try {args} {
                 if {[set infovar [lshift elem]] ne ""} {
                     uplevel 1 set [list $infovar] [list $savedErrorInfo]
                 }
-                if {[set err [catch {uplevel 1 $catchBody} result]] == 1} {
+                if {[set err [builtin_catch {uplevel 1 $catchBody} result]] == 1} {
                     # error in the catch block, save it
                     set savedErrorCode $::errorCode
                     set savedErrorInfo $::errorInfo
@@ -313,7 +392,7 @@ proc try {args} {
         # catch errors here so we can strip our uplevel
         set savedErr $err
         set savedResult $result
-        if {[set err [catch {uplevel 1 $finallyBody} result]] == 1} {
+        if {[set err [builtin_catch {uplevel 1 $finallyBody} result]] == 1} {
             set savedErrorCode $::errorCode
             set savedErrorInfo $::errorInfo
             # rip out the last "invoked from within" - we want to hide our internals

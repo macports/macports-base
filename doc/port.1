@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT" "1" "2014\-11\-11" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT" "1" "2016\-11\-08" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -219,16 +219,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .IP \(bu 2.3
 .\}
 \fIvariant\fR
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
+or
 \fIvariants\fR
 .RE
 .sp
@@ -241,16 +232,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .IP \(bu 2.3
 .\}
 \fIcategory\fR
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
+or
 \fIcategories\fR
 .RE
 .sp
@@ -263,16 +245,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .IP \(bu 2.3
 .\}
 \fImaintainer\fR
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
+or
 \fImaintainers\fR
 .RE
 .sp
@@ -285,16 +258,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .IP \(bu 2.3
 .\}
 \fIplatform\fR
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
+or
 \fIplatforms\fR
 .RE
 .sp
@@ -807,6 +771,35 @@ The upgrade target works on a port and its dependencies\&. If you want to change
 \fB\-R\fR
 (dependents) above\&.
 .sp
+Upgrade all outdated ports:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+port upgrade outdated
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+It is recommended to always upgrade all ports with the command indicated above\&. Upgrading single ports as indicated in the subsequent examples should only be performed if you know what you are doing, since this might lead to unexpected software errors from ports that have not yet been upgraded\&.
+.sp .5v
+.RE
+\ \&
+.sp
 Upgrade the installed
 \fIportname\fR\&. For example:
 .sp
@@ -815,18 +808,6 @@ Upgrade the installed
 .\}
 .nf
 port upgrade vim
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-To upgrade all outdated ports:
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-port upgrade outdated
 .fi
 .if n \{\
 .RE
@@ -930,7 +911,8 @@ clean
 .RS 4
 Clean the files used for building
 \fIportname\fR\&. To just remove the work files, use the
-\fB\-\-work\fR\fIactionflag\fR\&. This is the default when no flag is given\&. To remove the distribution files (fetched tarballs, patches, etc), specify
+\fB\-\-work\fR
+\fIactionflag\fR\&. This is the default when no flag is given\&. To remove the distribution files (fetched tarballs, patches, etc), specify
 \fB\-\-dist\fR\&. To remove any archive(s) of a port than remain in the temporary download directory, pass
 \fB\-\-archive\fR\&. (This does not remove archives from the installed location\&.) To remove log files for a port, pass
 \fB\-\-logs\fR\&. To remove the work files, distribution files, temporary archives and logs pass

@@ -1,7 +1,6 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 port(1)
 =======
-$Id$
 
 NAME
 ----
@@ -65,14 +64,10 @@ matches the given regular expression. Usage is: selector:regex
     - 'version'
     - 'revision'
     - 'epoch'
-    - 'variant'
-    - 'variants'
-    - 'category'
-    - 'categories'
-    - 'maintainer'
-    - 'maintainers'
-    - 'platform'
-    - 'platforms'
+    - 'variant' or 'variants'
+    - 'category' or 'categories'
+    - 'maintainer' or 'maintainers'
+    - 'platform' or 'platforms'
     - 'description'
     - 'long_description'
     - 'homepage'
@@ -371,15 +366,25 @@ upgrade::
     *-R* (dependents) above.
 +
 --
-Upgrade the installed 'portname'. For example:
---------
-port upgrade vim
---------
-
-To upgrade all outdated ports:
+Upgrade all outdated ports:
 
 --------
 port upgrade outdated
+--------
+
+[NOTE]
+It is recommended to always upgrade all ports with the command indicated above.
+Upgrading single ports as indicated in the subsequent examples should only be
+performed if you know what you are doing, since this might lead to unexpected
+software errors from ports that have not yet been upgraded.
+
+// Forcing a new paragraph here by inserting a dummy space
+{nbsp}
+
+Upgrade the installed 'portname'. For example:
+
+--------
+port upgrade vim
 --------
 
 To upgrade 'portname' and the ports that depend on it:

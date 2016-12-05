@@ -449,6 +449,7 @@ proc command_exec {command args} {
     array set env [array get ${varprefix}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
+    ui_info "Executing: $fullcmdstring"
     set code [catch {system {*}$notty {*}$nice $fullcmdstring} result]
     # Save variables in order to re-throw the same error code.
     set errcode $::errorCode
@@ -523,13 +524,10 @@ proc handle_option_string {option action args} {
             set fulllist {}
             # args is a list of strings/list
             foreach arg $args {
-                # Strip trailing empty lines
-                if {[string index $arg 0] eq "\n"} {
-                    set arg [string range $arg 1 end]
-                }
-                if {[string index $arg end] eq "\n"} {
-                    set arg [string range $arg 0 end-1]
-                }
+                # Strip empty lines at beginning
+                set arg [string trimleft $arg "\n"]
+                # Strip all trailing whitespace
+                set arg [string trimright $arg]
 
                 # Determine indent level
                 set indent ""
@@ -540,6 +538,7 @@ proc handle_option_string {option action args} {
                     }
                     append indent $c
                 }
+
                 # Remove indent on first line
                 set arg [string replace $arg 0 [expr {$i - 1}]]
                 # Remove indent on each other line
@@ -1309,32 +1308,6 @@ proc lipo {} {
     }
 }
 
-
-# unobscure maintainer addresses as used in Portfiles
-# We allow two obscured forms:
-#   (1) User name only with no domain:
-#           foo implies foo@macports.org
-#   (2) Mangled name:
-#           subdomain.tld:username implies username@subdomain.tld
-#
-proc unobscure_maintainers { list } {
-    set result {}
-    foreach m $list {
-        if {[string first "@" $m] < 0} {
-            if {[string first ":" $m] >= 0} {
-                set m [regsub -- "(.*):(.*)" $m "\\2@\\1"]
-            } else {
-                set m "$m@macports.org"
-            }
-        }
-        lappend result $m
-    }
-    return $result
-}
-
-
-
-
 ########### Internal Dependency Manipulation Procedures ###########
 global ports_dry_last_skipped
 set ports_dry_last_skipped ""
@@ -1413,6 +1386,7 @@ proc target_run {ditem} {
                 }
 
                 #start tracelib
+                set tracing no
                 if {($result ==0
                   && [tbool ports_trace]
                   && $target ne "clean"
@@ -1432,6 +1406,8 @@ proc target_run {ditem} {
                         porttrace::trace_enable_fence
                     }
 
+                    set tracing yes
+
                     # collect deps
                     set depends {}
                     set deptypes {}
@@ -1444,8 +1420,7 @@ proc target_run {ditem} {
                         patch       { set deptypes "depends_fetch depends_extract" }
                         configure   -
                         build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
-
-                        test        -
+                        test        { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run depends_test" }
                         destroot    -
                         dmg         -
                         pkg         -
@@ -1525,6 +1500,7 @@ proc target_run {ditem} {
 
                 # Check dependencies & file creations outside workpath.
                 if {[tbool ports_trace]
+                  && $tracing
                   && $target ne "clean"
                   && $target ne "uninstall"} {
 
@@ -1534,6 +1510,8 @@ proc target_run {ditem} {
 
                     # End of trace.
                     porttrace::trace_stop
+
+                    set tracing no
                 }
 
                 # Execute post-run procedure
@@ -2118,12 +2096,12 @@ proc check_variants {target} {
             break
         }
     }
-    if {$statereq && ![tbool ports_force]} {
+    if {$statereq} {
 
         set state_fd [open_statefile]
 
         array set oldvariations {}
-        if {[check_statefile_variants variations oldvariations $state_fd]} {
+        if {![tbool ports_force] && [check_statefile_variants variations oldvariations $state_fd]} {
             ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match those the build was started with: \"[canonicalize_variants [array get oldvariations]]\"."
             ui_error "Please use the same variants again, or run 'port clean [option subport]' first to remove the existing partially completed build."
             set result 1
@@ -2279,7 +2257,7 @@ proc handle_default_variants {option action {value ""}} {
             }
             array set vinfo $PortInfo(vinfo)
             foreach v $value {
-                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant] && ![info exists variations($variant)]} {
+                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
                         set vinfo($variant) {}
@@ -2290,7 +2268,9 @@ proc handle_default_variants {option action {value ""}} {
                     set info(is_default) $val
                     array set vinfo [list $variant [array get info]]
 
-                    set variations($variant) $val
+                    if {![info exists variations($variant)]} {
+                        set variations($variant) $val
+                    }
                 }
             }
             # Update PortInfo(vinfo).
@@ -2986,10 +2966,9 @@ proc elevateToRoot {action} {
 
     if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
-        ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
         seteuid $euid
         setegid $egid
-        ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+        ui_debug "elevating privileges for $action: euid changed to [geteuid], egid changed to [getegid]."
     } elseif { [getuid] != 0 } {
         return -code error "MacPorts requires root privileges for this action"
     }
@@ -3003,15 +2982,12 @@ proc dropPrivileges {} {
     if { [geteuid] == 0 } {
         if { [catch {
                 if {[name_to_uid "$macportsuser"] != 0} {
-                    ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-
                     #seteuid [name_to_uid [file attributes $workpath -owner]]
                     #setegid [name_to_gid [file attributes $workpath -group]]
 
                     setegid [uname_to_gid "$macportsuser"]
                     seteuid [name_to_uid "$macportsuser"]
-                    ui_debug "egid changed to: [getegid]"
-                    ui_debug "euid changed to: [geteuid]"
+                    ui_debug "dropping privileges: euid changed to [geteuid], egid changed to [getegid]."
                 }
             }]
         } {
@@ -3231,10 +3207,25 @@ proc _check_xcode_version {} {
                 set ok 5.0.1
                 set rec 6.0.1
             }
+            10.10 {
+                set min 6.1
+                set ok 6.1
+                set rec 7.2
+            }
+            10.11 {
+                set min 7.0
+                set ok 7.0
+                set rec 7.3
+            }
+            10.12 {
+                set min 8.0
+                set ok 8.0
+                set rec 8.0
+            }
             default {
-                set min 6.0.1
-                set ok 6.0.1
-                set rec 6.1
+                set min 8.0
+                set ok 8.0
+                set rec 8.0
             }
         }
         if {$xcodeversion eq "none"} {
@@ -3268,7 +3259,7 @@ proc _check_xcode_version {} {
                     ui_warn "Install them by running `xcode-select --install'."
                 } else {
                     ui_warn "You can install them from Xcode's Preferences in the Downloads section."
-                    ui_warn "See http://guide.macports.org/chunked/installing.xcode.html#installing.xcode.lion.43 for more information."
+                    ui_warn "See https://guide.macports.org/chunked/installing.xcode.html#installing.xcode.lion.43 for more information."
                 }
             }
 

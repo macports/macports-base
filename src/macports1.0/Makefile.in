@@ -5,6 +5,7 @@ include ../../Mk/macports.autoconf.mk
 
 SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
 		macports_autoconf.tcl diagnose.tcl reclaim.tcl macports_libsolv.tcl
+		selfupdate.tcl
 OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
@@ -18,7 +19,7 @@ endif
 pkgIndex.tcl: $(SRCS)
 
 test::
-	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor
+	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_test_autoconf.tcl ${SHLIB_NAME}

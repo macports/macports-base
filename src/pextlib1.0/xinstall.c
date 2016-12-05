@@ -310,7 +310,7 @@ InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *
 			return TCL_ERROR;
 		}
 		else {
-                        ui_info(interp, "%s: chdir(%s)\n", funcname, curdir);
+                        ui_info(interp, "%s: chdir(%s)", funcname, curdir);
 		}
 	}
 
@@ -541,7 +541,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
-			ui_info(interp, "%s: %s -> %s\n", funcname, from_name, to_name);
+			ui_info(interp, "%s: %s -> %s", funcname, from_name, to_name);
 		}
 		if (!devnull) {
 			if (copy(interp, from_fd, from_name, to_fd,
@@ -643,7 +643,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
-                        ui_info(interp, "%s: %s -> %s\n", funcname, to_name, backup);
+                        ui_info(interp, "%s: %s -> %s", funcname, to_name, backup);
 			if (rename(to_name, backup) < 0) {
 				char errmsg[255];
 
@@ -656,7 +656,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				return TCL_ERROR;
 			}
 		}
-                ui_info(interp, "%s: %s -> %s\n", funcname, from_name, to_name);
+                ui_info(interp, "%s: %s -> %s", funcname, from_name, to_name);
 		if (rename(tempfile, to_name) < 0) {
 			char errmsg[255];
 
@@ -899,7 +899,7 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 				return -1;
 			}
 			(void)snprintf(backup, MAXPATHLEN, "%s%s", path, suffix);
-                        ui_info(interp, "%s: %s -> %s\n", funcname, path, backup);
+                        ui_info(interp, "%s: %s -> %s", funcname, path, backup);
 			if (rename(path, backup) < 0) {
 				char errmsg[255];
 
@@ -1057,7 +1057,7 @@ install_dir(Tcl_Interp *interp, char *path)
 					return TCL_ERROR;
 				}
 				else {
-                                        ui_info(interp, "%s: mkdir %s\n", funcname, path);
+                                        ui_info(interp, "%s: mkdir %s", funcname, path);
 				}
 			} else if (!S_ISDIR(sb.st_mode)) {
 				char errmsg[255];

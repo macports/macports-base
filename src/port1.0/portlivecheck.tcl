@@ -57,7 +57,7 @@ default livecheck.regex ""
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
-default livecheck.ignore_sslcert yes
+default livecheck.ignore_sslcert no
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
@@ -74,9 +74,7 @@ proc portlivecheck::livecheck_main {args} {
     }
 
     set tempfile [mktemp "/tmp/mports.livecheck.XXXXXXXX"]
-    set port_moddate [file mtime ${portpath}/Portfile]
 
-    ui_debug "Portfile modification date is [clock format $port_moddate]"
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
     set curl_options {}
@@ -162,12 +160,16 @@ proc portlivecheck::livecheck_main {args} {
                     set data [read $chan]
                     if {[regexp $the_re $data matched updated_version]} {
                         set foundmatch 1
+                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                         if {$updated_version ne ${livecheck.version}} {
-                            set updated 1
+                            if {[vercmp $updated_version ${livecheck.version}] > 0} {
+                                set updated 1
+                            } else {
+                                ui_error "livecheck failed for ${subport}: extracted version '$updated_version' is older than livecheck.version '${livecheck.version}'"
+                            }
                         } else {
                             set updated 0
                         }
-                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                     }
                 } else {
                     set updated_version 0
@@ -217,6 +219,7 @@ proc portlivecheck::livecheck_main {args} {
         }
         "moddate" {
             set port_moddate [file mtime ${portpath}/Portfile]
+            ui_debug "Portfile modification date is [clock format $port_moddate]"
             if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
                 set updated -1

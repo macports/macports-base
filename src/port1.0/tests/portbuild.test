@@ -1,0 +1,139 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+# Provide a stub for the port callback mechanism
+namespace eval port {
+    proc register_callback {args} {}
+    proc run_callbacks {args} {}
+}
+
+package require portbuild 1.0
+
+set build_getjobs_fixture_setup {
+    # Move away sysctl and replace it with our own implementation
+    rename sysctl sysctl_backup
+    proc sysctl {sysctlname} {
+        global _activecpus _memsize _activecpus_fail _memsize_fail
+        switch -exact $sysctlname {
+            hw.activecpu {
+                if {${_activecpus_fail}} {
+                    error "error requested"
+                }
+                return ${_activecpus}
+            }
+            hw.memsize {
+                if {${_memsize_fail}} {
+                    error "error requested"
+                }
+                return [expr {${_memsize} * 1024 * 1024 * 1024}]
+            }
+            default {
+                error "Unknown sysctl property $sysctlname"
+            }
+        }
+    }
+}
+set build_getjobs_fixture_cleanup {
+    global buildmakejobs
+
+    # Restore modified state
+    rename sysctl ""
+    rename sysctl_backup sysctl
+}
+
+test build_getjobs_auto_cpubound {
+    Verify that portbuild::build_getjobs correctly computes the number of parallel executors in the CPU-bound case
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    # Make sure that buildmakejobs is 0 so the auto-detection is being run
+    set buildmakejobs 0
+    set _activecpus 8
+    set _activecpus_fail no
+    set _memsize 16
+    set _memsize_fail no
+
+    return [portbuild::build_getjobs]
+} -result 8
+
+test build_getjobs_auto_memlimited {
+    Verify that portbuild::build_getjobs correctly computes the number of parallel executors in the memory-bound case
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    # Make sure that buildmakejobs is 0 so the auto-detection is being run
+    set buildmakejobs 0
+    set _activecpus 8
+    set _activecpus_fail no
+    set _memsize 4
+    set _memsize_fail no
+
+    return [portbuild::build_getjobs]
+} -result 5
+
+test build_getjobs_configured {
+    Verify that portbuild::build_getjobs correctly returns the number of configured parallel executors
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    set buildmakejobs 42
+    return [portbuild::build_getjobs]
+} -result 42
+
+test build_getjobs_nonnegative {
+    Verify that portbuild::build_getjobs doesn't return negative numbers, even if configured
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    set buildmakejobs -42
+    return [portbuild::build_getjobs]
+} -result 1
+
+test build_getjobs_nonnumeric {
+    Verify that portbuild::build_getjobs doesn't return junk if the configuration is non-numeric
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    set buildmakejobs "foobar"
+    return [portbuild::build_getjobs]
+} -result 1
+
+test build_getjobs_cpus_fail {
+    Verify that a failing [sysctl hw.activecpus] will print a warning
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    # Make sure that buildmakejobs is 0 so the auto-detection is being run
+    set buildmakejobs 0
+    set _activecpus_fail yes
+
+    return [portbuild::build_getjobs]
+} -result 2 -match glob -errorOutput "Warning:*failed to determine the number of available CPUs*"
+
+test build_getjobs_mem_fail {
+    Verify that a failing [sysctl hw.memsize] will print a warning
+} -setup $build_getjobs_fixture_setup -cleanup $build_getjobs_fixture_cleanup -body {
+    global buildmakejobs
+
+    # Make sure that buildmakejobs is 0 so the auto-detection is being run
+    set buildmakejobs 0
+    set _activecpus 8
+    set _activecpus_fail no
+    set _memsize_fail yes
+
+    return [portbuild::build_getjobs]
+} -result 8
+
+cleanupTests

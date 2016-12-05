@@ -7,7 +7,7 @@ version             1
 categories          test
 maintainers         cal
 description         Test port for invalid statefiles, version 2
-homepage            http://www.macports.org/
+homepage            https://www.macports.org/
 platforms           darwin
 
 long_description    ${description}

@@ -10,7 +10,7 @@ categories          test
 maintainers         nomaintainer
 platforms           darwin
 
-homepage            http://www.macports.org/
+homepage            https://www.macports.org/
 description         Test port for svn+distant patchfiles functionalities
 long_description    ${description}
 

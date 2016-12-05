@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # macports-autoconf.tcl.in
-# $Id: macports_autoconf.tcl.in 90070 2012-02-20 21:54:35Z jberry@macports.org $
+# $Id$
 #
 # Copyright (c) 2006 - 2009, 2011 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.

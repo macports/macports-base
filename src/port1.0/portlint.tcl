@@ -202,13 +202,10 @@ proc portlint::lint_main {args} {
             ui_info "OK: Line $lineno has emacs/vim Mode"
             incr topline_number
         }
-        if {($lineno == $topline_number) && ![string match "*\$Id*\$" $line]} {
-            ui_warn "Line $lineno is missing RCS tag (\$Id\$)"
+
+        if {[string match "*\$Id*\$" $line]} {
+            ui_warn "Line $lineno is using obsolete RCS tag (\$Id\$)"
             incr warnings
-        } elseif {($lineno == $topline_number)} {
-            ui_info "OK: Line $lineno has RCS tag (\$Id\$)"
-            set require_blank true
-            set require_after "RCS tag"
         }
         
         # skip the rest for comment lines (not perfectly accurate...)
@@ -294,6 +291,14 @@ proc portlint::lint_main {args} {
             incr errors
         }
 
+        if {[regexp {(^.*)(\meval\s+)(.*)(\[glob\M)(.*$)} $line -> match_before match_eval match_between match_glob match_after]} {
+            ui_warn "Line $lineno should use the expansion operator instead of the eval procedure. Change"
+            ui_warn "$line"
+            ui_warn "to"
+            ui_warn "$match_before$match_between{*}$match_glob$match_after"
+            incr warnings
+        }
+
         # Check for hardcoded version numbers
         if {$nitpick} {
             # Support for skipping checksums lines
@@ -339,8 +344,8 @@ proc portlint::lint_main {args} {
     global os.platform os.arch os.version version revision epoch \
            description long_description platforms categories all_variants \
            maintainers license homepage master_sites checksums patchfiles \
-           depends_fetch depends_extract depends_lib depends_build \
-           depends_run distfiles fetch.type lint_portsystem lint_platforms \
+           depends_fetch depends_extract depends_lib depends_build depends_run \
+           depends_test distfiles fetch.type lint_portsystem lint_platforms \
            lint_required lint_optional replaced_by conflicts
     set portarch [get_canonical_archs]
 
@@ -507,6 +512,9 @@ proc portlint::lint_main {args} {
     if {[info exists depends_run]} {
         lappend all_depends {*}$depends_run
     }
+    if {[info exists depends_test]} {
+        lappend all_depends {*}$depends_test
+    }
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
@@ -523,7 +531,7 @@ proc portlint::lint_main {args} {
     }
 
     # Check for multiple dependencies
-    foreach deptype {depends_extract depends_lib depends_build depends_run} {
+    foreach deptype {depends_extract depends_lib depends_build depends_run depends_test} {
         if {[info exists $deptype]} {
             array set depwarned {}
             foreach depspec [set $deptype] {
@@ -705,32 +713,6 @@ proc portlint::lint_main {args} {
     ui_debug "Version: $version"
     ui_debug "Revision: $revision"
     ui_debug "Archs: $portarch"
-
-    ###################################################################
-
-    set svn_cmd ""
-    catch {set svn_cmd [findBinary svn]}
-    if {$svn_cmd ne "" && ([file exists $portpath/.svn] || ![catch {exec $svn_cmd info $portpath > /dev/null 2>@1}])} {
-        ui_debug "Checking svn properties"
-        if {[catch {exec $svn_cmd propget svn:keywords $portfile 2>@1} output]} {
-            ui_warn "Unable to check for svn:keywords property: $output"
-        } else {
-            ui_debug "Property svn:keywords is \"$output\", should be \"Id\""
-            if {$output ne "Id"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:keywords Id Portfile"
-                incr errors
-            }
-        }
-        if {[catch {exec $svn_cmd propget svn:eol-style $portfile 2>@1} output]} {
-            ui_warn "Unable to check for svn:eol-style property: $output"
-        } else {
-            ui_debug "Property svn:eol-style is \"$output\", should be \"native\""
-            if {$output ne "native"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:eol-style native Portfile"
-                incr errors
-            }
-        }
-    }
 
     ###################################################################
 

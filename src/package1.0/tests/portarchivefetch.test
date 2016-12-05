@@ -87,7 +87,7 @@ test fetchfiles {
     array set ::portfetch::urlmap {
         db_select http://packages.macports.org/db_select/
     }
-    set portarchivefetch::archivefetch_urls {db_select db_select-0.1_2.darwin_13.noarch.tbz2}
+    set portarchivefetch::archivefetch_urls {db_select db_select-0.1_3.darwin_14.noarch.tbz2}
     set target_state_fd [open $pwd/target w+]
 
     set mport [mportopen file://.]
@@ -104,7 +104,7 @@ test fetchfiles {
     if {[catch {portarchivefetch::fetchfiles}] != 0} {
         return "FAIL: cannot fetch archive"
     }
-    if {[file exists ${archivefetch.fulldestpath}/db_select-0.1_2.darwin_13.noarch.tbz2]} {
+    if {[file exists ${archivefetch.fulldestpath}/db_select-0.1_3.darwin_14.noarch.tbz2]} {
         return "FAIL: unverified archive not discarded"
     }
 
@@ -112,7 +112,7 @@ test fetchfiles {
     if {[portarchivefetch::fetchfiles] != 0} {
         return "FAIL: cannot fetch archive"
     }
-    if {![file exists ${archivefetch.fulldestpath}/db_select-0.1_2.darwin_13.noarch.tbz2]} {
+    if {![file exists ${archivefetch.fulldestpath}/db_select-0.1_3.darwin_14.noarch.tbz2]} {
         return "FAIL: verified archive deleted"
     }
 

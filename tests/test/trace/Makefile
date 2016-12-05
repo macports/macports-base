@@ -18,16 +18,15 @@ test:
 	@rm -f /tmp/hello-trace
 	@ln -sf /usr/include/unistd.h /tmp/link-trace2
 	@-[ "`id -u`" == "0" ] && chown -h $(RUNUSR) /tmp/link-trace2
-	@PORTSRC=$(PORTSRC) $(bindir)/port -t test > output 2>&1 || (cat output; exit 1)
+	@PORTSRC=$(PORTSRC) $(bindir)/port -vt test > output 2>&1 || (cat output; exit 1)
 	@rm -f /tmp/link-trace2
 	@rm -f /tmp/hello-trace
 	@rm -rf ../tracetesttmp
-	@sed -e "s|$(PWD)|PWD|g" < output > output.sed
-	@diff -u master output.sed 2>&1 | tee difference
+	@diff -u master output 2>&1 | tee difference
 	@if [ -s difference ]; then \
 		exit 1; \
 	else \
-		rm -f difference output.sed; \
+		rm -f difference output; \
 	fi
 
 clean::

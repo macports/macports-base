@@ -252,8 +252,7 @@ proc _check_registry {name version revision variants} {
         }
         if {[info exists macports::ui_options(questions_singlechoice)]} {
             set retvalue [$macports::ui_options(questions_singlechoice) $msg "Choice_Q1" $portilist]
-            set index [expr { $retvalue - 1 }]
-            return [lindex $ilist $index]
+            return [lindex $ilist $retvalue]
         }
         throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
     } elseif { [llength $ilist] == 1 } {
