@@ -202,6 +202,107 @@ int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
     return TCL_OK;
 }
 
+/**
+ * wrapper around getpwuid(3)
+ *
+ * getpwuid <uid> [<field>]
+ *
+*/
+int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    uid_t uid;
+    const char *field = NULL;
+    struct passwd *pw;
+    Tcl_Obj *result;
+
+    /* Check the arg count */
+    if (objc < 2 || objc > 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "getpwuid uid ?field?");
+        return TCL_ERROR;
+    }
+
+    /* Need to cast uid from int to unsigned int */
+    if (Tcl_GetIntFromObj(interp, objv[1], (int *) &uid) != TCL_OK) {
+        Tcl_SetResult(interp, "invalid uid", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
+    if (objc == 3) {
+        field = Tcl_GetString(objv[2]);
+    }
+
+    pw = getpwuid(uid);
+    if (pw == NULL) {
+        result = Tcl_NewStringObj("getpwuid failed for ", -1);
+        Tcl_AppendObjToObj(result, Tcl_NewIntObj(uid));
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
+
+    if (field == NULL) {
+        Tcl_Obj *reslist;
+        reslist = Tcl_NewListObj(0, NULL);
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("name", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_name, -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("passwd", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_passwd, -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("uid", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewIntObj(pw->pw_uid));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("gid", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewIntObj(pw->pw_gid));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("change", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewLongObj(pw->pw_change));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("class", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_class, -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("gecos", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_gecos, -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("dir", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_dir, -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("shell", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_shell, -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("expire", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewLongObj(pw->pw_expire));
+        Tcl_SetObjResult(interp, reslist);
+        return TCL_OK;
+    }
+
+    if (strcmp(field, "name") == 0) {
+        Tcl_SetResult(interp, pw->pw_name, TCL_VOLATILE);
+        return TCL_OK;
+    } else if (strcmp(field, "passwd") == 0) {
+        Tcl_SetResult(interp, pw->pw_passwd, TCL_VOLATILE);
+        return TCL_OK;
+    } else if (strcmp(field, "uid") == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewIntObj(pw->pw_uid));
+        return TCL_OK;
+    } else if (strcmp(field, "gid") == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewIntObj(pw->pw_gid));
+        return TCL_OK;
+    } else if (strcmp(field, "change") == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewLongObj(pw->pw_change));
+        return TCL_OK;
+    } else if (strcmp(field, "class") == 0) {
+        Tcl_SetResult(interp, pw->pw_class, TCL_VOLATILE);
+        return TCL_OK;
+    } else if (strcmp(field, "gecos") == 0) {
+        Tcl_SetResult(interp, pw->pw_gecos, TCL_VOLATILE);
+        return TCL_OK;
+    } else if (strcmp(field, "dir") == 0) {
+        Tcl_SetResult(interp, pw->pw_dir, TCL_VOLATILE);
+        return TCL_OK;
+    } else if (strcmp(field, "shell") == 0) {
+        Tcl_SetResult(interp, pw->pw_shell, TCL_VOLATILE);
+        return TCL_OK;
+    } else if (strcmp(field, "expire") == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewLongObj(pw->pw_expire));
+        return TCL_OK;
+    }
+
+    result = Tcl_NewStringObj("invalid field ", -1);
+    Tcl_AppendObjToObj(result, Tcl_NewStringObj(field, -1));
+    Tcl_SetObjResult(interp, result);
+    return TCL_ERROR;
+}
+
 /*
 	name_to_uid
 	

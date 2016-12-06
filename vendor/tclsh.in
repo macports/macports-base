@@ -1,0 +1,19 @@
+#!/bin/sh
+
+LIB_PATH="@TCL_BIN_DIR@"
+
+# For macOS
+if [ -z "$DYLD_LIBRARY_PATH" ]; then
+    export DYLD_LIBRARY_PATH="$LIB_PATH"
+else
+    export DYLD_LIBRARY_PATH="$LIB_PATH:$DYLD_LIBRARY_PATH"
+fi
+
+# For Linux and *BSD
+if [ -z "$LD_LIBRARY_PATH" ]; then
+    export LD_LIBRARY_PATH="$LIB_PATH"
+else
+    export LD_LIBRARY_PATH="$LIB_PATH:$LD_LIBRARY_PATH"
+fi
+
+exec "@TCL_BIN_DIR@/tclsh" "$@"

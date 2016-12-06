@@ -1,5 +1,5 @@
 '\" t
-.TH "MACPORTS\&.CONF" "5" "2014\-08\-03" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "MACPORTS\&.CONF" "5" "2016\-11\-06" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -172,7 +172,8 @@ T}
 .PP
 portarchivetype
 .RS 4
-Format of archives in which to store port images\&. This controls both the type of archive cre\- ated locally after building from source, and the type to request from remote servers\&. Changing this will not affect the usability of already installed archives; they can be of any supported type\&.
+Format of archives in which to store port images\&. This controls the type of archive created locally after building from source, but not the type to request from remote servers (that is controlled by
+\fIarchive_sites\&.conf\fR)\&. Changing this will not affect the usability of already installed archives; they can be of any supported type\&.
 .TS
 tab(:);
 lt lt
@@ -444,7 +445,7 @@ lt lt.
 T{
 \fBDefault:\fR
 T}:T{
-release/base/ (which pulls sources for the currently shipping MacPorts release)
+macports/release/base/ (which pulls sources for the currently shipping MacPorts release)
 T}
 .TE
 .sp 1

@@ -4,11 +4,32 @@ VPATH  = @srcdir@
 include ../../Mk/macports.autoconf.mk
 
 OBJS= \
-	Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
-	fs-traverse.o strcasecmp.o vercomp.o filemap.o base32cmd.o \
-	sha1cmd.o curl.o rmd160cmd.o sha256cmd.o readline.o uid.o \
-	tracelib.o tty.o readdir.o pipe.o adv-flock.o system.o \
-	mktemp.o realpath.o
+	Pextlib.o \
+	adv-flock.o \
+	base32cmd.o \
+	curl.o \
+	fgetln.o \
+	filemap.o \
+	fs-traverse.o \
+	md5cmd.o \
+	mktemp.o \
+	pipe.o \
+	readdir.o \
+	readline.o \
+	realpath.o \
+	rmd160cmd.o \
+	setmode.o \
+	sha1cmd.o \
+	sha256cmd.o \
+	sip_copy_proc.o \
+	strcasecmp.o \
+	strsed.o \
+	system.o \
+	tracelib.o \
+	tty.o \
+	uid.o \
+	vercomp.o \
+	xinstall.o
 ifneq (@ac_cv_func_strlcat@,yes)
 OBJS+=strlcat.o
 endif

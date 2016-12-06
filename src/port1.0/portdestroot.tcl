@@ -247,16 +247,16 @@ proc portdestroot::destroot_finish {args} {
                             set found 1
                             system "cd ${manpath} && \
                             $gunzip -f [file join ${mandir} ${gzfile}] && \
-                            $gzip -9vf [file join ${mandir} ${manfile}]"
+                            $gzip -9vnf [file join ${mandir} ${manfile}]"
                         } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
                             set found 1
                             system "cd ${manpath} && \
                             $bunzip2 -f [file join ${mandir} ${bz2file}] && \
-                            $gzip -9vf [file join ${mandir} ${manfile}]"
+                            $gzip -9vnf [file join ${mandir} ${manfile}]"
                         } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
                             set found 1
                             system "cd ${manpath} && \
-                            $gzip -9vf [file join ${mandir} ${manfile}]"
+                            $gzip -9vnf [file join ${mandir} ${manfile}]"
                         }
                         set gzmanfile ${manfile}.gz
                         set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]

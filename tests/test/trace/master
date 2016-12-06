@@ -4,9 +4,31 @@
 --->  Configuring trace
 --->  Building trace
 --->  Testing trace
-Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/create-trace
-Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/create-trace-modenv
-Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/delete-trace
-Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/mkdir-trace
-Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/rename-trace
-Warning: An activity was attempted outside sandbox: PWD/tracetesttmp/rmdir-trace
+touch: ../tracetesttmp/create-trace: No such file or directory
+Command failed: touch ../tracetesttmp/create-trace
+Exit code: 1
+system "touch ../tracetesttmp/create-trace" failed as expected
+rm: ../tracetesttmp/delete-trace: No such file or directory
+Command failed: rm ../tracetesttmp/delete-trace
+Exit code: 1
+system "rm ../tracetesttmp/delete-trace" failed as expected
+ln: ../tracetesttmp/link-trace: No such file or directory
+Command failed: ln -s /usr/include/ ../tracetesttmp/link-trace
+Exit code: 1
+system "ln -s /usr/include/ ../tracetesttmp/link-trace" failed as expected
+mkdir: ../tracetesttmp: No such file or directory
+Command failed: mkdir ../tracetesttmp/mkdir-trace
+Exit code: 1
+system "mkdir ../tracetesttmp/mkdir-trace" failed as expected
+rmdir: ../tracetesttmp/rmdir-trace: No such file or directory
+Command failed: rmdir ../tracetesttmp/rmdir-trace
+Exit code: 1
+system "rmdir ../tracetesttmp/rmdir-trace" failed as expected
+mv: rename ../tracetesttmp/rename-trace to ../tracetesttmp/rename-new-trace: No such file or directory
+Command failed: mv ../tracetesttmp/rename-trace ../tracetesttmp/rename-new-trace
+Exit code: 1
+system "mv ../tracetesttmp/rename-trace ../tracetesttmp/rename-new-trace" failed as expected
+touch: ../tracetesttmp/create-trace-modenv: No such file or directory
+Command failed: DYLD_INSERT_LIBRARIES= touch ../tracetesttmp/create-trace-modenv
+Exit code: 1
+system "DYLD_INSERT_LIBRARIES= touch ../tracetesttmp/create-trace-modenv" failed as expected

@@ -7,7 +7,7 @@ version             1
 categories          test
 maintainers         pguyot@kallisys.net
 description         Test port for -t
-homepage            http://www.macports.org/
+homepage            https://www.macports.org/
 platforms           darwin
 
 long_description    ${description}
@@ -24,6 +24,8 @@ test {
         if {![catch $operation]} {
             ui_error "Operation ${operation} succeeded although it should have failed!"
             error "test failure"
+        } else {
+            ui_info "${operation} failed as expected"
         }
     }
     # the port directory is outside of the sandbox; make sure files can't be

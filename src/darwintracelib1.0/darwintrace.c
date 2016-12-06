@@ -775,6 +775,7 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1)];
 		/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
 
+		// FIXME This sometimes violates the stack canary
 		if (-1 == (getattrlist(".", &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
 			perror("darwintrace: getattrlist");
 			abort();

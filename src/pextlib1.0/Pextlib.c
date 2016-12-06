@@ -109,22 +109,26 @@ extern char **environ;
 
 __attribute__((format(printf, 3, 0)))
 static void ui_message(Tcl_Interp *interp, const char *severity, const char *format, va_list va) {
-    char tclcmd[32];
+    char *tclcmd;
     char *buf;
 
     if (vasprintf(&buf, format, va) < 0) {
         perror("vasprintf");
         return;
     }
-
-    snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
+    if (asprintf(&tclcmd, "ui_%s $warn", severity) < 0) {
+        perror("asprintf");
+        free(buf);
+        return;
+    }
 
     Tcl_SetVar(interp, "warn", buf, 0);
-    if (TCL_OK != Tcl_Eval(interp, tclcmd)) {
-        fprintf(stderr, "Error evaluating tcl statement `%s': %s\n", tclcmd, Tcl_GetStringResult(interp));
+    if (TCL_OK != Tcl_EvalEx(interp, tclcmd, -1, 0)) {
+        fprintf(stderr, "Error evaluating Tcl statement '%s': %s (message: '%s')\n", tclcmd, Tcl_GetStringResult(interp), buf);
     }
     Tcl_UnsetVar(interp, "warn", 0);
     free(buf);
+    free(tclcmd);
 }
 
 __attribute__((format(printf, 2, 3)))
@@ -656,6 +660,7 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "seteuid", seteuidCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "setgid", setgidCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "setegid", setegidCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "getpwuid", getpwuidCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "name_to_uid", name_to_uidCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "uid_to_name", uid_to_nameCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "uname_to_gid", uname_to_gidCmd, NULL, NULL);

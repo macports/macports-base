@@ -1,9 +1,14 @@
 ###
 # This is a log of major user-visible changes in each MacPorts release.
-# $Id$
 ###
 
 Release 2.4 (unreleased)
+    - Show date in verbose output of 'port installed'
+      (raimue in r146757, r152685)
+
+    - Add depends_test to handle the dependencies for the test phase of ports.
+      (khindenburg in r140488, #38208)
+
     - Replaced the strings previously printed by "port help" with much more
       detailed and current manpages written using asciidoc that open
       automatically. Added documentation for almost all commands currently
@@ -38,6 +43,71 @@ Release 2.4 (unreleased)
 
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
+
+Release 2.3.5 (2016-11-16 by raimue)
+    - Updated compiler selection for macOS 10.12 Sierra
+      (jeremyhu in r141134 and r150305)
+
+    - Do not use default archive_sites for custom ports trees
+      (raimue in r147456)
+
+    - Prune symlinks to deleted libtool archives (.la)
+      (#40935, jmr in r119571, r119594, r119595)
+
+    - Return an error livecheck matched a version older than the current
+      version.
+      (jmr, raimue in r127797, r149299)
+
+    - Permit pkg phase to be run as root, if needed for additional
+      modifications in destroot.
+      (ctreleaven in r152115)
+
+    - Ignore warnings on stderr for archive extraction to allow use of gnutar.
+      (#42492, cal in r132312)
+
+    - Create the documented porthier(7) directory structure in ${prefix}/var
+      and ${prefix}/share for destroot phase.
+      (#45434, #47688, ryandesign in r135998, r135999)
+
+    - When syncing a ports tree failed, operation could continue with the
+      wrong uid.
+      (#43202, cal in r118570)
+
+    - Change default of livecheck.ignore_sslcert to "no".
+      (#52515, raimue in r153648)
+
+    - No longer check Subversion properties in 'port lint'
+      (#48577, ryandesign in r153865)
+
+    - Fix problems with the postflight script in the installer.
+      (#43875, #43749, cal in r122042, r122044, r154073, r154110)
+
+    - Warn when the obsolete Subversion repository is used.
+      (raimue in r154451)
+
+    - port lint: warn if obsolete $Id$ keyword is used.
+      (#52757, raimue in fc45aaf)
+
+    - Support multi-valued entries in the maintainers field and allow GitHub
+      usernames as mainainers
+      (cal in 30c27d5)
+
+Release 2.3.4 (2015-10-01 by jmr)
+    - Installation will now abort when an archive is found on a server but
+      downloading it fails, rather than trying to build from source without
+      the correct dependencies (jmr in r138461)
+
+    - Re-added macports-llvm-gcc-4.2 and apple-gcc-4.2 to the compiler
+      fallback list on Yosemite now that they work (jmr in r136965)
+
+    - Changed the existsuser and existsgroup procs to return -1 on failure
+      instead of 0, since 0 is root's uid (#45737, cal in r135851)
+
+    - The MacPorts version is now available to Portfiles through a proc called
+      macports_version (cal in r134511)
+
+    - Fix failure to activate ports that install files with backslashes in
+      their names (#47283, cal in r134501, r134502)
 
 Release 2.3.3 (2014-11-21 by jmr)
     - Fix database performance regressions with SQLite 3.8 by specifying a

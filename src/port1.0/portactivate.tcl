@@ -63,15 +63,12 @@ proc portactivate::activate_main {args} {
     global subport version revision portvariants user_options PortInfo
 
     registry_activate $subport $version $revision $portvariants [array get user_options]
-    if {[info exists PortInfo(notes)] && [llength $PortInfo(notes)] > 0} {
-        ui_notifications_append $subport $PortInfo(notes)
-    }
 
     return 0
 }
 
 proc portactivate::activate_finish {args} {
-    global subport startupitem.autostart UI_PREFIX
+    global subport startupitem.autostart PortInfo UI_PREFIX
 
     # Do this _after_ activate_main, because post-activate hooks might create
     # the files needed for this
@@ -81,6 +78,11 @@ proc portactivate::activate_finish {args} {
             ui_error [format [msgcat::mc "Failed to load %s"] $subport]
             return 1
         }
+    }
+
+    # Save notes for display by the port client
+    if {[info exists PortInfo(notes)] && [llength $PortInfo(notes)] > 0} {
+        ui_notifications_append $subport $PortInfo(notes)
     }
 
     return 0

@@ -23,6 +23,8 @@
             ..
             registry
             ..
+            sip-workaround mode=01777
+            ..
             software
             ..
         ..

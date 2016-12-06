@@ -41,4 +41,4 @@ install:: all
 	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${INSTALLDIR}"
 
 test::
-	$(TCLSH) $(srcdir)/tests/test.tcl -nocolor
+	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor

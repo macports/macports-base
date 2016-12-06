@@ -44,7 +44,10 @@ all-tclx: all-tcl
 
 %-tcllib:
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ $(@:%-tcllib=%)
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ TCLSH_PROG=@INTREE_TCLSH@ $(@:%-tcllib=%)
+
+# tcllib requires a working tclsh
+all-tcllib: all-tcl
 
 %-libsolv:
 	@echo ===\> making $(@:%-libsolv=%) in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@
@@ -65,7 +68,7 @@ destroot-tclx: all-tclx
 
 destroot-tcllib: all-tcllib
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLLIB_INSTALL@
+	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 
 destroot-libsolv: all-libsolv
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@

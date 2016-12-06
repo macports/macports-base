@@ -56,8 +56,10 @@
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "system.h"
+#include "sip_copy_proc.h"
 #include "Pextlib.h"
 
 #if HAVE_CRT_EXTERNS_H
@@ -105,6 +107,11 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
     }
 
     return 1;
+}
+
+static volatile int interrupted_by = 0;
+static void handle_sigint(int s) {
+    interrupted_by = s;
 }
 
 /* usage: system ?-notty? ?-nodup? ?-nice value? ?-W path? command */
@@ -186,6 +193,24 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
 
+    /*
+     * Custom handlers for SIGINT and SIGQUIT to detect aborts
+     *
+     * system(3) also blocks SIGCHLD during the execution of the program.
+     * However, that would make our wait(2) call more complicated. As we are
+     * not relying on delivery of SIGCHLD anywhere else, we just do not change
+     * the handling here at all.
+     */
+    struct sigaction sa, old_sa_int, old_sa_quit;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handle_sigint;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    interrupted_by = 0;
+    sigaction(SIGINT, &sa, &old_sa_int);
+    sigaction(SIGQUIT, &sa, &old_sa_quit);
+
+    /* fork a new process */
     pid = fork();
     switch (pid) {
     case -1: /* error */
@@ -228,6 +253,10 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             }
         }
 
+        /* restore original signal handling */
+        sigaction(SIGINT, &old_sa_int, NULL);
+        sigaction(SIGQUIT, &old_sa_quit, NULL);
+
         /* XXX ugly string constants */
         if (sandbox) {
             args[0] = "sandbox-exec";
@@ -237,15 +266,15 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             args[4] = "-c";
             args[5] = cmdstring;
             args[6] = NULL;
-            execve(sandbox_exec_path, args, environ);
+            sip_copy_execve(sandbox_exec_path, args, environ);
         } else {
             args[0] = "sh";
             args[1] = "-c";
             args[2] = cmdstring;
             args[3] = NULL;
-            execve("/bin/sh", args, environ);
+            sip_copy_execve("/bin/sh", args, environ);
         }
-        _exit(1);
+        exit(128);
         /*NOTREACHED*/
     default: /* parent */
         break;
@@ -306,27 +335,52 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
     status = TCL_ERROR;
 
-    if (wait(&ret) == pid && WIFEXITED(ret) && !read_failed) {
+    if (wait(&ret) == pid && (WIFEXITED(ret) || WIFSIGNALED(ret)) && !read_failed) {
         /* Normal exit, and reading from the pipe didn't fail. */
-        if (WEXITSTATUS(ret) == 0) {
+        if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
             status = TCL_OK;
         } else {
             Tcl_Obj* errorCode;
 
             /* print error */
             ui_info(interp, "Command failed: %s", cmdstring);
-            ui_info(interp, "Exit code: %d", WEXITSTATUS(ret));
+            if (WIFEXITED(ret)) {
+                ui_info(interp, "Exit code: %d", WEXITSTATUS(ret));
+            } else if(WIFSIGNALED(ret)) {
+                ui_info(interp, "Killed by signal: %d", WTERMSIG(ret));
+            }
 
-            /* set errorCode [list CHILDSTATUS <pid> <code>] */
             errorCode = Tcl_NewListObj(0, NULL);
-            Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
-            Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-            Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
-            Tcl_SetObjErrorCode(interp, errorCode);
-
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
+            if (interrupted_by != 0) {
+                /* set errorCode [list POSIX SIG <SIGNAME> <signal descripton>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("POSIX", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("SIG", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(interrupted_by), -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(interrupted_by), -1));
+                Tcl_SetObjErrorCode(interp, errorCode);
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("interrupted by signal", -1));
+            } else if (WIFEXITED(ret)) {
+                /* set errorCode [list CHILDSTATUS <pid> <code>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
+                Tcl_SetObjErrorCode(interp, errorCode);
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
+            } else if (WIFSIGNALED(ret)) {
+                /* set errorCode [list CHILDKILLED <pid> <SIGNAME> <signal descripton>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDKILLED", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(WTERMSIG(ret)), -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(WTERMSIG(ret)), -1));
+                Tcl_SetObjErrorCode(interp, errorCode);
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
+            }
         }
     }
+
+    /* restore original signal handling */
+    sigaction(SIGINT, &old_sa_int, NULL);
+    sigaction(SIGQUIT, &old_sa_quit, NULL);
 
     if (odup) {
         /* Cleanup. */

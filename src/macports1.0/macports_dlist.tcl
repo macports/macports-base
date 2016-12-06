@@ -63,7 +63,7 @@ proc dlist_match_multi {dlist criteria} {
 	foreach ditem $dlist {
 		set match 1
 		foreach {key value} $criteria {
-			if {[ditem_key $ditem $key] != $value} {
+			if {[ditem_key $ditem $key] ne $value} {
 				set match 0
 				break
 			}
@@ -158,14 +158,7 @@ proc ditem_delete {ditem} {
 #   value - optional value to set the key to
 
 proc ditem_key {ditem args} {
-	set nbargs [llength $args]
-	if {$nbargs > 1} {
-		return [macports_dlist::ditem_key $ditem [lindex $args 0] [lindex $args 1]]
-	} elseif {$nbargs == 1} {
-		return [macports_dlist::ditem_key $ditem [lindex $args 0]]
-	} else {
-		return [macports_dlist::ditem_key $ditem]
-	}
+	return [macports_dlist::ditem_key $ditem {*}$args]
 }
 
 # ditem_append
@@ -316,7 +309,9 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			# $handler should return a unix status code, 0 for success.
 			# statusdict notation is 1 for success
 			if {[catch {{*}$handler $ditem} result]} {
-				puts $result
+				global errorInfo
+				ui_debug "$errorInfo"
+				ui_error $result
 				return $dlist
 			}
 			# No news is good news at this point.
@@ -374,11 +369,14 @@ proc ditem_key {ditem args} {
 	set nbargs [llength $args]
 	if {$nbargs > 1} {
 		set key [lindex $args 0]
-		array set $ditem [list $key [lindex $args 1]]
-		return [lindex [array get $ditem $key] 1]
+		return [set [set ditem]($key) [lindex $args 1]]
 	} elseif {$nbargs == 1} {
 		set key [lindex $args 0]
-		return [lindex [array get $ditem $key] 1]
+		if {[info exists [set ditem]($key)]} {
+		    return [set [set ditem]($key)]
+		} else {
+		    return {}
+		}
 	} else {
 		return [array get $ditem]
 	}
@@ -386,26 +384,34 @@ proc ditem_key {ditem args} {
 
 proc ditem_append {ditem key args} {
 	variable $ditem
-	set x [lindex [array get $ditem $key] 1]
+	if {[info exists [set ditem]($key)]} {
+	    set x [set [set ditem]($key)]
+	} else {
+	    set x {}
+	}
 	if {$x ne {}} {
 		lappend x {*}$args
 	} else {
 		set x $args
 	}
-	array set $ditem [list $key $x]
+	set [set ditem]($key) $x
 	return $x
 }
 
 proc ditem_append_unique {ditem key args} {
 	variable $ditem
-	set x [lindex [array get $ditem $key] 1]
+	if {[info exists [set ditem]($key)]} {
+	    set x [set [set ditem]($key)]
+	} else {
+	    set x {}
+	}
 	if {$x ne {}} {
 		lappend x {*}$args
 		set x [lsort -unique $x]
 	} else {
 		set x $args
 	}
-	array set $ditem [list $key $x]
+	set [set ditem]($key) $x
 	return $x
 }
 
@@ -414,7 +420,11 @@ proc ditem_contains {ditem key args} {
 	if {[llength $args] == 0} {
 		return [info exists [set ditem]($key)]
 	} else {
-		set x [lindex [array get $ditem $key] 1]
+		if {[info exists [set ditem]($key)]} {
+			set x [set [set ditem]($key)]
+		} else {
+			return 0
+		}
 		if {[llength $x] > 0 && [lindex $args 0] in $x} {
 			return 1
 		} else {

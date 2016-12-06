@@ -246,7 +246,7 @@ MP_UNIVERSAL_OPTIONS
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h limits.h paths.h pwd.h \
+AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
 	readline/history.h readline/readline.h spawn.h sys/cdefs.h sys/event.h sys/fcntl.h sys/file.h \
 	sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
@@ -312,6 +312,16 @@ fi
 eval "prefix_expanded=$prefix"
 eval "exec_prefix_expanded=$exec_prefix"
 AC_SUBST(prefix_expanded)
+
+# Define a path where our trace mode workaround for SIP-protected binaries on
+# >= 10.11 puts copies
+eval DARWINTRACE_SIP_WORKAROUND_PATH="${prefix}/var/macports/sip-workaround"
+AC_SUBST(DARWINTRACE_SIP_WORKAROUND_PATH)
+AC_DEFINE_UNQUOTED(
+	[DARWINTRACE_SIP_WORKAROUND_PATH],
+	["$DARWINTRACE_SIP_WORKAROUND_PATH"],
+	[Absolute path to a directory used by darwintrace to copy SIP-protected files before executing])
+
 # do this twice, since there is a nested variable of
 # ${prefix} inside of ${sysconfdir}
 eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"
@@ -326,10 +336,10 @@ prefix=$oldprefix
 exec_prefix=$oldexec_prefix
 
 ## Tcl package
-tcl_version=8.5.15
-tcl_thread_version=2.7.0
+tcl_version=8.5.18
+tcl_thread_version=2.7.3
 tclx_version=8.4.1
-tcllib_version=1.15
+tcllib_version=1.17
 MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
 VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
 VENDOR_TCL_INSTALL="install-binaries install-libraries"
@@ -389,7 +399,7 @@ STLIB_LD=${TCL_STLIB_LD}
 SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
-INTREE_TCLSH=${TCL_BIN_DIR}/tclsh
+INTREE_TCLSH=`(cd vendor; pwd)`/tclsh
 # strip possible whitespace at the end of TCL_PACKAGE_PATH
 eval "TCL_PACKAGE_PATH=${TCL_PACKAGE_PATH}"
 
@@ -402,6 +412,7 @@ AC_SUBST(TCL_VERSION)
 AC_SUBST(TCL_PACKAGE_PATH)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_SRC_DIR)
+AC_SUBST(TCL_BIN_DIR)
 AC_SUBST(TCLSH)
 AC_SUBST(INTREE_TCLSH)
 
@@ -431,6 +442,7 @@ AC_CONFIG_FILES([
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/macports1.0/macports_test_autoconf.tcl
+	src/mpcommon1.0/Makefile
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
@@ -448,6 +460,7 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])

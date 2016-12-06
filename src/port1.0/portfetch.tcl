@@ -116,7 +116,6 @@ default fetch.ignore_sslcert "no"
 # Use remote timestamps
 default fetch.remote_time "no"
 
-default fallback_mirror_site "macports"
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
@@ -274,11 +273,11 @@ proc portfetch::get_full_mirror_sites_path {} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
-    global global_mirror_site fallback_mirror_site
+    global global_mirror_site
     upvar $urls fetch_urls
 
-    checksites [list patch_sites [list $global_mirror_site $fallback_mirror_site PATCH_SITE_LOCAL] \
-                master_sites [list $global_mirror_site $fallback_mirror_site MASTER_SITE_LOCAL]] \
+    checksites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \
+                master_sites [list $global_mirror_site MASTER_SITE_LOCAL]] \
                [get_full_mirror_sites_path]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
@@ -485,7 +484,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
-           fallback_mirror_site portverbose usealtworkpath altprefix
+           portverbose usealtworkpath altprefix
     variable fetch_urls
     variable urlmap
 
@@ -514,7 +513,7 @@ proc portfetch::fetchfiles {args} {
 
     foreach {url_var distfile} $fetch_urls {
         if {![file isfile "${distpath}/${distfile}"]} {
-            ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
+            ui_info "$UI_PREFIX [format [msgcat::mc "%s does not exist in %s"] $distfile $distpath]"
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
@@ -527,7 +526,7 @@ proc portfetch::fetchfiles {args} {
                 continue
             }
             if {!$sorted} {
-                sortsites fetch_urls [mirror_sites $fallback_mirror_site {} {} [get_full_mirror_sites_path]] master_sites
+                sortsites fetch_urls master_sites
                 set sorted yes
             }
             if {![info exists urlmap($url_var)]} {
@@ -539,22 +538,16 @@ proc portfetch::fetchfiles {args} {
             foreach site $urlmap($url_var) {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
-                try {
+                try -pass_signal {
                     curl fetch {*}$fetch_options $file_url "${distpath}/${distfile}.TMP"
                     file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"
                     set fetched 1
                     break
-                } catch {{POSIX SIG SIGINT} eCode eMessage} {
-                    ui_debug [msgcat::mc "Aborted fetching distfile due to SIGINT"]
-                    file delete -force "${distpath}/${distfile}.TMP"
-                    throw
-                } catch {{POSIX SIG SIGTERM} eCode eMessage} {
-                    ui_debug [msgcat::mc "Aborted fetching distfile due to SIGTERM"]
-                    file delete -force "${distpath}/${distfile}.TMP"
-                    throw
                 } catch {{*} eCode eMessage} {
                     ui_debug [msgcat::mc "Fetching distfile failed: %s" $eMessage]
                     set lastError $eMessage
+                } finally {
+                    file delete -force "${distpath}/${distfile}.TMP"
                 }
             }
             if {![info exists fetched]} {

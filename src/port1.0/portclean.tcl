@@ -214,9 +214,11 @@ proc portclean::clean_work {args} {
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"
-        if {[catch {delete $subbuildpath} result]} {
+        try -pass_signal {
+            delete $subbuildpath
+        } catch {{*} eCode eMessage} {
             ui_debug "$::errorInfo"
-            ui_error "$result"
+            ui_error "$eMessage"
         }
         # silently fail if non-empty (other subports might be using portbuildpath)
         catch {file delete $portbuildpath}
@@ -226,9 +228,11 @@ proc portclean::clean_work {args} {
 
     if {!$usealtworkpath && [file isdirectory ${altprefix}${subbuildpath}]} {
         ui_debug "Removing directory: ${altprefix}${subbuildpath}"
-        if {[catch {delete ${altprefix}${subbuildpath}} result]} {
+        try -pass_signal {
+            delete ${altprefix}${subbuildpath}
+        } catch {{*} eCode eMessage} {
             ui_debug "$::errorInfo"
-            ui_error "$result"
+            ui_error "$eMessage"
         }
         catch {file delete ${altprefix}${portbuildpath}}
     } else {

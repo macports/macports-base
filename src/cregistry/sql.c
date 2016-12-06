@@ -584,7 +584,16 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *    already been started for you
          *  - end your query list with "COMMIT", NULL
          *  - set did_update = 1 and continue;
+         *  - update the current version number below
          */
+
+        if (sql_version(NULL, -1, version, -1, "1.202") > 0) {
+            /* the registry was already upgraded to a newer version and cannot be used anymore */
+            reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
+            sqlite3_finalize(stmt);
+            rollback_db(db);
+            return 0;
+        }
 
         /* if we arrive here, no update was done and we should end the
          * transaction. Using ROLLBACK here causes problems when rolling back

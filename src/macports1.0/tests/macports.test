@@ -12,34 +12,19 @@ source ../macports_test_autoconf.tcl
 testConstraint darwin [expr {$macports::autoconf::os_platform eq "darwin"}]
 
 package require macports 1.0
+package require Thread
+
+source ./library.tcl
 
 # clean leftovers from interrupted tests
 file delete -force $pwd/tmpdir
-
-# use custom macports.conf and sources.conf
-makeDirectory $pwd/tmpdir
-makeDirectory $pwd/tmpdir/share
-makeDirectory $pwd/tmpdir/var/macports/registry
-set fd [open $pwd/tmpdir/macports.conf w+]
-puts $fd "portdbpath $pwd/tmpdir/var/macports"
-puts $fd "prefix $pwd/tmpdir"
-puts $fd "variants_conf $pwd/tmpdir/variants.conf"
-puts $fd "sources_conf $pwd/sources.conf"
-puts $fd "applications_dir $pwd/tmpdir/Applications"
-puts $fd "frameworks_dir $pwd/tmpdir/Library/Frameworks"
-close $fd
-set env(PORTSRC) $pwd/tmpdir/macports.conf
-file link -symbolic $pwd/tmpdir/share/macports $macports::autoconf::prefix/share/macports
-close [open $pwd/tmpdir/variants.conf w+]
+# use a local, temporary prefix for testing
+init_tmp_prefix $pwd $pwd/tmpdir
 
 # Debug options
 array set ui_options {}
-#set ui_options(ports_debug)   yes
-#set ui_options(ports_verbose) yes
+set ui_options(ports_noninteractive) yes
 mportinit ui_options
-
-package require Thread
-source ./library.tcl
 
 
 test mportclose {
@@ -80,7 +65,7 @@ test worker_init {
 } -setup {
     set name [interp create]
     set portpath $pwd/portpath
-    set porturl http://www.macports.org
+    set porturl https://www.macports.org
     set portbuildpath $pwd/build
     set options {a b}
     set variations {1 2}
@@ -111,13 +96,6 @@ test init_logging {
 } -body {
     if {[macports::init_logging $mport] != 0} {
        return "FAIL: incorrect channels"
-    }
-    if {$macports::channels(any) ne "stdout debuglog"} {
-       return "FAIL: incorrect channels(any)"
-    }
-    if {(![info exists ui_options(ports_debug)] && $macports::channels(debug) ne "debuglog") || 
-        ([info exists ui_options(ports_debug)] && $macports::channels(debug) ne "stderr debuglog")} {
-       return "FAIL: incorrect channels(debug)"
     }
     return "Init logging successful."
 } -cleanup {
@@ -351,12 +329,19 @@ test ui_channels_default {
 
 test ui_warn_once {
     UI warn once unit test.
+} -setup {
+    # suppress test warning to avoid noise on terminal output
+    set channel_saved $macports::channels(warn)
+    set macports::channels(warn) {}
 } -body {
     set res [ui_warn_once 0 test]
+
     if {$macports::warning_done(0) != 1} {
 	return "FAIL: warning flag not set"
     }
     return "UI warn once successful."
+} -cleanup {
+    set macports::channels(warn) $channel_saved
 } -result "UI warn once successful."
 
 
@@ -581,9 +566,9 @@ test get_tar_flags {
 test fetch_port {
     Fetch port unit test.
 } -body {
-    set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
+    set url http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2
     set res [macports::fetch_port $url]
-    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_2"} {
+    if {$res ne "${pwd}/portdbpath/portdirs/db_select-0.1_3"} {
 	return "FAIL: cannot fetch port"
     }
     return "Fetch port successful."
@@ -595,7 +580,7 @@ test fetch_port {
 test getprotocol {
     Get protocol unit test.
 } -body {
-    if {[macports::getprotocol http://www.macports.org] ne "http"} {
+    if {[macports::getprotocol https://www.macports.org] ne "https"} {
        return "FAIL: wrong protocol"
     }
     return "Get protocol successful."
@@ -607,9 +592,9 @@ test getportdir {
 } -setup {
     close [open $pwd/local_file w+]
 } -body {
-    set url http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2
+    set url http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2
     set res [macports::getportdir $url]
-    set expected ${pwd}/portdbpath/portdirs/db_select-0.1_2
+    set expected ${pwd}/portdbpath/portdirs/db_select-0.1_3
     if {$res ne $expected} {
 	    return "FAIL: incorrect port directory $res (expected $expected)"
     }
@@ -631,9 +616,9 @@ test getportresourcepath {
     Get port resource path. Doesn't check for 'file' protocol.
 } -body {
     set macports::portdbpath $pwd/portdbpath
-    set url "http://packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2"
-    set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
-    set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_2.darwin_13.noarch.tbz2/_resources
+    set url "http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2"
+    set default_path $pwd/portdbpath/sources/rsync.macports.org/macports/release/tarballs/ports/_resources
+    set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2/_resources
 
     if {[macports::getportresourcepath $url "" yes] ne $default_path} {
        return "FAIL: wrong resource path"
@@ -712,7 +697,6 @@ test mporttraverse {
 # test _mportexec
 # test mportexec
 # test _upgrade_mport_deps
-# test _get_registry_archs
 # test getsourcepath
 # test _source_is_snapshot
 # test getportbuildpath
@@ -749,24 +733,48 @@ test GetVCSUpdateCmd-svn {
 } -cleanup {
     removeDirectory macports-test-svn-wc $tempdir
     removeDirectory macports-test-svn-repo $tempdir
-} -result {Subversion {SVN update --non-interactive WC}}
+} -result {Subversion {SVN update --non-interactive} WC}
 
 
 testConstraint hasGit [expr {![catch {macports::findBinary git} git]}]
-
-test GetVCSUpdateCmd-git {
-    Tests GetVCSUpdateCmd on a valid Git repository
-} -constraints {
-    hasGit
-} -setup {
+set git_vcsupdate_fixture {
     set repo [makeDirectory macports-test-git-repo $tempdir]
     exec $git init $repo
-} -body {
-    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
-} -cleanup {
-    removeDirectory macports-test-git-repo $tempdir
-} -result {Git {cd REPO && GIT pull --rebase || true}}
+    rename exec _save_exec
 
+    proc exec {cmd args} {
+        global gitversion
+        if {$cmd ne [macports::findBinary git] || [lindex $args 0] ne "--version"} {
+            return [_save_exec $cmd {*}$args]
+        }
+        return "git version $gitversion (Apple Git-23)"
+    }
+}
+set git_vcsupdate_cleanup {
+    removeDirectory macports-test-git-repo $tempdir
+    rename exec ""
+    rename _save_exec exec
+}
+
+test GetVCSUpdateCmd-git {
+    Tests GetVCSUpdateCmd on a valid Git repository with Git >= 2.9.0
+} -constraints {
+    hasGit
+} -setup $git_vcsupdate_fixture -body {
+    global gitversion
+    set gitversion "2.10.1"
+    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
+} -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase --autostash} REPO}
+
+test GetVCSUpdateCmd-git-noautostash {
+    Tests GetVCSUpdateCmd on a valid Git repository with Git < 2.9.0
+} -constraints {
+    hasGit
+} -setup $git_vcsupdate_fixture -body {
+    global giversion
+    set gitversion "1.8.2"
+    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
+} -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase} REPO}
 
 testConstraint hasGitSvn [expr {
     ![catch {macports::findBinary git} git] &&
@@ -784,7 +792,7 @@ test GetVCSUpdateCmd-gitsvn {
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
 } -cleanup {
     removeDirectory macports-test-git-svn-repo $tempdir
-} -result {git-svn {cd REPO && GIT svn rebase || true}}
+} -result {git-svn {GIT svn rebase} REPO}
 
 
 test GetVCSUpdateCmd-none {
