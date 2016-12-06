@@ -58,7 +58,7 @@ Release 2.3.5 (2016-11-16 by raimue)
     - Prune symlinks to deleted libtool archives (.la)
       (#40935, jmr in r119571, r119594, r119595)
 
-    - Return an error livecheck matched a version older than the current
+    - Return an error if livecheck matched a version older than the current
       version.
       (jmr, raimue in r127797, r149299)
 
@@ -93,7 +93,7 @@ Release 2.3.5 (2016-11-16 by raimue)
       (#52757, raimue in fc45aaf)
 
     - Support multi-valued entries in the maintainers field and allow GitHub
-      usernames as mainainers
+      usernames as maintainers
       (cal in 30c27d5)
 
 Release 2.3.4 (2015-10-01 by jmr)
