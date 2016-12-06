@@ -4129,6 +4129,7 @@ proc action_target { action portlist opts } {
                 ui_debug "$errorInfo"
                 break_softcontinue "Unable to execute port: $result" 1 status
             }
+        }
 
         mportclose $workername
 
