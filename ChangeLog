@@ -2,6 +2,10 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.3.6 (2016-12-?? by ?)
+    - Fix 'port info' output for multi-valued maintainers
+      (#52928)
+
 Release 2.3.5 (2016-11-16 by raimue)
     - Updated compiler selection for macOS 10.12 Sierra
       (jeremyhu in r141134 and r150305)
