@@ -58,16 +58,51 @@ package require macports
 
 namespace eval reclaim {
 
-    proc main {args} {
+    proc main {opts} {
         # The main function. Calls each individual function that needs to be run.
         # Args: 
-        #           None
+        #           opts - options array
         # Returns:
         #           None
 
+        array set options $opts
+        if {[info exists options(ports_reclaim_enable-reminders)]} {
+            ui_info "Enabling port reclaim reminders."
+            update_last_run
+            return
+        }
+        if {[info exists options(ports_reclaim_disable-reminders)]} {
+            ui_info "Disabling port reclaim reminders."
+            write_last_run_file disabled
+            return
+        }
+
         uninstall_inactive
         remove_distfiles
-        update_last_run
+
+        set last_run_contents [read_last_run_file]
+        if {$last_run_contents eq ""} {
+            set msg "This appears to be the first time you have run 'port reclaim'."
+
+            if {[info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to be reminded to run it every two weeks?"]
+                if {$retval != 0} {
+                    # User said no, store disabled flag
+                    set last_run_contents disabled
+                    write_last_run_file $last_run_contents
+                    ui_msg "Reminders disabled. Run 'port reclaim --enable-reminders' to enable."
+                } else {
+                    # the last run file will be updated below
+                    ui_msg "Reminders enabled. Run 'port reclaim --disable-reminders' to disable."
+                }
+            } else {
+                # couldn't ask the question, leave disabled for now
+                set last_run_contents disabled
+            }
+        }
+        if {$last_run_contents ne "disabled"} {
+            update_last_run
+        }
     }
 
     proc walk_files {dir files_in_use unused_name} {
@@ -296,9 +331,42 @@ namespace eval reclaim {
         }
     }
 
+    proc read_last_run_file {} {
+        set path [file join ${macports::portdbpath} last_reclaim]
+
+        set fd -1
+        set contents ""
+        try -pass_signal {
+            set fd [open $path r]
+            set contents [gets $fd]
+        } catch {*} {
+            # Ignore error silently; the file might not have been created yet
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
+        }
+        return $contents
+    }
+
+    proc write_last_run_file {contents} {
+        set path [file join ${macports::portdbpath} last_reclaim]
+        set fd -1
+        try -pass_signal {
+            set fd [open $path w]
+            puts $fd $contents
+        } catch {*} {
+            # Ignore error silently
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
+        }
+    }
+
     proc update_last_run {} {
-        
-        # Updates the last_reclaim textfile with the newest time the code has been ran. 
+
+        # Updates the last_reclaim textfile with the newest time the code has been run.
         #
         # Args:
         #           None
@@ -307,18 +375,7 @@ namespace eval reclaim {
 
         ui_debug "Updating last run information."
 
-        set path [file join ${macports::portdbpath} last_reclaim]
-        set fd -1
-        try -pass_signal {
-            set fd [open $path w]
-            puts $fd [clock seconds]
-        } catch {*} {
-            # Ignore error silently
-        } finally {
-            if {$fd != -1} {
-                close $fd
-            }
-        }
+        write_last_run_file [clock seconds]
     }
 
     proc check_last_run {} {
@@ -330,39 +387,28 @@ namespace eval reclaim {
         # Returns: 
         #           None
 
-        ui_debug "Checking time since last reclaim run"
+        set time [read_last_run_file]
 
-        set path [file join ${macports::portdbpath} last_reclaim]
-
-        set fd -1
-        set time ""
-        try -pass_signal {
-            set fd [open $path r]
-            set time [gets $fd]
-        } catch {*} {
-            # Ignore error silently; the file might not have been created yet
-        } finally {
-            if {$fd != -1} {
-                close $fd
-            }
+        if {![string is integer -strict $time]} {
+            return
         }
-        if {$time ne ""} {
-            if {[clock seconds] - $time > 1209600} {
-                set msg "You haven't run 'sudo port reclaim' in two weeks. It's recommended you run this regularly to reclaim disk space."
 
-                if {[file writable $macports::portdbpath] && [info exists macports::ui_options(questions_yesno)]} {
-                    set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
-                    if {$retval == 0} {
-                        # User said yes, run port reclaim
-                        macports::reclaim_main
-                    } else {
-                        # User said no, ask again in two weeks
-                        # Change this time frame if a consensus is agreed upon
-                        update_last_run
-                    }
+        ui_debug "Checking time since last reclaim run"
+        if {[clock seconds] - $time > 1209600} {
+            set msg "You haven't run 'sudo port reclaim' in two weeks. It's recommended you run this regularly to reclaim disk space."
+
+            if {[file writable $macports::portdbpath] && [info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
+                if {$retval == 0} {
+                    # User said yes, run port reclaim
+                    macports::reclaim_main
                 } else {
-                    ui_warn $msg
+                    # User said no, ask again in two weeks
+                    # Change this time frame if a consensus is agreed upon
+                    update_last_run
                 }
+            } else {
+                ui_warn $msg
             }
         }
     }

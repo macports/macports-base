@@ -1248,6 +1248,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 # call this just before you exit
 proc mportshutdown {} {
+    # Check the last time 'reclaim' was run and run it
+    if {![macports::ui_isset ports_quiet]} {
+        reclaim::check_last_run
+    }
+
     # save ping times
     global macports::ping_cache macports::portdbpath
     if {[file writable $macports::portdbpath]} {
@@ -1262,10 +1267,6 @@ proc mportshutdown {} {
             puts $pingfile $pinglist_fresh
             close $pingfile
         }
-    }
-    # Check the last time 'reclaim' was run and run it
-    if {![macports::ui_isset ports_quiet]} {
-        reclaim::check_last_run
     }
 
     # close it down so the cleanup stuff is called, e.g. vacuuming the db
@@ -4372,7 +4373,7 @@ proc macports::diagnose_main {opts} {
     return 0
 }
 
-proc macports::reclaim_main {} {
+proc macports::reclaim_main {opts} {
     # Calls the main function for the 'port reclaim' command.
     #
     # Args:
@@ -4381,7 +4382,7 @@ proc macports::reclaim_main {} {
     #           None
 
     try {
-        reclaim::main
+        reclaim::main $opts
     } catch {{POSIX SIG SIGINT} eCode eMessage} {
         ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
         return 2

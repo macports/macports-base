@@ -2734,7 +2734,7 @@ proc action_reclaim { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    macports::reclaim_main
+    macports::reclaim_main $opts
     return 0
 }
 
@@ -4393,6 +4393,7 @@ array set cmd_opts_array {
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}
     diagnose    {quiet}
+    reclaim     {enable-reminders disable-reminders}
 }
 
 ##
