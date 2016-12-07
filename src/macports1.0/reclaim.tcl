@@ -146,7 +146,6 @@ namespace eval reclaim {
         set root_dist       [file join ${macports::portdbpath} distfiles]
         set home_dist       ${macports::user_home}/.macports$root_dist
 
-        set port_info    [get_info]
         set files_in_use [list]
 
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
@@ -161,22 +160,18 @@ namespace eval reclaim {
         }
 
         ui_msg "$macports::ui_prefix Building list of files still in use"
-        set port_count [llength $port_info]
+        set installed_ports [registry::entry imaged]
+        set port_count [llength $installed_ports]
         set i 1
         $progress start
 
-        foreach port $port_info {
-            set name     [lindex $port 0]
-            set version  [lindex $port 1]
-            set revision [lindex $port 2]
-            set variants [lindex $port 3]
-
+        foreach port $installed_ports {
             # Get mport reference
             try -pass_signal {
-                set mport [mportopen_installed $name $version $revision $variants {}]
+                set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] {}]
             } catch {{*} eCode eMessage} {
                 $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $eMessage]
+                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" [$port name] $eMessage]
                 continue
             }
 
@@ -296,41 +291,6 @@ namespace eval reclaim {
         return 0
     }
 
-    proc is_inactive {port} {
-
-        # Determines whether a port is inactive or not.
-        # Args: 
-        #           port - An array where the fourth item in it is the activity of the port.
-        # Returns:
-        #           1 if inactive, 0 if active.
-
-        if {[lindex $port 4] == 0} {
-            ui_debug "Port [lindex $port 0] is inactive."
-            return 1
-        }
-        ui_debug "Port [lindex $port 0] is not inactive."
-        return 0
-    }
-
-    proc get_info {} {
-
-        # Gets the information of all installed ports (those returned by registry::installed), and returns it in a
-        # multidimensional list.
-        #
-        # Args:
-        #           None
-        # Returns:
-        #           A multidimensional list where each port is a sublist, i.e., [{first port info} {second port info} {...}]
-        #           Indexes of each sublist are: 0 = name, 1 = version, 2 = revision, 3 = variants, 4 = activity, and 5 = epoch.
-        
-        try -pass_signal {
-            return [registry::installed]
-        } catch {*} {
-            ui_error "no installed ports found."
-            return {}
-        }
-    }
-
     proc read_last_run_file {} {
         set path [file join ${macports::portdbpath} last_reclaim]
 
@@ -417,23 +377,21 @@ namespace eval reclaim {
 
         # Attempts to uninstall all inactive ports. (Performance is now O(N)!)
         #
-        # Args: 
+        # Args:
         #           None
-        # Returns: 
-        #           0 if execution was successful. Errors (for now) if execution wasn't. 
+        # Returns:
+        #           0 if execution was successful. Errors (for now) if execution wasn't.
 
-        set ports           [get_info]
         set inactive_ports  [list]
         set inactive_names  [list]
         set inactive_count  0
 
         ui_debug "Iterating through all inactive ports."
 
-        foreach port $ports {
-
-            if { [is_inactive $port] } {
+        foreach port [registry::entry imaged] {
+            if {[$port state] eq "imaged"} {
                 lappend inactive_ports $port
-                lappend inactive_names [lindex $port 0]
+                lappend inactive_names [$port name]
                 incr inactive_count
             }
         }
@@ -450,13 +408,13 @@ namespace eval reclaim {
                 if {[llength $retstring] > 0} {
                     foreach i $retstring {
                         set port [lindex $inactive_ports $i]
-                        set name [lindex $port 0]
+                        set name [$port name]
 
                         ui_msg "Uninstalling: $name"
 
                         # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
                         try -pass_signal {
-                            registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}
+                            registry_uninstall::uninstall $name [$port version] [$port revision] [$port variants] {}
                         } catch {{*} eCode eMessage} {
                             ui_error "Error uninstalling $name: $eMessage"
                         }
