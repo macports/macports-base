@@ -373,6 +373,49 @@ namespace eval reclaim {
         }
     }
 
+    proc sort_portlist_by_dependendents {portlist} {
+        # Sorts a list of port references such that dependents appear before
+        # the ports they depend on.
+        #
+        # Args:
+        #       portlist - the list of port references
+        #
+        # Returns:
+        #       the list in dependency-sorted order
+
+        foreach port $portlist {
+            set portname [$port name]
+            lappend ports_for_name($portname) $port
+            if {![info exists dependents($portname)]} {
+                set dependents($portname) {}
+                foreach result [$port dependents] {
+                    lappend dependents($portname) [$result name]
+                }
+            }
+        }
+        set ret {}
+        foreach port $portlist {
+            sortdependents_helper $port ports_for_name dependents seen ret
+        }
+        return $ret
+    }
+
+    proc sortdependents_helper {port up_ports_for_name up_dependents up_seen up_retlist} {
+        upvar 1 $up_seen seen
+        if {![info exists seen($port)]} {
+            set seen($port) 1
+            upvar 1 $up_ports_for_name ports_for_name $up_dependents dependents $up_retlist retlist
+            foreach dependent $dependents([$port name]) {
+                if {[info exists ports_for_name($dependent)]} {
+                    foreach entry $ports_for_name($dependent) {
+                        sortdependents_helper $entry ports_for_name dependents seen retlist
+                    }
+                }
+            }
+            lappend retlist $port
+        }
+    }
+
     proc uninstall_inactive {} {
 
         # Attempts to uninstall all inactive ports. (Performance is now O(N)!)
@@ -391,9 +434,13 @@ namespace eval reclaim {
         foreach port [registry::entry imaged] {
             if {[$port state] eq "imaged"} {
                 lappend inactive_ports $port
-                lappend inactive_names [$port name]
                 incr inactive_count
             }
+        }
+
+        set inactive_ports [sort_portlist_by_dependendents $inactive_ports]
+        foreach port $inactive_ports {
+            lappend inactive_names "[$port name] @[$port version]_[$port revision][$port variants]"
         }
 
         if { $inactive_count == 0 } {
@@ -401,20 +448,20 @@ namespace eval reclaim {
 
         } else {
 
-            ui_msg "Found inactive ports: $inactive_names."
+            ui_msg "Found inactive ports: [join $inactive_names {, }]."
             if {[info exists macports::ui_options(questions_multichoice)]} {
                 set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these ports?" "" $inactive_names]
 
                 if {[llength $retstring] > 0} {
                     foreach i $retstring {
                         set port [lindex $inactive_ports $i]
-                        set name [$port name]
+                        set name [lindex $inactive_names $i]
 
                         ui_msg "Uninstalling: $name"
 
                         # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
                         try -pass_signal {
-                            registry_uninstall::uninstall $name [$port version] [$port revision] [$port variants] {}
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {}
                         } catch {{*} eCode eMessage} {
                             ui_error "Error uninstalling $name: $eMessage"
                         }
