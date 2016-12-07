@@ -80,17 +80,14 @@ if {$test_name ne ""} {
 
     foreach test $test_suite {
         set result [exec -ignorestderr $tcl $test {*}$arguments]
-        set lastline [lindex [split $result "\n"] end]
-
-        if {[lrange [split $lastline "\t"] 1 1] ne "Total"} {
-            if {[lrange [split $lastline "\t"] 1 1] eq ""} {
-                set lastline [lindex [split $result "\n"] 0]
-                set errmsg [lindex [split $result "\n"] 2]
-            } else {
-                set lastline [lindex [split $result "\n"] end-2]
-                set errmsg [lindex [split $result "\n"] end]
-            }
+        set lines [split $result "\n"]
+        set lastline [lindex $lines end]
+        set i 0
+        while {[lindex [split $lastline "\t"] 1] ne "Total"} {
+            incr i
+            set lastline [lindex $lines end-$i]
         }
+        set errmsgs [lrange $lines end-[expr {$i-2}] end]
 
         set splitresult [split $lastline "\t"]
         set total [lindex $splitresult 2]
@@ -125,12 +122,14 @@ if {$test_name ne ""} {
             append out "Total:" $total " Passed:" $pass " Failed:" $fail " Skipped:" $skip "  " $test
         }
 
-        # Print results and constrints for auto-skipped tests.
+        # Print results and constraints for auto-skipped tests.
         puts $out
         if {$skip != 0} {
-            set out "    Constraint: "
-            append out [string trim $errmsg "\t {}"]
-            puts $out
+            foreach errmsg $errmsgs {
+                set out "    Constraint: "
+                append out [string trim $errmsg "\t {}"]
+                puts $out
+            }
         }
         if {$fail != 0} {
             set end [expr {[string first $test $result 0] - 1}]
