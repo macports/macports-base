@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT\-RECLAIM" "1" "2016\-11\-06" "MacPorts 2\&.3\&.99" "MacPorts Manual"
+.TH "PORT\-RECLAIM" "1" "2016\-12\-07" "MacPorts 2\&.3\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -25,10 +25,24 @@ port-reclaim \- Reclaims disk space\&.
 .sp
 .nf
 \fBport\fR [\fB\-vd\fR] \fBreclaim\fR
+    [\-\-enable\-reminders] [\-\-disable\-reminders]
 .fi
 .SH "DESCRIPTION"
 .sp
 \fBport reclaim\fR will reclaim disk space by uninstalling inactive ports on your system, and removing unneeded or unused installation files\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-enable\-reminders\fR
+.RS 4
+Enable regular reminders to run
+\fBport reclaim\fR\&. Using this option will only update the configuration; the reclaim process will not be run\&.
+.RE
+.PP
+\fB\-\-disable\-reminders\fR
+.RS 4
+Disable reminders to run
+\fBport reclaim\fR\&. Using this option will only update the configuration; the reclaim process will not be run\&.
+.RE
 .SH "GLOBAL OPTIONS"
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
