@@ -16,7 +16,7 @@ long_description	gcc_select lets you switch the default compiler. \
 			in the MacPorts prefix to the selected version.
 
 homepage		http://svn.macports.org/repository/macports/contrib/select/
-master_sites		${homepage}
+master_sites		http://downloads.sourceforge.net/project/macports/distfiles/select
 distname		select-${version}
 checksums		sha1 18e1f95c2ddd88210aa52eb696261859af2dc3a4
 
