@@ -2674,6 +2674,9 @@ proc action_select { action portlist opts } {
 
 proc action_selfupdate { action portlist opts } {
     global global_options
+    if {[prefix_unwritable]} {
+        return 1
+    }
     if { [catch {macports::selfupdate [array get global_options] base_updated} result ] } {
         global errorInfo
         ui_debug "$errorInfo"
