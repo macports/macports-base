@@ -5707,14 +5707,44 @@ set global_options_base [array get global_options]
 # First process any remaining args as action(s)
 set exit_status 0
 if { [llength $remaining_args] > 0 } {
-
-    # If there are remaining arguments, process those as a command
-    set exit_status [process_cmd $remaining_args]
+    try {
+        # If there are remaining arguments, process those as a command
+        set exit_status [process_cmd $remaining_args]
+    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+        ui_debug "process_cmd aborted: $::errorInfo"
+        ui_error [msgcat::mc "Aborted: SIGINT received."]
+        set exit_status 2
+        set aborted_by_signal yes
+    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+        ui_debug "process_cmd aborted: $::errorInfo"
+        ui_error [msgcat::mc "Aborted: SIGTERM received."]
+        set exit_status 2
+        set aborted_by_signal yes
+    } catch {{*} eCode eMessage} {
+        ui_debug "process_cmd failed: $::errorInfo"
+        ui_error [msgcat::mc "process_cmd failed: %s" $eMessage]
+        set exit_status 1
+    }
 }
 
 # Process any prescribed command files, including standard input
-if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exists ui_options(ports_commandfiles)] } {
-    set exit_status [process_command_files $ui_options(ports_commandfiles)]
+if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exists ui_options(ports_commandfiles)]
+        && ![info exists aborted_by_signal]} {
+    try {
+        set exit_status [process_command_files $ui_options(ports_commandfiles)]
+    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+        ui_debug "process_command_files aborted: $::errorInfo"
+        ui_error [msgcat::mc "Aborted: SIGINT received."]
+        set exit_status 2
+    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+        ui_debug "process_command_files aborted: $::errorInfo"
+        ui_error [msgcat::mc "Aborted: SIGTERM received."]
+        set exit_status 2
+    } catch {{*} eCode eMessage} {
+        ui_debug "process_command_files failed: $::errorInfo"
+        ui_error [msgcat::mc "process_command_files failed: %s" $eMessage]
+        set exit_status 1
+    }
 }
 if {$exit_status == -999} {
     set exit_status 0
