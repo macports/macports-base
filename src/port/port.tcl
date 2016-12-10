@@ -2771,6 +2771,9 @@ proc action_upgrade { action portlist opts } {
 }
 
 proc action_revupgrade { action portlist opts } {
+    if {$macports::revupgrade_mode eq "rebuild" && [prefix_unwritable]} {
+        return 1
+    }
     set status [macports::revupgrade $opts]
     switch $status {
         1 {
