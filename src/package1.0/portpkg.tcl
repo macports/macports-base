@@ -58,23 +58,29 @@ default pkg.asroot no
 set_ui_prefix
 
 proc portpkg::pkg_start {args} {
-    global packagemaker_path portpkg::packagemaker \
+    global packagemaker_path portpkg::packagemaker portpkg::pkgbuild \
            portpkg::language xcodeversion portpath porturl \
            package.resources package.scripts package.flat \
            subport epoch version revision description long_description \
            homepage workpath os.major
 
-    if {![info exists packagemaker_path]} {
-        if {[vercmp $xcodeversion 4.3] >= 0} {
-            set packagemaker_path /Applications/PackageMaker.app
-            if {![file exists $packagemaker_path]} {
-                ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
-            }
-        } else {
-            set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
-        }
+    if {[catch {findBinary pkgbuild /usr/bin/pkgbuild} pkgbuild]} {
+        set pkgbuild ""
     }
-    set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
+    if {$pkgbuild eq "" || !${package.flat}} {
+        # can't use pkgbuild, so fall back to PackageMaker
+        if {![info exists packagemaker_path]} {
+            if {[vercmp $xcodeversion 4.3] >= 0} {
+                set packagemaker_path /Applications/PackageMaker.app
+                if {![file exists $packagemaker_path]} {
+                    ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
+                }
+            } else {
+                set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
+            }
+        }
+        set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
+    }
 
     set language "English"
     file mkdir "${package.resources}/${language}.lproj"
@@ -112,7 +118,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description \
     package.flat package.destpath portpath os.version os.major \
     package.resources package.scripts portpkg::packagemaker \
-    pkg_post_unarchive_deletions portpkg::language
+    pkg_post_unarchive_deletions portpkg::language portpkg::pkgbuild
 
     set portepoch_namestr ""
     if {${portepoch} != 0} {
@@ -150,9 +156,8 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         }
     }
 
-    if ([file exists "$packagemaker"]) {
-
-        ui_debug "Calling $packagemaker for $portname pkg"
+    set using_pkgbuild [expr {$pkgbuild ne "" && ${package.flat}}]
+    if {$using_pkgbuild || [file exists "$packagemaker"]} {
         if {${os.major} >= 9} {
             if {${package.flat}} {
                 set pkgtarget "10.5"
@@ -165,11 +170,19 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
                 set infofile "${workpath}/Info.plist"
                 write_info_plist $infofile $portname $portversion $portrevision
             }
-            set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            if {$using_pkgbuild} {
+                set cmdline "$pkgbuild --root ${destpath} ${pkgresources} --info $infofile --install-location / --identifier org.macports.$portname"
+            } else {
+                set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            }
             if {${os.major} >= 10} {
                 set v [mp_version_to_apple_version $portepoch $portversion $portrevision]
                 append cmdline " --version $v"
-                append cmdline " --no-relocate"
+                if {!$using_pkgbuild} {
+                    append cmdline " --no-relocate"
+                } else {
+                    append cmdline " ${pkgpath}"
+                }
             } else {
                 # 10.5 Leopard does not use current language, manually specify
                 append cmdline " -AppleLanguages \"(${language})\""
