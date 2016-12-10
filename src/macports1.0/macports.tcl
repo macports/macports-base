@@ -633,6 +633,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # a Tcl error, which can be caught, if necessary.
     signal -restart error {TERM INT}
 
+    # Set RLIMIT_NOFILE to the maximum possible
+    set_max_open_files
+
     # set up platform info variables
     set os_arch $tcl_platform(machine)
     if {$os_arch eq "Power Macintosh"} {set os_arch "powerpc"}

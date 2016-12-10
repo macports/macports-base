@@ -40,7 +40,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#include <limits.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -52,7 +51,6 @@
 #if HAVE_SYS_EVENT_H
 #include <sys/event.h>
 #endif
-#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -649,26 +647,9 @@ static void dep_check(int sock, char *path) {
 
 static int TracelibOpenSocketCmd(Tcl_Interp *in) {
     struct sockaddr_un sun;
-    struct rlimit rl;
 
     if (-1 == (sock = socket(PF_LOCAL, SOCK_STREAM, 0))) {
         return error2tcl("socket: ", errno, in);
-    }
-
-    /* raise the limit of open files to the maximum from the default soft limit
-     * of 256 */
-    if (getrlimit(RLIMIT_NOFILE, &rl) == -1) {
-        ui_warn(interp, "getrlimit failed (%d), skipping setrlimit", errno);
-    } else {
-#ifdef OPEN_MAX
-        if (rl.rlim_max > OPEN_MAX) {
-            rl.rlim_max = OPEN_MAX;
-        }
-#endif
-        rl.rlim_cur = rl.rlim_max;
-        if (setrlimit(RLIMIT_NOFILE, &rl) == -1) {
-            ui_warn(interp, "setrlimit failed (%d)", errno);
-        }
     }
 
     sun.sun_family = AF_UNIX;
