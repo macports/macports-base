@@ -349,7 +349,7 @@ proc portlint::lint_main {args} {
            lint_required lint_optional replaced_by conflicts
     set portarch [get_canonical_archs]
 
-    if (!$seen_portsystem) {
+    if {!$seen_portsystem} {
         ui_error "Didn't find PortSystem specification"
         incr errors
     }  elseif {$portsystem != $lint_portsystem} {
@@ -359,7 +359,7 @@ proc portlint::lint_main {args} {
         ui_info "OK: Found PortSystem $portsystem"
     }
 
-    if ($seen_portgroup) {
+    if {$seen_portgroup} {
         # Using a PortGroup is optional
         foreach {portgroup portgroupversion} [array get portgroups] {
             if {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {

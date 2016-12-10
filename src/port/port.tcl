@@ -337,10 +337,10 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
     # specified as overrides
     foreach portentry $ports {
         array set port $portentry
-        if ([info exists overrides(version)])   { set port(version) $overrides(version) }
-        if ([info exists overrides(variants)])  { set port(variants) $overrides(variants) }
-        if ([info exists overrides(requested_variants)])  { set port(requested_variants) $overrides(requested_variants) }
-        if ([info exists overrides(options)])   { set port(options) $overrides(options) }
+        if {[info exists overrides(version)]}   { set port(version) $overrides(version) }
+        if {[info exists overrides(variants)]}  { set port(variants) $overrides(variants) }
+        if {[info exists overrides(requested_variants)]}  { set port(requested_variants) $overrides(requested_variants) }
+        if {[info exists overrides(options)]}   { set port(options) $overrides(options) }
         add_to_portlist portlist [array get port]
     }
 }

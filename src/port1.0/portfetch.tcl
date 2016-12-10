@@ -311,10 +311,10 @@ proc portfetch::bzrfetch {args} {
             return -code error [msgcat::mc "Bazaar checkout failed"]
         }
     } finally {
-        if ([info exists orig_http_proxy]) {
+        if {[info exists orig_http_proxy]} {
             set env(http_proxy) ${orig_http_proxy}
         }
-        if ([info exists orig_https_proxy]) {
+        if {[info exists orig_https_proxy]} {
             set env(HTTPS_PROXY) ${orig_https_proxy}
         }
     }
