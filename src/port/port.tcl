@@ -3610,7 +3610,7 @@ proc action_variants { action portlist opts } {
                 }
 
                 if {[info exists vdescription]} {
-                    puts [wraplabel "$varmodifier$v" [string trim $vdescription] 0 [string repeat " " [expr 5 + [string length $v]]]]
+                    puts [wraplabel "$varmodifier$v" [string trim $vdescription] 0 [string repeat " " [expr {5 + [string length $v]}]]]
                 } else {
                     puts "$varmodifier$v"
                 }
@@ -4835,9 +4835,8 @@ proc process_command_file { in } {
     global current_portdir
 
     # Initialize readline
-    set isstdin [string match $in "stdin"]
-    set name "port"
-    set use_readline [expr {$isstdin && [readline init $name]}]
+    set isstdin [expr {$in eq "stdin"}]
+    set use_readline [expr {$isstdin && [readline init "port"]}]
     set history_file [file normalize "${macports::macports_user_dir}/history"]
 
     # Read readline history
@@ -4847,7 +4846,7 @@ proc process_command_file { in } {
     }
 
     # Be noisy, if appropriate
-    set noisy [expr $isstdin && ![macports::ui_isset ports_quiet]]
+    set noisy [expr {$isstdin && ![macports::ui_isset ports_quiet]}]
     if { $noisy } {
         puts "MacPorts [macports::version]"
         puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
