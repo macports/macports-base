@@ -4807,7 +4807,11 @@ proc get_next_cmdline { in out use_readline prompt linename } {
 
     set line ""
     while { $line eq "" } {
-
+        # Don't restart syscalls interrupted by signals while potentially
+        # blocking on user input. Unfortunately, readline seems to try
+        # again when syscalls fail with EINTR, so ctrl-c will not
+        # actually raise an error until after the line is read.
+        signal error {TERM INT}
         if {$use_readline} {
             set len [readline read -attempted_completion attempt_completion line $prompt]
         } else {
@@ -4815,7 +4819,8 @@ proc get_next_cmdline { in out use_readline prompt linename } {
             flush $out
             set len [gets $in line]
         }
-
+        # Re-enable syscall restarting
+        signal -restart error {TERM INT}
         if { $len < 0 } {
             return -1
         }
