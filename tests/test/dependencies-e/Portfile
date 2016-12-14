@@ -1,6 +1,5 @@
-# $Id$
-
 PortSystem 1.0
+
 name		dependencies-e
 version		1
 categories	test

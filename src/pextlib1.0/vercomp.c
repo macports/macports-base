@@ -1,6 +1,5 @@
 /*
  * vercomp.c
- * $Id$
  * version comparison
  *
  * Author: Landon Fuller <landonf@macports.org>

@@ -1,6 +1,5 @@
 /*
  * md_wrappers.h
- * $Id$
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.

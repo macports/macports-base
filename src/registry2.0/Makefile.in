@@ -1,4 +1,3 @@
-# $Id$
 
 srcdir = @srcdir@
 VPATH  = @srcdir@

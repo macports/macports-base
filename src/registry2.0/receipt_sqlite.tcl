@@ -1,5 +1,4 @@
 # receipt_sqlite.tcl
-# $Id$
 #
 # Copyright (c) 2010-2011 The MacPorts Project
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>

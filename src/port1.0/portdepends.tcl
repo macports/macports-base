@@ -1,6 +1,5 @@
 # et:ts=4
 # portdepends.tcl
-# $Id$
 #
 # Copyright (c) 2005, 2007-2009 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.

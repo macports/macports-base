@@ -1,6 +1,5 @@
 # et:ts=4
 # registry_util.tcl
-# $Id$
 #
 # Copyright (c) 2007 Chris Pickel
 # Copyright (c) 2010-2011 The MacPorts Project

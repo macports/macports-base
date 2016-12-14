@@ -1,6 +1,5 @@
 # et:ts=4
 # portpatch.tcl
-# $Id$
 #
 # Copyright (c) 2004, 2006-2007, 2009-2011 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.

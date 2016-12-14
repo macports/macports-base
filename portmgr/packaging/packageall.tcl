@@ -1,6 +1,5 @@
 #!/usr/bin/env tclsh
 # packageall.tcl
-# $Id$
 #
 # Copyright (c) 2009-2011 The MacPorts Project
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>

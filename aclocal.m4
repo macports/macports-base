@@ -1,4 +1,3 @@
-dnl $Id$
 builtin(include,m4/tcl.m4)
 builtin(include,m4/pthread.m4)
 builtin(include,m4/foundation.m4)

@@ -1,7 +1,6 @@
 /*
  * fileobj.c
  * vim:tw=80:expandtab
- * $Id$
  *
  * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.

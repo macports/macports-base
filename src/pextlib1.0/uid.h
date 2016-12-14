@@ -1,6 +1,5 @@
 /*
  * uid.h
- * $Id$
  *
  * Copyright (c) 2005, The MacPorts Project.
  * All rights reserved.

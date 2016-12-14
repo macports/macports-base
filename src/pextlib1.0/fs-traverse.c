@@ -1,6 +1,5 @@
 /*
  * fs-traverse.c
- * $Id$
  *
  * Find files and execute arbitrary expressions on them.
  * Author: Jordan K. Hubbard, Kevin Ballard, Rainer Mueller

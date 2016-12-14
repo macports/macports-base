@@ -1,6 +1,5 @@
 # et:ts=4
 # portinstall.tcl
-# $Id$
 #
 # Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>

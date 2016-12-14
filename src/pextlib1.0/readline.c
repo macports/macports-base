@@ -4,8 +4,6 @@
  * Some basic readline support callable from Tcl
  * By James D. Berry <jberry@macports.org> 10/27/05
  *
- * $Id$
- *
  */
 
 #ifdef HAVE_CONFIG_H

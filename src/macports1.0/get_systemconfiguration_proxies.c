@@ -1,6 +1,5 @@
 /*
  * get_systemconfiguration_proxies.c
- * $Id$
  *
  * Copyright (c) 2008-2009, The MacPorts Project.
  * All rights reserved.

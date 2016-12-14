@@ -1,6 +1,5 @@
 /*	$OpenBSD: rmd160.c,v 1.4 2003/12/14 11:22:35 markus Exp $	*/
 /*
- * $Id$
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -1,6 +1,5 @@
 /*
  * sql.c
- * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * Copyright (c) 2012, 2014 The MacPorts Project

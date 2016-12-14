@@ -1,6 +1,5 @@
 /*
  * registry.c
- * $Id$
  * vim:expandtab:tw=80
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>

@@ -30,8 +30,6 @@
 # SUCH DAMAGE.
 #
 # postflight
-# $Id$
-
 
 #set -x
 

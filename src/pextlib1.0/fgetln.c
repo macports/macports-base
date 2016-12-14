@@ -1,7 +1,6 @@
 /*	$NetBSD: fgetln.c,v 1.3 2002/01/31 19:23:14 tv Exp $	*/
 
 /*
- * $Id$
  * Copyright 1999 Luke Mewburn <lukem@netbsd.org>.
  * All rights reserved.
  *

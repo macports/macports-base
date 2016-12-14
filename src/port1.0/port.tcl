@@ -1,6 +1,5 @@
 # et:ts=4
 # port.tcl
-# $Id$
 #
 # Copyright (c) 2002 Apple Inc.
 # All rights reserved.

@@ -1,4 +1,3 @@
-# $Id$
 # vim:ts=8:noet:sts=8:sw=8
 
 SHELL			= @SHELL@

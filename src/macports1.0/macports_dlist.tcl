@@ -1,5 +1,4 @@
 # macports1.0/macports_dlist.tcl
-# $Id$
 #
 # Copyright (c) 2004-2005, 2007, 2009, 2011 The MacPorts Project
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>

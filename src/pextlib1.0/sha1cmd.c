@@ -1,6 +1,5 @@
 /*
  * sha1cmd.c
- * $Id$
  * Copied from md5cmd.c 20040903 EH
  *
  * Copyright (c) 2004 - 2005, 2009 - 2011 The MacPorts Project

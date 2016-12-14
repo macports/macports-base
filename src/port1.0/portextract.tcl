@@ -1,6 +1,5 @@
 # et:ts=4
 # portextract.tcl
-# $Id$
 #
 # Copyright (c) 2005, 2007-2011, 2013 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.

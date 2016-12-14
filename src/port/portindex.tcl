@@ -2,7 +2,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id$
 
 package require macports
 package require Pextlib

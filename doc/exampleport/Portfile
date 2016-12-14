@@ -1,7 +1,5 @@
-# All ports must have the "svn:keywords : Id" and "svn:eol-style : native"
-# svn props set on them and start with a commented out Id tag, which
-# the server will expand:
-# $Id$
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# Ports should begin with a modeline giving editors hints about the file
 
 # Following that comes the PortSystem declaration:
 # PortSystem <version>
@@ -92,5 +90,3 @@ configure.args      --mandir=${prefix}/share/man
 
 # Alternative ways to build the port, packed as 'variants'
 variant puredarwin { depends_run bin:perl:perl5.8 }
-
-

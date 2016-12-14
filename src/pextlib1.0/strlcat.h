@@ -1,4 +1,3 @@
-/* $Id$ */
 #ifdef HAVE_STRLCAT
 #include <string.h>
 #else
