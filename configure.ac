@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.63)
 AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(<config/macports_version tr -d '\n')])
-AC_INIT([MacPorts],MACPORTS_VERSION_MACRO,[macports-dev@lists.macosforge.org],[macports])
+AC_INIT([MacPorts],MACPORTS_VERSION_MACRO,[macports-dev@lists.macports.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 
@@ -32,11 +32,11 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-3]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-4]]|10.11.[[0-5]]|10.12.[[0-1]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*)
+  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*|10.11*|10.12*)
     dnl Supported version
     ;;
   *)
@@ -86,7 +86,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*|4.*|5.*|6.*)
+  2.*|3.*|4.*|5.*|6.*|7.*|8.*)
     dnl Supported version
     ;;
   *)
