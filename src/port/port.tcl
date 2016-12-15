@@ -2784,8 +2784,7 @@ proc action_reclaim { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    macports::reclaim_main $opts
-    return 0
+    return [macports::reclaim_main $opts]
 }
 
 
