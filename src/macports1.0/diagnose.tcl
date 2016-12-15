@@ -52,7 +52,7 @@
 # Check for all files installed by ports exists
 # Check for archives from all ports exists
 # Check for things in /usr/local
-# Check for x11.app if the OS is 10.6 and suggest installing xorg-server or the site on macosforge
+# Check for x11.app if the OS is 10.6 and suggest installing xorg-server or the xquartz site
 # Add error catching for line's without an equals sign. 
 # Support comments for the parser
 # Check for amount of drive space
@@ -510,7 +510,7 @@ namespace eval diagnose {
             if {[file exists /Applications/X11.app]} {
                 ui_error "it seems you have Mac OS X 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \
                          To fix this, please install xorg-server, by using the command 'sudo port install xorg-server', or installing it from \
-                         their website, http://xquartz.macosforge.org/trac/wiki/Releases."
+                         their website, https://www.xquartz.org/releases/."
 
                 success_fail 0
                 return
