@@ -158,7 +158,7 @@ namespace eval reclaim {
             set progress noop
         }
 
-        ui_msg "$macports::ui_prefix Building list of files still in use"
+        ui_msg "$macports::ui_prefix Building list of distfiles still in use"
         set installed_ports [registry::entry imaged]
         set port_count [llength $installed_ports]
         set i 1
@@ -205,7 +205,7 @@ namespace eval reclaim {
 
         $progress finish
 
-        ui_msg "$macports::ui_prefix Searching for unused files"
+        ui_msg "$macports::ui_prefix Searching for unused distfiles"
 
         # sort so we can use binary search in walk_files
         set files_in_use [lsort -unique $files_in_use]
@@ -428,7 +428,7 @@ namespace eval reclaim {
         set inactive_names  [list]
         set inactive_count  0
 
-        ui_debug "Iterating through all inactive ports."
+        ui_msg "$macports::ui_prefix Checking for inactive ports"
 
         foreach port [registry::entry imaged] {
             if {[$port state] eq "imaged"} {
