@@ -81,6 +81,7 @@ recursive dependencies or dependents of the given portname:
 [options="compact"]
     - 'depof'
     - 'rdepof'
+    - 'rdepends'
     - 'dependentof'
     - 'rdependentof'
 

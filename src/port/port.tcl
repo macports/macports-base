@@ -108,9 +108,9 @@ about the ports. In all such cases, a standard regex pattern following
 the colon will be used to select the set of ports to which the
 pseudo-portname expands.
 
-Pseudo-portnames starting with depof:, rdepof:, dependentof:, and rdependentof:
-select ports that are direct or recursive dependencies or dependents of the
-following portname, respectively.
+Pseudo-portnames starting with depof:, rdepof:, rdepends:, dependentof:, and
+rdependentof: select ports that are direct or recursive dependencies or
+dependents of the following portname, respectively.
 
 Portnames that contain standard glob characters will be expanded to the
 set of ports matching the glob pattern.
@@ -979,6 +979,45 @@ proc get_dependent_ports {portname recursive} {
 }
 
 
+proc get_rdepends_ports {portname} {
+    if {![info exists ::portDependenciesArray]} {
+        # make an associative array of all the port names and their (reverse) dependencies
+        # much faster to build this once than to call mportsearch thousands of times
+        set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
+        foreach {pname pinfolist} [mportlistall] {
+            array unset pinfo
+            array set pinfo $pinfolist
+            foreach dtype $deptypes {
+                if {[info exists pinfo($dtype)]} {
+                    foreach depspec $pinfo($dtype) {
+                        lappend ::portDependenciesArray([string tolower [lindex [split $depspec :] end]]) $pname
+                    }
+                }
+            }
+        }
+    }
+
+    set results {}
+    set portList [list [string tolower $portname]]
+    while {[llength $portList] > 0} {
+        set aPort [lindex $portList 0]
+        set portList [lreplace $portList 0 0]
+        if {[info exists ::portDependenciesArray($aPort)]} {
+            foreach possiblyNewPort $::portDependenciesArray($aPort) {
+                set lcport [string tolower $possiblyNewPort]
+                if {![info exists seen($lcport)]} {
+                    set seen($lcport) 1
+                    lappend portList $lcport
+                    add_to_portlist results [list name $possiblyNewPort]
+                }
+            }
+        }
+    }
+
+    return [portlist_sort $results]
+}
+
+
 proc get_dep_ports {portname recursive} {
     global global_variations
 
@@ -1321,7 +1360,6 @@ proc element { resname } {
         ^(depends):(.*)     { # A port selector shorthand for depends_{lib,build,run,fetch,extract}
             advance
 
-            set field [lindex $matchvar 1]
             set pat [lindex $matchvar 2]
 
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_lib"]
@@ -1330,6 +1368,16 @@ proc element { resname } {
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_extract"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_fetch"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_test"]
+
+            set el 1
+        }
+
+        ^(rdepends):(.*) {
+            advance
+
+            set portname [lindex $matchvar 2]
+
+            add_multiple_ports reslist [get_rdepends_ports $portname]
 
             set el 1
         }
