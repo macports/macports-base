@@ -11,12 +11,6 @@ Release 2.4 (unreleased)
       configuration errors, developed during GSoC 2014.
       (ksammons in branch gsoc14-cleanup)
 
-    - Show date in verbose output of 'port installed'
-      (raimue in r146757, r152685)
-
-    - Add depends_test to handle the dependencies for the test phase of ports.
-      (khindenburg in r140488, #38208)
-
     - Replaced the strings previously printed by "port help" with much more
       detailed and current manpages written using asciidoc that open
       automatically. Added documentation for almost all commands currently
@@ -24,13 +18,6 @@ Release 2.4 (unreleased)
       (raimue in branch new-help-system, merge in r123002,
        manpages written by cal, jmr, raimue, ionic, jeremyhu,
        #44530, #15467)
-
-    - Added macports_version to the Portfile execution context, to allow
-      checking the current MacPorts version in Portfiles.
-      (cal in r134511)
-
-    - Added "setunrequested" alias for "unsetrequested" command.
-      (ionic in r130217)
 
     - Added interactive questions for various use cases like 'install',
       'activate', 'uninstall --follow-dependencies'. Also added global
@@ -41,10 +28,23 @@ Release 2.4 (unreleased)
       installation to prevent them from getting lost in the scrolling output.
       (#24507, cal in r118304, patch by snc)
 
+    - Show date in verbose output of 'port installed'
+      (raimue in r146757, r152685)
+
+    - Added "setunrequested" alias for "unsetrequested" command.
+      (ionic in r130217)
+
     - Handle SIGTERM and SIGINT (^C) in MacPorts to prevent inconsistencies in
       the registry database when MacPorts is aborted during a critical
       operation.
       (cal in r118297 and r118298)
+
+    - Added macports_version to the Portfile execution context, to allow
+      checking the current MacPorts version in Portfiles.
+      (cal in r134511)
+
+    - Add depends_test to handle the dependencies for the test phase of ports.
+      (khindenburg in r140488, #38208)
 
     - Remove "support" for rpm and deb packages in MacPorts, leaving pkg/mpkg.
       (afb in r123004)
