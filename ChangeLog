@@ -44,6 +44,9 @@ Release 2.4 (unreleased)
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
 
+    - Use pkgbuild instead of PackageMaker.app in 'port pkg' on newer systems.
+      (#42725, jmr in dd89bb8)
+
 Release 2.3.6 (2016-12-?? by ?)
     - Fix 'port info' output for multi-valued maintainers
       (#52928)
