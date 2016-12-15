@@ -1,7 +1,7 @@
 # et:ts=4
 # portdistcheck.tcl
 #
-# Copyright (c) 2007-2011 The MacPorts Project
+# Copyright (c) 2007-2011, 2014, 2016 The MacPorts Project
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #

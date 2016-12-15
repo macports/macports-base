@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portlivecheck.tcl
 #
-# Copyright (c) 2007-2011 The MacPorts Project
+# Copyright (c) 2007-2011, 2014, 2016 The MacPorts Project
 # Copyright (c) 2005-2007 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #

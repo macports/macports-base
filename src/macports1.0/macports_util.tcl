@@ -2,6 +2,7 @@
 # macports_util.tcl
 #
 # Copyright (c) 2007 Kevin Ballard <eridius@macports.org>
+# Copyright (c) 2016 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

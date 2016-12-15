@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
-# Copyright (c) 2006-2011 The MacPorts Project
+# Copyright (c) 2006 - 2012, 2014 - 2015 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

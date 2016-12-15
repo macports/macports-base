@@ -3,7 +3,7 @@
  * system.c
  *
  * Copyright (c) 2002 - 2003 Apple, Inc.
- * Copyright (c) 2008 - 2010, 2012 The MacPorts Project
+ * Copyright (c) 2008 - 2010, 2012, 2014 - 2016 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

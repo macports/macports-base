@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2014 The MacPorts Project
+# Copyright (c) 2004-2016 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

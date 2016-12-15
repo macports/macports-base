@@ -4,7 +4,7 @@
  * tracelib.c
  *
  * Copyright (c) 2007-2008 Eugene Pimenov (GSoC)
- * Copyright (c) 2008-2010, 2012-2013, 2014-2015 The MacPorts Project
+ * Copyright (c) 2008-2010, 2012-2015 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

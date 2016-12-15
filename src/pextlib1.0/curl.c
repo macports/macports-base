@@ -1,7 +1,8 @@
 /*
  * curl.c
  *
- * Copyright (c) 2005 Paul Guyot, The MacPorts Project.
+ * Copyright (c) 2005 Paul Guyot
+ * Copyright 2006-2011, 2013-2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
