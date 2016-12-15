@@ -5801,6 +5801,11 @@ if {$exit_status == -999} {
     set exit_status 0
 }
 
+# Check the last time 'reclaim' was run and run it
+if {$exit_status == 0} {
+    macports::reclaim_check_and_run
+}
+
 # shut down macports1.0
 mportshutdown
 

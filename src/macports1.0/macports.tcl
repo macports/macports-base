@@ -1250,11 +1250,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 # call this just before you exit
 proc mportshutdown {} {
-    # Check the last time 'reclaim' was run and run it
-    if {![macports::ui_isset ports_quiet]} {
-        reclaim::check_last_run
-    }
-
     # save ping times
     global macports::ping_cache macports::portdbpath
     if {[file writable $macports::portdbpath]} {
@@ -4372,6 +4367,33 @@ proc macports::diagnose_main {opts} {
     #           0 on successful execution.
 
     diagnose::main $opts
+    return 0
+}
+
+##
+# Run reclaim if necessary
+#
+# @return 0 on success, 1 if an exception occured during the execution
+#         of reclaim, 2 if the execution was aborted on user request.
+proc macports::reclaim_check_and_run {} {
+    if {[macports::ui_isset ports_quiet]} {
+        return 0
+    }
+
+    try {
+        reclaim::check_last_run
+    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+        ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
+        return 2
+    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+        ui_error [msgcat::mc "reclaim aborted: SIGTERM received."]
+        return 2
+    } catch {{*} eCode eMessage} {
+        ui_debug "reclaim failed: $::errorInfo"
+        ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
+        return 1
+    }
+
     return 0
 }
 
