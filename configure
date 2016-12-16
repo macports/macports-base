@@ -9646,10 +9646,10 @@ prefix=$oldprefix
 exec_prefix=$oldexec_prefix
 
 ## Tcl package
-tcl_version=8.5.18
+tcl_version=8.5.19
 tcl_thread_version=2.7.3
 tclx_version=8.4.1
-tcllib_version=1.17
+tcllib_version=1.18
 	mp_fn_var_prepend() {
 		eval "$1=\"$2\$$1\""
 	}
