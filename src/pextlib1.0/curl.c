@@ -696,7 +696,6 @@ int
 CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
@@ -933,7 +932,6 @@ int
 CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
@@ -1142,7 +1140,6 @@ int
 CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
