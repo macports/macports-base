@@ -518,7 +518,7 @@ proc portconfigure::get_compiler_fallback {} {
 
         if {${os.major} < 16} {
             # We dropped support for version older than 3.7 on Sierra+
-            lappend compilers macports-clang-3.6 macports-clang-3.5 macports-clang-3.4
+            lappend compilers macports-clang-3.4
         }
     } else {
         lappend compilers macports-clang-3.4 macports-clang-3.3
