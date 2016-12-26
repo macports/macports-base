@@ -521,7 +521,7 @@ proc portconfigure::get_compiler_fallback {} {
             lappend compilers macports-clang-3.4
         }
     } else {
-        lappend compilers macports-clang-3.4 macports-clang-3.3
+        lappend compilers macports-clang-3.4
     }
 
     # Determine if we have MacPorts-provided legacy gcc fallbacks
