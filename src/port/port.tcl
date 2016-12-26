@@ -1720,7 +1720,7 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
             # Look first for a variable setting: VARNAME=VALUE
             if {[regexp {^([[:alpha:]_]+[\w\.]*)=(.*)} $opt match key val] == 1} {
                 # It's a variable setting
-                set portoptions($key) "\"$val\""
+                set portoptions($key) $val
                 set opt ""
                 set consumed 1
             } elseif {[regexp {^([-+])([[:alpha:]_]+[\w\.]*)} $opt match sign variant] == 1} {
