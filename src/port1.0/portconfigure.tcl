@@ -515,18 +515,11 @@ proc portconfigure::get_compiler_fallback {} {
     if {${configure.cxx_stdlib} eq "libc++"} {
         # clang-3.5+ require libc++
         lappend compilers macports-clang-3.9 macports-clang-3.8 macports-clang-3.7
-
-        if {${os.major} < 16} {
-            # We dropped support for version older than 3.7 on Sierra+
-            lappend compilers macports-clang-3.4
-        }
-    } else {
-        lappend compilers macports-clang-3.4
     }
 
-    # Determine if we have MacPorts-provided legacy gcc fallbacks
     if {${os.major} < 16} {
-        lappend compilers macports-llvm-gcc-4.2 apple-gcc-4.2
+        # We dropped support for these compilers on Sierra
+        lappend compilers macports-clang-3.4 macports-llvm-gcc-4.2 apple-gcc-4.2
     }
 
     return $compilers
