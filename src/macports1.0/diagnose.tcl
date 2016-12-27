@@ -37,7 +37,7 @@
 # Done:
 # Add -q for quiet mode, where we don't print anything
 # Check for command line tools
-# Check for any DYLD_* environmental variables
+# Check for any DYLD_* environment variables
 # Check for '.la' in dylib and '.prl'
 # Check if installed files are readable
 # Check for sqlite
@@ -94,14 +94,14 @@ namespace eval diagnose {
                                     xcode_version_${macports::macosx_version} xcode_build]
 
         set user_config_path        "${macports::autoconf::macports_conf_path}/port_diagnose.ini"
-        set xcode_config_path       [macports::getdefaultportresourcepath "macports1.0/xcode_versions.ini"] 
+        set xcode_config_path       [macports::getdefaultportresourcepath "macports1.0/xcode_versions.ini"]
 
         # Make sure the xcode config exists
         check_xcode_config $xcode_config_path
 
         # Read the config files
         get_config config_options $parser_options $user_config_path
-        get_config config_options $parser_options $xcode_config_path 
+        get_config config_options $parser_options $xcode_config_path
         if {![info exists config_options(macports_location)]} {
             set config_options(macports_location) "${macports::prefix}"
         }
@@ -176,7 +176,7 @@ namespace eval diagnose {
 
     proc check_for_dyld {} {
 
-        # Checks to see if the current MacPorts session is running with a DYLD_* environmental
+        # Checks to see if the current MacPorts session is running with a DYLD_* environment
         # variable set.
         #
         # Args:
@@ -184,13 +184,13 @@ namespace eval diagnose {
         # Returns:
         #           None
 
-        output "DYLD_* environmental variables"
+        output "DYLD_* environment variables"
 
         set printenv        [exec printenv]
         set split           [split $printenv]
 
         if {[regexp {DYLD_.} $split]} {
-            ui_warn "found a DYLD_* environmental variable. These are known to cause issues with MacPorts. Please\
+            ui_warn "found a DYLD_* environment variable. These are known to cause issues with MacPorts. Please\
                      unset the variable for the duration MacPorts is running."
 
             success_fail 0
@@ -280,7 +280,7 @@ namespace eval diagnose {
             return
         }
 
-        success_fail 1 
+        success_fail 1
 
     }
 
@@ -303,7 +303,7 @@ namespace eval diagnose {
 
             success_fail 0
             return
-        } 
+        }
 
         success_fail 1
     }
@@ -443,7 +443,7 @@ namespace eval diagnose {
         foreach app $apps {
             set name [$app name]
             output "'${name} @[$app version]_[$app revision][$app variants]'s tarball on disk"
-    
+
             if {![file exists [$app location]]} {
                 ui_warn "couldn't find the archive for '$name'. Please uninstall and reinstall this port."
                 success_fail 0
@@ -597,7 +597,7 @@ namespace eval diagnose {
 
         output "correct Xcode version"
 
-        upvar $config_options config 
+        upvar $config_options config
 
         set mac_version     ${macports::macosx_version}
         set xcode_current   ${macports::xcodeversion}
@@ -646,13 +646,13 @@ namespace eval diagnose {
         #           parser_options - The list responsible for holding each option to set/look for in the configuration file.
         #           path           - The path to the correct config_file
         # Returns:
-        #           None. 
+        #           None.
 
         if {![file isfile $path]} {
             return
         }
 
-        upvar $config_options config 
+        upvar $config_options config
 
         set fd   [open $path r]
         set text [read $fd]
@@ -686,7 +686,7 @@ namespace eval diagnose {
 
     proc check_path {port_loc profile_path shell_loc} {
 
-        # Checks to see if port_location/bin and port_location/sbin are in the environmental $PATH variable.
+        # Checks to see if port_location/bin and port_location/sbin are in the $PATH environment variable.
         # If they aren't, it appends it to the correct shell's profile file.
         #
         # Args:
