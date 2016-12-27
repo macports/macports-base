@@ -39,7 +39,7 @@
 # Check for command line tools
 # Check for any DYLD_* environmental variables
 # Check for '.la' in dylib and '.prl'
-# Check if installed files are readable 
+# Check if installed files are readable
 # Check for sqlite
 # Check for openssl
 # Crowd-source more ideas from the mailing-list
@@ -53,32 +53,32 @@
 # Check for archives from all ports exists
 # Check for things in /usr/local
 # Check for x11.app if the OS is 10.6 and suggest installing xorg-server or the xquartz site
-# Add error catching for line's without an equals sign. 
+# Add error catching for line's without an equals sign.
 # Support comments for the parser
 # Check for amount of drive space
-# Move port_diagnose.ini to the port tree, below _resources 
+# Move port_diagnose.ini to the port tree, below _resources
 # Check for curl
 # Check for rsync
 # Check if macports is in /opt/local
 
 
-package provide diagnose 1.0 
+package provide diagnose 1.0
 
 package require macports
 package require reclaim 1.0
 
 namespace eval diagnose {
 
-    # Command line argument that determines whether or not to output things fancily. 
+    # Command line argument that determines whether or not to output things fancily.
     variable quiet 0
-    
+
     proc main {opts} {
-        
-        # The main function. Handles all the calls to the correct functions, and sets the config_options array, 
+
+        # The main function. Handles all the calls to the correct functions, and sets the config_options array,
         # as well as the parser_options array.
         #
         # Args:
-        #           opts - The options passed in. Currently the only option available is 'quiet'. 
+        #           opts - The options passed in. Currently the only option available is 'quiet'.
         # Returns:
         #           None
 
@@ -102,7 +102,7 @@ namespace eval diagnose {
         make_user_config  $user_config_path
 
         # Read the config files
-        get_config config_options $parser_options $user_config_path 
+        get_config config_options $parser_options $user_config_path
         get_config config_options $parser_options $xcode_config_path 
 
         # Start the checks
@@ -115,9 +115,9 @@ namespace eval diagnose {
         check_macports_location
         check_free_space
         check_for_x11
-        check_for_files_in_usr_local 
-        check_tarballs 
-        check_port_files 
+        check_for_files_in_usr_local
+        check_tarballs
+        check_port_files
         check_for_package_managers
         check_for_stray_developer_directory
         check_compilation_error_cache
@@ -169,7 +169,7 @@ namespace eval diagnose {
 
     proc check_for_dyld {} {
 
-        # Checks to see if the current MacPorts session is running with a DYLD_* environmental 
+        # Checks to see if the current MacPorts session is running with a DYLD_* environmental
         # variable set.
         #
         # Args:
@@ -194,11 +194,11 @@ namespace eval diagnose {
    }
 
     proc output {string} {
-        
+
         # Outputs the given string formatted correctly.
         #
         # Args:
-        #           string - The string to be output 
+        #           string - The string to be output
         # Returns:
         #           None
 
@@ -232,7 +232,7 @@ namespace eval diagnose {
 
         # Checks to see if the compiler can compile properly, or it throws the error, "couldn't create cache file".
         #
-        # Args: 
+        # Args:
         #           None
         # Returns:
         #           None
@@ -243,7 +243,7 @@ namespace eval diagnose {
 
         set filename    "test.c"
         set fd          [open $filename w]
-        
+
         puts $fd "int main() { return 0; }"
         close $fd
 
@@ -269,13 +269,13 @@ namespace eval diagnose {
         }
 
         success_fail 1 
-       
+
     }
 
     proc check_for_stray_developer_directory {} {
 
         # Checks to see if the script to remove leftover files from Xcode has been run or not. Implementation heavily influenced
-        # by Homebrew implementation. 
+        # by Homebrew implementation.
         #
         # Args:
         #           None
@@ -283,31 +283,31 @@ namespace eval diagnose {
         #           None
 
         output "stray developer directory"
-        
+
         set uninstaller "/Developer/Library/uninstall-developer-folder"
-        
-        if {${macports::xcodeversion} >= 4.3 && [file exists $uninstaller]} { 
+
+        if {${macports::xcodeversion} >= 4.3 && [file exists $uninstaller]} {
             ui_warn "you have leftover files from an older version of Xcode. You should delete them by using, $uninstaller"
 
-            success_fail 0 
+            success_fail 0
             return
         } 
 
-        success_fail 1 
+        success_fail 1
     }
 
     proc check_for_package_managers {} {
 
         # Checks to see if either Fink or Homebrew are installed on the system. If they are, it warns them and suggest they uninstall
         # or move them to a different location.
-        # 
+        #
         # Args:
         #           None
         # Returns:
         #           None
 
         output "HomeBrew"
-        
+
         if {[file exists "/usr/local/Cellar"]} {
             ui_warn "it seems you have Homebrew installed on this system -- Because Homebrew uses /usr/local, this can potentially cause issues \
                      with MacPorts. We'd recommend you either uninstall it, or move it from /usr/local for now."
@@ -325,7 +325,7 @@ namespace eval diagnose {
                      either uninstall it, or move it from /sw for now."
 
             success_fail 0
- 
+
         } else {
 
             success_fail 1
@@ -333,7 +333,7 @@ namespace eval diagnose {
     }
 
     proc check_port_files {} {
-        
+
         # Checks to see if each file installed by all active and installed ports actually exists on the filesystem. If not, it warns
         # the user and suggests the user deactivate and reactivate the port.
         #
@@ -423,7 +423,7 @@ namespace eval diagnose {
     proc check_tarballs {} {
 
         # Checks if the archives for each installed port in /opt/local/var/macports/software/$name is actually in there. If not, it warns
-        # the user and suggest a reinstallation of the port. 
+        # the user and suggest a reinstallation of the port.
         #
         # Args:
         #           None
@@ -457,11 +457,11 @@ namespace eval diagnose {
 
     proc check_for_files_in_usr_local {} {
 
-        # Checks for dylibs in /usr/local/lib and header files in /usr/local/include, and warns the user about said files if they 
+        # Checks for dylibs in /usr/local/lib and header files in /usr/local/include, and warns the user about said files if they
         # are found.
-        # 
+        #
         # Args:
-        #           None 
+        #           None
         # Returns:
         #           None
 
@@ -569,7 +569,7 @@ namespace eval diagnose {
 
     proc check_for_app {app} {
 
-        # Check's if the binary supplied exists in /usr/bin. If it doesn't, it warns the user. 
+        # Check's if the binary supplied exists in /usr/bin. If it doesn't, it warns the user.
         #
         # Args:
         #           app - The name of the app to check for.
@@ -580,7 +580,7 @@ namespace eval diagnose {
 
         if {[file exists /usr/bin/$app] == 0} {
             ui_error "$app is needed by MacPorts to function normally, but wasn't found on this system. We'd recommend \
-                      installing it for continued use of MacPorts." 
+                      installing it for continued use of MacPorts."
             success_fail 0
             return
         }
@@ -589,9 +589,9 @@ namespace eval diagnose {
     }
 
     proc check_xcode {config_options} {
-        
+
         # Checks to see if the currently installed version of Xcode works with the curent OS version.
-        # 
+        #
         # Args:
         #           config_options - The associative array containing all options in the config files
         # Returns:
@@ -602,13 +602,13 @@ namespace eval diagnose {
         upvar $config_options config 
 
         set mac_version     ${macports::macosx_version}
-        set xcode_current   ${macports::xcodeversion} 
+        set xcode_current   ${macports::xcodeversion}
         set xcode_versions  $config(xcode_version_$mac_version)
 
         if {$xcode_current in $xcode_versions} {
             success_fail 1
             return
-        
+
         } else {
             ui_error "currently installed version of Xcode, $xcode_current, is not supported by MacPorts. \
                       For your currently installed system, only the following versions of Xcode are supported: \
@@ -618,22 +618,22 @@ namespace eval diagnose {
     }
 
     proc make_xcode_config {path} {
-        
+
         # Checks to see if xcode_versions.ini exists. If it does, it returns. If it doesn't, then it creats a defult config file.
-        # 
-        # Args: 
+        #
+        # Args:
         #           None
         # Returns:
         #           None
 
         if {[file exists $path] == 0} {
-            ui_error "No configuration file found at $path. Please run, 
+            ui_error "No configuration file found at $path. Please run,
                         \"port selfupdate\""
             exit
-            
+
         }
     }
-     
+
     proc make_user_config {path} {
 
         # Builds a config file for the user using all default parameters if needed.
@@ -646,20 +646,20 @@ namespace eval diagnose {
         if {[file exists $path] == 0} {
 
             ui_warn "No configuration file found at $path. Creating generic config file."
-           
+
             set fd      [open $path w]
             puts $fd "macports_location=${macports::prefix}"
             puts $fd "profile_path=${macports::user_home}/.bash_profile"
             puts $fd "shell_location=/bin/bash"
-           
+
             close $fd
         }
    }
 
     proc get_config {config_options parser_options path} {
 
-        # Reads in and parses the configuration file passed in to $path. After parsing, all variables found are assigned 
-        # in the 'config_options' associative array. 
+        # Reads in and parses the configuration file passed in to $path. After parsing, all variables found are assigned
+        # in the 'config_options' associative array.
         #
         # Args:
         #           config_options - The associative array responsible for holding all the configuration options.
@@ -689,7 +689,7 @@ namespace eval diagnose {
             # Only care about things that are in $parser_options
             if {[lindex $tokens 0] in $parser_options} {
                 set config([lindex $tokens 0]) [lindex $tokens 1]
-            
+
             # Ignore whitespace
             } elseif {[lindex $tokens 0] eq ""} {
                 continue
@@ -746,7 +746,7 @@ namespace eval diagnose {
 
                 ui_msg "Added PATH properly. Please execute, 'source $profile_path' in a new terminal window."
 
-            } elseif {$input eq "n" || $input eq "N"} {    
+            } elseif {$input eq "n" || $input eq "N"} {
                 ui_msg "Not fixing your \$PATH variable."
 
             } else {
