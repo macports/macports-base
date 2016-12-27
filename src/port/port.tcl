@@ -2773,9 +2773,6 @@ proc action_setrequested { action portlist opts } {
 }
 
 proc action_diagnose { action portlist opts } {
-    if {[prefix_unwritable]} {
-        return 1
-    }
     macports::diagnose_main $opts
     return 0
 }
