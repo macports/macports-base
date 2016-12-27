@@ -34,22 +34,18 @@ proc init {} {
 }
 
 proc init_eval_targets {} {
-    global os_platform os_version os_arch macosx_version pwd
-    global version mport portpath portbuildpath
+    global os_platform os_version os_arch macosx_version pwd \
+           version mport portpath portbuildpath macports::portdbpath
 
     set os_platform darwin
     set macosx_version 10.8
     set os_version 11
     set os_arch i386
     set portpath .
-    set portbuildpath ./build
 
     # vars for target_run
-    global portdbpath usealtworkpath
-    set usealtworkpath no
     set portdbpath $pwd/
     set workpath $pwd/work
-    set altprefix ""
 
 
     set mport [mportopen file://.]
@@ -502,14 +498,14 @@ test eval_targets {
         return "FAIL: invalid target detected"
     }
     if {[$workername eval eval_targets checksum] != 0} {
+        puts $::errorInfo
         return "FAIL: valid target not detected"
     }
     return "Eval_targets successful."
 
 } -cleanup {
     mportclose $mport
-    file delete -force $filespath
-    file delete -force work
+    file delete -force $filespath ${pwd}/build ${pwd}/distfiles
 
 } -result "Eval_targets successful."
 

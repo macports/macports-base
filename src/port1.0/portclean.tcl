@@ -60,20 +60,15 @@ proc portclean::clean_start {args} {
 
 proc portclean::clean_main {args} {
     global UI_PREFIX ports_clean_dist ports_clean_work ports_clean_logs \
-           ports_clean_archive ports_clean_all keeplogs usealtworkpath
-
-    if {$usealtworkpath} {
-        ui_warn "Only cleaning in ~/.macports; insufficient privileges for standard locations"
-    }
+           ports_clean_archive ports_clean_all keeplogs
 
     if {[info exists ports_clean_all] && $ports_clean_all eq "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist eq "yes"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option subport]]"
         clean_dist
     }
-    if {([info exists ports_clean_all] && $ports_clean_all eq "yes" || \
-        [info exists ports_clean_archive] && $ports_clean_archive eq "yes")
-        && !$usealtworkpath} {
+    if {[info exists ports_clean_all] && $ports_clean_all eq "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive eq "yes"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing temporary archives for %s"] [option subport]]"
         clean_archive
     }
@@ -85,8 +80,7 @@ proc portclean::clean_main {args} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing work directory for %s"] [option subport]]"
          clean_work
     }
-    if {(([info exists ports_clean_logs] && $ports_clean_logs eq "yes") || ($keeplogs eq "no"))
-        && !$usealtworkpath} {
+    if {([info exists ports_clean_logs] && $ports_clean_logs eq "yes") || ($keeplogs eq "no")} {
         clean_logs
     }
 
@@ -98,7 +92,7 @@ proc portclean::clean_main {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global name ports_force distpath dist_subdir distfiles patchfiles usealtworkpath portdbpath altprefix
+    global name ports_force distpath dist_subdir distfiles patchfiles portdbpath
 
     # remove known distfiles for sure (if they exist)
     set count 0
@@ -109,14 +103,6 @@ proc portclean::clean_dist {args} {
         if {[file isfile $distfile]} {
             ui_debug "Removing file: $distfile"
             if {[catch {delete $distfile} result]} {
-                ui_debug "$::errorInfo"
-                ui_error "$result"
-            }
-            incr count
-        }
-        if {!$usealtworkpath && [file isfile ${altprefix}${distfile}]} {
-            ui_debug "Removing file: ${altprefix}${distfile}"
-            if {[catch {delete ${altprefix}${distfile}} result]} {
                 ui_debug "$::errorInfo"
                 ui_error "$result"
             }
@@ -140,14 +126,6 @@ proc portclean::clean_dist {args} {
         if {[file isfile $patchfile]} {
             ui_debug "Removing file: $patchfile"
             if {[catch {delete $patchfile} result]} {
-                ui_debug "$::errorInfo"
-                ui_error "$result"
-            }
-            incr count
-        }
-        if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
-            ui_debug "Removing file: ${altprefix}${patchfile}"
-            if {[catch {delete ${altprefix}${patchfile}} result]} {
                 ui_debug "$::errorInfo"
                 ui_error "$result"
             }
@@ -178,22 +156,10 @@ proc portclean::clean_dist {args} {
     # loop through directories
     set count 0
     foreach dir $dirlist {
-        if {$usealtworkpath} {
-            set distdir [file join ${altprefix}${portdbpath} distfiles $dir]
-        } else {
-            set distdir [file join ${portdbpath} distfiles $dir]
-        }
+        set distdir [file join ${portdbpath} distfiles $dir]
         if {[file isdirectory $distdir]} {
             ui_debug "Removing directory: ${distdir}"
             if {[catch {delete $distdir} result]} {
-                ui_debug "$::errorInfo"
-                ui_error "$result"
-            }
-            incr count
-        }
-        if {!$usealtworkpath && [file isdirectory ${altprefix}${distdir}]} {
-            ui_debug "Removing directory: ${altprefix}${distdir}"
-            if {[catch {delete ${altprefix}${distdir}} result]} {
                 ui_debug "$::errorInfo"
                 ui_error "$result"
             }
@@ -209,7 +175,7 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath subbuildpath worksymlink usealtworkpath altprefix portpath
+    global portbuildpath subbuildpath worksymlink portpath
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"
@@ -225,29 +191,10 @@ proc portclean::clean_work {args} {
         ui_debug "No work directory found to remove at ${subbuildpath}"
     }
 
-    if {!$usealtworkpath && [file isdirectory ${altprefix}${subbuildpath}]} {
-        ui_debug "Removing directory: ${altprefix}${subbuildpath}"
-        try -pass_signal {
-            delete ${altprefix}${subbuildpath}
-        } catch {{*} eCode eMessage} {
-            ui_debug "$::errorInfo"
-            ui_error "$eMessage"
-        }
-        catch {file delete ${altprefix}${portbuildpath}}
-    } else {
-        ui_debug "No work directory found to remove at ${altprefix}${subbuildpath}"
-    }
-
     # Clean symlink, if necessary
     if {![catch {file type $worksymlink} result] && $result eq "link"} {
         ui_debug "Removing symlink: $worksymlink"
         delete $worksymlink
-    }
-    
-    # clean port dir in alt prefix
-    if {[file exists "${altprefix}${portpath}"]} {
-        ui_debug "removing ${altprefix}${portpath}"
-        delete "${altprefix}${portpath}"
     }
 
     return 0

@@ -1029,9 +1029,7 @@ proc reinplace {args}  {
         close $tmpfd
 
         set attributes [file attributes $file]
-        # start gsoc08-privileges
         chownAsRoot $file
-        # end gsoc08-privileges
 
         # We need to overwrite this file
         if {[catch {file attributes $file -permissions u+w} error]} {
@@ -1667,30 +1665,7 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink subport portpath ports_ignore_different ports_dryrun \
-           usealtworkpath altprefix env applications_dir subbuildpath
-
-    if {$usealtworkpath} {
-         ui_warn_once "privileges" "MacPorts running without privileges.\
-                You may be unable to complete certain actions (e.g. install)."
-
-        set newsourcepath "${altprefix}${portpath}"
-    
-        # copy Portfile (and patch files) if not there already
-        # note to maintainers/devs: the original portfile in /opt/local is ALWAYS the one that will be
-        #    read by macports. The copying of the portfile is done to preserve the symlink provided
-        #    historically by macports from the portfile directory to the work directory.
-        #    It is NOT read by MacPorts.
-        if {![file exists ${newsourcepath}/Portfile] && ![tbool ports_dryrun]} {
-            file mkdir $newsourcepath
-            ui_debug "$newsourcepath created"
-            ui_debug "Going to copy: ${portpath}/Portfile"
-            file copy ${portpath}/Portfile $newsourcepath
-            if {[file exists ${portpath}/files] } {
-                ui_debug "Going to copy: ${portpath}/files"
-                file copy ${portpath}/files $newsourcepath
-            }
-        }
-    }
+           env applications_dir subbuildpath
 
     if {![tbool ports_dryrun]} {
         set need_chown 0

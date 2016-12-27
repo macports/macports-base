@@ -68,7 +68,7 @@ proc portpatch::build_getpatchtype {args} {
 }
 
 proc portpatch::patch_main {args} {
-    global UI_PREFIX usealtworkpath altprefix
+    global UI_PREFIX
 
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles] || [option patchfiles] eq ""} {
@@ -83,8 +83,6 @@ proc portpatch::patch_main {args} {
             lappend patchlist [option filespath]/$patch_file
         } elseif {[file exists [option distpath]/$patch_file]} {
             lappend patchlist [option distpath]/$patch_file
-        } elseif {!$usealtworkpath && [file exists "${altprefix}[option distpath]/$patch_file"]} {
-            lappend patchlist "${altprefix}[option distpath]/$patch_file"
         } else {
             return -code error [format [msgcat::mc "Patch file %s is missing"] $patch]
         }

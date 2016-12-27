@@ -483,7 +483,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
-           portverbose usealtworkpath altprefix
+           portverbose
     variable fetch_urls
     variable urlmap
 
@@ -515,14 +515,6 @@ proc portfetch::fetchfiles {args} {
             ui_info "$UI_PREFIX [format [msgcat::mc "%s does not exist in %s"] $distfile $distpath]"
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
-            }
-            if {!$usealtworkpath && [file isfile ${altprefix}${distpath}/${distfile}]} {
-                if {[catch {file link -hard "${distpath}/${distfile}" "${altprefix}${distpath}/${distfile}"}]} {
-                    ui_debug "failed to hardlink ${distfile} into distpath, copying instead"
-                    file copy "${altprefix}${distpath}/${distfile}" "${distpath}/${distfile}"
-                }
-                ui_info "Found $distfile in ${altprefix}${distpath}"
-                continue
             }
             if {!$sorted} {
                 sortsites fetch_urls master_sites

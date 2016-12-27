@@ -122,7 +122,7 @@ namespace eval porttrace {
     # @param workpath The $workpath of the current installation
     proc trace_start {workpath} {
         global \
-            altprefix developer_dir distpath env macportsuser os.platform \
+            developer_dir distpath env macportsuser os.platform \
             portpath prefix
 
         variable fifo
