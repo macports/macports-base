@@ -81,16 +81,14 @@ proc submit_ports {} {
 					# Open the port
 					set err 0
 					if {[catch {set workername [mportopen $porturl [array get submit_options]]} result]} {
-						global errorInfo
-						ui_debug "$errorInfo"
+						ui_debug $::errorInfo
 						puts "Unable to open port: $result"
 						set err 1
 					}
 	
 					# Submit the port
 					if { !$err && [catch {set result [mportexec $workername submit]} result]} {
-						global errorInfo
-						ui_debug "$errorInfo"
+						ui_debug $::errorInfo
 						puts "Unable to execute port: $result"
 						set err 1
 					}

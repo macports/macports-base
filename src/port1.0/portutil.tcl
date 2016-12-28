@@ -972,8 +972,7 @@ proc reinplace {args}  {
         set file [file join $dir $file]
 
         if {[catch {set tmpfile [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             return -code error "reinplace failed"
         } else {
@@ -1002,8 +1001,7 @@ proc reinplace {args}  {
         ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] [file tail $file] $pattern]"
         ui_debug "Executing reinplace: $cmdline"
         if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             file delete "$tmpfile"
             if {$locale ne ""} {
@@ -1031,16 +1029,14 @@ proc reinplace {args}  {
 
         # We need to overwrite this file
         if {[catch {file attributes $file -permissions u+w} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             file delete "$tmpfile"
             return -code error "reinplace permissions failed"
         }
 
         if {[catch {file copy -force $tmpfile $file} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             file delete "$tmpfile"
             return -code error "reinplace copy failed"
@@ -1937,8 +1933,7 @@ proc variant_run {ditem} {
 
     # execute proc with same name as variant.
     if {[catch "variant-${name}" result]} {
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         ui_error "[option name]: Error executing $name: $result"
         return 1
     }

@@ -654,8 +654,7 @@ proc unique_results_to_portlist {infos} {
 
 proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field name}} {
     if {[catch {set res [mportsearch $pattern $casesensitive $matchstyle $field]} result]} {
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         fatal "search for portname $pattern failed: $result"
     }
     set results [unique_results_to_portlist $res]
@@ -670,8 +669,7 @@ proc get_all_ports {} {
 
     if {![info exists all_ports_cache]} {
          if {[catch {set res [mportlistall]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             fatal "listing all ports failed: $result"
         }
         set results [unique_results_to_portlist $res]
@@ -706,8 +704,7 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
     set ilist {}
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             fatal "port installed failed: $result"
         }
     }
@@ -781,8 +778,7 @@ proc get_outdated_ports {} {
     set ilist {}
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             fatal "port installed failed: $result"
         }
     }
@@ -806,8 +802,7 @@ proc get_outdated_ports {} {
 
             # Get info about the port from the index
             if {[catch {set res [mportlookup $portname]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 fatal "lookup of portname $portname failed: $result"
             }
             if {[llength $res] < 2} {
@@ -890,8 +885,7 @@ proc get_ports_with_prop {propname propval} {
     set ilist {}
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             fatal "port installed failed: $result"
         }
     }
@@ -925,8 +919,7 @@ proc get_leaves_ports {} {
     set ilist {}
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             fatal "port installed failed: $result"
         }
     }
@@ -2356,8 +2349,7 @@ proc action_location { action portlist opts } {
     }
     foreachport $portlist {
         if { [catch {set ilist [registry_installed $portname [composite_version $portversion [array get variations]]]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             break_softcontinue "port location failed: $result" 1 status
         } else {
             # set portname again since the one we were passed may not have had the correct case
@@ -2505,8 +2497,7 @@ proc action_activate { action portlist opts } {
         }
         if {![macports::global_option_isset ports_dryrun]} {
             if { [catch {portimage::activate_composite $portname $composite_version [array get options]} result] } {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "port activate failed: $result" 1 status
             }
         } else {
@@ -2542,8 +2533,7 @@ proc action_deactivate { action portlist opts } {
         }
         if {![macports::global_option_isset ports_dryrun]} {
             if { [catch {portimage::deactivate_composite $portname $composite_version [array get options]} result] } {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "port deactivate failed: $result" 1 status
             }
         } else {
@@ -2604,8 +2594,7 @@ proc action_select { action portlist opts } {
             }
 
             if {[catch {mportselect show $group} selected_version]} {
-                global errorInfo
-                ui_debug $errorInfo
+                ui_debug $::errorInfo
                 ui_warn "Unable to get active selected version: $selected_version"
             }
 
@@ -2725,9 +2714,8 @@ proc action_selfupdate { action portlist opts } {
         return 1
     }
     if { [catch {macports::selfupdate [array get global_options] base_updated} result ] } {
-        global errorInfo
-        ui_debug "$errorInfo"
-        ui_error "$result"
+        ui_debug $::errorInfo
+        ui_error $result
         if {![macports::ui_isset ports_verbose]} {
             ui_msg "Please run `port -v selfupdate' for details."
         } else {
@@ -2763,8 +2751,7 @@ proc action_setrequested { action portlist opts } {
                 registry::property_store $regref requested $val
             }
         } else {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             break_softcontinue "$result" 1 status
         }
     }
@@ -2861,8 +2848,7 @@ proc action_dependents { action portlist opts } {
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
         if { [catch {set ilist [registry::installed $portname $composite_version]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             break_softcontinue "$result" 1 status
         } else {
             # choose the active version if there is one
@@ -3233,8 +3219,7 @@ proc action_uninstall { action portlist opts } {
         }
 
         if { [catch {registry_uninstall::uninstall_composite $portname $composite_version [array get options]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             break_softcontinue "port uninstall failed: $result" 1 status
         }
     }
@@ -3255,8 +3240,7 @@ proc action_installed { action portlist opts } {
             set composite_version [composite_version $portversion [array get variations]]
             if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
                 if {![string match "* not registered as installed." $result]} {
-                    global errorInfo
-                    ui_debug "$errorInfo"
+                    ui_debug $::errorInfo
                     break_softcontinue "port installed failed: $result" 1 status
                 }
             }
@@ -3264,8 +3248,7 @@ proc action_installed { action portlist opts } {
     } else {
         if { [catch {set ilist [registry::installed]} result] } {
             if {$result ne "Registry error: No ports registered as installed."} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 ui_error "port installed failed: $result"
                 set status 1
             }
@@ -3332,8 +3315,7 @@ proc action_outdated { action portlist opts } {
             set composite_version [composite_version $port(version) $port(variants)]
             if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
                 if {![string match "* not registered as installed." $result]} {
-                    global errorInfo
-                    ui_debug "$errorInfo"
+                    ui_debug $::errorInfo
                     break_softcontinue "port outdated failed: $result" 1 status
                 }
             }
@@ -3341,8 +3323,7 @@ proc action_outdated { action portlist opts } {
     } else {
         if { [catch {set ilist [registry::installed]} result] } {
             if {$result ne "Registry error: No ports registered as installed."} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 ui_error "port installed failed: $result"
                 set status 1
             }
@@ -3367,8 +3348,7 @@ proc action_outdated { action portlist opts } {
 
             # Get info about the port from the index
             if {[catch {set res [mportlookup $portname]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "search for portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
@@ -3569,8 +3549,7 @@ proc action_variants { action portlist opts } {
         if {$porturl eq ""} {
             # look up port
             if {[catch {mportlookup $portname} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $result] < 2} {
@@ -3751,8 +3730,7 @@ proc action_search { action portlist opts } {
             set opt [map_friendly_field_names $opt]
 
             if {[catch {set matches [mportsearch $searchstring $filter_case $matchstyle $opt]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "search for name $portname failed: $result" 1 status
             }
 
@@ -3844,8 +3822,7 @@ proc action_list { action portlist opts } {
     foreachport $portlist {
         if {$portname eq "-all-"} {
            if {[catch {set res [mportlistall]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "listing all ports failed: $result" 1 status
             }
         } else {
@@ -3855,8 +3832,7 @@ proc action_list { action portlist opts } {
             }
             set search_string [regex_pat_sanitize $portname]
             if {[catch {set res [mportsearch ^$search_string\$ no]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "search for portname $search_string failed: $result" 1 status
             }
         }
@@ -3922,8 +3898,7 @@ proc action_portcmds { action portlist opts } {
 
             # Verify the portname, getting portinfo to map to a porturl
             if {[catch {set res [mportlookup $portname]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
@@ -3981,8 +3956,7 @@ proc action_portcmds { action portlist opts } {
 
                     # Invoke the editor
                     if {[catch {exec -ignorestderr >@stdout <@stdin {*}$editor $portfile} result]} {
-                        global errorInfo
-                        ui_debug "$errorInfo"
+                        ui_debug $::errorInfo
                         break_softcontinue "unable to invoke editor $editor: $result" 1 status
                     }
 
@@ -4049,8 +4023,7 @@ proc action_portcmds { action portlist opts } {
                     # Try to open a browser to the homepage for the given port
                     if { $homepage ne "" } {
                         if {[catch {system "${macports::autoconf::open_path} '$homepage'"} result]} {
-                            global errorInfo
-                            ui_debug "$errorInfo"
+                            ui_debug $::errorInfo
                             break_softcontinue "unable to invoke browser using ${macports::autoconf::open_path}: $result" 1 status
                         }
                     } else {
@@ -4072,8 +4045,7 @@ proc action_sync { action portlist opts } {
 
     set status 0
     if {[catch {mportsync [array get global_options]} result]} {
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         ui_msg "port sync failed: $result"
         set status 1
     }
@@ -4098,8 +4070,7 @@ proc action_target { action portlist opts } {
         if {$porturl eq ""} {
             # Verify the portname, getting portinfo to map to a porturl
             if {[catch {set res [mportlookup $portname]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
@@ -4154,14 +4125,12 @@ proc action_target { action portlist opts } {
             }
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             break_softcontinue "Unable to open port: $result" 1 status
         }
         if {[catch {set result [mportexec $workername $target]} result]} {
-            global errorInfo
+            ui_debug $::errorInfo
             mportclose $workername
-            ui_debug "$errorInfo"
             break_softcontinue "Unable to execute port: $result" 1 status
         }
 
@@ -4698,8 +4667,7 @@ proc process_cmd { argv } {
         # (to avoid abiguity with -variants and a default port, either -- must be
         # used to terminate option processing, or the pseudo-port current must be specified).
         if {[catch {parse_options $action ui_options global_options} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error $result
             set action_status 1
             break
@@ -4776,8 +4744,7 @@ proc complete_portname { text state } {
 
         # Build a list of ports with text as their prefix
         if {[catch {set res [mportsearch "${text}*" false glob]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             fatal "search for portname $pattern failed: $result"
         }
         foreach {name info} $res {
@@ -5732,8 +5699,7 @@ if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfil
 # This must be done following parse of global options, as some options are
 # evaluated by mportinit.
 if {[catch {mportinit ui_options global_options global_variations} result]} {
-    global errorInfo
-    puts "$errorInfo"
+    puts $::errorInfo
     fatal "Failed to initialize MacPorts, $result"
 }
 

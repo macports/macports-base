@@ -3307,9 +3307,8 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 try -pass_signal {
                     set res [mportlookup $dep_portname]
                 } catch {{*} eCode eMessage} {
-                    global errorInfo
                     ui_msg {}
-                    ui_debug $errorInfo
+                    ui_debug $::errorInfo
                     ui_error "Internal error: port lookup failed: $eMessage"
                     return 1
                 }
@@ -3640,8 +3639,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     try {
         set result [mportlookup $portname]
     } catch {{*} eCode eMessage} {
-        global errorInfo
-        ui_debug $errorInfo
+        ui_debug $::errorInfo
         ui_error "port lookup failed: $eMessage"
         return 1
     }
@@ -3675,8 +3673,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 upvar 2 variations variations
 
                 if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
-                    global errorInfo
-                    ui_debug $errorInfo
+                    ui_debug $::errorInfo
                     ui_error "Unable to open port: $result"
                     return 1
                 }
@@ -3692,8 +3689,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 }
                 # now install it
                 if {[catch {set result [mportexec $mport activate]} result]} {
-                    global errorInfo
-                    ui_debug $errorInfo
+                    ui_debug $::errorInfo
                     ui_error "Unable to exec port: $result"
                     catch {mportclose $mport}
                     return 1
@@ -3833,8 +3829,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     if {[info exists portinfo(replaced_by)] && ![info exists options(ports_upgrade_no-replace)]} {
         ui_msg "$macports::ui_prefix $portname is replaced by $portinfo(replaced_by)"
         if {[catch {mportlookup $portinfo(replaced_by)} result]} {
-            global errorInfo
-            ui_debug $errorInfo
+            ui_debug $::errorInfo
             ui_error "port lookup failed: $result"
             return 1
         }
@@ -3865,8 +3860,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     if {[catch {set mport [mportopen $porturl [array get interp_options] [array get variations]]} result]} {
-        global errorInfo
-        ui_debug $errorInfo
+        ui_debug $::errorInfo
         ui_error "Unable to open port: $result"
         return 1
     }
@@ -4026,8 +4020,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
         } elseif {![registry::run_target $newregref uninstall [array get options]]
                   && [catch {registry_uninstall::uninstall $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) [array get options]} result]} {
-            global errorInfo
-            ui_debug $errorInfo
+            ui_debug $::errorInfo
             ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
             catch {mportclose $mport}
             return 1
@@ -4050,8 +4043,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         } elseif {![catch {registry::active $portname}] &&
                   ![registry::run_target $regref deactivate [array get options]]
                   && [catch {portimage::deactivate $portname $version_active $revision_active $variant_active [array get options]} result]} {
-            global errorInfo
-            ui_debug $errorInfo
+            ui_debug $::errorInfo
             ui_error "Deactivating $portname @${version_active}_${revision_active}$variant_active failed: $result"
             catch {mportclose $mport}
             return 1
@@ -4073,8 +4065,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
         ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
     } elseif {[catch {set result [mportexec $mport activate]} result]} {
-        global errorInfo
-        ui_debug $errorInfo
+        ui_debug $::errorInfo
         ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
         catch {mportclose $mport}
         return 1
@@ -4126,8 +4117,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 ui_msg "Skipping uninstall $portname @${version}_${revision}$variant (dry run)"
             } elseif {![registry::run_target $regref uninstall $optionslist]
                       && [catch {registry_uninstall::uninstall $portname $version $revision $variant $optionslist} result]} {
-                global errorInfo
-                ui_debug $errorInfo
+                ui_debug $::errorInfo
                 # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
                 if {$result ne "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
                     ui_error "Uninstall $portname @${version}_${revision}$variant failed: $result"
@@ -4215,8 +4205,7 @@ proc mportselect {command {group ""} {version {}}} {
     switch -- $command {
         list {
             if {[catch {set versions [glob -directory $conf_path *]} result]} {
-                global errorInfo
-                ui_debug "${result}: $errorInfo"
+                ui_debug "${result}: $::errorInfo"
                 return -code error [concat "No configurations associated" \
                                            "with '$group' were found."]
             }
@@ -4236,8 +4225,7 @@ proc mportselect {command {group ""} {version {}}} {
         summary {
             # Return the list of portgroups in ${macports::prefix}/etc/select
             if {[catch {set lportgroups [glob -directory $conf_path -tails *]} result]} {
-                global errorInfo
-                ui_debug "${result}: $errorInfo"
+                ui_debug "${result}: $::errorInfo"
                 return -code error [concat "No ports with the select" \
                                            "option were found."]
             }
@@ -4247,8 +4235,7 @@ proc mportselect {command {group ""} {version {}}} {
             # Use ${conf_path}/$version to read in sources.
             if {$version eq "" || $version eq "base" || $version eq "current"
                     || [catch {set src_file [open "${conf_path}/$version"]} result]} {
-                global errorInfo
-                ui_debug "${result}: $errorInfo"
+                ui_debug "${result}: $::errorInfo"
                 return -code error "The specified version '$version' is not valid."
             }
             set srcs [split [read -nonewline $src_file] \n]
@@ -4256,8 +4243,7 @@ proc mportselect {command {group ""} {version {}}} {
 
             # Use ${conf_path}/base to read in targets.
             if {[catch {set tgt_file [open ${conf_path}/base]} result]} {
-                global errorInfo
-                ui_debug "${result}: $errorInfo"
+                ui_debug "${result}: $::errorInfo"
                 return -code error [concat "The configuration file" \
                                            "'${conf_path}/base' could not be" \
                                            "opened."]

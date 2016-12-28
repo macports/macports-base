@@ -61,8 +61,7 @@ proc portmpkg::make_dependency_list {portname destination} {
     global requested_variations prefix package.destpath package.flat
     set result {}
     if {[catch {set res [mport_lookup $portname]} error]} {
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         return -code error "port lookup failed: $error"
     }
     array set portinfo [lindex $res 1]

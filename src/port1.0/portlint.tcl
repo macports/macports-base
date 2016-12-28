@@ -517,8 +517,7 @@ proc portlint::lint_main {args} {
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             continue
         }
         if {$res eq ""} {
@@ -551,8 +550,7 @@ proc portlint::lint_main {args} {
             incr errors
         } else {
             if {[catch {set res [mport_lookup $replaced_by]} error]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
             }
             if {$res eq ""} {
                 ui_error "replaced_by references unknown port: $replaced_by"
@@ -571,8 +569,7 @@ proc portlint::lint_main {args} {
                 continue
             }
             if {[catch {set res [mport_lookup $cport]} error]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 continue
             }
             if {$res eq ""} {

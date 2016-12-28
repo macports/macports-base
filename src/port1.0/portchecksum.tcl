@@ -137,8 +137,7 @@ proc portchecksum::parse_checksums {checksums_str} {
         }
     } error]} {
         # An error occurred.
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         ui_error "Couldn't parse checksum line ($checksums_str) [$error]"
 
         # Something wrong happened.
