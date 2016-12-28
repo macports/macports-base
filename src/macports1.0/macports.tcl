@@ -757,13 +757,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
     close $fd
-    # Make sure the default port source is defined. Otherwise
-    # [macports::getportresourcepath] fails when the first source doesn't
-    # contain _resources.
-    if {![info exists sources_default]} {
-        ui_warn "No default port source specified in ${sources_conf}, using last source as default"
-        set sources_default [lindex $sources end]
-    }
 
     if {![info exists sources]} {
         if {[file isdirectory ports]} {
@@ -771,6 +764,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         } else {
             return -code error "No sources defined in $sources_conf"
         }
+    }
+    # Make sure the default port source is defined. Otherwise
+    # [macports::getportresourcepath] fails when the first source doesn't
+    # contain _resources.
+    if {![info exists sources_default]} {
+        ui_warn "No default port source specified in ${sources_conf}, using last source as default"
+        set sources_default [lindex $sources end]
     }
 
     if {[info exists variants_conf]} {
