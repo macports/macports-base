@@ -64,7 +64,7 @@ set_ui_prefix
 # Helper function for portextract.tcl that strips all tag names from a list
 # Used to clean ${distfiles} for setting the ${extract.only} default
 proc portextract::disttagclean {list} {
-    if {"$list" == ""} {
+    if {$list eq ""} {
         return $list
     }
     foreach name $list {

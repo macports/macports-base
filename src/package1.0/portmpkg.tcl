@@ -181,7 +181,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
         }
         set mport [lindex $dep 4]
         # don't re-package ourself
-        if {$name != $portname} {
+        if {$name ne $portname} {
             make_one_package $name $mport
             if {${package.flat} && ${os.major} >= 10} {
                 lappend dependencies org.macports.${name} ${name}-${epoch_namestr}${vers}${rev_namestr}-component.pkg

@@ -187,7 +187,7 @@ proc lunshift {varName args} {
 # bytesize filesize ?unit? ?format?
 # Format an integer representing bytes using given units
 proc bytesize {siz {unit {}} {format {%.2f}}} {
-    if {$unit == {}} {
+    if {$unit eq {}} {
         if {$siz > 0x40000000} {
             set unit "GiB"
         } elseif {$siz > 0x100000} {

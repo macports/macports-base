@@ -90,7 +90,7 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
     }
 
     if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
-        if {$mirrors != $global_mirror_site} {
+        if {$mirrors ne $global_mirror_site} {
             ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         }
         return {}
@@ -218,7 +218,7 @@ proc portfetch::sortsites {urls default_listvar} {
 
     foreach {url_var distfile} $fetch_urls {
         if {![info exists urlmap($url_var)]} {
-            if {$url_var != $default_listvar} {
+            if {$url_var ne $default_listvar} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using $default_listvar"] $url_var]
                 set urlmap($url_var) $urlmap($default_listvar)
             } else {
@@ -255,7 +255,7 @@ proc portfetch::sortsites {urls default_listvar} {
             if { ![info exists seen($host)] } {
                 # first check the persistent cache
                 set pingtimes($host) [get_pingtime $host]
-                if {$pingtimes($host) == {}} {
+                if {$pingtimes($host) eq {}} {
                     if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]}]} {
                         ui_debug "Spawning ping for $host failed"
                         # will end up after all hosts that were pinged OK but before those that didn't respond

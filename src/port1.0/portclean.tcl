@@ -141,7 +141,7 @@ proc portclean::clean_dist {args} {
     # next remove dist_subdir if only needed for this port,
     # or if user forces us to
     set dirlist [list]
-    if {$dist_subdir != $name} {
+    if {$dist_subdir ne $name} {
         if {!([info exists ports_force] && $ports_force eq "yes")
             && [file isdirectory $distpath]
             && [llength [readdir $distpath]] > 0} {
@@ -242,7 +242,7 @@ proc portclean::clean_archive {args} {
             # thus can't be checked and aren't useful anyway.
             set archivetype [string range [file extension $path] 1 end]
             if {[file isfile $path] && ($archivetype eq "TMP"
-                || [extract_archive_metadata $path $archivetype portname] == $subport)} {
+                || [extract_archive_metadata $path $archivetype portname] eq $subport)} {
                 ui_debug "Removing archive: $path"
                 if {[catch {delete $path} result]} {
                     ui_debug "$::errorInfo"

@@ -64,8 +64,8 @@ proc portdistcheck::distcheck_main {args} {
     }
 
     # Check the distfiles if it's a regular fetch phase.
-    if {"${distcheck.type}" != "none"
-        && "${fetch.type}" == "standard"} {
+    if {"${distcheck.type}" ne "none"
+        && "${fetch.type}" eq "standard"} {
         # portfetch 1.0::checkfiles sets fetch_urls list.
         set fetch_urls {}
         portfetch::checkfiles fetch_urls
@@ -78,7 +78,7 @@ proc portdistcheck::distcheck_main {args} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
                 set urlmap($url_var) $master_sites
             }
-            if {${distcheck.type} == "moddate"} {
+            if {${distcheck.type} eq "moddate"} {
                 set count 0
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
@@ -96,7 +96,7 @@ proc portdistcheck::distcheck_main {args} {
                 if {$count == 0} {
                     ui_error "no mirror had $distfile for $subport"
                 }
-            } elseif {${distcheck.type} == "filesize"} {
+            } elseif {${distcheck.type} eq "filesize"} {
                 set count 0
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
@@ -122,7 +122,7 @@ proc portdistcheck::distcheck_main {args} {
             }
         }
 
-        if {${distcheck.type} == "filesize" && $totalsize > 0} {
+        if {${distcheck.type} eq "filesize" && $totalsize > 0} {
             if {$totalsize < 1024} {
                 set size $totalsize
                 set humansize "${size}"

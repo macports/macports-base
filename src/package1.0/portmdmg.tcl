@@ -75,7 +75,7 @@ proc portmdmg::package_mdmg {portname portepoch portversion portrevision} {
     }
 
     # partition for .dmg
-    if {${os.major} >= 9 && ${os.arch} == "i386"} {
+    if {${os.major} >= 9 && ${os.arch} eq "i386"} {
         # GUID_partition_scheme
         set subdev 1
     } else {

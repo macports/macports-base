@@ -93,9 +93,9 @@ proc portarchivefetch::filter_sites {} {
             continue
         }
         if {$portfetch::mirror_sites::sites($site) ne {} &&
-            $portfetch::mirror_sites::archive_prefix($site) == $prefix &&
-            $portfetch::mirror_sites::archive_frameworks_dir($site) == $frameworks_dir &&
-            $portfetch::mirror_sites::archive_applications_dir($site) == $applications_dir &&
+            $portfetch::mirror_sites::archive_prefix($site) eq $prefix &&
+            $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir &&
+            $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
             # using the archive type as a tag
             lappend ret ${site}::$portfetch::mirror_sites::archive_type($site)
@@ -172,7 +172,7 @@ proc portarchivefetch::fetchfiles {args} {
     }
     set incoming_path [file join [option portdbpath] incoming]
     chownAsRoot $incoming_path
-    if {[info exists elevated] && $elevated == yes} {
+    if {[info exists elevated] && $elevated eq "yes"} {
         dropPrivileges
     }
 
@@ -181,10 +181,10 @@ proc portarchivefetch::fetchfiles {args} {
         lappend fetch_options -u
         lappend fetch_options "${archivefetch.user}:${archivefetch.password}"
     }
-    if {${archivefetch.use_epsv} != "yes"} {
+    if {${archivefetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
     }
-    if {${archivefetch.ignore_sslcert} != "no"} {
+    if {${archivefetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
     if {$portverbose eq "yes"} {

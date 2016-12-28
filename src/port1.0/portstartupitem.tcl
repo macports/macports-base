@@ -613,7 +613,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     close ${plist}
 
     if { [getuid] == 0 && 
-      ${startupitem.install} != "no" } {
+      ${startupitem.install} ne "no" } {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     }
@@ -657,7 +657,7 @@ proc portstartupitem::startupitem_create {args} {
     set startupitem.type [string tolower ${startupitem.type}]
     
     # Calculate a default value for startupitem.type
-    if {${startupitem.type} == "default" || ${startupitem.type} == ""} {
+    if {${startupitem.type} eq "default" || ${startupitem.type} eq ""} {
         switch -exact ${os.platform} {
             darwin {
                 set haveLaunchd ${portutil::autoconf::have_launchd}
@@ -673,7 +673,7 @@ proc portstartupitem::startupitem_create {args} {
         }
     }
 
-    if { ${startupitem.type} == "none" } {
+    if { ${startupitem.type} eq "none" } {
         ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
     } else {
         ui_notice "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"

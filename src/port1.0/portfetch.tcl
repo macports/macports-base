@@ -333,7 +333,7 @@ proc portfetch::cvsfetch {args} {
            patch_sites patchfiles filespath
 
     set cvs.args "${cvs.method} ${cvs.args}"
-    if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
+    if {${cvs.method} eq "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
         set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
@@ -492,13 +492,13 @@ proc portfetch::fetchfiles {args} {
         lappend fetch_options -u
         lappend fetch_options "${fetch.user}:${fetch.password}"
     }
-    if {${fetch.use_epsv} != "yes"} {
+    if {${fetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
     }
-    if {${fetch.ignore_sslcert} != "no"} {
+    if {${fetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
-    if {${fetch.remote_time} != "no"} {
+    if {${fetch.remote_time} ne "no"} {
         lappend fetch_options "--remote-time"
     }
     if {$portverbose eq "yes"} {
@@ -619,7 +619,7 @@ proc portfetch::fetch_main {args} {
     global all_dist_files fetch.type
 
     # Check for files, download if necessary
-    if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
+    if {![info exists all_dist_files] && "${fetch.type}" eq "standard"} {
         return 0
     }
 

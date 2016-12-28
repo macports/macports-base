@@ -370,7 +370,7 @@ proc require_portlist { nameportlist {is_upgrade "no"} } {
     upvar $nameportlist portlist
 
     if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
-        if {${is_upgrade} == "yes"} {
+        if {${is_upgrade} eq "yes"} {
             # $> port upgrade outdated
             # Error: No ports matched the given expression
             # is not very user friendly - if we're in the special case of
@@ -720,7 +720,7 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
         set ivariants [split_variants [lindex $i 3]]
         set iactive [lindex $i 4]
 
-        if { ${ignore_active} == "yes" || (${active} == "yes") == (${iactive} != 0) } {
+        if { ${ignore_active} eq "yes" || (${active} eq "yes") == (${iactive} != 0) } {
             add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
         }
     }
@@ -904,7 +904,7 @@ proc get_ports_with_prop {propname propval} {
         set ivariants [lindex $i 3]
         set iepoch [lindex $i 5]
         set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
-        if {[registry::property_retrieve $regref $propname] == $propval} {
+        if {[registry::property_retrieve $regref $propname] eq $propval} {
             add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
         }
     }
@@ -1533,7 +1533,7 @@ proc opIntersection { a b } {
         # Quote the fullname and portname to avoid special characters messing up the regexp
         set safefullname [regex_pat_sanitize $port(fullname)]
 
-        set simpleform [expr { "$port(name)/" == $port(fullname) }]
+        set simpleform [expr { "$port(name)/" eq $port(fullname) }]
         if {$simpleform} {
             set pat "^${safefullname}"
         } else {
@@ -1577,7 +1577,7 @@ proc opComplement { a b } {
         # Quote the fullname and portname to avoid special characters messing up the regexp
         set safefullname [regex_pat_sanitize $port(fullname)]
 
-        set simpleform [expr { "$port(name)/" == $port(fullname) }]
+        set simpleform [expr { "$port(name)/" eq $port(fullname) }]
         if {$simpleform} {
             set pat "^${safefullname}"
         } else {
@@ -2533,7 +2533,7 @@ proc action_deactivate { action portlist opts } {
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
             set ivariants [lindex $i 3]
-            if {$composite_version eq "" || $composite_version == "${iversion}_${irevision}${ivariants}"} {
+            if {$composite_version eq "" || $composite_version eq "${iversion}_${irevision}${ivariants}"} {
                 set regref [registry::entry open $portname $iversion $irevision $ivariants [lindex $i 5]]
                 if {[$regref installtype] eq "image" && [registry::run_target $regref deactivate [array get options]]} {
                     continue
@@ -2618,7 +2618,7 @@ proc action_select { action portlist opts } {
             ui_notice "Available versions for $group:"
             foreach v $versions {
                 ui_notice -nonewline "\t"
-                if {$selected_version == $v} {
+                if {$selected_version eq $v} {
                     ui_msg "$v (active)"
                 } else {
                     ui_msg "$v"
@@ -4231,8 +4231,8 @@ proc advance {} {
 }
 
 
-proc match s {
-    if {[lookahead] == $s} {
+proc match {s} {
+    if {[lookahead] eq $s} {
         advance
         return 1
     }
@@ -4472,7 +4472,7 @@ proc cmd_option_matches {action option} {
             set argc [lindex $item 1]
         }
 
-        if {$name == $option} {
+        if {$name eq $option} {
             set result [list [list $name $argc]]
             break
         } elseif {[string first $option $name] == 0} {
@@ -4656,12 +4656,12 @@ proc process_cmd { argv } {
         advance
 
         # Handle command separator
-        if { $action == ";" } {
+        if { $action eq ";" } {
             continue
         }
 
         # Handle a comment
-        if { [string index $action 0] == "#" } {
+        if { [string index $action 0] eq "#" } {
             while { [moreargs] } { advance }
             break
         }
@@ -5419,7 +5419,7 @@ namespace eval portclient::questions {
     #        Custom question message. Defaults to "Continue?".
     proc ui_ask_yesno {msg name ports def {timeout 0} {question "Continue?"}} {
         # Set number default to the given letter default
-        if {$def == {y}} {
+        if {$def eq "y"} {
             set default 0
         } else {
             set default 1
@@ -5449,7 +5449,7 @@ namespace eval portclient::questions {
         }
 
         # Check for the default and print accordingly
-        if {$def == {y}} {
+        if {$def eq "y"} {
             puts -nonewline "${question} \[Y/n\]: "
             flush stdout
         } else {
@@ -5473,7 +5473,7 @@ namespace eval portclient::questions {
                 return 0
             } elseif {$input in {n N}} {
                 return 1
-            } elseif {$input == ""} {
+            } elseif {$input eq ""} {
                 return $default
             } else {
                 puts "Please enter either 'y' or 'n'."
@@ -5550,7 +5550,7 @@ namespace eval portclient::questions {
             }
             signal -restart error {TERM INT}
             # check if input is non-empty and otherwise fine
-            if {$input == ""} {
+            if {$input eq ""} {
                 return []
             }
 

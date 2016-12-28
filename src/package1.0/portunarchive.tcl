@@ -84,7 +84,7 @@ proc portunarchive::unarchive_init {args} {
         set unarchive.path [find_portarchive_path]
         set unarchive.file [file tail ${unarchive.path}]
         set unarchive.type [string range [file extension ${unarchive.file}] 1 end]
-        if {${unarchive.path} != ""} {
+        if {${unarchive.path} ne ""} {
             ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
         } else {
             if {[info exists ports_binary_only] && $ports_binary_only eq "yes"} {
@@ -259,7 +259,7 @@ proc portunarchive::unarchive_main {args} {
 
     # Unpack the archive
     ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
-    if {${unarchive.pipe_cmd} == ""} {
+    if {${unarchive.pipe_cmd} eq ""} {
         command_exec unarchive
     } else {
         command_exec unarchive "${unarchive.pipe_cmd} (" ")"

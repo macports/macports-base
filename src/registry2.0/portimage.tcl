@@ -175,8 +175,8 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     set name [$requested name]
     set specifier "[$requested version]_[$requested revision][$requested variants]"
 
-    if {$version ne "" && ($version != [$requested version] ||
-        ($revision ne "" && ($revision != [$requested revision] || $variants != [$requested variants])))} {
+    if {$version ne "" && ($version ne [$requested version] ||
+        ($revision ne "" && ($revision != [$requested revision] || $variants ne [$requested variants])))} {
         set v $version
         if {$revision ne ""} {
             append v _${revision}${variants}
@@ -433,7 +433,7 @@ proc extract_archive_to_tmpdir {location} {
         }
         
         # and finally, reinvent command_exec
-        if {${unarchive.pipe_cmd} == ""} {
+        if {${unarchive.pipe_cmd} eq ""} {
             set cmdstring "${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args}"
         } else {
             set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
@@ -484,7 +484,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
 
                 set owner [registry::entry owner $file]
 
-                if {$owner != {} && $owner != $port} {
+                if {$owner ne {} && $owner ne $port} {
                     # deactivate conflicting port if it is replaced_by this one
                     set result [mportlookup [$owner name]]
                     array unset portinfo
@@ -507,7 +507,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                             ::file rename -force -- $file $bakfile
                             lappend backups $file
                         }
-                        if { $owner != {} } {
+                        if { $owner ne {} } {
                             $owner deactivate [list $file]
                             $owner activate [list $file] [list "${file}${baksuffix}"]
                         }
@@ -515,9 +515,9 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         # if we're not forcing the activation, then we bail out if
                         # we find any files that already exist, or have entries in
                         # the registry
-                        if { $owner != {} && $owner != $port } {
+                        if { $owner ne {} && $owner ne $port } {
                             throw registry::image-error "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
-                        } elseif { $owner == {} && ![catch {::file type $file}] } {
+                        } elseif { $owner eq {} && ![catch {::file type $file}] } {
                             throw registry::image-error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
                         }
                     }
