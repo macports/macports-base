@@ -49,7 +49,7 @@ namespace eval portclean {
 set_ui_prefix
 
 proc portclean::clean_start {args} {
-    global UI_PREFIX prefix
+    global UI_PREFIX
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option subport]]"
 
@@ -175,7 +175,7 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath subbuildpath worksymlink portpath
+    global portbuildpath subbuildpath worksymlink
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"
@@ -200,7 +200,7 @@ proc portclean::clean_work {args} {
     return 0
 }
 proc portclean::clean_logs {args} {
-    global portpath portbuildpath worksymlink portverbose keeplogs prefix subport
+    global portpath subport
     set logpath [getportlogpath $portpath]
     set subdir [file join $logpath $subport]
   	if {[file isdirectory $subdir]} {

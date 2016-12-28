@@ -77,7 +77,7 @@ proc activate_composite {name {v ""} {optionslist ""}} {
 
 # Activate a "Port Image"
 proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global macports::prefix macports::registry.path registry_open UI_PREFIX
+    global macports::registry.path registry_open UI_PREFIX
     array set options $optionslist
     variable force
     variable noexec
@@ -310,7 +310,6 @@ proc _activate_file {srcfile dstfile} {
 # extract an archive to a temporary location
 # returns: path to the extracted directory
 proc extract_archive_to_tmpdir {location} {
-    global macports::registry.path
     set extractdir [mkdtemp [::file dirname $location]/mpextractXXXXXXXX]
     set startpwd [pwd]
 
@@ -453,7 +452,6 @@ proc extract_archive_to_tmpdir {location} {
 proc _activate_contents {port {imagefiles {}} {location {}}} {
     variable force
     variable noexec
-    global macports::prefix
 
     set files [list]
     set baksuffix .mp_[clock seconds]

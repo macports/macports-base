@@ -282,7 +282,7 @@ proc registry_installed {portname {portversion ""}} {
 }
 
 proc entry_for_portlist {portentry} {
-    global global_options global_variations
+    global global_options
 
     # Each portlist entry currently has the following elements in it:
     #   url             if any
@@ -4246,7 +4246,6 @@ proc match {s} {
 #   0 none        Does not expect any text argument
 #   1 strings     Expects some strings as text argument
 #   2 ports       Wants an expanded list of ports as text argument
-global action_array
 
 # Define global constants
 const ACTION_ARGS_NONE 0
@@ -4409,7 +4408,6 @@ proc action_needs_portlist { action } {
 # Syntax if {option argn}
 # Where option is the name of the option and argn specifies how many arguments
 # this argument takes
-global cmd_opts_array
 array set cmd_opts_array {
     edit        {{editor 1}}
     info        {category categories conflicts depends_fetch depends_extract
@@ -4494,7 +4492,6 @@ proc cmd_option_matches {action option} {
 proc parse_options { action ui_options_name global_options_name } {
     upvar $ui_options_name ui_options
     upvar $global_options_name global_options
-    global cmdname cmd_opts_array
 
     while {[moreargs]} {
         set arg [lookahead]
@@ -5318,7 +5315,6 @@ namespace eval portclient::notifications {
     # Print port notifications.
     #
     proc display {} {
-        global env
         variable notificationsToPrint
 
         # Display notes at the end of the activation phase.
@@ -5672,9 +5668,6 @@ array set private_options {}
 # Make sure we get the size of the terminal
 # We do this here to save it in the boot_env, in case we determined it manually
 term_init_size
-
-global env boot_env argv0 cmdname argc argv cmd_argc cmd_argv cmd_argn \
-       current_portdir global_options_base exit_status
 
 # Save off a copy of the environment before mportinit monkeys with it
 array set boot_env [array get env]

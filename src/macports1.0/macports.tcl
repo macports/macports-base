@@ -132,8 +132,6 @@ proc macports::global_option_isset {val} {
 }
 
 proc macports::init_logging {mport} {
-    global macports::channels macports::portdbpath
-
     if {[getuid] == 0 && [geteuid] != 0} {
         seteuid 0; setegid 0
     }
@@ -144,8 +142,6 @@ proc macports::init_logging {mport} {
     return 0
 }
 proc macports::ch_logging {mport} {
-    global ::debuglog ::debuglogname
-
     set portname [_mportkey $mport subport]
     set portpath [_mportkey $mport portpath]
 
@@ -162,7 +158,6 @@ proc macports::ch_logging {mport} {
     puts $::debuglog version:1
 }
 proc macports::push_log {mport} {
-    global ::logstack ::logenabled ::debuglog ::debuglogname
     if {![info exists ::logenabled]} {
         if {[macports::init_logging $mport] == 0} {
             set ::logenabled yes
@@ -185,7 +180,6 @@ proc macports::push_log {mport} {
 }
 
 proc macports::pop_log {} {
-    global ::logenabled ::logstack ::debuglog ::debuglogname
     if {![info exists ::logenabled]} {
         return -code error "pop_log called before push_log"
     }
@@ -213,7 +207,7 @@ proc set_phase {phase} {
 }
 
 proc ui_message {priority prefix args} {
-    global macports::channels ::debuglog macports::current_phase
+    global macports::channels macports::current_phase
 
     # 
     # validate $args
@@ -257,7 +251,7 @@ proc ui_message {priority prefix args} {
 }
 
 proc macports::ui_init {priority args} {
-    global macports::channels ::debuglog
+    global macports::channels
     set default_channel [macports::ui_channels_default $priority]
     # Get the list of channels.
     if {[llength [info commands ui_channels]] > 0} {
@@ -1652,8 +1646,6 @@ proc macports::getportdir {url} {
 # @param fallback fall back to the default source tree
 # @return path to the _resources directory or the path to the fallback
 proc macports::getportresourcepath {url {path {}} {fallback yes}} {
-    global macports::sources_default
-
     set protocol [getprotocol $url]
 
     switch -- $protocol {
@@ -2018,7 +2010,6 @@ proc _mportexec {target mport} {
         return 0
     } else {
         # An error occurred.
-        global ::logenabled ::debuglogname
         ui_debug $::errorInfo
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_error "See $::debuglogname for details."
@@ -2188,7 +2179,6 @@ proc mportexec {mport target} {
         $workername eval {eval_targets clean}
     }
 
-    global ::logenabled ::debuglogname
     if {$result != 0 && [info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
         ui_error "See $::debuglogname for details."
     }
@@ -2471,8 +2461,8 @@ proc macports::UpdateVCS {cmd dir} {
 }
 
 proc mportsync {{optionslist {}}} {
-    global macports::sources macports::portdbpath macports::rsync_options \
-           tcl_platform macports::portverbose macports::autoconf::rsync_path \
+    global macports::sources macports::rsync_options \
+           macports::portverbose macports::autoconf::rsync_path \
            macports::autoconf::tar_path macports::autoconf::openssl_path \
            macports::ui_options
     array set options $optionslist
@@ -2928,7 +2918,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 #         info. See the return value of mportsearch().
 # @see mportsearch()
 proc mportlookup {name} {
-    global macports::portdbpath macports::sources macports::quick_index
+    global macports::sources macports::quick_index
 
     set sourceno 0
     set matches [list]
@@ -3168,7 +3158,8 @@ proc mportinfo {mport} {
 }
 
 proc mportclose {mport} {
-    global macports::open_mports macports::extracted_portdirs
+    global macports::open_mports
+    #macports::extracted_portdirs
     set refcnt [ditem_key $mport refcnt]
     incr refcnt -1
     ditem_key $mport refcnt $refcnt
@@ -3180,7 +3171,7 @@ proc mportclose {mport} {
             interp delete $workername
         }
         set porturl [ditem_key $mport porturl]
-        if {[info exists macports::extracted_portdirs($porturl)]} {
+        #if {[info exists macports::extracted_portdirs($porturl)]} {
             # TODO port.tcl calls mportopen multiple times on the same port to
             # determine a number of attributes and will close the port after
             # each call. $macports::extracted_portdirs($porturl) will however
@@ -3190,7 +3181,7 @@ proc mportclose {mport} {
             # port.tcl code to delay mportclose until the end.
             #ui_debug "Removing temporary port directory $macports::extracted_portdirs($porturl)"
             #file delete -force $macports::extracted_portdirs($porturl)
-        }
+        #}
         ditem_delete $mport
     }
 }

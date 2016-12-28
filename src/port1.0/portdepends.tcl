@@ -54,7 +54,6 @@ option_proc depends portdepends::validate_depends_options_new
 set_ui_prefix
 
 proc portdepends::validate_depends_options {option action {value ""}} {
-    global targets
     switch $action {
         set {
             foreach depspec $value {

@@ -97,8 +97,8 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
 }
 
 proc pindex {portdir} {
-    global target oldfd oldmtime newest qindex fd directory outdir stats full_reindex \
-           ui_options port_options save_prefix keepkeys
+    global oldmtime newest qindex directory stats full_reindex \
+           ui_options port_options save_prefix
 
     set qname [string tolower [file tail $portdir]]
     set absportdir [file join $directory $portdir]

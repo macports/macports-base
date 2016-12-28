@@ -38,8 +38,6 @@ package require macports_util 1.0
 package require msgcat
 package require porttrace 1.0
 
-global targets target_uniqid all_variants
-
 set targets [list]
 set target_uniqid 0
 
@@ -88,7 +86,7 @@ proc exists {option} {
 # @param option name of the option
 # @param args arguments
 proc handle_option {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)]} {
         set $option $args
@@ -101,7 +99,7 @@ proc handle_option {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-append {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)]} {
         if {[info exists $option]} {
@@ -118,7 +116,7 @@ proc handle_option-append {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-prepend {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)]} {
         if {[info exists $option]} {
@@ -135,7 +133,7 @@ proc handle_option-prepend {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-delete {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
         set temp [set $option]
@@ -152,7 +150,7 @@ proc handle_option-delete {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-strsed {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
         set temp [set $option]
@@ -169,7 +167,7 @@ proc handle_option-strsed {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-replace {option args} {
-    global $option user_options option_procs deprecated_options
+    global $option user_options deprecated_options
 
     # Deprecate -replace with only one argument, for backwards compatibility call -strsed
     # XXX: Remove this in 2.2.0
@@ -406,7 +404,7 @@ proc command_exec {command args} {
         file mkdir ${dir}
     }
 
-    global ${varprefix}.env ${varprefix}.env_array ${varprefix}.nice env macosx_version
+    global ${varprefix}.env_array ${varprefix}.nice env
 
     # Set the environment.
     # If the array doesn't exist, we create it with the value
@@ -907,7 +905,7 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global env workpath worksrcpath macosx_version
+    global env workpath worksrcpath
     set extended 0
     set suppress 0
     # once a macports version has been released, add the rest of the
@@ -1306,12 +1304,11 @@ proc lipo {} {
 }
 
 ########### Internal Dependency Manipulation Procedures ###########
-global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
     global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
-           ports_dry_last_skipped worksrcpath prefix subport env portdbpath \
+           ports_dry_last_skipped worksrcpath subport env portdbpath \
            macosx_version
     set portname $subport
     set result 0
@@ -1598,7 +1595,7 @@ proc recursive_collect_deps {portname {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd subport version revision portvariants epoch ports_dryrun user_options
+    global targets subport version revision portvariants
     set dlist $targets
 
     # the statefile will likely be autocleaned away after install,
@@ -1665,7 +1662,7 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink subport portpath ports_ignore_different ports_dryrun \
-           env applications_dir subbuildpath
+           subbuildpath
 
     if {![tbool ports_dryrun]} {
         set need_chown 0
@@ -1968,7 +1965,7 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global all_variants ports_force PortInfo requested_variations portvariants negated_variants
+    global all_variants PortInfo requested_variations portvariants negated_variants
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
@@ -2126,7 +2123,6 @@ proc target_new {name procedure} {
 }
 
 proc target_provides {ditem args} {
-    global targets
     # Register the pre-/post- hooks for use in Portfile.
     # Portfile syntax: pre-fetch { puts "hello world" }
     # User-code exceptions are caught and returned as a result of the target.
@@ -2543,7 +2539,7 @@ proc PortGroup {group version} {
 
 # return filename of the archive for this port
 proc get_portimage_name {} {
-    global portdbpath subport version revision portvariants os.platform os.major portarchivetype
+    global subport version revision portvariants os.platform os.major portarchivetype
     set ret "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
     # should really look up NAME_MAX here, but it's 255 for all OS X so far
     # (leave 10 chars for an extension like .rmd160 on the sig file)
@@ -2602,7 +2598,6 @@ proc find_portarchive_path {} {
 # check if archive type is supported by current system
 # returns an error code if it is not
 proc archiveTypeIsSupported {type} {
-    global os.platform os.version
     set errmsg ""
     switch -regex $type {
         cp(io|gz) {
@@ -2936,7 +2931,7 @@ proc fileAttrsAsRoot {file attributes} {
 #
 # @param action the action for which privileges are being elevated
 proc elevateToRoot {action} {
-    global euid egid macportsuser
+    global euid egid
 
     if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
@@ -2952,7 +2947,8 @@ proc elevateToRoot {action} {
 # de-escalate privileges from root to those of $macportsuser.
 #
 proc dropPrivileges {} {
-    global euid egid macportsuser workpath
+    global macportsuser
+    # workpath
     if { [geteuid] == 0 } {
         if { [catch {
                 if {[name_to_uid "$macportsuser"] != 0} {
@@ -3031,7 +3027,7 @@ proc _libtest {depspec {return_match 0}} {
 ### _bintest is private; subject to change without notice
 
 proc _bintest {depspec {return_match 0}} {
-    global env prefix
+    global env
     set depregex [lindex [split $depspec :] 1]
 
     set search_path [split $env(PATH) :]
@@ -3044,7 +3040,7 @@ proc _bintest {depspec {return_match 0}} {
 ### _pathtest is private; subject to change without notice
 
 proc _pathtest {depspec {return_match 0}} {
-    global env prefix
+    global prefix
     set depregex [lindex [split $depspec :] 1]
 
     # separate directory from regex

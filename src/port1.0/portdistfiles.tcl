@@ -52,7 +52,7 @@ proc portdistfiles::distfiles_start {args} {
 }
 
 proc portdistfiles::distfiles_main {args} {
-    global UI_PREFIX master_sites patch_sites patchfiles checksums_array \
+    global master_sites patch_sites patchfiles checksums_array \
            portdbpath dist_subdir all_dist_files
     
     # give up on ports that do not provide URLs

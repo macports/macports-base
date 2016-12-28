@@ -46,9 +46,8 @@ namespace eval registry {
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
 proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
-	global macports::registry.path macports::registry.format macports::prefix
+	global macports::registry.format
 
-	
 	# Make sure we don't already have an entry in the Registry for this
 	# port version_revision+variants
 	if {![entry_exists $name $version $revision $variants] } {

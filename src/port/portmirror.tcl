@@ -11,7 +11,6 @@ package require macports
 package require Pextlib
 
 # Globals
-global distfiles_filemap
 array set ui_options        [list]
 array set global_options    [list]
 array set global_variations [list]
