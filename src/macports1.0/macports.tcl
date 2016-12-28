@@ -348,7 +348,7 @@ proc ui_warn_once {id msg} {
 # Replace puts to catch errors (typically broken pipes when being piped to head)
 rename puts tcl::puts
 proc puts {args} {
-    catch "tcl::puts $args"
+    catch {tcl::puts {*}$args}
 }
 
 # find a binary either in a path defined at MacPorts' configuration time
