@@ -81,10 +81,19 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
     upvar $portinfo_name portinfo
     upvar $port_options_name port_options
 
-    if {$subport eq {}} {
-        set interp [mportopen file://$absportdir $port_options]
-    } else {
-        set interp [mportopen file://$absportdir [concat $port_options subport $subport]]
+    # Make sure $prefix expands to '${prefix}' so that the PortIndex is
+    # portable across prefixes, see https://trac.macports.org/ticket/53169 and
+    # https://trac.macports.org/ticket/17182.
+    try -pass_signal {
+        set macports::prefix {${prefix}}
+        if {$subport eq {}} {
+            set interp [mportopen file://$absportdir $port_options]
+        } else {
+            set interp [mportopen file://$absportdir [concat $port_options subport $subport]]
+        }
+    } finally {
+        # Restore prefix to the previous value
+        set macports::prefix $save_prefix
     }
 
     if {[array exists portinfo]} {
@@ -98,7 +107,7 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
 
 proc pindex {portdir} {
     global oldmtime newest qindex directory stats full_reindex \
-           ui_options port_options save_prefix
+           ui_options port_options
 
     set qname [string tolower [file tail $portdir]]
     set absportdir [file join $directory $portdir]
