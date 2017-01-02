@@ -3165,32 +3165,32 @@ proc _check_xcode_version {} {
             10.8 {
                 set min 4.4
                 set ok 4.4
-                set rec 4.6.3
+                set rec 5.1.1
             }
             10.9 {
                 set min 5.0.1
                 set ok 5.0.1
-                set rec 6.0.1
+                set rec 6.2
             }
             10.10 {
                 set min 6.1
                 set ok 6.1
-                set rec 7.2
+                set rec 7.2.1
             }
             10.11 {
                 set min 7.0
                 set ok 7.0
-                set rec 7.3
+                set rec 8.2.1
             }
             10.12 {
                 set min 8.0
                 set ok 8.0
-                set rec 8.0
+                set rec 8.2.1
             }
             default {
                 set min 8.0
                 set ok 8.0
-                set rec 8.0
+                set rec 8.2.1
             }
         }
         if {$xcodeversion eq "none"} {
