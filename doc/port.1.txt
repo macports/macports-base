@@ -129,7 +129,7 @@ The port command recognizes several global flags and options.
     Quiet mode, suppress informational messages to a minimum, implies -N
 
 -N::
-    Non-interactive mode, interactive questions are not asked 
+    Non-question mode, interactive questions are not asked (avoid typing yes)
 
 .Installation and upgrade
 -n::
