@@ -35,6 +35,7 @@ SHLIB_LDFLAGS += $(UNIVERSAL_ARCHFLAGS)
 %.d : %.c
 	$(CC) -MM -MP $(CPPFLAGS) $< > $@
 
+.PHONY: all clean distclean install test
 all:: $(SHLIB_NAME)
 
 # Copy sip_copy_proc.{c,h} from pextlib1.0 where they are also needed
