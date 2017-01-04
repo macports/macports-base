@@ -1,0 +1,114 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-06-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* javascript.man: Fixed bug [SF Bug 1740574], typos in the
+	  documentation. Thanks to David Scott Cargo
+	  <escargo@users.sourceforge.net> for the report.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* javascript.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-28  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Removed the check for ncgi v1 being loaded before
+	  javascript. This type of check has been done traditionally in
+	  the implementation itself. Only checks for Tcl versions should
+	  be done in the index.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* javascript.tcl:
+	* javascript.man:
+	* pkgIndex.tcl: Fixed bug #614591. Set version of the package to
+	  to 1.0.1.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* javascript.man: More semantic markup, less visual one.
+
+2002-04-12  Andreas Kupries  <andreas_kupries@user.sourceforge.net>
+
+	* javascript.man: Added doctools manpage.
+
+2000-11-01  Melissa Chawla  <hershey@ajubasolutions.com>
+
+	* javascript.tcl: created this package.

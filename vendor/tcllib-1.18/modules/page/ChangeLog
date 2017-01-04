@@ -1,0 +1,419 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: [Bug 3425271], reported
+	* support/installation/actions.tcl: by Stuart Cassoff. Extended
+	* apps/page: the installer to install the .template files as
+	  well. Extended auto_path in the application to find the standard
+	  plugins in the installation.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-31  Andreas Kupries  <andreask@activestate.com>
+
+	* page_util_norm_peg.man: New files. Two, for the remaining utility
+	* page_util_norm_lemon.man: packages. Lemon docs are partial.
+
+	* page_util_peg.man: New files. Three more manpages, for most of
+	* page_util_quote.man: the utility packages.
+	* page_util_flow.man: 
+
+2007-08-30  Andreas Kupries  <andreask@activestate.com>
+
+	* page_pluginmgr.man: First documentation for the packages, intro,
+	* page_intro.man: and the plugin management.
+	* pluginmgr.tcl: Fixed a typo in a comment.
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pluginmgr.tcl: Replaced deprecated {expand} syntax in comments
+	  with {*}.
+
+2007-03-28  Andreas Kupries  <andreask@activestate.com>
+
+	* apps/page: Added a block of meta data.
+
+2007-03-23  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Added MD hints.
+
+2007-03-21  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Fixed version mismatches, index vs. package.
+	* plugins/pkgIndex.tcl:
+	* plugins/writer_mecpu.tcl:
+
+2007-03-07  Andreas Kupries  <andreask@activestate.com>
+
+	* compiler_peg_mecpu.tcl: Fixed typo in name of required package
+	* pkgIndex.tcl:           ('gasm;, was incorrectly 'gas'). Bumped
+	                          to version 0.1.1.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Bumped version to 0.2
+	* pluginmgr.tcl:
+
+2006-06-30  Andreas Kupries  <akupries@shaw.ca>
+
+	* compiler_peg_mecpu.tcl: New packages generating ME
+	* gen_peg_mecpu.tcl:      instructions for the CPU(core).
+	* gen_peg_mecpu.template: And page plugins using them.
+	* plugins/pkgIndex.tcl:
+	* plugins/transform_mecpu.tcl:
+	* plugins/writer_mecpu.tcl:
+	* pkgIndex.tcl:
+
+	* pluginmgr.tcl: Extended the page plugin environment with
+	  commands allowing a plugin to write files. Intended for the
+	  debugging of plugins, i.e. the dumping of internal state. The
+	  destination for such files however are restricted to the current
+	  working directory and its sub-directories. Currently only the
+	  MEcpu compiler package has code to use this, to write the
+	  intermediary graphs and some statistics (Disabled through
+	  comments however).
+
+2006-01-11  Andreas Kupries <andreask@activestate.com>
+
+	* util_norm_peg.tcl:           Inserted pragmas for the MDgen
+	* util_norm_lemon.tcl:         application hinting that the
+	* gen_peg_me.tcl:              pseudo-package 'page::plugin'
+	* analysis_peg_emodes.tcl:     is not a true dependency.
+	* analysis_peg_minimize.tcl:
+	* analysis_peg_realizable.tcl:
+	* analysis_peg_reachable.tcl:
+
+	* analysis_peg_minimize.tcl: Changed bad reference to 'useful' to
+	  the correct string, 'realizable'.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-28  Andreas Kupries <andreask@activestate.com>
+
+	* NOTES.txt: Renamed from NOTES. This file had the same name as a
+	  directory, causing the Windows and OS X filesystem to trip badly
+	  as they considered both identical.
+
+2005-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* plugins/config_peg.tcl: Fixed version inconsistency.
+
+	* gen_peg_canon.tcl: Fixed frink warnings.
+	* analysis_peg_emodes.tcl (compute): Fixed inconsistency in return
+	  values.
+
+2005-08-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../../apps/page.man: Updated the documentation to list the two
+	  new plugins.
+
+	* plugins/writer_identity.tcl: Additional reader and writer plugins.
+	* plugins/reader_treeser.tcl:  The writer dumps the incoming data
+	  as is, for inspection. The reader takes a tree serialization,
+	  validates it as such and then simply passes this one.
+
+	* util_peg.tcl: Bugfixes in the computation of symbol(Node) for
+	  tree nodes. Wrong var name, and missing tree reference. Also
+	  change of output to stderr to use the regular page logging
+	  instead.
+
+	* util_norm_peg.tcl: Extended the code flattening nested x and /
+	  operators to transform x and / operators without children into
+	  epsilon's.
+
+	* gen_peg_ser.tcl: Fixed output going directly to stderr to go
+	  directly through the regular page logging.
+
+2005-07-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../../examples/page: Renamed the directory examples/pg to the
+	  proper name now in use.
+
+	* modules/page/plugins/reader_lemon.tcl: Reworked feedback generation
+	* modules/page/plugins/reader_peg.tcl:   to properly signal end of
+	* modules/page/plugins/reader_ser.tcl:   reading, for good linebreaks
+	* modules/page/plugins/reader_hb.tcl:    in the output. Added to the
+	* ../../apps/page:                  plugins, manager, and application.
+	* pluginmgr.tcl:
+
+	* modules/page/plugins/transform_reach.tcl: Added generic feature
+	* modules/page/plugins/transform_use.tcl:   query command to plugin
+	* modules/page/plugins/reader_lemon.tcl:    manager and plugins.
+	* modules/page/plugins/writer_null.tcl: Added code to application,
+	* modules/page/plugins/writer_tree.tcl: manager and plugins to ask
+	* modules/page/plugins/writer_peg.tcl:  for a feature 'timeable'. The
+	* modules/page/plugins/writer_ser.tcl:  application will defer the
+	* modules/page/plugins/writer_tpc.tcl:  collection of timing data to
+	* modules/page/plugins/writer_hb.tcl:   the plugin if it can do so.
+	* modules/page/plugins/writer_me.tcl:   Extended collection of timing
+	* modules/page/plugins/reader_peg.tcl:  data from reader to all uses
+	* modules/page/plugins/reader_ser.tcl:  of plugins. also a better
+	* modules/page/plugins/reader_hb.tcl:   report at the end. All plugins
+	* ../../apps/page:                      are now timeable. Especially
+	* pluginmgr.tcl: the readers now provide much better data about the
+	                 number of characters they have read per second.
+
+2005-07-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../../apps/page.man: Completed the documentation of the 'page'
+	  application.
+
+	* ../../apps/page: Rewrote option processing to handle the changes
+	  in the handling of configuration plugins and files. Also now
+	  handling the changes when the default options are used. Better
+	  error messages when plugins are not found. Corrected the
+	  handling of -a, -p and their long equivalents.
+
+	* pluginmgr.tcl: Rewritten the configuration loader to accept
+	  files containing lists of options as well, possibly quoted using
+	  double-quotes and quotes.
+
+	* plugins/config_peg.tcl: ** New file **
+	* pkgIndex.tcl: Put the predefined configuration "peg" aka "PEG
+	  parser generator" into a plugin.
+
+
+2005-07-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* A lot of changes. All packages have been renamed, i.e. shuffled
+	  to different places in the namespace hierarchy. All have been
+	  placed under "::page", and made more consistent. The files have
+	  been moved around too, so that their names reflect the namespace
+	  hierarchy as well. A customized pluginmgr has been written on
+	  top of the general one, and the application has been rewritten
+	  to use it. The existing parsers, code generators and
+	  transformers have been put into proper plugins.
+
+2005-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples/pg/parse.y: Used the new lemon frontend to convert the
+	* examples/pg/sql.log: SQL grammar spec found in sqlite into an
+	* examples/pg/sql.peg: incomplete PEG spec from which we can
+	                       derive a complete spec (Removal of left
+			       recursion, and completion/correction of the
+			       lexical definitions).
+
+	* examples/pg/lemon.html: Created a frontend for reading grammar
+	* examples/pg/lemon.peg:  specifications written for the LEMON
+	* peg_grammar_lemon.tcl:  parser generator by Richard Hipp. The
+	* peg_norm_lemon.tcl:     PEG grammar spec is based on the docu-
+	* apps/pg:                mentation and the SQL spec found in
+	                          sqlite3. Integrated the frontend into
+	                          the PG application.
+
+	* peg_tpcserwriter.tcl: Added code to deal with grammars without
+	* peg_tpcphbwriter.tcl: start expression (as can be generated by
+	* peg_pegwriter.tcl:    the usefulness transform).
+	* peg_mewriter.tcl:
+	* peg_writer.tcl:
+	* peg_emodes.tcl:
+	* peg_useful.tcl:
+
+2005-05-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* peg_emodes.tcl: Fixed problem in gen() phase. A gen() switching
+	  to no can force acc() to no as well.
+
+	* apps/pg: Reworked PEG frontend code a bit to allow quick
+	  switching between four variants of the PEG fronted (ME parser
+	  vs. interpreted grammar, timed vs. untimed).
+
+	* pkgIndex.tcl:
+	* peg_grammar_me.tcl: New implementation of PEG frontend. PEG
+	  parser as generated by the ME backend, after the fixes done
+	  yesterday (PG dogfooding / bootstrapping).
+
+2005-05-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* peg_mewriter.tcl: Fixed a number of bugs (special char classes
+	  generated bogus code, nonterminals and ! have to import status
+	  variable when sub expression is terminal). Added (inactive) code
+	  for insertion of logging code into the generated parser.
+
+2005-05-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* apps/pg: Removed two superfluous commands. Added readable
+	  descriptions for the backends. Added 'null' backend which does
+	  nothing. Added non-verbose char reader, disabled right now.
+
+	* peg_mewriter.tcl: Completely rewritten, removed all templates
+	  save the main one, all code composition via lists, completed
+	  option, kleene and pos kleene code generator, added comments
+	  containing the parsing expressions matched by a particular
+	  command.
+
+	* peg_quote.tcl: More forms of quoting characters.
+
+2005-05-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doc_emodes.txt: Recorded some thought about the transformation
+	  which make it not worth to implement right now, as we need an
+	  LL(1) grammar, otherwise we ran into either cache incoherency or
+	  exponential time.
+
+	* peg_emodes.tcl: New transformation. Mode analysis. Computes
+	  accept/generate data for all nodes from the given mode hints,
+	  finds places where the mode can be made more strict than
+	  specified.
+
+	* pg_flow.tcl: Fixed bug in setup of flow when using a start set
+	  of nodes.
+
+	* doc_useful.txt: Rewritten to use the new flow management. Stores 
+	* peg_useful.tcl: the results differently as well, easier to use
+	  by the remove code. Updated the documentation of the transform
+	  as well.
+
+2005-05-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doc_reachable.tcl:
+	* peg_reachable.tcl: Rewritten to use the new flow
+	  management. Stores the results differently as well, easier to
+	  use by the remove code. Updated the documentation of the
+	  transform as well.
+
+	* pg_flow.tcl: New utility. Generic tree walking, for both topdown
+	  and bottomup walks, and anything in between. Maintains the state
+	  of nodes to visit, and the code executed per node determines
+	  what other nodes to visit.
+
+2005-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* peg_utilities.tcl: Bugfix, have to update user information of
+	  symbols when nodes are removed, their definitions may have lost
+	  callers.
+
+	* peg_tpcser.tcl: A first, two frontends, reading grammars which
+	* peg_tpcphb.tcl: are either in halfbaked form, or a serialization.
+
+	* peg_tpcphbwriter.tcl: Two new backends, writing the grammar out
+	* peg_tpcserwriter.tcl: as a halfbaked package (See peg_writer,
+	  reduced to the Start and Define commands), and as serialization
+	  of a PEG container.
+
+	* peg_writer.tcl:    Moved a number of generally useful
+	* peg_utilities.tcl: functionality into the utilities.
+
+2005-05-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* peg_useful.tcl: Tweaked the definition of usefulness, better
+	  based on the definition for CFG's.
+
+2005-05-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* peg_pegwriter.tcl, peg_mewriter.tcl: Updated to changed NPEGT
+	  definition (changed attribute names, node classification).
+
+	* peg_useful.tcl: Bugfix, we delete the subtrees of all unuseful
+	  nodes. No cutting, deleting.
+
+	* treewriter.tcl: Back unquoted characters. Better readable.
+
+2005-04-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* peg_useful.tcl: Ditto for the usefulness analysis and
+	* doc_useful.txt: transform. Rewrote algorithm to use more proc
+	  local state with quicker access, and easier checks.
+
+	* peg_reachable.tcl: Documented reachable computation and
+	* doc_reachable.txt: transform, updated to the changes in the
+	  Normalized PE Grammar Tree.
+
+	* peg_utilities.tcl: New helper package. Common operations on the
+	  tree.
+
+2005-04-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Reworked documentation of 'Raw PE Grammar AS Tree', as generated
+	  by frontend, updated mengine to that.
+
+	* Reworked documentation of normalization step, and updated the
+	  transformation code to it. Note: The non-generic backends are
+	  broken by this.
+
+	* updated generic treewriter to quote attribute strings, as they
+	  now may contain unprintable characters (the attributes carrying
+	  lexemes).
+
+2005-04-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Added backend writing the input back in the same format, i.e. as
+	  PEG. Bug fixes. Added option processing to the application to
+	  switch between backends, and to select optimization levels.
+
+	* Character de/encode put into separate package. Started backend
+	  writing a recursive descent parser for a grammar, based on
+	  mengine.
+
+2005-04-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bug fixes. Added transformations to com;ute reachable and useful
+	  parts of the grammar, for minimizing it.
+
+2005-04-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Restructured utility packages (renames), and updated the
+	  backends.
+
+2005-04-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Completed backend for writing the grammar as package providing a
+	  PEG container. Bug fixes. First internal docs.
+
+2005-04-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bugfixes, added a transformation normalizing the raw AST.
+
+2005-04-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module: Utility packages for the parser generator
+	  application.

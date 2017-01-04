@@ -1,0 +1,138 @@
+# -*-tcl -*-
+#Maximum Cut - Tests
+#
+#Searches for such division into two sets of nodes in graph G, that the amount of
+#edges linking both sets is as big as possible.
+
+#------------------------------------------------------------------------------------
+#Tests concerning returning right values by algorithm
+
+#Test 1.0 - Tight Example - goes right -> ALG = OPT
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.0 { MaxCut, Tight Example } {
+    SETUP_MAXCUT_1
+    set result [list [struct::graph::op::MaxCut mygraph U V] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} {4 {node1 node3} {node2 node4}}
+
+#Test 1.1 - Tight Example - goes wrong -> ALG = 2 * OPT
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.1 { MaxCut, Tight Example } {
+    SETUP_MAXCUT_2
+    set result [list [struct::graph::op::MaxCut mygraph U V] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} {2 {node1 node3} {node2 node4}}
+
+#Test 1.2 - Another graph case for testing finding proper solution
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.2 { MaxCut, graph simulation } {
+    SETUP_MAXCUT_3
+    set result [list [struct::graph::op::MaxCut mygraph U V] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} {7 {node1 node4 node5} {node2 node3 node6}}
+
+#Test 1.3 - Another graph case for testing finding proper solution
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.3 { MaxCut, graph simulation } {
+    SETUP_MAXCUT_4
+    set result [list [struct::graph::op::MaxCut mygraph U V] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} {9 {node1 node3 node5} {node2 node4 node6}}
+
+#Test 1.4 - Graph 1.4 with another order of nodes - algorithm is mistaken by one.
+# Note: This is strongly influenced by the ordering of nodes in
+# results of commands like '$g nodes ...'.  The tcl implementation has
+# a node ordering which demonstrates the algorithm running into a
+# local optimum. The critcl implementation uses different node
+# ordering and returns the optimal cut.
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.4a { MaxCut, graph simulation } {
+    SETUP_MAXCUT_5
+    set result [list [struct::graph::op::MaxCut mygraph U V] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} [tmE \
+       {8 {node1 node2 node5 node6} {node3 node4}} \
+       {9 {node2 node3 node6} {node1 node4 node5}}]
+
+#Test 1.5 - Testing subprocedure countEdges - edges only between sets
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.5 { countEdges, graph simulation } {
+    SETUP_COUNTEDGES_1 U V
+    set result [struct::graph::op::countEdges mygraph $U $V]
+    mygraph destroy
+    set result
+} 4
+
+#Test 1.6 - Testing subprocedure countEdges - edges not only between sets
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.6 { countEdges, graph simulation } {
+    SETUP_COUNTEDGES_2 U V
+    set result [struct::graph::op::countEdges mygraph $U $V]
+    mygraph destroy
+    set result
+} 4
+
+#Test 1.7 - Testing subprocedure countEdges - no edges between sets
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.7 { countEdges, graph simulation } {
+    SETUP_COUNTEDGES_3 U V
+    set result [struct::graph::op::countEdges mygraph $U $V]
+    mygraph destroy
+    set result
+} 0
+
+#Test 1.8 - Testing subprocedure countEdges - mixed node sets U and V
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.8 { countEdges, graph simulation } {
+    SETUP_COUNTEDGES_4 U V
+    set result [struct::graph::op::countEdges mygraph $U $V]
+    mygraph destroy
+    set result
+} 5
+
+#Test 1.9 - Testing subprocedure cut - solution found
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.9 { cut, graph simulation } {
+    SETUP_CUT_1 U V param
+    set result [list [struct::graph::op::cut mygraph U V $param] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} {0 {node1 node4 node5} {node2 node3 node6}}
+
+#Test 1.10 - Testing subprocedure cut - better solution possible to find
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-1.10 { cut, graph simulation } {
+    SETUP_CUT_2 U V param
+    set result [list [struct::graph::op::cut mygraph U V $param] [lsort $U] [lsort $V]]
+    mygraph destroy
+    set result
+} {7 {node1 node4 node5} {node2 node3 node6}}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-2.0 { MaxCut, wrong args, missing } {
+    catch {struct::graph::op::MaxCut} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::MaxCut {G U V} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-2.1 { MaxCut, wrong args, missing } {
+    catch {struct::graph::op::MaxCut G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::MaxCut {G U V} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-2.2 { MaxCut, wrong args, missing } {
+    catch {struct::graph::op::MaxCut G U} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::MaxCut {G U V} 2]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-2.3 { MaxCut, wrong args, too many } {
+    catch {struct::graph::op::MaxCut G U V x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::MaxCut {G U V}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0 - case when given graph doesn't have edges at all
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MaxCut-3.0 { MaxCut, no edges } {
+    SETUP_NOEDGES_1
+    set result [struct::graph::op::MaxCut mygraph U V]
+    mygraph destroy
+    set result
+} 0
+

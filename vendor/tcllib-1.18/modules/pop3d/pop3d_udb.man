@@ -1,0 +1,112 @@
+[comment {-*- tcl -*-}]
+[manpage_begin pop3d::udb n 1.0.1]
+[keywords internet]
+[keywords network]
+[keywords pop3]
+[keywords protocol]
+[copyright {2002 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Tcl POP3 Server Package}]
+[titledesc {Simple user database for pop3d}]
+[category  Networking]
+[require Tcl 8.2]
+[require pop3d::udb [opt 1.0.1]]
+[description]
+[para]
+
+The package [package pop3d::udb] provides simple in memory databases
+which can be used in conjunction with the pop3 server core provided by
+the package [package pop3d]. The databases will use the names of users
+as keys and associates passwords and storage references with them.
+
+[para]
+
+Objects created by this package can be directly used in the
+authentication callback of pop3 servers following the same interface
+as servers created by the package [package pop3d].
+
+[para]
+
+[list_begin definitions]
+
+[call  [cmd ::pop3d::udb::new] [opt [arg dbName]]]
+
+This command creates a new database object with an associated global
+Tcl command whose name is [arg dbName].
+
+[list_end]
+
+The command [cmd dbName] may be used to invoke various operations on
+the database.  It has the following general form:
+
+[list_begin definitions]
+[call [cmd dbName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+
+[para]
+
+The following commands are possible for database objects:
+
+[list_begin definitions]
+
+[call [arg dbName] [method destroy]]
+
+Destroys the database object.
+
+[call [arg dbName] [method add] [arg {user pwd storage}]]
+
+Add a new user or changes the data of an existing user. Stores
+[arg password] and [arg storage] reference for the given [arg user].
+
+[call [arg dbName] [method remove] [arg user]]
+
+Removes the specified [arg user] from the database.
+
+[call [arg dbName] [method rename] [arg {user newName}]]
+
+Changes the name of the specified [arg user] to [arg newName].
+
+[call [arg dbName] [method lookup] [arg user]]
+
+Searches the database for the specified [arg user] and returns a
+two-element list containing the associated password and storage
+reference, in this order. Throws an error if the user could not be
+found. This is the interface as expected by the authentication
+callback of package [package pop3d].
+
+[call [arg dbName] [method exists] [arg user]]
+
+Returns true if the specified [arg user] is known to the database,
+else false.
+
+[call [arg dbName] [method who]]
+
+Returns a list of users known to the database.
+
+[call [arg dbName] [method save] [opt [arg file]]]
+
+Saves the contents of the database into the given [arg file]. If the
+file is not specified the system will use the path last used in a call
+to [arg dbName] [method read]. The generated file can be read by the
+[method read] method.
+
+[call [arg dbName] [method read] [arg file]]
+
+Reads the specified [arg file] and adds the contained user definitions
+to the database. As the file is actually [cmd source]'d a safe
+interpreter is employed to safeguard against malicious code. This
+interpreter knows the [cmd add] command for adding users and their
+associated data to this database. This command has the same argument
+signature as the method [method add]. The path of the [arg file] is
+remembered internally so that it can be used in the next call of
+
+[arg dbName] [method save] without an argument.
+
+[list_end]
+
+[vset CATEGORY pop3d]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

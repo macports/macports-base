@@ -1,0 +1,587 @@
+# -*- tcl -*-
+# bignum.test --
+#    Test cases for the ::math::bignum package
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal bignum.tcl math::bignum
+}
+
+# -------------------------------------------------------------------------
+
+proc matchBignums { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { $a != $b } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+#
+# Note:
+# Some tests use the internal representation directly.
+# The variables atombits is assumed to be 16
+#
+if { $::math::bignum::atombits != 16 } {
+   puts "Prerequisite: atombits = 16"
+   #
+   # The maximum value for the atoms is 2**16-1 = 65535
+   #
+}
+
+# -------------------------------------------------------------------------
+
+#
+# Tests: fromstr/tostr (use the internal representation directly)
+#
+test "Fromstr-1.0" "Convert string representing small number (1)" -body {
+   ::math::bignum::fromstr 1
+} -result {bignum 0 1}
+
+test "Fromstr-1.1" "Convert string representing small number (2)" -body {
+   ::math::bignum::fromstr 257
+} -result {bignum 0 257}
+
+test "Fromstr-1.2" "Convert string representing big number (1)" -body {
+   ::math::bignum::fromstr "[expr {256*256*256}]"
+} -result {bignum 0 0 256}
+
+test "Fromstr-1.3" "Convert string representing big number (2)" -body {
+   ::math::bignum::fromstr "[expr {256*256*256+1}]"
+} -result {bignum 0 1 256}
+
+test "Fromstr-1.4" "Convert string representing negative number" -body {
+   ::math::bignum::fromstr "[expr {-256*256*256-1}]"
+} -result {bignum 1 1 256}
+
+test "Fromstr-1.5" "Convert string representing binary number (1)" -body {
+   ::math::bignum::fromstr "10000000000000000000000000000000" 2
+} -result {bignum 0 0 32768}
+
+test "Fromstr-1.6" "Convert string representing binary number (2)" -body {
+   ::math::bignum::fromstr "10000000000000000000000000000001" 2
+} -result {bignum 0 1 32768}
+
+test "Fromstr-1.7" "Convert string representing hex number (1)" -body {
+   ::math::bignum::fromstr "ffffffff" 16
+} -result {bignum 0 65535 65535}
+
+test "Fromstr-1.8" "Convert string representing hex number (2)" -body {
+   ::math::bignum::fromstr "-ffffffff" 16
+} -result {bignum 1 65535 65535}
+
+test "Fromstr-1.9" "Convert string representing 2*16+1" -body {
+   ::math::bignum::fromstr "65537"
+} -result {bignum 0 1 1}
+
+test "Fromstr-1.10" "Convert string representing 2*16" -body {
+   ::math::bignum::fromstr "65536"
+} -result {bignum 0 0 1}
+
+
+test "Tostr-2.0" "Convert small number (1)" -body {
+   ::math::bignum::tostr {bignum 0 1}
+} -result 1
+
+test "Tostr-2.1" "Convert small number (2)" -body {
+   ::math::bignum::tostr {bignum 0 257}
+} -result 257
+
+test "Tostr-2.2" "Convert big number (1)" -body {
+   ::math::bignum::tostr  {bignum 0 0 256}
+} -result "[expr {256*256*256}]"
+
+test "Tostr-2.3" "Convert big number (2)" -body {
+   ::math::bignum::tostr  {bignum 0 1 256}
+} -result "[expr {256*256*256+1}]"
+
+test "Tostr-2.4" "Convert negative number" -body {
+   ::math::bignum::tostr  {bignum 1 1 256}
+} -result "[expr {-256*256*256-1}]"
+
+test "Tostr-2.5" "Convert binary number (1)" -body {
+   ::math::bignum::tostr {bignum 0 0 32768} 2
+} -result  "10000000000000000000000000000000"
+
+test "Tostr-2.6" "Convert binary number (2)" -body {
+   ::math::bignum::tostr  {bignum 0 1 32768} 2
+} -result  "10000000000000000000000000000001"
+
+test "Tostr-2.7" "Convert hex number (1)" -body {
+   ::math::bignum::tostr  {bignum 0 65535 65535} 16
+} -result  "ffffffff"
+
+test "Tostr-2.8" "Convert hex number (2)" -body {
+   ::math::bignum::tostr  {bignum 1 65535 65535} 16
+} -result "-ffffffff"
+
+test "Tostr-2.9" "Convert very big number" -body {
+   ::math::bignum::tostr [::math::bignum::fromstr "10000000000000000000"]
+} -result "10000000000000000000"
+
+test "Tostr-2.10" "Convert to ternary number" -body {
+   ::math::bignum::tostr  {bignum 0 9} 3
+} -result "100"
+
+#
+# Arithmetic operations
+#
+test "Plus-3.0" "Add two smallish numbers" -body {
+   set a [::math::bignum::fromstr "100000"]
+   set b [::math::bignum::fromstr "100001"]
+
+   set c [::math::bignum::add $a $b]
+
+   ::math::bignum::tostr $c
+} -result "200001"
+
+test "Plus-3.1" "Add two big numbers" -body {
+   set a [::math::bignum::fromstr "100000000000000"]
+   set b [::math::bignum::fromstr "100001000000001"]
+
+   set c [::math::bignum::add $a $b]
+
+   ::math::bignum::tostr $c
+} -result "200001000000001"
+
+test "Plus-3.2" "Add two very large numbers" -body {
+   set a [::math::bignum::fromstr "1[string repeat 0 200]1"]
+   set b [::math::bignum::fromstr "2[string repeat 0 200]2"]
+
+   set c [::math::bignum::add $a $b]
+
+   ::math::bignum::tostr $c
+} -result "3[string repeat 0 200]3"
+
+test "Plus-3.3" "Add zero to a large number" -body {
+    set a [::math::bignum::fromstr "1[string repeat 0 200]1"]
+    set b 0
+
+    set c [::math::bignum::add $a $b]
+
+    ::math::bignum::tostr $c
+} -result "1[string repeat 0 200]1"
+
+test "Plus-3.4" "Add one to a large number" -body {
+    set a [::math::bignum::fromstr "1[string repeat 9 200]"]
+    set b 1
+
+    set c [::math::bignum::add $a $b]
+
+    ::math::bignum::tostr $c
+} -result "2[string repeat 0 200]"
+
+
+test "Minus-3.2" "Subtract two smallish numbers" -body {
+   set a [::math::bignum::fromstr "100000"]
+   set b [::math::bignum::fromstr "100001"]
+
+   set c [::math::bignum::sub $a $b]
+
+   ::math::bignum::tostr $c
+} -result "-1"
+
+test "Minus-3.3" "Subtract two big numbers" -body {
+   set a [::math::bignum::fromstr "100000000000000"]
+   set b [::math::bignum::fromstr "100001000000001"]
+
+   set c [::math::bignum::sub $a $b]
+
+   ::math::bignum::tostr $c
+} -result "-1000000001"
+
+test "Minus-3.4" "Subtract one from a big number" -body {
+    set a [::math::bignum::fromstr "1[string repeat 0 50]"]
+    set b 1
+
+    set c [::math::bignum::sub $a $b]
+
+    ::math::bignum::tostr $c
+} -result [string repeat 9 50]
+
+test "Compare-4.0" "Compare a set of two numbers" -body {
+   set okay 1
+   foreach {astring bstring op} {
+                           1                      -1 gt
+                           1                      -1 ge
+                           1                       1 ge
+                           1                       1 eq
+                          -1                       1 lt
+                          -1                       1 le
+                    10000000               -10000000 gt
+                    10000000               -10000000 ge
+                    10000000                10000000 eq
+                   -10000000                10000000 lt
+                   -10000000                10000000 le
+                100000000000           -100000000000 gt
+                100000000000           -100000000000 ge
+                100000000000            100000000000 eq
+               -100000000000            100000000000 lt
+               -100000000000            100000000000 le
+      1000000000000000000000 -1000000000000000000000 gt
+      1000000000000000000000 -1000000000000000000000 ge
+      1000000000000000000000  1000000000000000000000 eq
+     -1000000000000000000000  1000000000000000000000 lt
+     -1000000000000000000000  1000000000000000000000 le
+     -1000000000000000000000  1000000000000000000000 ne
+   } {
+       set a [::math::bignum::fromstr $astring]
+       set b [::math::bignum::fromstr $bstring]
+       if { ! [::math::bignum::$op $a $b] } {
+           set okay "False: $astring $op $bstring"
+           break
+       }
+   }
+   return $okay
+} -result 1
+
+test "Compare-4.1" "Compare a set of two numbers (inverse result)" -body {
+   set okay 1
+   foreach {astring bstring op} {
+                          -1                       1 gt
+                          -1                       1 ge
+                           1                       1 ne
+                           1                      -1 lt
+                           1                      -1 le
+                   -10000000                10000000 gt
+                   -10000000                10000000 ge
+                    10000000                10000000 ne
+                    10000000               -10000000 lt
+                    10000000               -10000000 le
+               -100000000000            100000000000 gt
+               -100000000000            100000000000 ge
+                100000000000            100000000000 ne
+                100000000000           -100000000000 lt
+                100000000000           -100000000000 le
+     -1000000000000000000000  1000000000000000000000 gt
+     -1000000000000000000000  1000000000000000000000 ge
+      1000000000000000000000  1000000000000000000000 ne
+      1000000000000000000000 -1000000000000000000000 lt
+      1000000000000000000000 -1000000000000000000000 le
+      1000000000000000000000 -1000000000000000000000 eq
+   } {
+       set a [::math::bignum::fromstr $astring]
+       set b [::math::bignum::fromstr $bstring]
+       #
+       # None should be true
+       #
+       if { [::math::bignum::$op $a $b] } {
+           set okay "True: $astring $op $bstring - should be false"
+           break
+       }
+   }
+   return $okay
+} -result 1
+
+test "Compare-4.2" "Compare a set of numbers against 0 and 1" -body {
+    set okay 1
+    foreach {astring opzero opone} {
+        -1                       lt lt
+        1                        gt eq
+        -10000000                lt lt
+        10000000                 gt gt
+        0                        eq lt
+        2                        gt gt
+    } {
+        set a [::math::bignum::fromstr $astring]
+        foreach b {0 1} op [list $opzero $opone] {
+            #
+            # None should be true
+            #
+            if  {! [::math::bignum::$op $a $b] } {
+                set okay "False: $astring $op $b - should be true"
+                break
+            }
+        }
+    }
+    return $okay
+} -result 1
+
+
+test "Mult-5.0" "Multiply two small numbers" -body {
+   set a [::math::bignum::fromstr 10]
+   set b [::math::bignum::fromstr 1000]
+
+   set c [::math::bignum::mul $a $b]
+
+   ::math::bignum::tostr $c
+} -result "10000"
+
+test "Mult-5.0a" "Multiply small numbers by 0" -body {
+    set okay 1
+    foreach a {1 0 -1 100000 -10000 100000000000 -100000000000} {
+        set n [::math::bignum::fromstr $a]
+        if {! [::math::bignum::iszero [::math::bignum::mul $n 0]]} {
+            set okay "Multiplying $a by 0 does not give 0"
+            return
+        }
+    }
+    set okay
+} -result 1
+
+test "Mult-5.0b" "Multiply small numbers by 1" -body {
+    set okay 1
+    foreach a {1 0 -1 100000 -10000 100000000000 -100000000000} {
+        set n [::math::bignum::fromstr $a]
+        if {! [::math::bignum::eq [::math::bignum::mul $n 1] $n]} {
+            set okay "Multiplying $a by 1 does not give $a"
+            return
+        }
+    }
+    set okay
+} -result 1
+
+
+test "Mult-5.1" "Multiply two small negative numbers" -body {
+   set a [::math::bignum::fromstr -10]
+   set b [::math::bignum::fromstr -1000]
+
+   set c [::math::bignum::mul $a $b]
+
+   ::math::bignum::tostr $c
+} -result "10000"
+
+test "Mult-5.2" "Multiply two very large numbers" -body {
+   set a [::math::bignum::fromstr "1[string repeat 0 100]"]
+   set b [::math::bignum::fromstr "2[string repeat 0 200]"]
+
+   set c [::math::bignum::mul $a $b]
+
+   ::math::bignum::tostr $c
+} -result "2[string repeat 0 300]"
+
+test "Mult-5.3" "Multiply two very large numbers of opposite sign" -body {
+   set a [::math::bignum::fromstr "1[string repeat 0 100]"]
+   set b [::math::bignum::fromstr "-2[string repeat 0 200]"]
+
+   set c [::math::bignum::mul $a $b]
+
+   ::math::bignum::tostr $c
+} -result "-2[string repeat 0 300]"
+
+test "Mult-5.4" "Katsabura multiplication with two very large numbers of opposite sign" -body {
+   set a [::math::bignum::fromstr "1[string repeat 0 1000]"]
+   set b [::math::bignum::fromstr "-2[string repeat 0 2000]"]
+
+   set c [::math::bignum::mul $a $b]
+
+   ::math::bignum::tostr $c
+} -result "-2[string repeat 0 3000]"
+
+# Div
+test "Div-6.1" "Divide 0 by any number" -body {
+    set okay 1
+    foreach n {1 -1 2 -2 10 -10 1000000000 -100000000} {
+        set a [::math::bignum::fromstr $n]
+        if {! [::math::bignum::iszero [::math::bignum::div 0 $a]]} {
+            set okay "Zero divided by $n does not give zero"
+            break
+        }
+    }
+    set okay
+} -result 1
+
+
+test "Div-6.2" "Divide small numbers by 1" -body {
+    set okay 1
+    foreach n {0 1 -1 2 -2 10 -10 1000000000 -100000000} {
+        set a [::math::bignum::fromstr $n]
+        if {! [::math::bignum::eq [::math::bignum::div $a 1] $a]} {
+            set okay "$n divided by 1 does not give $n"
+            break
+        }
+    }
+    set okay
+} -result 1
+
+test "Div-6.3" "Divide big numbers by 2" -body {
+    set okay 1
+    set two [::math::bignum::fromstr 2]
+    foreach p {2 5 10 50 100} {
+        set n 1[string repeat 0 $p]
+        set a [::math::bignum::fromstr $n]
+        set q 5[string repeat 0 [expr {$p-1}]]
+        if {! [string equal [::math::bignum::tostr [::math::bignum::div $a $two]] $q]} {
+            set okay "$n divided by 2 does not give $q"
+            break
+        }
+    }
+    set okay
+} -result 1
+
+test "Pow-7.1" "Exponentiate large numbers" -body {
+   set a [::math::bignum::fromstr "1[string repeat 0 10]"]
+   set b [::math::bignum::fromstr 1]
+
+   set okay 1
+   foreach p {1 2 3 4 5 6 7 8 9 10} {
+      set c [::math::bignum::mul $b $a]
+      set d [::math::bignum::pow $a $p]
+
+      if { [::math::bignum::ne $c $d] } {
+         set okay "False: $a**$p != $c"
+      }
+   }
+   return $okay
+} -result 1
+
+# Left and right shifts
+
+set c 0
+foreach {z n} {
+   1             1
+   2             1
+   4             1
+  -1             1
+  -2             1
+  -4             1
+   1             2
+   2             2
+   4             2
+  -1             2
+  -2             2
+  -4             2
+   1000001       1
+   2000001       1
+   4000001       1
+  -1000001       1
+  -2000001       1
+  -4000001       1
+   10000000001   1
+   20000000001   1
+   40000000001   1
+  -10000000001   1
+  -20000000001   1
+  -40000000001   1
+   10000000001  11
+   20000000001  11
+   40000000001  11
+  -10000000001  11
+  -20000000001  11
+  -40000000001  11
+   10000000001  21
+   20000000001  21
+   40000000001  21
+  -10000000001  21
+  -20000000001  21
+  -40000000001  21
+} {
+    incr c
+    test "Lshift-8.$c" "Lshift large numbers" -body {
+        set x [::math::bignum::lshift [::math::bignum::fromstr $z] $n]
+        set y [expr {$z << $n}]
+        ::math::bignum::cmp $x [::math::bignum::fromstr $y]
+    } -result 0
+
+    test "Rshift-8.$c" "Rshift large numbers" -body {
+        set x [::math::bignum::rshift [::math::bignum::fromstr $z] $n]
+        set y [expr {$z >> $n}]
+        ::math::bignum::cmp $x [::math::bignum::fromstr $y]
+    } -result 0
+}
+
+# Bit operations (And, Or, Xor)
+
+foreach {n a b zand zor zxor} {
+    0  0 0  0 0 0
+    1  1 2  0 3 3
+    2  1 3  1 3 2
+    3  2 3  2 3 1
+} {
+    set a    [::math::bignum::fromstr $a]
+    set b    [::math::bignum::fromstr $b]
+    set zand [::math::bignum::fromstr $zand]
+    set zor  [::math::bignum::fromstr $zor]
+    set zxor [::math::bignum::fromstr $zxor]
+
+    test "Bitand-8.$n" "BitAnd large numbers" -body {
+	::math::bignum::bitand $a $b
+    } -result $zand
+
+    test "Bitor-9.$n" "BitOr large numbers" -body {
+	::math::bignum::bitor $a $b
+    } -result $zor
+
+    test "Bitxor-10.$n" "BitXor large numbers" -body {
+	::math::bignum::bitxor $a $b
+    } -result $zxor
+}
+
+test "Mod-11.1" "Modulo and remainder for small numbers" -body {
+    set okay 1
+    foreach {n d m r} {
+         100 -3 -2  1
+        -100 -3 -1 -1
+        -100  3  2 -1
+         100  3  1  1
+    }  {
+        set a [::math::bignum::fromstr $n]
+        set b [::math::bignum::fromstr $d]
+        set modulo [::math::bignum::tostr [::math::bignum::mod $a $b]]
+        set remainder [::math::bignum::tostr [::math::bignum::rem $a $b]]
+        if {! [string equal $modulo $m]} {
+            set okay "$n modulo $d does not give $m"
+            break
+        }
+        if {! [string equal $remainder $r]} {
+            set okay "the remainder of $n/$d is not given as $r"
+            break
+        }
+    }
+    return $okay
+} -result 1
+
+
+# Bit operations (Test bit)
+
+test testbit-1.0 {test with bit in range of used bits} -setup {
+    set z [::math::bignum::fromstr 3220]
+    ::math::bignum::setbit z 24
+} -body {
+    ::math::bignum::testbit $z 23
+} -cleanup {
+    unset z
+} -result 0
+
+test testbit-1.1 {test with bit beyond range of used bits} -setup {
+    set z [::math::bignum::fromstr 3220]
+} -body {
+    ::math::bignum::testbit $z 23
+} -cleanup {
+    unset z
+} -result 0
+
+test testbit-1.2 {test with bit in range of used bits} -setup {
+    set z [::math::bignum::fromstr 3220]
+    ::math::bignum::setbit z 24
+} -body {
+    ::math::bignum::testbit $z 24
+} -cleanup {
+    unset z
+} -result 1
+
+# -------------------------------------------------------------------------
+
+#
+# TODO: all the other operations and functions
+#
+
+# -------------------------------------------------------------------------
+
+# End of test cases
+testsuiteCleanup

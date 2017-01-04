@@ -1,0 +1,683 @@
+# -*- tcl -*-
+########################################################################
+# BigFloat for Tcl
+# Copyright (C) 2003-2005  ARNOLD Stephane
+#
+# BIGFLOAT LICENSE TERMS
+#
+# This software is copyrighted by Stephane ARNOLD, (stephanearnold <at> yahoo.fr).
+# The following terms apply to all files associated
+# with the software unless explicitly disclaimed in individual files.
+#
+# The authors hereby grant permission to use, copy, modify, distribute,
+# and license this software and its documentation for any purpose, provided
+# that existing copyright notices are retained in all copies and that this
+# notice is included verbatim in any distributions. No written agreement,
+# license, or royalty fee is required for any of the authorized uses.
+# Modifications to this software may be copyrighted by their authors
+# and need not follow the licensing terms described here, provided that
+# the new terms are clearly indicated on the first page of each file where
+# they apply.
+#
+# IN NO EVENT SHALL THE AUTHORS OR DISTRIBUTORS BE LIABLE TO ANY PARTY
+# FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+# ARISING OUT OF THE USE OF THIS SOFTWARE, ITS DOCUMENTATION, OR ANY
+# DERIVATIVES THEREOF, EVEN IF THE AUTHORS HAVE BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# THE AUTHORS AND DISTRIBUTORS SPECIFICALLY DISCLAIM ANY WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  THIS SOFTWARE
+# IS PROVIDED ON AN "AS IS" BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE
+# NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+# MODIFICATIONS.
+#
+# GOVERNMENT USE: If you are acquiring this software on behalf of the
+# U.S. government, the Government shall have only "Restricted Rights"
+# in the software and related documentation as defined in the Federal
+# Acquisition Regulations (FARs) in Clause 52.227.19 (c) (2).  If you
+# are acquiring the software on behalf of the Department of Defense, the
+# software shall be classified as "Commercial Computer Software" and the
+# Government shall have only "Restricted Rights" as defined in Clause
+# 252.227-7013 (c) (1) of DFARs.  Notwithstanding the foregoing, the
+# authors grant the U.S. Government and others acting in its behalf
+# permission to use and distribute the software in accordance with the
+# terms specified in this license.
+#
+########################################################################
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    useLocal math.tcl   math
+    useLocal bignum.tcl math::bignum
+}
+testing {
+    useLocal bigfloat.tcl math::bigfloat
+}
+
+# -------------------------------------------------------------------------
+
+namespace import ::math::bigfloat::*
+
+# -------------------------------------------------------------------------
+
+proc assert {name version code result} {
+    #puts -nonewline $version,
+    test bigfloat-$name-$version \
+	    "Some integer computations related to command $name" {
+	uplevel 1 $code
+    } $result ; # {}
+    return
+}
+
+interp alias {} zero {} string repeat 0
+# S.ARNOLD 08/01/2005
+# trying to set the precision of the comparisons to 15 digits
+set old_precision $::tcl_precision
+set ::tcl_precision 15
+proc Zero {x} {
+    global tcl_precision
+    set x [expr {abs($x)}]
+    set epsilon 10.0e-$tcl_precision
+    return [expr {$x<$epsilon}]
+}
+
+proc fassert {name version code result} {
+    #puts -nonewline $version,
+    set tested [uplevel 1 $code]
+
+    if {[Zero $tested]} {
+        tcltest::test bigfloat-$name-$version \
+		"Some floating-point computations related to command $name" {
+	    return [Zero $result]
+	} 1 ; # {}
+	return
+    }
+
+    set resultat [Zero [expr {($tested-$result)/((abs($tested)>1)?($tested):1.0)}]]
+
+    tcltest::test bigfloat-$name-$version \
+	    "Some floating-point computations related to command $name" {
+	return $resultat
+    } 1 ; # {}
+    return
+}
+# preprocessing is done
+#set n
+
+
+######################################################
+# Begin testsuite
+######################################################
+
+# adds 999..9 and 1 -> 1000..0
+for {set i 1} {$i<15} {incr i} {
+    assert add 1.0.$i {
+	tostr [add \
+		[fromstr [string repeat 999 $i]] [fromstr 1]]
+    } 1[string repeat 000 $i] ; # {}
+}
+
+# sub 1000..0 1 -> 999..9
+for {set i 1} {$i<15} {incr i} {
+    assert sub 1.1.$i {
+	tostr [sub [fromstr 1[string repeat 000 $i]] [fromstr 1]]
+    } [string repeat 999 $i] ; # {}
+}
+
+# mul 10001000..1000 with 1..9
+for {set i 1} {$i<15} {incr i} {
+    foreach j {1 2 3 4 5 6 7 8 9} {
+	assert mul 1.2.$i.$j {tostr [mul [fromstr [string repeat 1000 $i]] [fromstr $j]]} \
+		[string repeat ${j}000 $i]
+    }
+}
+
+# div 10^8 by 1 .. 9
+for {set i 1} {$i<=9} {incr i} {
+    assert div 1.3.$i {tostr [div [fromstr 100000000] [fromstr $i]]} [expr {wide(100000000)/$i}]
+}
+
+# 10^8 modulo 1 .. 9
+for {set i 1} {$i<=9} {incr i} {
+    assert mod 1.4.$i {tostr [mod [fromstr 100000000] [fromstr $i]]} [expr {wide(100000000)%$i}]
+}
+
+################################################################################
+# fromstr problem with octal exponents
+################################################################################
+
+fassert fromstr 2.0 {todouble [fromstr 1.0e+099]} 1.0e+099
+fassert fromstr 2.0a {todouble [fromstr 1.0e99]} 1.0e99
+fassert fromstr 2.0b {todouble [fromstr 1.0e-99]} 1.0e-99
+fassert fromstr 2.0c {todouble [fromstr 1.0e-099]} 1.0e-99
+
+################################################################################
+# fromdouble with precision
+################################################################################
+
+assert fromdouble 2.1 {tostr [ceil [fromdouble 1.0e99 100]]} 1[zero 99]
+assert fromdouble 2.1a {tostr [fromdouble 1.11 3]} 1.11
+assert fromdouble 2.1b {tostr [fromdouble +1.11 3]} 1.11
+assert fromdouble 2.1c {tostr [fromdouble -1.11 3]} -1.11
+assert fromdouble 2.1d {tostr [fromdouble +01.11 3]} 1.11
+assert fromdouble 2.1e {tostr [fromdouble -01.11 3]} -1.11
+
+# more to come...
+fassert fromdouble 2.1f {compare [fromdouble [expr {atan(1.0)*4}]] [pi $::tcl_precision]} 0
+
+################################################################################
+# abs()
+################################################################################
+proc absTest {version x {int 0}} {
+    if {!$int} {
+	fassert abs $version {
+	    tostr [abs [fromstr $x]]
+	} [expr {abs($x)}] ; # {}
+    } else {
+	assert abs $version {
+	    tostr [abs [fromstr $x]]
+	} [expr {($x<0)?(-$x):$x}] ; # {}
+    }	    
+}
+
+absTest 2.2a 1.000
+absTest 2.2b -1.000
+absTest 2.2c -0.10
+absTest 2.2d 0 1
+absTest 2.2e 1 1
+absTest 2.2f 10000 1
+absTest 2.2g -1 1
+absTest 2.2h -10000 1
+rename absTest ""
+
+################################################################################
+# opposite
+################################################################################
+proc oppTest {version x {int 0}} {
+    if {$int} {
+	assert opp $version {tostr [opp [fromstr $x]]} [expr {-$x}]
+    } else {
+	fassert opp $version {tostr [opp [fromstr $x]]} [expr {-$x}]
+    }
+}
+
+oppTest 2.3a 1.00
+oppTest 2.3b -1.00
+oppTest 2.3c 0.10
+oppTest 2.3d -0.10
+oppTest 2.3e 0.00
+oppTest 2.3f 1 1
+oppTest 2.3g -1 1
+oppTest 2.3h 0 1
+oppTest 2.3i 100000000 1
+oppTest 2.3j -100000000 1
+rename oppTest ""
+
+################################################################################
+# equal
+################################################################################
+proc equalTest {x y} {
+    equal [fromstr $x] [fromstr $y]
+}
+
+assert equal 2.4a {equalTest 0.0 0.1} 1
+assert equal 2.4b {equalTest 0.00 0.10} 0
+assert equal 2.4c {equalTest 0.0 -0.1} 1
+assert equal 2.4d {equalTest 0.00 -0.10} 0
+
+rename equalTest ""
+################################################################################
+# compare
+################################################################################
+proc compareTest {x y} {
+    compare [fromstr $x] [fromstr $y]
+}
+
+assert cmp 2.5a {compareTest 0.00 0.10} -1
+assert cmp 2.5b {compareTest 0.1 0.4} -1
+assert cmp 2.5c {compareTest 0.0 -1.0} 1
+assert cmp 2.5d {compareTest -1.0 0.0} -1
+assert cmp 2.5e {compareTest 0.00 0.10} -1
+
+# cleanup
+rename compareTest ""
+
+################################################################################
+# round
+################################################################################
+proc roundTest {version x rounded} {
+    assert round $version {tostr [round [fromstr $x]]} $rounded
+}
+
+roundTest 2.6.0 0.10 0
+roundTest 2.6.1 0.0 0
+roundTest 2.6.2 0.50 1
+roundTest 2.6.3 0.40 0
+roundTest 2.6.4 1.0 1
+roundTest 2.6.5 -0.40 0
+roundTest 2.6.6 -0.50 -1
+roundTest 2.6.7 -1.0 -1
+roundTest 2.6.8 -1.50 -2
+roundTest 2.6.9 1.50 2
+
+# cleanup
+rename roundTest ""
+
+################################################################################
+# floor
+################################################################################
+proc floorTest {version x} {
+    assert floor $version {tostr [floor [fromstr $x]]} [expr {int(floor($x))}]
+}
+floorTest 2.7a 0.10
+floorTest 2.7b 0.90
+floorTest 2.7c 1.0
+floorTest 2.7d -0.10
+floorTest 2.7e -1.0
+
+# cleanup
+rename floorTest ""
+
+################################################################################
+# ceil
+################################################################################
+proc ceilTest {version x} {
+    assert ceil $version {tostr [ceil [fromstr $x]]} [expr {int(ceil($x))}]
+}
+ceilTest 2.8a 0.10
+ceilTest 2.8b 0.90
+ceilTest 2.8c 1.0
+ceilTest 2.8d -0.10
+ceilTest 2.8e -1.0
+ceilTest 2.8f 0.0
+
+# cleanup
+rename ceilTest ""
+
+################################################################################
+# BigInt to BigFloat conversion
+################################################################################
+proc convTest {version x {decimals 1}} {
+    assert int2float $version {tostr [int2float [fromstr $x] $decimals]} \
+	    $x.[string repeat 0 [expr {$decimals-1}]]
+}
+set subversion 0
+foreach decimals {1 2 5 10 100} {
+    set version 2.9.$subversion
+    fassert int2float $version.0 {tostr [int2float [fromstr 0] $decimals]} 0.0
+    convTest $version.1 1 $decimals
+    convTest $version.2 5 $decimals
+    convTest $version.3 5000000000 $decimals
+    incr subversion
+}
+#cleanup
+rename convTest ""
+
+################################################################################
+# addition
+################################################################################
+proc addTest {version x y} {
+    fassert add $version {todouble [add [fromstr $x] [fromstr $y]]} [expr {$x+$y}]
+}
+addTest 3.0a 1.00 2.00
+addTest 3.0b -1.00 2.00
+addTest 3.0c 1.00 -2.00
+addTest 3.0d -1.00 -2.00
+addTest 3.0e 0.00 1.00
+addTest 3.0f 0.00 -1.00
+addTest 3.0g 1 2.00
+addTest 3.0h 1 -2.00
+addTest 3.0i 0 1.00
+addTest 3.0j 0 -1.00
+addTest 3.0k 2.00 1
+addTest 3.0l -2.00 1
+addTest 3.0m 1.00 0
+addTest 3.0n -1.00 0
+#cleanup
+rename addTest ""
+
+################################################################################
+# substraction
+################################################################################
+proc subTest {version x y} {
+    fassert sub $version {todouble [sub [fromstr $x] [fromstr $y]]} [expr {$x-$y}]
+}
+subTest 3.1a 1.00 2.00
+subTest 3.1b -1.00 2.00
+subTest 3.1c 1.00 -2.00
+subTest 3.1d -1.00 -2.00
+subTest 3.1e 0.00 1.00
+subTest 3.1f 0.00 -1.00
+subTest 3.1g 1 2.00
+subTest 3.1h 1 -2.00
+subTest 3.1i 0 2.00
+subTest 3.1j 0 -2.00
+subTest 3.1k 2 0.00
+subTest 3.1l 2.00 1
+subTest 3.1m 1.00 2
+subTest 3.1n -1.00 1
+subTest 3.1o 0.00 2
+subTest 3.1p 2.00 0
+# cleanup
+rename subTest ""
+
+################################################################################
+# multiplication
+################################################################################
+proc mulTest {version x y} {
+    fassert mul $version {todouble [mul [fromstr $x] [fromstr $y]]} [expr {$x*$y}]
+}
+proc mulInt {version x y} {
+    mulTest $version.0 $x $y
+    mulTest $version.1 $y $x
+}
+mulTest 3.2a 1.00 2.00
+mulTest 3.2b -1.00 2.00
+mulTest 3.2c 1.00 -2.00
+mulTest 3.2d -1.00 -2.00
+mulTest 3.2e 0.00 1.00
+mulTest 3.2f 0.00 -1.00
+mulTest 3.2g 1.00 10.0
+mulInt 3.2h 1 2.00
+mulInt 3.2i 1 -2.00
+mulInt 3.2j 0 2.00
+mulInt 3.2k 0 -2.00
+mulInt 3.2l 10 2.00
+mulInt 3.2m 10 -2.00
+mulInt 3.2n 1 0.00
+
+
+# cleanup
+rename mulTest ""
+rename mulInt ""
+
+################################################################################
+# division
+################################################################################
+proc divTest {version x y} {
+    fassert div $version {
+	string trimright [todouble [div [fromstr $x] [fromstr $y]]] 0
+    } [string trimright [expr {$x/$y}] 0] ; # {}
+}
+
+
+divTest 3.3a 1.00 2.00
+divTest 3.3b 2.00 1.00
+divTest 3.3c -1.00 2.00
+divTest 3.3d 1.00 -2.00
+divTest 3.3e 2.00 -1.00
+divTest 3.3f -2.00 1.00
+divTest 3.3g -1.00 -2.00
+divTest 3.3h -2.00 -1.00
+divTest 3.3i 0.0 1.0
+divTest 3.3j 0.0 -1.0
+
+# cleanup
+rename divTest ""
+
+################################################################################
+# rest of the division
+################################################################################
+proc modTest {version x y} {
+    fassert mod $version {
+	todouble [mod [fromstr $x] [fromstr $y]]
+    } [expr {fmod($x,$y)}] ; # {}
+}
+
+modTest 3.4a 1.00 2.00
+modTest 3.4b 2.00 1.00
+modTest 3.4c -1.00 2.00
+modTest 3.4d 1.00 -2.00
+modTest 3.4e 2.00 -1.00
+modTest 3.4f -2.00 1.00
+modTest 3.4g -1.00 -2.00
+modTest 3.4h -2.00 -1.00
+modTest 3.4i 0.0 1.0
+modTest 3.4j 0.0 -1.0
+
+modTest 3.4k 1.00 2
+modTest 3.4l 2.00 1
+modTest 3.4m -1.00 2
+modTest 3.4n -2.00 1
+modTest 3.4o 0.0 1
+modTest 3.4p 1.50 1
+
+# cleanup
+rename modTest ""
+
+################################################################################
+# divide a BigFloat by an integer
+################################################################################
+proc divTest {version x y} {
+    fassert div $version {todouble [div [fromstr $x] [fromstr $y]]} \
+	    [expr {double(round(1000*$x/$y))/1000.0}]
+}
+set subversion 0
+foreach a {1.0000 -1.0000} {
+    foreach b {2 3} {
+	divTest 3.5.$subversion $a $b
+	incr subversion
+    }
+}
+
+# cleanup
+rename divTest ""
+
+################################################################################
+# pow : takes a float to an integer power (>0)
+################################################################################
+proc powTest {version x y {int 0}} {
+    if {!$int} {
+	fassert pow $version {todouble [pow [fromstr $x 14] [fromstr $y]]}\
+		[expr [join [string repeat "[string trimright $x 0] " $y] *]]
+    } else  {
+	assert pow $version {tostr [pow [fromstr $x] [fromstr $y]]}\
+		[expr [join [string repeat "$x " $y] *]]
+    }
+}
+set subversion 0
+foreach a {1 -1 2 -2 5 -5} {
+    foreach b {2 3 7 16} {
+	powTest 3.6.$subversion $a. $b
+	incr subversion
+    }
+}
+set subversion 0
+foreach a {1 2 3} {
+    foreach b {2 3 5 8} {
+	powTest 3.7.$subversion $a $b 1
+	incr subversion
+    }
+}
+
+# cleanup
+rename powTest ""
+
+
+################################################################################
+# pi constant and angles conversion
+################################################################################
+fassert pi 3.8.0 {todouble [pi 16]} [expr {atan(1)*4}]
+# converts Pi -> 180°
+fassert rad2deg 3.8.1 {todouble [rad2deg [pi 20]]} 180.0
+# converts 180° -> Pi
+fassert deg2rad 3.8.2 {todouble [deg2rad [fromstr 180.0 20]]} [expr {atan(1.0)*4}]
+
+
+################################################################################
+# iszero : the precision is too small to determinate the number
+################################################################################
+
+assert iszero 4.0a {iszero [fromstr 0]} 1
+assert iszero 4.0b {iszero [fromstr 0.0]} 1
+assert iszero 4.0c {iszero [fromstr 1]} 0
+assert iszero 4.0d {iszero [fromstr 1.0]} 0
+assert iszero 4.0e {iszero [fromstr -1]} 0
+assert iszero 4.0f {iszero [fromstr -1.0]} 0
+
+################################################################################
+# sqrt : square root
+################################################################################
+proc sqrtTest {version x} {
+    fassert sqrt $version {todouble [sqrt [fromstr $x 18]]} [expr {sqrt($x)}]
+}
+sqrtTest 4.1a 1.
+sqrtTest 4.1b 0.001
+sqrtTest 4.1c 0.004
+sqrtTest 4.1d 4.
+
+# cleanup
+rename sqrtTest ""
+
+
+################################################################################
+# expTest : exponential function
+################################################################################
+proc expTest {version x} {
+    fassert exp $version {todouble [exp [fromstr $x 17]]} [expr {exp($x)}]
+}
+
+expTest 4.2a 1.
+expTest 4.2b 0.001
+expTest 4.2c 0.004
+expTest 4.2d 40.
+expTest 4.2e -0.001
+
+# cleanup
+rename expTest ""
+
+################################################################################
+# logTest : logarithm
+################################################################################
+proc logTest {version x} {
+    fassert log $version {todouble [log [fromstr $x 17]]} [expr {log($x)}]
+}
+
+logTest 4.3a 1.0
+logTest 4.3b 0.001
+logTest 4.3c 0.004
+logTest 4.3d 40.
+logTest 4.3e 1[zero 10].0
+
+# cleanup
+rename logTest ""
+
+################################################################################
+# cos & sin : trigonometry
+################################################################################
+proc cosEtSin {version quartersOfPi} {
+    set x [div [mul [pi 18] [fromstr $quartersOfPi]] [fromstr 4]]
+    #fassert cos {todouble [cos $x]} [expr {cos(atan(1)*$quartersOfPi)}]
+    #fassert sin {todouble [sin $x]} [expr {sin(atan(1)*$quartersOfPi)}]
+    fassert cos $version.0 {todouble [cos $x]} [expr {cos([todouble $x])}]
+    fassert sin $version.1 {todouble [sin $x]} [expr {sin([todouble $x])}]
+}
+
+fassert cos 4.4.0.0 {todouble [cos [fromstr 0. 17]]} [expr {cos(0)}]
+fassert sin 4.4.0.1 {todouble [sin [fromstr 0. 17]]} [expr {sin(0)}]
+foreach i {1 2 3 4 5 6 7 8} {
+    cosEtSin 4.4.$i $i
+}
+
+
+# cleanup
+rename cosEtSin ""
+
+################################################################################
+# tan & cotan : trigonometry
+################################################################################
+proc tanCotan {version i} {
+    upvar pi pi
+    set x [div [mul $pi [fromstr $i]] [fromstr 10]]
+    set double [expr {atan(1)*(double($i)*0.4)}]
+    fassert cos $version.0 {todouble [cos $x]} [expr {cos($double)}]
+    fassert sin $version.1 {todouble [sin $x]} [expr {sin($double)}]
+    fassert tan $version.2 {todouble [tan $x]} [expr {tan($double)}]
+    fassert cotan $version.3 {todouble [cotan $x]} [expr {double(1.0)/tan($double)}]
+}
+
+set pi [pi 20]
+set subversion 0
+foreach i {1 2 3 6 7 8 9} {
+    tanCotan 4.5.$subversion $i
+    incr subversion
+}
+
+
+# cleanup
+rename tanCotan ""
+
+
+################################################################################
+# atan , asin & acos : trigonometry (inverse functions)
+################################################################################
+proc atanTest {version x} {
+    set f [fromstr $x 20]
+    fassert atan $version.0 {todouble [atan $f]} [expr {atan($x)}]
+    if {abs($x)<=1.0} {
+	fassert acos $version.1 {todouble [acos $f]} [expr {acos($x)}]
+	fassert asin $version.2 {todouble [asin $f]} [expr {asin($x)}]
+    }
+}
+set subversion 0
+atanTest 4.6.0.0 0.0
+foreach i {1 2 3 4 5 6 7 8 9} {
+    atanTest 4.6.1.$subversion 0.$i
+    atanTest 4.6.2.$subversion $i.0
+    atanTest 4.6.3.$subversion -0.$i
+    atanTest 4.6.4.$subversion -$i.0
+    incr subversion
+}
+
+# cleanup
+rename atanTest ""
+
+################################################################################
+# cosh , sinh & tanh : hyperbolic functions
+################################################################################
+proc hyper {version x} {
+    set f [fromstr $x 18]
+    fassert cosh $version.0 {todouble [cosh $f]} [expr {cosh($x)}]
+    fassert sinh $version.1 {todouble [sinh $f]} [expr {sinh($x)}]
+    fassert tanh $version.2 {todouble [tanh $f]} [expr {tanh($x)}]
+}
+
+hyper 4.7.0 0.0
+set subversion 0
+foreach i {1 2 3 4 5 6 7 8 9} {
+    hyper 4.7.1.$subversion.$i 0.$i
+    hyper 4.7.2.$subversion.$i $i.0
+    hyper 4.7.3.$subversion.$i -0.$i
+    hyper 4.7.4.$subversion.$i -$i.0
+}
+
+# cleanup
+rename hyper ""
+
+################################################################################
+# tostr with -nosci option
+################################################################################
+set version 5.0
+fassert tostr-nosci $version.0 {tostr -nosci [fromstr 23450.e+7]} 234500000000.
+fassert tostr-nosci $version.1 {tostr -nosci [fromstr 23450.e-7]} 0.002345
+fassert tostr-nosci $version.2 {tostr -nosci [fromstr 23450000]} 23450000.
+fassert tostr-nosci $version.3 {tostr -nosci [fromstr 2345.0]} 2345.
+
+################################################################################
+# end of testsuite for bigfloat 1.0
+################################################################################
+# cleanup global procs
+rename assert ""
+rename fassert ""
+rename Zero ""
+
+testsuiteCleanup
+
+set ::tcl_precision $old_precision

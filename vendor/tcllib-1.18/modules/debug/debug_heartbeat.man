@@ -1,0 +1,43 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 1]
+[manpage_begin debug::heartbeat n [vset VERSION]]
+[keywords debug]
+[keywords heartbeat]
+[keywords log]
+[keywords narrative]
+[keywords trace]
+[copyright {200?, Colin McCormack, Wub Server Utilities}]
+[copyright {2012, Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc {debug narrative}]
+[titledesc {debug narrative - heartbeat}]
+[category  {debugging, tracing, and logging}]
+[require Tcl 8.5]
+[require debug::heartbeat [opt [vset VERSION]]]
+[require debug [opt 1]]
+[description]
+[para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd debug] [method heartbeat] [opt [arg delta]]]
+
+This method activates or disables a heartbeat with which to monitor
+the event loop of an event-based Tcl application.
+
+[para] It reserves the debug tag [const heartbeat] for its operation
+and writes a message every [arg delta] milliseconds.
+
+[para] A [arg delta]-value <= 0 disables the heartbeat.
+
+[para] The message produced by the heartbeat contains a sequence
+counter and the time in milliseconds since the last beat, thus
+providing insight into timing variationsn and deviations from the
+nominal [arg delta].
+
+[list_end]
+
+[vset CATEGORY debug]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

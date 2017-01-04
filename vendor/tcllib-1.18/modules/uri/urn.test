@@ -1,0 +1,175 @@
+# urn.test - Copyright (C) 2001 Pat Thoyts <Pat.Thoyts@bigfoot.com>
+#
+# Provide a set of tests to excercise the urn-scheme package.
+#
+# @(#)$Id: urn.test,v 1.9 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocal uri.tcl uri
+}
+testing {
+    useLocal urn-scheme.tcl uri::urn
+}
+
+# -------------------------------------------------------------------------
+# Tests to check for valid urn sections.
+
+test urn-1.1 {Check basic split} {
+    catch {uri::split urn:tcl:test} result
+    dictsort $result
+} {nid tcl nss test scheme urn}
+
+test urn-1.2 {Check basic join} {
+    catch {uri::join scheme urn nid tcl nss test} result
+    set result
+} {urn:tcl:test}
+
+test urn-1.3 {Split permissible NID} {
+    catch {uri::split urn:tcl-TCL-0123456789:test} result
+    dictsort $result
+} {nid tcl-TCL-0123456789 nss test scheme urn}
+
+test urn-1.4 {Join permissible NID} {
+    catch {uri::join scheme urn nid tcl-TCL-0123456789 nss test} result
+    set result
+} {urn:tcl-TCL-0123456789:test}
+
+test urn-1.5 {Split permissible NSS} {
+    catch {uri::split {urn:tcl:Test-0123456789()+,-.:=@;$_!*'}} result
+    dictsort $result
+} {nid tcl nss {Test-0123456789()+,-.:=@;$_!*'} scheme urn}
+
+test urn-1.6 {Join permissible NSS} {
+    catch {uri::join scheme urn nid tcl nss {Test-0123456789()+,-.:=@;$_!*'}} result
+    set result
+} {urn:tcl:Test-0123456789()+,-.:=@;$_!*'}
+
+# -------------------------------------------------------------------------
+# Now some tests that should fail.
+
+test urn-2.1 {NID too long} {
+    set nid ThisURNNIDparthastoomanycharacters
+    set nss test
+    if {[catch {uri:split urn:$nid:$nss} result]} {
+        set result ok
+    }
+    set result
+} {ok}
+
+test urn-2.2 {NID too long} {
+    set nid ThisURNNIDparthastoomanycharacters
+    set nss test
+    if {[catch {uri:join scheme urn nid $nid nss $nss} result]} {
+        set result ok
+    }
+    set result
+} {ok}
+
+test urn-2.3 {NID containing invalid characters} {
+    set nid {This-NID//notOK}
+    set nss test
+    if {[catch {uri::join scheme urn nid $nid nss $nss} result]} {
+        set result ok
+    }
+    set result
+} {ok}
+
+test urn-2.4 {NID containing no characters} {
+    set nid {}
+    set nss test
+    if {[catch {uri::join scheme urn nid $nid nss $nss} result]} {
+        set result ok
+    }
+    set result
+} {ok}
+
+test urn-2.5 {NID beginning with hyphen} {
+    set nid {-notvalid}
+    set nss test
+    if {[catch {uri::join scheme urn nid $nid nss $nss} result]} {
+        set result ok
+    }
+    set result
+} {ok}
+
+
+# Check the Namespace Specific String.
+
+test urn-3.1 {NSS containing reserved characters} {
+    set nid {tcl}
+    set nss {%}
+    catch {uri::join scheme urn nid $nid nss $nss} result
+    set result
+} {urn:tcl:%25}
+
+test urn-3.2 {NSS containing reserved characters} {
+    set nid {tcl}
+    set nss {/?#}
+    catch {uri::join scheme urn nid $nid nss $nss} result
+    set result
+} {urn:tcl:%2F%3F%23}
+
+test urn-3.3 {NSS containing reserved characters} {
+    set nid {tcl}
+    set nss {urn-test}
+    catch {uri::join scheme urn nid $nid nss $nss} result
+    set result
+} {urn:tcl:urn-test}
+
+test urn-3.4 {NSS containing illegal characters} {
+    set nid {tcl}
+    set nss "\u00" ;# 0 is the only character explicitly denied.
+    if {[catch {uri::join scheme urn nid $nid nss $nss} result]} {
+        set result ok
+    }
+    set result
+} {ok}
+
+# -------------------------------------------------------------------------
+# Quoting checks - various UTF-8 representations for 'coffee' (RFC 2324, section 3)
+
+catch { unset data }
+lappend data  "coffee"                   "coffee"
+lappend data  "\x4B\x61\x66\x66\x65\x65" "Kaffee"
+lappend data  "q\u00e6hv\u00e6"          "q%C3%A6hv%C3%A6"                      ;# aserbaidjani
+lappend data  "\u0642\u0647\u0648\u0629" "%D9%82%D9%87%D9%88%D8%A9"             ;# arabic
+lappend data  "\u03ba\u03b1\u03c6\u03ad" "%CE%BA%CE%B1%CF%86%CE%AD"             ;# greek
+lappend data  "\u0915\u094c\u092b\u0940" "%E0%A4%95%E0%A5%8C%E0%A4%AB%E0%A5%80" ;# hindi
+
+# Ticket [daa83d2edf].
+lappend data  "\u4f60\u597d"             "%E4%BD%A0%E5%A5%BD" ;# chinese 'How are you?'
+
+set n 0
+foreach {utf8 quoted} $data {
+    test urn-4.[incr n] [list quote utf8 string] {
+        list [catch {uri::urn::quote $utf8} msg] $msg
+    } [list 0 $quoted]
+}
+
+set n 0
+foreach {utf8 quoted} $data {
+    test urn-5.[incr n] [list unquote utf8 string] {
+        list [catch {uri::urn::unquote $quoted} msg] $msg
+    } [list 0 $utf8]
+}
+
+# -------------------------------------------------------------------------
+# Clean up the tests
+
+unset data
+testsuiteCleanup
+return
+
+# Local variables:
+#    mode: tcl
+#    indent-tabs-mode: nil
+# End:

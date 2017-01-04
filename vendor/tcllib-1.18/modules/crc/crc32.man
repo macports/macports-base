@@ -1,0 +1,152 @@
+[vset VERSION 1.3.2]
+[manpage_begin crc32 n [vset VERSION]]
+[see_also cksum(n)]
+[see_also crc16(n)]
+[see_also sum(n)]
+[keywords checksum]
+[keywords cksum]
+[keywords crc]
+[keywords crc32]
+[keywords {cyclic redundancy check}]
+[keywords {data integrity}]
+[keywords security]
+[copyright {2002, Pat Thoyts}]
+[moddesc   {Cyclic Redundancy Checks}]
+[titledesc {Perform a 32bit Cyclic Redundancy Check}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require crc32 [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides a Tcl implementation of the CRC-32
+algorithm based upon information provided at
+http://www.naaccr.org/standard/crc32/document.html
+
+If either the [package critcl] package or the [package Trf] package
+are available then a compiled version may be used internally to
+accelerate the checksum calculation.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd "::crc::crc32"] \
+        [opt "-format [arg format]"] \
+        [opt "-seed [arg value]"] \
+        [lb] [arg "-channel chan"] | \
+             [arg "-filename file"] | \
+             [arg message] [rb]]
+
+The command takes either string data or a channel or file name and
+returns a checksum value calculated using the CRC-32 algorithm. The
+result is formatted using the [arg format](n) specifier provided. The
+default is to return the value as an unsigned integer (format %u).
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "-channel [arg name]"]
+
+Return a checksum for the data read from a channel. The command will
+read data from the channel until the [cmd "eof"] is true. If you need
+to be able to process events during this calculation see the
+[sectref {PROGRAMMING INTERFACE}] section
+
+[def "-filename [arg name]"]
+
+This is a convenience option that opens the specified file, sets the
+encoding to binary and then acts as if the [arg -channel] option had
+been used. The file is closed on completion.
+
+[def "-format [arg string]"]
+
+Return the checksum using an alternative format template.
+
+[def "-seed [arg value]"]
+
+Select an alternative seed value for the CRC calculation. The default
+is 0xffffffff. This can be useful for calculating the CRC for data
+structures without first converting the whole structure into a
+string. The CRC of the previous member can be used as the seed for
+calculating the CRC of the next member.
+
+Note that the crc32 algorithm includes a final XOR step. If
+incremental processing is desired then this must be undone before
+using the output of the algorithm as the seed for further
+processing. A simpler alternative is to use the
+[sectref {PROGRAMMING INTERFACE}] which is intended for this mode of
+operation.
+
+[list_end]
+
+[section {PROGRAMMING INTERFACE}]
+
+The CRC-32 package implements the checksum using a context variable to
+which additional data can be added at any time. This is expecially
+useful in an event based environment such as a Tk application or a web
+server package. Data to be checksummed may be handled incrementally
+during a [cmd fileevent] handler in discrete chunks. This can improve
+the interactive nature of a GUI application and can help to avoid
+excessive memory consumption.
+
+[list_begin definitions]
+
+[call [cmd "::crc::Crc32Init"] [opt [arg "seed"]]]
+
+Begins a new CRC32 context. Returns a token ID that must be used for the
+remaining functions. An optional seed may be specified if required.
+
+[call [cmd "::crc::Crc32Update"] [arg "token"] [arg "data"]]
+
+Add data to the checksum identified by token. Calling
+[emph {Crc32Update $token "abcd"}] is equivalent to calling
+[emph {Crc32Update $token "ab"}] followed by
+[emph {Crc32Update $token "cb"}]. See [sectref {EXAMPLES}].
+
+[call [cmd "::crc::Crc32Final"] [arg "token"]]
+
+Returns the checksum value and releases any resources held by this
+token. Once this command completes the token will be invalid. The
+result is a 32 bit integer value.
+
+[list_end]
+
+[section EXAMPLES]
+
+[para]
+[example {
+% crc::crc32 "Hello, World!"
+3964322768
+}]
+
+[para]
+[example {
+% crc::crc32 -format 0x%X "Hello, World!"
+0xEC4AC3D0
+}]
+
+[para]
+[example {
+% crc::crc32 -file crc32.tcl
+483919716
+}]
+
+[para]
+[example {
+% set tok [crc::Crc32Init]
+% crc::Crc32Update $tok "Hello, "
+% crc::Crc32Update $tok "World!"
+% crc::Crc32Final $tok
+3964322768
+}]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY crc]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

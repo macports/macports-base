@@ -1,0 +1,16 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-05-31  Andreas Kupries  <andreask@activestate.com>
+
+	* New module and package: lambda. Easy anonymous procedures for
+	  Tcl 8.5+.

@@ -1,0 +1,171 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::ast n 1.1]
+[include include/module.inc]
+[titledesc {Abstract Syntax Tree Serialization}]
+[require pt::ast [opt 1.1]]
+[description]
+[include include/ref_intro.inc]
+
+This package provides commands to work with the serializations of
+abstract syntax trees as managed by the Parser Tools, and specified in
+section [sectref {AST serialization format}].
+
+[para]
+
+This is a supporting package in the Core Layer of Parser Tools.
+[para][image arch_core_support][para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::ast] [method verify] \
+	[arg serial] [opt [arg canonvar]]]
+
+This command verifies that the content of [arg serial] is a valid
+serialization of an abstract syntax tree and will throw an error if
+that is not the case. The result of the command is the empty string.
+
+[para]
+
+If the argument [arg canonvar] is specified it is interpreted as the
+name of a variable in the calling context. This variable will be
+written to if and only if [arg serial] is a valid regular
+serialization. Its value will be a boolean, with [const True]
+indicating that the serialization is not only valid, but also
+[term canonical]. [const False] will be written for a valid, but
+non-canonical serialization.
+
+[para]
+
+For the specification of serializations see the section
+[sectref {AST serialization format}].
+
+[call [cmd ::pt::ast] [method verify-as-canonical] \
+	[arg serial]]
+
+This command verifies that the content of [arg serial] is a valid
+[term canonical] serialization of an abstract syntax tree and will
+throw an error if that is not the case. The result of the command is
+the empty string.
+
+[para]
+
+For the specification of canonical serializations see the section
+[sectref {AST serialization format}].
+
+[call [cmd ::pt::ast] [method canonicalize] [arg serial]]
+
+This command assumes that the content of [arg serial] is a valid
+[term regular] serialization of an abstract syntax and will throw an
+error if that is not the case.
+
+[para]
+
+It will then convert the input into the [term canonical] serialization
+of the contained tree and return it as its result. If the input is
+already canonical it will be returned unchanged.
+
+[para]
+
+For the specification of regular and canonical serializations see the
+section [sectref {AST serialization format}].
+
+[call [cmd ::pt::ast] [method print] [arg serial]]
+
+This command assumes that the argument [arg serial] contains a valid
+serialization of an abstract syntax tree and returns a string
+containing that tree in a human readable form.
+
+[para]
+
+The exact format of this form is not specified and cannot be relied on
+for parsing or other machine-based activities.
+
+[para]
+
+For the specification of serializations see the section
+[sectref {AST serialization format}].
+
+[call [cmd ::pt::ast] [method bottomup] [arg cmdprefix] [arg ast]]
+
+This command walks the abstract syntax tree [arg ast] from the bottom
+up to the root, invoking the command prefix [arg cmdprefix] for each
+node. This implies that the children of a node N are handled before N.
+
+[para]
+
+The command prefix has the signature
+
+[list_begin definitions]
+[call [cmd cmdprefix] [arg ast]]
+
+I.e. it is invoked with the ast node the walk is currently at.
+
+[para]
+
+The result returned by the command prefix replaces [arg ast] in the
+node it was a child of, allowing transformations of the tree.
+
+[para]
+
+This also means that for all inner node the contents of the children
+elements are the results of the command prefix invoked for the
+children of this node.
+
+[list_end]
+
+[call [cmd ::pt::ast] [method topdown] [arg cmdprefix] [arg pe]]
+
+This command walks the abstract syntax tree [arg ast] from the root
+down to the leaves, invoking the command prefix [arg cmdprefix] for
+each node. This implies that the children of a node N are handled
+after N.
+
+[para]
+
+The command prefix has the same signature as for [method bottomup],
+see above.
+
+[para]
+
+The result returned by the command prefix is [emph ignored].
+
+[call [cmd ::pt::ast] [method equal] \
+	[arg seriala] [arg serialb]]
+
+This command tests the two sbstract syntax trees [arg seriala] and
+[arg serialb] for structural equality. The result of the command is a
+boolean value. It will be set to [const true] if the trees are
+identical, and [const false] otherwise.
+
+[para]
+
+String equality is usable only if we can assume that the two trees are
+pure Tcl lists.
+
+[call [cmd ::pt::ast] [method new0] [arg s] \
+	[arg loc] [opt [arg child]...]]
+
+This command command constructs the ast for a nonterminal node
+refering refering to the symbol [arg s] at position [arg loc] in the
+input, and the set of child nodes [arg child] ..., from left
+right. The latter may be empty. The constructed node is returned as
+the result of the command. The end position is [arg loc]-1, i.e. one
+character before the start. This type of node is possible for rules
+containing optional parts.
+
+[call [cmd ::pt::ast] [method new] [arg s] \
+	[arg start] [arg end] [opt [arg child]...]]
+
+This command command constructs the ast for a nonterminal node
+refering to the symbol [arg s] covering the range of positions
+[arg start] to [arg end] in the input, and the set of child nodes
+[arg child] ..., from left right. The latter may be empty. The
+constructed node is returned as the result of the command.
+
+[list_end]
+
+[include include/serial/ast.inc]
+[include include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,147 @@
+# -*- tcl -*-
+# Graph ops tests - Minimum spanning tree/forest per Bipartite
+# Copyright (c) 2008-2010 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: bipartite.test,v 1.4 2010/09/09 21:48:27 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::isBipartite? G ?partitionvar?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-1.0 {bipartite, wrong args, missing} -body {
+    struct::graph::op::isBipartite?
+} -returnCodes error -result [tcltest::wrongNumArgs struct::graph::op::isBipartite? {g ?bipartitionvar?} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-1.1 {bipartite, wrong args, too many} -body {
+    struct::graph::op::isBipartite? g x y
+} -returnCodes error -result [tcltest::tooManyArgs struct::graph::op::isBipartite? {g ?bipartitionvar?}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.0 {bipartite, empty graph} -setup {
+    SETUP
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.1 {bipartite, nodes, no arcs} -setup {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.2 {bipartite, no} -setup {
+    SETUP_D
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.3 {bipartite, yes} -setup {
+    SETUP_E
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.4 {bipartite, yes} -setup {
+    SETUP_F
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.5 {bipartite, yes} -setup {
+    SETUP_G
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-3.6 {bipartite, yes} -setup {
+    SETUP_C
+} -body {
+    struct::graph::op::isBipartite? mygraph
+} -cleanup {
+    mygraph destroy
+} -result 1
+
+# -------------------------------------------------------------------------
+# Ok arguments, get the partitions.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-4.0 {bipartite, empty graph} -setup {
+    SETUP
+    set result {}
+} -body {
+    struct::graph::op::isBipartite? mygraph result
+    set result
+} -cleanup {
+    mygraph destroy
+} -result {{} {}}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-4.1 {bipartite, nodes, no arcs} -setup {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+    set result {}
+} -body {
+    struct::graph::op::isBipartite? mygraph result
+    bicanon $result
+} -cleanup {
+    mygraph destroy
+} -result {{} {0 1 2 3 4 5}}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-4.3 {bipartite, yes} -setup {
+    SETUP_E
+    set result {}
+} -body {
+    struct::graph::op::isBipartite? mygraph result
+    bicanon $result
+} -cleanup {
+    mygraph destroy
+} -result {{1b 2b 3b 4b 5b 6b 7b 8b} {1w 2w 3w 4w 5w 6w 7w 8w}}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-4.4 {bipartite, yes} -setup {
+    SETUP_F
+    set result {}
+} -body {
+    struct::graph::op::isBipartite? mygraph result
+    bicanon $result
+} -cleanup {
+    mygraph destroy
+} -result {{1b 2b 3b 4b} {1w 2w 3w 4w}}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-4.5 {bipartite, yes} -setup {
+    SETUP_G
+    set result {}
+} -body {
+    struct::graph::op::isBipartite? mygraph result
+    bicanon $result
+} -cleanup {
+    mygraph destroy
+} -result {{1b 2b 3b 4b 5b} {1w 2w 3w 4w 5w}}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-bipartite-4.6 {bipartite, yes} -setup {
+    SETUP_C
+    set result {}
+} -body {
+    struct::graph::op::isBipartite? mygraph result
+    bicanon $result
+} -cleanup {
+    mygraph destroy
+} -result {{A D F} {B C E}}
+
+# ---------------------------------------------------

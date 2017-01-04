@@ -1,0 +1,60 @@
+# -*- tcl -*-
+# graph.testsuite:  tests for the graph operations.
+#
+# Copyright (c) 2008-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: XOpsControl,v 1.22 2009/09/24 19:30:11 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+set SELF [file dirname [info script]]
+
+# -------------------------------------------------------------------------
+
+source ${SELF}/Xsetup
+source ${SELF}/Xsupport
+source ${SELF}/XOpsSetup
+
+source ${SELF}/ops/adjmatrix.test    ; # Adjacency matrix
+source ${SELF}/ops/kruskal.test      ; # Minimum spanning tree/forest by Kruskal
+source ${SELF}/ops/prim.test         ; # Minimum spanning tree/forest by Prim
+source ${SELF}/ops/bipartite.test    ; # Compute bi-partitions.
+## source ${SELF}/ops/maxmatching.test  ; # Compute maximal matching from bipartitions.
+source ${SELF}/ops/tarjan.test       ; # Compute SCCs via Tarjan.
+source ${SELF}/ops/components.test   ; # Compute connected components.
+source ${SELF}/ops/componentof.test  ; # Compute connected components II.
+source ${SELF}/ops/connected.test    ; # Graph connected ?
+source ${SELF}/ops/cutvertex.test    ; # Node a cut vertex?
+source ${SELF}/ops/bridge.test       ; # Arc a bridge?
+source ${SELF}/ops/eulertour.test    ; # Eulerian graphs
+source ${SELF}/ops/eulerpath.test    ; # Semi-eulerian graphs
+source ${SELF}/ops/dijkstra.test     ; # Node distances by Dijkstra
+
+source ${SELF}/ops/distance.test     ; # Node distances
+source ${SELF}/ops/eccentricity.test ; # Node eccentricity
+source ${SELF}/ops/radius.test       ; # Graph radius
+source ${SELF}/ops/diameter.test     ; # Graph diameter
+
+source ${SELF}/ops/adjlist.test      ; # Adjacency lists
+source ${SELF}/ops/bellmanford.test  ; # Distances by Bellman-Ford
+source ${SELF}/ops/bfs.test          ; # Breadth-First Searching.
+source ${SELF}/ops/busackergowen.test; # Minimum-Cost Maximum-Flow by Busacker-Gowen
+source ${SELF}/ops/christofides.test ; # mTSP by Christofides, 3/2-approximation algorithm
+source ${SELF}/ops/dinicblockingflow.test ; # Blocking-Flow by Dinic
+source ${SELF}/ops/dinicmaximumflow.test  ; # Maximum-Flow by Dinic
+source ${SELF}/ops/edmondskarp.test  ; # Maximum-Flow by Edmonds-Karp
+source ${SELF}/ops/floydwarshall.test; # Distances by Floyd-Warshall
+source ${SELF}/ops/johnsons.test     ; # Distances by Johnsons
+source ${SELF}/ops/kcenter.test      ; # Metric K-Center, 2-approximation algorithm
+source ${SELF}/ops/maxcut.test       ; # Maximum Cut, 2-approximation algorithm
+source ${SELF}/ops/mdst.test         ; # Minimum Diameter/Degree Spanning Trees
+source ${SELF}/ops/metrictsp.test    ; # Metric Travelling Salesman Problem (mTSP)
+#                                      # 2-approximation algorithm.
+source ${SELF}/ops/mkmblockingflow.test ; # Blocking Flow by Malhotra, Kumar and Maheshwari
+source ${SELF}/ops/tspheuristics.test; # Heuristics of local searching for TSP
+#                                      # 2- and 3-approximation algorithms
+source ${SELF}/ops/verticescover.test; # Vertex Cover, 2-approximation algorithm
+source ${SELF}/ops/weightedkcenter.test   ; # Weighted Metric K-Center, 3-approximation algorithm
+
+# -------------------------------------------------------------------------

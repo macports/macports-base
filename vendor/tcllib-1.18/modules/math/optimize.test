@@ -1,0 +1,634 @@
+# -*- tcl -*-
+# Tests for 1-d optimisation functions in math library  -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# $Id: optimize.test,v 1.17 2011/01/18 07:49:53 arjenmarkus Exp $
+#
+# Copyright (c) 2004 by Arjen Markus
+# Copyright (c) 2004, 2005 by Kevin B. Kenny
+# All rights reserved.
+#
+# Note:
+#    By evaluating the tests in a different namespace than global,
+#    we assure that the namespace issue (Bug #...) is checked.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal optimize.tcl math::optimize
+}
+
+# -------------------------------------------------------------------------
+
+namespace eval optimizetest {
+
+namespace import ::math::optimize::*
+
+set old_precision $::tcl_precision
+if {![package vsatisfies [package present Tcl] 8.5]} {
+    set ::tcl_precision 17
+} else {
+    set ::tcl_precision 0
+}
+
+#
+# Simple test functions
+#
+proc const_func { x } {
+   return 1.0
+}
+proc ffunc { x } {
+   expr {$x*(1.0-$x*$x)}
+}
+proc minfunc { x } {
+   expr {-$x*(1.0-$x*$x)}
+}
+proc absfunc { x } {
+   expr {abs($x*(1.0-$x*$x))}
+}
+
+proc within_range { result min max } {
+   #puts "Within range? $result $min $max"
+   #puts "[expr {2.0*abs($result-$min)/abs($max+$min)}]"
+   if { $result >= $min && $result <= $max } {
+      set ok 1
+   } else {
+      set ok 0
+   }
+   return $ok
+}
+
+#
+# Test the minimum procedure
+#
+# Note about the uneven and even functions:
+# the initial interval is chosen symmetrical, so that the
+# three function values are equal.
+#
+test optimize-1.1 "Minimum of constant function" {
+   set result [minimum -1.0 1.0 ::optimizetest::const_func]
+   within_range $result -1.0 1.0
+} 1
+
+test optimize-1.2 "Minimum of odd function, case 1" {
+   set result [minimum -1.0 1.0 ::optimizetest::ffunc]
+   set xmin   [expr {-sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {-sqrt(1.0/3.0)+0.0001}]
+   within_range $result $xmin $xmax
+} 1
+
+test optimize-1.3 "Minimum of odd function, asymmetric interval" {
+   set result [minimum -0.8 1.2 ::optimizetest::ffunc]
+   set xmin   [expr {-sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {-sqrt(1.0/3.0)+0.0001}]
+   within_range $result $xmin $xmax
+} 1
+
+test optimize-1.4 "Minimum of odd function, case 2" {
+   set result [minimum -1.0 1.0 ::optimizetest::minfunc]
+   set xmin   [expr {sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {sqrt(1.0/3.0)+0.0001}]
+   within_range $result $xmin $xmax
+} 1
+
+test optimize-1.5 "Minimum of even function" {
+   set result [minimum -1.0 1.0 ::optimizetest::absfunc]
+   set xmin   -0.0001
+   set xmax    0.0001
+   within_range $result $xmin $xmax
+} 1
+
+#
+# Test the maximum procedure
+#
+# Note about the uneven and even functions:
+# the initial interval is chosen symmetrical, so that the
+# three function values are equal.
+#
+test optimize-2.1 "Maximum of constant function" {
+   set result [maximum -1.0 1.0 ::optimizetest::const_func]
+   within_range $result -1.0 1.0
+} 1
+
+test optimize-2.2 "Maximum of odd function, case 1" {
+   set result [maximum -1.0 1.0 ::optimizetest::ffunc]
+   set xmin   [expr {sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {sqrt(1.0/3.0)+0.0001}]
+   within_range $result $xmin $xmax
+} 1
+
+test optimize-2.3 "Maximum of odd function, case 2" {
+   set result [maximum -1.0 1.0 ::optimizetest::minfunc]
+   set xmin   [expr {-sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {-sqrt(1.0/3.0)+0.0001}]
+   within_range $result $xmin $xmax
+} 1
+
+#
+# Either of the two maxima will do
+#
+test optimize-2.4 "Maximum of even function" {
+   set result [maximum -1.0 1.0 ::optimizetest::absfunc]
+   set xmin   [expr {-sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {-sqrt(1.0/3.0)+0.0001}]
+   set ok     [within_range $result $xmin $xmax]
+   set xmin   [expr {sqrt(1.0/3.0)-0.0001}]
+   set xmax   [expr {sqrt(1.0/3.0)+0.0001}]
+   incr ok    [within_range $result $xmin $xmax]
+} 1
+
+
+# Custom match procedure for approximate results
+
+proc withinEpsilon { shouldBe is } {
+    expr { [string is double $is]
+	   && abs( $is - $shouldBe ) < 1.e-07 * abs($shouldBe) }
+}
+
+::tcltest::customMatch withinEpsilon [namespace code withinEpsilon]
+
+test linmin-1.1 {find minimum of a parabola - constrained} \
+    -setup {
+	proc f x { expr { ($x + 3.) * ($x - 1.) } }
+    } \
+    -body {
+	foreach {x y} [min_bound_1d f 10. -10.] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result -1. \
+    -match withinEpsilon
+
+test linmin-1.2 {find minimum of cosine} \
+    -setup {
+	proc f x { expr { cos($x) } }
+    } \
+    -body {
+	foreach { x y } [min_bound_1d f 0. 6.28318] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 3.1415926535897932 \
+    -match withinEpsilon
+
+test linmin-1.3 {find minimum of a bell-shaped function} \
+    -setup {
+	proc f x {
+	    set t [expr { $x - 3. }]
+	    return [expr { -exp ( -$t * $t / 2 ) }]
+	}
+    } \
+    -body {
+	foreach { x y } [min_bound_1d f 0 30.] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 3. \
+    -match withinEpsilon
+
+test linmin-1.4 {function where parabolic extrapolation never works} \
+    -setup {
+	proc f x { expr { -1. / ( 0.01 + abs( $x - 5.) ) } }
+    } \
+    -body {
+	foreach {x y} [min_bound_1d f 0 20.] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 5. \
+    -match withinEpsilon
+
+test linmin-2.1 {wrong \# args} \
+    -body {
+	min_bound_1d f
+    } \
+    -returnCodes 1 \
+    -result [tcltest::wrongNumArgs min_bound_1d {f x1 x2 args} 1]
+
+test linmin-2.2 {wrong \# args} \
+    -body {
+	min_bound_1d f 0 1 -bad
+    } \
+    -returnCodes 1 \
+    -result "wrong # args, should be \"min_bound_1d f x1 x2 ?-option value?...\""
+
+test linmin-2.3 {bad arg} \
+    -body {
+	min_bound_1d f 0 1 -bad option
+    } \
+    -returnCodes 1 \
+    -result "unknown option \"-bad\", should be -abserror,\
+             -fguess, -guess, -initial,\
+             -maxiter, -relerror, or -trace"
+
+test linmin-2.4 {iteration limit} \
+    -setup {
+	proc f x { expr { -1. / ( 0.01 + abs( $x - 5.) ) } }
+    } \
+    -body {
+	min_bound_1d f 20. 0 -maxiter 10
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -returnCodes 1 \
+    -result "min_bound_1d failed to converge after \\d* steps" \
+    -match regexp
+
+test linmin-3.1 {minimise cos(x), unbounded} \
+    -setup {
+	proc f x { expr { cos($x) } }
+    } -body {
+	foreach { x y } [min_unbound_1d f 3. 3.01] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 3.1415926535897932 \
+    -match withinEpsilon
+
+test linmin-3.2 {minimise cos(x), unbounded, too eager} \
+    -setup {
+	proc f x { expr { cos($x) } }
+    } -body {
+	foreach { x y } [min_unbound_1d f 0.1 0.15] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result [expr { 3. * 3.1415926535897932 }] \
+    -match withinEpsilon
+
+test linmin-3.3 {near underflow in parabolic extrapolation} \
+    -setup {
+	proc f x {
+	    expr { ( 1.12712e-22 * $x * $x * $x - 1e-15 ) * $x + 1e-15 }
+	}
+    } \
+    -body {
+	foreach { x y } [min_unbound_1d f 1. 0.] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 130.41372 \
+    -match withinEpsilon
+
+test linmin-3.4 {near underflow in parabolic extrapolation} \
+    -setup {
+	proc f x {
+	    expr { ( ( 1e-30 * $x * $x - 1.12712e-22 )
+		     * $x * $x * $x - 1e-15 )
+		   * $x + 1e-15 }
+	}
+    } \
+    -body {
+	foreach { x y } [min_unbound_1d f 1. 0. -relerror 1e-08] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 8668.4248 \
+    -match withinEpsilon
+
+test linmin-3.5 {parabolic interpolation finds a minimum - case 1} \
+    -setup {
+	proc f x {
+	    expr { ( ( ( 1e-5 * $x - 2.69672 )
+		       * $x + 10.0902 )
+		     * $x - 8.39345 )
+		   * $x + 1. }
+	}
+    } \
+    -body {
+	foreach { x y } [min_unbound_1d f 1. 0. -relerror 1e-08] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 0.527450252 \
+    -match withinEpsilon
+
+test linmin-3.6 {parabolic interpolation finds a minimum - case 2} \
+    -setup {
+	proc f x {
+	    expr { ( ( 0.125669 * $x * $x - 0.982687 )
+		     * $x - 0.142982 )
+		   * $x + 1 }
+	}
+    } \
+    -body {
+	foreach { x y } [min_unbound_1d f 1. 0. -relerror 1e-08] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 2.0127451 \
+    -match withinEpsilon
+
+test linmin-3.7 {parabolic interpolation is useless} \
+    -setup {
+	proc f x {
+	    expr { ( ( ( 1e-5 * $x - 6.79171 )
+		       * $x + 24.8107 )
+		     * $x - 19.019 )
+		   * $x + 1. }
+	}
+    } \
+    -body {
+	foreach { x y } [min_unbound_1d f 1 0 -relerror 1e-8] break
+	set x
+    } \
+    -cleanup {
+	rename f {}
+    } \
+    -result 509375.81 \
+    -match withinEpsilon
+
+test linmin-4.1 {wrong \# args} \
+    -body {
+	min_unbound_1d f
+    } \
+    -returnCodes 1 \
+    -result [tcltest::wrongNumArgs min_unbound_1d {f x1 x2 args} 1]
+
+test linmin-4.2 {wrong \# args} \
+    -body {
+	min_unbound_1d f 0 1 -bad
+    } \
+    -returnCodes 1 \
+    -result "wrong # args, should be \"min_unbound_1d f x1 x2 ?-option value?...\""
+
+test linmin-4.3 {bad arg} \
+    -body {
+	min_unbound_1d f 0 1 -bad option
+    } \
+    -returnCodes 1 \
+    -result "unknown option \"-bad\", should be -trace"
+
+#
+# Test the solveLinearProgram procedure
+#
+
+set ::symm_constraints {
+       { 1.0   2.0  1.0 }
+       { 2.0   1.0  1.0 } }
+
+test linprog-1.0 "Symmetric constraints, case 1" \
+     -body {
+	set result [solveLinearProgram {1.0 1.0} $::symm_constraints]
+	set ok 1
+	if { ! [within_range [lindex $result 0]  0.333300 0.333360] ||
+	     ! [within_range [lindex $result 1]  0.333300 0.333360] } {
+	   set ok 0
+	}
+	set ok
+    } \
+    -result 1
+
+test linprog-1.1 "Symmetric constraints, case 2" \
+     -body {
+	set result [solveLinearProgram {1.0 0.0} $::symm_constraints]
+	set ok 1
+	if { ! [within_range [lindex $result 0]  0.49900 0.50100] ||
+	     ! [within_range [lindex $result 1] -0.00100 0.00100] } {
+	    set ok 0
+	}
+	set ok
+    } \
+    -result 1
+
+test linprog-1.2 "Symmetric constraints, case 3" \
+    -body {
+	set result [solveLinearProgram {0.0 1.0} $::symm_constraints]
+	set ok 1
+	if { ! [within_range [lindex $result 1]  0.499900 0.500100] ||
+	     ! [within_range [lindex $result 0] -0.000100 0.000100] } {
+	      set ok 0
+	}
+	set ok
+    } \
+    -result 1
+
+test linprog-1.3 "Symmetric constraints, case 4" \
+    -body {
+	set result [solveLinearProgram {3.0 4.0} $::symm_constraints]
+	set ok 1
+	if { ! [within_range [lindex $result 0]  0.333300 0.333360] ||
+	     ! [within_range [lindex $result 1]  0.333300 0.333360] } {
+	      set ok 0
+	}
+	set ok
+    } \
+    -result 1
+
+test linprog-2.1 "Unbounded program 1" \
+    -body {
+	set result [solveLinearProgram {3.0 4.0} {{1.0 -2.0 1.0} {-2.0 1.0 1.0}} ]
+    } \
+    -result "unbounded"
+
+test linprog-2.2 "Unbounded program 2" \
+    -body {
+	set result [::math::optimize::solveLinearProgram {2.0 1.0} {{3.0 0.0 6.0} {1.0  0.0 2.0}}]
+    } \
+    -result "unbounded"
+
+test linprog-2.3 "Infeasible program" \
+    -body {
+	set result [::math::optimize::solveLinearProgram {2.0 1.0} {{3.0 1.0 6.0} {1.0 -1.0 2.0} {0.0 1.0 -3.0}}]
+    } \
+    -result "infeasible"
+
+test linprog-2.4 "Degenerate program" \
+    -body {
+	# Solution: {1.0 3.0}
+	set result [::math::optimize::solveLinearProgram {2.0 1.0} {{3.0 1.0 6.0} {1.0 -1.0 2.0} {0.0 1.0 3.0}}]
+	set ok 1
+	if { ! [within_range [lindex $result 0]  0.99999  1.00001] ||
+	     ! [within_range [lindex $result 1]  2.99999  3.00001] } {
+	      set ok 0
+	}
+	set ok
+
+    } \
+    -result 1
+
+test linprog-3.1 "Simple 3D program" \
+   -body {
+	set result [solveLinearProgram \
+	   {1.0 1.0 1.0} \
+	   {{1.0  1.0  2.0  1.0}
+	    {1.0  2.0  1.0  1.0}
+	    {2.0  1.0  1.0  1.0}}]
+	set ok 1
+	if { ! [within_range [lindex $result 0]  0.249900 0.250100] ||
+	     ! [within_range [lindex $result 1]  0.249900 0.250100] ||
+	     ! [within_range [lindex $result 2]  0.249900 0.250100] } {
+	      set ok 0
+	}
+	set ok
+   } \
+   -result 1
+
+test nelderMead-1.1 "Nelder-Mead - wrong \# args" \
+    -body {
+	::math::optimize::nelderMead f {0.0 0.0} -bogus
+    } \
+    -returnCodes error \
+    -match glob \
+    -result "wrong \# args*"
+test nelderMead-1.2 "Nelder-Mead - bad param" \
+    -body {
+	::math::optimize::nelderMead f {0.0 0.0} -bogus 1
+    } \
+    -returnCodes error \
+    -match glob \
+    -result {unknown option "-bogus"*}
+test nelderMead-1.3 "Nelder-Mead - bad size of scale" \
+    -body {
+	::math::optimize::nelderMead f {0.0 0.0} -scale {0 0 0}
+    } \
+    -returnCodes error \
+    -result {-scale vector must be of same size as starting x vector}
+
+# Easy case - minimize in a paraboloid
+
+test nelderMead-2.1 "Nelder-Mead - easy" \
+    -setup {
+	proc f {x y} {
+	    expr {($x-3.)*($x-3.) + ($y-2.)*($y-2.) + 1.}
+	}
+    } \
+    -body {
+	array set dd [::math::optimize::nelderMead f {1. 1.}]
+	foreach {x y} $dd(x) break
+	expr { abs($x-3.) < 0.001 && abs($y-2.) < 0.001 }
+    } \
+    -cleanup {
+	rename f {}; unset dd
+    } \
+    -result 1
+
+test nelderMead-2.2 "Nelder-Mead - easy" \
+    -setup {
+	proc f {x y} {
+	    expr {($x-3.)*($x-3.) + ($y-2.)*($y-2.) + 1.}
+	}
+    } \
+    -body {
+	array set dd [::math::optimize::nelderMead f {0. 0.}]
+	foreach {x y} $dd(x) break
+	expr { abs($x-3.) < 0.001 && abs($y-2.) < 0.001 }
+    } \
+    -cleanup {
+	rename f {}; unset dd
+    } \
+    -result 1
+
+# Slalom down a sinuous valley - exercises most of the code
+
+test nelderMead-2.3 "Nelder-Mead - sinuous valley" \
+    -setup {
+	set pi 3.1415926535897932
+	proc f {x y} {
+	    set xx [expr { $x - 3.1415926535897932 / 2. }]
+	    set v1 [expr { 0.3 * exp( -$xx*$xx / 2. ) }]
+	    set d [expr { 10. * $y - sin(9. * $x) }]
+	    set v2 [expr { exp(-10.*$d*$d)}]
+	    set rv [expr { -$v1 - $v2 }]
+	    return $rv
+	}
+    } \
+    -body {
+	array set dd [::math::optimize::nelderMead f {1. 0.} -scale {0.1 0.01}]
+	foreach {x y} $dd(x) break
+	expr { abs($x-$pi/2) < 0.001 && abs($y-0.1) < 0.001 }
+    } \
+    -cleanup {rename f {}; unset dd} \
+    -result 1
+
+# Exercise the difficult case where the simplex has to contract about the
+# low point because all else has failed.
+
+test nelderMead-2.4 "Nelder-Mead - simplex contracts about the minimum" \
+    -setup {
+	proc g {a b} {
+	    set x1 [expr {0.1 - $a + $b}]
+	    set x2 [expr {$a + $b - 1.}]
+	    set x3 [expr {3.-8.*$a+8.*$a*$a-8.*$b+8.*$b*$b}]
+	    set x4 [expr {$a/10. + $b/10. + $x1*$x1/3. + $x2*$x2
+			  - $x2 * exp(1-$x3*$x3)}]
+	    return $x4
+	}
+    } \
+    -body {
+	array set dd [::math::optimize::nelderMead g {0. 0.} \
+			 -scale {1. 1.} -ftol 1e-10]
+	foreach {x y} $dd(x) break
+	expr { abs($x-0.774561) < 0.00005 && abs($y-0.755644) < 0.00005 }
+    } \
+    -cleanup {
+	rename g {}; unset dd
+    } \
+    -result 1
+
+# Make sure the method deals gracefully with a "valley"
+# (Ticket UUID: 3193459)
+
+test nelderMead-2.5 "Nelder-Mead - indeterminate minimum (valley)" \
+    -setup {
+	proc h {a b} {
+	    return [expr {abs($a-$b)}]
+	}
+    } \
+    -body {
+	array set dd [::math::optimize::nelderMead h {1. 1.}]
+	foreach {x y} $dd(x) break
+	expr { abs($x-1.) < 0.00005 && abs($y-1.) < 0.00005 }
+    } \
+    -cleanup {
+	rename h {}; unset dd
+    } \
+    -result 1
+
+testsuiteCleanup
+
+#  Restore precision
+set ::tcl_precision $old_precision
+
+# Local Variables:
+# mode: tcl
+# End:
+
+} ;# End of optimizetest namespace
+
+

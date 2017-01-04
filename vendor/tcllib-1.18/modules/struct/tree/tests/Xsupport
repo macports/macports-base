@@ -1,0 +1,157 @@
+# -*- tcl -*-
+# tree.testsupport:  Helper commands for the testsuite.
+#
+# Copyright (c) 2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# All rights reserved.
+#
+# RCS: @(#) $Id: Xsupport,v 1.1 2007/04/12 03:01:56 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Callbacks for tree walking.
+# Remember the node in a global variable.
+
+proc walker {node} {
+    lappend ::FOO $node
+}
+
+proc pwalker {tree n a} {
+    lappend ::t $a $n
+}
+
+proc pwalkern {tree n a} {
+    lappend ::t $n
+}
+
+proc pwalkercont {tree n a} {
+    if {[string equal $n "b"]} {lappend ::t . ; return -code continue}
+    lappend ::t $a $n
+}
+
+proc pwalkerbreak {tree n a} {
+    if {[string equal $n "b"]} {lappend ::t . ; return -code break}
+    lappend ::t $a $n
+}
+
+proc pwalkerret {tree n a} {
+    if {[string equal $n "b"]} {
+	lappend ::t .
+	return -code return good-return
+    }
+    lappend ::t $a $n
+}
+
+proc pwalkererr {tree n a} {
+    if {[string equal $n "b"]} {
+	lappend ::t .
+	error fubar
+    }
+    lappend ::t $a $n
+}
+
+proc pwalkerprune {tree n a} {
+    lappend ::t $a $n
+    if {$::prune && ($n == 2)} {struct::tree::prune}
+}
+
+proc pwalkerpruneb {tree n a} {
+    lappend ::t $a $n
+    if {($n == 2)} {struct::tree::prune}
+}
+
+# Validate a serialization against the tree it
+# was generated from.
+
+proc validate_serial {t serial {rootname {}}} {
+    if {$rootname == {}} {
+	set rootname [$t rootname]
+    }
+
+    # List length is multiple of 3
+    if {[llength $serial] % 3} {
+	return serial/wrong#elements
+    }
+
+    # Scan through list and built a number helper
+    # structures (arrays).
+
+    array set a  {}
+    array set p  {}
+    array set ch {}
+    foreach {node parent attr} $serial {
+	# Node has to exist in tree
+	if {![$t exists $node]} {
+	    return node/$node/unknown
+	}
+	if {![info exists ch($node)]} {set ch($node) {}}
+	# Parent reference has to be empty or
+	# integer, == 0 %3, >=0, < length serial
+	if {$parent != {}} {
+	    if {![string is integer -strict $parent]} {
+		return node/$node/parent/no-integer/$parent
+	    }
+	    if {$parent % 3} {
+		return node/$node/parent/not-triple/$parent
+	    }
+	    if {$parent < 0} {
+		return node/$node/parent/out-of-bounds/$parent
+	    }
+	    if {$parent >= [llength $serial]} {
+		return node/$node/parent/out-of-bounds/$parent
+	    }
+	    # Resolve parent index into node name, has to match
+	    set parentnode [lindex $serial $parent]
+	    if {![$t exists $parentnode]} {
+		return node/$node/parent/unknown/$parent/$parentnode
+	    }
+	    if {![string equal [$t parent $node] $parentnode]} {
+		return node/$node/parent/mismatch/$parent/$parentnode/[$t parent $node]
+	    }
+	    lappend ch($parentnode) $node
+	} else {
+	    set p($node) {}
+	}
+	# Attr list has to be of even length.
+	if {[llength $attr] % 2} {
+	    return attr/$node/wrong#elements
+	}
+	# Attr have to exist and match in all respects
+	if {![string equal \
+		[dictsort $attr] \
+		[dictsort [$t getall $node]]]} {
+	    return attr/$node/mismatch
+	}
+    }
+    # Second pass, check that the children information is encoded
+    # correctly. Reconstructed data has to match originals.
+
+    foreach {node parent attr} $serial {
+	if {![string equal $ch($node) [$t children $node]]} {
+	    return node/$node/children/mismatch
+	}
+    }
+
+    # Reverse check
+    # - List of nodes from the 'rootname' and check
+    #   that it and all its children are present
+    #   in the structure.
+
+    set ::FOO {}
+    mytree walk $rootname n {walker $n}
+
+    foreach n $::FOO {
+	if {![info exists ch($n)]} {
+	    return node/$n/mismatch/reachable/missing
+	}
+    }
+    if {[llength $::FOO] != [llength $serial]/3} {
+	return structure/mismatch/#nodes/multiples
+    }
+    if {[llength $::FOO] != [array size ch]} {
+	return structure/mismatch/#nodes/multiples/ii
+    }
+    return ok
+}
+
+#----------------------------------------------------------------------

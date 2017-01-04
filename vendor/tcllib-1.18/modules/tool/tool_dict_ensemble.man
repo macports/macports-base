@@ -1,0 +1,34 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tool::dict_ensemble n 0.4.2]
+[keywords TOOL]
+[copyright {2015 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Standardized OO Framework for development}]
+[titledesc {Dictionary Tools}]
+[category Utility]
+[keywords TclOO]
+[keywords TOOL]
+[require tool [opt 0.4.2]]
+[description]
+[para]
+The [cmd dict_ensemble] command is a keyword added by [package tool]. It defines
+a public variable (stored as a dict), and an access function to manipulated and
+access the values stored in that dict.
+[list_begin definitions]
+
+[call [emph object] [arg ensemble] [cmd add] [arg field]]] [arg value] [arg {value ...}]]
+
+Adds elements to a list maintained with the [arg field] leaf of the dict maintained
+my this ensemble.
+
+
+Declares a variable [arg name] which will be initialized as an array, populated with [arg contents] for objects of this class, as well as any
+objects for classes which are descendents of this class.
+
+[list_end]
+
+[section AUTHORS]
+Sean Woods
+
+[vset CATEGORY tool]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

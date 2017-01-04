@@ -1,0 +1,77 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+
+package require term::ansi::send
+package require term::ansi::code::macros
+package require term::receive::bind
+package require term::ansi::ctrl::unix
+package require term::ansi::code::ctrl
+
+term::ansi::send::import         vt
+term::ansi::code::ctrl::import ctrl
+
+set menu {Hello World {How  } {Are  } {You  }}
+set max  [llength $menu]
+set at   0
+
+proc Up {args} {
+    global at
+    if {$at == 0} return
+    incr at -1
+    Show
+    return
+}
+proc Down {args} {
+    global at max
+    if {$at >= ($max - 1)} return
+    incr at
+    Show
+    return
+}
+proc Do {args} {
+    term::ansi::ctrl::unix::cooked
+    vt::clear
+    exit
+}
+proc Default {string} {
+    return
+}
+
+proc Show {} {
+    global at menu
+    set i 0
+    set str ""
+    foreach m $menu {
+	if {$i != $at} {
+	    append str $m
+	} else {
+	    append str [ctrl::sda_revers]
+	    append str $m
+	    append str [ctrl::sda_reset]
+	}
+	append str \n
+	incr i
+    }
+    vt::showat 5 5 [string trimright $str \n]
+    return  
+}
+
+term::receive::bind B
+B map [ctrl::cu] Up
+B map [ctrl::cd] Down
+B map \r Do
+B map \n Do
+B default Default
+
+term::ansi::ctrl::unix::raw
+vt::init
+vt::clear
+
+Show
+#term::ansi::ctrl::unix::cooked
+B listen
+vwait forever
+term::ansi::ctrl::unix::cooked
+exit

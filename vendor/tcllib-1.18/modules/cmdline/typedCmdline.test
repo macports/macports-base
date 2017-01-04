@@ -1,0 +1,470 @@
+# -*- tcl -*-# This file contains the tests for the typedCmdline.tcl file.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2000 by Ross Palmer Mohn.
+# All rights reserved.
+#
+# RCS: @(#) $Id: typedCmdline.test,v 1.11 2007/08/03 04:27:38 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal cmdline.tcl cmdline
+}
+
+# -------------------------------------------------------------------------
+
+set argv0 "argv0"
+
+# ---------------------------------------------------
+
+# cmdline::typedGetopt
+
+test typed-cmdline-6.1 {cmdline::typedGetopt} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {}
+    list [cmdline::typedGetopt argList {a} opt arg] $argList $opt $arg
+} {0 {} {} {}}
+test typed-cmdline-6.2 {cmdline::typedGetopt, multiple options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {}
+    list [cmdline::typedGetopt argList {a b.arg c} opt arg] $argList $opt $arg
+} {0 {} {} {}}
+test typed-cmdline-6.3 {cmdline::typedGetopt, -- option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-- -a}
+    list [cmdline::typedGetopt argList {a} opt arg] $argList $opt $arg
+} {0 -a {} {}}
+test typed-cmdline-6.4 {cmdline::typedGetopt, non dash option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {b -a}
+    list [cmdline::typedGetopt argList {a} opt arg] $argList $opt $arg
+} {0 {b -a} {} {}}
+test typed-cmdline-6.5 {cmdline::typedGetopt, simple option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-a b}
+    list [cmdline::typedGetopt argList {a} opt arg] $argList $opt $arg
+} {1 b a {}}
+test typed-cmdline-6.6 {cmdline::typedGetopt, multiple letter option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo b}
+    list [cmdline::typedGetopt argList {foo} opt arg] $argList $opt $arg
+} {1 b foo {}}
+test typed-cmdline-6.7 {cmdline::typedGetopt, multiple letter option, abbreviation} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-f -b}
+    list [cmdline::typedGetopt argList {foo b} opt arg] $argList $opt $arg
+} {1 -b foo {}}
+test typed-cmdline-6.8 {cmdline::typedGetopt, option with argument} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo bar baz}
+    list [cmdline::typedGetopt argList {foo.arg} opt arg] $argList $opt $arg
+} {1 baz foo bar}
+test typed-cmdline-6.9 {cmdline::typedGetopt, option with argument, missing arg} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {foo.arg} opt arg] $argList $opt $arg
+} {-2 {} foo {Option requires an argument -- foo}}
+test typed-cmdline-6.10 {cmdline::typedGetopt, multiple options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {a.arg b foo c.arg} opt arg] $argList $opt $arg
+} {1 {} foo {}}
+test typed-cmdline-6.11 {cmdline::typedGetopt, unusual options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-* foo}
+    list [cmdline::typedGetopt argList {a.arg b *.arg c.arg} opt arg] $argList $opt $arg
+} {1 {} * foo}
+test typed-cmdline-6.12 {cmdline::typedGetopt, integer options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo -a bar}
+    list [cmdline::typedGetopt argList {a.arg foo.integer b} opt arg] $argList $opt $arg
+} {-3 {-a bar} foo {Option requires integer argument -- foo}}
+test typed-cmdline-6.13 {cmdline::typedGetopt, integer options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 123}
+    list [cmdline::typedGetopt argList {a.arg foo.integer b} opt arg] $argList $opt $arg
+} {1 {} foo 123}
+
+test typed-cmdline-6.14.0 {cmdline::typedGetopt, integer options} tcl8.6plus {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 123}
+    list [catch {cmdline::typedGetopt argList {a.arg foo.bar b} opt arg} msg] $msg $argList $opt $arg
+} [list 1 {Illegal option type specification: must be one of alnum|alpha|ascii|control|boolean|digit|double|entier|false|graph|integer|list|lower|print|punct|space|true|upper|wideinteger|wordchar|xdigit} {-foo 123} {} {}]
+
+test typed-cmdline-6.14.1 {cmdline::typedGetopt, integer options} {tcl8.5plus tcl8.5minus} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 123}
+    list [catch {cmdline::typedGetopt argList {a.arg foo.bar b} opt arg} msg] $msg $argList $opt $arg
+} [list 1 {Illegal option type specification: must be one of alnum|alpha|ascii|control|boolean|digit|double|false|graph|integer|list|lower|print|punct|space|true|upper|wideinteger|wordchar|xdigit} {-foo 123} {} {}]
+
+test typed-cmdline-6.14.2 {cmdline::typedGetopt, integer options} tcl8.4minus {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 123}
+    list [catch {cmdline::typedGetopt argList {a.arg foo.bar b} opt arg} msg] $msg $argList $opt $arg
+} [list 1 {Illegal option type specification: must be one of alnum|alpha|ascii|control|boolean|digit|double|false|graph|integer|lower|print|punct|space|true|upper|wordchar|xdigit} {-foo 123} {} {}]
+
+test typed-cmdline-6.15 {cmdline::typedGetopt, integer options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 123 -a 234}
+    list [cmdline::typedGetopt argList {a.arg foo.integer b} opt arg] $argList $opt $arg
+} {1 {-a 234} foo 123}
+test typed-cmdline-6.16 {cmdline::typedGetopt, unusual integer options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-* 123 -a 234}
+    list [cmdline::typedGetopt argList {a.arg *.integer b} opt arg] $argList $opt $arg
+} {1 {-a 234} * 123}
+test typed-cmdline-6.17 {cmdline::typedGetopt, integer options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {a.arg foo.integer b} opt arg] $argList $opt $arg
+} {-2 {} foo {Option requires integer argument -- foo}}
+test typed-cmdline-6.18 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 50AC}
+    list [cmdline::typedGetopt argList {foo.xdigit} opt arg] $argList $opt $arg
+} {1 {} foo 50AC}
+test typed-cmdline-6.19 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 50GC}
+    list [cmdline::typedGetopt argList {foo.xdigit} opt arg] $argList $opt $arg
+} {-3 50GC foo {Option requires xdigit argument -- foo}}
+test typed-cmdline-6.20 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 50gc}
+    list [cmdline::typedGetopt argList {foo.(50GC|50gc) bar} opt arg] $argList $opt $arg
+} {1 {} foo 50gc}
+test typed-cmdline-6.21 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 50gC}
+    list [cmdline::typedGetopt argList {foo.(50GC|50gc) bar} opt arg] $argList $opt $arg
+} {-3 50gC foo {Option requires an argument, one of 50GC|50gc -- foo}}
+test typed-cmdline-6.22 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo abc*def}
+    list [cmdline::typedGetopt argList {foo.(abc*def|ghi?jkl) bar} opt arg] $argList $opt $arg
+} {1 {} foo abc*def}
+test typed-cmdline-6.23 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 50gc}
+    list [cmdline::typedGetopt argList {foo.(x5MP|1jxR|50gc)? bar} opt arg] $argList $opt $arg
+} {1 {} foo 50gc}
+test typed-cmdline-6.24 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {foo.(x5MP|1jxR|50gc)? bar} opt arg] $argList $opt $arg
+} {1 {} foo {}}
+test typed-cmdline-6.25 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo -bar}
+    list [cmdline::typedGetopt argList {foo.(x5MP|1jxR|50gc)? bar} opt arg] $argList $opt $arg
+} {1 -bar foo {}}
+test typed-cmdline-6.26 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 50fc}
+    list [cmdline::typedGetopt argList {foo.xdigit? bar} opt arg] $argList $opt $arg
+} {1 {} foo 50fc}
+test typed-cmdline-6.27 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {foo.xdigit? bar} opt arg] $argList $opt $arg
+} {1 {} foo {}}
+test typed-cmdline-6.28 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo 1jxR -bar}
+    list [cmdline::typedGetopt argList {foo.xdigit? bar} opt arg] $argList $opt $arg
+} {1 {1jxR -bar} foo {}}
+test typed-cmdline-6.29 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo -bar}
+    list [cmdline::typedGetopt argList {foo.xdigit? bar} opt arg] $argList $opt $arg
+} {1 -bar foo {}}
+test typed-cmdline-6.30 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {foo.xdigit+ bar} opt arg] $argList $opt $arg
+} {-2 {} foo {Option requires at least one xdigit argument -- foo}}
+test typed-cmdline-6.31 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC}
+    list [cmdline::typedGetopt argList {foo.xdigit+ bar} opt arg] $argList $opt $arg
+} {1 {} foo AC}
+test typed-cmdline-6.32 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC 2F -bar}
+    list [cmdline::typedGetopt argList {foo.xdigit+ bar} opt arg] $argList $opt $arg
+} {-3 -bar foo {Option requires xdigit argument -- foo}}
+test typed-cmdline-6.33 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC 2F}
+    list [cmdline::typedGetopt argList {foo.xdigit+ bar} opt arg] $argList $opt $arg
+} {1 {} foo {AC 2F}}
+test typed-cmdline-6.34 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC 2F --}
+    list [cmdline::typedGetopt argList {foo.xdigit+ bar} opt arg] $argList $opt $arg
+} {1 {} foo {AC 2F}}
+test typed-cmdline-6.35 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::typedGetopt argList {foo.xdigit* bar} opt arg] $argList $opt $arg
+} {1 {} foo {}}
+test typed-cmdline-6.36 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC}
+    list [cmdline::typedGetopt argList {foo.xdigit* bar} opt arg] $argList $opt $arg
+} {1 {} foo AC}
+test typed-cmdline-6.37 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC 2F -bar}
+    list [cmdline::typedGetopt argList {foo.xdigit* bar} opt arg] $argList $opt $arg
+} {-3 -bar foo {Option requires xdigit argument -- foo}}
+test typed-cmdline-6.38 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC 2F}
+    list [cmdline::typedGetopt argList {foo.xdigit* bar} opt arg] $argList $opt $arg
+} {1 {} foo {AC 2F}}
+test typed-cmdline-6.39 {cmdline::typedGetopt, xdigit options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo AC 2F --}
+    list [cmdline::typedGetopt argList {foo.xdigit* bar} opt arg] $argList $opt $arg
+} {1 {} foo {AC 2F}}
+
+# cmdline::typedGetoptions
+
+test typed-cmdline-7.1 {cmdline::typedGetoptions} {
+    set argList {foo}
+    list [cmdline::typedGetoptions argList {}] $argList
+} {{} foo}
+test typed-cmdline-7.2 {cmdline::typedGetoptions, secret integer flag} {
+    set argList {-foo 123}
+    list [cmdline::typedGetoptions argList {{foo.integer.secret}}] $argList
+} {{foo 123} {}}
+test typed-cmdline-7.3 {cmdline::typedGetoptions, normal integer flag} {
+    set argList {-foo 123}
+    list [cmdline::typedGetoptions argList {{foo.integer}}] $argList
+} {{foo 123} {}}
+test typed-cmdline-7.4 {cmdline::typedGetoptions, missing integer flag, no default value} {
+    set argList {}
+    list [cmdline::typedGetoptions argList {{foo.integer}}] $argList
+} {{} {}}
+test typed-cmdline-7.5 {cmdline::typedGetoptions, missing integer flag, no default value} {
+    set argList {}
+    list [cmdline::typedGetoptions argList {{foo.integer {} {option foo with integer argument}}}] $argList
+} {{} {}}
+test typed-cmdline-7.6 {cmdline::typedGetoptions, integer flag, missing arg, no default value} {
+    set argList {-foo}
+    list [catch {cmdline::typedGetoptions argList {{foo.integer {} {blah blah}}}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo integer         blah blah 
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test typed-cmdline-7.7 {cmdline::typedGetoptions, integer flag, no default value} {
+    set argList {-foo 123}
+    list [cmdline::typedGetoptions argList {{foo.integer {} {option foo with integer argument}}}] $argList
+} {{foo 123} {}}
+test typed-cmdline-7.8 {cmdline::typedGetoptions, missing integer flag with arg, default value} {
+    set argList {-* 123}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.integer 234} {*.double 5.234 {Unusual}}}]] $argList
+} {{* 123 foo 234} {}}
+test typed-cmdline-7.9 {cmdline::typedGetoptions, missing integer flag with arg, default value} {
+    set argList {-f}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.integer 234} {*.double 5.234 {Unusual}}}]] $argList
+} {{* 5.234 foo 234} {}}
+test typed-cmdline-7.10 {cmdline::typedGetoptions, missing integer flag with arg, default value} {
+    set argList {-f}
+    list [catch {cmdline::typedGetoptions argList {foo.integer *.double fooey}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo integer          
+ -* double             
+ -fooey               
+ -help                Print this message
+ -?                   Print this message
+" -f]
+test typed-cmdline-7.11 {cmdline::typedGetoptions, missing integer flag with arg, default value} {
+    set argList {}
+    list [cmdline::typedGetoptions argList {{foo.integer 234}}] $argList
+} {{foo 234} {}}
+test typed-cmdline-7.12 {cmdline::typedGetoptions, integer flag with arg, default value} {
+    set argList {-foo 123}
+    list [cmdline::typedGetoptions argList {{foo.integer 234}}] $argList
+} {{foo 123} {}}
+test typed-cmdline-7.13 {cmdline::typedGetoptions, multiple flags with arg, default value} {
+    set argList {}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.arg blat} {a.arg b}}]] $argList
+} {{a b foo blat} {}}
+test typed-cmdline-7.14 {cmdline::typedGetoptions, errors} {
+    set argList {-a -foo}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.arg blat} a}]] $argList
+} {{a {} foo blat} {}}
+test typed-cmdline-7.15 {cmdline::typedGetoptions, errors} {
+    set argList {-a -fo}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.arg blat} a}]] $argList
+} {{a {} foo blat} {}}
+test typed-cmdline-7.16 {cmdline::typedGetopt, xdigit options} {
+    set argList {-foo 50gc}
+    list [cmdline::typedGetoptions argList {foo.(50GC|50gc) bar}] $argList
+} {{foo 50gc} {}}
+test typed-cmdline-7.17 {cmdline::typedGetopt, xdigit options} {
+    set argList {-foo -bar}
+    list [cmdline::typedGetoptions argList {foo.(50GC|50gc)? bar}] $argList
+} {{foo {} bar {}} {}}
+test typed-cmdline-7.18 {cmdline::typedGetopt, xdigit options} {
+    set argList {-bar -foo 123 234}
+    list [cmdline::typedGetoptions argList {foo.integer+ bar}] $argList
+} {{foo {123 234} bar {}} {}}
+test typed-cmdline-7.19 {cmdline::typedGetopt, xdigit options} {
+    set argList {-bar -foo 123 234}
+    list [cmdline::typedGetoptions argList {foo.integer* bar}] $argList
+} {{foo {123 234} bar {}} {}}
+test typed-cmdline-7.20 {cmdline::typedGetopt, xdigit options} {
+    set argList {-foo 50gC}
+    list [catch {cmdline::typedGetoptions argList {foo.(50GC|50gc) bar}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo 50GC|50gc        
+ -bar                 
+ -help                Print this message
+ -?                   Print this message
+" 50gC]
+test typed-cmdline-7.21 {cmdline::typedGetoptions, errors} {
+    set argList {-b -foo}
+    list [catch {cmdline::typedGetoptions argList {foo.arg a}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo arg              
+ -a                   
+ -help                Print this message
+ -?                   Print this message
+" {-b -foo}]
+test typed-cmdline-7.22 {cmdline::typedGetoptions, errors} {
+    set argList {-b -foo}
+    list [catch {cmdline::typedGetoptions argList {{foo.arg {} {blah blah}} a}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo arg             blah blah 
+ -a                   
+ -help                Print this message
+ -?                   Print this message
+" {-b -foo}]
+test typed-cmdline-7.23 {cmdline::typedGetoptions, errors} {
+    set argList {-a -?}
+    list [catch {cmdline::typedGetoptions argList {{foo.arg blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo arg              <blat>
+ -a                   
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test typed-cmdline-7.24 {cmdline::typedGetoptions, errors} {
+    set argList {-help}
+    list [catch {cmdline::typedGetoptions argList {{foo.arg blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo arg              <blat>
+ -a                   
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test typed-cmdline-7.25 {cmdline::typedGetoptions, usage string in errors} {
+    set argList {-help}
+    list [catch {cmdline::typedGetoptions argList {{foo.arg blat} a} {testing:}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] testing:
+ -foo arg              <blat>
+ -a                   
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test typed-cmdline-7.26 {cmdline::typedGetoptions, unusual option} {
+    set argList {-x?y -a -foo}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.arg blat} x?y x*y a}]] $argList
+} {{a {} foo blat x?y {}} {}}
+test typed-cmdline-7.27 {cmdline::typedGetoptions, unusual option, abbreviation error} {
+    set argList {-x -a -foo}
+    list [catch {cmdline::typedGetoptions argList {{foo.arg blat} x?y x*y a}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo arg              <blat>
+ -x?y                 
+ -x*y                 
+ -a                   
+ -help                Print this message
+ -?                   Print this message
+" {-x -a -foo}]
+test typed-cmdline-7.28 {cmdline::typedGetoptions, unusual option, abbreviation} {
+    set argList {-x -a -foo}
+    list [dictsort [cmdline::typedGetoptions argList {{foo.arg blat} x?y a}]] $argList
+} {{a {} foo blat x?y {}} {}}
+test typed-cmdline-7.29 {cmdline::typedGetoptions, multiple integer flag} {
+    set argList {-foo 123 -foo 234}
+    list [cmdline::typedGetoptions argList {{foo.integer.multi}}] $argList
+} {{foo {123 234}} {}}
+test typed-cmdline-7.30 {cmdline::typedGetoptions, multiple quoted arg flag} {
+    set argList {-foo "123 234" -foo "234 345"}
+    list [cmdline::typedGetoptions argList {{foo.arg.multi}}] $argList
+} {{foo {{123 234} {234 345}}} {}}
+test typed-cmdline-7.31 {cmdline::typedGetoptions, multiple boolean flag} {
+    set argList {-foo}
+    list [cmdline::typedGetoptions argList {{foo.multi}}] $argList
+} {{foo {}} {}}
+test typed-cmdline-7.32 {cmdline::typedGetoptions, multiple boolean flag} {
+    set argList {-foo -foo}
+    list [cmdline::typedGetoptions argList {{foo.multi}}] $argList
+} {{} {}}
+test typed-cmdline-7.33 {cmdline::typedGetoptions, multiple boolean flag} {
+    set argList {-foo -foo -foo}
+    list [cmdline::typedGetoptions argList {{foo.multi}}] $argList
+} {{foo {}} {}}
+
+testsuiteCleanup
+return

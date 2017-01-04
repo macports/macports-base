@@ -1,0 +1,94 @@
+# -*- tcl -*-
+# Graph tests - arc deletion
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: delete.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc delete ARC ARC...
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-delete-1.0 {arc delete, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc delete} msg
+    mygraph destroy
+    set msg
+} [tmE  {wrong # args: should be "::struct::graph::__arc_delete name arc arc..."} \
+	{wrong # args: should be "mygraph arc delete arc arc..."}]
+
+# Cannot use tmWrong, will be incorrect for the Tcl implementation
+# run by a pre-8.4 core.
+# [tmWrong {arc delete} {arc arc...} 0]
+
+# Impossible to have too many arguments
+# Any number of arcs is acceptable.
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-delete-2.0 {arc delete, missing arc} {
+    SETUP
+    catch {mygraph arc delete arc0} msg
+    mygraph destroy
+    set msg
+} [MissingArc $MY arc0]
+
+# -------------------------------------------------------------------------
+# Ok arguments, single, multiple deletion.
+
+test graph-${impl}-${setimpl}-arc-delete-3.0 {arc delete} {
+    SETUP
+
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+
+    set     res {}
+    lappend res [mygraph arc exists arc0]
+    lappend res [mygraph arc delete arc0]
+    lappend res [mygraph arc exists arc0]
+
+    mygraph destroy
+    set res
+} {1 {} 0}
+
+test graph-${impl}-${setimpl}-arc-delete-3.1 {arc delete, multiple at once} {
+    SETUP
+
+    mygraph node insert node0 node1 node2 node3
+    mygraph arc  insert node0 node1 arc0
+    mygraph arc  insert node0 node1 arc1
+    mygraph arc  insert node2 node3 arc2
+    mygraph arc  insert node1 node3 arc3
+
+    set     res {}
+    lappend res [mygraph arc exists arc0]
+    lappend res [mygraph arc exists arc1]
+    lappend res [mygraph arc exists arc2]
+    lappend res [mygraph arc exists arc3]
+    lappend res [mygraph arc delete arc0 arc1 arc2 arc3]
+    lappend res [mygraph arc exists arc0]
+    lappend res [mygraph arc exists arc1]
+    lappend res [mygraph arc exists arc2]
+    lappend res [mygraph arc exists arc3]
+
+    mygraph destroy
+    set res
+} {1 1 1 1 {} 0 0 0 0}
+
+test graph-${impl}-${setimpl}-arc-delete-3.2 {arc delete, keeping adjacent nodes} {
+    SETUP
+
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+
+    set     res {}
+    lappend res [mygraph arc  delete arc0]
+    lappend res [mygraph node exists node0]
+    lappend res [mygraph node exists node1]
+
+    mygraph destroy
+    set res
+} {{} 1 1}
+
+# -------------------------------------------------------------------------

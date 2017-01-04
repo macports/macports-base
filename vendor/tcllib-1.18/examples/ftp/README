@@ -1,0 +1,61 @@
+=======================
+ftp examples README
+=======================
+
+Example #1 - Directory Mirror	(mirror.tcl)
+-----------------------------
+
+The script mirror.tcl is used to mirror a complete remote directory
+structure. It creates an exact copy of this structure on the locale
+machine. Three parameters needs to be modified to work properly, 
+the hostname of the remote server, the username and the password 
+for login. 
+
+
+Example #2 - Software Update	(newer.tcl)
+----------------------------
+
+The script newer.tcl is used to detect whether a new release of
+Brent Welch's phantastic tcl-httpd is present at scriptics ftp
+server. If ftp::Newer detects a newer file then it causes the
+upload process and sends me (as root) an email to inform about. 
+The file name for the remote copy of tclhttpd may have changed,
+and the script needs a local copy of tclhttpd's source to do
+the comparison.
+
+Example #3 - Homepage Update	(hpupdate.tcl)
+----------------------------
+
+Quite a few people must have to keep permanent updating their
+homepages on a ISP server. hpupdate.tcl is a tk-program for
+the interactive comparsion of the homepage directory on the local
+computer with the same directories on the remote homepage server. 
+
+It is based on File Transfer Protocol. This process can be automated
+easily by hpupdate. It makes it quick and easy to keep the track of
+new/old or changed files.
+
+Brief overview: 
+
+     - FTP connection to remote server
+     - Processing subdirectories 
+     - Display of summary used and selected disk space 
+     - Automatically all superfluous directories/files of remote
+       homepage server will be deleted 
+     - Automatically all new/updated files will be uploaded 
+     - Tested under Linux, should also run without problems under
+       Windows 95/NT and on Macintosh computers 
+
+Example #4 - TkCon command line ftp client
+------------------------------------------
+
+Loading the ftp Library Package into Jeffrey Hobbs' TkCon rovides
+a simple ftp command line utility with command history. TkCon is a
+replacement for the standard console that comes with Tk. It must be
+started with the "package" option: 
+
+      tkcon -package ftp
+
+to load ftp automatically. TkCon is available at
+
+	http://www.purl.org/net/hobbs/tcl/script/tkcon

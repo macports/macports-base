@@ -1,0 +1,372 @@
+
+<div class='fossil-doc' data-title='bee - BitTorrent'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">bee(n) 0.1 tcllib &quot;BitTorrent&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>bee - BitTorrent Serialization Format Encoder/Decoder</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PUBLIC API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">ENCODER</a></li>
+<li class="doctools_subsection"><a href="#subsection2">DECODER</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">FORMAT DEFINITION</a></li>
+<li class="doctools_section"><a href="#section4">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">bee <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::bee::encodeString</b> <i class="arg">string</i></a></li>
+<li><a href="#2"><b class="cmd">::bee::encodeNumber</b> <i class="arg">integer</i></a></li>
+<li><a href="#3"><b class="cmd">::bee::encodeListArgs</b> <i class="arg">value</i>...</a></li>
+<li><a href="#4"><b class="cmd">::bee::encodeList</b> <i class="arg">list</i></a></li>
+<li><a href="#5"><b class="cmd">::bee::encodeDictArgs</b> <i class="arg">key</i> <i class="arg">value</i>...</a></li>
+<li><a href="#6"><b class="cmd">::bee::encodeDict</b> <i class="arg">dict</i></a></li>
+<li><a href="#7"><b class="cmd">::bee::decode</b> <i class="arg">string</i> <span class="opt">?<i class="arg">endvar</i>?</span> <span class="opt">?<i class="arg">start</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::bee::decodeIndices</b> <i class="arg">string</i> <span class="opt">?<i class="arg">endvar</i>?</span> <span class="opt">?<i class="arg">start</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">::bee::decodeChannel</b> <i class="arg">chan</i> <b class="option">-command</b> <i class="arg">cmdprefix</i> <span class="opt">?<b class="option">-exact</b>?</span> <span class="opt">?<b class="option">-prefix</b> <i class="arg">data</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">cmdprefix</b> <b class="method">eof</b> <i class="arg">token</i></a></li>
+<li><a href="#11"><b class="cmd">cmdprefix</b> <b class="method">error</b> <i class="arg">token</i> <i class="arg">message</i></a></li>
+<li><a href="#12"><b class="cmd">cmdprefix</b> <b class="method">value</b> <i class="arg">token</i> <i class="arg">value</i></a></li>
+<li><a href="#13"><b class="cmd">::bee::decodeCancel</b> <i class="arg">token</i></a></li>
+<li><a href="#14"><b class="cmd">::bee::decodePush</b> <i class="arg">token</i> <i class="arg">string</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">bee</b> package provides de- and encoder commands for data
+in bencoding (speak 'bee'), the serialization format for data and
+messages used by the BitTorrent application.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PUBLIC API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">ENCODER</a></h3>
+<p>The package provides one encoder command for each of the basic forms,
+and two commands per container, one taking a proper tcl data structure
+to encode in the container, the other taking the same information as
+several arguments.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::bee::encodeString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the bee-encoding of the <i class="arg">string</i>.</p></dd>
+<dt><a name="2"><b class="cmd">::bee::encodeNumber</b> <i class="arg">integer</i></a></dt>
+<dd><p>Returns the bee-encoding of the <i class="arg">integer</i> number.</p></dd>
+<dt><a name="3"><b class="cmd">::bee::encodeListArgs</b> <i class="arg">value</i>...</a></dt>
+<dd><p>Takes zero or more bee-encoded values and returns the bee-encoding of
+their list.</p></dd>
+<dt><a name="4"><b class="cmd">::bee::encodeList</b> <i class="arg">list</i></a></dt>
+<dd><p>Takes a list of bee-encoded values and returns the bee-encoding of the
+list.</p></dd>
+<dt><a name="5"><b class="cmd">::bee::encodeDictArgs</b> <i class="arg">key</i> <i class="arg">value</i>...</a></dt>
+<dd><p>Takes zero or more pairs of keys and values and returns the
+bee-encoding of the dictionary they form. The values are expected to
+be already bee-encoded, but the keys must not be. Their encoding will
+be done by the command itself.</p></dd>
+<dt><a name="6"><b class="cmd">::bee::encodeDict</b> <i class="arg">dict</i></a></dt>
+<dd><p>Takes a dictionary list of string keys and bee-encoded values and
+returns the bee-encoding of the list. Note that the keys in the input
+must not be bee-encoded already. This will be done by the command
+itself.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">DECODER</a></h3>
+<p>The package provides two main decoder commands, one for decoding a
+string expected to contain a complete data structure, the other for
+the incremental decoding of bee-values arriving on a channel. The
+latter command is asynchronous and provides the completed decoded
+values to the user through a command callback.</p>
+<dl class="doctools_definitions">
+<dt><a name="7"><b class="cmd">::bee::decode</b> <i class="arg">string</i> <span class="opt">?<i class="arg">endvar</i>?</span> <span class="opt">?<i class="arg">start</i>?</span></a></dt>
+<dd><p>Takes the bee-encoding in the string and returns one decoded value. In
+the case of this being a container all contained values are decoded
+recursively as well and the result is a properly nested tcl list
+and/or dictionary.</p>
+<p>If the optional <i class="arg">endvar</i> is set then it is the name of a variable
+to store the index of the first character <em>after</em> the decoded
+value into. In other words, if the string contains more than one value
+then <i class="arg">endvar</i> can be used to obtain the position of the bee-value
+after the bee-value currently decoded. together with <i class="arg">start</i>, see
+below, it is possible to iterate over the string to extract all
+contained values.</p>
+<p>The optional <i class="arg">start</i> index defaults to <b class="const">0</b>, i.e. the
+beginning of the string. It is the index of the first character of the
+bee-encoded value to extract.</p></dd>
+<dt><a name="8"><b class="cmd">::bee::decodeIndices</b> <i class="arg">string</i> <span class="opt">?<i class="arg">endvar</i>?</span> <span class="opt">?<i class="arg">start</i>?</span></a></dt>
+<dd><p>Takes the same arguments as <b class="cmd">::bee::decode</b> and returns the same
+information in <i class="arg">endvar</i>. The result however is different. Instead
+of the tcl value contained in the <i class="arg">string</i> it returns a list
+describing the value with respect to type and location (indices for
+the first and last character of the bee-value). In case of a container
+the structure also contains the same information for all the embedded
+values.</p>
+<p>Formally the results for the various types of bee-values are:</p>
+<dl class="doctools_definitions">
+<dt>string</dt>
+<dd><p>A list containing three elements:</p>
+<ul class="doctools_itemized">
+<li><p>The constant string <b class="const">string</b>, denoting the type of the value.</p></li>
+<li><p>An integer number greater than or equal to zero. This is the index of
+the first character of the bee-value in the input <i class="arg">string</i>.</p></li>
+<li><p>An integer number greater than or equal to zero. This is the index of
+the last character of the bee-value in the input <i class="arg">string</i>.</p></li>
+</ul>
+<p><em>Note</em> that this information is present in the results for all
+four types of bee-values, with only the first element changing
+according to the type of the value.</p></dd>
+<dt>integer</dt>
+<dd><p>The result is like for strings, except that the type element contains
+the constant string <b class="const">integer</b>.</p></dd>
+<dt>list</dt>
+<dd><p>The result is like before, with two exceptions: One, the type element
+contains the constant string <b class="const">list</b>. And two, the result
+actually contains four elements. The last element is new, and contains
+the index data as described here for all elements of the bee-list.</p></dd>
+<dt>dictionary</dt>
+<dd><p>The result is like for strings, except that the type element contains
+the constant string <b class="const">dict</b>. A fourth element is present as well,
+with a slightly different structure than for lists. The element is a
+dictionary mapping from the strings keys of the bee-dictionary to a
+list containing two elements. The first of them is the index
+information for the key, and the second element is the index
+information for the value the key maps to. This structure is the only
+which contains not only index data, but actual values from the
+bee-string. While the index information of the keys is unique enough,
+i.e. serviceable as keys, they are not easy to navigate when trying to
+find particular element. Using the actual keys makes this much easier.</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::bee::decodeChannel</b> <i class="arg">chan</i> <b class="option">-command</b> <i class="arg">cmdprefix</i> <span class="opt">?<b class="option">-exact</b>?</span> <span class="opt">?<b class="option">-prefix</b> <i class="arg">data</i>?</span></a></dt>
+<dd><p>The command creates a decoder for a series of bee-values arriving on
+the channel <i class="arg">chan</i> and returns its handle. This handle can be used
+to remove the decoder again.
+Setting up another bee decoder on <i class="arg">chan</i> while a bee decoder is
+still active will fail with an error message.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-command</b></dt>
+<dd><p>The command prefix <i class="arg">cmdprefix</i> specified by the <em>required</em>
+option <b class="option">-command</b> is used to report extracted values and
+exceptional situations (error, and EOF on the channel).
+The callback will be executed at the global level of the interpreter,
+with two or three arguments. The exact call signatures are</p>
+<dl class="doctools_definitions">
+<dt><a name="10"><b class="cmd">cmdprefix</b> <b class="method">eof</b> <i class="arg">token</i></a></dt>
+<dd><p>The decoder has reached eof on the channel <i class="arg">chan</i>. No further
+invocations of the callback will be made after this. The channel has
+already been closed at the time of the call, and the <i class="arg">token</i> is
+not valid anymore as well.</p></dd>
+<dt><a name="11"><b class="cmd">cmdprefix</b> <b class="method">error</b> <i class="arg">token</i> <i class="arg">message</i></a></dt>
+<dd><p>The decoder encountered an error, which is not eof. For example a
+malformed bee-value. The <i class="arg">message</i> provides details about the
+error. The decoder token is in the same state as for eof,
+i.e. invalid. The channel however is kept open.</p></dd>
+<dt><a name="12"><b class="cmd">cmdprefix</b> <b class="method">value</b> <i class="arg">token</i> <i class="arg">value</i></a></dt>
+<dd><p>The decoder received and successfully decoded a bee-value.
+The format of the equivalent tcl <i class="arg">value</i> is the same as returned
+by <b class="cmd">::bee::decode</b>. The channel is still open and the decoder
+token is valid. This means that the callback is able to remove the
+decoder.</p></dd>
+</dl></dd>
+<dt><b class="option">-exact</b></dt>
+<dd><p>By default the decoder assumes that the remainder of the data in the
+channel consists only of bee-values, and reads as much as possible per
+event, without regard for boundaries between bee-values. This means
+that if the the input contains non-bee data after a series of
+bee-value the beginning of that data may be lost because it was
+already read by the decoder, but not processed.</p>
+<p>The <b class="option">-exact</b> was made for this situation. When specified the
+decoder will take care to not read any characters behind the currently
+processed bee-value, so that any non-bee data is kept in the channel
+for further processing after removal of the decoder.</p></dd>
+<dt><b class="option">-prefix</b></dt>
+<dd><p>If this option is specified its value is assumed to be the beginning
+of the bee-value and used to initialize the internal decoder
+buffer. This feature is required if the creator of the decoder used
+data from the channel to determine if it should create the decoder or
+not. Without the option this data would be lost to the decoding.</p></dd>
+</dl></dd>
+<dt><a name="13"><b class="cmd">::bee::decodeCancel</b> <i class="arg">token</i></a></dt>
+<dd><p>This command cancels the decoder set up by <b class="cmd">::bee::decodeChannel</b>
+and represented by the handle <i class="arg">token</i>.</p></dd>
+<dt><a name="14"><b class="cmd">::bee::decodePush</b> <i class="arg">token</i> <i class="arg">string</i></a></dt>
+<dd><p>This command appends the <i class="arg">string</i> to the internal decoder
+buffer. It is the runtime equivalent of the option <b class="option">-prefix</b> of
+<b class="cmd">::bee::decodeChannel</b>. Use it to push data back into the decoder
+when the <b class="method">value</b> callback used data from the channel to
+determine if it should decode another bee-value or not.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">FORMAT DEFINITION</a></h2>
+<p>Data in the bee serialization format is constructed from two basic
+forms, and two container forms. The basic forms are strings and
+integer numbers, and the containers are lists and dictionaries.</p>
+<dl class="doctools_definitions">
+<dt>String <i class="arg">S</i></dt>
+<dd><p>A string <i class="arg">S</i> of length <i class="arg">L</i> is encoded by the string
+&quot;<i class="arg">L</i><b class="const">:</b><i class="arg">S</i>&quot;, where the length is written out in textual
+form.</p></dd>
+<dt>Integer <i class="arg">N</i></dt>
+<dd><p>An integer number <i class="arg">N</i> is encoded by the string
+&quot;<b class="const">i</b><i class="arg">N</i><b class="const">e</b>&quot;.</p></dd>
+<dt>List <i class="arg">v1</i> ... <i class="arg">vn</i></dt>
+<dd><p>A list of the values <i class="arg">v1</i> to <i class="arg">vn</i> is encoded by the string
+&quot;<b class="const">l</b><i class="arg">BV1</i>...<i class="arg">BVn</i><b class="const">e</b>&quot;
+where &quot;BV<b class="variable">i</b>&quot; is the bee-encoding of the value &quot;v<b class="variable">i</b>&quot;.</p></dd>
+<dt>Dict <i class="arg">k1</i> -&gt; <i class="arg">v1</i> ...</dt>
+<dd><p>A dictionary mapping the string key <i class="arg">k</i><b class="variable">i</b> to the value
+<i class="arg">v</i><b class="variable">i</b>, for <b class="variable">i</b> in <b class="const">1</b> ... <b class="variable">n</b>
+is encoded by the string
+&quot;<b class="const">d</b><i class="arg">BK</i><b class="variable">i</b><i class="arg">BV</i><b class="variable">i</b>...<b class="const">e</b>&quot;
+for i in <b class="const">1</b> ... <b class="variable">n</b>, where &quot;BK<b class="variable">i</b>&quot; is the bee-encoding
+of the key string &quot;k<b class="variable">i</b>&quot;.  and &quot;BV<b class="variable">i</b>&quot; is the bee-encoding of
+the value &quot;v<b class="variable">i</b>&quot;.</p>
+<p><em>Note</em>: The bee-encoding does not retain the order of the keys in
+the input, but stores in a sorted order. The sorting is done for the
+&quot;raw strings&quot;.</p></dd>
+</dl>
+<p>Note that the type of each encoded item can be determined immediately
+from the first character of its representation:</p>
+<dl class="doctools_definitions">
+<dt>i</dt>
+<dd><p>Integer.</p></dd>
+<dt>l</dt>
+<dd><p>List.</p></dd>
+<dt>d</dt>
+<dd><p>Dictionary.</p></dd>
+<dt>[0-9]</dt>
+<dd><p>String.</p></dd>
+</dl>
+<p>By wrapping an integer number into <b class="const">i</b>...<b class="const">e</b> the format
+makes sure that they are different from strings, which all begin with
+a digit.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLES</a></h2>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>bee</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key389">BitTorrent</a>, <a href="../../../../index.html#key387">bee</a>, <a href="../../../../index.html#key388">bittorrent</a>, <a href="../../../../index.html#key109">serialization</a>, <a href="../../../../index.html#key390">torrent</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

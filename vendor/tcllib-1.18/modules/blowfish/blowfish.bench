@@ -1,0 +1,66 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'blowfish' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget blowfish
+catch {namespace delete ::blowfish}
+source [file join [file dirname [info script]] blowfish.tcl]
+
+set i [binary format H* 000000000000000]
+set p [binary format H* 00112233445566778899aabbccddeeff]
+
+set k [binary format H* 000102030405060]
+set c [binary format H* 69c4e0d86a7b0430d8cdb78070b4c55a]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+bench -desc "BLOWFISH ECB encryption" -body {
+    blowfish::blowfish -mode ecb -dir enc -key $k -iv $i $p
+}
+
+bench -desc "BLOWFISH ECB decryption" -body {
+    blowfish::blowfish -mode ecb -dir dec -key $k -iv $i $c
+}
+
+bench -desc "BLOWFISH ECB encryption core" -pre {
+    set key [blowfish::Init ecb $k $i]
+} -body {
+    blowfish::Encrypt $key $p
+} -post {
+    blowfish::Final $key
+}
+
+bench -desc "BLOWFISH ECB decryption core" -pre {
+    set key [blowfish::Init ecb $k $i]
+} -body {
+    blowfish::Decrypt $key $c
+} -post {
+    blowfish::Final $key
+}
+
+bench -desc "BLOWFISH ECB keyschedule" -body {
+    blowfish::Final [blowfish::Init ecb $k $i]
+}
+
+bench -desc "BLOWFISH CBC keyschedule" -body {
+    blowfish::Final [blowfish::Init cbc $k $i]
+}
+
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

@@ -1,0 +1,104 @@
+2013/10/14  Andreas Drollinger  <droll>
+
+   * TEPAM version 0.5.0
+      tepam::procedure command
+       - New procedure attributes: -validatecommand_error_text, -validatecommand
+       - Updated argument attribute: -validatecommand (the command is now 
+         executed in the context of the procedure body which allows accessing 
+         argument variables)
+       - New argument attribute: -validatecommand_error_text
+       - Minor bug fix: The TEPAM internal procedure list was incorrect if a 
+         procedure was defined multiple times.
+       - Procedure help generation: Indicate if an argument can be used multiple 
+         times
+      argument_dialogbox
+       - New global attributes: -validatecommand_error_text, -validatecommand
+       - New argument attributes: -validatecommand_error_text, -validatecommand,
+                      -validatecommand_error_text2, -validatecommand2
+   * TEPAM Doc Gen version 0.1.0
+     - This is the first version of the tepam::doc_gen package.
+   * New files:
+     - tepam_doc_gen.tcl (new tepam::doc gen package)
+     - tepam_doc_gen.man (documentation for tepam::doc_gen)
+     - doc_gen.test (limited regression test for tepam::doc_gen)
+     - 1d_procedure_validation.demo (tests the new -validatecommandX arguments)
+     - 3_doc_gen_generation.demo (new demo for the tepam::doc_gen package)
+     - tepam_doc_stylesheet.css (default HTML stylesheet used by tepam::doc_gen)
+   * Updated files:
+     - tepam.tcl (see above)
+     - bug_fixes.test (added dedicated test for Bug 3608952)
+     - pkgIndex.tcl (added the tepam::doc_gen package)
+     - proc_call_arg_valid.test.test (made adaptations for the new error message related to the -validatecommand attribute)
+     - tepam_argument_dialogbox.man (document the new -validatecommandX attributes)
+     - tepam_procedure.man (document the new -validatecommandX attributes)
+     - 1_procedure_introduction.demo (add a demo for tepam::doc_gen::generate)
+     - tepam_demo.tcl (improve the output/puts handling)
+
+2013/03/25  Andreas Drollinger  <droll>
+
+   * TEPAM version 0.4.1
+   * Correction of bug 3608952: Help text is incorrectly generated if procedures are 
+     part of the non-default namespaces
+   * Correction of bug 3608951: Help text shows incorrect argument order if procedure 
+     is defined in the "unnamed arguments first, named arguments later" calling style.
+   * Updated files:
+     - tepam.tcl (bug fix implementation)
+     - proc_namespaces.test (to add more tests related to procedures defined in namepsaces)
+     - bug_fixes.test (new file to add specific tests related to bug fixes)
+     - pkgIndex.tcl (to update the tepam revision to 0.4.1)
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+   * Released and tagged Tcllib 1.15 ========================
+
+2012/05/07  Andreas Drollinger  <droll@users.sourceforge.net>
+ 
+   * TEPAM version 0.4.0
+   * Add the new text procedure argument type and the text multi line data 
+     entry widget. Add test and documentation support for these new features:
+     - tepam.tcl
+     - adbox_all.test, adbox_widgets.test, proc_call_arg_type.test
+     - tepam_argument_dialogbox.man, tepam_introductin.man, tepam_procedure.man 
+
+2012/03/26  Andreas Drollinger  <droll@users.sourceforge.net>
+ 
+   * TEPAM version 0.3.0
+   * tepam.tcl: Add support to log the called procedures inside an array variable.
+   * tepam.tcl: Simplify the value validation procedures using the 'string is'
+     procedure's -strict option.
+   * tepam.tcl: Keep the original value list in the right list of the 
+     'disjointlistbox'.
+   * tepam.tcl: Add the procedure 'ConfigureWindowsGeometry' to handle window 
+     sizes and positions.
+   * Cleanup the manuals.
+   * tepam_demo.tcl: TEPAM version 0.3.0
+   * tepam_demo.tcl: Replaces the control buttons by a menu.
+   * tepam_demo.tcl: Create an exit procedure to catch an eventual call of the exit command 
+     inside the console.
+   * tepam_demo.tcl: Adjust the colors and rewrite the explanations.
+   * tepam_demo.tcl: Display eventual errors with message boxes.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+   * Released and tagged Tcllib 1.14 ========================
+
+2011-11-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+   * examples/tepam/tepam_demo.tcl [Bug 3425269]: Applied bug fixes
+     for the demo script supplied by Stuart Cassoff.
+   * adbox_all.test: [Bug 3422990]: Fixed these test files to
+   * adbox_widgets.test: properly register their need for Tk
+   * proc_interactive.test: and not execute without it.
+
+2011/01/21  Andreas Drollinger  <droll@users.sourceforge.net>
+
+   * TEPAM version 0.2.0
+   * Add the -widget option to the procedure arguments.
+   * Add the -yscroll option to the argument dialog box.
+   * Bug fixes for the following argument dialog box widgets:
+     - disjointlistbox: Keep always the same element order
+     - checkbox, radiobox: Handle correctly default values
+
+2010/02/11  Andreas Drollinger  <droll@users.sourceforge.net>
+
+   * TEPAM module checkin

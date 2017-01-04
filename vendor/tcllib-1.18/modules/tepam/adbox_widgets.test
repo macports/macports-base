@@ -1,0 +1,456 @@
+# -*- tcl -*-
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# adbox_widgets.test:
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It verifies the basic functionalities (create, set, get) of all entry widgets.
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: adbox_widgets.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+testsNeed     Tk 8.3
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+
+tepam::GuiEnvironmentInit
+
+######## Entry ########
+
+   frame .f
+   array set Option {}
+
+   test tepam-adbox.widg.ent.cr "argument_dialogbox, all widgets: entry - create" \
+      -body {tepam::ad_form(entry) .f create} \
+      -result "*" \
+      -match glob
+
+   set tn 0
+   foreach Data { "This is a basic entry" "This is another entry" } {
+      incr tn
+
+      test tepam-adbox.widg.ent$tn.st "argument_dialogbox, all widgets: entry $tn - set" \
+         -body "tepam::ad_form(entry) .f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.ent$tn.gt "argument_dialogbox, all widgets: entry $tn - get" \
+         -body {tepam::ad_form(entry) .f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## Text ########
+
+   frame .f
+   frame .f.f
+   array set Option {}
+   set Framed 0
+
+   test tepam-adbox.widg.txt.cr "argument_dialogbox, all widgets: text - create" \
+      -body {tepam::ad_form(text) .f.f create} \
+      -result "*" \
+      -match glob
+
+   set tn 0
+   foreach Data { "This is a text entry" "This is another text" } {
+      incr tn
+
+      test tepam-adbox.widg.txt$tn.st "argument_dialogbox, all widgets: text $tn - set" \
+         -body "tepam::ad_form(text) .f.f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.txt$tn.gt "argument_dialogbox, all widgets: text $tn - get" \
+         -body {tepam::ad_form(text) .f.f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## Color ########
+
+   frame .f
+   array set Option {}
+
+   test tepam-adbox.widg.col.cr "argument_dialogbox, all widgets: color - create" \
+      -body {tepam::ad_form(color) .f create} \
+      -result "*" \
+      -match glob
+
+   set tn 0
+   foreach Data {red blue yellow} {
+      incr tn
+
+      test tepam-adbox.widg.col$tn.st "argument_dialogbox, all widgets: color $tn - set" \
+         -body "tepam::ad_form(color) .f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.col$tn.gt "argument_dialogbox, all widgets: color $tn - get" \
+         -body {tepam::ad_form(color) .f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## File and Directories ########
+
+   set fd 0
+   foreach FileDir {existingdirectory directory existingfile file} {
+      incr fd
+      frame .f
+      array set Option {}
+
+      test tepam-adbox.widg.fd$fd.cr "argument_dialogbox, all widgets: Files/Directories - create" \
+         -body "tepam::ad_form($FileDir) .f create" \
+         -result "*" \
+         -match glob
+
+      set tn 0
+      foreach Data {my_dir your_directory} {
+         incr tn
+   
+         test tepam-adbox.widg.fd$fd.st$tn "argument_dialogbox, all widgets: Files/Directories $tn - set" \
+            -body "tepam::ad_form($FileDir) .f set \"$Data\"" \
+            -result "*" \
+            -match glob
+   
+         test tepam-adbox.widg.fd$fd.gt$tn "argument_dialogbox, all widgets: Files/Directories $tn - get" \
+            -body "tepam::ad_form($FileDir) .f get" \
+            -result $Data \
+            -match exact
+      }
+
+      destroy .f
+      array unset Option
+   }
+
+######## Combobox ########
+
+   frame .f
+   array set Option {}
+
+   test tepam-adbox.widg.combo.cr "argument_dialogbox, all widgets: Combo box -  create" \
+      -body {
+         tepam::ad_form(combobox) .f create;
+         tepam::ad_form(combobox) .f set_choice {123 234 345 456 567 678 789}
+      } \
+      -result "*" \
+      -match glob
+
+   set tn 0
+   foreach Data {234 456 678} {
+      incr tn
+
+      test tepam-adbox.widg.combo$tn.st "argument_dialogbox, all widgets: Combo box $tn - set" \
+         -body "tepam::ad_form(combobox) .f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.combo$tn.oc "argument_dialogbox, all widgets: Combo box $tn - open/close selection" \
+         -body {
+            tepam::ad_form(combobox) .f open_selection;
+            tepam::ad_form(combobox) .f close_selection
+         } \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.combo$tn.gt "argument_dialogbox, all widgets: Combo box $tn - get" \
+         -body {tepam::ad_form(combobox) .f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## Listbox ########
+
+   set tn 0
+   foreach {ListboxOptions Choices Datas} {
+      "-multiple_selection 0" {123 234 345 456 567 678 789} {234 456 678}
+      "-multiple_selection 1" {123 234 345 456 567 678 789} {234 678}
+      "-multiple_selection 1" {123 234 345 456 567 678 789} {{234 456} {345 678}}
+   } {
+      incr tn
+      frame .f
+      frame .f.f
+      array set Option $ListboxOptions
+      set Framed 0
+
+      test tepam-adbox.widg.lstb$tn.cr "argument_dialogbox, all widgets: Listbox $tn - create" \
+         -body {
+            tepam::ad_form(listbox) .f.f create
+            tepam::ad_form(listbox) .f.f set_choice $Choices
+         } \
+         -result "*" \
+         -match glob
+
+      # Check that the default selected value is the first value in the list
+      test tepam-adbox.widg.lstb$tn.gt "argument_dialogbox, all widgets: Listbox $tn - get" \
+         -body {tepam::ad_form(listbox) .f.f get} \
+         -result 123 \
+         -match exact
+
+      # Perform several set/get operations
+      set sn 0
+      foreach Data $Datas {
+         incr sn
+
+         test tepam-adbox.widg.lstb$tn.st$sn "argument_dialogbox, all widgets: Listbox $tn - set $sn" \
+            -body "tepam::ad_form(listbox) .f.f set \"$Data\"" \
+            -result "*" \
+            -match glob
+
+         test tepam-adbox.widg.lstb$tn.gt$sn "argument_dialogbox, all widgets: Listbox $tn - get $sn" \
+            -body {tepam::ad_form(listbox) .f.f get} \
+            -result $Data \
+            -match exact
+      }
+
+      destroy .f
+      array unset Option
+   }
+
+######## Disjoint listbox ########
+
+   frame .f
+   frame .f.f
+   array set Option {}
+   set Framed 0
+
+   test tepam-adbox.widg.djlb.cr "argument_dialogbox, all widgets: Disjoint listbox -  create" \
+      -body {
+         tepam::ad_form(disjointlistbox) .f.f create;
+         tepam::ad_form(disjointlistbox) .f.f set_choice {123 234 345 456 567 678 789}
+      } \
+      -result "*" \
+      -match glob
+
+   # Check that nothing is selected by default
+   test tepam-adbox.widg.djlb.gt "argument_dialogbox, all widgets: Listbox $tn - get" \
+      -body {tepam::ad_form(disjointlistbox) .f.f get} \
+      -result {} \
+      -match exact
+
+   set tn 0
+   foreach Data {234 {123 234 345 456 567 678 789} {234 456}} {
+      incr tn
+
+      test tepam-adbox.widg.djlb$tn.st "argument_dialogbox, all widgets: Disjoint listbox $tn - set" \
+         -body "tepam::ad_form(disjointlistbox) .f.f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.djlb$tn.gt "argument_dialogbox, all widgets: Disjoint listbox $tn - get" \
+         -body {tepam::ad_form(disjointlistbox) .f.f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## Checkbox ########
+
+   frame .f
+   array set Option {}
+   set Framed 0
+
+   test tepam-adbox.widg.chkbx.cr "argument_dialogbox, all widgets: Checkbox -  create" \
+      -body {
+         tepam::ad_form(checkbox) .f create;
+         tepam::ad_form(checkbox) .f set_choice {123 234 345 456 567}
+      } \
+      -result "*" \
+      -match glob
+
+   # Check that nothing is selected by default
+   test tepam-adbox.widg.chkbx.gt "argument_dialogbox, all widgets: Listbox $tn - get" \
+      -body {tepam::ad_form(checkbox) .f get} \
+      -result {} \
+      -match exact
+
+   set tn 0
+   foreach Data {234 {123 234 345 456 567} {234 456}} {
+      incr tn
+
+      test tepam-adbox.widg.chkbx$tn.st "argument_dialogbox, all widgets: Checkbox $tn - set" \
+         -body "tepam::ad_form(checkbox) .f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.chkbx$tn.gt "argument_dialogbox, all widgets: Checkbox $tn - get" \
+         -body {tepam::ad_form(checkbox) .f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## Radiobox ########
+
+   frame .f
+   array set Option {}
+   set Framed 0
+
+   test tepam-adbox.widg.rdiobx.cr "argument_dialogbox, all widgets: Radiobox -  create" \
+      -body {
+         tepam::ad_form(radiobox) .f create;
+         tepam::ad_form(radiobox) .f set_choice {123 234 345 456 567}
+      } \
+      -result "*" \
+      -match glob
+
+   # Check that the first item is selected by default
+   test tepam-adbox.widg.rdiobx.gt "argument_dialogbox, all widgets: Listbox $tn - get" \
+      -body {tepam::ad_form(radiobox) .f get} \
+      -result 123 \
+      -match exact
+
+   set tn 0
+   foreach Data {234 456 567} {
+      incr tn
+
+      test tepam-adbox.widg.rdiobx$tn.st "argument_dialogbox, all widgets: Radiobox $tn - set" \
+         -body "tepam::ad_form(radiobox) .f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.rdiobx$tn.gt "argument_dialogbox, all widgets: Radiobox $tn - get" \
+         -body {tepam::ad_form(radiobox) .f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+######## Checkbutton ########
+
+   frame .f
+   array set Option {}
+   set Framed 0
+
+   test tepam-adbox.widg.chkbtn.cr "argument_dialogbox, all widgets: Checkbutton -  create" \
+      -body {
+         tepam::ad_form(checkbutton) .f create;
+      } \
+      -result "*" \
+      -match glob
+
+   # Check that the default value is 0
+   test tepam-adbox.widg.chkbtn.gt "argument_dialogbox, all widgets: Listbox $tn - get" \
+      -body {tepam::ad_form(checkbutton) .f get} \
+      -result 0 \
+      -match exact
+
+   set tn 0
+   foreach Data {0 1} {
+      incr tn
+
+      test tepam-adbox.widg.chkbtn$tn.st "argument_dialogbox, all widgets: Checkbutton $tn - set" \
+         -body "tepam::ad_form(checkbutton) .f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.chkbtn$tn.gt "argument_dialogbox, all widgets: Checkbutton $tn - get" \
+         -body {tepam::ad_form(checkbutton) .f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f
+   array unset Option
+
+#### Font selector ####
+
+# Evaluate the default font name. Use the 'font actual' command to evaluate the real font
+# names (Tk8.5 uses pseudo font names like 'TkDefaultFont').
+set DefaultFontOrig [[label .lfont] cget -font]
+set DefaultFont [list [font actual $DefaultFontOrig -family] \
+                      [expr [font actual $DefaultFontOrig -size]<6 ? 6 : [font actual $DefaultFontOrig -size]]]
+
+   frame .f
+   frame .f.f
+   array set Option {}
+   set Framed 0
+
+   test tepam-adbox.widg.f.font.cr "argument_dialogbox, all widgets: Font -  create" \
+      -body {
+         tepam::ad_form(font) .f.f create;
+      } \
+      -result "*" \
+      -match glob
+
+   test tepam-adbox.widg.f.font.gt "argument_dialogbox, all widgets: Listbox $tn - get" \
+      -body {tepam::ad_form(font) .f.f get} \
+      -result $DefaultFont \
+      -match exact
+
+   set tn 0
+   foreach Data { {Arial 8} {Arial 10 bold} {Courier 12 underline} {Arial 12 italic} {Arial 12 overstrike} } {
+      incr tn
+
+      test tepam-adbox.widg.f.font$tn.st "argument_dialogbox, all widgets: Font $tn - set" \
+         -body "tepam::ad_form(font) .f.f set \"$Data\"" \
+         -result "*" \
+         -match glob
+
+      test tepam-adbox.widg.f.font$tn.gt "argument_dialogbox, all widgets: Font $tn - get" \
+         -body {tepam::ad_form(font) .f.f get} \
+         -result $Data \
+         -match exact
+   }
+
+   destroy .f .lfont
+   array unset Option
+
+
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: adbox_widgets.test
+# Modifications:
+#
+# Revision 1.3  2012/05/07 20:26:02  droll
+# * TEPAM version 0.4.0
+# * Add the new text procedure argument type and the text multi line data
+#   entry widget.
+#
+# Revision 1.2  2011/11/09 05:43:30  andreas_kupries
+#
+#  * adbox_all.test: [Bug 3422990]: Fixed these test files to
+#  * adbox_widgets.test: properly register their need for Tk
+#  * proc_interactive.test: and not execute without it.
+#
+# Revision 1.1  2010/02/11 21:50:55  droll
+# * TEPAM module checkin
+##########################################################################

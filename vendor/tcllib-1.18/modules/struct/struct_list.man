@@ -1,0 +1,830 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id: struct_list.man,v 1.24 2010/10/05 21:47:25 andreas_kupries Exp $}]
+[vset LIST_VERSION 1.8.3]
+[manpage_begin struct::list n [vset LIST_VERSION]]
+[keywords assign]
+[keywords common]
+[keywords comparison]
+[keywords diff]
+[keywords differential]
+[keywords equal]
+[keywords equality]
+[keywords filter]
+[keywords {first permutation}]
+[keywords Fisher-Yates]
+[keywords flatten]
+[keywords folding]
+[keywords {full outer join}]
+[keywords {generate permutations}]
+[keywords {inner join}]
+[keywords join]
+[keywords {left outer join}]
+[keywords list]
+[keywords {longest common subsequence}]
+[keywords map]
+[keywords {next permutation}]
+[keywords {outer join}]
+[keywords permutation]
+[keywords reduce]
+[keywords repeating]
+[keywords repetition]
+[keywords reshuffle]
+[keywords reverse]
+[keywords {right outer join}]
+[keywords shuffle]
+[keywords subsequence]
+[keywords swapping]
+[copyright {2003-2005 by Kevin B. Kenny. All rights reserved}]
+[copyright {2003-2012 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc {Tcl Data Structures}]
+[titledesc {Procedures for manipulating lists}]
+[category  {Data structures}]
+[require Tcl 8.4]
+[require struct::list [opt [vset LIST_VERSION]]]
+[description]
+
+[para]
+
+The [cmd ::struct::list] namespace contains several useful commands
+for processing Tcl lists. Generally speaking, they implement
+algorithms more complex or specialized than the ones provided by Tcl
+itself.
+
+[para]
+
+It exports only a single command, [cmd struct::list]. All
+functionality provided here can be reached through a subcommand of
+this command.
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd ::struct::list] [method longestCommonSubsequence] \
+	[arg sequence1] [arg sequence2] [opt [arg maxOccurs]]]
+
+Returns the longest common subsequence of elements in the two lists
+[arg sequence1] and [arg sequence2]. If the [arg maxOccurs] parameter
+is provided, the common subsequence is restricted to elements that
+occur no more than [arg maxOccurs] times in [arg sequence2].
+
+[para]
+
+The return value is a list of two lists of equal length. The first
+sublist is of indices into [arg sequence1], and the second sublist is
+of indices into [arg sequence2].  Each corresponding pair of indices
+corresponds to equal elements in the sequences; the sequence returned
+is the longest possible.
+
+[call [cmd ::struct::list] [method longestCommonSubsequence2] \
+	[arg {sequence1 sequence2}] [opt [arg maxOccurs]]]
+
+Returns an approximation to the longest common sequence of elements in
+the two lists [arg sequence1] and [arg sequence2].
+
+If the [arg maxOccurs] parameter is omitted, the subsequence computed
+is exactly the longest common subsequence; otherwise, the longest
+common subsequence is approximated by first determining the longest
+common sequence of only those elements that occur no more than
+
+[arg maxOccurs] times in [arg sequence2], and then using that result
+to align the two lists, determining the longest common subsequences of
+the sublists between the two elements.
+
+[para]
+
+As with [method longestCommonSubsequence], the return value is a list
+of two lists of equal length.  The first sublist is of indices into
+[arg sequence1], and the second sublist is of indices into
+
+[arg sequence2].  Each corresponding pair of indices corresponds to
+equal elements in the sequences.  The sequence approximates the
+longest common subsequence.
+
+[call [cmd ::struct::list] [method lcsInvert] [arg lcsData] [arg len1] [arg len2]]
+
+This command takes a description of a longest common subsequence
+
+([arg lcsData]), inverts it, and returns the result. Inversion means
+here that as the input describes which parts of the two sequences are
+identical the output describes the differences instead.
+
+[para]
+
+To be fully defined the lengths of the two sequences have to be known
+and are specified through [arg len1] and [arg len2].
+
+[para]
+
+The result is a list where each element describes one chunk of the
+differences between the two sequences. This description is a list
+containing three elements, a type and two pairs of indices into
+
+[arg sequence1] and [arg sequence2] respectively, in this order.
+
+The type can be one of three values:
+
+[list_begin definitions]
+[def [const added]]
+
+Describes an addition. I.e. items which are missing in [arg sequence1]
+can be found in [arg sequence2].
+
+The pair of indices into [arg sequence1] describes where the added
+range had been expected to be in [arg sequence1]. The first index
+refers to the item just before the added range, and the second index
+refers to the item just after the added range.
+
+The pair of indices into [arg sequence2] describes the range of items
+which has been added to it. The first index refers to the first item
+in the range, and the second index refers to the last item in the
+range.
+
+[def [const deleted]]
+
+Describes a deletion. I.e. items which are in [arg sequence1] are
+missing from [arg sequence2].
+
+The pair of indices into [arg sequence1] describes the range of items
+which has been deleted. The first index refers to the first item in
+the range, and the second index refers to the last item in the range.
+
+The pair of indices into [arg sequence2] describes where the deleted
+range had been expected to be in [arg sequence2]. The first index
+refers to the item just before the deleted range, and the second index
+refers to the item just after the deleted range.
+
+[def [const changed]]
+
+Describes a general change. I.e a range of items in [arg sequence1]
+has been replaced by a different range of items in [arg sequence2].
+
+The pair of indices into [arg sequence1] describes the range of items
+which has been replaced. The first index refers to the first item in
+the range, and the second index refers to the last item in the range.
+
+The pair of indices into [arg sequence2] describes the range of items
+replacing the original range. Again the first index refers to the
+first item in the range, and the second index refers to the last item
+in the range.
+
+[list_end]
+
+[para]
+[example {
+    sequence 1 = {a b r a c a d a b r a}
+    lcs 1      =   {1 2   4 5     8 9 10}
+    lcs 2      =   {0 1   3 4     5 6 7}
+    sequence 2 =   {b r i c a     b r a c}
+
+    Inversion  = {{deleted  {0  0} {-1 0}}
+                  {changed  {3  3}  {2 2}}
+                  {deleted  {6  7}  {4 5}}
+                  {added   {10 11}  {8 8}}}
+}]
+
+[emph Notes:]
+[para]
+[list_begin itemized]
+[item]
+An index of [const -1] in a [term deleted] chunk refers to just before
+the first element of the second sequence.
+
+[item]
+Also an index equal to the length of the first sequence in an
+[term added] chunk refers to just behind the end of the sequence.
+
+[list_end]
+
+[call [cmd ::struct::list] [method lcsInvert2] [arg lcs1] [arg lcs2] [arg len1] [arg len2]]
+
+Similar to [method lcsInvert]. Instead of directly taking the result
+of a call to [method longestCommonSubsequence] this subcommand expects
+the indices for the two sequences in two separate lists.
+
+[call [cmd ::struct::list] [method lcsInvertMerge] [arg lcsData] [arg len1] [arg len2]]
+
+Similar to [method lcsInvert]. It returns essentially the same
+structure as that command, except that it may contain chunks of type
+[const unchanged] too.
+
+[para]
+
+These new chunks describe the parts which are unchanged between the
+two sequences. This means that the result of this command describes
+both the changed and unchanged parts of the two sequences in one
+structure.
+
+[para]
+[example {
+    sequence 1 = {a b r a c a d a b r a}
+    lcs 1      =   {1 2   4 5     8 9 10}
+    lcs 2      =   {0 1   3 4     5 6 7}
+    sequence 2 =   {b r i c a     b r a c}
+
+    Inversion/Merge  = {{deleted   {0  0} {-1 0}}
+                        {unchanged {1  2}  {0 1}}
+                        {changed   {3  3}  {2 2}}
+                        {unchanged {4  5}  {3 4}}
+                        {deleted   {6  7}  {4 5}}
+                        {unchanged {8 10}  {5 7}}
+                        {added    {10 11}  {8 8}}}
+}]
+
+[call [cmd ::struct::list] [method lcsInvertMerge2] [arg lcs1] [arg lcs2] [arg len1] [arg len2]]
+
+Similar to [method lcsInvertMerge]. Instead of directly taking the
+result of a call to [method longestCommonSubsequence] this subcommand
+expects the indices for the two sequences in two separate lists.
+
+[call [cmd ::struct::list] [method reverse] [arg sequence]]
+
+The subcommand takes a single [arg sequence] as argument and returns a new
+sequence containing the elements of the input sequence in reverse
+order.
+
+[call [cmd ::struct::list] [method shuffle] [arg list]]
+
+The subcommand takes a [arg list] and returns a copy of that list
+with the elements it contains in random order. Every possible
+ordering of elements is equally likely to be generated. The
+Fisher-Yates shuffling algorithm is used internally.
+
+[call [cmd ::struct::list] [method assign] [arg sequence] [arg varname] [opt [arg varname]]...]
+
+The subcommand assigns the first [var n] elements of the input
+
+[arg sequence] to the one or more variables whose names were listed
+after the sequence, where [var n] is the number of specified
+variables.
+
+[para]
+
+If there are more variables specified than there are elements in the
+[arg sequence] the empty string will be assigned to the superfluous
+variables.
+
+[para]
+
+If there are more elements in the [arg sequence] than variable names
+specified the subcommand returns a list containing the unassigned
+elements. Else an empty list is returned.
+
+[example {
+    tclsh> ::struct::list assign {a b c d e} foo bar
+    c d e
+    tclsh> set foo
+    a
+    tclsh> set bar
+    b
+}]
+
+[call [cmd ::struct::list] [method flatten] [opt [option -full]] [opt [option --]] [arg sequence]]
+
+The subcommand takes a single [arg sequence] and returns a new
+sequence where one level of nesting was removed from the input
+sequence. In other words, the sublists in the input sequence are
+replaced by their elements.
+
+[para]
+
+The subcommand will remove any nesting it finds if the option
+[option -full] is specified.
+
+[example {
+    tclsh> ::struct::list flatten {1 2 3 {4 5} {6 7} {{8 9}} 10}
+    1 2 3 4 5 6 7 {8 9} 10
+    tclsh> ::struct::list flatten -full {1 2 3 {4 5} {6 7} {{8 9}} 10}
+    1 2 3 4 5 6 7 8 9 10
+}]
+
+[call [cmd ::struct::list] [method map] [arg sequence] [arg cmdprefix]]
+
+The subcommand takes a [arg sequence] to operate on and a command
+prefix ([arg cmdprefix]) specifying an operation, applies the command
+prefix to each element of the sequence and returns a sequence
+consisting of the results of that application.
+
+[para]
+
+The command prefix will be evaluated with a single word appended to
+it. The evaluation takes place in the context of the caller of the
+subcommand.
+
+[para]
+
+[example {
+    tclsh> # squaring all elements in a list
+
+    tclsh> proc sqr {x} {expr {$x*$x}}
+    tclsh> ::struct::list map {1 2 3 4 5} sqr
+    1 4 9 16 25
+
+    tclsh> # Retrieving the second column from a matrix
+    tclsh> # given as list of lists.
+
+    tclsh> proc projection {n list} {::lindex $list $n}
+    tclsh> ::struct::list map {{a b c} {1 2 3} {d f g}} {projection 1}
+    b 2 f
+}]
+
+[call [cmd ::struct::list] [method mapfor] [arg var] [arg sequence] [arg script]]
+
+The subcommand takes a [arg sequence] to operate on and a tcl [arg script],
+applies the script to each element of the sequence and returns a sequence
+consisting of the results of that application.
+
+[para]
+
+The script will be evaluated as is, and has access to the current list element
+through the specified iteration variable [arg var]. The evaluation takes place
+in the context of the caller of the subcommand.
+
+[para]
+
+[example {
+    tclsh> # squaring all elements in a list
+
+    tclsh> ::struct::list mapfor x {1 2 3 4 5} {
+	expr {$x * $x}
+    }
+    1 4 9 16 25
+
+    tclsh> # Retrieving the second column from a matrix
+    tclsh> # given as list of lists.
+
+    tclsh> ::struct::list mapfor x {{a b c} {1 2 3} {d f g}} {
+	lindex $x 1
+    }
+    b 2 f
+}]
+
+[call [cmd ::struct::list] [method filter] [arg sequence] [arg cmdprefix]]
+
+The subcommand takes a [arg sequence] to operate on and a command
+prefix ([arg cmdprefix]) specifying an operation, applies the command
+prefix to each element of the sequence and returns a sequence
+consisting of all elements of the [arg sequence] for which the command
+prefix returned [const true].
+
+In other words, this command filters out all elements of the input
+[arg sequence] which fail the test the [arg cmdprefix] represents, and
+returns the remaining elements.
+
+[para]
+
+The command prefix will be evaluated with a single word appended to
+it. The evaluation takes place in the context of the caller of the
+subcommand.
+
+[para]
+
+[example {
+    tclsh> # removing all odd numbers from the input
+
+    tclsh> proc even {x} {expr {($x % 2) == 0}}
+    tclsh> ::struct::list filter {1 2 3 4 5} even
+    2 4
+}]
+
+[para]
+
+[emph Note:] The [method filter] is a specialized application of
+[method fold] where the result is extended with the current item or
+not, depending o nthe result of the test.
+
+[call [cmd ::struct::list] [method filterfor] [arg var] [arg sequence] [arg expr]]
+
+The subcommand takes a [arg sequence] to operate on and a tcl expression
+([arg expr]) specifying a condition, applies the conditionto each element
+of the sequence and returns a sequence consisting of all elements of the
+[arg sequence] for which the expression returned [const true].
+
+In other words, this command filters out all elements of the input
+[arg sequence] which fail the test the condition [arg expr] represents, and
+returns the remaining elements.
+
+[para]
+
+The expression will be evaluated as is, and has access to the current list
+element through the specified iteration variable [arg var]. The evaluation
+takes place in the context of the caller of the subcommand.
+
+[para]
+
+[example {
+    tclsh> # removing all odd numbers from the input
+
+    tclsh> ::struct::list filterfor x {1 2 3 4 5} {($x % 2) == 0}
+    2 4
+}]
+
+[call [cmd ::struct::list] [method split] [arg sequence] [arg cmdprefix] [opt "[arg passVar] [arg failVar]"]]
+
+This is a variant of method [method filter], see above. Instead of
+returning just the elements passing the test we get lists of both
+passing and failing elements.
+
+[para]
+
+If no variable names are specified then the result of the command will
+be a list containing the list of passing elements, and the list of
+failing elements, in this order. Otherwise the lists of passing and
+failing elements are stored into the two specified variables, and the
+result will be a list containing two numbers, the number of elements
+passing the test, and the number of elements failing, in this order.
+
+[para]
+
+The interface to the test is the same as used by [method filter].
+
+[call [cmd ::struct::list] [method fold] [arg sequence] [arg initialvalue] [arg cmdprefix]]
+
+The subcommand takes a [arg sequence] to operate on, an arbitrary
+string [arg {initial value}] and a command prefix ([arg cmdprefix])
+specifying an operation.
+
+[para]
+
+The command prefix will be evaluated with two words appended to
+it. The second of these words will always be an element of the
+sequence. The evaluation takes place in the context of the caller of
+the subcommand.
+
+[para]
+
+It then reduces the sequence into a single value through repeated
+application of the command prefix and returns that value. This
+reduction is done by
+
+[list_begin definitions]
+[def [const 1]]
+
+Application of the command to the initial value and the first element
+of the list.
+
+[def [const 2]]
+
+Application of the command to the result of the last call and the
+second element of the list.
+
+[def [const ...]]
+[def [const i]]
+
+Application of the command to the result of the last call and the
+[var i]'th element of the list.
+
+[def [const ...]]
+[def [const end]]
+
+Application of the command to the result of the last call and the last
+element of the list. The result of this call is returned as the result
+of the subcommand.
+
+[list_end]
+[para]
+[example {
+    tclsh> # summing the elements in a list.
+    tclsh> proc + {a b} {expr {$a + $b}}
+    tclsh> ::struct::list fold {1 2 3 4 5} 0 +
+    15
+}]
+
+[call [cmd ::struct::list] [method shift] [arg listvar]]
+
+The subcommand takes the list contained in the variable named by
+
+[arg listvar] and shifts it down one element.
+
+After the call [arg listvar] will contain a list containing the second
+to last elements of the input list. The first element of the ist is
+returned as the result of the command. Shifting the empty list does
+nothing.
+
+[call [cmd ::struct::list] [method iota] [arg n]]
+
+The subcommand returns a list containing the integer numbers
+in the range [const {[0,n)}]. The element at index [var i]
+of the list contain the number [const i].
+
+[para]
+
+For "[arg n] == [const 0]" an empty list will be returned.
+
+[call [cmd ::struct::list] [method equal] [arg a] [arg b]]
+
+The subcommand compares the two lists [arg a] and [arg b] for
+equality. In other words, they have to be of the same length and have
+to contain the same elements in the same order. If an element is a
+list the same definition of equality applies recursively.
+
+[para]
+
+A boolean value will be returned as the result of the command.
+This value will be [const true] if the two lists are equal, and
+[const false] else.
+
+[call [cmd ::struct::list] [method repeat] [arg size] [arg element1] [opt "[arg element2] [arg element3]..."]]
+
+The subcommand creates a list of length
+
+"[arg size] * [emph {number of elements}]" by repeating [arg size]
+times the sequence of elements
+[arg element1] [arg element2] [arg ...].
+
+[arg size] must be a positive integer, [arg element][var n] can be any
+Tcl value.
+
+Note that [cmd {repeat 1 arg ...}]  is identical to
+[cmd {list arg ...}], though the [arg arg] is required
+with [method repeat].
+
+[para]
+[emph Examples:]
+[para]
+[example {
+    tclsh> ::struct::list repeat 3 a
+    a a a
+    tclsh> ::struct::list repeat 3 [::struct::list repeat 3 0]
+    {0 0 0} {0 0 0} {0 0 0}
+    tclsh> ::struct::list repeat 3 a b c
+    a b c a b c a b c
+    tclsh> ::struct::list repeat 3 [::struct::list repeat 2 a] b c
+    {a a} b c {a a} b c {a a} b c
+}]
+
+[call [cmd ::struct::list] [method repeatn] [arg value] [arg size]...]
+
+The subcommand creates a (nested) list containing the [arg value] in
+all positions. The exact size and degree of nesting is determined by
+the [arg size] arguments, all of which have to be integer numbers
+greater than or equal to zero.
+
+[para]
+
+A single argument [arg size] which is a list of more than one element
+will be treated as if more than argument [arg size] was specified.
+
+[para]
+
+If only one argument [arg size] is present the returned list will not
+be nested, of length [arg size] and contain [arg value] in all
+positions.
+
+If more than one [arg size] argument is present the returned
+list will be nested, and of the length specified by the last
+[arg size] argument given to it. The elements of that list
+are defined as the result of [cmd Repeat] for the same arguments,
+but with the last [arg size] value removed.
+
+[para]
+
+An empty list will be returned if no [arg size] arguments are present.
+
+[para]
+[example {
+    tclsh> ::struct::list repeatn  0 3 4
+    {0 0 0} {0 0 0} {0 0 0} {0 0 0}
+    tclsh> ::struct::list repeatn  0 {3 4}
+    {0 0 0} {0 0 0} {0 0 0} {0 0 0}
+    tclsh> ::struct::list repeatn  0 {3 4 5}
+    {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}}
+}]
+
+[call [cmd ::struct::list] [method dbJoin] [opt [option -inner]|[option -left]|[option -right]|[option -full]] [opt "[option -keys] [arg varname]"] \{[arg keycol] [arg table]\}...]
+
+The method performs a table join according to relational algebra. The
+execution of any of the possible outer join operation is triggered by
+the presence of either option [option -left], [option -right], or
+[option -full]. If none of these options is present a regular inner
+join will be performed. This can also be triggered by specifying
+[option -inner]. The various possible join operations are explained in
+detail in section [sectref {TABLE JOIN}].
+
+[para]
+
+If the [option -keys] is present its argument is the name of a
+variable to store the full list of found keys into. Depending on the
+exact nature of the input table and the join mode the output table may
+not contain all the keys by default. In such a case the caller can
+declare a variable for this information and then insert it into the
+output table on its own, as she will have more information about the
+placement than this command.
+
+[para]
+
+What is left to explain is the format of the arguments.
+
+[para]
+
+The [arg keycol] arguments are the indices of the columns in the
+tables which contain the key values to use for the joining. Each
+argument applies to the table following immediately after it. The
+columns are counted from [const 0], which references the first
+column. The table associated with the column index has to have at
+least [arg keycol]+1 columns. An error will be thrown if there are
+less.
+
+[para]
+
+The [arg table] arguments represent a table or matrix of rows and
+columns of values. We use the same representation as generated and
+consumed by the methods [method {get rect}] and [method {set rect}] of
+[cmd matrix] objects. In other words, each argument is a list,
+representing the whole matrix.  Its elements are lists too, each
+representing a single rows of the matrix. The elements of the
+row-lists are the column values.
+
+[para]
+
+The table resulting from the join operation is returned as the result
+of the command. We use the same representation as described above for
+the input [arg table]s.
+
+[call [cmd ::struct::list] [method dbJoinKeyed] [opt [option -inner]|[option -left]|[option -right]|[option -full]] [opt "[option -keys] [arg varname]"] [arg table]...]
+
+The operations performed by this method are the same as described
+above for [method dbJoin]. The only difference is in the specification
+of the keys to use. Instead of using column indices separate from the
+table here the keys are provided within the table itself. The row
+elements in each [arg table] are not the lists of column values, but a
+two-element list where the second element is the regular list of
+column values and the first element is the key to use.
+
+[call [cmd ::struct::list] [method swap] [arg listvar] [arg i] [arg j]]
+
+The subcommand exchanges the elements at the indices [arg i] and
+[arg j] in the list stored in the variable named by [arg listvar]. The
+list is modified in place, and also returned as the result of the
+subcommand.
+
+[call [cmd ::struct::list] [method firstperm] [arg list]]
+
+This subcommand returns the lexicographically first permutation of the
+input [arg list].
+
+[call [cmd ::struct::list] [method nextperm] [arg perm]]
+
+This subcommand accepts a permutation of a set of elements (provided
+by [arg perm]) and returns the next permutatation in lexicographic
+sequence.
+
+[para]
+The algorithm used here is by Donal E. Knuth, see section
+[sectref REFERENCES] for details.
+
+[call [cmd ::struct::list] [method permutations] [arg list]]
+
+This subcommand returns a list containing all permutations of the
+input [arg list] in lexicographic order.
+
+[call [cmd ::struct::list] [method foreachperm] [arg var] [arg list] [arg body]]
+
+This subcommand executes the script [arg body] once for each
+permutation of the specified [arg list]. The permutations are visited
+in lexicographic order, and the variable [arg var] is set to the
+permutation for which [arg body] is currently executed. The result of
+the loop command is the empty string.
+
+[list_end]
+
+[section {LONGEST COMMON SUBSEQUENCE AND FILE COMPARISON}]
+
+[para]
+
+The [method longestCommonSubsequence] subcommand forms the core of a
+flexible system for doing differential comparisons of files, similar
+to the capability offered by the Unix command [syscmd diff].
+
+While this procedure is quite rapid for many tasks of file comparison,
+its performance degrades severely if [arg sequence2] contains many
+equal elements (as, for instance, when using this procedure to compare
+two files, a quarter of whose lines are blank.  This drawback is
+intrinsic to the algorithm used (see the Reference for details).
+
+[para]
+
+One approach to dealing with the performance problem that is sometimes
+effective in practice is arbitrarily to exclude elements that appear
+more than a certain number of times.
+
+This number is provided as the [arg maxOccurs] parameter.  If frequent
+lines are excluded in this manner, they will not appear in the common
+subsequence that is computed; the result will be the longest common
+subsequence of infrequent elements.
+
+The procedure [method longestCommonSubsequence2] implements this
+heuristic.
+
+It functions as a wrapper around [method longestCommonSubsequence]; it
+computes the longest common subsequence of infrequent elements, and
+then subdivides the subsequences that lie between the matches to
+approximate the true longest common subsequence.
+
+[section {TABLE JOIN}]
+
+This is an operation from relational algebra for relational databases.
+
+[para]
+
+The easiest way to understand the regular inner join is that it
+creates the cartesian product of all the tables involved first and
+then keeps only all those rows in the resulting table for which the
+values in the specified key columns are equal to each other.
+
+[para]
+
+Implementing this description naively, i.e. as described above will
+generate a [emph huge] intermediate result. To avoid this the
+cartesian product and the filtering of row are done at the same
+time. What is required is a fast way to determine if a key is present
+in a table. In a true database this is done through indices. Here we
+use arrays internally.
+
+[para]
+
+An [term outer] join is an extension of the inner join for two
+tables. There are three variants of outerjoins, called [term left],
+[term right], and [term full] outer joins. Their result always
+contains all rows from an inner join and then some additional rows.
+
+[list_begin enumerated]
+[enum]
+
+For the left outer join the additional rows are all rows from the left
+table for which there is no key in the right table. They are joined to
+an empty row of the right table to fit them into the result.
+
+[enum]
+
+For the right outer join the additional rows are all rows from the right
+table for which there is no key in the left table. They are joined to
+an empty row of the left table to fit them into the result.
+
+[enum]
+
+The full outer join combines both left and right outer join. In other
+words, the additional rows are as defined for left outer join, and
+right outer join, combined.
+
+[list_end]
+
+[para]
+
+We extend all the joins from two to [var n] tables ([var n] > 2) by
+executing
+
+[example {
+    (...((table1 join table2) join table3) ...) join tableN
+}]
+
+[para]
+
+Examples for all the joins:
+
+[example {
+    Inner Join
+
+    {0 foo}              {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} inner join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}             {3 driver}
+
+    Left Outer Join
+
+    {0 foo}                   {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} left outer join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}                  {3 driver}   {2 blue  {} {}}
+
+    Right Outer Join
+
+    {0 foo}                    {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} right outer join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}                   {3 driver}   {{} {}   3 driver}
+
+    Full Outer Join
+
+    {0 foo}                   {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} full outer join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}                  {3 driver}   {2 blue  {} {}}
+                                           {{} {}   3 driver}
+}]
+
+[section REFERENCES]
+
+[list_begin enumerated]
+
+[enum]
+J. W. Hunt and M. D. McIlroy, "An algorithm for differential
+file comparison," Comp. Sci. Tech. Rep. #41, Bell Telephone
+Laboratories (1976). Available on the Web at the second
+author's personal site: [uri http://www.cs.dartmouth.edu/~doug/]
+
+[enum]
+Donald E. Knuth, "Fascicle 2b of 'The Art of Computer Programming'
+volume 4". Available on the Web at the author's personal site:
+[uri http://www-cs-faculty.stanford.edu/~knuth/fasc2b.ps.gz].
+
+[list_end]
+
+[vset CATEGORY {struct :: list}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

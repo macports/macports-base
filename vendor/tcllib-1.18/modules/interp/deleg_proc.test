@@ -1,0 +1,153 @@
+# -*- tcl -*-
+# interp.test:  tests for the interp alias and creation utilities
+#
+# Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+testing {
+    useLocal deleg_proc.tcl interp::delegate::proc
+}
+
+# -------------------------------------------------------------------------
+
+test dproc-1.0 {wrong#args} {
+    catch {interp::delegate::proc} msg
+    set msg
+} {wrong # args}
+
+test dproc-1.1 {wrong#args} {
+    catch {interp::delegate::proc a} msg
+    set msg
+} {wrong # args}
+
+test dproc-1.2 {wrong#args} {
+    catch {interp::delegate::proc a b} msg
+    set msg
+} {wrong # args}
+
+test dproc-1.3 {wrong#args} {
+    catch {interp::delegate::proc a b c} msg
+    set msg
+} {wrong # args}
+
+test dproc-1.4 {wrong#args} {
+    catch {interp::delegate::proc a b c d e} msg
+    set msg
+} {wrong # args}
+
+# -------------------------------------------------------------------------
+
+test dproc-2.0 {bad switch} {
+    catch {interp::delegate::proc -bogus} msg
+    set msg
+} {unknown option "-bogus", expected -async}
+
+# -------------------------------------------------------------------------
+
+test dproc-3.0 {delegation result} {
+    res!
+    res+ \
+	    [info commands request] \
+	    [interp::delegate::proc request {} FOO ID] \
+	    [info commands request]
+    rename request {}
+    res?
+} {{{} request request}}
+
+# -------------------------------------------------------------------------
+
+test dproc-4.0 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc {re quest} {} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} {} {COMM send ID {re quest}}}}
+
+test dproc-4.1 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc {re quest} {a b} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} {a b} {COMM send ID [list {re quest} $a $b]}}}
+
+test dproc-4.2 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc {re quest} {a b args} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} {a b args} {COMM send ID [linsert $args 0 {re quest} $a $b]}}}
+
+test dproc-4.3 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc {re quest} {args} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} args {COMM send ID [linsert $args 0 {re quest}]}}}
+
+# -------------------------------------------------------------------------
+
+test dproc-5.0 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc -async {re quest} {} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} {} {COMM send -async ID {re quest}}}}
+
+test dproc-5.1 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc -async {re quest} {a b} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} {a b} {COMM send -async ID [list {re quest} $a $b]}}}
+
+test dproc-5.2 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc -async {re quest} {a b args} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} {a b args} {COMM send -async ID [linsert $args 0 {re quest} $a $b]}}}
+
+test dproc-5.3 {signature} {
+    res!
+    res+ \
+	    [interp::delegate::proc -async {re quest} {args} COMM ID] \
+	    [info args {re quest}] \
+	    [info body {re quest}]
+    rename {re quest} {}
+    res?
+} {{{re quest} args {COMM send -async ID [linsert $args 0 {re quest}]}}}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

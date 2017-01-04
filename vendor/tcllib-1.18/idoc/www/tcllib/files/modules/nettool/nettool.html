@@ -1,0 +1,259 @@
+
+<html><head>
+<title>nettool - nettool</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'nettool.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2015 Sean Woods &lt;yoda@etoyoc.com&gt;
+   -->
+<! -- nettool.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">nettool(n) 0.5.1 tcllib &quot;nettool&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>nettool - Tools for networked applications</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">nettool <span class="opt">?0.5.1?</span></b></li>
+<li>package require <b class="pkgname">twapi 3.1</b></li>
+<li>package require <b class="pkgname">ip 0.1</b></li>
+<li>package require <b class="pkgname">platform 0.1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::cat</b> <i class="arg">filename</i></a></li>
+<li><a href="#2"><b class="cmd">::nettool::allocate_port</b> <i class="arg">startingport</i></a></li>
+<li><a href="#3"><b class="cmd">::nettool::arp_table</b></a></li>
+<li><a href="#4"><b class="cmd">::nettool::broadcast_list</b></a></li>
+<li><a href="#5"><b class="cmd">::nettool::claim_port</b> <i class="arg">port</i> <span class="opt">?<i class="arg">protocol</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::nettool::cpuinfo</b> <i class="arg">args</i></a></li>
+<li><a href="#7"><b class="cmd">::nettool::find_port</b> <i class="arg">startingport</i></a></li>
+<li><a href="#8"><b class="cmd">::nettool::hwid_list</b></a></li>
+<li><a href="#9"><b class="cmd">::nettool::ip_list</b></a></li>
+<li><a href="#10"><b class="cmd">::nettool::mac_list</b></a></li>
+<li><a href="#11"><b class="cmd">::nettool::network_list</b></a></li>
+<li><a href="#12"><b class="cmd">::nettool::port_busy</b> <i class="arg">port</i></a></li>
+<li><a href="#13"><b class="cmd">::nettool::release_port</b> <i class="arg">port</i> <span class="opt">?<i class="arg">protocol</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">::nettool::status</b></a></li>
+<li><a href="#15"><b class="cmd">::nettool::user_data_root</b> <i class="arg">appname</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">nettool</b> package consists of a Pure-tcl set of tools
+to perform common network functions that would normally require
+different packages or calls to exec, in a standard Tcl interface.
+At present nettool has reference implementations for the following operating
+systems: Windows, MacOSX, and Linux (debian).</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::cat</b> <i class="arg">filename</i></a></dt>
+<dd><p>Dump the contents of a file as a result.</p></dd>
+<dt><a name="2"><b class="cmd">::nettool::allocate_port</b> <i class="arg">startingport</i></a></dt>
+<dd><p>Attempt to allocate <i class="arg">startingport</i>, or, if busy, advance the port
+number sequentially until a free port is found, and claim that port.
+This command uses a built-in database of known ports to avoid returning a
+port which is in common use. (For example: http (80))</p></dd>
+<dt><a name="3"><b class="cmd">::nettool::arp_table</b></a></dt>
+<dd><p>Dump the contents of this computer's Address Resolution Protocol (ARP) table.
+The result will be a Tcl formatted list: <i class="arg">macid</i> <i class="arg">ipaddrlist</i> ...</p></dd>
+<dt><a name="4"><b class="cmd">::nettool::broadcast_list</b></a></dt>
+<dd><p>Returns a list of broadcast addresses (suitable for UDP multicast)
+that this computer is associated with.</p></dd>
+<dt><a name="5"><b class="cmd">::nettool::claim_port</b> <i class="arg">port</i> <span class="opt">?<i class="arg">protocol</i>?</span></a></dt>
+<dd><p>Mark <i class="arg">port</i> as busy, optionally as either <b class="const">tcp</b> (default) or <b class="const">udp</b>.</p></dd>
+<dt><a name="6"><b class="cmd">::nettool::cpuinfo</b> <i class="arg">args</i></a></dt>
+<dd><p>If no arguments are given, return a key/value list describing the
+CPU of the present machine. Included in the matrix is info on the number
+of cores/processors that are available for parallel tasking, installed physical
+RAM, and processor family.</p>
+<p>The exact contents are platform specific.</p>
+<p>For Linux, information is drawn from /proc/cpuinfo and /proc/meminfo.</p>
+<p>For MacOSX, information is drawn from sysctl</p>
+<p>For Windows, information is draw from TWAPI.</p>
+<p>If arguments are given, the result with be a key/value list limited to the
+fields requested.</p>
+<p>Canonical fields for all platforms:</p>
+<dl class="doctools_definitions">
+<dt>cpus</dt>
+<dd><p>Count of CPUs/cores/execution units</p></dd>
+<dt>speed</dt>
+<dd><p>Clock speed of processor(s) in Mhz</p></dd>
+<dt>memory</dt>
+<dd><p>Installed RAM (in MB)</p></dd>
+<dt>vendor</dt>
+<dd><p>Manufacturer</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::nettool::find_port</b> <i class="arg">startingport</i></a></dt>
+<dd><p>Return <i class="arg">startingport</i> if it is available, or the next free port after
+<i class="arg">startingport</i>. Note: Unlike <b class="cmd">::nettool::allocate_port</b>, this
+command does not claim the port.</p>
+<p>This command uses a built-in database of known ports to avoid returning a
+port which is in common use. (For example: http (80))</p></dd>
+<dt><a name="8"><b class="cmd">::nettool::hwid_list</b></a></dt>
+<dd><p>Return a list of hardware specific identifiers from this computer. The source
+and content will vary by platform.</p>
+<p>For MacOSX, the motherboard serial number and macids for all network devices is returned.</p>
+<p>For Windows, the volume serial number of C and macids for all network devices is returned.</p>
+<p>For Linux, macids for all network devices is returned.</p></dd>
+<dt><a name="9"><b class="cmd">::nettool::ip_list</b></a></dt>
+<dd><p>Return a list of IP addresses associated with this computer.</p></dd>
+<dt><a name="10"><b class="cmd">::nettool::mac_list</b></a></dt>
+<dd><p>Return a list of MACIDs for the network cards attached to this machine. The MACID of the
+primary network card is returned first.</p></dd>
+<dt><a name="11"><b class="cmd">::nettool::network_list</b></a></dt>
+<dd><p>Return a list of networks associated with this computer. Networks are formated with
+<b class="cmd">ip::nativeToPrefix</b>.</p></dd>
+<dt><a name="12"><b class="cmd">::nettool::port_busy</b> <i class="arg">port</i></a></dt>
+<dd><p>Return true if <i class="arg">port</i> is claimed, false otherwise.</p></dd>
+<dt><a name="13"><b class="cmd">::nettool::release_port</b> <i class="arg">port</i> <span class="opt">?<i class="arg">protocol</i>?</span></a></dt>
+<dd><p>Mark <i class="arg">port</i> as not busy, optionally as either <b class="const">tcp</b> (default) or <b class="const">udp</b>.</p></dd>
+<dt><a name="14"><b class="cmd">::nettool::status</b></a></dt>
+<dd><p>Return a key/value list describing the status of the computer. The output
+is designed to be comparable to the output of <b class="cmd">top</b> for all platforms.</p>
+<p>Common fields include:</p>
+<dl class="doctools_definitions">
+<dt>load</dt>
+<dd><p>Processes per processing unit</p></dd>
+<dt>memory_total</dt>
+<dd><p>Total physical RAM (MB)</p></dd>
+<dt>memory_free</dt>
+<dd><p>Total physical RAM unused (MB)</p></dd>
+</dl></dd>
+<dt><a name="15"><b class="cmd">::nettool::user_data_root</b> <i class="arg">appname</i></a></dt>
+<dd><p>Return a fully qualified path to a folder where <i class="arg">appname</i> should store it's data.
+The path is not created, only computed, by this command.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>odie</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key523">nettool</a>, <a href="../../../../index.html#key255">odie</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>System</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2015 Sean Woods &lt;yoda@etoyoc.com&gt;</p>
+</div>
+</div></body></html>

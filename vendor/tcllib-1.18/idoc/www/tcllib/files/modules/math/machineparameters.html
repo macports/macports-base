@@ -1,0 +1,296 @@
+
+<html><head>
+<title>tclrep/machineparameters - tclrep</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'machineparameters.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2008 Michael Baudin &lt;michael.baudin@sourceforge.net&gt;
+   -->
+<! -- tclrep/machineparameters.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tclrep/machineparameters(n) 1.0 tcllib &quot;tclrep&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tclrep/machineparameters - Compute double precision machine parameters.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">EXAMPLE</a></li>
+<li class="doctools_section"><a href="#section3">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section4">CLASS API</a></li>
+<li class="doctools_section"><a href="#section5">OBJECT API</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">snit</b></li>
+<li>package require <b class="pkgname">math::machineparameters 0.1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">machineparameters</b> create <i class="arg">objectname</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#2"><i class="arg">objectname</i> <b class="method">configure</b> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#3"><i class="arg">objectname</i> <b class="method">cget</b> <i class="arg">opt</i></a></li>
+<li><a href="#4"><i class="arg">objectname</i> <b class="method">destroy</b></a></li>
+<li><a href="#5"><i class="arg">objectname</i> <b class="method">compute</b></a></li>
+<li><a href="#6"><i class="arg">objectname</i> <b class="method">get</b> <i class="arg">key</i></a></li>
+<li><a href="#7"><i class="arg">objectname</i> <b class="method">tostring</b></a></li>
+<li><a href="#8"><i class="arg">objectname</i> <b class="method">print</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <em>math::machineparameters</em> package
+is the Tcl equivalent of the DLAMCH LAPACK function.
+In floating point systems, a floating point number is represented
+by</p>
+<pre class="doctools_example">
+x = +/- d1 d2 ... dt basis^e
+</pre>
+<p>where digits satisfy</p>
+<pre class="doctools_example">
+0 &lt;= di &lt;= basis - 1, i = 1, t
+</pre>
+<p>with the convention :</p>
+<ul class="doctools_itemized">
+<li><p>t is the size of the mantissa</p></li>
+<li><p>basis is the basis (the &quot;radix&quot;)</p></li>
+</ul>
+<p>The <b class="method">compute</b> method computes all machine parameters.
+   Then, the <b class="method">get</b> method can be used to get each
+   parameter.
+   The <b class="method">print</b> method prints a report on standard output.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">EXAMPLE</a></h2>
+<p>In the following example, one compute the parameters of a desktop
+under Linux with the following Tcl 8.4.19 properties :</p>
+<pre class="doctools_example">
+% parray tcl_platform
+tcl_platform(byteOrder) = littleEndian
+tcl_platform(machine)   = i686
+tcl_platform(os)        = Linux
+tcl_platform(osVersion) = 2.6.24-19-generic
+tcl_platform(platform)  = unix
+tcl_platform(tip,268)   = 1
+tcl_platform(tip,280)   = 1
+tcl_platform(user)      = &lt;username&gt;
+tcl_platform(wordSize)  = 4
+</pre>
+<p>The following example creates a machineparameters object,
+   computes the properties and displays it.</p>
+<pre class="doctools_example">
+     set pp [machineparameters create %AUTO%]
+     $pp compute
+     $pp print
+     $pp destroy
+</pre>
+<p>This prints out :</p>
+<pre class="doctools_example">
+     Machine parameters
+     Epsilon : 1.11022302463e-16
+     Beta : 2
+     Rounding : proper
+     Mantissa : 53
+     Maximum exponent : 1024
+     Minimum exponent : -1021
+     Overflow threshold : 8.98846567431e+307
+     Underflow threshold : 2.22507385851e-308
+</pre>
+<p>That compares well with the results produced by Lapack 3.1.1 :</p>
+<pre class="doctools_example">
+     Epsilon                      =   1.11022302462515654E-016
+     Safe minimum                 =   2.22507385850720138E-308
+     Base                         =    2.0000000000000000
+     Precision                    =   2.22044604925031308E-016
+     Number of digits in mantissa =    53.000000000000000
+     Rounding mode                =   1.00000000000000000
+     Minimum exponent             =   -1021.0000000000000
+     Underflow threshold          =   2.22507385850720138E-308
+     Largest exponent             =    1024.0000000000000
+     Overflow threshold           =   1.79769313486231571E+308
+     Reciprocal of safe minimum   =   4.49423283715578977E+307
+</pre>
+<p>The following example creates a machineparameters object,
+   computes the properties and gets the epsilon for
+   the machine.</p>
+<pre class="doctools_example">
+     set pp [machineparameters create %AUTO%]
+     $pp compute
+     set eps [$pp get -epsilon]
+     $pp destroy
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">REFERENCES</a></h2>
+<ul class="doctools_itemized">
+<li><p>&quot;Algorithms to Reveal Properties of Floating-Point Arithmetic&quot;, Michael A. Malcolm, Stanford University, Communications of the ACM, Volume 15 ,  Issue 11  (November 1972), Pages: 949 - 951</p></li>
+<li><p>&quot;More on Algorithms that Reveal Properties of Floating, Point Arithmetic Units&quot;, W. Morven Gentleman, University of Waterloo, Scott B. Marovich, Purdue University, Communications of the ACM, Volume 17 ,  Issue 5  (May 1974), Pages: 276 - 277</p></li>
+</ul>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">CLASS API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">machineparameters</b> create <i class="arg">objectname</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>The command creates a new machineparameters object and returns the fully
+qualified name of the object command as its result.</p>
+<dl class="doctools_options">
+<dt><b class="option">-verbose</b> <i class="arg">verbose</i></dt>
+<dd><p>Set this option to 1 to enable verbose logging.
+This option is mainly for debug purposes.
+The default value of <i class="arg">verbose</i> is 0.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">OBJECT API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="2"><i class="arg">objectname</i> <b class="method">configure</b> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>The command configure the options of the object <i class="arg">objectname</i>. The options
+are the same as the static method <b class="method">create</b>.</p></dd>
+<dt><a name="3"><i class="arg">objectname</i> <b class="method">cget</b> <i class="arg">opt</i></a></dt>
+<dd><p>Returns the value of the option which name is <i class="arg">opt</i>. The options
+are the same as the method <b class="method">create</b> and <b class="method">configure</b>.</p></dd>
+<dt><a name="4"><i class="arg">objectname</i> <b class="method">destroy</b></a></dt>
+<dd><p>Destroys the object <i class="arg">objectname</i>.</p></dd>
+<dt><a name="5"><i class="arg">objectname</i> <b class="method">compute</b></a></dt>
+<dd><p>Computes the machine parameters.</p></dd>
+<dt><a name="6"><i class="arg">objectname</i> <b class="method">get</b> <i class="arg">key</i></a></dt>
+<dd><p>Returns the value corresponding with given key.
+The following is the list of available keys.</p>
+<ul class="doctools_itemized">
+<li><p>-epsilon : smallest value so that 1+epsilon&gt;1 is false</p></li>
+<li><p>-rounding : The rounding mode used on the machine.
+The rounding occurs when more than t digits would be required to
+represent the number.
+Two modes can be determined with the current system :
+&quot;chop&quot; means than only t digits are kept, no matter the value of the number
+&quot;proper&quot; means that another rounding mode is used, be it &quot;round to nearest&quot;,
+&quot;round up&quot;, &quot;round down&quot;.</p></li>
+<li><p>-basis : the basis of the floating-point representation.
+The basis is usually 2, i.e. binary representation (for example IEEE 754 machines),
+but some machines (like HP calculators for example) uses 10, or 16, etc...</p></li>
+<li><p>-mantissa : the number of bits in the mantissa</p></li>
+<li><p>-exponentmax :  the largest positive exponent before overflow occurs</p></li>
+<li><p>-exponentmin : the largest negative exponent before (gradual) underflow occurs</p></li>
+<li><p>-vmax : largest positive value before overflow occurs</p></li>
+<li><p>-vmin : largest negative value before (gradual) underflow occurs</p></li>
+</ul></dd>
+<dt><a name="7"><i class="arg">objectname</i> <b class="method">tostring</b></a></dt>
+<dd><p>Return a report for machine parameters.</p></dd>
+<dt><a name="8"><i class="arg">objectname</i> <b class="method">print</b></a></dt>
+<dd><p>Print machine parameters on standard output.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 Michael Baudin &lt;michael.baudin@sourceforge.net&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,13 @@
+.TH "TABLE OF CONTENTS"
+.SH "TABLE OF CONTENTS"
+.RS
+.TP
+\fBdoctools::toc::structure\fR
+doctoc serialization utilities
+.TP
+\fBdoctools::toc::parse\fR
+Parsing text in doctoc format
+.TP
+\fBdoctools::toc::introduction\fR
+DocTools - Tables of Contents
+.RE

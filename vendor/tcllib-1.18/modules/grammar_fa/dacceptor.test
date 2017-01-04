@@ -1,0 +1,45 @@
+# -*- tcl -*-
+# daccept.test:  tests for the grammar::fa::dacceptor - DFA acceptor class
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: dacceptor.test,v 1.10 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    use snit/snit.tcl   snit ; # 1.1 always, even when Tcl 8.5 runs the testsuite.
+    use struct/list.tcl struct::list
+
+    useLocal     faop.tcl grammar::fa::op
+    useLocalKeep fa.tcl   grammar::fa
+
+    useLocalFile tests/Xsupport
+}
+testing {
+    useLocal dacceptor.tcl grammar::fa::dacceptor
+}
+
+# -------------------------------------------------------------------------
+
+set class ::grammar::fa::dacceptor
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::set setimpl {
+    TestFiles tests/da_*.test
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit struct::set
+testsuiteCleanup

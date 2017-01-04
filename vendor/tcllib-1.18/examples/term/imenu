@@ -1,0 +1,34 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+
+package require term::ansi::send
+package require term::ansi::ctrl::unix
+package require term::interact::menu
+
+term::ansi::send::import vt
+vt::init
+vt::clear
+
+term::interact::menu m {
+    {[ 0] uri}   a
+    {[ 1] aes}   b
+    {[ 2] irc}   c
+    {[ 3] log}   d
+    {[ 4] rc4}   e
+    {[ 5] md5}   f
+    {[ 6] ntp}   g
+    {[ 7] rcs}   h
+    {[ 8] tie}   i
+    {[ 9] tar}   j
+    {[10] taser} k
+} -line 2 -column 2 -height 5 \
+	-hilitleft 1 -hilitright 2 -framed 1
+
+term::ansi::ctrl::unix::raw
+set res [m interact]
+term::ansi::ctrl::unix::cooked
+
+puts $res
+exit

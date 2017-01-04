@@ -1,0 +1,74 @@
+# -*- tcl -*- uuencode.pcx
+# Syntax of the commands provided by package uuencode.
+#
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register uuencode
+pcx::tcldep   1.1.4 needs tcl 8.2
+
+namespace eval ::uuencode {}
+
+# Using the indirections below looks to be quite pointless, given that
+# they simply substitute the commands for others. I am doing this for
+# two reasons.
+
+# First, the rules coming after become self-commenting, i.e. a
+# maintainer can immediately see what an argument is supposed to be,
+# instead of having to search elsewhere (like the documentation and
+# implementation). In this manner our definitions here are a type of
+# semantic markup.
+
+# The second reason is that while we have no special checks now we
+# cannot be sure if such will (have to) be added in the future. With
+# all checking routed through our definitions we now already have the
+# basic infrastructure (i.e. hooks) in place in which we can easily
+# add any new checks by simply redefining the relevant command, and
+# all the rules update on their own. Mostly. This should cover 90% of
+# the cases. Sometimes new checks will require to create deeper
+# distinctions between different calls of the same thing. For such we
+# may have to update the rules as well, to provide the necessary
+# information to the checker.
+
+interp alias {} uuencode::checkMode        {} checkWord ; #
+interp alias {} uuencode::checkDstFilename {} checkWord ; #
+interp alias {} uuencode::checkData        {} checkWord ; #
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.1.4 std ::uuencode::uudecode \
+    {checkConstrained {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    {-filename {checkSetConstraint hasfilename checkFileName}}
+	    --
+	} {checkConstraint {
+	    {hasfilename  {checkSimpleArgs 0 0 {}}}
+	    {!hasfilename {checkSimpleArgs 1 1 {
+		uuencode::checkData
+	    }}}
+	} {}}}
+    }}}
+# TODO: Limit -mode to a octal numbers (file permissions)
+pcx::check 1.1.4 std ::uuencode::uuencode \
+    {checkConstrained {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    {-filename {checkSetConstraint hasfilename checkFileName}}
+	    {-mode     uuencode::checkMode}
+	    {-name     uuencode::checkDstFilename}
+	    --
+	} {checkConstraint {
+	    {hasfilename  {checkSimpleArgs 0 0 {}}}
+	    {!hasfilename {checkSimpleArgs 1 1 {
+		uuencode::checkData
+	    }}}
+	} {}}}
+    }}}
+
+# Initialization via pcx::init.
+# Use a ::uuencode::init procedure for non-standard initialization.
+pcx::complete

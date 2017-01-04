@@ -1,0 +1,458 @@
+# symdiff.test --
+#
+#    Test cases for the 'symdiff' package
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2005 by Kevin B. Kenny
+# All rights reserved.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: symdiff.test,v 1.2 2011/01/13 02:49:53 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+support {
+    use     grammar_aycock/aycock-runtime.tcl grammar::aycock::runtime grammar::aycock
+    useKeep grammar_aycock/aycock-debug.tcl   grammar::aycock::debug   grammar::aycock
+    useKeep grammar_aycock/aycock-build.tcl   grammar::aycock          grammar::aycock
+}
+testing {
+    useLocal symdiff.tcl math::calculus::symdiff
+}
+
+# -------------------------------------------------------------------------
+
+namespace eval ::math::calculus::symdiff::test {
+
+namespace import ::tcltest::test
+namespace import ::tcltest::cleanupTests
+namespace import ::math::calculus::symdiff::*
+
+set prec $::tcl_precision
+if {![package vsatisfies [package provide Tcl] 8.5]} {
+    set ::tcl_precision 17
+} else {
+    set ::tcl_precision 0
+}
+
+test symdiff-1.1 {derivative of a constant} {
+    symdiff {1.0} a
+} 0.0
+
+test symdiff-2.1 {derivative of a variable} {
+    symdiff {$a} a
+} 1.0
+
+test symdiff-2.2 {derivative of a variable} {
+    symdiff {$b} a
+} 0.0
+
+test symdiff-3.1 {derivative of a sum, easy cases} {
+    symdiff {1.0 + 1.0} a
+} 0.0
+
+test symdiff-3.2 {derivative of a sum, easy cases} {
+    symdiff {1.0 + $a} a
+} 1.0
+
+test symdiff-3.3 {derivative of a sum, easy cases} {
+    symdiff {$a + 1.0} a
+} 1.0
+
+test symdiff-3.4 {derivative of a sum, easy cases} {
+    symdiff {$a + $a} a
+} 2.0
+
+test symdiff-3.5 {derivative of a sum, easy cases} {
+    symdiff {$a + $b} a
+} 1.0
+
+test symdiff-3.6 {derivative of a sum, easy cases} {
+    symdiff {$a + $a + $a} a
+} 3.0
+
+test symdiff-4.1 {derivative of a difference, easy cases} {
+    -body {
+	symdiff {1.0 - 1.0} a
+    } 
+    -match regexp
+    -result {[-+]?0.0}
+}
+
+test symdiff-4.2 {derivative of a difference, easy cases} {
+    symdiff {1.0 - $a} a
+} -1.0
+
+test symdiff-4.3 {derivative of a difference, easy cases} {
+    symdiff {$a - 1.0} a
+} 1.0
+
+test symdiff-4.4 {derivative of a difference, easy cases} {
+    symdiff {$a - $a} a
+} 0.0
+
+test symdiff-4.5 {derivative of a difference, easy cases} {
+    symdiff {$a + $b} a
+} 1.0
+
+test symdiff-4.6 {derivative of a difference, easy cases} {
+    symdiff {$a + $a - $a} a
+} 1.0
+
+test symdiff-5.1 {derivative of a product, easy cases} {
+    symdiff {1.0 * 1.0} a
+} 0.0
+
+test symdiff-5.2 {derivative of a product, easy cases} {
+    symdiff {3.0 * $a} a
+} 3.0
+
+test symdiff-5.3 {derivative of a product, easy cases} {
+    symdiff {$a * 3.0} a
+} 3.0
+
+test symdiff-5.4 {derivative of a product, easy cases} {
+    symdiff {$a * $a} a
+} {($a + $a)}
+
+test symdiff-5.5 {derivative of a product, easy cases} {
+    symdiff {$a * $b} a
+} {$b}
+
+test symdiff-5.6 {derivative of a product, easy cases} {
+    symdiff {($a + $b) * ($a + $b)} a
+} {(($a + $b) + ($a + $b))}
+
+test symdiff-5.7 {derivative of a linear function} {
+    symdiff {$a*$x + $b} x
+} {$a}
+
+test symdiff-6.1 {derivative of a sum} {
+    symdiff {($a*$x+$b)+($c*$x+$d)} x
+} {($a + $c)}
+
+test symdiff-7.1 {derivative of a difference} {
+    symdiff {($a*$x+$b)-($c*$x+$d)} x
+} {($a - $c)}
+
+test symdiff-8.1 {derivative of a product} {
+    symdiff {($a*$x+$b)*($c*$x+$d)} x
+} {(($c * (($a * $x) + $b)) + ($a * (($c * $x) + $d)))}
+
+test symdiff-9.1 {derivative of a quotient} {
+    symdiff {$x/1.0} x
+} 1.0
+
+test symdiff-9.2 {derivative of a quotient} {
+    symdiff {$x/-1.0} x
+} -1.0
+
+test symdiff-9.3 {derivative of a quotient} {
+    symdiff {1.0/$x} x
+} {-(((1.0 / $x) / $x))}
+
+test symdiff-9.4 {derivative of a quotient} {
+    symdiff {($a*$x+$b)/($c*$x+$d)} x
+} {(($a - (($c * (($a * $x) + $b)) / (($c * $x) + $d))) / (($c * $x) + $d))}
+
+test symdiff-10.1 {derivative of an exponent} {
+    symdiff {pow($a*$x+$b,3.5)} x
+} {($a * (3.5 * pow((($a * $x) + $b), 2.5)))}
+
+test symdiff-10.2 {derivative of an exponent, slightly harder case} {
+    -body {
+	symdiff {pow(10.0,$x)} x
+    }
+    -match regexp
+    -result {\(pow\(10.0, \$x\) \* 2.30258509299404(?:59|6)\)}
+}
+
+test symdiff-10.3 {derivative of an exponent, awkward case} {
+    symdiff {pow($a*$x+$b,$c*$x+$d)} x
+} {(pow((($a * $x) + $b), (($c * $x) + $d)) * ((($a * (($c * $x) + $d)) / (($a * $x) + $b)) + ($c * log((($a * $x) + $b)))))}
+
+test symdiff-11.1 {derivative of a unary negation} {
+    symdiff {-($a*$x + $b)} x
+} {-($a)}
+
+test symdiff-11.2 {derivative of a unary plus} {
+    symdiff {+($a*$x + $b)} x
+} {$a}
+
+test symdiff-12.1 {derivative of acos} {
+    symdiff {acos($x)} x
+} {(-1.0 / sqrt((1.0 - ($x * $x))))}
+
+test symdiff-12.2 {derivative of acos} {
+    symdiff {acos($a*$x+$b)} x
+} {-(($a / sqrt((1.0 - ((($a * $x) + $b) * (($a * $x) + $b))))))}
+
+test symdiff-13.1 {derivative of acos} {
+    symdiff {asin($x)} x
+} {(1.0 / sqrt((1.0 - ($x * $x))))}
+
+test symdiff-13.2 {derivative of asin} {
+    symdiff {asin($a*$x+$b)} x
+} {($a / sqrt((1.0 - ((($a * $x) + $b) * (($a * $x) + $b)))))}
+
+test symdiff-14.1 {derivative of atan} {
+    symdiff {atan($x)} x
+} {(1.0 / (1.0 + ($x * $x)))}
+
+test symdiff-14.2 {derivative of atan} {
+    symdiff {atan($a*$x+$b)} x
+} {($a / (1.0 + ((($a * $x) + $b) * (($a * $x) + $b))))}
+
+test symdiff-15.1 {derivative of atan2} {
+    symdiff {atan2($x,1.0)} x
+} {(1.0 / (($x * $x) + 1.0))}
+
+test symdiff-15.2 {derivative of atan2} {
+    symdiff {atan2(1.0,$x)} x
+} {(-1.0 / (1.0 + ($x * $x)))}
+
+test symdiff-15.3 {derivative of atan2} {
+    symdiff {atan2($x,$y)} x
+} {($y / (($x * $x) + ($y * $y)))}
+
+test symdiff-15.4 {derivative of atan2} {
+    symdiff {atan2($y,$x)} x
+} {-(($y / (($y * $y) + ($x * $x))))}
+
+test symdiff-15.5 {derivative of atan2} {
+    symdiff {atan2($a*$x+$b,$c*$x+$d)} x
+} {((($a * (($c * $x) + $d)) - ((($a * $x) + $b) * $c)) / (((($a * $x) + $b) * (($a * $x) + $b)) + ((($c * $x) + $d) * (($c * $x) + $d))))}
+
+test symdiff-16.1 {derivative of cos} {
+    symdiff {cos($x)} x
+} {-(sin($x))}
+
+test symdiff-16.2 {derivative of cos} {
+    symdiff {cos($a*$x + $b)} x
+} {-(($a * sin((($a * $x) + $b))))}
+
+test symdiff-17.1 {derivative of cosh} {
+    symdiff {cosh($x)} x
+} {sinh($x)}
+
+test symdiff-17.2 {derivative of cosh} {
+    symdiff {cosh($a*$x + $b)} x
+} {($a * sinh((($a * $x) + $b)))}
+
+test symdiff-18.1 {derivative of exp} {
+    symdiff {exp($x)} x
+} {exp($x)}
+
+test symdiff-18.2 {derivative of exp} {
+    symdiff {exp($a*$x+$b)} x
+} {($a * exp((($a * $x) + $b)))}
+
+test symdiff-19.1 {derivative of hypot} {
+    symdiff {hypot(0.0,$a)} a
+} {($a / hypot(0.0, $a))}
+
+test symdiff-19.2 {derivative of hypot} {
+    symdiff {hypot($b,$a)} a
+} {($a / hypot($b, $a))}
+
+test symdiff-19.3 {derivative of hypot} {
+    symdiff {hypot($a*$x+$b,$c*$x+$d)} x
+} {((($a * (($a * $x) + $b)) + ($c * (($c * $x) + $d))) / hypot((($a * $x) + $b), (($c * $x) + $d)))}
+
+test symdiff-20.1 {derivative of log} {
+    symdiff {log($x)} x
+} {(1.0 / $x)}
+
+test symdiff-20.2 {derivative of log} {
+    symdiff {log($a*$x+$b)} x
+} {($a / (($a * $x) + $b))}
+
+test symdiff-21.1 {derivative of log10} {
+    -body {
+	symdiff {log10($x)} x
+    }
+    -match regexp
+    -result {\(1.0 / \(2.30258509299404(?:59|6) \* \$x\)\)}
+}
+
+test symdiff-21.2 {derivative of log10} {
+    -body {
+	symdiff {log10($a * $x + $b)} x
+    }
+    -match regexp
+    -result {\(\$a / \(2.30258509299404(?:59|6) \* \(\(\$a \* \$x\) \+ \$b\)\)\)}
+}
+
+test symdiff-22.1 {derivative of sin} {
+    symdiff {sin($x)} x
+} {cos($x)}
+
+test symdiff-22.2 {derivative of sin} {
+    symdiff {sin($a*$x+$b)} x
+} {($a * cos((($a * $x) + $b)))}
+
+test symdiff-22.1 {derivative of sinh} {
+    symdiff {sinh($x)} x
+} {cosh($x)}
+
+test symdiff-22.2 {derivative of sinh} {
+    symdiff {sinh($a*$x+$b)} x
+} {($a * cosh((($a * $x) + $b)))}
+
+test symdiff-23.1 {derivative of sqrt} {
+    symdiff {sqrt($x)} x
+} {(1.0 / (2.0 * sqrt($x)))}
+
+test symdiff-23.2 {derivative of sqrt} {
+    symdiff {sqrt($a*$x+$b)} x
+} {($a / (2.0 * sqrt((($a * $x) + $b))))}
+
+test symdiff-24.1 {derivative of tan} {
+    symdiff {tan($x)} x
+} {(1.0 / (cos($x) * cos($x)))}
+
+test symdiff-24.2 {derivative of tan} {
+    symdiff {tan($a*$x+$b)} x
+} {($a / (cos((($a * $x) + $b)) * cos((($a * $x) + $b))))}
+
+test symdiff-24.1 {derivative of tanh} {
+    symdiff {tanh($x)} x
+} {(1.0 / (cosh($x) * cosh($x)))}
+
+test symdiff-24.2 {derivative of tanh} {
+    symdiff {tanh($a*$x+$b)} x
+} {($a / (cosh((($a * $x) + $b)) * cosh((($a * $x) + $b))))}
+
+test symdiff-25.1 {error handling} {
+    -body {
+	symdiff {[foo $x]} x
+    }
+    -match glob
+    -returnCodes error
+    -result {invalid character*}
+}
+
+test symdiff-25.2 {error handling} {
+    -body {
+	symdiff {$x(1)} x
+    }
+    -match glob
+    -returnCodes error
+    -result {syntax error*}
+}
+
+test symdiff-25.3 {error handling} {
+    -body {
+	symdiff {$a & $b} a
+    }
+    -match glob
+    -returnCodes error
+    -result {invalid character*}
+}
+
+test symdiff-25.4 {error handling} {
+    list [catch {symdiff {int($a)} a} result] $result
+} {1 {symdiff can't differentiate the "int" function}}
+
+test symdiff-25.5 {error handling} {
+    -body {
+	symdiff {$a ? $b : $c} a
+    }
+    -returnCodes error
+    -match glob
+    -result {invalid character*}
+}
+
+test symdiff-26.1 {unary minus optimization} {
+    symdiff {$a * $x + -$b * $x} x
+} {($a - $b)}
+
+test symdiff-26.2 {unary minus optimization} {
+    symdiff {-$a * $x - $b * $x} x
+} {-(($a + $b))}
+
+test symdiff-26.3 {unary minus optimization} {
+    symdiff {$a * $x - -$b * $x} x
+} {($a + $b)}
+
+test symdiff-26.4 {unary minus optimization} {
+    symdiff {-$a * $x * $b} x
+} {-(($a * $b))}
+
+test symdiff-26.5 {unary minus optimization} {
+    symdiff {$a * $x * -$b} x
+} {-(($a * $b))}
+
+test symdiff-26.6 {unary minus optimization} {
+    symdiff {---($a*$x+$b)} x
+} {-($a)}
+
+test symdiff-26.7 {unary minus optimization} {
+    symdiff {-$x * $x} x
+} {-(($x + $x))}
+
+test symdiff-27.1 {power optimizations} {
+    symdiff {pow($x,1)} x
+} 1.0
+
+test symdiff-27.2 {power optimizations} {
+    symdiff {pow($x,2.0)} x
+} {(2.0 * $x)}
+
+test symdiff-28.1 {quotient optimization} {
+    symdiff {($x * $x) / 1.0} x
+} {($x + $x)}
+
+test symdiff-28.2 {quotient optimization} {
+    symdiff {($x * $x) / -1.0} x
+} {-(($x + $x))}
+
+test symdiff-28.3 {quotient optimization - error case} {
+    list [catch {symdiff {($x * $x) / 0.0} x} result] $result
+} {1 {requested expression will result in division by zero at run time}}
+
+test symdiff-29.1 {product optimization} {
+    symdiff {(2. * $x) * 3.0} x
+} 6.0
+
+test symdiff-29.2 {product optimization} {
+    symdiff {($a * $x) * -1.0} x
+} {-($a)}
+
+test symdiff-30.0 {illustration of Newton's method - find a root of sin(x)-0.5 near 0.5} {
+    proc root {expr var guess} {
+	upvar 1 $var v
+	set deriv [symdiff $expr $var]
+	set v $guess
+	set updateExpr [list expr "\$$var - ($expr) / ($deriv)"]
+	for { set i 0 } { $i < 4 } { incr i } {
+	    set v [uplevel 1 $updateExpr]
+	}
+	return $v
+    }
+    set r [root {sin($x)-0.5} x 0.5]
+    expr {sin($r)}
+} 0.5
+
+# End of test cases
+set ::tcl_precision $prec
+cleanupTests
+}
+
+namespace delete ::math::calculus::symdiff::test
+
+# Local Variables:
+# mode: tcl
+# End:

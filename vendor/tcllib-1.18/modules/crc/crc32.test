@@ -1,0 +1,222 @@
+# crc32.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the crc32 commands
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: crc32.test,v 1.12 2009/03/04 01:01:42 patthoyts Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal crc32.tcl crc32 ::crc
+}
+
+# -------------------------------------------------------------------------
+
+if {[::crc::LoadAccelerator critcl]} {
+    puts "> critcl based"
+}
+if {[::crc::LoadAccelerator trf]} {
+    puts "> Trf based"
+}
+puts "> pure Tcl"
+
+# -------------------------------------------------------------------------
+# Handle multiple implementation testing
+#
+
+array set preserve [array get ::crc::accel]
+
+proc implementations {} {
+    variable ::crc::accel
+    foreach {a v} [array get accel] {if {$v} {lappend r $a}}
+    lappend r tcl; set r
+}
+
+proc select_implementation {impl} {
+    variable ::crc::accel
+    foreach e [array names accel] { set accel($e) 0 }
+    if {[string compare "tcl" $impl] != 0} {
+        set accel($impl) 1
+    }
+}
+
+proc reset_implementation {} {
+    variable ::crc::accel
+    array set accel [array get ::preserve]
+}
+
+# -------------------------------------------------------------------------
+
+test crc32-1.0 {crc32 with no parameters } {
+    catch {::crc::crc32} result
+    string match "wrong # args: *" $result
+} {1}
+
+# -------------------------------------------------------------------------
+
+set tests {
+    1    ""
+    "0"
+    2    "a"
+    "3904355907"
+    3    "abc"
+    "891568578"
+    4    "message digest"
+    "538287487"
+    5    "abcdefghijklmnopqrstuvwxyz"
+    "1277644989"
+    6    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "532866770"
+    7    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "2091469426"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "2968055525"
+    9    "-"
+    "2547889144"
+    10   "--"
+    "606868581"
+}
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg expected} $tests {
+        test crc32-$impl-2.$n "crc32 as unsigned integer ($impl)" {
+            list [catch {::crc::crc32 $msg} err] $err
+        } [list 0 $expected]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+set tests {
+    1    ""
+    "0x0"
+    2    "a"
+    "0xE8B7BE43"
+    3    "abc"
+    "0x352441C2"
+    4    "message digest"
+    "0x20159D7F"
+    5    "abcdefghijklmnopqrstuvwxyz"
+    "0x4C2750BD"
+    6    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "0x1FC2E6D2"
+    7    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "0x7CA94A72"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "0xB0E8EEE5"
+    9    "-"
+    "0x97DDB3F8"
+    10   "--"
+    "0x242C1465"
+}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg expected} $tests {
+        test crc32-$impl-3.$n "crc32 as hexadecimal string ($impl)" {
+            list [catch {::crc::crc32 -format 0x%X $msg} err] $err
+        } [list 0 $expected]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+set crc::testfile [info script]
+
+proc crc::loaddata {filename} {
+    set f [open $filename r]
+    fconfigure $f -translation binary
+    set data [read $f]
+    close $f
+    return $data
+}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    test crc32-$impl-4.0 "crc32 file option ($impl)" {
+        set r1 [::crc::crc32 -file $crc::testfile]
+        set r2 [::crc::crc32 [crc::loaddata $crc::testfile]]
+        if {$r1 != $r2} {
+            set r "differing results: $r1 != $r2"
+        } else {
+            set r ok
+        }
+    } {ok}
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+set tests {
+    1    0  ""
+    "4294967295"
+    2    1  ""
+    "4294967294"
+    3    0  "Hello, World!"
+    "482441901"
+    4    1  "Hello, World!"
+    "3243746088"
+    5    0  "-"
+    "3122701194"
+}
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n seed msg expected} $tests {
+        test crc32-$impl-5.$n "crc32 initial seed option ($impl)" {
+            list [catch {::crc::crc32 -seed $seed $msg} err] $err
+        } [list 0 $expected]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+set tests {
+    1    "a" "bc"
+    "891568578"
+    2    "message" " digest"
+    "538287487"
+    3    "abcdefghijkl" "mnopqrstuvwxyz"
+    "1277644989"
+    4    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678" "9"
+    "532866770"
+    5    "1234567890" 
+    "1234567890123456789012345678901234567890123456789012345678901234567890"
+    "2091469426"
+    6    "\uFFFE\u0000" "\u0001\u0002"
+    "2968055525"
+}
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msgA msgB expected} $tests {
+        test crc32-$impl-6.$n "crc32 using -seed ($impl)" {
+            list [catch {
+                ::crc::crc32 -seed [expr {[::crc::crc32 $msgA] ^ 0xffffffff}] $msgB
+            } err] $err
+        } [list 0 $expected]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+catch {unset crc::filename}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

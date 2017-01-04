@@ -1,0 +1,193 @@
+
+<div class='fossil-doc' data-title='grammar::me::util - Grammar operations and usage'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::me::util(n) 0.1 tcllib &quot;Grammar operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::me::util - AST utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">grammar::me::util <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::grammar::me::util::ast2tree</b> <i class="arg">ast</i> <i class="arg">tree</i> <span class="opt">?<i class="arg">root</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::grammar::me::util::ast2etree</b> <i class="arg">ast</i> <i class="arg">mcmd</i> <i class="arg">tree</i> <span class="opt">?<i class="arg">root</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">mcmd</b> <b class="method">lc</b> <i class="arg">location</i></a></li>
+<li><a href="#4"><b class="cmd">mcmd</b> <b class="method">tok</b> <i class="arg">from</i> <span class="opt">?<i class="arg">to</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::grammar::me::util::tree2ast</b> <i class="arg">tree</i> <span class="opt">?<i class="arg">root</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a number of utility command for the conversion
+between the various representations of abstract syntax trees as
+specified in the document <b class="syscmd"><a href="me_ast.html">grammar::me_ast</a></b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::grammar::me::util::ast2tree</b> <i class="arg">ast</i> <i class="arg">tree</i> <span class="opt">?<i class="arg">root</i>?</span></a></dt>
+<dd><p>This command converts an <i class="arg">ast</i> from value to object
+representation. All nodes in the <i class="arg">ast</i> will be converted into
+nodes of this <i class="arg">tree</i>, with the root of the AST a child of the node
+<i class="arg">root</i>. If this node is not explicitly specified the root of the
+tree is used. Existing content of tree is not touched, i.e.  neither
+removed nor changed, with the exception of the specified root node,
+which will gain a new child.</p></dd>
+<dt><a name="2"><b class="cmd">::grammar::me::util::ast2etree</b> <i class="arg">ast</i> <i class="arg">mcmd</i> <i class="arg">tree</i> <span class="opt">?<i class="arg">root</i>?</span></a></dt>
+<dd><p>This command is like <b class="cmd">::grammar::me::util::ast2tree</b>, except that
+the result is in the extended object representation of the input AST.
+The source of the extended information is the command prefix
+<i class="arg">mcmd</i>.
+It has to understand two methods, <b class="method">lc</b>, and <b class="method">tok</b>, with
+the semantics specified below.</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><b class="cmd">mcmd</b> <b class="method">lc</b> <i class="arg">location</i></a></dt>
+<dd><p>Takes the location of a token given as offset in the input stream and
+return a 2-element list containing the associated line number and
+column index, in this order.</p></dd>
+<dt><a name="4"><b class="cmd">mcmd</b> <b class="method">tok</b> <i class="arg">from</i> <span class="opt">?<i class="arg">to</i>?</span></a></dt>
+<dd><p>Takes one or two locations <i class="arg">from</i> and <i class="arg">to</i> as offset in the
+input stream and returns a Tcl list containing the specified part of
+the input stream. Both location are inclusive. If <i class="arg">to</i> is not
+specified it will default to the value of <i class="arg">from</i>.</p>
+<p>Each element of the returned list is a list containing the token, its
+associated lexeme, the line number, and column index, in this order.</p></dd>
+</dl>
+<p>Both the ensemble command <b class="cmd">::grammar::me::tcl</b> provided by the
+package <b class="package"><a href="me_tcl.html">grammar::me::tcl</a></b> and the objects command created by
+the package <b class="package">::grammar::me::cpu</b> fit the above specification.</p></dd>
+<dt><a name="5"><b class="cmd">::grammar::me::util::tree2ast</b> <i class="arg">tree</i> <span class="opt">?<i class="arg">root</i>?</span></a></dt>
+<dd><p>This command converts an <i class="arg">ast</i> in (extended) object representation
+into a value and returns it.
+If a <i class="arg">root</i> node is specified the AST is generated from that node
+downward. Otherwise the root of the tree object is used as the
+starting point.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_me</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key745">abstract syntax tree</a>, <a href="../../../../index.html#key744">syntax tree</a>, <a href="../../../../index.html#key300">tree</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

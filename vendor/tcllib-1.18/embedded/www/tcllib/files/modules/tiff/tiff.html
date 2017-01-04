@@ -1,0 +1,285 @@
+<div class='fossil-doc' data-title='tiff - TIFF image manipulation'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tiff(n) 0.2.1 tcllib &quot;TIFF image manipulation&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tiff - TIFF reading, writing, and querying and manipulation of meta data</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">VARIABLES</a></li>
+<li class="doctools_section"><a href="#section4">LIMITATIONS</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">tiff <span class="opt">?0.2.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::tiff::isTIFF</b> <i class="arg">file</i></a></li>
+<li><a href="#2"><b class="cmd">::tiff::byteOrder</b> <i class="arg">file</i></a></li>
+<li><a href="#3"><b class="cmd">::tiff::numImages</b> <i class="arg">file</i></a></li>
+<li><a href="#4"><b class="cmd">::tiff::dimensions</b> <i class="arg">file</i> <span class="opt">?image?</span></a></li>
+<li><a href="#5"><b class="cmd">::tiff::imageInfo</b> <i class="arg">file</i> <span class="opt">?image?</span></a></li>
+<li><a href="#6"><b class="cmd">::tiff::entries</b> <i class="arg">file</i> <span class="opt">?image?</span></a></li>
+<li><a href="#7"><b class="cmd">::tiff::getEntry</b> <i class="arg">file</i> <i class="arg">entry</i> <span class="opt">?image?</span></a></li>
+<li><a href="#8"><b class="cmd">::tiff::addEntry</b> <i class="arg">file</i> <i class="arg">entry</i> <span class="opt">?image?</span></a></li>
+<li><a href="#9"><b class="cmd">::tiff::deleteEntry</b> <i class="arg">file</i> <i class="arg">entry</i> <span class="opt">?image?</span></a></li>
+<li><a href="#10"><b class="cmd">::tiff::getImage</b> <i class="arg">file</i> <span class="opt">?image?</span></a></li>
+<li><a href="#11"><b class="cmd">::tiff::writeImage</b> <i class="arg">image</i> <i class="arg">file</i> <span class="opt">?entry?</span></a></li>
+<li><a href="#12"><b class="cmd">::tiff::nametotag</b> <i class="arg">names</i></a></li>
+<li><a href="#13"><b class="cmd">::tiff::tagtoname</b> <i class="arg">tags</i></a></li>
+<li><a href="#14"><b class="cmd">::tiff::debug</b> <i class="arg">file</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands to query, modify, read, and write TIFF images.
+TIFF stands for <i class="term">Tagged Image File Format</i> and is a standard
+for lossless storage of photographical images and associated metadata.
+It is specified at <a href="http://partners.adobe.com/public/developer/tiff/index.html">http://partners.adobe.com/public/developer/tiff/index.html</a>.</p>
+<p>Multiple images may be stored in a single TIFF file. The <span class="opt">?image?</span> options to the functions
+in this package are for accessing images other than the first. Data in a TIFF image is
+stored as a series of tags having a numerical value, which are represented in either a 4 digit
+hexadecimal format or a string name. For a reference on defined tags and their meanings see
+<a href="http://www.awaresystems.be/imaging/tiff/tifftags.html">http://www.awaresystems.be/imaging/tiff/tifftags.html</a></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::tiff::isTIFF</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a boolean value indicating if <i class="arg">file</i> is a
+TIFF image.</p></dd>
+<dt><a name="2"><b class="cmd">::tiff::byteOrder</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns either <b class="const">big</b> or <b class="const">little</b>.
+Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="3"><b class="cmd">::tiff::numImages</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns the number of images in <i class="arg">file</i>.
+Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="4"><b class="cmd">::tiff::dimensions</b> <i class="arg">file</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Returns the dimensions of image number <span class="opt">?image?</span> in <i class="arg">file</i> as a list of the
+horizontal and vertical pixel count.
+Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="5"><b class="cmd">::tiff::imageInfo</b> <i class="arg">file</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Returns a dictionary with keys <b class="const">ImageWidth</b>, <b class="const">ImageLength</b>,
+<b class="const">BitsPerSample</b>, <b class="const">Compression</b>, <b class="const">PhotometricInterpretation</b>,
+<b class="const">ImageDescription</b>, <b class="const">Orientation</b>, <b class="const">XResolution</b>,
+<b class="const">YResolution</b>, <b class="const">ResolutionUnit</b>, <b class="const">DateTime</b>, <b class="const">Artist</b>,
+and <b class="const">HostComputer</b>. The values are the associated properties of
+the TIFF <span class="opt">?image?</span> in <i class="arg">file</i>. Values may be empty if the associated tag is not
+present in the file.</p>
+<pre class="doctools_example">
+    puts [::tiff::imageInfo photo.tif]
+    ImageWidth 686 ImageLength 1024 BitsPerSample {8 8 8} Compression 1
+    PhotometricInterpretation 2 ImageDescription {} Orientation 1
+    XResolution 170.667 YResolution 170.667 ResolutionUnit 2 DateTime {2005:12:28 19:44:45}
+    Artist {} HostComputer {}
+</pre>
+<p>There is nothing special about these tags, this is simply a convience procedure which calls
+<b class="cmd">getEntry</b> with common entries.
+Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="6"><b class="cmd">::tiff::entries</b> <i class="arg">file</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Returns a list of all entries in the given <i class="arg">file</i> and <span class="opt">?image?</span>
+in hexadecimal format.
+Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="7"><b class="cmd">::tiff::getEntry</b> <i class="arg">file</i> <i class="arg">entry</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Returns the value of <i class="arg">entry</i> from image <span class="opt">?image?</span> in the TIFF <i class="arg">file</i>.
+<i class="arg">entry</i> may be a list of multiple entries. If an entry does not exist, an
+empty string is returned</p>
+<pre class="doctools_example">
+    set data [::tiff::getEntry photo.tif {0131 0132}]
+    puts &quot;file was written at [lindex $data 0] with software [lindex $data 1]&quot;
+</pre>
+<p>Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="8"><b class="cmd">::tiff::addEntry</b> <i class="arg">file</i> <i class="arg">entry</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Adds the specified entries to the image named by <span class="opt">?image?</span> (default 0), or optionally <b class="const">all</b>.
+<i class="arg">entry</i> must be a list where each element is a list of tag, type, and value. If a tag already
+exists, it is overwritten.</p>
+<pre class="doctools_example">
+    ::tiff::addEntry photo.tif {{010e 2 &quot;an example photo&quot;} {013b 2 &quot;Aaron F&quot;}}
+</pre>
+<p>The data types are defined as follows</p>
+<dl class="doctools_definitions">
+<dt><b class="const">1</b></dt>
+<dd><p>BYTE (8 bit unsigned integer)</p></dd>
+<dt><b class="const">2</b></dt>
+<dd><p>ASCII</p></dd>
+<dt><b class="const">3</b></dt>
+<dd><p>SHORT (16 bit unsigned integer)</p></dd>
+<dt><b class="const">4</b></dt>
+<dd><p>LONG (32 bit unsigned integer)</p></dd>
+<dt><b class="const">5</b></dt>
+<dd><p>RATIONAL</p></dd>
+<dt><b class="const">6</b></dt>
+<dd><p>SBYTE (8 bit signed byte)</p></dd>
+<dt><b class="const">7</b></dt>
+<dd><p>UNDEFINED (uninterpreted binary data)</p></dd>
+<dt><b class="const">8</b></dt>
+<dd><p>SSHORT (signed 16 bit integer)</p></dd>
+<dt><b class="const">9</b></dt>
+<dd><p>SLONG (signed 32 bit integer)</p></dd>
+<dt><b class="const">10</b></dt>
+<dd><p>SRATIONAL</p></dd>
+<dt><b class="const">11</b></dt>
+<dd><p>FLOAT (32 bit floating point number)</p></dd>
+<dt><b class="const">12</b></dt>
+<dd><p>DOUBLE (64 bit floating point number)</p></dd>
+</dl>
+<p>Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="9"><b class="cmd">::tiff::deleteEntry</b> <i class="arg">file</i> <i class="arg">entry</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Deletes the specified entries from the image named by <span class="opt">?image?</span> (default 0), or optionally <b class="const">all</b>.
+Throws an error if <i class="arg">file</i> is not a TIFF image.</p></dd>
+<dt><a name="10"><b class="cmd">::tiff::getImage</b> <i class="arg">file</i> <span class="opt">?image?</span></a></dt>
+<dd><p>Returns the name of a Tk image containing the image at index <span class="opt">?image?</span> from <i class="arg">file</i>
+Throws an error if <i class="arg">file</i> is not a TIFF image, or if image is an unsupported format.
+Supported formats are uncompressed 24 bit RGB and uncompressed 8 bit palette.</p></dd>
+<dt><a name="11"><b class="cmd">::tiff::writeImage</b> <i class="arg">image</i> <i class="arg">file</i> <span class="opt">?entry?</span></a></dt>
+<dd><p>Writes the contents of the Tk image <i class="arg">image</i> to a tiff file <i class="arg">file</i>. Files are
+written in the 24 bit uncompressed format, with big endian byte order. Additional entries
+to be added to the image may be specified, in the same format as <b class="cmd">tiff::addEntry</b></p></dd>
+<dt><a name="12"><b class="cmd">::tiff::nametotag</b> <i class="arg">names</i></a></dt>
+<dd><p>Returns a list with <i class="arg">names</i> translated from string to 4 digit format. 4 digit names
+in the input are passed through unchanged. Strings without a defined tag name will throw
+an error.</p></dd>
+<dt><a name="13"><b class="cmd">::tiff::tagtoname</b> <i class="arg">tags</i></a></dt>
+<dd><p>Returns a list with <i class="arg">tags</i> translated from 4 digit to string format. If a tag does
+not have a defined name it is passed through unchanged.</p></dd>
+<dt><a name="14"><b class="cmd">::tiff::debug</b> <i class="arg">file</i></a></dt>
+<dd><p>Prints everything we know about the given file in a nice format.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">VARIABLES</a></h2>
+<p>The mapping of 4 digit tag names to string names uses the array ::tiff::tiff_tags. The reverse
+mapping uses the array ::tiff::tiff_sgat.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">LIMITATIONS</a></h2>
+<ol class="doctools_enumerated">
+<li><p>Cannot write exif ifd</p></li>
+<li><p>Reading limited to uncompressed 8 bit rgb and 8 bit palletized images</p></li>
+<li><p>Writing limited to uncompressed 8 bit rgb</p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>tiff</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key121">image</a>, <a href="../../../../index.html#key120">tif</a>, <a href="../../../../index.html#key119">tiff</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>File formats</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005-2006, Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;</p>
+</div>
+</div>

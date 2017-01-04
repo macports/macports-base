@@ -1,0 +1,57 @@
+/*
+ * -*- tcl -*-
+ * Parsing Expression Grammar 'TEMPLATE'.
+ * Generated for unknown, from file 'TEST'
+ */
+
+/*
+ * Declaring the parse functions
+ */
+
+<<attributes>> void <<ns>>optional_2 (<<STATE>> <<state>>);
+
+/*
+ * Precomputed table of strings (symbols, error messages, etc.).
+ */
+
+static char const* <<string-table>> [15] = {
+    /*        0 = */   "alnum",
+    /*        1 = */   "alpha",
+    /*        2 = */   "ascii",
+    /*        3 = */   "control",
+    /*        4 = */   "ddigit",
+    /*        5 = */   "digit",
+    /*        6 = */   "graph",
+    /*        7 = */   "lower",
+    /*        8 = */   "print",
+    /*        9 = */   "punct",
+    /*       10 = */   "space",
+    /*       11 = */   "upper",
+    /*       12 = */   "wordchar",
+    /*       13 = */   "xdigit",
+    /*       14 = */   "t a"
+};
+
+/*
+ * Grammar Start Expression
+ */
+
+<<attributes>> void <<ns>><<main>> (<<STATE>> <<state>>) { <<prelude>>
+    <<self>> <<ns>>optional_2 (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>optional_2 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * ?
+    *     'a'
+    */
+
+    rde_param_i_state_push_2 (<<state>>);
+    rde_param_i_next_char (<<state>>, "a", 14);
+    rde_param_i_state_merge_ok (<<state>>);
+    return;
+}
+
+/*
+ */

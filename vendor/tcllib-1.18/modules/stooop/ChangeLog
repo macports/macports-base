@@ -1,0 +1,150 @@
+2013-12-17  Andreas Kupries <andreask@activestate.com>
+
+	* switched.man: Created a doctools-based manpage from the provided
+	  HTML documentation.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-23  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Added MD hints.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.test: Rewritten to use new features for handling the
+	  environment.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* switched.tcl: Bumped version to 2.2.1
+	* pkgIndex.tcl:
+
+2006-09-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.test: Description of test 87 modified to be a single line.
+
+2006-01-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.test: Fixed handling of "env", also did the simplified boilerplate.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.test: Fixed use and cleanup of temp. files
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.test: Hooked into the new common test support code.
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* switched.tcl: Fixed bug, missing dependency on package
+	  stooop. This bug was introduced by the change to the package
+	  loading of switched.
+
+2005-12-09  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Replaced lazy loading setup of package 'switched'
+	  with standard regular source setup.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* stooop.tcl:
+	* stooop.man:
+	* pkgIndex.tcl: Set version of the package to to 4.4.1 throughout.
+
+2003-04-01  Andreas Kupries  <andreask@activestate.com>
+
+	* stooop.man:
+	* stooop.htm: Renamed to 'stoop_man.html'. Updated doctools
+	  documentation to refer to manual under the new name. This
+	  resolves the circular link reported in Tcllib SF bug #687923.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.man: More semantic markup, less visual one.
+
+2002-04-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stooop.man: Added doctools manpage.
+

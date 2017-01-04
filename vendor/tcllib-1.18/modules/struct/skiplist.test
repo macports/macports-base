@@ -1,0 +1,335 @@
+# -*- tcl -*-
+# skiplist.test:  tests for the skiplist structure.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2000 by Keith Vetter
+# This software is licensed under a BSD license as described in tcl/tk
+# license.txt file but with the copyright held by Keith Vetter.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal skiplist.tcl struct::skiplist
+}
+
+#----------------------------------------------------------------------
+
+# ::shuffle --
+#
+#   creates a randomly ordered list of the integers from 0 to n-1.
+#
+# Arguments:
+#   n   size of the list to shuffle
+#
+# Results:
+#   list of integers from 0 to n-1 in a random order
+
+proc shuffle {n} {
+	set t [list ]
+	set tt [list ]
+	for {set i 0} {$i < $n} {incr i} {
+		lappend t $i
+	}
+
+    # Select a random item out of list t and append to list tt
+
+	for {set i [expr {$n - 1}]} {$i >= 0} {incr i -1} {
+		set r [expr rand()]
+		set x [expr {int($r * ($i + 1))}]
+		lappend tt [lindex $t $x]
+		set t [lreplace $t $x $x]
+	}
+
+	return $tt
+}
+
+test skiplist-0.1 {skiplist errors} {
+    struct::skiplist myskiplist
+    catch {struct::skiplist myskiplist} msg
+    myskiplist destroy
+    set msg
+} "command \"myskiplist\" already exists, unable to create skiplist"
+
+test skiplist-0.2 {skiplist errors} {
+    struct::skiplist myskiplist
+    catch {myskiplist} msg
+    myskiplist destroy
+    set msg
+} "wrong # args: should be \"myskiplist option ?arg arg ...?\""
+
+test skiplist-0.3 {skiplist errors} {
+    struct::skiplist myskiplist
+    catch {myskiplist foo} msg
+    myskiplist destroy
+    set msg
+} "bad option \"foo\": must be destroy, delete, insert, search, size, or walk"
+
+test skiplist-0.4 {skiplist errors} {
+    catch {struct::skiplist set} msg
+    set msg
+} "command \"set\" already exists, unable to create skiplist"
+
+test skiplist-0.5 {skiplist errors} {
+	catch {struct::skiplist myskiplist -foo bar} msg
+	set msg
+} "unknown option \"-foo\": should be \"skiplist name ?-maxlevel ##? ?-probability ##?\""
+
+test skiplist-0.6 {skiplist errors} {
+	catch {struct::skiplist myskiplist -maxlevel bar} msg
+	set msg
+} "value for the maxlevel option must be greater than 0"
+
+test skiplist-0.7 {skiplist errors} {
+	catch {struct::skiplist myskiplist -probability bar} msg
+	set msg
+} "probability must be between 0 and 1"
+
+
+
+
+test skiplist-1.0 {insert} {
+	struct::skiplist myskiplist
+	myskiplist insert 5 value_5
+	set t [myskiplist search 5]
+	myskiplist destroy
+	set t
+}  "1 value_5"
+
+test skiplist-1.1 {insert} {
+	struct::skiplist myskiplist
+	myskiplist insert 5 value_5
+	myskiplist insert 5 value_5.2
+	myskiplist insert 5 value_5.3
+	myskiplist insert 5 value_5.4
+	set t [myskiplist search 5]
+	myskiplist destroy
+	set t
+}  "1 value_5.4"
+
+test skiplist-1.2 {insert} {
+	struct::skiplist myskiplist
+	unset a
+	foreach a [list 9 7 5 3 1 8 6 4 2] {
+		myskiplist insert $a value_$a
+	}
+	set t [list ]
+	myskiplist walk {lappend t}
+	myskiplist destroy
+	set t
+}  "1 value_1 2 value_2 3 value_3 4 value_4 5 value_5 6 value_6 7 value_7 8 value_8 9 value_9"
+
+test skiplist-1.3 {insert} {
+	struct::skiplist myskiplist
+	foreach a [shuffle 500] {
+		set a2 [expr {$a + 1}]
+		myskiplist insert $a $a2
+	}
+	set t [list ]
+	myskiplist walk {lappend t}
+	myskiplist destroy
+	set sum [set sum2 0]
+	foreach {key value} $t {
+		set sum [expr {$sum + $key}]
+		set sum2 [expr {$sum2 + $value}]
+	}
+	set sum "$sum $sum2"
+}  "124750 125250"
+
+test skiplist-1.4 {insert} {
+	struct::skiplist myskiplist
+	foreach a [shuffle 500] {
+		myskiplist insert $a -1
+	}
+	foreach a [shuffle 500] {
+		myskiplist insert $a $a
+	}
+	set t [list ]
+	myskiplist walk {lappend t}
+	myskiplist destroy
+	set sum 0
+	foreach {key value} $t {
+		set sum [expr {$sum + $value}]
+	}
+	set sum
+} "124750"
+
+test skiplist-1.5 {insert} {
+	struct::skiplist myskiplist
+	foreach a [list k e i t h p o w l v r] {
+		myskiplist insert $a value_$a
+	}
+	set t [list ]
+	myskiplist walk {lappend t }
+	set str ""
+	foreach {key value} $t {
+		append str $key
+	}
+	myskiplist destroy
+	set str
+} "ehikloprtvw"
+	
+		
+
+test skiplist-2.0 {delete} {
+	struct::skiplist myskiplist
+	myskiplist insert 4 value_4
+	set t [myskiplist delete 4]
+	myskiplist destroy
+	set t
+} "1"
+
+test skiplist-2.1 {delete} {
+	struct::skiplist myskiplist
+	myskiplist insert 4 value_4
+	myskiplist delete 4
+	set t [myskiplist search 4]
+	myskiplist destroy
+	set t
+} "0"
+
+test skiplist-2.2 {delete} {
+	struct::skiplist myskiplist
+	myskiplist insert 4 value_4
+	set t [myskiplist delete 5]
+	myskiplist destroy
+	set t
+} "0"
+
+test skiplist-2.3 {delete} {
+	struct::skiplist myskiplist
+	myskiplist insert 8 value_8
+	myskiplist insert 7 value_7
+	myskiplist insert 6 value_6
+	myskiplist insert 5 value_5
+	myskiplist insert 4 value_4
+	myskiplist delete 6
+	myskiplist delete 5
+	myskiplist delete 4
+
+	set t [myskiplist search 7]
+	myskiplist destroy
+	set t
+} "1 value_7"
+
+test skiplist-2.4 {delete} {
+	struct::skiplist myskiplist
+	set data [shuffle 100]
+	foreach a $data {
+		myskiplist insert $a value_$a
+		if {$a == 1} {
+			myskiplist insert 999 value_999
+		}
+	}
+	foreach a $data {
+		myskiplist delete $a
+	}
+	
+	set size [myskiplist size]
+	set search [myskiplist search 999]
+	myskiplist destroy
+	
+	if {$size != 1} {
+		return "size is $size but should be 1"
+	}
+	set search
+} "1 value_999"
+
+
+
+
+test skiplist-3.0 {search} {
+	struct::skiplist myskiplist
+	myskiplist insert 5 value_5
+	myskiplist insert 4 value_4
+	myskiplist insert 3 value_3
+	set t [myskiplist search 4]
+	myskiplist destroy
+	set t
+}  "1 value_4"
+
+test skiplist-3.1 {search} {
+	struct::skiplist myskiplist
+	myskiplist insert 5 value_5
+	myskiplist insert 4 value_4
+	myskiplist insert 3 value_3
+	set t [myskiplist search 14]
+	myskiplist destroy
+	set t
+}  "0"
+
+
+test skiplist-4.0 {size} {
+	struct::skiplist myskiplist
+	myskiplist insert 5 value_5
+	myskiplist insert 4 value_4
+	myskiplist insert 3 value_3
+	set t [myskiplist size]
+	myskiplist destroy
+	set t
+}  "3"
+
+test skiplist-4.1 {size} {
+	struct::skiplist myskiplist
+	for {set i 0} {$i < 500} {incr i} {
+		myskiplist insert $i value_$i
+	}
+	set t [myskiplist size]
+	myskiplist destroy
+	set t
+}  "500"
+
+
+
+test skiplist-5.0 {walk} {
+	struct::skiplist myskiplist
+	myskiplist insert 5 value_5
+	myskiplist insert 4 value_4
+	myskiplist insert 3 value_3
+	set t [list ]
+	myskiplist walk {lappend t }
+	myskiplist destroy
+	set t
+} "3 value_3 4 value_4 5 value_5"
+
+test skiplist-5.1 {walk} {
+	struct::skiplist myskiplist
+	foreach a [shuffle 500] {
+		set a2 [expr {$a + 1}]
+		myskiplist insert $a $a2
+	}
+	set t [list ]
+	myskiplist walk {lappend t}
+	myskiplist destroy
+	set sum 0
+	set sum2 0
+	foreach {key value} $t {
+		set sum [expr {$sum + $key}]
+		set sum2 [expr {$sum2 + $value}]
+	}
+	set sum "$sum $sum2"
+}  "124750 125250"
+
+test skiplist-5.2 {walk} {
+	struct::skiplist myskiplist1
+	struct::skiplist myskiplist2
+	foreach a [shuffle 500] {
+		myskiplist1 insert $a value_$a
+	}
+	myskiplist1 walk {myskiplist2 insert }
+	set size [myskiplist2 size]
+	myskiplist1 destroy
+	myskiplist2 destroy
+	set size
+} "500"
+
+testsuiteCleanup

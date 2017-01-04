@@ -1,0 +1,4 @@
+Doctools Error in plain text at line 1, column 0:
+[plain_text {Text before manpag...]
+--> (FmtError) Manpage error (body), "plain_text Text before manpage_begin is not allowed
+" : Plain text not allowed outside of the body of the manpage.

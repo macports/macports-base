@@ -1,0 +1,179 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt_peg_op i 1.0.1]
+[include include/module.inc]
+[titledesc {Parser Tools PE Grammar Utility Operations}]
+[require pt::peg::op 1.0.1]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a number of utility commands manipulating a PE
+grammar (container) in various ways.
+
+[section API]
+
+[list_begin definitions]
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method called] [arg container]]
+
+This command determines the static call structure for the nonterminal
+symbols of the grammar stored in the [arg container].
+
+[para] The result of the command is a dictionary mapping from each
+symbol to the symbols it calls. The empty string is the key used to
+represent the start expression of the grammar.
+
+[para] The grammar in the container is not modified.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method dechain] [arg container]]
+
+This command simplifies all symbols which just chain to a different
+symbol by inlining the right hand side of the called symbol in its
+callers. This works if and only the modes match properly, per the
+decision table below.
+
+[para][example {
+caller called | dechain | notes
+--------------+---------+-----------------------
+value  value  |  yes    |  value is passed
+value  leaf   |  yes    |  value is passed
+value  void   |  yes    |  caller is implied void
+leaf   value  |  no     |  generated value was discarded, inlined would not. called may be implied void.
+leaf   leaf   |  no     |  s.a.
+leaf   void   |  no     |  s.a.
+void   value  |  no     |  caller drops value, inlined would not.
+void   leaf   |  no     |  s.a.
+void   void   |  yes    |
+}]
+
+[para] The result of the command is the empty string.
+
+[para] The grammar in the container is directly modified. If that is
+not wanted, a copy of the original container has to be used.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method {drop unreachable}] [arg container]]
+
+This command removes all symbols from the grammar which are not
+[method reachable].
+
+[para] The result of the command is the empty string.
+
+[para] The grammar in the container is directly modified. If that is
+not wanted, a copy of the original container has to be used.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method {drop unrealizable}] [arg container]]
+
+This command removes all symbols from the grammar which are not
+[method realizable].
+
+[para] The result of the command is the empty string.
+
+[para] The grammar in the container is directly modified. If that is
+not wanted, a copy of the original container has to be used.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method flatten] [arg container]]
+
+This command flattens (see [package pt::pe::op]) all expressions in
+the grammar, i.e. the start expression and the right hand sides of all
+nonterminal symbols.
+
+[para] The result of the command is the empty string.
+
+[para] The grammar in the container is directly modified. If that is
+not wanted, a copy of the original container has to be used.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method minimize] [arg container]]
+
+This command reduces the provided grammar by applying most of the other methods of this package.
+
+[para] After flattening the expressions it removes unreachable and
+unrealizable symbols, flattens the expressions again, then optimizes
+the symbol modes before collapsing symbol chains as much as possible.
+
+[para] The result of the command is the empty string.
+
+[para] The grammar in the container is directly modified. If that is
+not wanted, a copy of the original container has to be used.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method modeopt] [arg container]]
+
+This command optimizes the semantic modes of non-terminal symbols
+according to the two rules below.
+
+[list_begin enumerated]
+[enum]  If a symbol X with mode [const value] calls no other symbols,
+        i.e. uses only terminal symbols in whatever combination, then
+	this can be represented simpler by using mode [const leaf].
+
+[enum]	If a symbol X is only called from symbols with modes
+	[const leaf] or [const void] then this symbol should have mode
+	[const void] also, as any AST it could generate will be
+	discarded anyway.
+[list_end]
+
+[para] The result of the command is the empty string.
+
+[para] The grammar in the container is directly modified. If that is
+not wanted, a copy of the original container has to be used.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method reachable] [arg container]]
+
+This command computes the set of all nonterminal symbols which are
+reachable from the start expression of the grammar. This is
+essentially the transitive closure over [method called] and the
+symbol's right hand sides, beginning with the start expression.
+
+[para] The result of the command is the list of reachable symbols.
+
+[para] The grammar in the container is not modified.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::peg::peg::op] [method realizable] [arg container]]
+
+This command computes the set of all nonterminal symbols which are
+realizable, i.e. can derive pure terminal phrases. This is done
+iteratively, starting with state unrealizable for all and any, and
+then updating all symbols which are realizable, propagating changes,
+until nothing changes any more.
+
+[para] The result of the command is the list of realizable symbols.
+
+[para] The grammar in the container is not modified.
+
+[para] The [arg container] instance has to expose a method API as is
+provided by the package [package pt::peg::container].
+
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

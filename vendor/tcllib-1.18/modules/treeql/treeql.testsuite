@@ -1,0 +1,448 @@
+# -*- tcl -*- treeql.test
+# Actual tests, run by the testsuite manager selecting the
+# implementation of struct::tree
+
+# -------------------------------------------------------------------------
+# generate a tree upon which to conduct the tests
+
+proc mknode {t where l} {
+    foreach {node subnode} $l {
+	set n [$t insert $where end $node]
+	$t set $n data $node
+	mknode $t $n $subnode
+    }
+}
+
+tree t
+set flattened {1 {3 {7 {} 8 {}} 4 {9 {} 10 {}}} 2 {5 {11 {} 12 {}} 6 {13 {} 14 {}}}}
+mknode t root $flattened
+t set root data 0
+
+treeql q -tree t
+
+# -------------------------------------------------------------------------
+
+test treeql-${impl}-0.1 "root" {} {
+    q query root get data
+} 0
+
+test treeql-${impl}-0.2 "children" {} {
+    q query root children get data
+} "1 2"
+
+test treeql-${impl}-0.3 "grandchildren" {} {
+    q query reset root children children get data
+} "3 4 5 6"
+
+test treeql-${impl}-0.4 "parents" {} {
+    q query reset root children children parent unique get data
+} "1 2"
+
+test treeql-${impl}-0.5 "great-grandchildren" {} {
+    q query reset root children children children get data
+} "7 8 9 10 11 12 13 14"
+
+test treeql-${impl}-0.6 "whole tree" {} {
+    q query reset tree get data
+} "0 1 3 7 8 4 9 10 2 5 11 12 6 13 14"
+
+test treeql-${impl}-0.7 "first child" {} {
+    q query reset root children select get data
+} 1
+
+test treeql-${impl}-0.8 "next of first is second" {} {
+    q query reset root children select next get data
+} 2
+
+test treeql-${impl}-0.9 "root has no next" {} {
+    q query reset root next
+} ""
+
+test treeql-${impl}-1.0 "whole tree by subtree" {} {
+    q query reset root subtree get data
+} "0 1 3 7 8 4 9 10 2 5 11 12 6 13 14"
+
+test treeql-${impl}-1.1 "whole tree except root by descendants" {} {
+    q query reset root descendants get data
+} "1 3 7 8 4 9 10 2 5 11 12 6 13 14"
+
+test treeql-${impl}-1.2 "right half subtree" {} {
+    q query reset root children select next subtree get data
+} "2 5 11 12 6 13 14"
+
+test treeql-${impl}-1.3 "all the odd numbers" {} {
+    q query reset tree left get data
+} "7 3 9 1 11 5 13"
+
+test treeql-${impl}-1.4 "all the even numbers" {} {
+    q query reset tree right get data
+} "2 4 8 10 6 12 14"
+
+test treeql-${impl}-1.5 "whole tree by subtree" {} {
+    q query reset root subtree get data
+} "0 1 3 7 8 4 9 10 2 5 11 12 6 13 14"
+
+test treeql-${impl}-1.6 "whole tree by ancestors" {} {
+    q query reset root children children children ancestors unique get data
+} "7 3 1 0 8 9 4 10 11 5 2 12 13 6 14"
+
+test treeql-${impl}-1.7 "three generations by ancestors" {} {
+    q query reset root children children ancestors unique get data
+} "3 1 0 4 5 2 6"
+
+test treeql-${impl}-1.8 "grandchildren and below by subtree" {} {
+    q query reset root children children children subtree get data
+} "7 8 9 10 11 12 13 14"
+
+test treeql-${impl}-2.0 "hasatt data" {} {
+    q query reset tree hasatt data get data
+} "0 1 3 7 8 4 9 10 2 5 11 12 6 13 14"
+
+test treeql-${impl}-2.1 "hasatt noatt (none)" {} {
+    q query reset tree hasatt noatt get data
+} ""
+
+test treeql-${impl}-2.2 "withatt 7" {} {
+    q query reset tree withatt data 7 get data
+} 7
+
+test treeql-${impl}-2.3 "withatt 999" {} {
+    q query reset tree withatt data 999 get data
+} ""
+
+test treeql-${impl}-2.4 "attof {6 7 8 9 10}" {} {
+    q query reset tree attof data {6 7 8 9 10} get data
+} "7 8 9 10 6"
+
+test treeql-${impl}-2.5 "attmatch 1*" {} {
+    q query reset tree attmatch data 1* get data
+} "1 10 11 12 13 14"
+
+test treeql-${impl}-2.6 "set to even or odd" {} {
+    q query reset root       set @type even
+    q query reset tree left  set @type odd
+    q query reset tree right set @type even
+    q query reset tree get *
+} "{even 0} {odd 1} {odd 3} {odd 7} {even 8} {even 4} {odd 9} {even 10} {even 2} {odd 5} {odd 11} {even 12} {even 6} {odd 13} {even 14}"
+
+test treeql-${impl}-2.7 "oftype odd" {} {
+    q query reset tree oftype odd get data
+} "1 3 7 9 5 11 13"
+
+test treeql-${impl}-2.8 "test unset" {} {
+    q query reset tree set junk 1
+    q query reset tree unset junk
+    q query reset tree get *
+} "{even 0} {odd 1} {odd 3} {odd 7} {even 8} {even 4} {odd 9} {even 10} {even 2} {odd 5} {odd 11} {even 12} {even 6} {odd 13} {even 14}"
+
+test treeql-${impl}-2.9 "attlist" {} {
+    q query reset tree attlist
+} "{even 0} {odd 1} {odd 3} {odd 7} {even 8} {even 4} {odd 9} {even 10} {even 2} {odd 5} {odd 11} {even 12} {even 6} {odd 13} {even 14}"
+
+test treeql-${impl}-2.10 "attrs" {} {
+    q query reset tree attrs *
+} "@type data @type data @type data @type data @type data @type data @type data @type data @type data @type data @type data @type data @type data @type data @type data"
+
+test treeql-${impl}-3.0 "capitalise attribute values" {} {
+    q query reset tree string toupper @type
+} "EVEN ODD ODD ODD EVEN EVEN ODD EVEN EVEN ODD ODD EVEN EVEN ODD EVEN"
+
+test treeql-${impl}-3.1 "attribute string filter" {} {
+    q query reset tree stringP {compare "odd"} @type get data
+} "0 8 4 10 2 12 6 14"
+
+test treeql-${impl}-3.2 "attribute string !filter" {} {
+    q query reset tree stringNP {compare "odd"} @type get data
+} "1 3 7 9 5 11 13"
+
+test treeql-${impl}-3.3 "attribute expr filter" {} {
+    q query reset tree exprP {7 <=} data get data
+} "7 8 9 10 11 12 13 14"
+
+test treeql-${impl}-3.4 "attribute expr !filter" {} {
+    q query reset tree exprNP {7 <=} data get data
+} "0 1 3 4 2 5 6"
+
+test treeql-${impl}-4.0 "descendents of 2" {} {
+    q query reset root children select next descendants get data
+} "5 11 12 6 13 14"
+
+test treeql-${impl}-4.1 "forward from 1" {} {
+    q query reset root children select forward get data
+} "5 11 12 6 13 14"
+
+test treeql-${impl}-4.2 "earlier than 2" {} {
+    q query reset root children next earlier get data
+} "3 7 8 4 9 10"
+
+test treeql-${impl}-4.3 "backward from 2" {} {
+    q query reset root children next backward get data
+} "10 9 4 8 7 3 1"
+
+test treeql-${impl}-5.0 "<= 4 or odd" {} {
+    # oftype - See test 2.6 for setting it.
+    # exprP: attribute value is on the right: (4 >= x)
+    lsort -integer [q query reset tree left orq {tree exprP {4 >=} data} get data]
+} {0 1 2 3 4 5 7 9 11 13}
+
+test treeql-${impl}-5.1 "> 4 and odd" {} {
+    # oftype - See test 2.6 for setting it.
+    # exprP: attribute value is on the right: (4 < x)
+    lsort -integer [q query reset tree oftype odd andq {tree exprP {4 <} data} get data]
+} {5 7 9 11 13}
+
+test treeql-${impl}-5.2 "odd numbers by subtraction" {} {
+    # oftype - See test 2.6 for setting it.
+    lsort -integer [q query reset tree notq {tree oftype even} get data]
+} {1 3 5 7 9 11 13}
+
+test treeql-${impl}-5.3 "add a depth attribute to each node" {} {
+    q foreach {tree} node {
+	t set $node @depth [llength [q do_rootpath $node]]
+    }
+    q query tree get *
+} "{1 even 0} {2 odd 1} {3 odd 3} {4 odd 7} {4 even 8} {3 even 4} {4 odd 9} {4 even 10} {2 even 2} {3 odd 5} {4 odd 11} {4 even 12} {3 even 6} {4 odd 13} {4 even 14}"
+
+test treeql-${impl}-5.4 "square each odd number" {} {
+    q foreach {tree oftype odd} node {
+	set x [t get $node data]
+	t set $node square [expr $x * $x]
+    }
+    q query reset tree get square
+} "{} 1 9 49 {} {} 81 {} {} 25 121 {} {} 169 {}"
+
+test treeql-${impl}-6.0 "delete all odd numbers" {} {
+    q query reset tree oftype odd delete
+    q query tree get data
+} "0 8 4 10 2 12 6 14"
+
+test treeql-${impl}-6.1 "delete all even numbers (except root)" {} {
+    q query reset tree oftype even notq {root} delete
+    q query tree get data
+} 0
+
+test treeql-${impl}-6.2 "delete all (except root)" {} {
+    q query reset tree notq {root} delete
+    q query tree get data
+} 0
+
+test treeql-${impl}-get.1 {attributes with special characters} {
+    t insert root end n1 n2 n3
+    t set n1 title hello
+    t set n2 title "hello there"
+    t set n3 title {[hello]}
+    q query root children get title
+} [list hello {hello there} {[hello]}]
+
+# -------------------------------------------------------------------------
+
+test treeql-${impl}-over-1.0 {over} {
+    set track {}
+    set context 1
+    q query root over n {lappend track $n $context}
+    set track
+} {root 1}
+
+test treeql-${impl}-over-1.1 {over} {
+    set track {}
+    set context 2
+    q query tree subquery root over n {lappend track $n $context}
+    set track
+} {root 2}
+
+test treeql-${impl}-over-1.2 {over} {
+    set track {}
+    set context 2
+    q query tree andq {root over n {lappend track $n $context}}
+    set track
+} {root 2}
+
+test treeql-${impl}-over-1.3 {over} {
+    set track {}
+    set context 2
+    q query tree orq {root over n {lappend track $n $context}}
+    set track
+} {root 2}
+
+test treeql-${impl}-over-1.4 {over} {
+    set track {}
+    set context 2
+    q query tree notq {root over n {lappend track $n $context}}
+    set track
+} {root 2}
+
+test treeql-${impl}-foreach-1.0 {foreach} {
+    set track {}
+    set context 1
+    q query tree foreach root n {lappend track $n $context}
+    set track
+} {root 1}
+
+test treeql-${impl}-foreach-1.1 {foreach} {
+    set track {}
+    set context 2
+    q query tree subquery root foreach root n {lappend track $n $context}
+    set track
+} {root 2}
+
+test treeql-${impl}-foreach-1.2 {foreach} {
+    set track {}
+    set context 2
+    q query tree andq {root foreach root n {lappend track $n $context}}
+    set track
+} {root 2}
+
+test treeql-${impl}-foreach-1.3 {foreach} {
+    set track {}
+    set context 2
+    q query tree orq {root foreach root n {lappend track $n $context}}
+    set track
+} {root 2}
+
+test treeql-${impl}-foreach-1.4 {foreach} {
+    set track {}
+    set context 2
+    q query tree notq {root foreach root n {lappend track $n $context}}
+    set track
+} {root 2}
+
+test treeql-${impl}-with-1.0 {with} {
+    set track {}
+    set context 1
+    q query with root {lappend track $context}
+    set track
+} 1
+
+test treeql-${impl}-with-1.1 {with} {
+    set track {}
+    set context 2
+    q query root subquery with root {lappend track $context}
+    set track
+} 2
+
+test treeql-${impl}-with-1.2 {with} {
+    set track {}
+    set context 2
+    q query andq {with root {lappend track $context}}
+    set track
+} 2
+
+test treeql-${impl}-with-1.3 {with} {
+    set track {}
+    set context 2
+    q query orq {with root {lappend track $context}}
+    set track
+} 2
+
+test treeql-${impl}-with-1.4 {with} {
+    set track {}
+    set context 2
+    q query notq {with root {lappend track $context}}
+    set track
+} 2
+
+test treeql-${impl}-transform-1.0 {transform} {
+    set track {}
+    set context 1
+    q query transform root n {
+	lappend track $n $context
+	continue
+    }
+    set track
+} {root 1}
+
+test treeql-${impl}-transform-1.1 {transform} {
+    set track {}
+    set context 2
+    q query subquery transform root n {
+	lappend track $n $context
+	continue
+    }
+    set track
+} {root 2}
+
+test treeql-${impl}-transform-1.2 {transform} {
+    set track {}
+    set context 2
+    q query andq {transform root n {
+	lappend track $n $context
+	continue
+    }}
+    set track
+} {root 2}
+
+test treeql-${impl}-transform-1.3 {transform} {
+    set track {}
+    set context 2
+    q query orq {transform root n {
+	lappend track $n $context
+	continue
+    }}
+    set track
+} {root 2}
+
+test treeql-${impl}-transform-1.4 {transform} {
+    set track {}
+    set context 2
+    q query notq {transform root n {
+	lappend track $n $context
+	continue
+    }}
+    set track
+} {root 2}
+
+test treeql-${impl}-map-1.0 {map} {
+    set track {}
+    set context 1
+    q query root map n {
+	lappend track $n $context
+	continue
+    }
+    set track
+} {root 1}
+
+test treeql-${impl}-map-1.1 {map} {
+    set track {}
+    set context 2
+    q query subquery root map n {
+	lappend track $n $context
+	continue
+    }
+    set track
+} {root 2}
+
+test treeql-${impl}-map-1.2 {map} {
+    set track {}
+    set context 2
+    q query andq {root map n {
+	lappend track $n $context
+	continue
+    }}
+    set track
+} {root 2}
+
+test treeql-${impl}-map-1.3 {map} {
+    set track {}
+    set context 2
+    q query orq {root map n {
+	lappend track $n $context
+	continue
+    }}
+    set track
+} {root 2}
+
+test treeql-${impl}-map-1.4 {map} {
+    set track {}
+    set context 2
+    q query notq {root map n {
+	lappend track $n $context
+	continue
+    }}
+    set track
+} {root 2}
+
+# -------------------------------------------------------------------------
+# Cleanup
+
+q destroy
+t destroy

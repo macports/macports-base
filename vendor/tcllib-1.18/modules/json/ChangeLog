@@ -1,0 +1,206 @@
+2014-01-07  Andreas Kupries  <andreask@activestate.com>
+
+	* json.tcl: Move many-* wrapper to before its usage. Bumped
+	  version to 1.3.2. v1.3.1 is broken.
+
+	* c/json.tab.c: Worked around issues with the critcl v2
+	* c/json.y: application the Tcllib C code is geared towards.
+	* json.tcl: Bumped json version to 1.3.1, jsonc to 1.1.1,
+	* jsonc.tcl: and tcllibc to 0.3.13.
+	* tcllibc.tcl: See ticket [6efa4f571af052].
+
+2014-01-06  Andreas Kupries  <andreask@activestate.com>
+
+	See ticket [6efa4f571af052].
+	c: Removed json-parser files.
+	c/json.y: New parser.
+	c/json.tab.c: Generated parser code.
+	c/json_y.h: Header to binding.
+	jsonc.tcl:
+	json_tcl.tcl:
+
+	Reworked the Json/C code to use a bison-pased parser provided by
+	Mikhail. No separate data structures to convert, just direct
+	generation of Tcl structures. Changes compared to the original
+	submission:
+
+	- Use List, not Dict operations for objects, i.e. be Tcl 8.4
+	  compatible.
+
+	- Do not generate Int/Double objects, only strings.  Conversion to
+	  actual int is lazy, when actually needed.  Also ensures that
+	  compile-time Tcl version does not restrict range of integers,
+	  only runtime Tcl version.
+
+	- Allow all values as toplevel json, not just array and object.
+
+	- Currently no shared objects for the fixed values (null, true,
+	  false).
+
+	Note that the RE-based json validation is still faster on even
+	moderatly sized strings, even when just using a stripped C lexer
+	not generating token values.
+
+	Bumped jsonc to version 1.1 and tcllibc to version 0.3.12.
+
+2013-12-11  Andreas Kupries  <andreask@activestate.com>
+
+	* c: [Ticket 6efa4f571a]: Integrated a critcl binding of
+	* json.bench: the json-c parser. Moved to a standard
+	* json.man: switchable setup. json2dict and manyy-json2dict
+	* json.tcl: are now switchable to C. Everything else kept
+	* json.test: to Tcl. Note especially that Tcl 'validate'
+	* json.testsuite: (regexp-based) was still faster than json-c.
+	* json_tcl.tcl: Which has no mode for pure syntax checking,
+	* jsonc.tcl: thus overhead with construction of irelevant data
+	* pkgIndex.tcl: structures. Extended testsuite. New benchmark
+	* test-data: suite. Version bumped to 1.3.
+
+2013-06-19  Andreas Kupries  <andreask@activestate.com>
+
+	* json.man: New command 'many-json2dict' to parse strings
+	* json.pcx: containing more than one JSON entity. The existing
+	* json.tcl: json2dict command will return only the first. Updated
+	* json.test: documentation. Extended testsuite. Package version
+	* pkgIndex.tcl: bumped to 1.2
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-02-01  Andreas Kupries  <aku@hephaistos>
+
+	* json_write.tcl: While we can quote / (solidus) via \/ as per the
+	* json_write.man: JSON syntax there is no reason why we should.
+	* json_write.test: Bumped version to 1.0.2.
+	* pkgIndex.tcl:
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* json.tcl: [Bug 3426178]: Fixed bug in "list2json",
+	* json.test: reported by <a11426@users.sourceforge.net>.
+	* json.man: Updated testsuite. Bumped version to 1.1.2.
+	* pkgIndex.tcl:
+
+2011-08-24  Andreas Kupries  <andreask@activestate.com>
+
+	* json_write.man:
+	* json_write.test:
+	* json_write.tcl: [Bug 3396787]: Fixed missing argument to call of
+	* pkgIndex.tcl: [info level], breaking the argument checks. Bumped
+	  version to 1.0.1
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* json.tcl (json::parseValue): Fixed a missing -- older 8.4 seems
+	* json.man: to require to handle a dash in $leadingChar. Bumped
+	* pkgIndex.tcl: version to 1.1.1
+
+2009-12-10  Andreas Kupries  <andreask@activestate.com>
+
+	* json.tcl: [Patch 2909962]: Accepted rewrite of the json parser
+	* json.man: internals by Thomas Maeder
+	* pkgIndex.tcl: <thomasmaeder@users.sourceforge.net>. The new
+	  (regex-based) parser is considerably faster than the previous
+	  implementation. Bumped version to 1.1.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* json_write.tcl: New package 'json::write', supporting the
+	* json_write.test: generation of text in JSON format.
+	* json_write.man: Package version 1.
+	* json_write.pcx:
+	* pkgIndex.tcl: 
+
+2009-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* json.tcl: Bumped package to version 1.0.1 due to the bugfix made
+	* pkgIndex.tcl: on 2009-04-18.
+
+2009-05-26  KATO Kanryu  <kanryu6@users.sourceforge.net>
+
+	* json.test: improved to compare dicts
+
+2009-04-18  KATO Kanryu  <kanryu6@users.sourceforge.net>
+
+	* json.tcl: fixed to parse last integer
+	* json.test: improved to compare dicts
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* json.pcx: New file. Syntax definitions for the public commands
+	  of the json package.
+
+2007-12-05  Andreas Kupries  <andreask@activestate.com>
+
+	* json.test: Brought the test results into sync with the ordered
+	  dicts of Tcl 8.5. NOTE: This will cause the combination of Tcl
+	  8.4 with a backported dict to fail, at least until either the
+	  backported dict does the same ordering, or the tests are split
+	  into variants, one for both of the two cases. This fixes [Tcllib
+	  SF Bug 1844104], reported by Larry Virden
+	  <lvirden@users.sourceforge.net>. Thanks.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* json.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-08-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* json.test: empty list test cases
+	* json.tcl (json::_json2dict): handle empty list case
+
+2006-08-18  Andreas Kupries  <andreask@activestate.com>
+
+	* json.man: Added some more keywords to the docs.
+
+2006-08-17  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* json.tcl, json.man, json.test, pkgIndex.tcl: json package v1.0
+	Parses JSON formatted text into Tcl dicts.
+	See http://www.json.org/ for format details.

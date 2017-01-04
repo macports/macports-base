@@ -1,0 +1,79 @@
+# -*- tcl -*-
+# Graph tests - graph/arc/node getall (attribute getall)
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: getall.test,v 1.3 2008/03/07 06:51:37 andreas_kupries Exp $
+
+# Syntax: graph      getall      ?PATTERN?
+# Syntax: graph arc  getall ARC  ?PATTERN?
+# Syntax: graph node getall NODE ?PATTERN?
+
+# -------------------------------------------------------------------------
+
+foreach {e ex stem mp mk} {
+    arc   Arc   {mygraph arc}  {arc }  x
+    node  Node  {mygraph node} {node } x
+    graph Graph {mygraph}      {}      {}
+} {
+    AttrSetup
+
+    # -------------------------------------------------------------------------
+    # Wrong # args: Missing, Too many
+
+    test graph-${impl}-${setimpl}-${e}-getall-1.0 "$e getall, wrong # args, missing" !graph {
+	SETUP
+	catch {CMD getall} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}getall" "${mp}?pattern?" 0] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-getall-1.1 "$e getall, wrong # args, too many" {
+	SETUP
+	catch {CMD getall a b c} msg
+	mygraph destroy
+	set msg
+    } [tmTooManyA "${mp}getall" "${mp}?pattern?"] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Logical arguments checks and failures
+
+    test graph-${impl}-${setimpl}-${e}-getall-2.0 "$e getall, missing $e" !graph {
+	SETUP
+	catch {Getall$ex} msg
+	mygraph destroy
+	set msg
+    } [Missing$ex $MY x] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Ok arguments.
+
+    test graph-${impl}-${setimpl}-${e}-getall-3.0 "$e getall, no attributes, empty dictionary" {
+	SETUP
+	$ex
+	set results [Getall$ex]
+	mygraph destroy
+	set results
+    } {} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-getall-3.1 "$e getall, result is dictionary" {
+	SETUP
+	$ex
+	SetW$ex data  foobar
+	SetW$ex other thing
+	set results [dictsort [Getall$ex]]
+	mygraph destroy
+	set results
+    } {data foobar other thing} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-getall-3.2 "$e getall, pattern match" {
+	SETUP
+	$ex
+	SetW$ex data  foobar
+	SetW$ex other thing
+	set results [dictsort [GetallP$ex d*]]
+	mygraph destroy
+	set results
+    } {data foobar} ; # {}
+}
+
+# -------------------------------------------------------------------------

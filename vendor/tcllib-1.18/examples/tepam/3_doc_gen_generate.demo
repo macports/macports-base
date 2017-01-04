@@ -1,0 +1,156 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 3_doc_gen_generate.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2013 Andreas Drollinger
+# 
+# Id: 3_doc_gen_generate.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo shows the way the tepam::doc_gen::generate command works.
+
+   package require Tk
+   package require tepam::doc_gen
+
+#### Procedure definition ####
+
+DemoControl(IsExecutable) {[info commands {show message}]=={}}
+
+# Define two sub-procedures of the command 'show'.
+
+   tepam::procedure {show message} {
+      -return            -
+      -short_description "Displays a simple message box"
+      -description       "This procedure allows displaying a configurable message box. It supports the following message types:
+                          * Info
+                          * Warning
+                          * Error
+                          Font, foreground and background colors are free selectable.
+                          Optionally, all messages can be logged in a log file."
+      -args {
+         {-mtype -default Warning -choices {Info Warning Error} -description "M. type"}
+         {-font -type font -default {Arial 10 italic} -description "Message font"}
+         {-level -type integer -optional -range {1 10} -description "Message level"}
+         {-fg -type color -default black -description "Message color"}
+         {-bg -type color -optional -description "Background color"}
+         {-no_border -type none -description "Use a splash window style (no border)"}
+         {-log_file -type file -optional -description "Optional message log file"}
+         {text -type string -multiple -description "Multiple text lines to display"}
+      }
+      -example {
+         show message "The document hasn't yet been saved!"
+         show message -fg red -bg black "Please save first the document"
+      }
+   } {
+      puts "show message: Procedure body not implemented"
+   }
+
+   tepam::procedure {show status} {
+      -return            -
+      -short_description "Displays the program status"
+      -description       "This procedure displays the global program status"
+      -args {
+         {-font -type font -default {Arial 10 italic} -description "Message font"}
+         {-log_file -type file -optional -description "Optional message log file"}
+         {text -type string -multiple -description "Multiple text lines to display"}
+      }
+      -example {
+         show status "The program is in a critical state!"
+      }
+   } {
+      puts "show status: Procedure body not implemented"
+   }
+
+#### Single procedure documentation with 'generate' ####
+
+DemoControl(IsExecutable) {[info commands {show message}]!={}}
+
+# This demo section generates the documentation of a single procedure (a 
+# procedure that has no sub-procedures) in the 4 pre-defined formats.
+
+   # Get the directory where the generated documents have to be stored
+   set DocDir [tk_chooseDirectory ]
+   
+   # Generate the documentation in all 4 pre-defined formats
+   tepam::doc_gen::generate -format TXT  -dest_file $DocDir/generate_show_message.txt  {show message}
+   tepam::doc_gen::generate -format POD  -dest_file $DocDir/generate_show_message.pod  {show message}
+   tepam::doc_gen::generate -format HTML -dest_file $DocDir/generate_show_message.html {show message}
+   tepam::doc_gen::generate -format DT   -dest_file $DocDir/generate_show_message.dt   {show message}
+
+   # Copy the HTML CSS file to the destination directory
+   file copy -force [pwd]/tepam_doc_stylesheet.css $DocDir
+
+
+#### Multi procedure documentation with 'generate' ####
+
+DemoControl(IsExecutable) {[info commands {show message}]!={}}
+
+# This demo section generates the documentation of a procedure that 
+# has sub-procedures in the 4 pre-defined formats.
+
+   # Get the directory where the generated documents have to be stored
+   set DocDir [tk_chooseDirectory ]
+   
+   # Generate the documentation in all 4 pre-defined formats
+   tepam::doc_gen::generate -format TXT  -dest_file $DocDir/generate_show.txt  {show}
+   tepam::doc_gen::generate -format POD  -dest_file $DocDir/generate_show.pod  {show}
+   tepam::doc_gen::generate -format HTML -dest_file $DocDir/generate_show.html {show}
+   tepam::doc_gen::generate -format DT   -dest_file $DocDir/generate_show.dt   {show}
+
+   # Copy the HTML CSS file to the destination directory
+   file copy -force [pwd]/tepam_doc_stylesheet.css $DocDir
+
+#### Documentation with 'patch' ####
+
+DemoControl(IsExecutable) {[info commands {show message}]!={}}
+
+# This demo section demonstrates the HTML documentation of multiple 
+# procedures using a master document template in which the procedure 
+# documentation is inserted using the command 'patch'.
+
+   # Definintion of the HTML master document
+   set HtmlMasterDoc {\
+   <html>
+     <head>
+       <title>Display</title>
+       <link rel="stylesheet" href="tepam_doc_stylesheet.css">
+       <meta content="documentation" name="keywords"></meta>
+     </head>
+     <body>
+       <h1>tepam::doc_gen</h1>
+         <h2>show message</h2>
+   {*show message*}
+         <h2>show status</h2>
+   {*show status*}
+     </body>
+   <html>\
+   }
+   
+   # Get the directory where the generated documents have to be stored
+   set DocDir [tk_chooseDirectory ]
+
+   # Patch the master document: This will replace the placeholders by the 
+   # procedure documentation divisions:
+   tepam::doc_gen::patch -format HTML -search_pattern {\{\*(.*?)\*\}} \
+                         -src_string $HtmlMasterDoc -dest_file $DocDir/patch_display.html
+
+   # Copy the HTML CSS file to the destination directory
+   file copy -force [pwd]/tepam_doc_stylesheet.css [file dirname $DocFile]
+
+##########################################################################
+# Id: 3_doc_gen_generate.demo
+# Modifications:
+#
+# Revision 1.1  2013/10/14 droll
+# * TEPAM Doc Gen package checkin
+##########################################################################

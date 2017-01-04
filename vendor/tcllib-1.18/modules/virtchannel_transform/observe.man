@@ -1,0 +1,50 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::transform::observe n 1]
+[keywords {channel transformation}]
+[keywords observer]
+[keywords {reflected channel}]
+[keywords {stream copy}]
+[keywords {tip 230}]
+[keywords transformation]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Observer transformation, stream copy}]
+[require Tcl 8.6]
+[require tcl::transform::core [opt 1]]
+[require tcl::transform::observe [opt 1]]
+[description]
+[para]
+
+The [package tcl::transform::observer] package provides a command
+creating a channel transformation which passes the read and written
+bytes through unchanged (like [package tcl::transform::identity]), but
+additionally copies the data it has seen for each direction into
+channels specified at construction time.
+
+[para] Related transformations in this module are
+[package tcl::transform::adler32],
+[package tcl::transform::counter],
+[package tcl::transform::crc32], and
+[package tcl::transform::identity].
+
+[para] The internal [package TclOO] class implementing the transform
+handler is a sub-class of the [package tcl::transform::core]
+framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::transform::observe] [arg chan] [arg logw] [arg logr]]
+
+This command creates an observer transformation on top of the channel
+[arg chan] and returns its handle. The channel handles [arg logr] and
+[arg logw] are there the data is copied to.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,75 @@
+[manpage_begin ascii85 n 1.0]
+[keywords ascii85]
+[keywords encoding]
+[copyright "2010, Emiliano Gavil\u00e1n"]
+[moddesc   {Text encoding & decoding binary data}]
+[titledesc {ascii85-encode/decode binary data}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require ascii85 [opt 1.0]]
+[description]
+[para]
+
+This package provides procedures to encode binary data into ascii85 and back.
+
+[list_begin definitions]
+
+[call [cmd ::ascii85::encode] [opt "[option -maxlen] [arg maxlen]"] [opt "[option -wrapchar] [arg wrapchar]"] [arg string]]
+
+Ascii85 encodes the given binary [arg string] and returns the encoded
+result. Inserts the character [arg wrapchar] every [arg maxlen]
+characters of output. [arg wrapchar] defaults to newline. [arg maxlen]
+defaults to [const 76].
+
+[para]
+
+[emph {Note well}]: If your string is not simple ascii you should fix
+the string encoding before doing ascii85 encoding. See the examples.
+
+[para]
+
+The command will throw an error for negative values of [arg maxlen],
+or if [arg maxlen] is not an integer number.
+
+[call [cmd ::ascii85::decode] [arg "string"]]
+
+Ascii85 decodes the given [arg "string"] and returns the binary data.
+The decoder ignores whitespace in the string, as well as tabs and
+newlines.
+
+[list_end]
+
+[section {EXAMPLES}]
+
+[example {
+% ascii85::encode "Hello, world"
+87cURD_*#TDfTZ)
+}]
+
+[example {
+% ascii85::encode [string repeat xyz 24]
+G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G
+^4U[H$X^\H?a^]
+% ascii85::encode -wrapchar "" [string repeat xyz 24]
+G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]G^4U[H$X^\H?a^]
+}]
+
+[example {
+# NOTE: ascii85 encodes BINARY strings.
+% set chemical [encoding convertto utf-8 "C\u2088H\u2081\u2080N\u2084O\u2082"]
+% set encoded [ascii85::encode $chemical]
+6fN]R8E,5Pidu\UiduhZidua
+% set caffeine [encoding convertfrom utf-8 [ascii85::decode $encoded]]
+}]
+
+[section References]
+
+[list_begin enum]
+[enum] [uri http://en.wikipedia.org/wiki/Ascii85]
+[enum] Postscript Language Reference Manual, 3rd Edition, page 131.
+       [uri http://www.adobe.com/devnet/postscript/pdfs/PLRM.pdf]
+[list_end]
+
+[vset CATEGORY base64]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

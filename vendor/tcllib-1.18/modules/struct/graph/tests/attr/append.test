@@ -1,0 +1,88 @@
+# -*- tcl -*-
+# Graph tests - graph/arc/node append (attribute append)
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: append.test,v 1.3 2008/03/07 06:51:36 andreas_kupries Exp $
+
+# Syntax: graph      append      KEY VALUE
+# Syntax: graph arc  append ARC  KEY VALUE
+# Syntax: graph node append NODE KEY VALUE
+
+# -------------------------------------------------------------------------
+
+foreach {e ex stem mp mk} {
+    arc   Arc   {mygraph arc}  {arc }  x
+    node  Node  {mygraph node} {node } x
+    graph Graph {mygraph}      {}      {}
+} {
+    AttrSetup
+
+    # -------------------------------------------------------------------------
+    # Wrong # args: Missing, Too many
+
+    test graph-${impl}-${setimpl}-${e}-append-1.0 "$e append, wrong#args, missing" {
+	SETUP
+	catch {CMD append} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}append" "${mp}key value" 0] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-append-1.1 "$e append, wrong#args, missing" {
+	SETUP
+	catch {CMD append a} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}append" "${mp}key value" 1] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-append-1.2 "$e append, wrong#args, missing" !graph {
+	SETUP
+	catch {CMD append a b} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}append" "${mp}key value" 2] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-append-1.3 "$e append, wrong#args, too many" {
+	SETUP
+	catch {CMD append a b c d} msg
+	mygraph destroy
+	set msg
+    } [tmTooManyA "${mp}append" "${mp}key value"] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Logical arguments checks and failures
+
+    test graph-${impl}-${setimpl}-${e}-append-2.0 "$e append, missing $e" !graph {
+	SETUP
+	catch {Append$ex data foo} msg
+	mygraph destroy
+	set msg
+    } [Missing$ex $MY x] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Ok arguments.
+
+    test graph-${impl}-${setimpl}-${e}-append-3.0 "$e append, no attribute, created" {
+	SETUP
+	$ex
+	set     result {}
+	lappend result [Keyexists$ex data]
+	lappend result [Append$ex    data bar]
+	lappend result [Keyexists$ex data]
+	lappend result [Get$ex       data]
+	mygraph destroy
+	set result
+    } {0 bar 1 bar} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-append-3.1 "$e append, existing attribute, appending" {
+	SETUP
+	$ex
+	set     result {}
+	lappend result [SetW$ex   data foo]
+	lappend result [Append$ex data bar]
+	lappend result [Get$ex    data]
+	mygraph destroy
+	set result
+    } {foo foobar foobar} ; # {}
+}
+
+# -------------------------------------------------------------------------

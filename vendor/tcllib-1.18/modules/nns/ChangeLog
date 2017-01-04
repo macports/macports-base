@@ -1,0 +1,192 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-21  Andreas Kupries  <andreask@activestate.com>
+
+	* nns.tcl: Fixed [Bug 2182378], reported by Joe Brandt
+	* pkgIndex.tcl: <vonbane@users.sourceforge.net>. Added
+	* nns_client.man: the missing assignment for 'oneshot'.
+	  Version bumped to 0.4.2.
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-08-13  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* nns.tcl: Fixed missing variable. Bumped version to 0.4.1.
+	* nns_auto.tcl:
+	* pkgIndex.tcl:
+
+2008-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../../apps/nns: Switched to use of nameserv::auto to handle the
+	* ../../apps/nnslog: loss and restoration of the server
+	  automatically. Got rid of the colorization frills.
+
+	* server.tcl (::nameserv::server::bind): Small extension of log
+	* pkgIndex.tcl: output for failure case of bind. Added log output 
+	* nns_server.man: to trace searches. Bumped package version to 0.3.2.
+
+	* nns_auto.tcl: Refactored the bind and restore code, put the
+	* nns_auto.man: commonalities into shared commands. Extended the
+	* pkgIndex.tcl: API to become a full drop-in replacement for
+	  'nameserv', just with the persistence feature. Extended the
+	  persistence to continuous and unfulfilled async searches. Now
+	  exporting the API commands. Bumped package version to 0.3.
+
+	* nns.tcl: Factored the argument processing for searches into a
+	* pkgIndex.tcl: separate command. Pseudo-public. Undocumented, but
+	* nns_client.man: can be used by other nameserver packages. Fixed
+	  leak when encountering a missing name server during creation of
+	  a continuous or async search. Fixed async destruction of a
+	  continous search from receiver object. Now exporting the API
+	  commands. Bumped package version to 0.4.
+
+2008-05-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* nns_auto.tcl (::nameserv::auto::configure): Fixed incorrect
+	* server.tcl (::nameserv::server::configure): checking for 
+	* nns.tcl (::nameserv::configure): wrong#args in the code
+	* pkgIndex.tcl: handling the various options. Bumped client
+	* nns_client.man: to version 0.3.2, server to 0.3.1, and auto
+	* nns_server.man: to 0.2.1. Also general documentation work.
+	* nns_auto.man:
+	* nns_intro.man:
+
+2008-04-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../../apps/nns (::nns::ProcessCommandLine): Fixed incorrect
+	* ../../apps/nns.man: checking for wrong#args in the code handling
+	* ../../apps/nnsd.man: the options -host and -port. Reworked
+	  the descriptiond of the applications a bit.
+
+	* ../../apps/nnslog: New application and its documentation, a
+	* ../../apps/nnslog.man: stripped down form of 'nns search
+	  -continuous *' with different output (log of events).
+
+2008-04-30  Andreas Kupries  <andreask@activestate.com>
+
+	* nns.tcl (::nameserv::configure): Fixed [Bug 1954771], bringing
+	* pkgIndex.tcl: missing variable into scope. Thanks to Joe Brandt
+	* nns_client:man: <vonbane@users.sourceforge.net> for both report
+	  and fix. Bumped version to 0.3.1.
+
+2008-04-30  Andreas Kupries  <andreask@activestate.com>
+
+	* nns_intro.man: New file, giving an overview of the packages and
+	* nns_auto.man: applications in the module. All other documents now
+	* nns_client.man: refer back to the introduction. Also clarified
+	* nns_common.man: the relationship to DNS, which is none, plus
+	* nns_protocol.man: reference to the Tcllib packages which do
+	* nns_server.man: handle DNS. Pointed applications out as examples
+	* ../../apps/nnsd.man: of use for the packages.
+	* ../../apps/nns.man:
+
+2008-04-03  Andreas Kupries  <andreask@activestate.com>
+
+	* nns_protocol.man: Renamed nns_procotol.man, fixed the typo in
+	the filename. Thanks to Reinhard Max for seeing this.
+
+2008-03-14  Andreas Kupries  <andreask@activestate.com>
+
+	* nns_client.man: Cleaned up a bit, replaced deprecated [lst_item]
+	  usage with [def].
+
+2008-02-29  Andreas Kupries  <andreask@activestate.com>
+
+	* nns_auto.tcl (::nameserv::auto::Rebind, ::nameserv::auto::bind):
+	* nns_auto.man: Fixed string match with bad pattern and missing
+	* pkgIndex.tcl: string to match against. Version bumped to 0.2.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-07-18  Andreas Kupries  <andreask@activestate.com>
+
+	* ../../apps/nnsd: Fixed option bug. Bumped version to 1.0.1.
+
+	* ../../apps/nns: Extended example client application with
+	* ../../apps/nns.man: continuous search. Further extended to
+	  detect and handle loss of connection with service, by exiting.
+	  Bumped version to 1.1
+
+	* server.tcl: Implemented asynchronous and continuous searches.
+	* nns.tcl: Ditto in client. Documented this feature, and the
+	* nns_client.man: extensions to the protocol it needs.
+	* nns_server.man: Bumped both server and client to version 0.3.
+	* nns_protocol.man:
+	* pkgIndex.tcl:
+
+2007-07-17  Andreas Kupries <andreask@activestate.com>
+
+	* nns_auto.tcl: Name service client on top of the basic facility.
+	* nns_auto.man: Provides automatic restoration of registered names
+	* pkgIndex.tcl: after a loss of connection.
+
+	* nns.tcl: Extended to use the services of 'uevent' to generate
+	  events for important changes, like the loss of the connection to
+	  the server. The package version is bumped to 0.2.
+
+2007-05-08  Andreas Kupries  <andreask@activestate.com>
+
+	* nns_client.man: New name for nns.man, to avoid clashing with the
+	* nns.tcl: nns.man of the command line client, and removed unwanted
+	  log output from the client package.
+
+	* ../../apps/nnsl: Merged nnsl and nnst into one command line client
+	* ../../apps/nnst: application, nns. Added documentation for that
+	* ../../apps/nns: application.
+	* ../../apps/nns.man
+
+	* ../../apps/nnsd.man: Added documentation for the command line
+	  server application.
+
+	* nns_server.man: Changed configuration -local to -localonly
+	* server.tcl: for better understanding. Bumped to version 0.2
+	* pkgIndex.tcl: Removed unwanted log output.
+
+2007-05-07  Andreas Kupries   <andreask@activestate.com>
+
+	* nns.man: Added documentation for client and server packages.
+	* nns_server.man:
+
+2007-05-04  Andreas Kupries  <andreask@activestate.com>
+
+	* NNS - Nano Name Service.
+	  Initial commit. TODO: Documentation for client and server, ditto
+	  testsuites, are needed. Only the trivial code shared by both is
+	  documented and tested. Manual testing has been done however,
+	  using the nns* applications, see apps/

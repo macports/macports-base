@@ -1,0 +1,680 @@
+
+<div class='fossil-doc' data-title='pt - Parser Tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../toc.html">Main Table Of Contents</a>
+| <a href="../../toc.html">Table Of Contents</a>
+| <a href="../../../index.html">Keyword Index</a>
+| <a href="../../../toc0.html">Categories</a>
+| <a href="../../../toc1.html">Modules</a>
+| <a href="../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pt(n) 1 tcllib &quot;Parser Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pt - Parser Tools Application</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Command Line</a></li>
+<li class="doctools_section"><a href="#section3">PEG Specification Language</a></li>
+<li class="doctools_section"><a href="#section4">JSON Grammar Exchange</a></li>
+<li class="doctools_section"><a href="#section5">C Parser Embedded In Tcl</a></li>
+<li class="doctools_section"><a href="#section6">C Parser</a></li>
+<li class="doctools_section"><a href="#section7">Snit Parser</a></li>
+<li class="doctools_section"><a href="#section8">TclOO Parser</a></li>
+<li class="doctools_section"><a href="#section9">Grammar Container</a></li>
+<li class="doctools_section"><a href="#section10">Example</a></li>
+<li class="doctools_section"><a href="#section11">Internals</a></li>
+<li class="doctools_section"><a href="#section12">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">pt</b> <b class="method">generate</b> <i class="arg">resultformat</i> <span class="opt">?<i class="arg">options...</i>?</span> <i class="arg">resultfile</i> <i class="arg">inputformat</i> <i class="arg">inputfile</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Are you lost ?
+Do you have trouble understanding this document ?
+In that case please read the overview provided by the
+<i class="term"><a href="../modules/pt/pt_introduction.html">Introduction to Parser Tools</a></i>. This document is the
+entrypoint to the whole system the current package is a part of.</p>
+<p>This document describes <b class="cmd">pt</b>, the main application of the module,
+a <i class="term"><a href="../../../index.html#key189">parser generator</a></i>. Its intended audience are people who wish
+to create a parser for some language of theirs. Should you wish to
+modify the application instead, please see the section about the
+application's <span class="sectref"><a href="#section11">Internals</a></span> for the basic references.</p>
+<p>It resides in the User Application Layer of Parser Tools.</p>
+<p><img alt="arch_user_app" src="../../../image/arch_user_app.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Command Line</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">pt</b> <b class="method">generate</b> <i class="arg">resultformat</i> <span class="opt">?<i class="arg">options...</i>?</span> <i class="arg">resultfile</i> <i class="arg">inputformat</i> <i class="arg">inputfile</i></a></dt>
+<dd><p>This sub-command of the application reads the parsing expression
+grammar stored in the <i class="arg">inputfile</i> in the format <i class="arg">inputformat</i>,
+converts it to the <i class="arg">resultformat</i> under the direction of the
+(format-specific) set of options specified by the user and stores the
+result in the <i class="arg">resultfile</i>.</p>
+<p>The <i class="arg">inputfile</i> has to exist, while the <i class="arg">resultfile</i> may be
+created, overwriting any pre-existing content of the file. Any missing
+directory in the path to the <i class="arg">resultfile</i> will be created as well.</p>
+<p>The exact form of the result for, and the set of options supported by
+the known result-formats, are explained in the upcoming sections of
+this document, with the list below providing an index mapping between
+format name and its associated section. In alphabetical order:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">c</b></dt>
+<dd><p>A <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section6">C Parser</a></span>.</p></dd>
+<dt><b class="const">container</b></dt>
+<dd><p>A <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section9">Grammar Container</a></span>.</p></dd>
+<dt><b class="const">critcl</b></dt>
+<dd><p>A <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section5">C Parser Embedded In Tcl</a></span>.</p></dd>
+<dt><b class="const">json</b></dt>
+<dd><p>A <i class="term">input</i>- and <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section4">JSON Grammar Exchange</a></span>.</p></dd>
+<dt><b class="const">oo</b></dt>
+<dd><p>A <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section8">TclOO Parser</a></span>.</p></dd>
+<dt><b class="const">peg</b></dt>
+<dd><p>A <i class="term">input</i>- and <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section3">PEG Specification Language</a></span>.</p></dd>
+<dt><b class="const">snit</b></dt>
+<dd><p>A <i class="term">resultformat</i>. See section <span class="sectref"><a href="#section7">Snit Parser</a></span>.</p></dd>
+</dl></dd>
+</dl>
+<p>Of the seven possible results four are parsers outright (<b class="const">c</b>,
+<b class="const">critcl</b>, <b class="const">oo</b>, and <b class="const">snit</b>), one (<b class="const">container</b>)
+provides code which can be used in conjunction with a generic parser
+(also known as a grammar interpreter), and the last two (<b class="const">json</b>
+and <b class="const">peg</b>) are doing double-duty as input formats, allowing the
+transformation of grammars for exchange, reformatting, and the like.</p>
+<p>The created parsers fall into three categories:</p>
+<p><img alt="gen_options" src="../../../image/gen_options.png"></p>
+<dl class="doctools_definitions">
+<dt><b class="const">Specialized parsers implemented in C</b></dt>
+<dd><p>The fastest parsers are created when using the result formats
+<b class="const">c</b> and <b class="const">critcl</b>. The first returns the raw C code for the
+parser, while the latter wraps it into a Tcl package using
+<i class="term">CriTcl</i>.</p>
+<p>This makes the latter much easier to use than the former. On the other
+hand, the former can be adapted to the users' requirements through a
+multitude of options, allowing for things like usage of the parser
+outside of a Tcl environment, something the <b class="const">critcl</b> format
+doesn't support. As such the <b class="const">c</b> format is meant for more
+advanced users, or users with special needs.</p>
+<p>A disadvantage of all the parsers in this section is the need to run
+them through a C compiler to make them actually executable. This is
+not something everyone has the necessary tools for. The parsers in the
+next section are for people under such restrictions.</p></dd>
+<dt><b class="const">Specialized parsers implemented in Tcl</b></dt>
+<dd><p>As the parsers in this section are implemented in Tcl they are quite a
+bit slower than anything from the previous section. On the other hand
+this allows them to be used in pure-Tcl environments, or in
+environments which allow only a limited set of binary packages. In the
+latter case it will be advantageous to lobby for the inclusion of the
+C-based runtime support (notes below) into the environment to reduce
+the impact of Tcl's on the speed of these parsers.</p>
+<p>The relevant formats are <b class="const">snit</b> and <b class="const">oo</b>. Both place their
+result into a Tcl package containing a <b class="cmd">snit::type</b>, or TclOO
+<b class="cmd"><a href="../../../index.html#key240">class</a></b> respectively.</p>
+<p>Of the supporting runtime, which is the package <b class="package"><a href="../modules/pt/pt_rdengine.html">pt::rde</a></b>, the
+user has to know nothing but that it does exist and that the parsers
+are dependent on it. Knowledge of the API exported by the runtime for
+the parsers' consumption is <em>not</em> required by the parsers' users.</p></dd>
+<dt><b class="const">Interpreted parsing implemented in Tcl</b></dt>
+<dd><p>The last category, grammar interpretation. This means that an
+interpreter for parsing expression grammars takes the description of
+the grammar to parse input for, and uses it guide the parsing process.
+This is the slowest of the available options, as the interpreter has
+to continually run through the configured grammar, whereas the
+specialized parsers of the previous sections have the relevant
+knowledge about the grammar baked into them.</p>
+<p>The only places where using interpretation make sense is where the
+grammar for some input may be changed interactively by the user, as
+the interpretation allows for quick turnaround after each change,
+whereas the previous methods require the generation of a whole new
+parser, which is not as fast.
+On the other hand, wherever the grammar to use is fixed, the previous
+methods are much more advantageous as the time to generate the parser
+is minuscule compared to the time the parser code is in use.</p>
+<p>The relevant result format is <b class="const">container</b>.
+It (quickly) generates grammar descriptions (instead of a full parser)
+which match the API expected by ParserTools' grammar interpreter.
+The latter is provided by the package <b class="package"><a href="../modules/pt/pt_peg_interp.html">pt::peg::interp</a></b>.</p></dd>
+</dl>
+<p>All the parsers generated by <b class="const">critcl</b>, <b class="const">snit</b>, and
+<b class="const">oo</b>, and the grammar interpreter share a common API for access
+to the actual parsing functionality, making them all
+plug-compatible.
+It is described in the <i class="term"><a href="../modules/pt/pt_parser_api.html">Parser API</a></i> specification document.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PEG Specification Language</a></h2>
+<p><b class="const">peg</b>, a language for the specification of parsing expression
+grammars is meant to be human readable, and writable as well, yet
+strict enough to allow its processing by machine. Like any computer
+language. It was defined to make writing the specification of a
+grammar easy, something the other formats found in the Parser Tools do
+not lend themselves too.</p>
+<p>For either an introduction to or the formal specification of the
+language, please go and read the <i class="term"><a href="../modules/pt/pt_peg_language.html">PEG Language Tutorial</a></i>.</p>
+<p>When used as a result-format this format supports the following
+options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-template</b> string</dt>
+<dd><p>The value of this option is a string into which to put the generated
+text and the values of the other options. The various locations for
+user-data are expected to be specified with the placeholders listed
+below. The default value is &quot;<b class="const">@code@</b>&quot;.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">@user@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-user</b>.</p></dd>
+<dt><b class="const">@format@</b></dt>
+<dd><p>To be replaced with the the constant <b class="const">PEG</b>.</p></dd>
+<dt><b class="const">@file@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-file</b>.</p></dd>
+<dt><b class="const">@name@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-name</b>.</p></dd>
+<dt><b class="const">@code@</b></dt>
+<dd><p>To be replaced with the generated text.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">JSON Grammar Exchange</a></h2>
+<p>The <b class="const">json</b> format for parsing expression grammars was written as
+a data exchange format not bound to Tcl. It was defined to allow the
+exchange of grammars with PackRat/PEG based parser generators for
+other languages.</p>
+<p>For the formal specification of the JSON grammar exchange format,
+please go and read <i class="term"><a href="../modules/pt/pt_json_language.html">The JSON Grammar Exchange Format</a></i>.</p>
+<p>When used as a result-format this format supports the following
+options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-indented</b> boolean</dt>
+<dd><p>If this option is set the system will break the generated JSON across
+lines and indent it according to its inner structure, with each key of
+a dictionary on a separate line.</p>
+<p>If the option is not set (the default), the whole JSON object will be
+written on a single line, with minimum spacing between all elements.</p></dd>
+<dt><b class="option">-aligned</b> boolean</dt>
+<dd><p>If this option is set the system will ensure that the values for the
+keys in a dictionary are vertically aligned with each other, for a
+nice table effect.
+To make this work this also implies that <b class="option">-indented</b> is set.</p>
+<p>If the option is not set (the default), the output is formatted as per
+the value of <b class="variable">indented</b>, without trying to align the values for
+dictionary keys.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">C Parser Embedded In Tcl</a></h2>
+<p>The <b class="const">critcl</b> format is executable code, a parser for the
+grammar. It is a Tcl package with the actual parser implementation
+written in C and embedded in Tcl via the <b class="package">critcl</b> package.</p>
+<p>This result-format supports the following options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-class</b> string</dt>
+<dd><p>The value of this option is the name of the class to generate, without
+leading colons.
+The default value is <b class="const">CLASS</b>.</p>
+<p>For a simple value <b class="variable">X</b> without colons, like CLASS, the parser
+command will be <b class="variable">X</b>::<b class="variable">X</b>. Whereas for a namespaced value
+<b class="variable">X::Y</b> the parser command will be <b class="variable">X::Y</b>.</p></dd>
+<dt><b class="option">-package</b> string</dt>
+<dd><p>The value of this option is the name of the package to generate.
+The default value is <b class="const">PACKAGE</b>.</p></dd>
+<dt><b class="option">-version</b> string</dt>
+<dd><p>The value of this option is the version of the package to generate.
+The default value is <b class="const">1</b>.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">C Parser</a></h2>
+<p>The <b class="const">c</b> format is executable code, a parser for the grammar. The
+parser implementation is written in C and can be tweaked to the users'
+needs through a multitude of options.</p>
+<p>The <b class="cmd">critcl</b> format, for example, is implemented as a canned
+configuration of these options on top of the generator for <b class="const">c</b>.</p>
+<p>This result-format supports the following options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-template</b> string</dt>
+<dd><p>The value of this option is a string into which to put
+the generated text and the other configuration settings. The various
+locations for user-data are expected to be specified with the
+placeholders listed below. The default value is &quot;<b class="const">@code@</b>&quot;.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">@user@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-user</b>.</p></dd>
+<dt><b class="const">@format@</b></dt>
+<dd><p>To be replaced with the the constant <b class="const">C/PARAM</b>.</p></dd>
+<dt><b class="const">@file@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-file</b>.</p></dd>
+<dt><b class="const">@name@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-name</b>.</p></dd>
+<dt><b class="const">@code@</b></dt>
+<dd><p>To be replaced with the generated Tcl code.</p></dd>
+</dl>
+<p>The following options are special, in that they will
+occur within the generated code, and are replaced there as well.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">@statedecl@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">state-decl</b>.</p></dd>
+<dt><b class="const">@stateref@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">state-ref</b>.</p></dd>
+<dt><b class="const">@strings@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">string-varname</b>.</p></dd>
+<dt><b class="const">@self@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">self-command</b>.</p></dd>
+<dt><b class="const">@def@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">fun-qualifier</b>.</p></dd>
+<dt><b class="const">@ns@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">namespace</b>.</p></dd>
+<dt><b class="const">@main@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">main</b>.</p></dd>
+<dt><b class="const">@prelude@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">prelude</b>.</p></dd>
+</dl></dd>
+<dt><b class="option">-state-decl</b> string</dt>
+<dd><p>A C string representing the argument declaration to use in the
+generated parsing functions to refer to the parsing state. In essence
+type and argument name.
+The default value is the string <b class="const">RDE_PARAM p</b>.</p></dd>
+<dt><b class="option">-state-ref</b> string</dt>
+<dd><p>A C string representing the argument named used in the generated
+parsing functions to refer to the parsing state.
+The default value is the string <b class="const">p</b>.</p></dd>
+<dt><b class="option">-self-command</b> string</dt>
+<dd><p>A C string representing the reference needed to call the generated
+parser function (methods ...) from another parser fonction, per the
+chosen framework (template).
+The default value is the empty string.</p></dd>
+<dt><b class="option">-fun-qualifier</b> string</dt>
+<dd><p>A C string containing the attributes to give to the generated
+functions (methods ...), per the chosen framework (template).
+The default value is <b class="const">static</b>.</p></dd>
+<dt><b class="option">-namespace</b> string</dt>
+<dd><p>The name of the C namespace the parser functions (methods, ...) shall
+reside in, or a general prefix to add to the function names.
+The default value is the empty string.</p></dd>
+<dt><b class="option">-main</b> string</dt>
+<dd><p>The name of the main function (method, ...) to be called by the chosen
+framework (template) to start parsing input.
+The default value is <b class="const">__main</b>.</p></dd>
+<dt><b class="option">-string-varname</b> string</dt>
+<dd><p>The name of the variable used for the table of strings used by the
+generated parser, i.e. error messages, symbol names, etc.
+The default value is <b class="const">p_string</b>.</p></dd>
+<dt><b class="option">-prelude</b> string</dt>
+<dd><p>A snippet of code to be inserted at the head of each generated parsing
+function.
+The default value is the empty string.</p></dd>
+<dt><b class="option">-indent</b> integer</dt>
+<dd><p>The number of characters to indent each line of the generated code by.
+The default value is <b class="const">0</b>.</p></dd>
+<dt><b class="option">-comments</b> boolean</dt>
+<dd><p>A flag controlling the generation of code comments containing the
+original parsing expression a parsing function is for.
+The default value is <b class="const">on</b>.</p></dd>
+</dl>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Snit Parser</a></h2>
+<p>The <b class="const">snit</b> format is executable code, a parser for the
+grammar. It is a Tcl package holding a <b class="cmd">snit::type</b>, i.e. a class,
+whose instances are parsers for the input grammar.</p>
+<p>This result-format supports the following options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-class</b> string</dt>
+<dd><p>The value of this option is the name of the class to generate, without
+leading colons. Note, it serves double-duty as the name of the package
+to generate too, if option <b class="option">-package</b> is not specified, see below.
+The default value is <b class="const">CLASS</b>, applying if neither option
+<b class="option">-class</b> nor <b class="option">-package</b> were specified.</p></dd>
+<dt><b class="option">-package</b> string</dt>
+<dd><p>The value of this option is the name of the package to generate, without
+leading colons. Note, it serves double-duty as the name of the class
+to generate too, if option <b class="option">-class</b> is not specified, see above.
+The default value is <b class="const">PACKAGE</b>, applying if neither option
+<b class="option">-package</b> nor <b class="option">-class</b> were specified.</p></dd>
+<dt><b class="option">-version</b> string</dt>
+<dd><p>The value of this option is the version of the package to generate.
+The default value is <b class="const">1</b>.</p></dd>
+</dl>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">TclOO Parser</a></h2>
+<p>The <b class="const">oo</b> format is executable code, a parser for the grammar. It
+is a Tcl package holding a <b class="package"><a href="../../../index.html#key756">TclOO</a></b> class, whose instances are
+parsers for the input grammar.</p>
+<p>This result-format supports the following options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-class</b> string</dt>
+<dd><p>The value of this option is the name of the class to generate, without
+leading colons. Note, it serves double-duty as the name of the package
+to generate too, if option <b class="option">-package</b> is not specified, see below.
+The default value is <b class="const">CLASS</b>, applying if neither option
+<b class="option">-class</b> nor <b class="option">-package</b> were specified.</p></dd>
+<dt><b class="option">-package</b> string</dt>
+<dd><p>The value of this option is the name of the package to generate, without
+leading colons. Note, it serves double-duty as the name of the class
+to generate too, if option <b class="option">-class</b> is not specified, see above.
+The default value is <b class="const">PACKAGE</b>, applying if neither option
+<b class="option">-package</b> nor <b class="option">-class</b> were specified.</p></dd>
+<dt><b class="option">-version</b> string</dt>
+<dd><p>The value of this option is the version of the package to generate.
+The default value is <b class="const">1</b>.</p></dd>
+</dl>
+</div>
+<div id="section9" class="doctools_section"><h2><a name="section9">Grammar Container</a></h2>
+<p>The <b class="const">container</b> format is another form of describing parsing
+expression grammars. While data in this format is executable it does
+not constitute a parser for the grammar. It always has to be used in
+conjunction with the package <b class="package"><a href="../modules/pt/pt_peg_interp.html">pt::peg::interp</a></b>, a grammar
+interpreter.</p>
+<p>The format represents grammars by a <b class="cmd">snit::type</b>, i.e. class,
+whose instances are API-compatible to the instances of the
+<b class="package"><a href="../modules/pt/pt_peg_container.html">pt::peg::container</a></b> package, and which are preloaded with the
+grammar in question.</p>
+<p>This result-format supports the following options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-mode</b> <b class="const">bulk</b>|<b class="const">incremental</b></dt>
+<dd><p>The value of this option controls which methods of
+<b class="package"><a href="../modules/pt/pt_peg_container.html">pt::peg::container</a></b> instances are used to specify the
+grammar, i.e. preload it into the container. There are two legal
+values, as listed below. The default is <b class="const">bulk</b>.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">bulk</b></dt>
+<dd><p>In this mode the methods <b class="method">start</b>, <b class="method">add</b>, <b class="method">modes</b>,
+and <b class="method">rules</b> are used to specify the grammar in a bulk manner,
+i.e. as a set of nonterminal symbols, and two dictionaries mapping
+from the symbols to their semantic modes and parsing expressions.</p>
+<p>This mode is the default.</p></dd>
+<dt><b class="const">incremental</b></dt>
+<dd><p>In this mode the methods <b class="method">start</b>, <b class="method">add</b>, <b class="method">mode</b>,
+and <b class="method">rule</b> are used to specify the grammar piecemal, with each
+nonterminal having its own block of defining commands.</p></dd>
+</dl></dd>
+<dt><b class="option">-template</b> string</dt>
+<dd><p>The value of this option is a string into which to put the generated
+code and the other configuration settings. The various locations for
+user-data are expected to be specified with the placeholders listed
+below. The default value is &quot;<b class="const">@code@</b>&quot;.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">@user@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-user</b>.</p></dd>
+<dt><b class="const">@format@</b></dt>
+<dd><p>To be replaced with the the constant <b class="const">CONTAINER</b>.</p></dd>
+<dt><b class="const">@file@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-file</b>.</p></dd>
+<dt><b class="const">@name@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-name</b>.</p></dd>
+<dt><b class="const">@mode@</b></dt>
+<dd><p>To be replaced with the value of the option <b class="option">-mode</b>.</p></dd>
+<dt><b class="const">@code@</b></dt>
+<dd><p>To be replaced with the generated code.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section10" class="doctools_section"><h2><a name="section10">Example</a></h2>
+<p>In this section we are working a complete example, starting with a PEG
+grammar and ending with running the parser generated from it over some
+input, following the outline shown in the figure below:</p>
+<p><img alt="flow" src="../../../image/flow.png"></p>
+<p>Our grammar, assumed to the stored in the file &quot;<b class="file">calculator.peg</b>&quot;
+is</p>
+<pre class="doctools_example">
+PEG calculator (Expression)
+    Digit      &lt;- '0'/'1'/'2'/'3'/'4'/'5'/'6'/'7'/'8'/'9'       ;
+    Sign       &lt;- '-' / '+'                                     ;
+    Number     &lt;- Sign? Digit+                                  ;
+    Expression &lt;- Term (AddOp Term)*                            ;
+    MulOp      &lt;- '*' / '/'                                     ;
+    Term       &lt;- Factor (MulOp Factor)*                        ;
+    AddOp      &lt;- '+'/'-'                                       ;
+    Factor     &lt;- '(' Expression ')' / Number                   ;
+END;
+</pre>
+<p>From this we create a snit-based parser
+via</p>
+<pre class="doctools_example">
+pt generate snit calculator.tcl -class calculator -name calculator peg calculator.peg
+</pre>
+<p>which leaves us with the parser package and class written to the file
+&quot;<b class="file">calculator.tcl</b>&quot;.
+Assuming that this package is then properly installed in a place where
+Tcl can find it we can now use this class via a script like</p>
+<pre class="doctools_example">
+    package require calculator
+    lassign $argv input
+    set channel [open $input r]
+    set parser [calculator]
+    set ast [$parser parse $channel]
+    $parser destroy
+    close $channel
+    ... now process the returned abstract syntax tree ...
+</pre>
+<p>where the abstract syntax tree stored in the variable will look like</p>
+<pre class="doctools_example">
+set ast {Expression 0 4
+    {Factor 0 4
+        {Term 0 2
+            {Number 0 2
+                {Digit 0 0}
+                {Digit 1 1}
+                {Digit 2 2}
+            }
+        }
+        {AddOp 3 3}
+        {Term 4 4
+            {Number 4 4
+                {Digit 4 4}
+            }
+        }
+    }
+}
+</pre>
+<p>assuming that the input file and channel contained the text</p>
+<pre class="doctools_example"> 120+5 </pre>
+<p>A more graphical representation of the tree would be</p>
+<p><img alt="expr_ast" src="../../../image/expr_ast.png"></p>
+<p>Regardless, at this point it is the user's responsibility to work with
+the tree to reach whatever goal she desires. I.e. analyze it,
+transform it, etc. The package <b class="package"><a href="../modules/pt/pt_astree.html">pt::ast</a></b> should be of help
+here, providing commands to walk such ASTs structures in various ways.</p>
+<p>One important thing to note is that the parsers used here return a
+data structure representing the structure of the input per the grammar
+underlying the parser. There are <em>no</em> callbacks during the
+parsing process, i.e. no <i class="term">parsing actions</i>, as most other
+parsers will have.</p>
+<p>Going back to the last snippet of code, the execution of the parser
+for some input, note how the parser instance follows the specified
+<i class="term"><a href="../modules/pt/pt_parser_api.html">Parser API</a></i>.</p>
+</div>
+<div id="section11" class="doctools_section"><h2><a name="section11">Internals</a></h2>
+<p>This section is intended for users of the application which wish to
+modify or extend it. Users only interested in the generation of
+parsers can ignore it.</p>
+<p>The main functionality of the application is encapsulated in the
+package <b class="package"><a href="../modules/pt/pt_pgen.html">pt::pgen</a></b>. Please read it for more information.</p>
+</div>
+<div id="section12" class="doctools_section"><h2><a name="section12">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pt</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../index.html#key3">EBNF</a>, <a href="../../../index.html#key15">LL(k)</a>, <a href="../../../index.html#key6">PEG</a>, <a href="../../../index.html#key7">TDPL</a>, <a href="../../../index.html#key4">context-free languages</a>, <a href="../../../index.html#key0">expression</a>, <a href="../../../index.html#key11">grammar</a>, <a href="../../../index.html#key5">matching</a>, <a href="../../../index.html#key9">parser</a>, <a href="../../../index.html#key8">parsing expression</a>, <a href="../../../index.html#key14">parsing expression grammar</a>, <a href="../../../index.html#key1">push down automaton</a>, <a href="../../../index.html#key10">recursive descent</a>, <a href="../../../index.html#key2">state</a>, <a href="../../../index.html#key13">top-down parsing languages</a>, <a href="../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Parsing and Grammars</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

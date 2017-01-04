@@ -1,0 +1,232 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'struct::queue'
+# data structure to allow developers to monitor package performance.
+#
+# (c) 2008-2010 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.4 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package present Tcl] 8.4]} {
+    bench_puts "Need Tcl 8.4+, found Tcl [package present Tcl]"
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package require Tcl 8.4
+
+package forget struct::list
+package forget struct::queue
+
+set self  [file join [pwd] [file dirname [info script]]]
+set mod   [file dirname $self]
+set index [file join [file dirname $self] tcllibc pkgIndex.tcl]
+
+if 1 {
+    if {[file exists $index]} {
+	set ::dir [file dirname $index]
+	uplevel #0 [list source $index]
+	unset ::dir
+	package require tcllibc
+    }
+}
+
+source [file join $mod  cmdline cmdline.tcl]
+source [file join $self list.tcl]
+source [file join $self queue.tcl]
+
+
+# ### ### ### ######### ######### ######### ###########################
+
+proc makeNcmd {n} {
+    return [linsert [struct::list iota $n] 0 s put]
+}
+
+proc makeN {n} {
+    struct::queue s
+    if {$n > 0} { eval [makeNcmd $n] }
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Get all the possible implementations
+
+struct::queue::SwitchTo {}
+foreach e [struct::queue::KnownImplementations] {
+    ::struct::queue::LoadAccelerator $e
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+# We have only 6 queue operations
+#
+# * clear  - Remove all elements from the queue.
+# * get    - Destructively retrieve N elements, N > 0
+# * peek   - Retrieve N elements, keep on queue, N > 0
+# * put    - Add N elements to the queue, N > 0
+# * size   - Query the size of the queue.
+# * unget  - Add N elements to _front_ of the queue, N > 0
+
+# note on peek, get:
+# - current testing is fine for single queue area.
+# - split return/append => should check performance of peek crossing boundaries
+# - split unget/return/append ? ditto, now possibly crossing 2 boundaries.
+
+# peek/put:
+# - Time to retrieve/remove 1/10/100/1000 elements incrementally from a queue.
+# - Time to retrieve/remove ............. elements at once from a queue.
+# - Queue sizes 10/100/1000/1000 and pop only elements less than size.
+# Expected: Amortized linear time in number of retrieved/removed elements.
+
+foreach queueimpl [struct::queue::Implementations] {
+    struct::queue::SwitchTo $queueimpl
+
+    bench_puts {=== get/peek =========}
+
+    foreach base {10 100 1000 10000} {
+	foreach remove {1 10 100 1000 10000} {
+	    if {$remove > $base} continue
+
+	    bench -desc "queue get once $base/$remove queue($queueimpl)" -ipre {
+		makeN $base
+	    } -body {
+		s get $remove
+	    } -ipost {
+		s destroy
+	    }
+
+	    bench -desc "queue get incr $base/$remove queue($queueimpl)" -pre {
+		set cmd {}
+		foreach x [struct::list iota $remove] {
+		    lappend cmd [list s get]
+		}
+		proc foo {} [join $cmd \n]
+		catch {foo} ;# compile
+	    } -ipre {
+		makeN $base
+	    } -body {
+		foo
+	    } -ipost {
+		s destroy
+	    } -post {
+		rename foo {}
+	    }
+
+	    bench -desc "queue peek $base/$remove queue($queueimpl)" -ipre {
+		makeN $base
+	    } -body {
+		s peek $remove
+	    } -ipost {
+		s destroy
+	    }
+	}
+    }
+
+    # put:
+    # - Time to add 1/10/100/1000 elements incrementally to an empty queue
+    # - Time to add ............. elements at once to an empty queue.
+    # - As above, to a queue containing 1/10/100/1000 elements already.
+    # Expected: Amortized linear time in number of elements added.
+
+    bench_puts {=== put/unget =========}
+
+    foreach base  {0 1 10 100 1000} {
+	foreach add {1 10 100 1000} {
+
+	    bench -desc "queue put once $base/$add queue($queueimpl)" -ipre {
+		makeN $base
+		set cmd [makeNcmd $add]
+	    } -body {
+		eval $cmd
+	    } -ipost {
+		s destroy
+	    }
+
+	    bench -desc "queue put incr $base/$add queue($queueimpl)" -pre {
+		set cmd {}
+		foreach x [struct::list iota $add] {
+		    lappend cmd [list s put $x]
+		}
+		proc foo {} [join $cmd \n]
+		catch {foo} ;# compile
+	    } -ipre {
+		makeN $base
+	    } -body {
+		foo
+	    } -ipost {
+		s destroy
+	    } -post {
+		rename foo {}
+	    }
+
+	    bench -desc "queue unget incr $base/$add queue($queueimpl)" -pre {
+		set cmd {}
+		foreach x [struct::list iota $add] {
+		    lappend cmd [list s unget $x]
+		}
+		proc foo {} [join $cmd \n]
+		catch {foo} ;# compile
+	    } -ipre {
+		makeN $base
+	    } -body {
+		foo
+	    } -ipost {
+		s destroy
+	    } -post {
+		rename foo {}
+	    }
+	}
+    }
+
+    # size
+    # - Time to query size of queue containing 0/1/10/100/1000/10000 elements.
+    # Expected: Constant time.
+
+    bench_puts {=== size =========}
+
+    foreach n {0 1 10 100 1000 10000} {
+	bench -desc "queue size $n queue($queueimpl)" -pre {
+	    makeN $n
+	} -body {
+	    s size
+	} -post {
+	    s destroy
+	}
+    }
+
+    # clear
+    # - Time to clear a queue containing 0/1/10/100/1000/10000 elements.
+    # Expected: Constant to linear time in number of elements to clear.
+
+    bench_puts {=== clear =========}
+
+    foreach n {0 1 10 100 1000 10000} {
+	bench -desc "queue clear $n queue($queueimpl)" -ipre {
+	    makeN $n
+	} -body {
+	    s clear
+	} -ipost {
+	    s destroy
+	}
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete
+
+return
+
+# ### ### ### ######### ######### ######### ###########################
+## Notes ...
+
+# Notes on optimizations we can do.
+#
+# Tcl - Cache structural data - depth, ancestors ...
+# C   - Cache results, like child lists (Tcl_Obj's!)
+#       Maybe use Tcl_Obj/List for child arrays instead
+#       of N* ? Effect on modification performance ?

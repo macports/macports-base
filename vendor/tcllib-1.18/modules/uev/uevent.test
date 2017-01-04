@@ -1,0 +1,478 @@
+# -*- tcl -*-
+# uevent.test:  Tests for the UEVENT utilities.
+#
+# Copyright (c) 2008 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# UEVENT: @(#) $Id: uevent.test,v 1.2 2012/03/30 22:47:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use log/logger.tcl logger
+}
+testing {
+    useLocal uevent.tcl uevent
+}
+
+# -------------------------------------------------------------------------
+## Serialize the tag/event/command database.
+
+proc uestate {} {
+    set res {}
+    foreach tag [lsort -dict [uevent::list]] {
+	set buf {}
+	foreach event [lsort -dict [uevent::list $tag]] {
+	    lappend buf $event [uevent::list $tag $event]
+	}
+	lappend res $tag $buf
+    }
+    return $res
+}
+
+# -------------------------------------------------------------------------
+
+test uevent-1.0 {bind error, wrong#args, not enough} {
+    catch {::uevent::bind} msg
+    set msg
+} [tcltest::wrongNumArgs {::uevent::bind} {tag event command} 0]
+
+test uevent-1.1 {bind error, wrong#args, not enough} {
+    catch {::uevent::bind foo} msg
+    set msg
+} [tcltest::wrongNumArgs {::uevent::bind} {tag event command} 1]
+
+test uevent-1.2 {bind error, wrong#args, not enough} {
+    catch {::uevent::bind foo bar} msg
+    set msg
+} [tcltest::wrongNumArgs {::uevent::bind} {tag event command} 2]
+
+test uevent-1.3 {bind error, wrong#args, too many} {
+    catch {::uevent::bind foo bar barf more} msg
+    set msg
+} [tcltest::tooManyArgs {::uevent::bind} {tag event command}]
+
+# -------------------------------------------------------------------------
+
+test uevent-2.0 {bind} {
+    set     res {}
+    lappend res [uestate]
+    set t [::uevent::bind tag event command]
+    lappend res [uestate]
+    uevent::unbind $t
+    set res
+} {{} {tag {event command}}}
+
+test uevent-2.1 {bind, multiple times of the same combination} {
+    set     res {}
+    lappend res [uestate]
+    set ta [::uevent::bind tag event command]
+    lappend res [uestate]
+    set tb [::uevent::bind tag event command]
+    lappend res [uestate]
+    uevent::unbind $ta
+    lappend res [uestate]
+    lappend res [expr {$ta eq $tb}]
+    set res
+} {{} {tag {event command}} {tag {event command}} {} 1}
+
+test uevent-2.2 {bind, same tag/event, different commands} {
+    set     res {}
+    lappend res [uestate]
+    set ta [::uevent::bind tag event command1]
+    lappend res [uestate]
+    set tb [::uevent::bind tag event command2]
+    lappend res [uestate]
+    uevent::unbind $ta
+    uevent::unbind $tb
+    lappend res [uestate]
+    lappend res [expr {$ta eq $tb}]
+    set res
+} {{} {tag {event command1}} {tag {event {command1 command2}}} {} 0}
+
+test uevent-2.3 {bind, same tag/command, different events} {
+    set     res {}
+    lappend res [uestate]
+    set ta [::uevent::bind tag event1 command]
+    lappend res [uestate]
+    set tb [::uevent::bind tag event2 command]
+    lappend res [uestate]
+    uevent::unbind $ta
+    uevent::unbind $tb
+    lappend res [uestate]
+    lappend res [expr {$ta eq $tb}]
+    set res
+} {{} {tag {event1 command}} {tag {event1 command event2 command}} {} 0}
+
+test uevent-2.4 {bind, same event/command, different tags} {
+    set     res {}
+    lappend res [uestate]
+    set ta [::uevent::bind tag1 event command]
+    lappend res [uestate]
+    set tb [::uevent::bind tag2 event command]
+    lappend res [uestate]
+    uevent::unbind $ta
+    uevent::unbind $tb
+    lappend res [uestate]
+    lappend res [expr {$ta eq $tb}]
+    set res
+} {{} {tag1 {event command}} {tag1 {event command} tag2 {event command}} {} 0}
+
+# -------------------------------------------------------------------------
+
+test uevent-3.0 {unbind error, wrong#args, not enough} {
+    catch {::uevent::unbind} msg
+    set msg
+} [tcltest::wrongNumArgs {::uevent::unbind} {token} 0]
+
+test uevent-3.1 {unbind error, wrong#args, too many} {
+    catch {::uevent::unbind foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::uevent::unbind} {token}]
+
+# -------------------------------------------------------------------------
+
+test uevent-4.0 {unbind} {
+    set ta [::uevent::bind tag1 event1 command1]
+    set tb [::uevent::bind tag1 event1 command2]
+    set tc [::uevent::bind tag1 event2 command1]
+    set td [::uevent::bind tag2 event1 command1]
+    ::uevent::unbind $ta
+    set res [uestate]
+    ::uevent::unbind $tb
+    ::uevent::unbind $tc
+    ::uevent::unbind $td
+    set res
+} {tag1 {event1 command2 event2 command1} tag2 {event1 command1}}
+
+test uevent-4.1 {unbind} {
+    set ta [::uevent::bind tag1 event1 command1]
+    set tb [::uevent::bind tag1 event1 command2]
+    set tc [::uevent::bind tag1 event2 command1]
+    set td [::uevent::bind tag2 event1 command1]
+    ::uevent::unbind $tb
+    set res [uestate]
+    ::uevent::unbind $ta
+    ::uevent::unbind $tc
+    ::uevent::unbind $td
+    set res
+} {tag1 {event1 command1 event2 command1} tag2 {event1 command1}}
+
+test uevent-4.2 {unbind} {
+    set ta [::uevent::bind tag1 event1 command1]
+    set tb [::uevent::bind tag1 event1 command2]
+    set tc [::uevent::bind tag1 event2 command1]
+    set td [::uevent::bind tag2 event1 command1]
+    ::uevent::unbind $tc
+    set res [uestate]
+    ::uevent::unbind $tb
+    ::uevent::unbind $ta
+    ::uevent::unbind $td
+    set res
+} {tag1 {event1 {command1 command2}} tag2 {event1 command1}}
+
+test uevent-4.3 {unbind} {
+    set ta [::uevent::bind tag1 event1 command1]
+    set tb [::uevent::bind tag1 event1 command2]
+    set tc [::uevent::bind tag1 event2 command1]
+    set td [::uevent::bind tag2 event1 command1]
+    ::uevent::unbind $td
+    set res [uestate]
+    ::uevent::unbind $tb
+    ::uevent::unbind $tc
+    ::uevent::unbind $ta
+    set res
+} {tag1 {event1 {command1 command2} event2 command1}}
+
+# -------------------------------------------------------------------------
+
+test uevent-5.0 {generate error, wrong#args, not enough} {
+    catch {::uevent::generate} msg
+    set msg
+} [tcltest::wrongNumArgs {::uevent::generate} {tag event ?details?} 0]
+
+test uevent-5.1 {generate error, wrong#args, not enough} {
+    catch {::uevent::generate foo} msg
+    set msg
+} [tcltest::wrongNumArgs {::uevent::generate} {tag event ?details?} 1]
+
+test uevent-5.2 {generate error, wrong#args, too many} {
+    catch {::uevent::generate foo bar barf more} msg
+    set msg
+} [tcltest::tooManyArgs {::uevent::generate} {tag event ?details?}]
+
+# -------------------------------------------------------------------------
+
+proc EVENT {t e d} {
+    global  res
+    lappend res $t $e $d
+    return
+}
+
+proc EVENT2 {t e d} {
+    global  res
+    lappend res 2/$t $e $d
+    return
+}
+
+test uevent-6.0 {generate, single command} {
+    set t [::uevent::bind tag event EVENT]
+    set res {}
+    uevent::generate tag event ClientData
+    vwait ::res ; # Allow event to fire.
+    uevent::unbind $t
+    set res
+} {tag event ClientData}
+
+test uevent-6.1 {generate, single command, multiple issues} {
+    set t [::uevent::bind tag event EVENT]
+    set res {}
+    uevent::generate tag event ClientData1
+    uevent::generate tag event ClientData2
+    uevent::generate tag event ClientData3
+    vwait ::res ; # Allow events to fire.
+    uevent::unbind $t
+    set res
+} {tag event ClientData1 tag event ClientData2 tag event ClientData3}
+
+test uevent-6.2 {generate, multiple commands} {
+    # Note: While we do not document the order of firing multiple
+    # commands on one tag/event this test does capture the current
+    # order and will trigger should we change it in the future, making
+    # us aware of the incompatibility.
+    set ta [::uevent::bind tag event EVENT]
+    set tb [::uevent::bind tag event EVENT2]
+    set res {}
+    uevent::generate tag event ClientData
+    vwait ::res ; # Allow events to fire.
+    uevent::unbind $ta
+    uevent::unbind $tb
+    set res
+} {tag event ClientData 2/tag event ClientData}
+
+
+# -------------------------------------------------------------------------
+
+proc WATCHT {a t} {
+    global  res
+    lappend res $a $t
+    return
+}
+
+test uevent-7.0 {watch tag add, wrong#args, not enough} {
+    catch {
+	::uevent::watch::tag::add
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::tag::add pattern cmdprefix"}
+
+test uevent-7.1 {watch tag add, wrong#args, not enough} {
+    catch {
+	::uevent::watch::tag::add TAG
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::tag::add pattern cmdprefix"}
+
+test uevent-7.2 {watch tag add, wrong#args, too many} {
+    catch {
+	::uevent::watch::tag::add TAG CMD foo
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::tag::add pattern cmdprefix"}
+
+test uevent-7.3 {watch tag remove, wrong#args, not enough} {
+    catch {
+	::uevent::watch::tag::remove
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::tag::remove token"}
+
+test uevent-7.4 {watch tag remove, wrong#args, not enough} {
+    catch {
+	::uevent::watch::tag::remove TOKEN foo
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::tag::remove token"}
+
+test uevent-8.0 {watch tags, bind after watch, exact} {
+    set res {}
+    set tw [::uevent::watch::tag::add TAG WATCHT]
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::watch::tag::remove $tw
+    set res
+} {bound TAG unbound TAG}
+
+test uevent-8.1 {watch tags, watch after bind, exact} {
+    set res {}
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    set tw [::uevent::watch::tag::add TAG WATCHT]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::watch::tag::remove $tw
+    set res
+} {bound TAG unbound TAG}
+
+test uevent-8.2 {watch tags, bind after watch, glob} {
+    set res {}
+    set tw [::uevent::watch::tag::add TAG* WATCHT]
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::watch::tag::remove $tw
+    set res
+} {bound TAGX bound TAG unbound TAGX unbound TAG}
+
+test uevent-8.3 {watch tags, watch after bind, glob} {
+    set res {}
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    set tw [::uevent::watch::tag::add TAG* WATCHT]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::watch::tag::remove $tw
+    set res
+} {bound TAG bound TAGX unbound TAGX unbound TAG}
+
+# -------------------------------------------------------------------------
+
+proc WATCHE {a t e} {
+    global  res
+    lappend res $a $t $e
+    return
+}
+proc SORTE {} {
+    global res
+    set tmp {}
+    foreach {a t e} $res {
+	lappend tmp [list $a $t $e]
+    }
+    set res {}
+    foreach item [lsort -dict $tmp] {
+	foreach {a t e} $item break
+	lappend res $a $t $e
+    }
+    return $res
+}
+
+test uevent-9.0 {watch event add, wrong#args, not enough} {
+    catch {
+	::uevent::watch::event::add
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::event::add tpattern epattern cmdprefix"}
+
+test uevent-9.1 {watch event add, wrong#args, not enough} {
+    catch {
+	::uevent::watch::event::add TAG
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::event::add tpattern epattern cmdprefix"}
+
+test uevent-9.2 {watch event add, wrong#args, not enough} {
+    catch {
+	::uevent::watch::event::add TAG EVENT
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::event::add tpattern epattern cmdprefix"}
+
+test uevent-9.3 {watch event add, wrong#args, too many} {
+    catch {
+	::uevent::watch::event::add TAG EVENT CMD foo
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::event::add tpattern epattern cmdprefix"}
+
+test uevent-9.4 {watch event remove, wrong#args, not enough} {
+    catch {
+	::uevent::watch::event::remove
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::event::remove token"}
+
+test uevent-9.5 {watch event remove, wrong#args, not enough} {
+    catch {
+	::uevent::watch::event::remove TOKEN foo
+    } msg
+    set msg
+} {wrong # args: should be "::uevent::watch::event::remove token"}
+
+test uevent-10.0 {watch events, bind after watch, exact} {
+    set res {}
+    set tw [::uevent::watch::event::add TAG E WATCHE]
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    set t3 [::uevent::bind TAGX EX FOO]
+    set t4 [::uevent::bind TAG  EX FOO]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::unbind $t3
+    ::uevent::unbind $t4
+    ::uevent::watch::event::remove $tw
+    set res
+} {bound TAG E unbound TAG E}
+
+test uevent-10.1 {watch events, watch after bind, exact} {
+    set res {}
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    set t3 [::uevent::bind TAGX EX FOO]
+    set t4 [::uevent::bind TAG  EX FOO]
+    set tw [::uevent::watch::event::add TAG E WATCHE]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::unbind $t3
+    ::uevent::unbind $t4
+    ::uevent::watch::event::remove $tw
+    set res
+} {bound TAG E unbound TAG E}
+
+test uevent-10.2 {watch events, bind after watch, glob} {
+    set res {}
+    set tw [::uevent::watch::event::add TAG* E* WATCHE]
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    set t3 [::uevent::bind TAGX EX FOO]
+    set t4 [::uevent::bind TAG  EX FOO]
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::unbind $t3
+    ::uevent::unbind $t4
+    ::uevent::watch::event::remove $tw
+    set res
+} {bound TAGX E bound TAG E bound TAGX EX bound TAG EX unbound TAGX E unbound TAG E unbound TAGX EX unbound TAG EX}
+
+test uevent-10.3 {watch events, watch after bind, glob} {
+    set res {}
+    set t1 [::uevent::bind TAGX E FOO]
+    set t2 [::uevent::bind TAG  E FOO]
+    set t3 [::uevent::bind TAGX EX FOO]
+    set t4 [::uevent::bind TAG  EX FOO]
+    set tw [::uevent::watch::event::add TAG* E* WATCHE]
+    SORTE ;# ensure a canonical order
+    ::uevent::unbind $t1
+    ::uevent::unbind $t2
+    ::uevent::unbind $t3
+    ::uevent::unbind $t4
+    ::uevent::watch::event::remove $tw
+    set res
+} {bound TAG E bound TAG EX bound TAGX E bound TAGX EX unbound TAGX E unbound TAG E unbound TAGX EX unbound TAG EX}
+
+# -------------------------------------------------------------------------
+rename EVENT  {}
+rename EVENT2 {}
+rename WATCHT {}
+rename WATCHE {}
+catch {unset res}
+testsuiteCleanup

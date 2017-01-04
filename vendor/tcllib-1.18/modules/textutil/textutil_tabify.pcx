@@ -1,0 +1,42 @@
+# -*- tcl -*- textutil::tabify.pcx
+# Syntax of the commands provided by package textutil::tabify.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register textutil::tabify
+pcx::tcldep   0.7 needs tcl 8.2
+
+namespace eval ::textutil::tabify {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.7 std ::textutil::tabify::tabify \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkInt
+    }}
+pcx::check 0.7 std ::textutil::tabify::tabify2 \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkInt
+    }}
+pcx::check 0.7 std ::textutil::tabify::untabify \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkInt
+    }}
+pcx::check 0.7 std ::textutil::tabify::untabify2 \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkInt
+    }}
+
+# Initialization via pcx::init.
+# Use a ::textutil::tabify::init procedure for non-standard initialization.
+pcx::complete

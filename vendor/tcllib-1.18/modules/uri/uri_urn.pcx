@@ -1,0 +1,27 @@
+# -*- tcl -*- uri_urn.pcx
+# Syntax of the commands provided by package uri::urn.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register uri::urn
+pcx::tcldep   1.0 needs tcl 8.4
+
+namespace eval ::uri {}
+namespace eval ::uri::urn {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.0 std ::uri::urn::quote \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::uri::init procedure for non-standard initialization.
+pcx::complete

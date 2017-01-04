@@ -1,0 +1,202 @@
+# -*- tcl -*-
+# pool.test:  tests for the pool package.
+
+# Copyright (c) 2006,2015 Andreas Kupries
+# All rights reserved.
+#
+# RCS: @(#) $Id: pool.test,v 1.4 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal pool.tcl struct::pool
+}
+
+# -------------------------------------------------------------------------
+
+namespace import struct::pool
+
+#----------------------------------------------------------------------
+
+test pool-0.1 {pool errors, DUPLICATE_POOLNAME} {
+    pool mypool
+    catch {pool mypool} msg
+    mypool destroy
+    set msg
+} "The pool `mypool' already exists."
+
+test pool-0.2 {pool errors, VARNAME_EXISTS} {
+    set   ::struct::pool::existvar 1
+    catch {struct::pool::create existvar} errmsg
+    unset ::struct::pool::existvar
+    set errmsg
+} {A variable `::struct::pool::existvar' already exists.}
+
+test pool-0.3 {pool errors, NONINT_REQSIZE} {
+    catch {pool mypool noninteger} errmsg
+    set errmsg
+} {The second argument must be a positive integer value}
+
+test pool-0.4 {pool errors, NONINT_REQSIZE} {
+    pool mypool
+    catch {mypool maxsize noninteger} errmsg
+    mypool destroy
+    set errmsg
+} {The second argument must be a positive integer value}
+
+test pool-0.5 {pool errors, UNKNOWN_POOL} {
+    catch {struct::pool::destroy NonExistentPool} errmsg
+    set errmsg
+} {Nothing known about `NonExistentPool'.}
+
+test pool-0.6 {pool errors, BAD_SUBCMD} {
+    pool mypool
+    catch {mypool badsubcommand whateverargs} errmsg
+    mypool destroy
+    set errmsg
+} {Bad subcommand "badsubcommand": must be add, clear, destroy, info, maxsize, release, remove, or request}
+
+test pool-0.7 {pool errors, SOME_ITEMS_NOT_FREE} {
+    pool mypool
+    mypool add foo
+    mypool request item
+    catch {mypool clear} errmsg
+    mypool release $item    
+    mypool destroy
+    set errmsg
+} {Couldn't clear `mypool' because some items are still allocated.}
+
+test pool-0.8 {pool errors, SOME_ITEMS_NOT_FREE} {
+    pool mypool
+    mypool add foo
+    mypool request item
+    catch {mypool destroy} errmsg
+    mypool release $item    
+    mypool destroy
+    set errmsg
+} {Couldn't destroy `mypool' because some items are still allocated.}
+
+test pool-0.9 {pool errors, DUPLICATE_ITEM_IN_ARGS} {
+    pool mypool
+    catch {mypool add foo foo} errmsg
+    mypool destroy
+    set errmsg
+} {Duplicate item `foo' in arguments.}
+
+test pool-0.10 {pool errors, FORBIDDEN_ALLOCID} {
+    pool mypool
+    mypool add foo
+    catch {mypool request item -allocID -1} errmsg
+    mypool destroy
+    set errmsg
+} {The value -1 is not allowed as an allocID.}
+
+test pool-0.11 {pool errors, ITEM_ALREADY_IN_POOL} {
+    pool mypool
+    mypool add foo
+    catch {mypool add foo} errmsg
+    mypool destroy
+    set errmsg
+} {`foo' already is a member of the pool. No items registered.}
+
+test pool-0.12 {pool errors, ITEM_STILL_ALLOCATED} {
+    pool mypool
+    mypool add foo bar
+    mypool request item -prefer foo
+    catch {mypool remove foo} errmsg
+    mypool release $item
+    mypool destroy
+    set errmsg
+} {Can't remove `foo' because it is still allocated.}
+
+test pool-0.13 {pool errors, ITEM_NOT_ALLOCATED} {
+    pool mypool
+    mypool add foo
+    catch {mypool release foo} errmsg
+    mypool destroy
+    set errmsg
+} {Can't release `foo' because it isn't allocated.}
+
+test pool-0.14 {pool errors, EXCEED_MAXSIZE} {
+    pool mypool
+    mypool maxsize 8
+    catch {mypool add 1 2 3 4 5 6 7 8 9} errmsg
+    mypool destroy
+    set errmsg
+} {This command would increase the total number of items 
+beyond the maximum size of the pool. No items registered.}
+
+test pool-0.15 {pool errors, WRONG_INFO_TYPE} {
+    pool mypool
+    catch {mypool info wronginfotype} errmsg
+    mypool destroy
+    set errmsg
+} {Expected second argument to be one of: 
+     allitems, allocstate, cursize, freeitems, maxsize, 
+but received: `wronginfotype'.}
+
+
+test pool-0.16 {pool errors, INVALID_POOLSIZE} {
+    pool mypool
+    mypool maxsize 8
+    mypool add 1 2 3 4 5 6 7 8
+    catch {mypool maxsize 7} errmsg
+    mypool destroy
+    set errmsg
+} {The pool currently holds 8 items. Can't set maxsize to a value less than that.}
+
+
+foreach {n cmd} {
+    1 {mypool info allocID foo}
+    2 {mypool request item -prefer foo}
+    3 {mypool release foo}
+    4 {mypool remove foo}
+} {
+    test pool-0.17.$n {pool errors, ITEM_NOT_IN_POOL} {
+	pool mypool
+	mypool add bar
+	catch $cmd errmsg
+	mypool destroy
+	set errmsg
+    } {`foo' is not a member of mypool.}
+}
+
+foreach {n cmd} {
+    1 {mypool clear unknownarg}
+    2 {mypool request item unknownarg foo}
+    3 {mypool destroy unknownarg}
+    4 {mypool remove foo unknownarg}
+} {
+    test pool-0.18.$n {pool errors, UNKNOWN_ARG} {
+	pool mypool
+	mypool add bar
+	catch $cmd errmsg
+	mypool destroy
+	set errmsg
+    } {Unknown argument `unknownarg'}
+}
+
+foreach {n cmd} {
+    1 {mypool add}
+    2 {mypool info cursize oneargtomany}
+    3 {mypool info allocID}
+    4 {mypool info allocID bar oneargtomany}
+    5 {mypool request item bar -prefer me}
+} {
+    test pool-0.19.$n {pool errors, WRONG_ARGS} {
+	pool mypool
+	mypool add bar
+	catch $cmd errmsg
+	mypool destroy
+	set errmsg
+    } "wrong\#args"
+}
+
+testsuiteCleanup

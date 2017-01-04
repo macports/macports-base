@@ -1,0 +1,315 @@
+
+<html><head>
+<title>oauth - oauth</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'oauth.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2014 Javi P. &lt;hxm@eggdrop.es&gt;
+   -->
+<! -- oauth.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">oauth(n) 1.0 tcllib &quot;oauth&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>oauth - oauth API base signature</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section3">Commands</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">oauth <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::oauth::config</b></a></li>
+<li><a href="#2"><b class="cmd">::oauth::config</b> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#3"><b class="cmd">::oauth::header</b> <i class="arg">baseURL</i> <span class="opt">?<i class="arg">postQuery</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::oauth::query</b> <i class="arg">baseURL</i> <span class="opt">?<i class="arg">postQuery</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">oauth</b> package provides a simple Tcl-only library
+for communication with <a href="http://oauth.net">oauth</a> APIs.
+This current version of the package supports the Oauth 1.0 Protocol,
+as specified in <a href="http://tools.ietf.org/rfc/rfc5849.txt">RFC 5849</a>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Commands</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::oauth::config</b></a></dt>
+<dd><p>When this command is invoked without arguments it returns a dictionary
+containing the current values of all options.</p></dd>
+<dt><a name="2"><b class="cmd">::oauth::config</b> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>When invoked with arguments, options followed by their values, it is used
+to set and query various parameters of application and client, like proxy
+host and user agent for the HTTP requests. The detailed list of options
+is below:</p>
+<dl class="doctools_options">
+<dt><b class="option">-accesstoken</b> <i class="arg">string</i></dt>
+<dd><p>This is the user's token.</p></dd>
+<dt><b class="option">-accesstokensecret</b> <i class="arg">string</i></dt>
+<dd><p>This is the user's secret token.</p></dd>
+<dt><b class="option">-consumerkey</b> <i class="arg">string</i></dt>
+<dd><p>This is the public token of your app.</p></dd>
+<dt><b class="option">-consumersecret</b> <i class="arg">string</i></dt>
+<dd><p>This is the private token of your app.</p></dd>
+<dt><b class="option">-debug</b> <i class="arg">bool</i></dt>
+<dd><p>The default value is <b class="const">off</b>. If you change this option to <b class="const">on</b>,
+the basic signature just created will be printed to stdout, among other
+debug output.</p></dd>
+<dt><b class="option">-oauthversion</b> <i class="arg">version</i></dt>
+<dd><p>This is the version of the OAuth protocol to use.
+At the moment only <b class="const">1.0</b> is supported, the default.</p></dd>
+<dt><b class="option">-proxyhost</b> <i class="arg">hostname</i></dt>
+<dd><p>You can set up a proxy host for send contact the oauth's api server.</p></dd>
+<dt><b class="option">-proxyport</b> <i class="arg">port-number</i></dt>
+<dd><p>Port number of your proxy.</p></dd>
+<dt><b class="option">-signmethod</b> <i class="arg">method</i></dt>
+<dd><p>The signature method to use. OAuth 1.0 only supports <b class="const">HMAC-SHA1</b>, the default.</p></dd>
+<dt><b class="option">-timeout</b> <i class="arg">milliseconds</i></dt>
+<dd><p>Timeout in milliseconds for your query.
+The default value is <b class="const">6000</b>, i.e. 6 seconds.</p></dd>
+<dt><b class="option">-urlencoding</b> <em>encoding</em></dt>
+<dd><p>The encoding used for creating the x-url-encoded URLs with
+<b class="cmd">::http::formatQuery</b>. The default is <b class="const">utf-8</b>, as specified
+by <a href="http://tools.ietf.org/rfc/rfc2718.txt">RFC 2718</a>.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::oauth::header</b> <i class="arg">baseURL</i> <span class="opt">?<i class="arg">postQuery</i>?</span></a></dt>
+<dd><p>This command is the base signature creator. With proper settings for various tokens
+and secrets (See <b class="cmd">::oauth::config</b>) the result is the base authentication string
+to send to the server.</p>
+<p>You do not need to call this procedure to create the query because
+<b class="cmd">::oauth::query</b> (see below) will do for it for you.
+Doing so is useful for debugging purposes, though.</p>
+<dl class="doctools_arguments">
+<dt>url <i class="arg">baseURL</i></dt>
+<dd><p>This argument is the URI path to the OAuth API server.
+If you plan send a GET query, you should provide a full path.</p>
+<pre class="doctools_example">
+HTTP GET 
+::oauth::header {https://api.twitter.com/1.1/users/lookup.json?screen_name=AbiertaMente} 
+</pre>
+</dd>
+<dt>url-encoded-string <i class="arg">postQuery</i></dt>
+<dd><p>When you have to send a header in POST format, you have to put the query string into this argument.</p>
+<pre class="doctools_example">
+::oauth::header {https://api.twitter.com/1.1/friendships/create.json} {user_id=158812437&amp;follow=true}
+</pre>
+</dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::oauth::query</b> <i class="arg">baseURL</i> <span class="opt">?<i class="arg">postQuery</i>?</span></a></dt>
+<dd><p>This procedure will use the settings made with <b class="cmd">::oauth::config</b> to create the
+basic authentication and then send the command to the server API.
+It takes the same arguments as <b class="cmd">::oauth::header</b>.</p>
+<p>The returned result will be a list containing 2 elements. The first
+element will be a dictionary containing the HTTP header data response.
+This allows you, for example, to check the X-Rate-Limit from OAuth.
+The second element will be the raw data returned from API server.
+This string is usually a json object which can be further decoded with the
+functions of package <b class="package"><a href="../json/json.html">json</a></b>, or any other json-parser for Tcl.</p>
+<p>Here is an example of how it would work in Twitter. Do not forget to
+replace the placeholder tokens and keys of the example with your own tokens
+and keys when trying it out.</p>
+<pre class="doctools_example">% package require oauth
+% package require json
+% oauth::config -consumerkey {your_consumer_key} -consumersecret {your_consumer_key_secret} -accesstoken {your_access_token} -accesstokensecret {your_access_token_secret}
+% set response [oauth::query https://api.twitter.com/1.1/users/lookup.json?screen_name=AbiertaMente]
+% set jsondata [lindex $response 1]
+% set data [json::json2dict $jsondata]
+$ set data [lindex $data 0]
+% dict for {key val} $data {puts &quot;$key =&gt; $val&quot;}
+id =&gt; 158812437
+id_str =&gt; 158812437
+name =&gt; Un Librepensador
+screen_name =&gt; AbiertaMente
+location =&gt; Explico mis tuits ah&iacute; →
+description =&gt; 160Caracteres para un SMS y contaba mi vida entera sin recortar vocales. Ahora en Twitter, podemos usar hasta 140 y a m&iacute; me sobrar&iacute;an 20 para contaros todo lo q
+url =&gt; http://t.co/SGs3k9odBn
+entities =&gt; url {urls {{url http://t.co/SGs3k9odBn expanded_url http://librepensamiento.es display_url librepensamiento.es indices {0 22}}}} description {urls {}}
+protected =&gt; false
+followers_count =&gt; 72705
+friends_count =&gt; 53099
+listed_count =&gt; 258
+created_at =&gt; Wed Jun 23 18:29:58 +0000 2010
+favourites_count =&gt; 297
+utc_offset =&gt; 7200
+time_zone =&gt; Madrid
+geo_enabled =&gt; false
+verified =&gt; false
+statuses_count =&gt; 8996
+lang =&gt; es
+status =&gt; created_at {Sun Oct 12 08:02:38 +0000 2014} id 521209314087018496 id_str 521209314087018496 text {@thesamethanhim http://t.co/WFoXOAofCt} source {&lt;a href=&quot;http://twitter.com&quot; rel=&quot;nofollow&quot;&gt;Twitter Web Client&lt;/a&gt;} truncated false in_reply_to_status_id 521076457490350081 in_reply_to_status_id_str 521076457490350081 in_reply_to_user_id 2282730867 in_reply_to_user_id_str 2282730867 in_reply_to_screen_name thesamethanhim geo null coordinates null place null contributors null retweet_count 0 favorite_count 0 entities {hashtags {} symbols {} urls {{url http://t.co/WFoXOAofCt expanded_url http://www.elmundo.es/internacional/2014/03/05/53173dc1268e3e3f238b458a.html display_url elmundo.es/internacional/… indices {16 38}}} user_mentions {{screen_name thesamethanhim name Ἑλένη id 2282730867 id_str 2282730867 indices {0 15}}}} favorited false retweeted false possibly_sensitive false lang und
+contributors_enabled =&gt; false
+is_translator =&gt; true
+is_translation_enabled =&gt; false
+profile_background_color =&gt; 709397
+profile_background_image_url =&gt; http://pbs.twimg.com/profile_background_images/704065051/9309c02aa2728bdf543505ddbd408e2e.jpeg
+profile_background_image_url_https =&gt; https://pbs.twimg.com/profile_background_images/704065051/9309c02aa2728bdf543505ddbd408e2e.jpeg
+profile_background_tile =&gt; true
+profile_image_url =&gt; http://pbs.twimg.com/profile_images/2629816665/8035fb81919b840c5cc149755d3d7b0b_normal.jpeg
+profile_image_url_https =&gt; https://pbs.twimg.com/profile_images/2629816665/8035fb81919b840c5cc149755d3d7b0b_normal.jpeg
+profile_banner_url =&gt; https://pbs.twimg.com/profile_banners/158812437/1400828874
+profile_link_color =&gt; FF3300
+profile_sidebar_border_color =&gt; FFFFFF
+profile_sidebar_fill_color =&gt; A0C5C7
+profile_text_color =&gt; 333333
+profile_use_background_image =&gt; true
+default_profile =&gt; false
+default_profile_image =&gt; false
+following =&gt; true
+follow_request_sent =&gt; false
+notifications =&gt; false</pre>
+</dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>oauth</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key835">RFC 2718</a>, <a href="../../../../index.html#key836">RFC 5849</a>, <a href="../../../../index.html#key837">oauth</a>, <a href="../../../../index.html#key838">twitter</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2014 Javi P. &lt;hxm@eggdrop.es&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,57 @@
+# -*- tcl -*-
+# docparsetcl.testsuite:  tests for the tcl parser.
+#
+# Copyright (c) 2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tcl_parse,v 1.1 2009/04/01 04:27:47 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [localPath tests/common]
+set mytestdir tests/tcl_data
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok in out -> n label input data expected {
+    test doctools-tcl-parse-${stkimpl}-${setimpl}-${impl}-10.$n "doctools::tcl::parse, $label, ok" -setup {
+	struct::tree myresult
+    } -body {
+	doctools::tcl::parse text myresult $data
+	set res {}
+	myresult walk root tok {
+	    lappend res "[string repeat {....} [myresult depth $tok]]$tok ([dictsort [myresult getall $tok]])"
+	}
+	join $res \n
+    } -cleanup {
+	myresult destroy
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir fail in out -> n label input data expected {
+    test doctools-tcl-parse-${stkimpl}-${setimpl}-${impl}-11.$n "doctools::tcl::parse, $label, eror message" -setup {
+	struct::tree myresult
+    } -body {
+	doctools::tcl::parse text myresult $data
+    } -cleanup {
+	myresult destroy
+    } -returnCodes error -result $expected
+}
+
+TestFilesProcess $mytestdir fail in out-ec -> n label input data expected {
+    test doctools-tcl-parse-${stkimpl}-${setimpl}-${impl}-12.$n "doctools::tcl::parse, $label, error code" -setup {
+	struct::tree myresult
+    } -body {
+	# Catch and rethrow using the error code as new message.
+	catch { doctools::tcl::parse text myresult $data }
+	set ::errorCode
+    } -cleanup {
+	myresult destroy
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+unset input data expected n label res
+return

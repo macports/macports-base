@@ -1,0 +1,1 @@
+Compression JPEG ExifByteOrder little ExifOffset 30 JPEGInterchangeFormat 5108 JPEGInterchangeFormatLength 6496 ResolutionUnit inch XResolution 180 YResolution 180

@@ -1,0 +1,25 @@
+# -*- tcl -*-
+# Stitch definition for docstrip files, used by SAK.
+
+input tcldocstrip.dtx
+
+options -metaprefix \# -preamble {In other words:
+**************************************
+* This Source is not the True Source *
+**************************************
+the true source is the file from which this one was generated.
+}
+
+stitch docstrip.tcl       pkg
+stitch docstrip_util.tcl  utilpkg
+stitch pkgIndex.tcl       idx
+stitch docstrip.test      {test tcllibtest}
+stitch docstrip_util.test {utiltest tcllibtest}
+# For the .test files, the tcllibtest guard is not present in 
+# the corresponding commmand in tcldocstrip.ins. The rationale 
+# for this is that someone using the .ins rather than the .stitch 
+# is unlikely to have a tcllib testing environment at hand.
+
+options -nopreamble -nopostamble
+stitch docstrip.man      man
+stitch docstrip_util.man utilman

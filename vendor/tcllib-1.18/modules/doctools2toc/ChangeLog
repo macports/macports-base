@@ -1,0 +1,103 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* export_doctoc.man: Added headers to properly mark files as manpages
+	* export_html.man: even if not containing having manpage_begin, and
+	* export_json.man: vice versa, preventing recognition of subordinate
+	* export_nroff.man: include files as manpages.
+	* export_text.man:
+	* export_wiki.man:
+	* import_doctoc.man:
+	* import_json.man:
+	* include/export/plugin.inc:
+	* include/import/plugin.inc:
+	* include/msgcat.inc:
+	* msgcat_c.man:
+	* msgcat_de.man:
+	* msgcat_en.man:
+	* msgcat_fr.man:
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* container.test: Fixed up typos in comments refering to keyword
+	* export.tcl: indices, while the packages are all about tables of
+	* export_doctoc.tcl: contents. Unchanged functionality, version
+	* export_doctoc.test: left unchanged.
+	* export_html.tcl:
+	* export_html.test:
+	* export_json.tcl:
+	* export_json.test:
+	* export_nroff.tcl:
+	* export_nroff.test:
+	* export_text.tcl:
+	* export_text.test:
+	* export_wiki.tcl:
+	* export_wiki.test:
+	* import.tcl:
+	* import_doctoc.tcl:
+	* import_json.tcl:
+	* include/export/config/doctoc.inc:
+	* include/export/config/html.inc:
+	* include/export/config/nroff.inc:
+	* include/export/plugin.inc:
+	* include/import/plugin.inc:
+	* parse.tcl:
+	* tests/container:
+	* tests/export:
+	* tests/import:
+
+2009-08-07  Andreas Kupries  <andreask@activestate.com>
+
+	* export_doctoc.tcl: Added missing '@mdgen NODEP' hints for the
+	* export_html.tcl: pseudo-packages 'doctools::toc::export::plugin'
+	* export_json.tcl: and 'doctools::toc::import::plugin' to keep them
+	* export_nroff.tcl: out of the requirements listed in the meta data.
+	* export_text.tcl:
+	* export_wiki.tcl:
+	* import_doctoc.tcl:
+	* import_json.tcl:
+
+2009-04-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* container.test: Updated the nroff export plugin and related files
+	* export.test: to new name of the nroff man.macros package. Bumped
+	* export_nroff.tcl: to version 0.2.
+	* export_nroff.test:
+	* pkgIndex.tcl:
+	* include/dependencies.inc:
+	* include/export/format/nroff.inc:
+
+	* include/export/plugin.inc: Made version info configurable
+        * export_docidx.tcl: Version 0.1, unchanged
+        * export_json.tcl: Version 0.1, unchanged
+        * export_html.tcl: Version 0.1, unchanged
+        * export_text.tcl: Version 0.1, unchanged
+        * export_wiki.tcl: Version 0.1, unchanged
+        * export_nroff.tcl: Bumped version to 0.2.
+
+2009-04-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Doctools version 2, processing tables of contents.

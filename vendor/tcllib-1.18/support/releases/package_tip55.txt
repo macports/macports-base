@@ -1,0 +1,9 @@
+Identifier: @PACKAGE_NAME@
+Title:  Tcl Standard Library
+Description: This package is intended to be a collection of
+    Tcl packages that provide utility functions useful to a
+    large collection of Tcl programmers.
+Rights: BSD
+Version: @PACKAGE_VERSION@
+URL: http://core.tcl.tk/tcllib
+Architecture: tcl

@@ -1,0 +1,1129 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: inplace.test,v 1.3 2009/10/06 20:07:18 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+
+test cat-1.1 {cat} {
+    set path [makeFile "foo\nbar\nbaz\n" {cat [1]}]
+
+    set data [fileutil::cat $path]
+
+    removeFile {cat [1]}
+    set data
+} "foo\nbar\nbaz\n"
+
+test cat-1.2 {cat multiple files} {macOrUnix} {
+    set pathA [makeFile "foo\nbar\nbaz\n" {cat [1]}]
+    set pathB [makeFile "bebop" {cat* 2}]
+
+    set data [fileutil::cat $pathA $pathB]
+
+    removeFile {cat [1]}
+    removeFile {cat* 2}
+    set data
+} "foo\nbar\nbaz\nbebop\n"
+
+
+test cat-1.3.0 {cat, option processing} {
+    set path [makeFile "foo\r\nbar\r\nbaz\r\n" {cat [1]}]
+
+    set data [fileutil::cat -translation binary $path]
+
+    removeFile {cat [1]}
+    set data
+} "foo\r\nbar\r\nbaz\r\n"
+
+test cat-1.3.1 {cat, option processing} {
+    set path [makeFile "foo\r\nbar\r\nbaz\r\n" {cat [1]}]
+
+    set data [fileutil::cat $path]
+
+    removeFile {cat [1]}
+    set data
+} "foo\nbar\nbaz\n"
+
+test cat-1.4 {cat multiple files} {macOrUnix} {
+    set pathA [makeFile "foo\r\nbar\r\nbaz\r\n" {cat [1]}]
+    set pathB [makeFile "bebop\r\nsnoof" {cat* 2}]
+
+    set data [fileutil::cat $pathA -translation binary $pathB]
+
+    removeFile {cat [1]}
+    removeFile {cat* 2}
+    set data
+} "foo\nbar\nbaz\nbebop\r\nsnoof\n"
+
+test cat-1.5.0 {cat, bad arguments} {
+    catch {fileutil::cat} msg
+    set msg
+} {wrong#args: should be fileutil::cat ?-eofchar|-translation|-encoding arg?+ file ...}
+
+test cat-1.5.1 {cat, bad arguments} {
+    catch {fileutil::cat -translation} msg
+    set msg
+} {wrong#args: should be fileutil::cat ?-eofchar|-translation|-encoding arg?+ file ...}
+
+test cat-1.5.2 {cat, bad arguments} {
+    catch {fileutil::cat -bogus foo} msg
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+set xpath [makeFile {} {cat [2]}]
+removeFile {cat [2]}
+
+test cat-1.5.3 {cat, bad arguments, unreadable file} {unixOnly notRoot} {
+    set path [makeFile {} {cat [2]}]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::cat $path} msg
+
+    file attributes $path -permissions 0600
+    removeFile {cat [2]}
+    set msg
+} "Cannot read file \"$xpath\", read access is denied"
+
+test cat-1.5.4 {cat, bad arguments, non-existing file} {unixOnly} {
+    set path [makeFile {} {cat [2]}]
+    removeFile {cat [2]}
+
+    catch {fileutil::cat $path} msg
+
+    set msg
+} "Cannot read file \"$xpath\", does not exist"
+
+test cat-1.5.5 {cat, bad arguments, directory} {unixOnly} {
+    set path [makeDirectory {cat [2]}]
+
+    catch {fileutil::cat $path} msg
+
+    removeDirectory {cat [2]}
+    set msg
+} "Cannot read file \"$xpath\", is not a file"
+
+
+test writefile-1.0 {writeFile, unwriteable file} {unixOnly notRoot} {
+    set path [makeFile {} unwritable]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::writeFile $path {}} msg
+
+    file attributes $path -permissions 0600
+    removeFile unwritable
+
+    string map [list $path @] $msg
+} {Cannot use file "@", write access is denied}
+
+test writefile-1.1 {writeFile, not a file} {unixOnly} {
+    set path [makeDirectory notafile]
+
+    catch {fileutil::writeFile $path {}} msg
+
+    removeDirectory notafile
+    string map [list $path @] $msg
+} {Cannot use file "@", is not a file}
+
+test writefile-1.2 {writeFile, wrong#args} {
+    catch {fileutil::writeFile irrelevant} msg
+    set msg
+} {wrong#args: should be fileutil::writeFile ?-eofchar|-translation|-encoding arg? file data}
+
+test writefile-1.3 {writeFile, wrong#args} {
+    catch {fileutil::writeFile} msg
+    set msg
+} {wrong#args: should be fileutil::writeFile ?-eofchar|-translation|-encoding arg? file data}
+
+test writefile-1.4 {writeFile, wrong#args} {
+    catch {fileutil::writeFile a b c} msg
+    set msg
+} {wrong#args: should be fileutil::writeFile ?-eofchar|-translation|-encoding arg? file data}
+
+test writefile-1.5 {writeFile, bad option} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::writeFile -bogus $path {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+
+test writefile-2.0 {writeFile, create file} {
+    set path [makeFile {} out]
+    removeFile out
+
+    set     res {}
+    lappend res [file exists $path]
+
+    fileutil::writeFile $path dummy
+
+    lappend res [file exists $path]
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {0 1 dummy}
+
+test writefile-2.1 {writeFile, replace file} {
+    set path [makeFile {} out]
+
+    set     res {}
+    lappend res [file exists $path]
+    lappend res [fileutil::cat $path]
+
+    fileutil::writeFile $path dummy
+
+    lappend res [file exists $path]
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {1 {
+} 1 dummy}
+
+test writefile-2.2 {writeFile, translation 1} {
+    set path [makeFile {} out]
+
+    fileutil::writeFile -translation binary $path "dummy\nfoo"
+    set res [fileutil::cat -translation binary $path]
+
+    removeFile out
+    set res
+} "dummy\nfoo"
+
+test writefile-2.3 {writeFile, translation 2} {
+    set path [makeFile {} out]
+
+    fileutil::writeFile -translation crlf $path "dummy\nfoo"
+    set res [fileutil::cat -translation binary $path]
+
+    removeFile out
+    set res
+} "dummy\r\nfoo"
+
+test appendtofile-1.0 {appendToFile, unwriteable file} {unixOnly notRoot} {
+    set path [makeFile {} unwritable]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::appendToFile $path {}} msg
+
+    file attributes $path -permissions 0600
+    removeFile unwritable
+
+    string map [list $path @] $msg
+} {Cannot use file "@", write access is denied}
+
+test appendtofile-1.1 {appendToFile, not a file} {unixOnly} {
+    set path [makeDirectory notafile]
+
+    catch {fileutil::appendToFile $path {}} msg
+
+    removeDirectory notafile
+    string map [list $path @] $msg
+} {Cannot use file "@", is not a file}
+
+test appendtofile-1.2 {appendToFile, wrong#args} {
+    catch {fileutil::appendToFile irrelevant} msg
+    set msg
+} {wrong#args: should be fileutil::appendToFile ?-eofchar|-translation|-encoding arg? file data}
+
+test appendtofile-1.3 {appendToFile, wrong#args} {
+    catch {fileutil::appendToFile} msg
+    set msg
+} {wrong#args: should be fileutil::appendToFile ?-eofchar|-translation|-encoding arg? file data}
+
+test appendtofile-1.4 {appendToFile, wrong#args} {
+    catch {fileutil::appendToFile a b c} msg
+    set msg
+} {wrong#args: should be fileutil::appendToFile ?-eofchar|-translation|-encoding arg? file data}
+
+test appendtofile-1.5 {appendToFile, bad option} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::appendToFile -bogus $path {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+
+test appendtofile-2.0 {appendToFile, create file} {
+    set path [makeFile {} out]
+    removeFile out
+
+    set     res {}
+    lappend res [file exists $path]
+
+    fileutil::appendToFile $path dummy
+
+    lappend res [file exists $path]
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {0 1 dummy}
+
+test appendtofile-2.1 {appendToFile, true append} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn|
+
+    set     res {}
+    lappend res [file exists $path]
+    lappend res [fileutil::cat $path]
+
+    fileutil::appendToFile $path dummy
+
+    lappend res [file exists $path]
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {1 aragorn| 1 aragorn|dummy}
+
+test appendtofile-2.2 {appendToFile, translation 1} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path {}
+
+    fileutil::appendToFile -translation binary $path "dummy\nfoo"
+    set res [fileutil::cat -translation binary $path]
+
+    removeFile out
+    set res
+} "dummy\nfoo"
+
+test appendtofile-2.3 {appendToFile, translation 2} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path {}
+
+    fileutil::appendToFile -translation crlf $path "dummy\nfoo"
+    set res [fileutil::cat -translation binary $path]
+
+    removeFile out
+    set res
+} "dummy\r\nfoo"
+
+
+test insertintofile-1.0 {insertIntoFile, unwriteable file} {unixOnly notRoot} {
+    set path [makeFile {} unwritable]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::insertIntoFile $path 0 {}} msg
+
+    file attributes $path -permissions 0600
+    removeFile unwritable
+
+    string map [list $path @] $msg
+} {Cannot use file "@", write access is denied}
+
+test insertintofile-1.1 {insertIntoFile, not a file} {unixOnly} {
+    set path [makeDirectory notafile]
+
+    catch {fileutil::insertIntoFile $path 0 {}} msg
+
+    removeDirectory notafile
+    string map [list $path @] $msg
+} {Cannot use file "@", is not a file}
+
+test insertintofile-1.2 {insertIntoFile, missing file} {
+    set path [makeFile {} missing]
+    removeFile missing
+
+    catch {fileutil::insertIntoFile $path 0 {}} msg
+
+    string map [list $path @] $msg
+} {Cannot use file "@", does not exist}
+
+test insertintofile-1.3 {insertIntoFile, wrong#args} {
+    catch {fileutil::insertIntoFile irrelevant} msg
+    set msg
+} {wrong#args: should be fileutil::insertIntoFile ?-eofchar|-translation|-encoding arg? file at data}
+
+test insertintofile-1.4 {insertIntoFile, wrong#args} {
+    catch {fileutil::insertIntoFile} msg
+    set msg
+} {wrong#args: should be fileutil::insertIntoFile ?-eofchar|-translation|-encoding arg? file at data}
+
+test insertintofile-1.5 {insertIntoFile, wrong#args} {
+    catch {fileutil::insertIntoFile a b c d} msg
+    set msg
+} {wrong#args: should be fileutil::insertIntoFile ?-eofchar|-translation|-encoding arg? file at data}
+
+test insertintofile-1.6 {insertIntoFile, bad option} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::insertIntoFile -bogus $path {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+test insertintofile-1.7 {insertIntoFile, non-integer insertion point} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::insertIntoFile $path foo {}} msg
+
+    removeFile dummy
+    set msg
+} {Expected integer but got "foo"}
+
+test insertintofile-1.8 {insertIntoFile, negative insertion point} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::insertIntoFile $path -1 {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad insertion point -1, before start of data}
+
+test insertintofile-1.9 {insertIntoFile, insertion point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::insertIntoFile $path 4 {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad insertion point 4, behind end of data}
+
+# Needed for 1.10
+set path [makeFile {} dummy]
+set  beyond [file size $path]
+incr beyond
+removeFile dummy
+
+test insertintofile-1.10 {insertIntoFile, insertion point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::insertIntoFile $path $beyond {}} msg
+
+    removeFile dummy
+    set msg
+} "Bad insertion point $beyond, behind end of data"
+
+
+test insertintofile-2.0 {insertIntoFile, insert at front} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::insertIntoFile $path 0 dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn dummy|aragorn}
+
+test insertintofile-2.1 {insertIntoFile, insert degenerated to append} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::insertIntoFile $path \
+	    [file size $path] dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn aragorndummy|}
+
+test insertintofile-2.2 {insertIntoFile, insert in the middle} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::insertIntoFile $path 3 dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn aradummy|gorn}
+
+test insertintofile-2.3 {insertIntoFile, insert nothing} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::insertIntoFile $path 3 {}
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn aragorn}
+
+test insertintofile-2.4 {insertIntoFile, translation 1} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path {}
+
+    fileutil::insertIntoFile -translation binary $path 0 "dummy\nfoo"
+    set res [fileutil::cat -translation binary $path]
+
+    removeFile out
+    set res
+} "dummy\nfoo"
+
+test insertintofile-2.5 {insertIntoFile, translation 2} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path {}
+
+    fileutil::insertIntoFile -translation crlf $path 0 "dummy\nfoo"
+    set res [fileutil::cat -translation binary $path]
+
+    removeFile out
+    set res
+} "dummy\r\nfoo"
+
+
+test removefromfile-1.0 {removeFromFile, unwriteable file} {unixOnly notRoot} {
+    set path [makeFile {} unwritable]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::removeFromFile $path 0 {}} msg
+
+    file attributes $path -permissions 0600
+    removeFile unwritable
+
+    string map [list $path @] $msg
+} {Cannot use file "@", write access is denied}
+
+test removefromfile-1.1 {removeFromFile, not a file} {unixOnly} {
+    set path [makeDirectory notafile]
+
+    catch {fileutil::removeFromFile $path 0 {}} msg
+
+    removeDirectory notafile
+    string map [list $path @] $msg
+} {Cannot use file "@", is not a file}
+
+test removefromfile-1.2 {removeFromFile, missing file} {
+    set path [makeFile {} missing]
+    removeFile missing
+
+    catch {fileutil::removeFromFile $path 0 {}} msg
+
+    string map [list $path @] $msg
+} {Cannot use file "@", does not exist}
+
+test removefromfile-1.3 {removeFromFile, wrong#args} {
+    catch {fileutil::removeFromFile irrelevant} msg
+    set msg
+} {wrong#args: should be fileutil::removeFromFile ?-eofchar|-translation|-encoding arg? file at n}
+
+test removefromfile-1.4 {removeFromFile, wrong#args} {
+    catch {fileutil::removeFromFile} msg
+    set msg
+} {wrong#args: should be fileutil::removeFromFile ?-eofchar|-translation|-encoding arg? file at n}
+
+test removefromfile-1.5 {removeFromFile, wrong#args} {
+    catch {fileutil::removeFromFile a b c d} msg
+    set msg
+} {wrong#args: should be fileutil::removeFromFile ?-eofchar|-translation|-encoding arg? file at n}
+
+test removefromfile-1.6 {removeFromFile, bad option} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile -bogus $path {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+test removefromfile-1.7 {removeFromFile, non-integer removal point} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path foo 0} msg
+
+    removeFile dummy
+    set msg
+} {Expected integer but got "foo"}
+
+test removefromfile-1.8 {removeFromFile, negative removal point} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path -1 0} msg
+
+    removeFile dummy
+    set msg
+} {Bad removal point -1, before start of data}
+
+test removefromfile-1.9 {removeFromFile, removal point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path 4 0} msg
+
+    removeFile dummy
+    set msg
+} {Bad removal point 4, behind end of data}
+
+set  path   [makeFile {} dummy]
+set  beyond [file size $path]
+incr beyond
+removeFile dummy
+
+test removefromfile-1.10 {removeFromFile, removal point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path $beyond 0} msg
+
+    removeFile dummy
+    set msg
+} "Bad removal point $beyond, behind end of data"
+
+test removefromfile-1.11 {removeFromFile, non-integer removal size} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path 0 foo} msg
+
+    removeFile dummy
+    set msg
+} {Expected integer but got "foo"}
+
+test removefromfile-1.12 {removeFromFile, negative removal size} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path 0 -1} msg
+
+    removeFile dummy
+    set msg
+} {Bad removal size -1}
+
+test removefromfile-1.13 {removeFromFile, removal size beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path 0 4} msg
+
+    removeFile dummy
+    set msg
+} {Bad removal size 4, going behind end of data}
+
+set  path   [makeFile {} dummy]
+set  beyond [file size $path]
+incr beyond
+removeFile dummy
+
+test removefromfile-1.14 {removeFromFile, removal point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::removeFromFile $path 0 $beyond} msg
+
+    removeFile dummy
+    set msg
+} "Bad removal size $beyond, going behind end of data"
+
+
+test removefromfile-2.0 {removeFromFile, remove at front} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::removeFromFile $path 0 3
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn gorn}
+
+test removefromfile-2.1 {removeFromFile, removal at end} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::removeFromFile $path 3 4
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara}
+
+test removefromfile-2.2 {removeFromFile, removal in the middle} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::removeFromFile $path 3 1
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn araorn}
+
+test removefromfile-2.3 {removeFromFile, remove nothing} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::removeFromFile $path 3 0
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn aragorn}
+
+
+test replaceinfile-1.0 {replaceInFile, unwriteable file} {unixOnly notRoot} {
+    set path [makeFile {} unwritable]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::replaceInFile $path 0 0 {}} msg
+
+    file attributes $path -permissions 0600
+    removeFile unwritable
+
+    string map [list $path @] $msg
+} {Cannot use file "@", write access is denied}
+
+test replaceinfile-1.1 {replaceInFile, not a file} {unixOnly} {
+    set path [makeDirectory notafile]
+
+    catch {fileutil::replaceInFile $path 0 0 {}} msg
+
+    removeDirectory notafile
+    string map [list $path @] $msg
+} {Cannot use file "@", is not a file}
+
+test replaceinfile-1.2 {replaceInFile, missing file} {
+    set path [makeFile {} missing]
+    removeFile missing
+
+    catch {fileutil::replaceInFile $path 0 0 {}} msg
+
+    string map [list $path @] $msg
+} {Cannot use file "@", does not exist}
+
+test replaceinfile-1.3 {replaceInFile, wrong#args} {
+    catch {fileutil::replaceInFile irrelevant} msg
+    set msg
+} {wrong#args: should be fileutil::replaceInFile ?-eofchar|-translation|-encoding arg? file at n data}
+
+test replaceinfile-1.4 {replaceInFile, wrong#args} {
+    catch {fileutil::replaceInFile} msg
+    set msg
+} {wrong#args: should be fileutil::replaceInFile ?-eofchar|-translation|-encoding arg? file at n data}
+
+test replaceinfile-1.5 {replaceInFile, wrong#args} {
+    catch {fileutil::replaceInFile a b c d e} msg
+    set msg
+} {wrong#args: should be fileutil::replaceInFile ?-eofchar|-translation|-encoding arg? file at n data}
+
+test replaceinfile-1.6 {replaceInFile, bad option} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile -bogus $path {}} msg
+
+    removeFile dummy
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+test replaceinfile-1.7 {replaceInFile, non-integer replacement point} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path foo 0 x} msg
+
+    removeFile dummy
+    set msg
+} {Expected integer but got "foo"}
+
+test replaceinfile-1.8 {replaceInFile, negative replacement point} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path -1 0 x} msg
+
+    removeFile dummy
+    set msg
+} {Bad replacement point -1, before start of data}
+
+test replaceinfile-1.9 {replaceInFile, replacement point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path 4 0 x} msg
+
+    removeFile dummy
+    set msg
+} {Bad replacement point 4, behind end of data}
+
+set  path   [makeFile {} dummy]
+set  beyond [file size $path]
+incr beyond
+removeFile dummy
+
+test replaceinfile-1.10 {replaceInFile, replacement point beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path $beyond 0 x} msg
+
+    removeFile dummy
+    set msg
+} "Bad replacement point $beyond, behind end of data"
+
+test replaceinfile-1.11 {replaceInFile, non-integer replacement size} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path 0 foo x} msg
+
+    removeFile dummy
+    set msg
+} {Expected integer but got "foo"}
+
+test replaceinfile-1.12 {replaceInFile, negative replacement size} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path 0 -1 x} msg
+
+    removeFile dummy
+    set msg
+} {Bad replacement size -1}
+
+test replaceinfile-1.13 {replaceInFile, replacement size beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path 0 4 x} msg
+
+    removeFile dummy
+    set msg
+} {Bad replacement size 4, going behind end of data}
+
+set  path   [makeFile {} dummy]
+set  beyond [file size $path]
+incr beyond
+removeFile dummy
+
+test replaceinfile-1.14 {replaceInFile, replacement size beyond end-of-file} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::replaceInFile $path 0 $beyond x} msg
+
+    removeFile dummy
+    set msg
+} "Bad replacement size $beyond, going behind end of data"
+
+
+test replaceinfile-2.0 {replaceInFile, replace at front, remove} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 0 3 {}
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn gorn}
+
+test replaceinfile-2.1 {replaceInFile, replacement at end, remove} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 4 {}
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara}
+
+test replaceinfile-2.2 {replaceInFile, replacement in the middle, remove} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 1 {}
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn araorn}
+
+test replaceinfile-2.3 {replaceInFile, replace nothing} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 0 {}
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn aragorn}
+
+test replaceinfile-2.4 {replaceInFile, replace at front, insert} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 0 0 dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn dummy|aragorn}
+
+test replaceinfile-2.5 {replaceInFile, replacement at end, append} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 7 0 |dummy
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn aragorn|dummy}
+
+test replaceinfile-2.6 {replaceInFile, replacement in the middle, insert} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 0 |dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara|dummy|gorn}
+
+test replaceinfile-2.7 {replaceInFile, replace at front, expand} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 0 3 dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn dummy|gorn}
+
+test replaceinfile-2.8 {replaceInFile, replacement at end, expand} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 4 |dummy
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara|dummy}
+
+test replaceinfile-2.9 {replaceInFile, replacement in the middle, expand} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 1 |dummy|
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara|dummy|orn}
+
+test replaceinfile-2.10 {replaceInFile, replace at front, shrink} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 0 3 |
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn |gorn}
+
+test replaceinfile-2.11 {replaceInFile, replacement at end, shrink} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 4 |
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara|}
+
+test replaceinfile-2.12 {replaceInFile, replacement in the middle, shrink} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::replaceInFile $path 3 3 |
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn ara|n}
+
+
+test updateinplace-1.0 {updateInPlace, unwriteable file} {unixOnly notRoot} {
+    set path [makeFile {} unwritable]
+    file attributes $path -permissions 0000
+
+    catch {fileutil::updateInPlace $path {string map {}}} msg
+
+    file attributes $path -permissions 0600
+    removeFile unwritable
+
+    string map [list $path @] $msg
+} {Cannot use file "@", write access is denied}
+
+test updateinplace-1.1 {updateInPlace, not a file} {unixOnly} {
+    set path [makeDirectory notafile]
+
+    catch {fileutil::updateInPlace $path {string map {}}} msg
+
+    removeDirectory notafile
+    string map [list $path @] $msg
+} {Cannot use file "@", is not a file}
+
+test updateinplace-1.2 {updateInPlace, missing file} {
+    set path [makeFile {} missing]
+    removeFile missing
+
+    catch {fileutil::updateInPlace $path {string map {}}} msg
+
+    string map [list $path @] $msg
+} {Cannot use file "@", does not exist}
+
+test updateinplace-1.3 {updateInPlace, wrong#args} {
+    catch {fileutil::updateInPlace irrelevant} msg
+    set msg
+} {wrong#args: should be fileutil::updateInPlace ?-eofchar|-translation|-encoding arg? file cmd}
+
+test updateinplace-1.4 {updateInPlace, wrong#args} {
+    catch {fileutil::updateInPlace} msg
+    set msg
+} {wrong#args: should be fileutil::updateInPlace ?-eofchar|-translation|-encoding arg? file cmd}
+
+test updateinplace-1.5 {updateInPlace, wrong#args} {
+    catch {fileutil::updateInPlace a b c} msg
+    set msg
+} {wrong#args: should be fileutil::updateInPlace ?-eofchar|-translation|-encoding arg? file cmd}
+
+test updateinplace-1.6 {updateInPlace, bad option} {
+    set path [makeFile {} dummy]
+
+    catch {fileutil::updateInPlace -bogus $path {string map {}}} msg
+
+    removeFile dummy
+    set msg
+} {Bad option "-bogus", expected one of -encoding, -eofchar, or -translation}
+
+test updateinplace-1.7 {updateInPlace, bogus cmd} {
+    # Error leaves input file unchanged.
+    set path [makeFile {} dummy]
+    fileutil::writeFile $path aragorn
+
+    catch {fileutil::updateInPlace $path bogus} msg
+
+    set msg [list $msg [fileutil::cat $path]]
+    removeFile dummy
+    set msg
+} {{invalid command name "bogus"} aragorn}
+
+
+test updateinplace-2.0 {updateInPlace, string map} {
+    set path [makeFile {} out]
+    fileutil::writeFile $path aragorn
+
+    set     res {}
+    lappend res [fileutil::cat $path]
+
+    fileutil::updateInPlace $path {string map {a | r =}}
+
+    lappend res [fileutil::cat $path]
+
+    removeFile out
+    set res
+} {aragorn |=|go=n}
+
+# -------------------------------------------------------------------------
+
+catch {unset path}
+catch {unset res}
+catch {unset msg}
+catch {unset data}
+testsuiteCleanup
+return

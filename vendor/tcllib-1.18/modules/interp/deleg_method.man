@@ -1,0 +1,49 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin deleg_method n 0.2]
+[keywords comm]
+[keywords delegation]
+[keywords interpreter]
+[keywords method]
+[keywords snit]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Interpreter utilities}]
+[titledesc {Creation of comm delegates (snit methods)}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require snit [opt 1.1]]
+[require interp::delegate::method [opt 0.2]]
+[description]
+[para]
+
+This package provides a single command for use within [package snit]
+type definition (i.e. actually a [cmd snit::macro]) for the convenient
+creation of methods which delegate the actual work to a remote
+location via a "channel" created by the package [package comm].
+
+[section API]
+[list_begin definitions]
+
+[call [cmd ::interp::delegate::method] [opt [option -async]] [arg name] [arg arguments] [arg comm] [arg id]]
+
+This commands creates a method which is named by [arg name]. All
+invokations of this method will delegate the actual work to the remote
+location identified by the comm channel [arg comm] and the endpoint
+[arg id].
+
+[para]
+
+The name of the remote method invoked by the delegator is identical to
+the name of the method itself.
+
+[para]
+
+Normally the generated method marshalls the [arg arguments], and
+returns the result from the remote method as its own result. If
+however the option [option -async] was specified then the generated
+method will not wait for a result and return immediately.
+
+[list_end]
+
+[vset CATEGORY interp]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

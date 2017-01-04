@@ -1,0 +1,28 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+
+#puts [join $auto_path \n]
+#exit
+
+set f [lindex $argv 0]
+set c [open $f r]
+set t [read $c]
+close $c
+
+package require term::ansi::send
+package require term::ansi::ctrl::unix
+package require term::interact::pager
+
+term::ansi::send::import vt
+vt::init
+vt::clear
+
+term::interact::pager p $t -line 2 -column 2 -height 30
+
+term::ansi::ctrl::unix::raw
+p interact
+term::ansi::ctrl::unix::cooked
+
+exit

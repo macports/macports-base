@@ -1,0 +1,807 @@
+<html><head>
+<title>tepam::procedure - Tcl's Enhanced Procedure and Argument Manager</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'tepam_procedure.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009-2013, Andreas Drollinger
+   -->
+<! -- tepam::procedure.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tepam::procedure(n) 0.5.0 tcllib &quot;Tcl's Enhanced Procedure and Argument Manager&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tepam::procedure - TEPAM procedure, reference manual</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">TERMINOLOGY</a></li>
+<li class="doctools_section"><a href="#section3">PROCEDURE DECLARATION</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Procedure Attributes</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Argument Declaration</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">VARIABLES</a></li>
+<li class="doctools_section"><a href="#section5">ARGUMENT TYPES</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection3">Predefined Argument Types</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Defining Application Specific Argument Types</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section6">PROCEDURE CALLS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection5">Help</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Interactive Procedure Call</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Unnamed Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Named Arguments</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Unnamed Arguments First, Named Arguments Later (Tk Style)</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Named Arguments First, Unnamed Arguments Later (Tcl Style)</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Raw Argument List</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">tepam <span class="opt">?0.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">tepam::procedure</b> <i class="arg">name</i> <i class="arg">attributes</i> <i class="arg">body</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides an alternative way to declare Tcl procedures and to manage its arguments. There is a lot of benefit to declare a procedure with TEPAM rather than with the Tcl standard command <b class="function">proc</b>: TEPAM allows specifying inside the procedure declaration all information that is required to generate comprehensive documentations and help support.  The information is also used by an automatically invoked argument checker that validates the provided procedure arguments before the procedure body is executed. Finally, a procedure can be called interactively which will open a graphical form that allows specifying the procedure arguments.</p>
+<p>TEPAM simplifies also the handling of the different types of argument, like the <em>named arguments</em> (often also called <em>options</em>) and the <em>unnamed arguments</em>. TEPAM supports the <em>named first, unnamed later</em> style (typical Tcl command style) as well as also the <em>unnamed first, named later</em> style (typical Tk command style). TEPAM takes care about default values for arguments, optional arguments, multiple applicable arguments, etc. and eliminates the need to check the validity of the argument inside the procedure bodies.</p>
+<p>An informal overview of all the TEPAM procedure declaration and calling features as well as a short introduction into TEPAM is provided by <em>tepam(n)</em>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">TERMINOLOGY</a></h2>
+<p>The exact meaning of several terms that are used in this document will be shortly explained to avoid any ambiguities and misunderstandings.</p>
+<dl class="doctools_definitions">
+<dt><em>Subcommand</em></dt>
+<dd><p>The usage of subcommands is heavily used in the Tcl language. Several commands are incorporated into a single main command and are selectable via the first argument.</p>
+<p>The <b class="function">string</b> command is an example of such a command that implements for example subcommands to check a character string's length, to compare strings, to extract substrings, etc:</p>
+<pre class="doctools_example"><b class="function">string length</b> <i class="arg">string</i>
+<b class="function">string compare</b> <i class="arg">string</i> <i class="arg">string</i>
+<b class="function">string range</b> <i class="arg">string</i> <i class="arg">first</i> <i class="arg">last</i>
+...</pre>
+<p>TEPAM provides a framework that allows implementing easily such subcommands in form of Tcl procedures. It allows not only defining a first level of subcommands, but also a higher level of subcommands. The <b class="function">string</b> command's class check could be implemented as independent sub-sub-commands of the <b class="function">string</b> command:</p>
+<pre class="doctools_example"><b class="function">string is alnum</b> <i class="arg">string</i>
+<b class="function">string is integer</b> <i class="arg">string</i>
+<b class="function">string is double</b> <i class="arg">string</i>
+...</pre>
+</dd>
+<dt><em>Procedure attribute</em></dt>
+<dd><p>TEPAM allows attaching to a declared procedure different kind of attributes. Some of these attributes are <em>just</em> used for documentation purposes, but other attributes specify the way how the procedure has to be called. Also the procedure arguments are defined in form of a procedure attribute.</p></dd>
+<dt><em>Argument</em></dt>
+<dd><p>TEPAM uses the term <em>argument</em> for the parameters of a procedure.</p>
+<p>The following example calls the subcommand <b class="cmd">string compare</b> with several arguments:</p>
+<pre class="doctools_example"><b class="cmd">string compare</b> <i class="arg">-nocase -length 3 &quot;emphasized&quot; &quot;emphasised&quot;</i></pre>
+<p>The following paragraphs discuss these different argument types.</p></dd>
+<dt><em>Named argument</em></dt>
+<dd><p>Some parameters, as <i class="arg">-length 3</i> of the subcommand <b class="cmd">string compare</b> have to be provided as pairs of argument names and argument values. This parameter type is often also called <em>option</em>.</p>
+<p>TEPAM uses the term <em>named argument</em> for such options as well as for the flags (see next item).</p></dd>
+<dt><em>Flag, switch</em></dt>
+<dd><p>Another parameter type is the <em>flag</em> or the <em>switch</em>. Flags are provided simply by naming the flag leading with the '-' character. The <i class="arg">-nocase</i> of the previous <b class="cmd">string compare</b> example is such a flag.</p>
+<p><em>Flags</em> are considered by TEPAM like a special form of <em>named arguments</em>.</p></dd>
+<dt><em>Unnamed argument</em></dt>
+<dd><p>For the other parameters, e.g. the ones for which the argument name has not to be mentioned, TEPAM uses the term <em>unnamed argument</em>. The previous <b class="cmd">string compare</b> example uses for the two provided character strings two <em>unnamed arguments</em>.</p></dd>
+<dt><em>Argument attribute</em></dt>
+<dd><p>TEPAM allows describing the purpose of each procedure argument with <em>argument attributes</em>. While some of them are just documenting the attributes, most attributes are used by an argument manager to control and validate the arguments that are provided during a procedure call. Argument attributes are used to specify default values, parameter classes (integer, xdigit, font, ...), choice validation lists, value ranges, etc.</p></dd>
+<dt><em>Named arguments first, unnamed arguments later</em></dt>
+<dd><p>The <b class="cmd">string compare</b> command of the previous example requires that the <em>named arguments</em> (options, flags) are provided first. The two mandatory (unnamed) arguments have to be provided as last argument.</p>
+<pre class="doctools_example"><b class="cmd">string compare</b> <i class="arg">-nocase -length 3 Water $Text</i></pre>
+<p>This is the usual Tcl style (exceptions exist) which is referred in the TEPAM documentation as <em>named arguments first, unnamed arguments later style</em>.</p></dd>
+<dt><em>Unnamed arguments first, named arguments later</em></dt>
+<dd><p>In contrast to most Tcl commands, Tk uses generally (exceptions exist also here) a different calling style where the <em>unnamed arguments</em> have to be provided first, before the <em>named arguments</em> have to be provided:</p>
+<pre class="doctools_example"><b class="cmd">pack</b> <i class="arg">.ent1 .ent2 -fill x -expand yes -side left</i></pre>
+<p>This style is referred in the TEPAM documentation as <em>unnamed arguments first, named arguments later style</em>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PROCEDURE DECLARATION</a></h2>
+<p>TEPAM allows declaring new Tcl procedures with the command <b class="function">tepam::procedure</b> that has similar to the standard Tcl command <b class="function">proc</b> also 3 arguments:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">tepam::procedure</b> <i class="arg">name</i> <i class="arg">attributes</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+</dl>
+<p>The TEPAM procedure declaration syntax is demonstrated by the following example:</p>
+<pre class="doctools_example"><b class="function">tepam::procedure</b> {display message} {
+   -short_description
+      &quot;Displays a simple message box&quot;
+   -description
+      &quot;This procedure allows displaying a configurable\
+       message box. The default message type that is\
+       created is a warning, but also errors and info can\
+       be generated.
+       The procedure accepts multiple text lines.&quot;
+   -example
+      {display message -mtype Warning &quot;Save first your job&quot;}
+   -args {
+      {-mtype -choices {Info Warning Error} \
+              -default Warning -description &quot;Message type&quot;}
+      {text   -type string -multiple \
+              -description &quot;Multiple text lines to display&quot;}
+   }
+} {
+   puts &quot;Message type: $mtype&quot;
+   puts &quot;Message: $text&quot;
+}</pre>
+<p>The 3 arguments of <b class="function">procedure</b> are:</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">name</i></dt>
+<dd><p>The procedure name can be used in very flexible ways. Procedure names can have namespace qualifiers. By providing a two element name list as procedure name, a subcommand of a procedure will be declared. It is even possible to declare sub-sub-commands of a procedure by providing name lists with three elements.</p>
+<p>Here are some valid procedure declarations using different procedure names (the attribute and body arguments are empty for simplicity):</p>
+<pre class="doctools_example"><em># Simple procedure name:</em>
+tepam::procedure <b class="function">display_message</b> {} {}
+<em></em>
+<em># Procedure declared in the main namespace:</em>
+tepam::procedure <b class="function">::display_message</b> {} {}
+<em></em>
+<em># Procedure in the namespace</em> <b class="namespace">::ns</b><em>:</em>
+tepam::procedure <b class="function">::ns::display_message</b> {} {}
+<em></em>
+<em># Declaration of the subcommand</em> <b class="function">message</b> <em>of the procedure</em> <b class="function">display</b><em>:</em>
+tepam::procedure <b class="function">{display message}</b> {} {}</pre>
+</dd>
+<dt><i class="arg">attributes</i></dt>
+<dd><p>All procedure attributes are provided in form of an option list that contains pairs of option names and option values. The example above has as procedure attribute a short and a normal description, but also the procedure arguments are defined in form of a procedure attribute.</p>
+<p>Most procedure attributes are providing information for documentation purposes. But some of them affect also the way how the procedure can be called. The section <span class="sectref"><a href="#subsection1">Procedure Attributes</a></span> discusses in detail the available procedure attributes.</p>
+<p>The procedure arguments are defined in form of a special procedure attribute. Most of the information provided in the argument definition is not just used for documentation purposes. This information is in fact used by the TEPAM argument manager to handle and validate the various forms of arguments that are provided during the procedure calls. The section <span class="sectref"><a href="#subsection2">Argument Declaration</a></span> discusses in detail all the argument definition attributes.</p></dd>
+<dt><i class="arg">body</i></dt>
+<dd><p>This is the normal procedure body. The declared arguments will be available to the procedure body in form of variables.</p>
+<p>The procedure body will only be executed if the provided set of arguments could be validated by the TEPAM argument manager.</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args {
+      {-<b class="variable">mtype</b> -default Warning -choices {Warning Error}}
+      {<b class="variable">text</b> -type string}
+   }
+} {
+   puts &quot;Message type: <b class="variable">$mtype</b>&quot;
+   puts &quot;Message: <b class="variable">$text</b>&quot;
+}</pre>
+</dd>
+</dl>
+<p>The commands <b class="cmd"><a href="../../../../index.html#key41">procedure</a></b> as well as <b class="cmd">argument_dialogbox</b> are exported from the namespace <b class="namespace">tepam</b>. To use these commands without the <b class="namespace">tepam::</b> namespace prefix, it is sufficient to import them into the main namespace:</p>
+<pre class="doctools_example"><b class="cmd">namespace import tepam::*</b>
+<b class="cmd"><a href="../../../../index.html#key41">procedure</a></b> {display_message} {
+   -args {
+      ...</pre>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Procedure Attributes</a></h3>
+<p>The first group of attributes affect the behavior of the declared procedure:</p>
+<dl class="doctools_definitions">
+<dt>-named_arguments_first <b class="const">0</b>|<b class="const">1</b></dt>
+<dd><p>This attribute defines the calling style of a procedure. TEPAM uses by default the <em>named arguments first, unnamed arguments later</em> style (Tcl). This default behavior can globally be changed by setting the variable <b class="variable">tepam::named_arguments_first</b> to <b class="const">0</b>. This global calling style can be changed individually for a procedure with the procedure's <i class="arg">-named_arguments_first</i> attribute.</p></dd>
+<dt>-auto_argument_name_completion <b class="const">0</b>|<b class="const">1</b></dt>
+<dd><p>The declared procedures will by default automatically try to match eventually abbreviated argument names to the defined arguments names. This default behavior can globally be changed by setting the variable <b class="variable">tepam::auto_argument_name_completion</b> to <b class="const">0</b>. This global setting of the automatic argument name completion can be changed individually for a procedure with the <i class="arg">-auto_argument_name_completion</i> procedure attribute.</p></dd>
+<dt>-interactive_display_format <b class="const">extended</b>|<b class="const">short</b></dt>
+<dd><p>A procedure declared with the TEPAM <b class="function">procedure</b> command can always be called with the <b class="variable">-interactive</b> option. By doing so, a graphical form will be generated that allows specifying all procedure argument values. There are two display modes for these interactive forms. While the <em>extended</em> mode is more adapted for small procedure argument sets, the <b class="const">short</b> form is more adequate for huge procedure argument sets.</p>
+<p>The choice to use short or extended forms can be globally configured via the variable <b class="variable">tepam::interactive_display_format</b>. This global setting can then be changed individually for a procedure with the <i class="arg">-interactive_display_format</i> procedure attribute.</p></dd>
+<dt>-args <i class="arg">list</i></dt>
+<dd><p>The procedure's arguments are declared via the <i class="arg">-args</i> attribute. An argument is defined via a list having as first element the argument name, followed by eventual argument attributes. All these argument definition lists are packaged themselves into a global list that is assigned to the procedure's <i class="arg">-args</i> attribute.</p>
+<p>The argument definition syntax will be described more in detail in the following sub section.</p></dd>
+</dl>
+<p>The next attributes allow specifying custom argument checks as well as custom error messages in case these checks are failing:</p>
+<dl class="doctools_definitions">
+<dt>-validatecommand <i class="arg">script</i></dt>
+<dd><p>Custom argument validations can be performed via specific validation commands that are defined with the <i class="arg">-validatecommand</i> attribute.</p>
+<p>Validation command declaration example:</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args {
+      {text -type string -description &quot;Message text&quot;} }
+   <b class="cmd">-validatecommand {IllegalWordDetector $text}</b>
+} {
+}</pre>
+<p>The validation command is executed in the context of the declared procedure's body. The different argument values are accessed via the argument names. Note there is also an argument attribute <i class="arg">-validatecommand</i> that allows declaring custom checks for specific arguments.</p>
+<p>The attribute <i class="arg">-validatecommand</i> can be repeated to declare multiple custom checks.</p></dd>
+<dt>-validatecommand_error_text <i class="arg">string</i></dt>
+<dd><p>This attribute allows overriding the default error message for a custom argument validation (defined by <i class="arg">-validatecommand</i>). Also this attribute can be repeated in case multiple argument checks are declared.</p></dd>
+</dl>
+<p>The following attribute allows controlling the logging settings for an individual procedure:</p>
+<dl class="doctools_definitions">
+<dt>-command_log <b class="const">0</b>|<b class="const">1</b>|<b class="const">&quot;interactive&quot;</b></dt>
+<dd><p>This argument configures the logging of the procedure calls into the list variable <b class="variable">tepam::ProcedureCallLogList</b>. The default configuration defined by the variable <b class="variable">tepam::command_log</b> will be used if this argument is not defined in a procedure declaration.</p>
+<p>Setting this argument to <b class="const">0</b> will disable any procedure call loggings, setting it to <b class="const">1</b> will log any procedure calls and setting it to <b class="const">interactive</b> will log just the procedures that are called interactively (procedures called with the <b class="const">-interactive</b> flag).</p></dd>
+</dl>
+<p>The next group of procedure attributes is just used for the purpose of documentation and help text generation:</p>
+<dl class="doctools_definitions">
+<dt>-category <i class="arg">string</i></dt>
+<dd><p>A category can be assigned to a procedure for documentation purposes. Any string is accepted as category.</p></dd>
+<dt>-short_description <i class="arg">string</i></dt>
+<dd><p>The short description of a procedure is used in the documentation summary of a generated procedure list as well as
+in the NAME section of a generated procedure manual page.</p></dd>
+<dt>-description <i class="arg">string</i></dt>
+<dd><p>The (full) description assigned to a procedure is used to create user manual and help pages.</p></dd>
+<dt>-return <i class="arg">string</i></dt>
+<dd><p>The <em>-return</em> attribute allows defining the expected return value of a procedure (used for documentation purposes).</p></dd>
+<dt>-example <i class="arg">string</i></dt>
+<dd><p>A help text or manual page of a procedure can be enriched with eventual examples, using the <em>-example</em> attribute.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Argument Declaration</a></h3>
+<p>The following example shows the structure that is used for the argument definitions in the context of a procedure declaration:</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args <b class="cmd">{
+      {-mtype -default Warning -choices {Info Warning Error} -description &quot;Message type&quot;}
+      {-font -type font -default {Arial 10 italic} -description &quot;Message text font&quot;}
+      {-level -type integer -optional -range {1 10} -description &quot;Message level&quot;}
+      {-fg -type color -optional -description &quot;Message color&quot;}
+      {-log_file -type file -optional -description &quot;Optional message log file&quot;}
+      {text -type string -multiple -description &quot;Multiple text lines to display&quot;}
+   }</b>
+} {
+}</pre>
+<p>Each of the procedure arguments is declared with a list that has as first element the argument name, followed by eventual attributes. The argument definition syntax can be formalized in the following way:</p>
+<pre class="doctools_example">tepam::procedure &lt;name&gt; {
+   -args <b class="cmd">{
+      {&lt;argument_name_1&gt; &lt;arg_attr_name_1a&gt; &lt;arg_attr_value_1a&gt;  &lt;arg_attr_name_1b&gt; &lt;arg_attr_value_1b&gt; ...}
+      {&lt;argument_name_2&gt; &lt;arg_attr_name_2a&gt; &lt;arg_attr_value_2a&gt;  &lt;arg_attr_name_2b&gt; &lt;arg_attr_value_2b&gt; ...}
+      ...
+   }</b>
+} &lt;body&gt;</pre>
+<p>The argument names and attributes have to be used in the following way:</p>
+<dl class="doctools_definitions">
+<dt>Argument name (<em>&lt;argument_name_&lt;n&gt;&gt;</em>)</dt>
+<dd><p>The provided argument name specifies whether the argument is an <em>unnamed argument</em> or a <em>named argument</em>. In addition to this, an argument name can also be blank to indicate an argument comment, or it can start with # to indicate a section comment.</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">&quot;&lt;Name&gt;&quot;</i></dt>
+<dd><p>This is the simplest form of an argument name: An argument whose name is not starting with '-' is an <em>unnamed argument</em>. The parameter provided during a procedure call will be assigned to a variable with the name <em>&lt;Name&gt;</em>.</p>
+<pre class="doctools_example">tepam::procedure {print_string} {
+   -args {
+      {<b class="cmd"><a href="../../../../index.html#key248">text</a></b> -type string -description &quot;This is an unnamed argument&quot;}
+   }
+} {
+   puts <b class="cmd">$text</b>
+}
+print_string <b class="cmd">&quot;Hello&quot;</b>
+<em> -&gt; Hello</em></pre>
+</dd>
+<dt><i class="arg">&quot;-&lt;Name&gt;&quot;</i></dt>
+<dd><p>An argument whose name starts with '-' is a <em>named argument</em> (also called <em>option</em>). The parameter provided during a procedure call will be assigned to a variable with the name <em>&lt;Name&gt;</em> (not <em>-&lt;Name&gt;</em>).</p>
+<pre class="doctools_example">tepam::procedure {print_string} {
+   -args {
+      {<b class="cmd">-text</b> -type string -description &quot;This is a named argument&quot;}
+   }
+} {
+   puts <b class="cmd">$text</b>
+}
+print_string <b class="cmd">-text &quot;Hello&quot;</b>
+<em> -&gt; Hello</em></pre>
+</dd>
+<dt><i class="arg">&quot;--&quot;</i></dt>
+<dd><p>This flag allows clearly specifying the end of the named arguments and the beginning of the unnamed arguments, in case the <em>named arguments first, unnamed arguments later style (Tcl)</em> has been selected.</p>
+<p>If the <em>unnamed arguments first, named arguments later style (Tk)</em> style is selected, this flag is ignored if the unnamed arguments have already been parsed. Otherwise it will be assigned to the corresponding unnamed argument.</p></dd>
+<dt><i class="arg">&quot;-&quot;</i> or <i class="arg">&quot;&quot;</i></dt>
+<dd><p>A blank argument name (either '-' or <em>''</em>) starts a comment for the following arguments.</p>
+<pre class="doctools_example">tepam::procedure {print_time} {
+   -interactive_display_format short
+   -args {
+      {hours -type integer -description &quot;Hour&quot;}
+      {minutes -type integer -description &quot;Minute&quot;}
+      <b class="cmd">{- The following arguments are optional:}</b>
+      {seconds -type integer -default 0 -description &quot;Seconds&quot;}
+      {milliseconds -type integer -default 0 -description &quot;Milliseconds&quot;}
+   }
+} {
+   puts &quot;${hour}h${minutes}:[expr $seconds+0.001*$milliseconds]&quot;
+}</pre>
+<p>Argument comments are basically used in the graphical argument definition forms that are created if a procedure is called interactively.</p></dd>
+<dt><i class="arg">&quot;#*&quot;</i></dt>
+<dd><p>An argument definition list that starts with '#' is considered as a section comment. The argument definition list will be trimmed from the '#' characters and the remaining string will be used as section comment.</p>
+<p>Section comments can be used to structure visually the argument definition code. Section comments are also used to structure the generated help texts and the interactive argument definition forms.</p>
+<pre class="doctools_example">tepam::procedure {complex_multiply} {
+   -description &quot;This function perform a complex multiplication&quot;
+   -args {
+      <b class="cmd">{#### First complex number ####}</b>
+      {-r0 -type double -description &quot;First number's real part&quot;}
+      {-i0 -type double -description &quot;First number's imaginary part&quot;}
+      <b class="cmd">{#### Second complex number ####}</b>
+      {-r1 -type double -description &quot;Second number's real part&quot;}
+      {-i1 -type double -description &quot;Second number's imaginary part&quot;}
+   }
+} {
+   return [expr $r0*$r1 - $i0*$i1]
+}</pre>
+</dd>
+</dl></dd>
+<dt>Argument attributes (<em>&lt;arg_attr_name_&lt;mn&gt;&gt; &lt;arg_attr_value_&lt;mn&gt;&gt;</em>)</dt>
+<dd><p>The following argument attributes are supported:</p>
+<dl class="doctools_definitions">
+<dt>-description <i class="arg">string</i></dt>
+<dd><p>The description argument attribute is used for documentation purpose. Interactive argument definition forms use this attribute to provide explanations for an argument.</p></dd>
+<dt>-type <i class="arg">type</i></dt>
+<dd><p>The type argument attribute allows assigning the argument either to a predefined data type, or to an application specific data type. The argument values that are provided during a procedure call are automatically checked with respect to the defined argument type.</p>
+<p>The section <span class="sectref"><a href="#section5">ARGUMENT TYPES</a></span> provides a list of predefined data types and explains how application specific types can be specified.</p>
+<p>The argument type <em>none</em> has a special meaning. An argument that has the type <em>none</em> is handled as a <i class="arg">flag</i>. A flag is always optional and its related variable contains the logical value <b class="const">1</b> if the flag has been defined during the procedure call, or otherwise <b class="const">0</b>.</p></dd>
+<dt>-default <i class="arg">value</i></dt>
+<dd><p>Eventual default values can be defined with the -default argument attribute. Arguments with default values are automatically optional arguments.</p></dd>
+<dt>-optional|-mandatory</dt>
+<dd><p>Arguments are by default mandatory, unless a default value is defined. The flag <i class="arg">-optional</i> transforms an argument into an optional argument.</p>
+<p>In case an optional argument is not defined during a procedure call, the corresponding variable will not be defined.
+The flag <i class="arg">-mandatory</i> is the opposite to <i class="arg">-optional</i>. This flag exists only for completion reason, since an argument is anyway mandatory by default.</p></dd>
+<dt>-multiple</dt>
+<dd><p>Arguments that have the <i class="arg">-multiple</i> attribute can be defined multiple times during a procedure call. The values that are provided during a procedure call for such an argument are stored in a list variable. This is even the case if such an argument is only defined once during a procedure call.</p>
+<p>The <i class="arg">-multiple</i> attribute can be attributed to unnamed arguments and to named arguments. The pair of argument name/argument value has to be repeated for each provided value in case of a named argument.
+In case the argument with the <i class="arg">-multiple</i> attribute is an unnamed argument, this one has to be the absolute last one of all unnamed arguments.</p></dd>
+<dt>-choices <i class="arg">list</i></dt>
+<dd><p>A possible set of valid argument values can be attributed to an argument via the <i class="arg">-choices</i> attribute. The argument value provided during a procedure call will be checked against the provided choice values.</p></dd>
+<dt>-choicelabels <i class="arg">list</i></dt>
+<dd><p>An eventual short description can be attributed to each choice option with the <i class="arg">-choicelabels</i> attribute. These descriptions will be used in the generated help texts and as radio and check box labels for the interactive calls.</p>
+<p>The <i class="arg">-choicelabels</i> attribute is optional, but if it is defined, its list needs to have the identical size as the <i class="arg">-choices</i> argument list.</p></dd>
+<dt>-range <i class="arg">{double double}</i></dt>
+<dd><p>Another argument constraint can be defined with the <i class="arg">-range</i> attribute. The valid range is defined with a list containing the minimum valid value and a maximum valid value. The <i class="arg">-range</i> attribute has to be used only for numerical arguments, like integers and doubles.</p></dd>
+<dt>-validatecommand <i class="arg">script</i></dt>
+<dd><p>Custom argument value validations can be performed via specific validation commands that are defined with the <i class="arg">-validatecommand</i> attribute. The provided validation command can be a complete script in which the pattern <em>%P</em> is replaced by the argument value that has to be validated.</p>
+<p>Validation command declaration example:</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args {
+      {text -type string -description &quot;Message text&quot; \
+            <b class="cmd">-validatecommand {IllegalWordDetector %P}</b>}
+} {
+}</pre>
+<p>While the purpose of this custom argument validation attribute is the validation of a specific argument, there is also a global attribute <i class="arg">-validatecommand</i> that allows performing validation that involves multiple arguments.</p></dd>
+<dt>-validatecommand_error_text <i class="arg">string</i></dt>
+<dd><p>This attribute allows overriding the default error message for a custom argument validation (defined by <i class="arg">-validatecommand</i>).</p></dd>
+<dt>-widget <i class="arg">string</i></dt>
+<dd><p>The widgets that allow defining the different arguments in case of an interactive procedure call are normally selected automatically in function of the argument type. The <i class="arg">-widget</i> attribute allows specifying explicitly a certain widget type for an argument.</p></dd>
+<dt>-auxargs <i class="arg">list</i></dt>
+<dd><p>In case a procedure is called interactively, additional argument attributes can be provided to the interactive argument definition form via the <em>-auxargs</em> attribute that is itself a list of attribute name/attribute value pairs:</p>
+<pre class="doctools_example">-auxargs {-&lt;arg_attr_name_1a&gt; &lt;arg_attr_value_1a&gt; \
+          -&lt;arg_attr_name_1b&gt; &lt;arg_attr_value_1b&gt;
+          ...
+}</pre>
+<p>For example, if a procedure takes as argument a file name it may be beneficial to specify the required file type for the interactive argument definition form. This information can be provided via the <em>-auxargs</em> attribute to the argument definition form:</p>
+<pre class="doctools_example">tepam::procedure LoadPicture {
+   -args {
+      {FileName -type existingfile -description &quot;Picture file&quot; \
+                 <b class="cmd">-auxargs {-filetypes {{&quot;GIF&quot; {*.gif}} {&quot;JPG&quot; {*.jpg}} }}</b>}
+   }
+} {
+}</pre>
+</dd>
+<dt>-auxargs_commands <i class="arg">script</i></dt>
+<dd><p>If the auxiliary argument attributes are not static but have to be dynamically adaptable, the <em>-auxargs_commands</em> allows defining them via commands that are executed during a procedure call. A list of pairs of auxiliary attribute names and commands has to be provided to the <em>-auxargs_commands</em> attribute. The provided commands are executed in the context of the calling procedure.</p>
+<pre class="doctools_example">-auxargs_commands {-&lt;arg_attr_name_1a&gt; &lt;arg_attr_command_1a&gt; \
+                   -&lt;arg_attr_name_1b&gt; &lt;arg_attr_command_1b&gt;
+                   ...
+}</pre>
+</dd>
+</dl></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">VARIABLES</a></h2>
+<p>Several variables defined inside the <b class="namespace">::tepam</b> namespace impact the mode of operation of the procedures that have been declared with TEPAM' <b class="function">procedure</b> command.</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">named_arguments_first</b></dt>
+<dd><p>This variable defines the general calling style of the procedures. It is by default set to <b class="const">1</b> which selects the <em>named arguments first, unnamed arguments later</em> style (Tcl style).</p>
+<p>By setting this variable to <b class="const">0</b>, the <em>named arguments first, unnamed arguments later</em> style is globally selected (Tk style):</p>
+<pre class="doctools_example">set tepam::named_arguments_first 0</pre>
+<p>While this variable defines the general calling style, the procedure attribute <i class="arg">-named_arguments_first</i> can adapt this style individually for each declared procedure.</p></dd>
+<dt><b class="variable">auto_argument_name_completion</b></dt>
+<dd><p>This variable controls the general automatic argument name matching mode. By default it is set to <b class="const">1</b>, meaning that the called procedures are trying to match eventually abbreviated argument names with the declared argument names.</p>
+<p>By setting this variable to <b class="const">0</b> the automatic argument name matching mode is disabled:</p>
+<pre class="doctools_example">set tepam::auto_argument_name_completion 0</pre>
+<p>While this variable defines the general matching mode, the procedure attribute <i class="arg">-auto_argument_name_completion</i> can adapt this mode individually for each declared procedure.</p></dd>
+<dt><b class="variable">interactive_display_format</b></dt>
+<dd><p>A procedure declared via the TEPAM <b class="function">procedure</b> command can always be called with the <b class="variable">-interactive</b> switch. By doing so, a graphical form will be generated that allows entering interactively all procedure arguments.</p>
+<p>There are two display modes for these interactive forms. The <em>extended</em> mode which is the default mode is more adapted for small procedure argument sets. The <b class="const">short</b> form is more adequate for huge procedure argument sets:</p>
+<pre class="doctools_example">set tepam::interactive_display_format &quot;short&quot;</pre>
+<p>The choice to use short or extended forms can be globally configured via the variable <b class="variable">interactive_display_format</b>.
+This global setting can be changed individually for a procedure with the procedure attribute <i class="arg">-interactive_display_format</i>.</p></dd>
+<dt><b class="variable">help_line_length</b></dt>
+<dd><p>The maximum line length used by the procedure help text generator can be specified with this variable. The default length which is set to 80 (characters) can easily be adapted to the need of an application:</p>
+<pre class="doctools_example">set tepam::help_line_length 120</pre>
+<p>Since this variable is applied directly during the help text generation, its value can continuously be adapted to the current need.</p></dd>
+<dt><b class="variable">command_log</b></dt>
+<dd><p>Procedure calls can be logged inside the list variable <b class="variable">tepam::ProcedureCallLogList</b>. The variable <b class="variable">tepam::command_log</b> controls the default logging settings for any procedures. The following configurations are supported:</p>
+<ul class="doctools_itemized">
+<li><p><em>0</em>: Disables any procedure call loggings</p></li>
+<li><p><em>1</em>: Enables any procedure call loggings</p></li>
+<li><p><em>&quot;interactive&quot;</em>: Will log any procedures called interactively (e.g. procedures called with the -interactive flag). This is the default configuration.</p></li>
+</ul>
+<p>This default logging configuration can be changed individually for each procedure with the <i class="arg">-command_log</i> attribute.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">ARGUMENT TYPES</a></h2>
+<p>TEPAM provides a comprehensive set of procedure argument types. They can easily be completed with application specific types if necessary.</p>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Predefined Argument Types</a></h3>
+<p>To remember, a type can be assigned to each specified procedure argument:</p>
+<pre class="doctools_example">tepam::procedure {warning} {
+   -args {
+      {-font <b class="cmd">-type font</b> -default {Arial 10 italic}}
+      {-severity_level <b class="cmd">-type integer</b> -optional -range {1 10}}
+      {-fg <b class="cmd">-type color</b> -optional -description &quot;Message color&quot;}
+      {text <b class="cmd">-type string</b> -multiple -description &quot;Multiple text lines to display&quot;}
+   }
+} {
+   ...
+}</pre>
+<p>There are some <em>special purpose types</em> that are building the first category of predefined argument types:</p>
+<ul class="doctools_itemized">
+<li><p><b class="type">none</b></p>
+<p>A <em>flag</em>, also called <em>switch</em>, is defined as a named argument that has the type <b class="type">none</b>. Flags are always optional and the default value of the assigned variable is set to <b class="const">0</b>. In contrast to the (normal) named arguments, no argument value has to be provided to a flag.</p>
+<pre class="doctools_example">tepam::procedure flag_test {
+   -args {
+      <b class="cmd">{-flag -type none -description &quot;This is a flag&quot;}</b>
+   }
+} {
+   puts <b class="cmd">$flag</b>
+}
+flag_test
+<em>-&gt; 0</em>
+flag_test -flag
+<em>-&gt; 1</em></pre>
+<p>Since no argument value has to be provided to a flag, also no data check is performed for this argument type.</p></li>
+<li><p><b class="type">string</b></p>
+<p><b class="type">String</b> is a generic argument data type. Any data string can be provided to a string type argument and no data type checks are therefore performed. The string type allows defining single line strings during the interactive procedure calls.</p></li>
+<li><p><b class="type">text</b></p>
+<p><b class="type">Text</b> is identical to <b class="type">string</b> with the only difference that it allows entering multi line strings during interactive procedure calls.</p></li>
+<li><p><b class="type">{}</b></p>
+<p>A <b class="type">blank</b> argument type signifies an undefined argument type. This is the default argument type that will be used if no type has been explicitly specified. An argument that has a <b class="type">blank</b> type behaves identically than an argument that has a <b class="type">string</b> type, e.g. no argument data checks are performed. The only difference is that the data type <b class="type">string</b> is mentioned in the generated help documentation, while this is not the case for the <b class="type">blank</b> type.</p></li>
+</ul>
+<p>Several <em>numerical types</em> are defined by TEPAM. The type validation procedures are using the <b class="cmd">string is &lt;type&gt; -strict</b> commands to check the validity of the provided arguments, which assures that no empty strings are accepted as argument value. The type validation expression for the numerical types and the argument types to which this expression is applied are:</p>
+<pre class="doctools_example">string is <b class="type">&lt;type_to_check&gt;</b> -strict <i class="arg">&lt;argument_value&gt;</i></pre>
+<ul class="doctools_itemized">
+<li><p><em>boolean</em></p></li>
+<li><p><em>integer</em></p></li>
+<li><p><em>double</em></p></li>
+</ul>
+<p>Empty strings are accepted as argument value for all the alpha numeric argument types. The argument types that are falling into this category and validation expression used for them are:</p>
+<pre class="doctools_example">string is <em>&lt;type_to_check&gt;</em> <i class="arg">&lt;argument_value&gt;</i></pre>
+<ul class="doctools_itemized">
+<li><p><em>alnum</em></p></li>
+<li><p><em>alpha</em></p></li>
+<li><p><em>ascii</em></p></li>
+<li><p><em>control</em></p></li>
+<li><p><em>digit</em></p></li>
+<li><p><em>graph</em></p></li>
+<li><p><em>lower</em></p></li>
+<li><p><em>print</em></p></li>
+<li><p><em>punct</em></p></li>
+<li><p><em>space</em></p></li>
+<li><p><em>upper</em></p></li>
+<li><p><em>wordchar</em></p></li>
+<li><p><em>xdigit</em></p></li>
+</ul>
+<p>In addition to the data types checked with the <b class="cmd">string is &lt;type&gt;</b> commands, TEPAM specifies some other useful data types:</p>
+<ul class="doctools_itemized">
+<li><p><em>char</em></p>
+<p>Each string that has a length of 1 character meets the <em>character</em> type. The type check is made with the following expression:</p>
+<pre class="doctools_example">expr [string length <i class="arg">&lt;argument_value&gt;</i>]==1</pre>
+</li>
+<li><p><em>color</em></p>
+<p>Any character strings that are accepted by Tk as a color are considered as valid color argument. Please note that the Tk package has to be loaded to use the type <em>color</em>. TEPAM is using the following command to validate the color type:</p>
+<pre class="doctools_example">expr ![catch {winfo rgb . <i class="arg">&lt;argument_value&gt;</i>}]</pre>
+</li>
+<li><p><em>font</em></p>
+<p>Any character strings that are accepted by Tk as a font are considered as valid font argument. Please note that the Tk package has to be loaded to use the <em>font</em> type. TEPAM is using the following command to validate the color type:</p>
+<pre class="doctools_example">expr ![catch {font measure &lt;argument_value&gt; &quot;&quot;}]</pre>
+</li>
+<li><p><em>file</em></p>
+<p>Any strings that are not containing one of the following characters are considered as valid file names: * ? &quot; &lt; &gt;. It is not necessary that the file and its containing directory exist. Zero-length strings are not considered as valid file names.</p>
+<p>The following expression is used to validate the file names:</p>
+<pre class="doctools_example">expr [string length &lt;argument_value&gt;]&gt;0 &amp;&amp; ![regexp {[\&quot;*?&lt;&gt;:]} &lt;argument_value&gt;]</pre>
+</li>
+<li><p><em>existingfile</em></p>
+<p>The argument is valid if it matches with an existing file. The following check is performed to validate the arguments of this type:</p>
+<pre class="doctools_example">file exists &lt;argument_value&gt;</pre>
+</li>
+<li><p><em>directory</em></p>
+<p>The directory argument is validated exactly in the same way as the file arguments.</p></li>
+<li><p><em>existingdirectory</em></p>
+<p>The argument is valid if it matches with an existing directory. The following check is performed to validate the arguments of this type:</p>
+<pre class="doctools_example">file isdirectory &lt;argument_value&gt;</pre>
+</li>
+</ul>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Defining Application Specific Argument Types</a></h3>
+<p>To add support for a new application specific argument type it is just necessary to add into the namespace <b class="namespace">tepam</b> a validation function <b class="function">Validation(&lt;type&gt;)</b>. This function requires one argument. It has to returns <b class="const">1</b> if the provided argument matches with the relevant data type. The function has to return otherwise <b class="const">0</b>.</p>
+<p>The validation command section of the &quot;<b class="file">tepam.tcl</b>&quot; package provides sufficient examples of validation functions, since it implements the ones for the standard TEPAM types.</p>
+<p>The following additional code snippet shows the validation function for a custom argument type that requires values that have a character string length of exactly 2:</p>
+<pre class="doctools_example">proc tepam::Validate(two_char) {v} {expr {[string length $v]==2}}</pre>
+</div>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">PROCEDURE CALLS</a></h2>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Help</a></h3>
+<p>Each procedure can be called with the <i class="arg">-help</i> flag. The procedure will then print a generated help text to <em>stdout</em> and will then return without performing any additional actions.</p>
+<p>Taking the first procedure declared in <span class="sectref"><a href="#section6">PROCEDURE CALLS</a></span>, the help request and the printed help text would be:</p>
+<pre class="doctools_example"><b class="cmd">display message -help</b>
+<em>-&gt;
+NAME
+      display message - Displays a simple message box
+SYNOPSIS
+      display message
+            [-mtype &lt;mtype&gt;]
+               Message type, default: &quot;Warning&quot;, choices: {Info, Warning, Error}
+            &lt;text&gt;
+               Multiple text lines to display, type: string
+DESCRIPTION
+      This procedure allows displaying a configurable message box. The default
+      message type that is created is a warning, but also errors and info can
+      be generated.
+      The procedure accepts multiple text lines.
+EXAMPLE
+      display message -mtype Warning &quot;Save first your job&quot;</em></pre>
+<p>The argument manager is checking if the last provided argument is <em>-help</em> and generates the requested help message if this is the case. So, also the following example will print the help message:</p>
+<pre class="doctools_example"><b class="cmd">display message -mtype Info &quot;It is 7:00&quot; -help</b></pre>
+<p>On the other hand, the following call will result in an error:</p>
+<pre class="doctools_example"><b class="cmd">display message -help -mtype Info &quot;It is 7:00&quot;</b>
+<em>-&gt;
+display message: Argument '-help' not known</em></pre>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Interactive Procedure Call</a></h3>
+<p>Calling a procedure with the <i class="arg">-interactive</i> flag will open a graphical form that allows specifying interactively all procedure arguments. The Tk library has to be loaded to use the interactive call. The following example assures that the Tk library is loaded and shows the command line to call interactively the procedure declared in <span class="sectref"><a href="#section6">PROCEDURE CALLS</a></span>:</p>
+<pre class="doctools_example">package require Tk
+<b class="cmd">display message -interactive</b></pre>
+<p>Also the <i class="arg">-interactive</i> flag has to be placed at the last argument position as this is also required for the <i class="arg">-help</i> flag. Arguments defined before the <i class="arg">-interactive</i> flag will be ignored. The following example is therefore also a valid interactive procedure call:</p>
+<pre class="doctools_example"><b class="cmd">display message</b> -mtype Info &quot;It is 7:00&quot; <b class="cmd">-interactive</b></pre>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Unnamed Arguments</a></h3>
+<p>Unnamed arguments are typically provided to the called procedure as simple parameters. This procedure calling form requires that the provided arguments are strictly following the order of the specified arguments. Several parameters can be assigned to the last argument if this one has the <em>-multiple</em> attribute. So, the following declared procedure ...</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args {
+      {mtype -choices {Info Warning Error}}
+      {text -type string -multiple}
+   }
+} {
+   puts &quot;$mtype: [join $text]&quot;
+}</pre>
+<p>... can for example be called in the following ways:</p>
+<pre class="doctools_example"><b class="cmd">display_message Info &quot;It is PM 7:00.&quot;</b>
+<em>-&gt; Info: It is PM 7:00.</em>
+<b class="cmd">display_message Info &quot;It is PM 7:00.&quot; &quot;You should go home.&quot;</b>
+<em>-&gt; Info: It is PM 7:00. You should go home.</em></pre>
+<p>The nice thing is that unnamed arguments can also be called as named arguments, which can be handy, for example if the exact specified argument order is not known to a user:</p>
+<pre class="doctools_example"><b class="cmd">display_message -mtype Info -text &quot;It is PM 7:00.&quot;</b>
+<em>-&gt; Info: It is PM 7:00.</em>
+<b class="cmd">display_message -text &quot;It is PM 7:00.&quot; -mtype Info</b>
+<em>-&gt; Info: It is PM 7:00.</em>
+<b class="cmd">display_message -mtype Info -text &quot;It is PM 7:00.&quot; -text &quot;You should go home.&quot;</b>
+<em>-&gt; Info: It is PM 7:00. You should go home.</em>
+<b class="cmd">display_message -text &quot;It is PM 7:00.&quot; -text &quot;You should go home.&quot; -mtype Info</b>
+<em>-&gt; Info: It is PM 7:00. You should go home.</em></pre>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Named Arguments</a></h3>
+<p>Named arguments have to be provided to a procedure in form of a parameter pairs composed by the argument names and the argument values. The order how they are provided during a procedure call is irrelevant and has not to match with the argument specification order.</p>
+<p>The following declared procedure ...</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args {
+      {-mtype -choices {Info Warning Error}}
+      {-text -type string -multiple}
+   }
+} {
+   puts &quot;$mtype: [join $text]&quot;
+}</pre>
+<p>... can be called in the following ways:</p>
+<pre class="doctools_example"><b class="cmd">display_message -mtype Info -text &quot;It is PM 7:00.&quot;</b>
+<em>-&gt; Info: It is PM 7:00.</em>
+<b class="cmd">display_message -text &quot;It is PM 7:00.&quot; -mtype Info</b>
+<em>-&gt; Info: It is PM 7:00.</em>
+<b class="cmd">display_message -mtype Info -text &quot;It is PM 7:00.&quot; -text &quot;You should go home.&quot;</b>
+<em>-&gt; Info: It is PM 7:00. You should go home.</em>
+<b class="cmd">display_message -text &quot;It is PM 7:00.&quot; -text &quot;You should go home.&quot; -mtype Info</b>
+<em>-&gt; Info: It is PM 7:00. You should go home.</em></pre>
+<p>Also named arguments that have not the <em>-multiple</em> attribute can be provided multiple times. Only the last provided argument will be retained in such a case:</p>
+<pre class="doctools_example"><b class="cmd">display_message -mtype Info -text &quot;It is PM 7:00.&quot; -mtype Warning</b>
+<em>-&gt; Warning: It is PM 7:00.</em></pre>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Unnamed Arguments First, Named Arguments Later (Tk Style)</a></h3>
+<p>A procedure that has been defined while the variable <b class="variable">tepam::named_arguments_first</b> was set to 1, or with the procedure attribute <i class="arg">-named_arguments_first</i> set to 1 has to be called in the Tcl style. The following procedure declaration will be used in this section to illustrate the meaning of this calling style:</p>
+<pre class="doctools_example"><b class="cmd">set tepam::named_arguments_first 1</b>
+tepam::procedure my_proc {
+   -args {
+      {-n1 -default &quot;&quot;}
+      {-n2 -default &quot;&quot;}
+      {u1 -default &quot;&quot;}
+      {u2 -default &quot;&quot;}
+   }
+} {
+   puts &quot;n1:'$n1', n2:'$n2', u1:'$u1', u2:'$u2'&quot;
+}</pre>
+<p>The unnamed arguments are placed at the end of procedure call, after the named arguments:</p>
+<pre class="doctools_example">my_proc <b class="cmd">-n1 N1 -n2 N2 U1 U2</b>
+<em>-&gt; n1:'N1', n2:'N2', u1:'U1', u2:'U2'</em></pre>
+<p>The argument parser considers the first argument that doesn't start with the '-' character as well as all following arguments as unnamed argument:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 U2</b>
+<em>-&gt; n1:'', n2:'', u1:'U1', u2:'U2'</em></pre>
+<p>Named arguments can be defined multiple times. If the named argument has the <em>-multiply</em> attribute, all argument values will be collected in a list. Otherwise, only the last provided attribute value will be retained:</p>
+<pre class="doctools_example">my_proc <b class="cmd">-n1 N1 -n2 N2 -n1 M1 U1 U2</b>
+<em>-&gt; n1:'M1', n2:'N2', u1:'U1', u2:'U2'</em></pre>
+<p>The name of the first unnamed argument has therefore not to start with the '-' character. The unnamed argument is otherwise considered as name of another named argument. This is especially important if the first unnamed argument is given by a variable that can contain any character strings:</p>
+<pre class="doctools_example">my_proc <b class="cmd">-n1 N1 -n2 N2 &quot;-&gt;&quot; &quot;&lt;-&quot;</b>
+<em>-&gt; my_proc: Argument '-&gt;' not known</em>
+set U1 &quot;-&gt;&quot;
+my_proc -n1 N1 -n2 N2 $U1 U2}]
+my_proc: Argument '-&gt;' not known</pre>
+<p>The '--' flag allows separating unambiguously the unnamed arguments from the named arguments. All data after the '--' flag will be considered as unnamed argument:</p>
+<pre class="doctools_example">my_proc <b class="cmd">-n1 N1 -n2 N2 -- &quot;-&gt;&quot; &quot;&lt;-&quot;</b>
+<em>-&gt; n1:'N1', n2:'N2', u1:'-&gt;', u2:'&lt;-'</em>
+set U1 &quot;-&gt;&quot;
+my_proc <b class="cmd">-n1 N1 -n2 N2 -- $U1 U2</b>
+<em>-&gt; n1:'N1', n2:'N2', u1:'-&gt;', u2:'&lt;-'</em></pre>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Named Arguments First, Unnamed Arguments Later (Tcl Style)</a></h3>
+<p>The Tk calling style will be chosen if a procedure is defined while the variable <b class="variable">tepam::named_arguments_first</b> is set to 0, or if the procedure attribute <i class="arg">-named_arguments_first</i> has been set to 0. The following procedure will be used in this section to illustrate this calling style:</p>
+<pre class="doctools_example"><b class="cmd">set tepam::named_arguments_first 0</b>
+tepam::procedure my_proc {
+   -args {
+      {-n1 -default &quot;&quot;}
+      {-n2 -default &quot;&quot;}
+      {u1}
+      {u2 -default &quot;&quot; -multiple}
+   }
+} {
+   puts &quot;n1:'$n1', n2:'$n2', u1:'$u1', u2:'$u2'&quot;
+}</pre>
+<p>The unnamed arguments have to be provided first in this case. The named arguments are provided afterwards:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 U2 -n1 N1 -n2 N2</b>
+<em>-&gt; n1:'N1', n1:'N1', u1:'U1', u2:'U2'</em></pre>
+<p>The argument parser will assign to each defined unnamed argument a value before it switches to read the named arguments. This default behavior changes a bit if there are unnamed arguments that are optional or that can take multiple values.</p>
+<p>An argument value will only be assigned to an unnamed argument that is optional (that has either the <i class="arg">-optional</i> attribute or that has a default value), if the value is not beginning with the '-' character or if no named arguments are defined. The value that starts with '-' is otherwise considered as the name of a named argument.</p>
+<p>Argument values are assigned to an argument that has the <i class="arg">-multiple</i> attribute as long as the parameter value doesn't starts with the '-' character.</p>
+<p>Values that start with the '-' character can therefore not be assigned to optional unnamed arguments, which restricts the usage of the Tcl procedure calling style. The Tk style may be preferable in some cases, since it allows separating unambiguously the named arguments from the unnamed ones with the '--' flag.</p>
+<p>Let's explore in a bit less theoretically the ways how the previously defined procedure can be called: The first example calls the procedure without any parameters, which leads to an error since <i class="arg">u1</i> is a mandatory argument:</p>
+<pre class="doctools_example">my_proc
+<em>-&gt; my_proc: Required argument is missing: u1</em></pre>
+<p>The procedure call is valid if one parameter is provided for <i class="arg">u1</i>:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1</b>
+<em>-&gt; n1:'', n2:'', u1:'U1', u2:''</em></pre>
+<p>If more parameters are provided that are not starting with the '-' character, they will be attributed to the unnamed arguments. <i class="arg">U2</i> will receive 3 of these parameters, since it accepts multiple values:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 U2 U3 U4</b>
+<em>-&gt; n1:'', n2:'', u1:'U1', u2:'U2 U3 U4'</em></pre>
+<p>As soon as one parameter starts with '-' and all unnamed arguments have been assigned, the argument manager tries to interpret the parameter as name of a named argument. The procedure call will fail if a value beginning with '-' is assigned to an unnamed argument:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 U2 U3 U4 -U5</b>
+<em>-&gt; my_proc: Argument '-U5' not known</em></pre>
+<p>The attribution of a parameter to a named argument will fail if there are undefined unnamed (non optional) arguments. The name specification will in this case simply be considered as a parameter value that is attributed to the <em>next</em> unnamed argument. This was certainly not the intention in the following example:</p>
+<pre class="doctools_example">my_proc <b class="cmd">-n1 N1</b>
+<em>-&gt; n1:'', n2:'', u1:'-n1', u2:'N1'</em></pre>
+<p>The situation is completely different if values have already been assigned to all mandatory unnamed arguments. A parameter beginning with the '-' character will in this case be considered as a name identifier for a named argument:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 -n1 N1</b>
+<em>-&gt; n1:'N1', n2:'', u1:'U1', u2:''</em></pre>
+<p>No unnamed arguments are allowed behind the named arguments:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 -n1 N1 U2</b>
+<em>-&gt; my_proc: Argument 'U2' is not an option</em></pre>
+<p>The '--' flag has no special meaning if not all mandatory arguments have got assigned a value. This flag will simply be attributed to one of the unnamed arguments:</p>
+<pre class="doctools_example">my_proc <b class="cmd">-- -n1 N1</b>
+<em>-&gt; n1:'N1', n2:'', u1:'--', u2:''</em></pre>
+<p>But the '--' flag is simply ignored if the argument parser has started to handle the named arguments:</p>
+<pre class="doctools_example">my_proc <b class="cmd">U1 -- -n1 N1</b>
+<em>-&gt; n1:'N1', n2:'', u1:'U1', u2:''</em>
+my_proc <b class="cmd">U1 -n1 N1 -- -n2 N2</b>
+<em>-&gt; n1:'N1', n2:'N2', u1:'U1', u2:''</em></pre>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Raw Argument List</a></h3>
+<p>It may be necessary sometimes that the procedure body is able to access the entire list of arguments provided during a procedure call. This can happen via the <b class="variable">args</b> variable that contains always the unprocessed argument list:</p>
+<pre class="doctools_example">tepam::procedure {display_message} {
+   -args {
+      {-mtype -choices {Warning Error} -default Warning}
+      {text -type string -multiple}
+   }
+} {
+   puts &quot;args: <b class="cmd">$args</b>&quot;
+}
+display_message -mtype Warning &quot;It is 7:00&quot;
+<em>-&gt; args: -mtype Warning {It is 7:00}</em></pre>
+</div>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="tepam_introduction.html">tepam(n)</a>, <a href="tepam_argument_dialogbox.html">tepam::argument_dialogbox(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key763">argument integrity</a>, <a href="../../../../index.html#key764">argument validation</a>, <a href="../../../../index.html#key762">arguments</a>, <a href="../../../../index.html#key41">procedure</a>, <a href="../../../../index.html#key761">subcommand</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Procedures, arguments, parameters, options</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009-2013, Andreas Drollinger</p>
+</div>
+</div></body></html>

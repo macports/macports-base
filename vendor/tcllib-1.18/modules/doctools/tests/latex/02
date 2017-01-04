@@ -1,0 +1,23 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% CVS: @ID@ TEST.z
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST -- ..THE\_MODULE.. : ..THE\_TITLE..}
+\maketitle
+\section{Synopsis}\label{synopsis}
+\begin{flushleft}
+package require {\bf AAA}
+package require {\bf BBB VVV}
+\end{flushleft}
+\section{Description}\label{section1}
+\section{See Also}\label{see-also}
+ELSE, OTHER
+\section{Keywords}\label{keywords}
+KEYA, KEYZ
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

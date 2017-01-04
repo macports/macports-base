@@ -1,0 +1,308 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-05-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5c.tcl: The md5c command was leaking a Tcl_Obj on each call
+	due to having one too many ref counts. Also use Tcl_Alloc rather
+	than malloc.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-07-04  Andreas Kupries  <andreask@activestate.com>
+
+	* md5.man: Fixed creative writing problem reported by 
+	* md5x.tcl: Julian Noble <juliannoble@users.sourceforge.net>,
+	* pkgIndex.tcl: as [Bug 2010798]. Bumped version to 2.0.7.
+
+2008-04-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.tcl: Clean up the MD5Hash_body once the proc defined.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* md5.man: Bumped version to 2.0.5
+	* md5x.tcl:
+	* pkgIndex.tcl:
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5x.test: Fixed usage of duplicate test names.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5.test: More boilerplate simplified via use of test support.
+	* md5x.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5.test: Hooked into the new common test support code.
+	* md5x.test:
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* md5v1.bench: New file. Basic benchmarks for MD5 hashes.
+	* md5v2.bench:
+
+2005-10-17  Andreas Kupries <andreask@activestate.com>
+
+	* md5x.tcl: Trivial comment typo fix.
+
+2005-10-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.tcl:     Performance fix for tcl8.5 integers.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-02-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5.tcl:      Arranged to run all available implementations in
+	* md5.test:     the tests.	
+
+2005-02-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* pkgIndex.tcl: Incremented version to 2.0.4
+	* md5x.tcl:     Rationalised the handling of accelerator packages and
+	* md5x.test:    added support for use of cryptkit. Updated the man
+	* md5.man:      page to note the available accelerators.
+
+2005-02-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.test: Added the RFC 2202 HMAC-MD5 test vectors.
+
+2005-02-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.tcl:      Avoid raising an error if the string to be hashed
+	* pkgIndex.tcl:  begins with a hyphen. Use '--' as an _optional_ 
+	* md5.mac:       end-of-args marker.
+	* md5x.test:     Added tests.
+
+2004-12-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.tcl: Replaced use of memchan null channel with the systems
+	NUL device (NUL or /dev/null). This avoids problems with clashing
+	names when memchan gets included.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-07-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.tcl: Try and fix up the use of Trf with Memchan for the
+	new-style md5 package. Needs fixed recent versions of both
+	packages.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5x.tcl: Updated version number to sync with 1.6.1
+	* md5.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5x.tcl: Rel. engineering. Updated version number 
+	* md5.man:  of md5 v2 to reflect its changes, to 2.0.1.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5x.tcl: Rel. engineering. Updated version number 
+	* md5.man:  of md5 v2 to reflect its changes, to 2.0.1.
+	* pkgIndex.tcl:
+
+2004-02-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5x.tcl: Added -- to end options if using Trf's hex in case the
+	  hash begins with a - character (possible).  Streamlined the <<<
+	  proc.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5x.test: Heh. What a surprise. The testsuite uses a command to
+	  generate the proper error message based on the version of Tcl,
+	  and what does md5 v2 ? It generates its own messages, and they
+	  are always in 8.4+ format. Hnn. Fixed the testsuite.
+
+2003-07-27  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5.man: Updated the manual page for md5 2.0
+
+2003-07-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5c.tcl:  Brought in the critcl implementation of MD5
+	* md5.c:     originally by Jean-Claude Wippler <jcw@equi4.com>
+	* md5.h:     with code from RFC 1321.
+	
+	* md5x.tcl:  Version 2 md5 module. This is based upon the MD4 module 
+	* md5x.test: code and permits incremental updates into the hash.
+	             This version will use the critcl code if available.
+
+	=== VERSION INCOMPATABILITY ===
+	
+	md5 1 returns data as a hex representation.
+	md5 2 returns the data as a binary representation. If you want the
+	      hex rep, provide the -hex option to the md5 command.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* md5.tcl:
+	* md5.man:
+	* pkgIndex.tcl: Set version of the package to to 1.4.3.
+
+2003-02-05  David N. Welton  <davidw@dedasys.com>
+
+	* md5.tcl (::md5::time): Used lindex instead of regexp to fish the
+	  number out of 'time' results. Not really a performance win here,
+	  but it's good style.
+
+2003-01-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5.tcl: Handle cases where Trf is available but the md5 command
+	is not callable (like missing crypt.dll or libmd5crypt).
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5.man: Fixed formatting errors in the doctools manpage.
+
+2002-02-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* Version up to 1.4.2 to differentiate development from the
+	  version in the tcllib 1.2 release.
+
+	* md5.tcl: Adding -- to hex/md5 commands to prevent
+	  misinterpretation of data if starting with -.
+
+2001-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5.n:
+	* md5.tcl:
+	* pkgIndex.tcl: Version up to 1.4.1
+
+2001-08-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5.test: Fixed broken error messages for 8.4. Using
+	  [tcltest::getErrorMessage] now to get the correct message for
+	  all versions of the core. Bug [440046] reported by Larry Virden.
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* md5.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-07-03  Miguel Sofer  <mig@utdt.edu>
+
+	* md5.tcl: some more inlining, 10% faster
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* md5.tcl: Fixed dubious code reported by frink.
+
+2001-06-19  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* md5.n: Fixed nroff trouble.
+
+2001-06-02  Miguel Sofer  <mig@utdt.edu>
+
+	* md5.tcl: modified the pure Tcl code to run almost 5 times
+	  faster, by inlining (via regsub) function calls and using local
+	  variables instead of arrays.
+
+          Bumped version number to 1.4
+
+2001-04-25  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* md5.test: Added tests of "md5::hmac". This allows us to test the
+	  two different implementations against each other.
+
+	  Note: The test file will now print which of the two variants
+	  (pure Tcl vs. Trf based) is active and under test.
+
+	* md5.tcl: Added code to create a soft dependency on Trf. In other
+	  words, if Trf is present it will be loaded and used to speed up
+	  operations. Without Trf the original code in pure Tcl will be
+	  used. Note that the presence of Trf allows us to optimize the
+	  command "md5::hmac" too.
+
+2001-04-24  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module, 'md5'. The code Don Libes's <libes@nist.gov>
+	  md5pure, extended with a soft dependency on Trf to allow higher
+	  speed if the environment is right.

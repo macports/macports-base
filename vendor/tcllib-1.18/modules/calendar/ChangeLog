@@ -1,0 +1,109 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* gregorian.test: Hooked into the new common test support
+	  code. Also removed some gratuitous output cluttering the log,
+	  see [SF Tcllib Bug 1316032].
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: 
+	* gregorian.tcl: Fixed bug #614591. Set version of the package to
+	  0.2
+
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* gregorian.tcl: Frink run.
+
+2002-01-14  Kevin Kenny  <kennykb@users.sourceforge.net>
+
+	* gregorian.tcl, gregorian.test (EYMWDToJulianDay):
+	Added functionality for 'Nth weekday from the end of a month',
+	needed, among other things, to do DST rules in most US locales.
+	
+2002-01-11  Kevin Kenny  <kennykb@users.sourceforge.net>
+
+	* ChangeLog, calendar.tcl, gregorian.tcl, gregorian.test:
+	* pkgIndex.tcl, tclIndex:
+	Created an initial 'calendar' module.  Functionality at this
+	point includes conversion between Julian Day and several formats:
+	year/day-of-year, year/month/day, year/week/day-of-week, and
+	year/month/day-of-week-in-month (e.g, the second Friday of
+	February).

@@ -1,0 +1,45 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::string n 1]
+[keywords {in-memory channel}]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Read-only in-memory channel}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::events [opt 1]]
+[require tcl::chan::string [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::string] package provides a command creating
+channels which live purely in memory. They provide random-access,
+i.e. are seekable.
+
+In contrast to the channels created by [package tcl::chan::memchan]
+they are read-only however, their content is provided at the time of
+construction and immutable afterward.
+
+[para] Packages related to this are [package tcl::chan::memchan] and
+[package tcl::chan::variable].
+
+[para] The internal [package TclOO] class implementing the channel
+handler is a sub-class of the [package tcl::chan::events] framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::string] [arg content]]
+
+This command creates a new string channel and returns its handle. The
+channel provides random read-only access to the [arg content] string.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

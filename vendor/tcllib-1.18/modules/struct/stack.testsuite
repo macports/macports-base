@@ -1,0 +1,641 @@
+# -*- tcl -*-
+# stack.test:  tests for the stack package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: stack.testsuite,v 1.5 2010/03/24 06:13:00 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+::tcltest::testConstraint stack_critcl [string equal $impl critcl]
+::tcltest::testConstraint stack_oo     [expr {![catch {package present TclOO}] && [string equal $impl tcl]}]
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-0.1.0 {stack errors} !stack_oo {
+    stack mystack
+    catch {stack mystack} msg
+    mystack destroy
+    set msg
+} {command "::mystack" already exists, unable to create stack}
+
+test stack-${impl}-0.1.1 {stack errors} stack_oo {
+    stack mystack
+    catch {stack mystack} msg
+    mystack destroy
+    set msg
+} {can't create object "mystack": command already exists with that name}
+
+test stack-${impl}-0.2 {stack errors} badTest {
+    stack mystack
+    catch {mystack} msg
+    mystack destroy
+    set msg
+} {wrong # args: should be "::mystack option ?arg arg ...?"}
+
+test stack-${impl}-0.3.0 {stack errors} tcl8.4minus {
+    stack mystack
+    catch {mystack foo} msg
+    mystack destroy
+    set msg
+} {bad option "foo": must be clear, destroy, get, getr, peek, peekr, pop, push, rotate, size, trim, or trim*}
+
+test stack-${impl}-0.3.1.0 {stack errors} {tcl8.5plus !stack_oo} {
+    stack mystack
+    catch {mystack foo} msg
+    mystack destroy
+    set msg
+} [tmTake \
+       {unknown or ambiguous subcommand "foo": must be clear, destroy, get, getr, peek, peekr, pop, push, rotate, size, trim, or trim*} \
+       {bad option "foo": must be clear, destroy, get, getr, peek, peekr, pop, push, rotate, size, trim, or trim*} \
+      ]
+
+test stack-${impl}-0.3.1.1 {stack errors} {tcl8.5plus stack_oo} {
+    stack mystack
+    catch {mystack foo} msg
+    mystack destroy
+    set msg
+} [tmTake \
+       {unknown method "foo": must be clear, destroy, get, getr, peek, peekr, pop, push, rotate, size, trim or trim*} \
+       {bad option "foo": must be clear, destroy, get, getr, peek, peekr, pop, push, rotate, size, trim, or trim*} \
+      ]
+
+test stack-${impl}-0.4.0 {stack errors} !stack_oo {
+    catch {stack set} msg
+    set msg
+} {command "::set" already exists, unable to create stack}
+
+test stack-${impl}-0.4.1 {stack errors} stack_oo {
+    catch {stack set} msg
+    set msg
+} {can't create object "set": command already exists with that name}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-1.1 {stack creation} {
+    set foo [stack mystack]
+    set cmd [info commands ::mystack]
+    set size [mystack size]
+    mystack destroy
+    list $foo $cmd $size
+} {::mystack ::mystack 0}
+
+test stack-${impl}-1.2.0 {stack creation} !stack_oo {
+    set foo [stack]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    list $foo $cmd $size
+} {::stack1 ::stack1 0}
+
+test stack-${impl}-1.2.1 {stack creation} stack_oo {
+    set foo [stack]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    string match [list ::oo::Obj* ::oo::Obj* 0] [list $foo $cmd $size]
+} 1
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-2.1 {stack destroy} {
+    stack mystack
+    mystack destroy
+    info commands ::mystack
+} {}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-3.2 {size operation} {
+    stack mystack
+    mystack push a b c d e f g
+    set size [mystack size]
+    mystack destroy
+    set size
+} 7
+
+test stack-${impl}-3.3 {size operation} {
+    stack mystack
+    mystack push a b c d e f g
+    mystack pop 3
+    set size [mystack size]
+    mystack destroy
+    set size
+} 4
+
+test stack-${impl}-3.4 {size operation} {
+    stack mystack
+    mystack push a b c d e f g
+    mystack pop 3
+    mystack peek 3
+    set size [mystack size]
+    mystack destroy
+    set size
+} 4
+
+#----------------------------------------------------------------------
+    
+test stack-${impl}-4.1 {push operation} {
+    stack mystack
+    catch {mystack push} msg
+    mystack destroy
+    set msg
+} "wrong # args: should be \"$MY push item ?item ...?\""
+
+test stack-${impl}-4.2 {push operation, singleton items} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [list [mystack pop] [mystack pop] [mystack pop]]
+    mystack destroy
+    set result
+} {c b a}
+
+test stack-${impl}-4.3 {push operation, multiple items} {
+    stack mystack
+    mystack push a b c
+    set result [list [mystack pop] [mystack pop] [mystack pop]]
+    mystack destroy
+    set result
+} {c b a}
+
+test stack-${impl}-4.4 {push operation, spaces in items} {
+    stack mystack
+    mystack push a b "foo bar"
+    set result [list [mystack pop] [mystack pop] [mystack pop]]
+    mystack destroy
+    set result
+} {{foo bar} b a}
+
+test stack-${impl}-4.5 {push operation, bad chars in items} {
+    stack mystack
+    mystack push a b \{
+    set result [list [mystack pop] [mystack pop] [mystack pop]]
+    mystack destroy
+    set result
+} [list \{ b a]
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-5.1 {pop operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [list [mystack pop] [mystack pop] [mystack pop]]
+    mystack destroy
+    set result
+} {c b a}
+
+test stack-${impl}-5.2 {pop operation, multiple items} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [mystack pop 3]
+    mystack destroy
+    set result
+} {c b a}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-6.1 {peek operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [list [mystack peek] [mystack peek] [mystack peek]]
+    mystack destroy
+    set result
+} {c c c}
+
+test stack-${impl}-6.2 {peek operation} {
+    stack mystack
+    catch {mystack peek 0} msg
+    mystack destroy
+    set msg
+} {invalid item count 0}
+
+test stack-${impl}-6.3 {peek operation} {
+    stack mystack
+    catch {mystack peek -1} msg
+    mystack destroy
+    set msg
+} {invalid item count -1}
+
+test stack-${impl}-6.4 {peek operation} {
+    stack mystack
+    catch {mystack peek} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+test stack-${impl}-6.5 {peek operation} {
+    stack mystack
+    mystack push a
+    catch {mystack peek 2} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+test stack-${impl}-6.11 {peek operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    mystack push d
+    set result [mystack peek 3]
+    mystack destroy
+    set result
+} {d c b}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-6.6 {pop operation, multiple items} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [list [mystack peek 3] [mystack pop 3]]
+    mystack destroy
+    set result
+} {{c b a} {c b a}}
+
+test stack-${impl}-6.7 {pop operation} {
+    stack mystack
+    catch {mystack pop 0} msg
+    mystack destroy
+    set msg
+} {invalid item count 0}
+
+test stack-${impl}-6.8 {pop operation} {
+    stack mystack
+    catch {mystack pop -1} msg
+    mystack destroy
+    set msg
+} {invalid item count -1}
+
+test stack-${impl}-6.9 {pop operation} {
+    stack mystack
+    catch {mystack pop} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+test stack-${impl}-6.10 {pop operation} {
+    stack mystack
+    mystack push a
+    catch {mystack pop 2} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-7.1 {clear operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [list [mystack peek 3]]
+    mystack clear
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {{c b a} 0}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-8.1 {rotate operation} {
+    stack mystack
+    mystack push a b c d e f g h
+    mystack rotate 3 1
+    set result [mystack get]
+    mystack destroy
+    set result
+} {g f h e d c b a}
+
+test stack-${impl}-8.2 {rotate operation} {
+    stack mystack
+    mystack push a b c d e f g h
+    mystack rotate 3 2
+    set result [mystack get]
+    mystack destroy
+    set result
+} {f h g e d c b a}
+
+test stack-${impl}-8.3 {rotate operation} {
+    stack mystack
+    mystack push a b c d e f g h
+    mystack rotate 3 5
+    set result [mystack get]
+    mystack destroy
+    set result
+} {f h g e d c b a}
+
+test stack-${impl}-8.4 {rotate operation} {
+    stack mystack
+    mystack push a b c d e f g h
+    mystack rotate 8 1
+    set result [mystack get]
+    mystack destroy
+    set result
+} {g f e d c b a h}
+
+test stack-${impl}-8.5 {rotate operation} {
+    stack mystack
+    mystack push a b c d e f g h
+    mystack rotate 8 -1
+    set result [mystack get]
+    mystack destroy
+    set result
+} {a h g f e d c b}
+
+test stack-${impl}-8.6 {rotate operation} {
+    stack mystack
+    catch {mystack rotate 8 -1} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+test stack-${impl}-8.7 {rotate operation} {
+    stack mystack
+    mystack push a b c d
+    catch {mystack rotate 8 -1} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-9.0 {get operation, wrong args, too many} {
+    stack mystack
+    catch {mystack get X} msg
+    mystack destroy
+    set msg
+} [tmTooMany get {}]
+
+test stack-${impl}-9.1 {get operation, empty stack} {
+    stack mystack
+    set result [mystack get]
+    mystack destroy
+    set result
+} {}
+
+test stack-${impl}-9.2 {get operation} {
+    stack mystack
+    mystack push a b c d
+    set result [mystack get]
+    mystack destroy
+    set result
+} {d c b a}
+
+test stack-${impl}-9.3 {get operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    mystack push d
+    set result [mystack get]
+    mystack destroy
+    set result
+} {d c b a}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-10.0 {trim operation, wrong args, not enough} {
+    stack mystack
+    catch {mystack trim} msg
+    mystack destroy
+    set msg
+} [tmWrong trim {newsize} 0]
+
+test stack-${impl}-10.1 {trim operation, wrong args, too many} {
+    stack mystack
+    catch {mystack trim X Y} msg
+    mystack destroy
+    set msg
+} [tmTooMany trim {newsize}]
+
+test stack-${impl}-10.2 {trim operation, bad argument} {
+    stack mystack
+    catch {mystack trim X} msg
+    mystack destroy
+    set msg
+} {expected integer but got "X"}
+
+test stack-${impl}-10.3 {trim operation, bad argument} {
+    stack mystack
+    catch {mystack trim -4} msg
+    mystack destroy
+    set msg
+} {invalid size -4}
+
+test stack-${impl}-10.4 {trim operation, empty stack} {
+    stack mystack
+    set     result [mystack size]
+    lappend result [mystack trim 1]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {0 {} 0}
+
+test stack-${impl}-10.5 {trim operation} {
+    stack mystack
+    mystack push a b c d
+    set     result [mystack size]
+    lappend result [mystack trim 1]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {4 {d c b} 1}
+
+test stack-${impl}-10.6 {trim operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    mystack push d
+    set     result [mystack size]
+    lappend result [mystack trim 1]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {4 {d c b} 1}
+
+test stack-${impl}-10.7 {trim operation} {
+    stack mystack
+    mystack push a b c d
+    set     result [mystack size]
+    lappend result [mystack trim 5]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {4 {} 4}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-11.0 {getr operation, wrong args, too many} {
+    stack mystack
+    catch {mystack getr X} msg
+    mystack destroy
+    set msg
+} [tmTooMany getr {}]
+
+test stack-${impl}-11.1 {getr operation, empty stack} {
+    stack mystack
+    set result [mystack getr]
+    mystack destroy
+    set result
+} {}
+
+test stack-${impl}-11.2 {getr operation} {
+    stack mystack
+    mystack push a b c d
+    set result [mystack getr]
+    mystack destroy
+    set result
+} {a b c d}
+
+test stack-${impl}-11.3 {getr operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    mystack push d
+    set result [mystack getr]
+    mystack destroy
+    set result
+} {a b c d}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-12.0 {trim* operation, wrong args, not enough} {
+    stack mystack
+    catch {mystack trim*} msg
+    mystack destroy
+    set msg
+} [tmWrong trim* {newsize} 0]
+
+test stack-${impl}-12.1 {trim* operation, wrong args, too many} {
+    stack mystack
+    catch {mystack trim* X Y} msg
+    mystack destroy
+    set msg
+} [tmTooMany trim* {newsize}]
+
+test stack-${impl}-12.2 {trim* operation, bad argument} {
+    stack mystack
+    catch {mystack trim* X} msg
+    mystack destroy
+    set msg
+} {expected integer but got "X"}
+
+test stack-${impl}-12.3 {trim* operation, bad argument} {
+    stack mystack
+    catch {mystack trim* -4} msg
+    mystack destroy
+    set msg
+} {invalid size -4}
+
+test stack-${impl}-12.4 {trim* operation, empty stack} {
+    stack mystack
+    set     result [mystack size]
+    lappend result [mystack trim* 1]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {0 {} 0}
+
+test stack-${impl}-12.5 {trim* operation} {
+    stack mystack
+    mystack push a b c d
+    set     result [mystack size]
+    lappend result [mystack trim* 1]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {4 {} 1}
+
+test stack-${impl}-12.6 {trim* operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    mystack push d
+    set     result [mystack size]
+    lappend result [mystack trim* 1]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {4 {} 1}
+
+test stack-${impl}-12.7 {trim* operation} {
+    stack mystack
+    mystack push a b c d
+    set     result [mystack size]
+    lappend result [mystack trim* 5]
+    lappend result [mystack size]
+    mystack destroy
+    set result
+} {4 {} 4}
+
+#----------------------------------------------------------------------
+
+test stack-${impl}-13.1 {peekr operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    set result [list [mystack peekr] [mystack peekr] [mystack peekr]]
+    mystack destroy
+    set result
+} {c c c}
+
+test stack-${impl}-13.2 {peekr operation} {
+    stack mystack
+    catch {mystack peekr 0} msg
+    mystack destroy
+    set msg
+} {invalid item count 0}
+
+test stack-${impl}-13.3 {peekr operation} {
+    stack mystack
+    catch {mystack peekr -1} msg
+    mystack destroy
+    set msg
+} {invalid item count -1}
+
+test stack-${impl}-13.4 {peekr operation} {
+    stack mystack
+    catch {mystack peekr} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+test stack-${impl}-13.5 {peekr operation} {
+    stack mystack
+    mystack push a
+    catch {mystack peekr 2} msg
+    mystack destroy
+    set msg
+} {insufficient items on stack to fill request}
+
+test stack-${impl}-13.6 {peekr operation} {
+    stack mystack
+    mystack push a
+    mystack push b
+    mystack push c
+    mystack push d
+    set result [mystack peekr 3]
+    mystack destroy
+    set result
+} {b c d}
+
+#----------------------------------------------------------------------

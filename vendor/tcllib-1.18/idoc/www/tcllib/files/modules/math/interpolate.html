@@ -1,0 +1,371 @@
+
+<html><head>
+<title>math::interpolate - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'interpolate.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;   -- Copyright &copy; 2004 Kevn B. Kenny &lt;kennykb@users.sourceforge.net&gt;
+   -->
+<! -- math::interpolate.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::interpolate(n) 1.1 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::interpolate - Interpolation routines</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">INCOMPATIBILITY WITH VERSION 1.0.3</a></li>
+<li class="doctools_section"><a href="#section3">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section4">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.4?</span></b></li>
+<li>package require <b class="pkgname">struct</b></li>
+<li>package require <b class="pkgname">math::interpolate <span class="opt">?1.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::interpolate::defineTable</b> <i class="arg">name</i> <i class="arg">colnames</i> <i class="arg">values</i></a></li>
+<li><a href="#2"><b class="cmd">::math::interpolate::interp-1d-table</b> <i class="arg">name</i> <i class="arg">xval</i></a></li>
+<li><a href="#3"><b class="cmd">::math::interpolate::interp-table</b> <i class="arg">name</i> <i class="arg">xval</i> <i class="arg">yval</i></a></li>
+<li><a href="#4"><b class="cmd">::math::interpolate::interp-linear</b> <i class="arg">xyvalues</i> <i class="arg">xval</i></a></li>
+<li><a href="#5"><b class="cmd">::math::interpolate::interp-lagrange</b> <i class="arg">xyvalues</i> <i class="arg">xval</i></a></li>
+<li><a href="#6"><b class="cmd">::math::interpolate::prepare-cubic-splines</b> <i class="arg">xcoord</i> <i class="arg">ycoord</i></a></li>
+<li><a href="#7"><b class="cmd">::math::interpolate::interp-cubic-splines</b> <i class="arg">coeffs</i> <i class="arg">x</i></a></li>
+<li><a href="#8"><b class="cmd">::math::interpolate::interp-spatial</b> <i class="arg">xyvalues</i> <i class="arg">coord</i></a></li>
+<li><a href="#9"><b class="cmd">::math::interpolate::interp-spatial-params</b> <i class="arg">max_search</i> <i class="arg">power</i></a></li>
+<li><a href="#10"><b class="cmd">::math::interpolate::neville</b> <i class="arg">xlist</i> <i class="arg">ylist</i> <i class="arg">x</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package implements several interpolation algorithms:</p>
+<ul class="doctools_itemized">
+<li><p>Interpolation into a table (one or two independent variables), this is useful
+for example, if the data are static, like with tables of statistical functions.</p></li>
+<li><p>Linear interpolation into a given set of data (organised as (x,y) pairs).</p></li>
+<li><p>Lagrange interpolation. This is mainly of theoretical interest, because there is
+no guarantee about error bounds. One possible use: if you need a line or
+a parabola through given points (it will calculate the values, but not return
+the coefficients).</p>
+<p>A variation is Neville's method which has better behaviour and error
+bounds.</p></li>
+<li><p>Spatial interpolation using a straightforward distance-weight method. This procedure
+allows any number of spatial dimensions and any number of dependent variables.</p></li>
+<li><p>Interpolation in one dimension using cubic splines.</p></li>
+</ul>
+<p>This document describes the procedures and explains their usage.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">INCOMPATIBILITY WITH VERSION 1.0.3</a></h2>
+<p>The interpretation of the tables in the <b class="cmd">::math::interpolate::interpolate-1d-table</b> command
+has been changed to be compatible with the interpretation for 2D interpolation in
+the <b class="cmd">::math::interpolate::interpolate-table</b> command. As a consequence this version is
+incompatible with the previous versions of the command (1.0.x).</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PROCEDURES</a></h2>
+<p>The interpolation package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::interpolate::defineTable</b> <i class="arg">name</i> <i class="arg">colnames</i> <i class="arg">values</i></a></dt>
+<dd><p>Define a table with one or two independent variables (the distinction is implicit in
+the data). The procedure returns the name of the table - this name is used whenever you
+want to interpolate the values. <em>Note:</em> this procedure is a convenient wrapper for the
+struct::matrix procedure. Therefore you can access the data at any location in your program.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">name</i> (in)</dt>
+<dd><p>Name of the table to be created</p></dd>
+<dt>list <i class="arg">colnames</i> (in)</dt>
+<dd><p>List of column names</p></dd>
+<dt>list <i class="arg">values</i> (in)</dt>
+<dd><p>List of values (the number of elements should be a
+multiple of the number of columns. See <span class="sectref"><a href="#section4">EXAMPLES</a></span> for more information on the
+interpretation of the data.</p>
+<p>The values must be sorted with respect to the independent variable(s).</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::math::interpolate::interp-1d-table</b> <i class="arg">name</i> <i class="arg">xval</i></a></dt>
+<dd><p>Interpolate into the one-dimensional table &quot;name&quot; and return a list of values, one for
+each dependent column.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">name</i> (in)</dt>
+<dd><p>Name of an existing table</p></dd>
+<dt>float <i class="arg">xval</i> (in)</dt>
+<dd><p>Value of the independent <em>row</em> variable</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::math::interpolate::interp-table</b> <i class="arg">name</i> <i class="arg">xval</i> <i class="arg">yval</i></a></dt>
+<dd><p>Interpolate into the two-dimensional table &quot;name&quot; and return the interpolated value.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">name</i> (in)</dt>
+<dd><p>Name of an existing table</p></dd>
+<dt>float <i class="arg">xval</i> (in)</dt>
+<dd><p>Value of the independent <em>row</em> variable</p></dd>
+<dt>float <i class="arg">yval</i> (in)</dt>
+<dd><p>Value of the independent <em>column</em> variable</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::math::interpolate::interp-linear</b> <i class="arg">xyvalues</i> <i class="arg">xval</i></a></dt>
+<dd><p>Interpolate linearly into the list of x,y pairs and return the interpolated value.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">xyvalues</i> (in)</dt>
+<dd><p>List of pairs of (x,y) values, sorted to increasing x.
+They are used as the breakpoints of a piecewise linear function.</p></dd>
+<dt>float <i class="arg">xval</i> (in)</dt>
+<dd><p>Value of the independent variable for which the value of y
+must be computed.</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::math::interpolate::interp-lagrange</b> <i class="arg">xyvalues</i> <i class="arg">xval</i></a></dt>
+<dd><p>Use the list of x,y pairs to construct the unique polynomial of lowest degree
+that passes through all points and return the interpolated value.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">xyvalues</i> (in)</dt>
+<dd><p>List of pairs of (x,y) values</p></dd>
+<dt>float <i class="arg">xval</i> (in)</dt>
+<dd><p>Value of the independent variable for which the value of y
+must be computed.</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::math::interpolate::prepare-cubic-splines</b> <i class="arg">xcoord</i> <i class="arg">ycoord</i></a></dt>
+<dd><p>Returns a list of coefficients for the second routine
+<em>interp-cubic-splines</em> to actually interpolate.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">xcoord</i></dt>
+<dd><p>List of x-coordinates for the value of the
+function to be interpolated is known. The coordinates must be strictly
+ascending. At least three points are required.</p></dd>
+<dt>list <i class="arg">ycoord</i></dt>
+<dd><p>List of y-coordinates (the values of the
+function at the given x-coordinates).</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::math::interpolate::interp-cubic-splines</b> <i class="arg">coeffs</i> <i class="arg">x</i></a></dt>
+<dd><p>Returns the interpolated value at coordinate x. The coefficients are
+computed by the procedure <em>prepare-cubic-splines</em>.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">coeffs</i></dt>
+<dd><p>List of coefficients as returned by
+prepare-cubic-splines</p></dd>
+<dt>float <i class="arg">x</i></dt>
+<dd><p>x-coordinate at which to estimate the function. Must
+be between the first and last x-coordinate for which values were given.</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">::math::interpolate::interp-spatial</b> <i class="arg">xyvalues</i> <i class="arg">coord</i></a></dt>
+<dd><p>Use a straightforward interpolation method with weights as function of the
+inverse distance to interpolate in 2D and N-dimensional space</p>
+<p>The list xyvalues is a list of lists:</p>
+<pre class="doctools_example">
+    {   {x1 y1 z1 {v11 v12 v13 v14}}
+	{x2 y2 z2 {v21 v22 v23 v24}}
+	...
+    }
+</pre>
+<p>The last element of each inner list is either a single number or a list in itself.
+In the latter case the return value is a list with the same number of elements.</p>
+<p>The method is influenced by the search radius and the power of the inverse distance</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">xyvalues</i> (in)</dt>
+<dd><p>List of lists, each sublist being a list of coordinates and
+of dependent values.</p></dd>
+<dt>list <i class="arg">coord</i> (in)</dt>
+<dd><p>List of coordinates for which the values must be calculated</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::math::interpolate::interp-spatial-params</b> <i class="arg">max_search</i> <i class="arg">power</i></a></dt>
+<dd><p>Set the parameters for spatial interpolation</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">max_search</i> (in)</dt>
+<dd><p>Search radius (data points further than this are ignored)</p></dd>
+<dt>integer <i class="arg">power</i> (in)</dt>
+<dd><p>Power for the distance (either 1 or 2; defaults to 2)</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::math::interpolate::neville</b> <i class="arg">xlist</i> <i class="arg">ylist</i> <i class="arg">x</i></a></dt>
+<dd><p>Interpolates between the tabulated values of a function
+whose abscissae are <i class="arg">xlist</i>
+and whose ordinates are <i class="arg">ylist</i> to produce an estimate for the value
+of the function at <i class="arg">x</i>.  The result is a two-element list; the first
+element is the function's estimated value, and the second is an estimate
+of the absolute error of the result.  Neville's algorithm for polynomial
+interpolation is used.  Note that a large table of values will use an
+interpolating polynomial of high degree, which is likely to result in
+numerical instabilities; one is better off using only a few tabulated
+values near the desired abscissa.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLES</a></h2>
+<p><em>Example of using one-dimensional tables:</em></p>
+<p>Suppose you have several tabulated functions of one variable:</p>
+<pre class="doctools_example">
+    x     y1     y2
+  0.0    0.0    0.0
+  1.0    1.0    1.0
+  2.0    4.0    8.0
+  3.0    9.0   27.0
+  4.0   16.0   64.0
+</pre>
+<p>Then to estimate the values at 0.5, 1.5, 2.5 and 3.5, you can use:</p>
+<pre class="doctools_example">
+   set table [::math::interpolate::defineTable table1  {x y1 y2} {   -      1      2
+                   0.0    0.0    0.0
+                   1.0    1.0    1.0
+                   2.0    4.0    8.0
+                   3.0    9.0   27.0
+                   4.0   16.0   64.0}]
+   foreach x {0.5 1.5 2.5 3.5} {
+       puts &quot;$x: [::math::interpolate::interp-1d-table $table $x]&quot;
+   }
+</pre>
+<p>For one-dimensional tables the first row is not used. For two-dimensional
+tables, the first row represents the values for the second independent variable.</p>
+<p><em>Example of using the cubic splines:</em></p>
+<p>Suppose the following values are given:</p>
+<pre class="doctools_example">
+    x       y
+  0.1     1.0
+  0.3     2.1
+  0.4     2.2
+  0.8     4.11
+  1.0     4.12
+</pre>
+<p>Then to estimate the values at 0.1, 0.2, 0.3, ... 1.0, you can use:</p>
+<pre class="doctools_example">
+   set coeffs [::math::interpolate::prepare-cubic-splines  {0.1 0.3 0.4 0.8  1.0}  {1.0 2.1 2.2 4.11 4.12}]
+   foreach x {0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0} {
+      puts &quot;$x: [::math::interpolate::interp-cubic-splines $coeffs $x]&quot;
+   }
+</pre>
+<p>to get the following output:</p>
+<pre class="doctools_example">
+0.1: 1.0
+0.2: 1.68044117647
+0.3: 2.1
+0.4: 2.2
+0.5: 3.11221507353
+0.6: 4.25242647059
+0.7: 5.41804227941
+0.8: 4.11
+0.9: 3.95675857843
+1.0: 4.12
+</pre>
+<p>As you can see, the values at the abscissae are reproduced perfectly.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: interpolate</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key833">interpolation</a>, <a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key834">spatial interpolation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;<br>
+Copyright &copy; 2004 Kevn B. Kenny &lt;kennykb@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

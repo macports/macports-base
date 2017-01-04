@@ -1,0 +1,240 @@
+
+<div class='fossil-doc' data-title='logger::utils - Object Oriented logging facility'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">logger::utils(n) 1.3 tcllib &quot;Object Oriented logging facility&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>logger::utils - Utilities for logger</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">logger::utils <span class="opt">?1.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::logger::utils::createFormatCmd</b> <i class="arg">formatString</i></a></li>
+<li><a href="#2"><b class="cmd">::logger::utils::createLogProc</b> <b class="option">-procName</b> <i class="arg">procName</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#3"><b class="cmd">::logger::utils::applyAppender</b> <b class="option">-appender</b> <i class="arg">appenderType</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#4"><b class="cmd">::logger::utils::autoApplyAppender</b> <i class="arg">command</i> <i class="arg">command-string</i> <i class="arg">log</i> <i class="arg">op</i> <i class="arg">args</i>...</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package adds template based <i class="term">appenders</i>.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::logger::utils::createFormatCmd</b> <i class="arg">formatString</i></a></dt>
+<dd><p>This command translates <i class="arg">formatString</i> into an expandable command
+string.
+The following strings are the known substitutions (from log4perl)
+allowed to occur in the <i class="arg">formatString</i>:</p>
+<dl class="doctools_definitions">
+<dt>%c</dt>
+<dd><p>Category of the logging event</p></dd>
+<dt>%C</dt>
+<dd><p>Fully qualified name of logging event</p></dd>
+<dt>%d</dt>
+<dd><p>Current date in yyyy/MM/dd hh:mm:ss</p></dd>
+<dt>%H</dt>
+<dd><p>Hostname</p></dd>
+<dt>%m</dt>
+<dd><p>Message to be logged</p></dd>
+<dt>%M</dt>
+<dd><p>Method where logging event was issued</p></dd>
+<dt>%p</dt>
+<dd><p>Priority of logging event</p></dd>
+<dt>%P</dt>
+<dd><p>Pid of current process</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::logger::utils::createLogProc</b> <b class="option">-procName</b> <i class="arg">procName</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command ...</p>
+<dl class="doctools_options">
+<dt><b class="option">-procName</b> procName</dt>
+<dd><p>The name of the procedure to create.</p></dd>
+<dt><b class="option">-conversionPattern</b> pattern</dt>
+<dd><p>See <b class="cmd">::logger::utils::createFormatCmd</b> for the substitutions
+allowed in the <i class="arg">pattern</i>.</p></dd>
+<dt><b class="option">-category</b> category</dt>
+<dd><p>The category (service).</p></dd>
+<dt><b class="option">-priority</b> priority</dt>
+<dd><p>The priority (level).</p></dd>
+<dt><b class="option">-outputChannel</b> channel</dt>
+<dd><p>channel to output on (default stdout)</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::logger::utils::applyAppender</b> <b class="option">-appender</b> <i class="arg">appenderType</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command will create an appender for the specified logger
+services. If no service is specified then the appender will be added
+as the default appender for the specified levels. If no levels are
+specified, then all levels are assumed.</p>
+<dl class="doctools_options">
+<dt><b class="option">-service</b> loggerservices</dt>
+<dd></dd>
+<dt><b class="option">-serviceCmd</b> loggerserviceCmds</dt>
+<dd><p>Name of the logger instance to modify. <b class="option">-serviceCmd</b> takes as
+input the return of <b class="cmd">logger::init</b>.</p></dd>
+<dt><b class="option">-appender</b> appenderType</dt>
+<dd><p>Type of the appender to use.
+One of <b class="const">console</b>, <b class="const">colorConsole</b>.</p></dd>
+<dt><b class="option">-appenderArgs</b> appenderArgs</dt>
+<dd><p>Additional arguments to apply to the appender.
+The argument of the option is a list of options
+and their arguments.</p>
+<p>For example</p>
+<pre class="doctools_example">
+logger::utils::applyAppender -serviceCmd $log -appender console -appenderArgs {-conversionPattern {\[%M\] \[%p\] - %m}}
+</pre>
+<p>The usual Tcl quoting rules apply.</p></dd>
+<dt><b class="option">-levels</b> levelList</dt>
+<dd><p>The list of levels to apply this appender to. If not specified all
+levels are assumed.</p></dd>
+</dl>
+<p>Example of usage:</p>
+<pre class="doctools_example">
+   % set log [logger::init testLog]
+   ::logger::tree::testLog
+   % logger::utils::applyAppender -appender console -serviceCmd $log
+   % ${log}::error &quot;this is an error&quot;
+   [2005/08/22 10:14:13] [testLog] [global] [error] this is an error
+</pre>
+</dd>
+<dt><a name="4"><b class="cmd">::logger::utils::autoApplyAppender</b> <i class="arg">command</i> <i class="arg">command-string</i> <i class="arg">log</i> <i class="arg">op</i> <i class="arg">args</i>...</a></dt>
+<dd><p>This command is designed to be added via <b class="cmd">trace leave</b> to calls
+of <b class="cmd">logger::init</b>. It will look at preconfigured state (via
+<b class="cmd">::logger::utils::applyAppender</b>) to autocreate appenders for
+newly created logger instances.
+It will return its argument <i class="arg">log</i>.</p>
+<p>Example of usage:</p>
+<pre class="doctools_example">
+  logger::utils::applyAppender -appender console
+  set log [logger::init applyAppender-3]
+  ${log}::error &quot;this is an error&quot;
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>logger</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key408">appender</a>, <a href="../../../../index.html#key89">logger</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Aamer Akhter &lt;aakhter@cisco.com&gt;</p>
+</div>
+</div>

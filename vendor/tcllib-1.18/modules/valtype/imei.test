@@ -1,0 +1,85 @@
+# -------------------------------------------------------------------------
+# imei.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+    useLocal luhn.tcl valtype::luhn
+}
+testing {
+    useLocal imei.tcl valtype::imei
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-imei-1.0 {imei validation wrong\#args} -body {
+    valtype::imei validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::imei validate value"}
+
+test valtype-imei-1.1 {imei validation wrong\#args} -body {
+    valtype::imei validate A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::imei validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-imei-2.0 {imei validation failure, bad char} -body {
+    valtype::imei validate ABCDEFGHIJKLMNO
+} -returnCodes error \
+    -result {Not an IMEI number, expected only digits}
+
+test valtype-imei-2.1 {imei validation failure, bad length} -body {
+    valtype::imei validate 32
+} -returnCodes error \
+    -result {Not an IMEI number, incorrect length, expected 15 characters}
+
+foreach {n in} {
+    1  000000000000001
+    2  100000000000000
+    3  000000000000010
+    4  012345678901230
+    5  321098765432100
+} {
+    test valtype-imei-3.1 {imei validation failure, bad check} -body {
+	valtype::imei validate $in
+    } -returnCodes error \
+	-result {Not an IMEI number, the check digit is incorrect}
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n in check} {
+    1 00000000000000  0
+    2 10000000000000  9
+    3 00000000000001  8
+    4 01234567890123  7
+    5 32109876543210  5
+} {
+    test valtype-imei-4.$n {imei validation} -body {
+	valtype::imei validate $in$check
+    } -result $in$check
+
+    test valtype-imei-6.$n {imei checkdigit} -body {
+	# IMEI = luhn check of 15-digit number (incl. check digit)
+	valtype::luhn checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

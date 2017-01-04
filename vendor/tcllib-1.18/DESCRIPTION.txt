@@ -1,0 +1,51 @@
+Identifier: tcllib
+Title:  Tcl Standard Library
+Description: This package is intended to be a collection of
+    Tcl packages that provide utility functions useful to a
+    large collection of Tcl programmers.
+Rights: BSD
+Version: 1.18
+URL: http://core.tcl.tk/tcllib
+Architecture: tcl
+Contributor:  <jeffh at activestate dot com>
+Contributor: Aaron Faupell <afaupell at users dot sourceforge dot net>
+Contributor: Andreas Kupries <andreas_kupries at users dot sourceforge dot net>
+Contributor: Arjen Markus <arjenmarkus at users dot sourceforge dot net>
+Contributor: Benjamin Riefenstahl <b dot riefenstahl at turtle-trading dot net>
+Contributor: Bob Techentin <techentin at users dot sourceforge dot net>
+Contributor: Brent Welch <welch at scriptics dot com>
+Contributor: Brett Schwarz <schwarzkopf at users dot sourceforge dot net>
+Contributor: Colin McCormack <coldstore at users dot sourceforge dot net>
+Contributor: Dan Kuchler <kuchler at ajubasolutions dot com>
+Contributor: David N. Welton <davidw at dedasys dot com>
+Contributor: Don Porter <dgp at users dot sourceforge dot net>
+Contributor: Donal K. Fellows <fellowsd at cs dot man dot ac dot uk>
+Contributor: Elchonon Edelson <eee at users dot sourceforge dot net>
+Contributor: Emmanuel Frecon <efrecon at gmail dot com>
+Contributor: Eric Melski <ericm at ajubasolutions dot com>
+Contributor: Gerald Lester <gwlester at users dot sourceforge dot net>
+Contributor: Gerhard Reithofer <gerhard dot rithofer at tech-edv dot co dot at>
+Contributor: Jeff Hobbs <jeffh at ActiveState dot com>
+Contributor: Joe English <jenglish at users dot sourceforge dot net>
+Contributor: Johannes-Heinrich Vogeler <vogeler at users dot sourceforge dot net>
+Contributor: KATO Kanryu <kanryu6 at users dot sourceforge dot net>
+Contributor: Kevin B, Kenny <kennykb at acm dot org>
+Contributor: Kevin B. Kenny <kennykb at acm dot org>
+Contributor: Kevin Kenny <kennykb at users dot sourceforge dot net>
+Contributor: Lars Hellstr\"om <lars_h at users dot sourceforge dot net>
+Contributor: Marty Backe <marty at lucidway dot org>
+Contributor: Melissa Chawla <melissachawla at yahoo dot com>
+Contributor: Michael Schlenker <mic42 at users dot sourceforge dot net>
+Contributor: Miguel Sofer <mig at utdt dot edu>
+Contributor: Pat Thoyts <patthoyts at users dot sourceforge dot net>
+Contributor: Peter MacDonald <peter at pdqi dot com>
+Contributor: Pierre David <pdav at users dot sourceforge dot net>
+Contributor: Reinhard Max <max at suse dot de>
+Contributor: Ross Mohn <rpmohn at panix dot com>
+Contributor: Sandeep Tamhankar <sandeep at scriptics dot com>
+Contributor: Scott Redman <redman at scriptics dot com>
+Contributor: Scott Stanton <stanton at scriptics dot com>
+Contributor: Steffen Traeger <Steffen dot Traeger at t-online dot de>
+Contributor: Stephane Arnold <sarnold75 at users dot sourceforge dot net>
+Contributor: Steve Ball <Steve dot Ball at zveno dot com>
+Contributor: Will Duquette <will at wjduquette dot com>

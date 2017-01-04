@@ -1,0 +1,7 @@
+[comment {-*- tcl -*- --- doctools ---}]
+[vset PACKAGE docidx]
+[vset NAME    docidx]
+[vset REQUIRE null]
+[vset CONFIG  docidx]
+[vset VERSION 0.1]
+[include include/export/plugin.inc]

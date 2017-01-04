@@ -1,0 +1,495 @@
+
+<div class='fossil-doc' data-title='doctools - Documentation tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools(n) 1.4.19 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools - doctools - Processing documents</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PUBLIC API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">PACKAGE COMMANDS</a></li>
+<li class="doctools_subsection"><a href="#subsection2">OBJECT COMMAND</a></li>
+<li class="doctools_subsection"><a href="#subsection3">OBJECT METHODS</a></li>
+<li class="doctools_subsection"><a href="#subsection4">OBJECT CONFIGURATION</a></li>
+<li class="doctools_subsection"><a href="#subsection5">FORMAT MAPPING</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">PREDEFINED ENGINES</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">doctools <span class="opt">?1.4.19?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::doctools::new</b> <i class="arg">objectName</i> <span class="opt">?<i class="arg">option value</i>...?</span></a></li>
+<li><a href="#2"><b class="cmd">::doctools::help</b></a></li>
+<li><a href="#3"><b class="cmd">::doctools::search</b> <i class="arg">path</i></a></li>
+<li><a href="#4"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#5"><i class="arg">objectName</i> <b class="method">configure</b></a></li>
+<li><a href="#6"><i class="arg">objectName</i> <b class="method">configure</b> <i class="arg">option</i></a></li>
+<li><a href="#7"><i class="arg">objectName</i> <b class="method">configure</b> <b class="option">-option</b> <i class="arg">value</i>...</a></li>
+<li><a href="#8"><i class="arg">objectName</i> <b class="method">cget</b> <b class="option">-option</b></a></li>
+<li><a href="#9"><i class="arg">objectName</i> <b class="method">destroy</b></a></li>
+<li><a href="#10"><i class="arg">objectName</i> <b class="method">format</b> <i class="arg">text</i></a></li>
+<li><a href="#11"><i class="arg">objectName</i> <b class="method">map</b> <i class="arg">symbolic</i> <i class="arg">actual</i></a></li>
+<li><a href="#12"><i class="arg">objectName</i> <b class="method">parameters</b></a></li>
+<li><a href="#13"><i class="arg">objectName</i> <b class="method">search</b> <i class="arg">path</i></a></li>
+<li><a href="#14"><i class="arg">objectName</i> <b class="method">setparam</b> <i class="arg">name</i> <i class="arg">value</i></a></li>
+<li><a href="#15"><i class="arg">objectName</i> <b class="method">warnings</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a class for the creation of objects able to
+process and convert text written in the <i class="term"><a href="../../../../index.html#key179">doctools</a></i> markup
+language into any output format X for which a
+<i class="term"><a href="../../../../index.html#key657">formatting engine</a></i> is available.</p>
+<p>A reader interested in the markup language itself should start with
+the <i class="term"><a href="doctools_lang_intro.html">doctools language introduction</a></i> and proceed from there to
+the formal specifications, i.e. the <i class="term"><a href="doctools_lang_syntax.html">doctools language syntax</a></i>
+and the <i class="term"><a href="doctools_lang_cmdref.html">doctools language command reference</a></i>.</p>
+<p>If on the other hand the reader wishes to write her own formatting
+engine for some format, i.e. is a <i class="term">plugin writer</i> then reading
+and understanding the <i class="term"><a href="doctools_plugin_apiref.html">doctools plugin API reference</a></i> is an
+absolute necessity, as that document specifies the interaction between
+this package and its plugins, i.e. the formatting engines, in detail.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PUBLIC API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">PACKAGE COMMANDS</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::doctools::new</b> <i class="arg">objectName</i> <span class="opt">?<i class="arg">option value</i>...?</span></a></dt>
+<dd><p>This command creates a new doctools object with an associated Tcl
+command whose name is <i class="arg">objectName</i>. This <i class="term"><a href="../../../../index.html#key243">object</a></i> command is
+explained in full detail in the sections <span class="sectref"><a href="#subsection2">OBJECT COMMAND</a></span>
+and <span class="sectref"><a href="#subsection3">OBJECT METHODS</a></span>. The object command will be created
+under the current namespace if the <i class="arg">objectName</i> is not fully
+qualified, and in the specified namespace otherwise.</p>
+<p>The options and their values coming after the name of the object are
+used to set the initial configuration of the object.</p></dd>
+<dt><a name="2"><b class="cmd">::doctools::help</b></a></dt>
+<dd><p>This is a convenience command for applications wishing to provide
+their user with a short description of the available formatting
+commands and their meanings. It returns a string containing a standard
+help text.</p></dd>
+<dt><a name="3"><b class="cmd">::doctools::search</b> <i class="arg">path</i></a></dt>
+<dd><p>Whenever an object created by this the package has to map the name of
+a format to the file containing the code for its formatting engine it
+will search for the file in a number of directories stored in a
+list. See section <span class="sectref"><a href="#subsection5">FORMAT MAPPING</a></span> for more explanations.</p>
+<p>This list not only contains three default directories which are
+declared by the package itself, but is also extensible user of the
+package.
+This command is the means to do so. When given a <i class="arg">path</i> to an
+existing and readable directory it will prepend that directory to the
+list of directories to search. This means that the <i class="arg">path</i> added
+last is later searched through first.</p>
+<p>An error will be thrown if the <i class="arg">path</i> either does not exist, is
+not a directory, or is not readable.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">OBJECT COMMAND</a></h3>
+<p>All commands created by <b class="cmd">::doctools::new</b> have the following
+general form and may be used to invoke various operations on their
+doctools converter object.</p>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>The method <b class="method">method</b> and its <i class="arg">arg</i>'uments determine the exact
+behavior of the command. See section <span class="sectref"><a href="#subsection3">OBJECT METHODS</a></span> for
+the detailed specifications.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">OBJECT METHODS</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="5"><i class="arg">objectName</i> <b class="method">configure</b></a></dt>
+<dd><p>The method returns a list of all known options and their current
+values when called without any arguments.</p></dd>
+<dt><a name="6"><i class="arg">objectName</i> <b class="method">configure</b> <i class="arg">option</i></a></dt>
+<dd><p>The method behaves like the method <b class="method">cget</b> when called with a
+single argument and returns the value of the option specified by said
+argument.</p></dd>
+<dt><a name="7"><i class="arg">objectName</i> <b class="method">configure</b> <b class="option">-option</b> <i class="arg">value</i>...</a></dt>
+<dd><p>The method reconfigures the specified <b class="option">option</b>s of the object,
+setting them to the associated <i class="arg">value</i>s, when called with an even
+number of arguments, at least two.</p>
+<p>The legal options are described in the section
+<span class="sectref"><a href="#subsection4">OBJECT CONFIGURATION</a></span>.</p></dd>
+<dt><a name="8"><i class="arg">objectName</i> <b class="method">cget</b> <b class="option">-option</b></a></dt>
+<dd><p>This method expects a legal configuration option as argument and will
+return the current value of that option for the object the method was
+invoked for.</p>
+<p>The legal configuration options are described in section
+<span class="sectref"><a href="#subsection4">OBJECT CONFIGURATION</a></span>.</p></dd>
+<dt><a name="9"><i class="arg">objectName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method destroys the object it is invoked for.</p></dd>
+<dt><a name="10"><i class="arg">objectName</i> <b class="method">format</b> <i class="arg">text</i></a></dt>
+<dd><p>This method runs the <i class="arg">text</i> through the configured formatting
+engine and returns the generated string as its result. An error will
+be thrown if no <b class="option">-format</b> was configured for the object.</p>
+<p>The method assumes that the <i class="arg">text</i> is in <i class="term"><a href="../../../../index.html#key179">doctools</a></i> format as
+specified in the companion document <i class="term">doctools_fmt</i>. Errors will
+be thrown otherwise.</p></dd>
+<dt><a name="11"><i class="arg">objectName</i> <b class="method">map</b> <i class="arg">symbolic</i> <i class="arg">actual</i></a></dt>
+<dd><p>This methods add one entry to the per-object mapping from
+<i class="arg">symbolic</i> filenames to the <i class="arg">actual</i> uris.
+The object just stores this mapping and makes it available to the
+configured formatting engine through the command <b class="cmd">dt_fmap</b>.
+This command is described in more detail in the
+<i class="term"><a href="doctools_plugin_apiref.html">doctools plugin API reference</a></i> which specifies the interaction
+between the objects created by this package and doctools formatting
+engines.</p></dd>
+<dt><a name="12"><i class="arg">objectName</i> <b class="method">parameters</b></a></dt>
+<dd><p>This method returns a list containing the names of all engine
+parameters provided by the configured formatting engine. It will
+return an empty list if the object is not yet configured for a
+specific format.</p></dd>
+<dt><a name="13"><i class="arg">objectName</i> <b class="method">search</b> <i class="arg">path</i></a></dt>
+<dd><p>This method extends the per-object list of paths searched for doctools
+formatting engines. See also the command <b class="cmd">::doctools::search</b> on
+how to extend the per-package list of paths. Note that the path
+entered last will be searched first.
+For more details see section <span class="sectref"><a href="#subsection5">FORMAT MAPPING</a></span>.</p></dd>
+<dt><a name="14"><i class="arg">objectName</i> <b class="method">setparam</b> <i class="arg">name</i> <i class="arg">value</i></a></dt>
+<dd><p>This method sets the <i class="arg">name</i>d engine parameter to the specified
+<i class="arg">value</i>.
+It will throw an error if the object is either not yet configured for
+a specific format, or if the formatting engine for the configured
+format does not provide a parameter with the given <i class="arg">name</i>.
+The list of parameters provided by the configured formatting engine
+can be retrieved through the method <b class="method">parameters</b>.</p></dd>
+<dt><a name="15"><i class="arg">objectName</i> <b class="method">warnings</b></a></dt>
+<dd><p>This method returns a list containing all the warnings which were
+generated by the configured formatting engine during the last
+invocation of the method <b class="method">format</b>.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">OBJECT CONFIGURATION</a></h3>
+<p>All doctools objects understand the following configuration options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> <i class="arg">file</i></dt>
+<dd><p>The argument of this option is stored in the object and made available
+to the configured formatting engine through the commands <b class="cmd">dt_file</b>
+and <b class="cmd">dt_mainfile</b>.
+These commands are described in more detail in the companion document
+<i class="term">doctools_api</i> which specifies the API between the object and
+formatting engines.</p>
+<p>The default value of this option is the empty string.</p>
+<p>The configured formatting engine should interpret the value as the
+name of the file containing the document which is currently processed.</p></dd>
+<dt><b class="option">-ibase</b> <i class="arg">file</i></dt>
+<dd><p>The argument of this option is stored in the object and used as the
+base path for resolution of relative include paths. If this option is
+not set (empty string) the value of <b class="option">-file</b> is used instead.</p>
+<p>Note that <b class="option">-file</b> and <b class="option">-ibase</b>, while similar looking,
+are actually very different. The value of <b class="option">-file</b> is used by
+some engines for the generation of proper relative references between
+output documents (HTML). As such this is a <i class="term">destination</i>
+path. The <b class="option">-ibase</b> on the other hand is used to resolve
+relative include paths, and as such deals with <i class="term"><a href="../../../../index.html#key435">source</a></i> paths.</p>
+<p>The default value of this option is the empty string.</p></dd>
+<dt><b class="option">-module</b> <i class="arg">text</i></dt>
+<dd><p>The argument of this option is stored in the object and made available
+to the configured formatting engine through the command <b class="cmd">dt_module</b>.
+This command is described in more detail in the companion document
+<i class="term">doctools_api</i> which specifies the API between the object and
+formatting engines.</p>
+<p>The default value of this option is the empty string.</p>
+<p>The configured formatting engine should interpret the value as the
+name of the module the file containing the document which is currently
+processed belongs to.</p></dd>
+<dt><b class="option">-format</b> <i class="arg">text</i></dt>
+<dd><p>The argument of this option specifies the format to generate and by
+implication the formatting engine to use when converting text via the
+method <b class="method">format</b>. Its default value is the empty string. The
+method <b class="method">format</b> cannot be used if this option is not set to a
+valid value at least once.</p>
+<p>The package will immediately try to map the given name to a file
+containing the code for a formatting engine generating that format. An
+error will be thrown if this mapping fails. In that case a previously
+configured format is left untouched.</p>
+<p>The section <span class="sectref"><a href="#subsection5">FORMAT MAPPING</a></span> explains in detail how the
+package and object will look for engine implementations.</p></dd>
+<dt><b class="option">-deprecated</b> <i class="arg">boolean</i></dt>
+<dd><p>This option is a boolean flag. The object will generate warnings if
+this flag is set and the text given to method <b class="method">format</b> contains
+the deprecated markup command <b class="cmd">strong</b>.
+Its default value is <b class="const">FALSE</b>. In other words, no warnings will
+be generated.</p></dd>
+<dt><b class="option">-copyright</b> <i class="arg">text</i></dt>
+<dd><p>The argument of this option is stored in the object and made available
+to the configured formatting engine through the command <b class="cmd">dt_copyright</b>.
+This command is described in more detail in the companion document
+<i class="term">doctools_api</i> which specifies the API between the object and
+formatting engines.</p>
+<p>The default value of this option is the empty string.</p>
+<p>The configured formatting engine should interpret the value as a
+copyright assignment for the document which is currently processed, or
+the package described by it.</p>
+<p>This information must be used if and only if the engine is unable to
+find any copyright assignments within the document itself. Such are
+specified by the formatting command <b class="cmd">copyright</b>. This command is
+described in more detail in the companion document <i class="term">doctools_fmt</i>
+which specifies the <i class="term"><a href="../../../../index.html#key179">doctools</a></i> format itself.</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">FORMAT MAPPING</a></h3>
+<p>The package and object will perform the following algorithm when
+trying to map a format name <i class="term">foo</i> to a file containing an
+implementation of a formatting engine for <i class="term">foo</i>:</p>
+<ol class="doctools_enumerated">
+<li><p>If <i class="term">foo</i> is the name of an existing file then this file is
+directly taken as the implementation.</p></li>
+<li><p>If not, the list of per-object search paths is searched. For each
+directory in the list the package checks if that directory contains a
+file &quot;<b class="file">fmt.<i class="term">foo</i></b>&quot;. If yes, then that file is taken as the
+implementation.</p>
+<p>Note that this list of paths is initially empty and can be extended
+through the object method <b class="method">search</b>.</p></li>
+<li><p>If not, the list of package paths is searched.
+For each directory in the list the package checks if that directory
+contains a file &quot;<b class="file">fmt.<i class="term">foo</i></b>&quot;. If yes, then that file is taken
+as the implementation.</p>
+<p>This list of paths can be extended
+through the command <b class="cmd">::doctools::search</b>.
+It contains initially one path, the subdirectory &quot;<b class="file">mpformats</b>&quot; of
+the directory the package itself is located in.
+In other words, if the package implementation &quot;<b class="file">doctools.tcl</b>&quot; is
+installed in the directory &quot;<b class="file">/usr/local/lib/tcllib/doctools</b>&quot; then
+it will by default search the
+directory &quot;<b class="file">/usr/local/lib/tcllib/doctools/mpformats</b>&quot; for format
+implementations.</p></li>
+<li><p>The mapping fails.</p></li>
+</ol>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PREDEFINED ENGINES</a></h2>
+<p>The package provides predefined engines for the following
+formats. Some of the engines support parameters. These will be
+explained below as well.</p>
+<dl class="doctools_definitions">
+<dt>html</dt>
+<dd><p>This engine generates HTML markup, for processing by web browsers and
+the like. This engine supports four parameters:</p>
+<dl class="doctools_definitions">
+<dt>footer</dt>
+<dd><p>The value for this parameter has to be valid selfcontained HTML markup
+for the body section of a HTML document. The default value is the
+empty string. The value is inserted into the generated output just
+before the <b class="const">&lt;/body&gt;</b> tag, closing the body of the generated
+HTML.</p>
+<p>This can be used to insert boilerplate footer markup into the
+generated document.</p></dd>
+<dt>header</dt>
+<dd><p>The value for this parameter has to be valid selfcontained HTML markup
+for the body section of a HTML document. The default value is the
+empty string. The value is inserted into the generated output just
+after the <b class="const">&lt;body&gt;</b> tag, starting the body of the generated HTML.</p>
+<p>This can be used to insert boilerplate header markup into the
+generated document.</p></dd>
+<dt>meta</dt>
+<dd><p>The value for this parameter has to be valid selfcontained HTML markup
+for the header section of a HTML document. The default value is the
+empty string. The value is inserted into the generated output just
+after the <b class="const">&lt;head&gt;</b> tag, starting the header section of the
+generated HTML.</p>
+<p>This can be used to insert boilerplate meta data markup into the
+generated document, like references to a stylesheet, standard meta
+keywords, etc.</p></dd>
+<dt>xref</dt>
+<dd><p>The value for this parameter has to be a list of triples specifying
+cross-reference information. This information is used by the engine to
+create more hyperlinks. Each triple is a list containing a pattern,
+symbolic filename and fragment reference, in this order. If a pattern
+is specified multiple times the last occurence of the pattern will be
+used.</p>
+<p>The engine will consult the xref database when encountering specific
+commands and will create a link if the relevant text matches one of
+the patterns. No link will be created if no match was found. The link
+will go to the uri <b class="const">file#fragment</b> listed in the relevant
+triple, after conversion of the symbolic file name to the actual uri
+via <b class="cmd">dt_fmap</b> (see the <i class="term"><a href="doctools_plugin_apiref.html">doctools plugin API reference</a></i>).
+This file-to-uri mapping was build by calls to the method <b class="method">map</b>
+of the doctools object (See section <span class="sectref"><a href="#subsection3">OBJECT METHODS</a></span>).</p>
+<p>The following formatting commands will consult the xref database:</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">cmd</b> <i class="arg">word</i></dt>
+<dd><p>The command will look for the patterns <b class="const">sa,</b><i class="arg">word</i>, and
+<i class="arg">word</i>, in this order. If this fails if it will convert <i class="arg">word</i>
+to all lowercase and try again.</p></dd>
+<dt><b class="cmd">syscmd</b> <i class="arg">word</i></dt>
+<dd><p>The command will look for the patterns <b class="const">sa,</b><i class="arg">word</i>, and
+<i class="arg">word</i>, in this order. If this fails if it will convert <i class="arg">word</i>
+to all lowercase and try again.</p></dd>
+<dt><b class="cmd"><a href="../term/term.html">term</a></b> <i class="arg">word</i></dt>
+<dd><p>The command will look for the patterns <b class="const">kw,</b><i class="arg">word</i>,
+<b class="const">sa,</b><i class="arg">word</i>, and <i class="arg">word</i>, in this order. If this fails if
+it will convert <i class="arg">word</i> to all lowercase and try again.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key48">package</a></b> <i class="arg">word</i></dt>
+<dd><p>The command will look for the patterns <b class="const">sa,</b><i class="arg">word</i>,
+<b class="const">kw,</b><i class="arg">word</i>, and <i class="arg">word</i>, in this order. If this fails if
+it will convert <i class="arg">word</i> to all lowercase and try again.</p></dd>
+<dt><b class="cmd">see_also</b> <i class="arg">word</i>...</dt>
+<dd><p>The command will look for the patterns <b class="const">sa,</b><i class="arg">word</i>, and
+<i class="arg">word</i>, in this order, for each <i class="arg">word</i> given to the
+command. If this fails if it will convert <i class="arg">word</i> to all lowercase
+and try again.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key778">keywords</a></b> <i class="arg">word</i>...</dt>
+<dd><p>The command will look for the patterns <b class="const">kw,</b><i class="arg">word</i>, and
+<i class="arg">word</i>, in this order, for each <i class="arg">word</i> given to the
+command. If this fails if it will convert <i class="arg">word</i> to all lowercase
+and try again.</p></dd>
+</dl></dd>
+</dl></dd>
+<dt>latex</dt>
+<dd><p>This engine generates output suitable for the <b class="syscmd"><a href="../../../../index.html#key186">latex</a></b> text
+processor coming out of the TeX world.</p></dd>
+<dt>list</dt>
+<dd><p>This engine retrieves version, section and title of the manpage from
+the document. As such it can be used to generate a directory listing
+for a set of manpages.</p></dd>
+<dt>nroff</dt>
+<dd><p>This engine generates nroff output, for processing by <b class="syscmd"><a href="../../../../index.html#key21">nroff</a></b>,
+or <b class="syscmd">groff</b>. The result will be standard man pages as they are
+known in the unix world.</p></dd>
+<dt>null</dt>
+<dd><p>This engine generates no outout at all. This can be used if one just
+wants to validate some input.</p></dd>
+<dt>tmml</dt>
+<dd><p>This engine generates TMML markup as specified by Joe English. The Tcl
+Manpage Markup Language is a derivate of XML.</p></dd>
+<dt>wiki</dt>
+<dd><p>This engine generates Wiki markup as understood by Jean Claude
+Wippler's <b class="syscmd">wikit</b> application.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="doctools_intro.html">doctools_intro</a>, <a href="doctools_lang_cmdref.html">doctools_lang_cmdref</a>, <a href="doctools_lang_intro.html">doctools_lang_intro</a>, <a href="doctools_lang_syntax.html">doctools_lang_syntax</a>, <a href="doctools_plugin_apiref.html">doctools_plugin_apiref</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key18">HTML</a>, <a href="../../../../index.html#key19">TMML</a>, <a href="../../../../index.html#key20">conversion</a>, <a href="../../../../index.html#key185">documentation</a>, <a href="../../../../index.html#key17">manpage</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key21">nroff</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2003-2014 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

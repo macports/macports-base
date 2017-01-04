@@ -1,0 +1,39 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-export-json-set:${setimpl}-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test pt-peg-export-json-set:${setimpl}-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test pt-peg-export-json-set:${setimpl}-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of json output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+foreach {k in al section} {
+    0 0 0 -ultracompact
+    1 1 0 -indented
+    2 0 1 -indalign
+    3 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_json$section -> n label input data expected {
+	test pt-peg-export-json-set:${setimpl}-2.$k.$n "pt::peg::export::json, $label$section, ok :- $input" -setup {
+	    set configuration [list -indented $in -aligned $al]
+	} -body {
+	    export $data $configuration
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

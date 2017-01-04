@@ -1,0 +1,220 @@
+
+<html><head>
+<title>valtype::creditcard::visa - Validation types</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'vtype.inc' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2011 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- valtype::creditcard::visa.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">valtype::creditcard::visa(n) 1 tcllib &quot;Validation types&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>valtype::creditcard::visa - Validation for VISA creditcard number</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Error Codes</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">snit 2</b></li>
+<li>package require <b class="pkgname">valtype::common</b></li>
+<li>package require <b class="pkgname">valtype::luhn</b></li>
+<li>package require <b class="pkgname">valtype::creditcard::visa <span class="opt">?1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">valtype::creditcard::visa</b> <b class="method">validate</b> <i class="arg">value</i></a></li>
+<li><a href="#2"><b class="cmd">valtype::creditcard::visa</b> <b class="method">checkdigit</b> <i class="arg">value</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package implements a snit validation type for a VISA creditcard number.</p>
+<p>A validation type is an object that can be used to validate Tcl values
+of a particular kind.  For example, <b class="cmd">snit::integer</b>, a validation
+type defined by the <b class="package"><a href="../snit/snit.html">snit</a></b> package is used to validate that a
+Tcl value is an integer.</p>
+<p>Every validation type has a <b class="method">validate</b> method which is used to
+do the validation. This method must take a single argument, the value
+to be validated; further, it must do nothing if the value is valid,
+but throw an error if the value is invalid:</p>
+<pre class="doctools_example">
+    valtype::creditcard::visa validate .... ;# Does nothing
+    valtype::creditcard::visa validate .... ;# Throws an error (bad VISA creditcard number).
+</pre>
+<p>The <b class="method">validate</b> method will always return the validated value on
+success, and throw the <b class="cmd">-errorcode</b> INVALID on error, possibly
+with additional elements which provide more details about the problem.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The API provided by this package satisfies the specification
+of snit validation types found in the documentation of
+<i class="term"><a href="../snit/snit.html">Snit's Not Incr Tcl</a></i>.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">valtype::creditcard::visa</b> <b class="method">validate</b> <i class="arg">value</i></a></dt>
+<dd><p>This method validates the <i class="arg">value</i> and returns it, possibly in a
+canonical form, if it passes. If the value does not pass the
+validation an error is thrown.</p></dd>
+<dt><a name="2"><b class="cmd">valtype::creditcard::visa</b> <b class="method">checkdigit</b> <i class="arg">value</i></a></dt>
+<dd><p>This method computes a check digit for the <i class="arg">value</i>. Before doing
+so it is validated, except for a checkdigit. If the value does not
+pass the validation no check digit is calculated and an error is
+thrown instead.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Error Codes</a></h2>
+<p>As said in the package description, the errors thrown by the commands
+of this package in response to input validation failures use the
+<b class="cmd">-errorcode</b> INVALID to distinguish themselves from package
+internal errors.</p>
+<p>To provide more detailed information about why the validation
+failed the <b class="cmd">-errorCode</b> goes actually beyond that.
+First, it will contain a code detailing the type itself. Here this is
+<b class="const">CREDITCARD VISA</b>. This is then followed by values detailing the
+reason for the failure. The full set of <b class="cmd">-errorCode</b>s which can
+be thrown by this package are:</p>
+<dl class="doctools_definitions">
+<dt>INVALID CREDITCARD VISA CHARACTER</dt>
+<dd><p>The input value contained one or more bad characters, i.e. characters
+which must not occur in the input for it to be a VISA creditcard number.</p></dd>
+<dt>INVALID CREDITCARD VISA CHECK-DIGIT</dt>
+<dd><p>The check digit of the input value is wrong. This usually signals a
+data-entry error, with digits transposed, forgotten, etc. Of course,
+th input may be an outright fake too.</p></dd>
+<dt>INVALID CREDITCARD VISA LENGTH</dt>
+<dd><p>The input value is of the wrong length to be a VISA creditcard number.</p></dd>
+<dt>INVALID CREDITCARD VISA PREFIX</dt>
+<dd><p>The input value does not start with the magic value(s) required for it
+to be a VISA creditcard number.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>valtype</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key53">Checking</a>, <a href="../../../../index.html#key58">Testing</a>, <a href="../../../../index.html#key57">Type checking</a>, <a href="../../../../index.html#key708">VISA</a>, <a href="../../../../index.html#key60">Validation</a>, <a href="../../../../index.html#key56">Value checking</a>, <a href="../../../../index.html#key269">bank</a>, <a href="../../../../index.html#key267">card for credit</a>, <a href="../../../../index.html#key270">credit card</a>, <a href="../../../../index.html#key268">finance</a>, <a href="../../../../index.html#key55">isA</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Validation, Type checking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

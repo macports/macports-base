@@ -1,0 +1,84 @@
+## 
+## This is the file `docstrip_util.test',
+## generated with the SAK utility
+## (sak docstrip/regen).
+## 
+## The original source files were:
+## 
+## tcldocstrip.dtx  (with options: `utiltest tcllibtest')
+## 
+## In other words:
+## **************************************
+## * This Source is not the True Source *
+## **************************************
+## the true source is the file from which this one was generated.
+##
+source [file join\
+  [file dirname [file dirname [file join [pwd] [info script]]]]\
+  devtools testutilities.tcl]
+testsNeedTcl     8.4
+testsNeedTcltest 2
+testing {useLocal docstrip.tcl docstrip}
+testing {useLocal docstrip_util.tcl docstrip::util}
+variable docstrip_sources_dir [localPath {}]
+tcltest::testConstraint docstripSourcesAvailable [expr {[
+   file exists [file join $docstrip_sources_dir docstrip.tcl]
+] && [
+   file exists [file join $docstrip_sources_dir tcldocstrip.dtx]
+]}]
+tcltest::test docstrip::util::thefile-1.1 {thefile without args}\
+  -setup {
+   set Fname [tcltest::makeFile [
+      join {
+         {% Just a minor test file.}
+         {puts A}
+         {%<*bar>}
+         {puts B}
+         {%<*foo>}
+         {puts [info exists baz]}
+      } \n
+   ] test.txt]
+} -body {
+   docstrip::util::thefile $Fname
+} -cleanup {
+   tcltest::removeFile $Fname
+} -result [join {
+   {% Just a minor test file.}
+   {puts A}
+   {%<*bar>}
+   {puts B}
+   {%<*foo>}
+   {puts [info exists baz]}
+} \n]
+tcltest::test docstrip::util::thefile-1.2 {thefile with wrong no. args}\
+  -setup {
+   set Fname [tcltest::makeFile [
+      join {
+         {% Just a minor test file (contents irrelevant).}
+         {puts A}
+         {%<*bar>}
+         {puts B}
+         {%<*foo>}
+         {puts [info exists baz]}
+      } \n
+   ] test.txt]
+} -body {
+   docstrip::util::thefile $Fname -translation binary -buffering
+} -cleanup {
+   tcltest::removeFile $Fname
+} -returnCodes error
+tcltest::test docstrip::util::thefile-1.3 {thefile with args} -setup {
+   set Fname [tcltest::makeFile "Dummy content to overwrite" test.xxx]
+   set F [open $Fname w]
+   fconfigure $F -translation binary
+   puts -nonewline $F [encoding convertto utf-8 \u00E5\u00E4\u00F6]
+   close $F
+} -body {
+   docstrip::util::thefile $Fname -encoding utf-8
+} -cleanup {
+   tcltest::removeFile $Fname
+} -result \u00E5\u00E4\u00F6
+testsuiteCleanup
+## 
+## 
+## End of file `docstrip_util.test'.

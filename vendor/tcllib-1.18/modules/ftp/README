@@ -1,0 +1,80 @@
+=========================
+ftp 2.3 (08/16/2000)
+=========================
+
+files:
+
+	README                - this file
+	ChangeLog             - change log
+
+	ftp.tcl               - ftp library package
+	ftpdemo.tcl           - ftp test program
+        pkgIndex.tcl          - package index file for ftp package
+
+        example/README        - Overview of the example scripts
+	example/hpupdate.tcl  - ftp example "homepage update"
+	example/mirror.tcl    - ftp example "directoy mirror"
+	example/newer.tcl     - ftp example "software update"
+	
+	docs/*html            - HTML manual pages
+
+1. Introduction
+===============
+
+In order to speed up the update of homepage files on the ftp server of
+my ISP, in spring of 1996 I looked for a useful solution. In those days 
+I worked with Linux and used the Linux inside ftp tool.
+As fan of Tcl/Tk 'expect' was my next choice. It is excelently
+suitabled to control interactive processes like ftp sessions. 
+A little bit more Tcl/Tk source and hpupdate 0.1 was ready, a script
+for the automatical update of homepage files without subdirectories.
+
+In the beginning of 1997 I was intense employed with RFC 959.
+Simultaneous I played with the Tcl socket command. Thus the 
+FTP library for Tcl was developed...
+
+
+2. Overview
+===============
+
+The FTP Library Package extends tcl/tk with commands to support the 
+FTP protocol. The library package is 100% tcl code, no extensions, no
+C stuff. It is easily to include in programs with 
+
+             package require ftp 2.2
+
+Now everybody can write an own ftp program with an own GUI. It works
+with Windows, UNIX, and also, but not tested on Mac. The ftp package
+makes it comfortable and quick to create small tcl scripts for downloading
+files or directory trees. The ftp::Open command creates a session handle for
+each connection, and that handle is then used as the first argument to the
+rest of the commands.
+
+  Supports the following commands:
+
+      ftp::Open <server> <user> <passwd>
+      ftp::Close <handle>
+      ftp::Cd <handle> <directory>
+      ftp::Pwd <handle>
+      ftp::Type <handle> <?ascii|binary|tenex?>        
+      ftp::List <handle> <?directory?>
+      ftp::NList <handle> <?directory?>
+      ftp::FileSize <handle> <file>
+      ftp::ModTime <handle> <file>
+      ftp::Delete <handle> <file>
+      ftp::Rename <handle> <from> <to>
+      ftp::Put <handle> <(local | -data "data")> <?remote?>
+      ftp::Append <handle> <(local | -data "data")> <?remote?>
+      ftp::Get <handle> <remote> <?(local | -variable varname)?>
+      ftp::Reget <handle> <remote> <?local?>
+      ftp::Newer <handle> <remote> <?local?>
+      ftp::MkDir <handle> <directory>
+      ftp::RmDir <handle> <directory>
+      ftp::Quote <handle> <arg1> <arg2> ...
+      
+This new Releases use the new "fcopy" command to transfer binary data 
+between two channels. There is also a version 0.4 of ftp for
+tcl7.6/tk4.2, which works stable using the undocumented command 
+"unsupported0" for binary data transfer.
+
+

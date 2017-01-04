@@ -1,0 +1,928 @@
+# ldap.test - Copyright (C) 2006 Michael Schlenker <mic42@user.sourceforge.net>
+#
+# Tests for the Tcllib ldap package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: ldap.test,v 1.5 2008/07/20 19:50:55 mic42 Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+testing {
+    useLocal ldap.tcl ldap
+    useLocal ../asn/asn.tcl asn
+}
+
+
+namespace import ::asn::*
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+test ldap-2.0 {check info ip subcommand error handling
+} -body {
+   ldap::info ip
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info ip handle}
+
+test ldap-2.1 {check info ip subcommand error handling
+} -body {
+   ldap::info ip foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-3.0 {check info connections subcommand error handling
+} -body {
+   ldap::info connections foo
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info connections}
+
+test ldap-4.0 {check info bound subcommand error handling
+} -body {
+   ldap::info bound
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info bound handle}
+
+test ldap-4.1 {check info bound subcommand error handling
+} -body {
+   ldap::info bound foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-5.0 {check info tls subcommand error handling
+} -body {
+   ldap::info tls
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info tls handle}
+
+test ldap-5.1 {check info tls subcommand error handling
+} -body {
+   ldap::info tls foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-6.0 {check info bounduser subcommand error handling
+} -body {
+   ldap::info bounduser
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info bounduser handle}
+
+test ldap-6.1 {check info bounduser subcommand error handling
+} -body {
+   ldap::info bounduser foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-7.0 {check info saslmechanisms subcommand error handling
+} -body {
+   ldap::info saslmechanisms
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info saslmechanisms handle}
+
+test ldap-7.1 {check info saslmechanisms subcommand error handling
+} -body {
+   ldap::info saslmechanisms foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-8.0 {check info extensions subcommand error handling
+} -body {
+   ldap::info extensions
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info extensions handle}
+
+test ldap-8.1 {check info extensions subcommand error handling
+} -body {
+   ldap::info extensions foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-9.0 {check info control subcommand error handling
+} -body {
+   ldap::info control
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info control handle}
+
+test ldap-9.1 {check info control subcommand error handling
+} -body {
+   ldap::info control foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-10.0 {check info features subcommand error handling
+} -body {
+   ldap::info features
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info features handle}
+
+test ldap-10.1 {check info features subcommand error handling
+} -body {
+   ldap::info features foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-11.0 {check info whoami subcommand error handling
+} -body {
+    ldap::info whoami
+} -returnCodes {error} \
+  -result {Wrong # of arguments. Usage: ldap::info whoami handle}
+
+test ldap-11.1 {check info whoami subcommand error handling
+} -body {
+    ldap::info whoami foobar
+} -returnCodes {error} \
+  -result {Not a valid LDAP connection handle: foobar}
+
+test ldap-12.0 {check wrong num args for ldap::connect
+} -body {
+    ldap::connect
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs \
+	{ldap::connect} {host ?port?} 0]
+
+test ldap-13.0 {check wrong num args for ldap::secure_connect
+} -body {
+   ldap::secure_connect
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs \
+	{ldap::secure_connect} {host ?port?} 0]
+
+test ldap-14.0 {check wrong num args for ldap::starttls
+} -body {
+   ldap::starttls
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::starttls} \
+	{handle ?cafile? ?certfile? ?keyfile?} 0]
+
+test ldap-15.0 {check wrong num args for ldap::bindSASL
+} -body {
+   ldap::bindSASL
+} -returnCodes {error} \
+  -result  [tcltest::wrongNumArgs {ldap::bindSASL} {handle ?name? ?password?} 0]
+
+test ldap-16.0 {check wrong num args for ldap::bind
+} -body {
+   ldap::bind
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::bind} {handle ?name? ?password?} 0]
+
+test ldap-17.0 {check wrong num args for ldap::unbind
+} -body { 
+   ldap::unbind
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::unbind} {handle} 1 ]
+
+test ldap-18.0 {check wrong num args for ldap::search
+} -body {
+   ldap::search
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::search} \
+	{handle baseObject filterString attributes args} 0]
+
+test ldap-19.0 {check wrong num args for ldap::searchInit
+} -body {
+   ldap::searchInit
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::searchInit} \
+	{handle baseObject filterString attributes opt} 0]
+
+test ldap-20.0 {check wrong num args for ldap::searchNext
+} -body {
+   ldap::searchNext
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::searchNext} {handle} 0 ]
+
+test ldap-21.0 {check wrong num args for ldap::searchEnd
+} -body {
+   ldap::searchEnd
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::searchEnd} {handle} 0 ]
+
+test ldap-22.0 {check wrong num args for ldap::modify
+} -body {
+   ldap::modify
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::modify} \
+	{handle dn attrValToReplace ?attrToDelete? ?attrValToAdd?} 0 ]
+
+test ldap-23.0 {check wrong num args for ldap::modifyMulti
+} -body {
+   ldap::modifyMulti
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::modifyMulti} \
+	{handle dn attrValToReplace ?attrValToDelete? ?attrValToAdd?} 0 ]
+
+test ldap-24.0 {check wrong num args for ldap::add
+} -body {
+   ldap::add
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::add} \
+	{handle dn attrValueTuples} 0 ]
+
+test ldap-25.0 {check wrong num args for ldap::addMulti
+} -body {
+   ldap::addMulti
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::addMulti} \
+	{handle dn attrValueTuples} 0 ]
+
+test ldap-26.0 {check wrong num args for ldap::delete
+} -body {
+   ldap::delete
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::delete} \
+	{handle dn} 0 ]
+
+test ldap-27.0 {check wrong num args for ldap::modifyDN
+} -body {
+   ldap::modifyDN
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::modifyDN} \
+	{handle dn newrdn ?deleteOld? ?newSuperior?} 0 ]
+
+test ldap-28.0 {check wrong num args for ldap::disconnect
+} -body {
+   ldap::disconnect
+} -returnCodes {error} \
+  -result [tcltest::wrongNumArgs {ldap::disconnect} \
+	{handle} 0 ]
+# -------------------------------------------------------------------------
+# Handling of string representation of filters (RFC 4515):
+# -------------------------------------------------------------------------
+
+proc glue args {
+    join $args ""
+}
+
+test filter-0.0 {[glue] should concatenate its string arguments} -body {
+    glue a b c d \0 foo
+} -result abcd\0foo
+
+test filter-1.0 {LDAPString produces packed UTF-8} -body {
+    binary scan [ldap::filter::LDAPString \u043a\u0430\u0448\u0430] H* foo
+    set foo
+} -result d0bad0b0d188d0b0 -cleanup { unset foo }
+
+test filter-1.1 {AssertionValue produces packed UTF-8} -body {
+    binary scan [ldap::filter::AssertionValue \u043a\u0430\u0448\u0430] H* foo
+    set foo
+} -result d0bad0b0d188d0b0 -cleanup { unset foo }
+
+test filter-1.2 {AssertionValue produces packed UTF-8
+	but allows embedding of arbitrary bytes via escaping} -body {
+    binary scan [ldap::filter::AssertionValue \u043a\\FF\u0430\\ab\u0448\\de\u0430\\Fe] H* foo
+    set foo
+} -result d0baffd0b0abd188ded0b0fe -cleanup { unset foo }
+
+test filter-1.3 {LDAPString produces packed UTF-8, all characters pass as is} -body {
+    binary scan [ldap::filter::LDAPString \u043a\\FF\u0430\\ab\u0448\\de\u0430\\Fe] H* foo
+    set foo
+} -result d0ba5c4646d0b05c6162d1885c6465d0b05c4665 -cleanup { unset foo }
+
+test filter-2.0 {Backslash escaping in assertion values} -body {
+    set a ""
+    set b ""
+    for {set i 0} {$i <= 255} {incr i} {
+	append a [format \\%02x $i] ;# lowercase hex
+	append b [format %c $i]
+    }
+    string equal [ldap::filter::AssertionValue $a] $b
+} -result 1 -cleanup { unset a b i }
+
+test filter-2.1 {Backslash escaping in assertion values} -body {
+    set a ""
+    set b ""
+    for {set i 0} {$i <= 255} {incr i} {
+	append a [format \\%02X $i] ;# uppercase hex
+	append b [format %c $i]
+    }
+    string equal [ldap::filter::AssertionValue $a] $b
+} -result 1 -cleanup { unset a b i }
+
+test filter-3.1 {Malformed backslash escaping in assertion values} -body {
+    ldap::filter::AssertionValue foo\\0
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-3.2 {Malformed backslash escaping in assertion values} -body {
+    ldap::filter::AssertionValue \\foo
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-3.3 {Malformed backslash escaping in assertion values} -body {
+    ldap::filter::AssertionValue hA\\1x0rz
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-3.4 {Malformed backslash escaping in assertion values} -body {
+    ldap::filter::AssertionValue \\value
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-3.5 {Malformed backslash escaping in assertion values} -body {
+    ldap::filter::AssertionValue end\\
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-4.0 {Presence match} -body {
+    ldap::filter::encode (Certificates=*)
+} -result [asnChoice 7 [ldap::filter::LDAPString Certificates]]
+
+test filter-4.1 {Presence match + attribute options} -body {
+    ldap::filter::encode (Certificates\;binary\;X-FooBar=*)
+} -result [asnChoice 7 [ldap::filter::LDAPString Certificates\;binary\;X-FooBar]]
+
+test filter-5.0 {Equality match} -body {
+    ldap::filter::encode (foo=bar)
+} -result [asnChoiceConstr 3 [glue \
+    [asnOctetString [ldap::filter::LDAPString foo]] \
+    [asnOctetString [ldap::filter::AssertionValue bar]]]]
+
+test filter-5.1 {Equality match with empty assertion value} -body {
+    ldap::filter::encode (seeAlso=)
+} -result [asnChoiceConstr 3 [glue \
+    [asnOctetString [ldap::filter::LDAPString seeAlso]] \
+    [asnOctetString [ldap::filter::AssertionValue ""]]]]
+
+test filter-5.2 {Equality match + attribute options} -body {
+    ldap::filter::encode (foo\;X-option=bar)
+} -result [asnChoiceConstr 3 [glue \
+    [asnOctetString [ldap::filter::LDAPString foo\;X-option]] \
+    [asnOctetString [ldap::filter::AssertionValue bar]]]]
+
+test filter-5.3 {Equality match, spaces in assertion value} -body {
+    ldap::filter::encode {(personName=Jane W. Random)}
+} -result [asnChoiceConstr 3 [glue \
+    [asnOctetString [ldap::filter::LDAPString personName]] \
+    [asnOctetString [ldap::filter::AssertionValue "Jane W. Random"]]]]
+
+test filter-6.0 {Approx match} -body {
+    ldap::filter::encode (descr~=val)
+} -result [asnChoiceConstr 8 [glue \
+    [asnOctetString [ldap::filter::LDAPString descr]] \
+    [asnOctetString [ldap::filter::AssertionValue val]]]]
+
+test filter-6.1 {Approx match with empty assertion value} -body {
+    ldap::filter::encode (cn~=)
+} -result [asnChoiceConstr 8 [glue \
+    [asnOctetString [ldap::filter::LDAPString cn]] \
+    [asnOctetString [ldap::filter::AssertionValue ""]]]]
+
+test filter-6.2 {Approx match + attribute options} -body {
+    ldap::filter::encode (binaryCert\;binary~=0000)
+} -result [asnChoiceConstr 8 [glue \
+    [asnOctetString [ldap::filter::LDAPString binaryCert\;binary]] \
+    [asnOctetString [ldap::filter::AssertionValue 0000]]]]
+
+test filter-7.0 {Less or equal match} -body {
+    ldap::filter::encode (attr<=string)
+} -result [asnChoiceConstr 6 [glue \
+    [asnOctetString [ldap::filter::LDAPString attr]] \
+    [asnOctetString [ldap::filter::AssertionValue string]]]]
+
+test filter-7.1 {Less or equal match with empty assertion value} -body {
+    ldap::filter::encode (attr<=)
+} -result [asnChoiceConstr 6 [glue \
+    [asnOctetString [ldap::filter::LDAPString attr]] \
+    [asnOctetString [ldap::filter::AssertionValue ""]]]]
+
+test filter-7.2 {Less or equal match + attribute options} -body {
+    ldap::filter::encode (binaryCert\;binary<=01234)
+} -result [asnChoiceConstr 6 [glue \
+    [asnOctetString [ldap::filter::LDAPString binaryCert\;binary]] \
+    [asnOctetString [ldap::filter::AssertionValue 01234]]]]
+
+test filter-8.0 {Greater or equal match} -body {
+    ldap::filter::encode (one>=two)
+} -result [asnChoiceConstr 5 [glue \
+    [asnOctetString [ldap::filter::LDAPString one]] \
+    [asnOctetString [ldap::filter::AssertionValue two]]]]
+
+test filter-8.1 {Greater or equal match with empty attribute} -body {
+    ldap::filter::encode (one>=)
+} -result [asnChoiceConstr 5 [glue \
+    [asnOctetString [ldap::filter::LDAPString one]] \
+    [asnOctetString [ldap::filter::AssertionValue ""]]]]
+
+test filter-8.2 {Greater or equal match + attribute options} -body {
+    ldap::filter::encode (exampleAttr\;X-experimental>=value)
+} -result [asnChoiceConstr 5 [glue \
+    [asnOctetString [ldap::filter::LDAPString exampleAttr\;X-experimental]] \
+    [asnOctetString [ldap::filter::AssertionValue value]]]]
+
+test filter-9.0 {Substrings match: only initial string} -body {
+    ldap::filter::encode (sAMAccountName=management-*)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString sAMAccountName]] \
+    [asnSequence [asnChoice 0 [ldap::filter::AssertionValue management-]]]]]
+
+test filter-9.1 {Substrings match: only final string} -body {
+    ldap::filter::encode (User=*ish)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString User]] \
+    [asnSequence [asnChoice 2 [ldap::filter::AssertionValue ish]]]]]
+
+test filter-9.2 {Substrings match: initial and final strings} -body {
+    ldap::filter::encode (OU=F*off)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString OU]] \
+    [asnSequence \
+	[asnChoice 0 [ldap::filter::AssertionValue F]] \
+	[asnChoice 2 [ldap::filter::AssertionValue off]]]]]
+
+test filter-9.3 {Substrings match: initial, any and final strings} -body {
+    ldap::filter::encode (mail=Schlenk*@uni-*.de)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString mail]] \
+    [asnSequence \
+	[asnChoice 0 [ldap::filter::AssertionValue Schlenk]] \
+	[asnChoice 1 [ldap::filter::AssertionValue @uni-]] \
+	[asnChoice 2 [ldap::filter::AssertionValue .de]]]]]
+
+test filter-9.4 {Substrings match: multiple any strings} -body {
+    ldap::filter::encode (Something=a*b*c*d*e)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString Something]] \
+    [asnSequence \
+	[asnChoice 0 [ldap::filter::AssertionValue a]] \
+	[asnChoice 1 [ldap::filter::AssertionValue b]] \
+	[asnChoice 1 [ldap::filter::AssertionValue c]] \
+	[asnChoice 1 [ldap::filter::AssertionValue d]] \
+	[asnChoice 2 [ldap::filter::AssertionValue e]]]]]
+
+test filter-9.5 {Substrings match: no initial and final strings} -body {
+    ldap::filter::encode (Whatever=*foo*)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString Whatever]] \
+    [asnSequence \
+	[asnChoice 1 [ldap::filter::AssertionValue foo]]]]]
+
+test filter-9.6 {Substrings match: empty any string prevention} -body {
+    ldap::filter::encode {(Person=J.Ra***m Hacker)}
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString Person]] \
+    [asnSequence \
+	[asnChoice 0 [ldap::filter::AssertionValue J.Ra]] \
+	[asnChoice 2 [ldap::filter::AssertionValue {m Hacker}]]]]]
+
+test filter-9.7 {Substrings match: empty any string prevention} -body {
+    ldap::filter::encode (SomeType=***foo***bar***baz**********)
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString SomeType]] \
+    [asnSequence \
+	[asnChoice 1 [ldap::filter::AssertionValue foo]] \
+	[asnChoice 1 [ldap::filter::AssertionValue bar]] \
+	[asnChoice 1 [ldap::filter::AssertionValue baz]]]]]
+
+test filter-9.8 {Substrings match: parsing to zero parts} -body {
+    ldap::filter::encode (SomeType=**)
+} -returnCodes error -result {Invalid filter: substrings match parses to zero parts}
+
+test filter-9.10 {Substrings match: parsing to zero parts} -body {
+    ldap::filter::encode (SomeOtherType=*****)
+} -returnCodes error -result {Invalid filter: substrings match parses to zero parts}
+
+test filter-9.11 {Substrings match: spaces in assertion value} -body {
+    ldap::filter::encode {(Something=Jane Random*and*J. Random Hacker)}
+} -result [asnChoiceConstr 4 [glue \
+    [asnOctetString [ldap::filter::LDAPString Something]] \
+    [asnSequence \
+	[asnChoice 0 [ldap::filter::AssertionValue "Jane Random"]] \
+	[asnChoice 1 [ldap::filter::AssertionValue and]] \
+	[asnChoice 2 [ldap::filter::AssertionValue "J. Random Hacker"]]]]]
+
+test filter-10.0 {Extensible match: only attribute description} -body {
+    ldap::filter::encode (AttrDesc:=10)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 2 [ldap::filter::LDAPString AttrDesc]] \
+    [asnChoice 3 [ldap::filter::AssertionValue 10]]]]
+
+test filter-10.1 {Extensible match: attribute description + matching rule} -body {
+    ldap::filter::encode (personKind:caseIgnoreMatch:=bad)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString caseIgnoreMatch]] \
+    [asnChoice 2 [ldap::filter::LDAPString personKind]] \
+    [asnChoice 3 [ldap::filter::AssertionValue bad]]]]
+
+test filter-10.2 {Extensible match: attribute description
+	+ matching rule in form of numericoid} -body {
+    ldap::filter::encode (personKind:1.3.6.1.4.1.1466.115.121.1.15:=good)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString 1.3.6.1.4.1.1466.115.121.1.15]] \
+    [asnChoice 2 [ldap::filter::LDAPString personKind]] \
+    [asnChoice 3 [ldap::filter::AssertionValue good]]]]
+
+test filter-10.3 {Extensible match: attribute description + DN flag} -body {
+    ldap::filter::encode (Foobar:dn:=345)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 2 [ldap::filter::LDAPString Foobar]] \
+    [asnChoice 3 [ldap::filter::AssertionValue 345]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-10.4 {Extensible match: attribute description + DN flag + matching rule} -body {
+    ldap::filter::encode (NamelessOne:dn:caseIgnoreIA5Match:=who)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString caseIgnoreIA5Match]] \
+    [asnChoice 2 [ldap::filter::LDAPString NamelessOne]] \
+    [asnChoice 3 [ldap::filter::AssertionValue who]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-10.5 {Extensible match: attribute description + DN flag
+	+ matching rule numericoid} -body {
+    ldap::filter::encode (OU:dn:111.222.333.444:=test)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString 111.222.333.444]] \
+    [asnChoice 2 [ldap::filter::LDAPString OU]] \
+    [asnChoice 3 [ldap::filter::AssertionValue test]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-10.6 {Extensible match: matching rule alone} -body {
+    ldap::filter::encode (:caseIgnoreIA5Match:=they)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString caseIgnoreIA5Match]] \
+    [asnChoice 3 [ldap::filter::AssertionValue they]]]]
+
+test filter-10.7 {Extensible match: matching rule alone, in form of numericoid} -body {
+    ldap::filter::encode (:874.274.378.432:=value)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString 874.274.378.432]] \
+    [asnChoice 3 [ldap::filter::AssertionValue value]]]]
+
+test filter-10.8 {Extensible match: matching rule + DN flag} -body {
+    ldap::filter::encode (:dn:caseIgnoreIA5Match:=they)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString caseIgnoreIA5Match]] \
+    [asnChoice 3 [ldap::filter::AssertionValue they]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-10.9 {Extensible match: matching rule (numericoid) + DN flag} -body {
+    ldap::filter::encode (:dn:111.222.333.444:=value)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString 111.222.333.444]] \
+    [asnChoice 3 [ldap::filter::AssertionValue value]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-10.10 {Extensible match: empty assertion value} -body {
+    ldap::filter::encode (AttrDesc:=)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 2 [ldap::filter::LDAPString AttrDesc]] \
+    [asnChoice 3 [ldap::filter::AssertionValue ""]]]]
+
+test filter-10.11 {Extensible match: empty assertion value, DN flag} -body {
+    ldap::filter::encode (AttrDesc:dn:=)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 2 [ldap::filter::LDAPString AttrDesc]] \
+    [asnChoice 3 [ldap::filter::AssertionValue ""]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-10.11 {Extensible match: matching rule with empty assertion value} -body {
+    ldap::filter::encode (:caseIgnoreIA5Match:=)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString caseIgnoreIA5Match]] \
+    [asnChoice 3 [ldap::filter::AssertionValue ""]]]]
+
+test filter-10.12 {Extensible match: empty LHS} -body {
+    ldap::filter::encode (:=foo)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.12 {Extensible match: empty DN flag or matching rule OID} -body {
+    ldap::filter::encode (attrDesc::=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.12 {Extensible match: empty matching rule OID} -body {
+    ldap::filter::encode (attrDesc:dn::=baz)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.13 {Extensible match: empty DN flag} -body {
+    ldap::filter::encode (attrDesc::caseIgnoreMatch:=quux)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.14 {Extensible match: empty DN flag} -body {
+    ldap::filter::encode (::caseIgnoreMatch:=foo)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.15 {Extensible match: empty matching rule OID} -body {
+    ldap::filter::encode (::=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.16 {Extensible match: malformed matching rule numericoid} -body {
+    ldap::filter::encode (:111.222.333.xxx:=baz)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.17 {Extensible match: malformed matching rule numericoid} -body {
+    ldap::filter::encode (userCategory:111.222.333.444\;binary:=baz)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.18 {Extensible match: malformed matching rule numericoid} -body {
+    ldap::filter::encode (userCategory:dn:111.222.333.444\;x-bar:=foo)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.19 {Extensible match: malformed matching rule numericoid} -body {
+    ldap::filter::encode (:caseIgnoreIA5Match\;lang-ru:=quux)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.20 {Extensible match: camel-cased DN flag} -body {
+    ldap::filter::encode (attrDesc:Dn:caseIgnoreMatch:=quux)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.21 {Extensible match: prohibited character in attribute description} -body {
+    ldap::filter::encode (4cast:=foo)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.22 {Extensible match: gibberish in place of DN flag} -body {
+    ldap::filter::encode (OU:gibberish:caseIgnoreIA5Match:=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-10.23 {Extensible match: options in attribute description} -body {
+    ldap::filter::encode (personAge\;lang-ru\;x-foo:numericMatch:=99)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString numericMatch]] \
+    [asnChoice 2 [ldap::filter::LDAPString personAge\;lang-ru\;x-foo]] \
+    [asnChoice 3 [ldap::filter::AssertionValue 99]]]]
+
+test filter-10.24 {Extensible match: options in attribute description} -body {
+    ldap::filter::encode (111.222.333.444\;x-bar:dn:555.666.777.888:=foo)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 1 [ldap::filter::LDAPString 555.666.777.888]] \
+    [asnChoice 2 [ldap::filter::LDAPString 111.222.333.444\;x-bar]] \
+    [asnChoice 3 [ldap::filter::AssertionValue foo]] \
+    [asnChoice 4 [binary format cc 1 1]]]]
+
+test filter-11.1 {Prohibited characters in argument value} -body {
+    ldap::filter::encode (foo=bar(and)baz)
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-11.2 {Prohibited characters in argument value} -body {
+    ldap::filter::encode (zero=lurks\0here)
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-11.3 {Prohibited characters in argument value} -body {
+    ldap::filter::encode (extensible:=asterisk*)
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-12.0 {Malformed attribute description: empty} -body {
+    ldap::filter::encode (=foo)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.1 {Malformed attribute description: doesn't start with a letter} -body {
+    ldap::filter::encode (2forTheRoad=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.2 {Malformed attribute description: mix of descr and numericoid} -body {
+    ldap::filter::encode (foo.12.13=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.3 {Malformed attribute description: bad numericoid} -body {
+    ldap::filter::encode (.11.12.13=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.4 {Malformed attribute description: bad numericoid} -body {
+    ldap::filter::encode (11.12.13.=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.5 {Malformed attribute description: prohibited character in descr} -body {
+    ldap::filter::encode (cn_2=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.6 {Malformed attribute description: prohibited character in option} -body {
+    ldap::filter::encode (OU\;lang_en=bar)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.7 {Malformed attribute description:
+	colon in an LHS part of a rule which doesn't represent an extensible match} -body {
+    ldap::filter::encode (phoneNumber:dn=value)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-12.8 {Malformed attribute description: empty option} -body {
+    ldap::filter::encode (CN\;\;lang-ru=?)
+} -returnCodes error -result {Invalid filter: malformed attribute description}
+
+test filter-13.1 {Malformed assertion value: prohibited characters} -body {
+    ldap::filter::encode (foo<=*)
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-13.2 {Malformed assertion value: prohibited characters} -body {
+    ldap::filter::encode (foo=()
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-13.3 {Malformed assertion value: prohibited characters} -body {
+    ldap::filter::encode (foo=))
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-13.4 {Malformed assertion value: prohibited characters} -body {
+    ldap::filter::encode (foo=\\)
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-13.5 {Malformed assertion value: prohibited characters} -body {
+    ldap::filter::encode (foo=\0)
+} -returnCodes error -result {Invalid filter: malformed assertion value}
+
+test filter-15.0 {No match rule operator} -body {
+    ldap::filter::encode ()
+} -returnCodes error -result {Invalid filter: no match operator in item}
+
+test filter-15.1 {No match rule operator} -body {
+    ldap::filter::encode (11.12.14~value)
+} -returnCodes error -result {Invalid filter: no match operator in item}
+
+test filter-16.0 {Duplicated match rule operator} -body {
+    ldap::filter::encode (attrDesc=foo=bar)
+} -result [asnChoiceConstr 3 [glue \
+    [asnOctetString [ldap::filter::LDAPString attrDesc]] \
+    [asnOctetString [ldap::filter::AssertionValue foo=bar]]]]
+
+test filter-16.1 {Duplicated match rule operator} -body {
+    ldap::filter::encode (attrDesc~=foo~=)
+} -result [asnChoiceConstr 8 [glue \
+    [asnOctetString [ldap::filter::LDAPString attrDesc]] \
+    [asnOctetString [ldap::filter::AssertionValue foo~=]]]]
+
+test filter-16.2 {Duplicated match rule operator} -body {
+    ldap::filter::encode (attrDesc<=<=bar)
+} -result [asnChoiceConstr 6 [glue \
+    [asnOctetString [ldap::filter::LDAPString attrDesc]] \
+    [asnOctetString [ldap::filter::AssertionValue <=bar]]]]
+
+test filter-16.3 {Duplicated match rule operator} -body {
+    ldap::filter::encode (attrDesc>=>=>=)
+} -result [asnChoiceConstr 5 [glue \
+    [asnOctetString [ldap::filter::LDAPString attrDesc]] \
+    [asnOctetString [ldap::filter::AssertionValue >=>=]]]]
+
+test filter-16.4 {Duplicated match rule operator} -body {
+    ldap::filter::encode (AttrDesc:=:=what?:=)
+} -result [asnChoiceConstr 9 [glue \
+    [asnChoice 2 [ldap::filter::LDAPString AttrDesc]] \
+    [asnChoice 3 [ldap::filter::AssertionValue :=what?:=]]]]
+
+test filter-17.0 {Compound filters: negation} -body {
+    ldap::filter::encode (!(foo=bar))
+} -result [asnChoiceConstr 2 [asnChoiceConstr 3 [glue \
+    [asnOctetString [ldap::filter::LDAPString foo]] \
+    [asnOctetString [ldap::filter::AssertionValue bar]]]]]
+
+test filter-17.1 {Compound filters: AND} -body {
+    ldap::filter::encode (&(one=two)(three<=four)(five>=six))
+} -result [asnChoiceConstr 0 [glue \
+    [asnChoiceConstr 3 [glue \
+	[asnOctetString [ldap::filter::LDAPString one]] \
+	[asnOctetString [ldap::filter::AssertionValue two]]]] \
+    [asnChoiceConstr 6 [glue \
+	[asnOctetString [ldap::filter::LDAPString three]] \
+	[asnOctetString [ldap::filter::AssertionValue four]]]] \
+    [asnChoiceConstr 5 [glue \
+	[asnOctetString [ldap::filter::LDAPString five]] \
+	[asnOctetString [ldap::filter::AssertionValue six]]]]]]
+
+test filter-17.2 {Compound filters: OR} -body {
+    ldap::filter::encode (|(foo=bar)(baz:fuzzyMatch:=quux)(key~=value))
+} -result [asnChoiceConstr 1 [glue \
+    [asnChoiceConstr 3 [glue \
+	[asnOctetString [ldap::filter::LDAPString foo]] \
+	[asnOctetString [ldap::filter::AssertionValue bar]]]] \
+    [asnChoiceConstr 9 [glue \
+	[asnChoice 1 [ldap::filter::LDAPString fuzzyMatch]] \
+	[asnChoice 2 [ldap::filter::LDAPString baz]] \
+	[asnChoice 3 [ldap::filter::AssertionValue quux]]]] \
+    [asnChoiceConstr 8 [glue \
+	[asnOctetString [ldap::filter::LDAPString key]] \
+	[asnOctetString [ldap::filter::AssertionValue value]]]]]]
+
+test filter-17.3 {Compound filters: AND, spaces in assertion values} -body {
+    ldap::filter::encode {(&(OU=Research & Development)(DN=Rube Goldberg))}
+} -result [asnChoiceConstr 0 [glue \
+    [asnChoiceConstr 3 [glue \
+	[asnOctetString [ldap::filter::LDAPString OU]] \
+	[asnOctetString [ldap::filter::AssertionValue "Research & Development"]]]] \
+    [asnChoiceConstr 3 [glue \
+	[asnOctetString [ldap::filter::LDAPString DN]] \
+	[asnOctetString [ldap::filter::AssertionValue "Rube Goldberg"]]]]]]
+
+test filter-18.1 {Compound filters: unbalanced parenthesis} -body {
+    ldap::filter::encode (&(foo=bar)(baz=quux)
+} -returnCodes error -result {Invalid filter: unbalanced parenthesis}
+
+test filter-18.2 {Compound filters: unbalanced parenthesis} -body {
+    ldap::filter::encode (!(&(a=b)c=d))
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-18.2 {Compound filters: unbalanced parenthesis} -body {
+    ldap::filter::encode (!(&(a=b)))c=d))
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-18.3 {Compound filters: unbalanced parenthesis} -body {
+    ldap::filter::encode (!()
+} -returnCodes error -result {Invalid filter:\
+    filter expression must be surrounded by parentheses}
+
+test filter-19.1 {Compound filters: junk in expression} -body {
+    ldap::filter::encode {(& (foo=bar)(baz=quux))}
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-19.2 {Compound filters: junk in expression} -body {
+    ldap::filter::encode {(&(foo=bar) (baz=quux))}
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-19.3 {Compound filters: junk in expression} -body {
+    ldap::filter::encode {(|(foo=bar)(baz=quux) )}
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-19.3 {Compound filters: junk in expression} -body {
+    ldap::filter::encode {(&&(foo=bar)(baz=quux))}
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-19.4 {Compound filters: junk in expression} -body {
+    ldap::filter::encode {((foo=bar)&(baz=quux))}
+} -returnCodes error -match glob -result {Invalid filter: malformed attribute *}
+
+test filter-20.0 {Missing elements in filter composition} -body {
+    ldap::filter::encode (!)
+} -returnCodes error -result {Invalid filter:\
+    filter expression must be surrounded by parentheses}
+
+test filter-20.1 {Missing elements in filter composition} -body {
+    ldap::filter::encode (&)
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-20.2 {Missing elements in filter composition} -body {
+    ldap::filter::encode (|)
+} -returnCodes error -result {Invalid filter: malformed compound filter expression}
+
+test filter-21.0 {Torture test} -body {
+    ldap::filter::encode [regsub -all \\s+ {
+	(|
+	    (&
+		(userName=Jane\20Random\00)
+		(userCategory;x-lang-ru~=human)
+	    )
+	    (!
+		(|
+		    (!
+			(salary=*)
+		    )
+		    (&
+			(personAge>=80)
+			(yearsEmployed<=70)
+			(employeeName=Joe*a**nd**Hacker)
+		    )
+		)
+	    )
+	    (|
+		(11.22.33.44;x-files:dn:=value)
+		(:567.34.56:=\28\2a\29)
+	    )
+	    (foo=bar)
+	)
+    } ""]
+} -result [asnChoiceConstr 1 [glue \
+    [asnChoiceConstr 0 [glue \
+	[asnChoiceConstr 3 [glue \
+	    [asnOctetString [ldap::filter::LDAPString userName]] \
+	    [asnOctetString [encoding convertto utf-8 "Jane Random\0"]]]] \
+	[asnChoiceConstr 8 [glue \
+	    [asnOctetString [ldap::filter::LDAPString userCategory\;x-lang-ru]] \
+	    [asnOctetString [ldap::filter::AssertionValue human]]]]]] \
+    [asnChoiceConstr 2 \
+	[asnChoiceConstr 1 [glue \
+	    [asnChoiceConstr 2 \
+		[asnChoice 7 [ldap::filter::LDAPString salary]]] \
+	    [asnChoiceConstr 0 [glue \
+		[asnChoiceConstr 5 [glue \
+		    [asnOctetString [ldap::filter::LDAPString personAge]] \
+		    [asnOctetString [ldap::filter::AssertionValue 80]]]] \
+		[asnChoiceConstr 6 [glue \
+		    [asnOctetString [ldap::filter::LDAPString yearsEmployed]] \
+		    [asnOctetString [ldap::filter::AssertionValue 70]]]] \
+		[asnChoiceConstr 4 [glue \
+		    [asnOctetString [ldap::filter::LDAPString employeeName]] \
+		    [asnSequence [glue \
+			[asnChoice 0 [ldap::filter::AssertionValue Joe]] \
+			[asnChoice 1 [ldap::filter::AssertionValue a]] \
+			[asnChoice 1 [ldap::filter::AssertionValue nd]] \
+			[asnChoice 2 [ldap::filter::AssertionValue Hacker]]]]]]]]]]] \
+    [asnChoiceConstr 1 [glue \
+	[asnChoiceConstr 9 [glue \
+	    [asnChoice 2 [ldap::filter::LDAPString 11.22.33.44\;x-files]] \
+	    [asnChoice 3 [ldap::filter::AssertionValue value]] \
+	    [asnChoice 4 [binary format cc 1 1]]]] \
+	[asnChoiceConstr 9 [glue \
+	    [asnChoice 1 [ldap::filter::LDAPString 567.34.56]] \
+	    [asnChoice 3 [encoding convertto utf-8 (*)]]]]]] \
+    [asnChoiceConstr 3 [glue \
+	[asnOctetString [ldap::filter::LDAPString foo]] \
+	[asnOctetString [ldap::filter::AssertionValue bar]]]] \
+    ]]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:
+# vim:ts=8:sw=4:sts=4:noet:syntax=tcl

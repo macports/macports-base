@@ -1,0 +1,35 @@
+'''TEST 3.14.15.926''' '''.MODULE.''' ''..THE_MODULE..''
+
+..THE_TITLE..
+
+
+**SYNOPSIS**
+
+
+package require '''AAA'''
+
+package require '''BBB VVV'''
+
+
+
+
+**DESCRIPTION**
+
+
+
+**SEE ALSO**
+
+
+ELSE, OTHER
+
+
+**KEYWORDS**
+
+
+KEYA, KEYZ
+
+
+**COPYRIGHT**
+
+ Copyright (c) .COPYRIGHT.
+

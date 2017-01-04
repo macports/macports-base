@@ -1,0 +1,96 @@
+RCS: @(#) $Id: README,v 1.9 2007/08/30 17:24:13 andreas_kupries Exp $
+
+Welcome to the Tcllib, the Tcl Standard Library.  This package is
+intended to be a collection of Tcl packages that provide utility
+functions useful to a large collection of Tcl programmers.
+
+The home web site for this code is http://core.tcl.tk/tcllib/ .
+At this web site, you will find mailing lists, web forums, databases
+for bug reports and feature requests, the CVS repository (browsable on
+the web, or read-only accessible via CVS ), and more.
+
+The structure of the tcllib source hierarchy is:
+
+tcllib
+ +- modules
+     +- <module1>
+     +- <module2>
+     +- ...
+
+
+The install hierarchy is:
+
+.../lib/tcllib
+        +- <module1>
+        +- <module2>
+        +- ...
+
+There are some base requirements that a module must meet before it
+will be added to tcllib:
+
+* the module must be a proper Tcl package
+* the module must use a namespace for its commands and variables
+* the name of the package must be the same as the name of the
+  namespace
+* the module must reside in a subdirectory of the modules directory in
+  the source hierarchy, and that subdirectory must have the same name
+  as the package and namespace
+* the module must be released under the BSD License, the terms of
+  which can be found in the toplevel tcllib source directory in the file
+  license.terms
+* the module should have both documentation ([*]) and a test suite
+  (in the form of a group of *.test files in the module directory).
+
+  [*] Possible forms: doctools, TMML/XML, nroff (man), or HTML.
+      The first format is the most preferred as it can be processed with
+      tools provided by tcllib itself (See module doctools). The first
+      two are preferred in general as they are semantic markup and thus
+      easier to convert into other formats.
+
+* the module must have either documentation or a test suite.  It can
+  not have neither.
+* the module should adhere to Tcl coding standards
+
+When adding a module to tcllib, be sure to add it to the files listed below.
+
+* installed_modules.tcl
+
+  contains a table listing all modules to be installed, modules
+  excluded, and names the actions to be taken during installation
+  of each module. Add a line to this table naming your module and
+  its actions.
+
+  Three actions have to be specified, for the package itself, its
+  documentation, and the examples demonstrating it.
+
+  The _null action can be used everywhere and signals that there is
+  nothing to do. Although it is possible to use it for the package
+  action it does make no sense there, as that means that no package
+  code is installed.
+
+  Other package actions are _tcl, _tci, and _text. The first causes
+  the installer to copy all .tcl files from the source directory for
+  the module into the appropriate module directory. _tci does all that
+  and also expects a tclIndex file to copy. _tex is like _tcl, however
+  it also copies all .tex files found in the source directory for the
+  module.
+
+  There is currently only one true documentation action. This action
+  is _doc. It converts all documentation in doctools format into the
+  format chosen by the user for installation and copies the result
+  into the appropriate directory.
+
+  There is currently one true action for examples, _exa. It copies all
+  files in the source directory for examples into the directory chosen
+  by the user as destination for examples.
+
+Each module source directory should have no subdirectories (other than
+the CVS directory), and should contain the following files:
+
+* source code		*.tcl
+* package index		pkgIndex.tcl
+* tests			*.test
+* documentation		*.man, *.n, *.xml
+
+If you do not follow this directory structure, the tcllib Makefile
+will fail to locate the files from the new module.

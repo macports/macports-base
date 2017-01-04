@@ -1,0 +1,8 @@
+
+    localdoc -- Generate documentation for website and installer.
+
+    sak localdoc
+
+        Convert all documentation into html and nroff, for use by the
+        installer, and the website. For the latter the results of the
+        conversion are stored in the repository itself.

@@ -1,0 +1,470 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools_lang_cmdref n 1.0]
+[see_also doctools_intro]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_intro]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007-2010 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctools language command reference}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document specifies both names and syntax of all the commands
+which together are the doctools markup language, version 1.
+
+As this document is intended to be a reference the commands are listed
+in alphabetical order, and the descriptions are relatively short.
+
+A beginner should read the much more informally written
+[term {doctools language introduction}] first.
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd arg] [arg text]]
+
+Text markup. The argument text is marked up as the [term argument] of
+a command. Main uses are the highlighting of command arguments in
+free-form text, and for the argument parameters of the markup commands
+[cmd call] and [cmd usage].
+
+[call [cmd arg_def] [arg type] [arg name] [opt [arg mode]]]
+
+Text structure. List element. Argument list. Automatically closes the
+previous list element. Specifies the data-[arg type] of the described
+argument of a command, its [arg name] and its i/o-[arg mode]. The
+latter is optional.
+
+[call [cmd bullet]]
+
+[emph Deprecated]. Text structure. List element. Itemized list. See
+[cmd item] for the canonical command to open a list item in an
+itemized list.
+
+[call [cmd call] [arg args]]
+
+Text structure. List element. Definition list. Automatically closes
+the previous list element. Defines the term as a command and its
+arguments.
+
+The first argument is the name of the command described by the
+following free-form text, and all arguments coming after that are
+descriptions of the command's arguments.
+
+It is expected that the arguments are marked up with [cmd arg],
+[cmd method], [cmd option] etc., as is appropriate, and that the
+command itself is marked up with [cmd cmd].
+
+It is expected that the formatted term is not only printed in place,
+but also in the table of contents of the document, or synopsis,
+depending on the output format.
+
+[call [cmd category] [arg text]]
+
+Document information. Anywhere. This command registers its plain text
+arguments as the category this document belongs to. If this command is
+used multiple times the last value specified is used.
+
+[call [cmd class] [arg text]]
+
+Text markup. The argument is marked up as the name of a
+[term class]. The text may have other markup already applied to
+it. Main use is the highlighting of class names in free-form text.
+
+[call [cmd cmd] [arg text]]
+
+Text markup. The argument text is marked up as the name of a
+[term {Tcl command}]. The text may have other markup already applied
+to it. Main uses are the highlighting of commands in free-form text,
+and for the command parameters of the markup commands [cmd call] and
+[cmd usage].
+
+[call [cmd cmd_def] [arg command]]
+
+Text structure. List element. Command list. Automatically closes the
+previous list element. The argument specifies the name of the
+[term {Tcl command}] to be described by the list element. Expected to
+be marked up in the output as if it had been formatted with [cmd cmd].
+
+[call [cmd comment] [arg plaintext]]
+
+Text markup. The argument text is marked up as a comment standing
+outside of the actual text of the document. Main use is in free-form
+text.
+
+[call [cmd const] [arg text]]
+
+Text markup. The argument is marked up as a [term constant] value. The
+text may have other markup already applied to it. Main use is the
+highlighting of constants in free-form text.
+
+[call [cmd copyright] [arg text]]
+
+Document information. Anywhere. The command registers the plain text
+argument as a copyright assignment for the manpage. When invoked more
+than once the assignments are accumulated.
+
+[call [cmd def] [arg text]]
+
+Text structure. List element. Definition list. Automatically closes
+the previous list element. The argument text is the term defined by
+the new list element. Text markup can be applied to it.
+
+[call [cmd description]]
+
+Document structure. This command separates the header from the
+document body.  Implicitly starts a section named "DESCRIPTION" (See
+command [cmd section]).
+
+[call [cmd enum]]
+
+Text structure. List element. Enumerated list. Automatically closes
+the previous list element.
+
+[call [cmd emph] [arg text]]
+
+Text markup. The argument text is marked up as emphasized. Main use is
+for general highlighting of pieces of free-form text without attaching
+special meaning to the pieces.
+
+[call [cmd example] [arg text]]
+
+Text structure, Text markup. This command marks its argument up as an
+[term example]. Main use is the simple embedding of examples in
+free-form text. It should be used if the example does [emph not] need
+special markup of its own. Otherwise use a sequence of
+[cmd example_begin] ... [cmd example_end].
+
+[call [cmd example_begin]]
+
+Text structure. This commands starts an example. All text until the
+next [cmd example_end] belongs to the example. Line breaks, spaces,
+and tabs have to be preserved literally. Examples cannot be nested.
+
+[call [cmd example_end]]
+
+Text structure. This command closes the example started by the last
+[cmd example_begin].
+
+[call [cmd file] [arg text]]
+
+Text markup. The argument is marked up as a [term file] or
+[term directory], i.e. in general a [term path]. The text may have
+other markup already applied to it. Main use is the highlighting of
+paths in free-form text.
+
+[call [cmd fun] [arg text]]
+
+Text markup. The argument is marked up as the name of a
+[term function]. The text may have other markup already applied to
+it. Main use is the highlighting of function names in free-form text.
+
+[call [cmd image] [arg name] [opt [arg label]]]
+
+Text markup. The argument is the symbolic name of an [term image]
+and replaced with the image itself, if a suitable variant is found
+by the backend. The second argument, should it be present, will be
+interpreted the human-readable description of the image, and put
+into the output in a suitable position, if such is supported by the
+format. The HTML format, for example, can place it into the [term alt]
+attribute of image references.
+
+[call [cmd include] [arg filename]]
+
+Templating. The contents of the named file are interpreted as text
+written in the doctools markup and processed in the place of the
+include command. The markup in the file has to be self-contained. It
+is not possible for a markup command to cross the file boundaries.
+
+[call [cmd item]]
+
+Text structure. List element. Itemized list. Automatically closes the
+previous list element.
+
+[call [cmd keywords] [arg args]]
+
+Document information. Anywhere. This command registers all its plain text
+arguments as keywords applying to this document. Each argument is a single
+keyword. If this command is used multiple times all the arguments accumulate.
+
+[call [cmd lb]]
+
+Text. The command is replaced with a left bracket. Use in free-form text.
+Required to avoid interpretation of a left bracket as the start of a markup
+command.
+
+[call [cmd list_begin] [arg what]]
+
+Text structure. This command starts a list. The exact nature of the
+list is determined by the argument [arg what] of the command. This
+further determines which commands are have to be used to start the
+list elements. Lists can be nested, i.e. it is allowed to start a new
+list within a list element.
+
+[para]
+The allowed types (and their associated item commands) are:
+
+[list_begin definitions]
+[def [const arguments]]   [cmd arg_def].
+[def [const commands]]    [cmd cmd_def].
+[def [const definitions]] [cmd def] and [cmd call].
+[def [const enumerated]]  [cmd enum]
+[def [const itemized]]    [cmd item]
+[def [const options]]     [cmd opt_def]
+[def [const tkoptions]]   [cmd tkoption_def]
+[list_end]
+[para]
+
+Additionally the following names are recognized as shortcuts for some
+of the regular types:
+
+[list_begin definitions]
+[def [const args]]        Short for [const arguments].
+[def [const cmds]]        Short for [const commands].
+[def [const enum]]        Short for [const enumerated].
+[def [const item]]        Short for [const itemized].
+[def [const opts]]        Short for [const options].
+[list_end]
+[para]
+
+At last the following names are still recognized for backward
+compatibility, but are otherwise considered to be [emph deprecated].
+
+[list_begin definitions]
+[def [const arg]]         [emph Deprecated]. See [const arguments].
+[def [const bullet]]      [emph Deprecated]. See [const itemized].
+[def [const cmd]]         [emph Deprecated]. See [const commands].
+[def [const opt]]         [emph Deprecated]. See [const options].
+[def [const tkoption]]    [emph Deprecated]. See [const tkoptions].
+[list_end]
+
+[para]
+
+[call [cmd list_end]]
+
+Text structure. This command closes the list opened by the last
+[cmd list_begin] command coming before it.
+
+[call [cmd lst_item] [arg text]]
+
+[emph Deprecated]. Text structure. List element. Definition list. See
+[cmd def] for the canonical command to open a general list item in a
+definition list.
+
+[call [cmd manpage_begin] [arg command] [arg section] [arg version]]
+[see_also doctools_intro]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_intro]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords markup]
+[keywords {semantic markup}]
+
+Document structure. The command to start a manpage. The arguments are
+the name of the [arg command] described by the manpage, the
+[arg section] of the manpages this manpage resides in, and the
+[arg version] of the module containing the command. All arguments have
+to be plain text, without markup.
+[call [cmd manpage_end]]
+
+Document structure. Command to end a manpage/document. Anything in the document
+coming after this command is in error.
+
+[call [cmd method] [arg text]]
+
+Text markup. The argument text is marked up as the name of an
+[term object] [term method], i.e. subcommand of a Tcl command. The
+text may have other markup already applied to it. Main uses are the
+highlighting of method names in free-form text, and for the command
+parameters of the markup commands [cmd call] and [cmd usage].
+
+[call [cmd moddesc] [arg text]]
+
+Document information. Header. Registers the plain text argument as a short
+description of the module the manpage resides in.
+
+[call [cmd namespace] [arg text]]
+
+Text markup. The argument text is marked up as a namespace name. The
+text may have other markup already applied to it. Main use is the
+highlighting of namespace names in free-form text.
+
+[call [cmd nl]]
+
+[emph Deprecated]. Text structure. See [cmd para] for the canonical
+command to insert paragraph breaks into the text.
+
+[call [cmd opt] [arg text]]
+
+Text markup. The argument text is marked up as [term optional]. The text may
+have other markup already applied to it. Main use is the highlighting of
+optional arguments, see the command arg [cmd arg].
+
+[call [cmd opt_def] [arg name] [opt [arg arg]]]
+
+Text structure. List element. Option list. Automatically closes the
+previous list element. Specifies [arg name] and arguments of the
+[term option] described by the list element. It is expected that the
+name is marked up using [cmd option].
+
+[call [cmd option] [arg text]]
+
+Text markup. The argument is marked up as [term option]. The text may
+have other markup already applied to it. Main use is the highlighting
+of options, also known as command-switches, in either free-form text,
+or the arguments of the [cmd call] and [cmd usage] commands.
+
+[call [cmd package] [arg text]]
+
+Text markup. The argument is marked up as the name of a
+[term package]. The text may have other markup already applied to
+it. Main use is the highlighting of package names in free-form text.
+
+[call [cmd para]]
+
+Text structure. This command breaks free-form text into
+paragraphs. Each command closes the paragraph coming before it and
+starts a new paragraph for the text coming after it. Higher-level
+forms of structure are sections and subsections.
+
+[call [cmd rb]]
+
+Text. The command is replaced with a right bracket. Use in free-form text.
+Required to avoid interpretation of a right bracket as the end of a markup
+command.
+
+[call [cmd require] [arg package] [opt [arg version]]]
+
+Document information. Header. This command registers its argument
+[arg package] as the name of a package or application required by the
+described package or application. A minimum version can be provided as
+well. This argument can be marked up. The usual markup is [cmd opt].
+
+[call [cmd section] [arg name]]
+
+Text structure. This command starts a new named document section. The
+argument has to be plain text. Implicitly closes the last paragraph
+coming before it and also implicitly opens the first paragraph of the
+new section.
+
+[call [cmd sectref] [arg id] [opt [arg text]]]
+
+Text markup. Formats a reference to the section identified by [arg id].
+If no [arg text] is specified the title of the referenced section is
+used in the output, otherwise [arg text] is used.
+
+[call [cmd sectref-external] [arg text]]
+
+Text markup. Like [cmd sectref], except that the section is assumed to
+be in a different document and therefore doesn't need to be identified,
+nor are any checks for existence made. Only the text to format is needed.
+
+[call [cmd see_also] [arg args]]
+
+Document information. Anywhere. The command defines direct cross-references
+to other documents. Each argument is a plain text label identifying the
+referenced document. If this command is used multiple times all the arguments
+accumulate.
+
+[call [cmd strong] [arg text]]
+
+[emph Deprecated]. Text markup. See [cmd emph] for the canonical
+command to emphasize text.
+
+[call [cmd subsection] [arg name]]
+
+Text structure. This command starts a new named subsection of a
+section. The argument has to be plain text. Implicitly closes the last
+paragraph coming before it and also implicitly opens the first
+paragraph of the new subsection.
+
+[call [cmd syscmd] [arg text]]
+
+Text markup. The argument text is marked up as the name of an external
+command. The text may have other markup already applied to it. Main
+use is the highlighting of external commands in free-form text.
+
+[call [cmd term] [arg text]]
+
+Text markup. The argument is marked up as unspecific terminology.  The
+text may have other markup already applied to it. Main use is the
+highlighting of important terms and concepts in free-form text.
+
+[call [cmd titledesc] [arg desc]]
+
+Document information. Header. Optional. Registers the plain text
+argument as the title of the manpage. Defaults to the value registered
+by [cmd moddesc].
+
+[call [cmd tkoption_def] [arg name] [arg dbname] [arg dbclass]]
+
+Text structure. List element. Widget option list. Automatically closes
+the previous list element. Specifies the [arg name] of the option as
+used in scripts, the name used by the option database ([arg dbname]),
+and its class ([arg dbclass]), i.e. its type. It is expected that the
+name is marked up using [cmd option].
+
+[call [cmd type] [arg text]]
+
+Text markup. The argument is marked up as the name of a
+[term {data type}]. The text may have other markup already applied to
+it. Main use is the highlighting of data types in free-form text.
+
+[call [cmd uri] [arg text] [opt [arg text]]]
+
+Text markup. The argument is marked up as an [term uri] (i.e. a
+[term {uniform resource identifier}]. The text may have other markup
+already applied to it. Main use is the highlighting of uris in
+free-form text. The second argument, should it be present, will be
+interpreted the human-readable description of the uri. In other words,
+as its label. Without an explicit label the uri will be its own label.
+
+[call [cmd usage] [arg args]]
+
+Text markup. See [cmd call] for the full description, this command is
+syntactically identical, as it is in its expectations for the markup
+of its arguments.
+
+In contrast to [cmd call] it is however not allowed to generate output
+where this command occurs in the text. The command is [term silent].
+The formatted text may only appear in a different section of the
+output, for example a table of contents, or synopsis, depending on the
+output format.
+
+[call [cmd var] [arg text]]
+
+Text markup. The argument is marked up as the name of a
+[term variable]. The text may have other markup already applied to
+it. Main use is the highlighting of variables in free-form text.
+
+[call [cmd vset] [arg varname] [arg value] ]
+
+Templating. In this form the command sets the named document variable
+to the specified [arg value]. It does not generate output. I.e. the
+command is replaced by the empty string.
+
+[call [cmd vset] [arg varname]]
+
+Templating. In this form the command is replaced by the value of the
+named document variable
+
+[call [cmd widget] [arg text]]
+
+Text markup. The argument is marked up as the name of a
+[term widget]. The text may have other markup already applied to
+it. Main use is the highlighting of widget names in free-form text.
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

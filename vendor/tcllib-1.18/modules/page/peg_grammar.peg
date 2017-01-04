@@ -1,0 +1,86 @@
+# -*- text -*-
+#
+# Parsing Expression Grammar declaring a syntax for Parsing Expression
+# Grammars, to use in a PEG-based parser generator. This specification
+# is self-referential, it uses the grammar described by to describe
+# said grammar.
+
+PEG pg::peg::grammar (Grammar)
+
+	# --------------------------------------------------------------------
+        # Syntactical constructs
+
+        Grammar         <- SPACE Header Definition+ Final EOF ;
+
+        Header          <- PEG Identifier StartExpr ;
+        Definition      <- Attribute? Identifier IS Expression SEMICOLON ;
+        Attribute       <- (VOID / LEAF / MATCH) COLON ;
+        Expression      <- Sequence (SLASH Sequence)* ;
+        Sequence        <- Prefix+ ;
+        Prefix          <- (AND / NOT)? Suffix ;
+        Suffix          <- Primary (QUESTION / STAR / PLUS)? ;
+        Primary         <- ALNUM / ALPHA / Identifier
+                        /  OPEN Expression CLOSE
+                        /  Literal
+                        /  Class
+                        /  DOT
+                        ;
+        Literal         <- APOSTROPH  (!APOSTROPH  Char)* APOSTROPH  SPACE
+                        /  DAPOSTROPH (!DAPOSTROPH Char)* DAPOSTROPH SPACE ;
+        Class           <- OPENB (!CLOSEB Range)* CLOSEB SPACE ;
+        Range           <- Char TO Char / Char ;
+
+        StartExpr       <- OPEN Expression CLOSE ;
+void:   Final           <- END SEMICOLON SPACE ;
+
+        # --------------------------------------------------------------------
+        # Lexing constructs
+
+        Identifier      <- Ident SPACE ;
+match:  Ident           <- ('_' / ':' / <alpha>) ('_' / ':' / <alnum>)* ;
+        Char            <- CharSpecial / CharOctalFull / CharOctalPart
+                        /  CharUnicode / CharUnescaped
+                        ;
+
+match:  CharSpecial     <- "\\" [nrt'"\[\]\\] ;
+match:  CharOctalFull   <- "\\" [0-2][0-7][0-7] ;
+match:  CharOctalPart   <- "\\" [0-7][0-7]? ;
+match:  CharUnicode     <- "\\" 'u' HexDigit (HexDigit (HexDigit HexDigit?)?)? ;
+match:  CharUnescaped   <- !"\\" . ;
+
+void:   HexDigit        <- [0-9a-fA-F] ;
+
+void:   TO              <- '-'           ;
+void:   OPENB           <- "["           ;
+void:   CLOSEB          <- "]"           ;
+void:   APOSTROPH       <- "'"           ;
+void:   DAPOSTROPH      <- '"'           ;
+void:   PEG             <- "PEG"   SPACE ;
+void:   IS              <- "<-"    SPACE ;
+leaf:   VOID            <- "void"  SPACE ; # Implies that definition has no semantic value.
+leaf:   LEAF            <- "leaf"  SPACE ; # Implies that definition has no terminals.
+leaf:   MATCH           <- "match" SPACE ; # Implies that semantic value is the matched string,
+                                           # not the parse tree from the symbol.
+void:   END             <- "END"   SPACE ;
+void:   SEMICOLON       <- ";"     SPACE ;
+void:   COLON           <- ":"     SPACE ;
+void:   SLASH           <- "/"     SPACE ;
+leaf:   AND             <- "&"     SPACE ;
+leaf:   NOT             <- "!"     SPACE ;
+leaf:   QUESTION        <- "?"     SPACE ;
+leaf:   STAR            <- "*"     SPACE ;
+leaf:   PLUS            <- "+"     SPACE ;
+void:   OPEN            <- "("     SPACE ;
+void:   CLOSE           <- ")"     SPACE ;
+leaf:   DOT             <- "."     SPACE ;
+leaf:   ALPHA           <- "<alpha>" SPACE ;
+leaf:   ALNUM           <- "<alnum>" SPACE ;
+
+void:   SPACE           <- (" " / "\t" / EOL / COMMENT)* ;
+void:   COMMENT         <- '#' (!EOL .)* EOL ;
+void:   EOL             <- "\n\r" / "\n" / "\r" ;
+void:   EOF             <- !. ;
+
+        # --------------------------------------------------------------------
+END;
+

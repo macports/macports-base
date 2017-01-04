@@ -1,0 +1,257 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin simulation::annealing n 0.2]
+[keywords math]
+[keywords optimization]
+[keywords {simulated annealing}]
+[copyright {2008 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Tcl Simulation Tools}]
+[titledesc {Simulated annealing}]
+[category  Mathematics]
+[require Tcl [opt 8.4]]
+[require simulation::annealing 0.2]
+
+[description]
+[para]
+The technique of [emph "simulated annealing"] provides methods to
+estimate the global optimum of a function. It is described in some
+detail on the Wiki [uri http://wiki.tcl.tk/...]. The idea is simple:
+
+[list_begin itemized]
+[item]
+randomly select points within a given search space
+[item]
+evaluate the function to be optimised for each of these
+points and select the point that has the lowest (or highest)
+function value or - sometimes - accept a point that has a less optimal
+value. The chance by which such a non-optimal point is accepted diminishes over
+time.
+[item]
+Accepting less optimal points means the method does not necessarily get
+stuck in a local optimum and theoretically it is capable of finding the
+global optimum within the search space.
+[list_end]
+
+The method resembles the cooling of material, hence the name.
+[para]
+
+The package [term simulation::annealing] offers the command [term findMinimum]:
+
+[example {
+    puts [::simulation::annealing::findMinimum \
+        -trials 300 \
+        -parameters {x -5.0 5.0 y -5.0 5.0} \
+        -function {$x*$x+$y*$y+sin(10.0*$x)+4.0*cos(20.0*$y)}]
+}]
+
+prints the estimated minimum value of the function f(x,y) =
+[emph {x**2+y**2+sin(10*x)+4*cos(20*y)}] and the values of x and y where
+the minimum was attained:
+
+[example {
+result -4.9112922923 x -0.181647676593 y 0.155743646974
+}]
+
+[section "PROCEDURES"]
+
+The package defines the following auxiliary procedures:
+
+[list_begin definitions]
+
+[call [cmd ::simulation::annealing::getOption] [arg keyword]]
+
+Get the value of an option given as part of the [term findMinimum]
+command.
+
+[list_begin arguments]
+[arg_def string keyword] Given keyword (without leading minus)
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::annealing::hasOption] [arg keyword]]
+
+Returns 1 if the option is available, 0 if not.
+
+[list_begin arguments]
+[arg_def string keyword] Given keyword (without leading minus)
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::annealing::setOption] [arg keyword] [arg value]]
+
+Set the value of the given option.
+
+[list_begin arguments]
+[arg_def string keyword] Given keyword (without leading minus)
+[arg_def string value] (New) value for the option
+[list_end]
+
+[list_end]
+
+The main procedures are [term findMinimum] and [term findCombinatorialMinimum]:
+
+[list_begin definitions]
+
+[call [cmd ::simulation::annealing::findMinimum] [arg args]]
+
+Find the minimum of a function using simulated annealing. The function
+and the method's parameters is given via a list of
+keyword-value pairs.
+
+[list_begin args]
+[arg_def int n] List of keyword-value pairs, all of which are available
+during the execution via the [term getOption] command.
+[list_end]
+
+[call [cmd ::simulation::annealing::findCombinatorialMinimum] [arg args]]
+
+Find the minimum of a function of discrete variables using simulated
+annealing. The function and the method's parameters is given via a list of
+keyword-value pairs.
+
+[list_begin args]
+[arg_def int n] List of keyword-value pairs, all of which are available
+during the execution via the [term getOption] command.
+[list_end]
+
+[list_end]
+
+The [term findMinimum] command predefines the following options:
+
+[list_begin itemized]
+[item]
+[term "-parameters list"]: triples defining parameters and ranges
+[item]
+[term "-function expr"]: expression defining the function
+[item]
+[term "-code body"]: body of code to define the function (takes
+precedence over [term -function]). The code should set the variable
+"result"
+[item]
+[term "-init code"]: code to be run at start up
+[term "-final code"]: code to be run at the end
+[term "-trials n"]: number of trials before reducing the temperature
+[term "-reduce factor"]: reduce the temperature by this factor (between 0 and 1)
+[term "-initial-temp t"]: initial temperature
+[term "-scale s"]: scale of the function (order of magnitude of the values)
+[term "-estimate-scale y/n"]: estimate the scale (only if [term -scale]
+is not present)
+[term "-verbose y/n"]: print detailed information on progress to the
+report file (1) or not (0)
+[term "-reportfile file"]: opened file to print to (defaults to stdout)
+[list_end]
+Any other options can be used via the getOption procedure
+in the body.
+
+The [term findCombinatorialMinimum] command predefines the following
+options:
+
+[list_begin itemized]
+[item]
+[term "-number-params n"]: number of binary parameters (the solution
+space consists of lists of 1s and 0s). This is a required option.
+[item]
+[term "-initial-values"]: list of 1s and 0s constituting the start of
+the search.
+[list_end]
+The other predefined options are identical to those of [term findMinimum].
+
+[section TIPS]
+The procedure [term findMinimum] works by constructing a temporary
+procedure that does the actual work. It loops until the point
+representing the estimated optimum does not change anymore within the
+given number of trials. As the temperature gets lower and lower the
+chance of accepting a point with a higher value becomes lower too, so
+the procedure will in practice terminate.
+
+[para]
+It is possible to optimise over a non-rectangular region, but some care
+must be taken:
+[list_begin itemized]
+[item]
+If the point is outside the region of interest, you can specify a very
+high value.
+[item]
+This does mean that the automatic determination of a scale factor is
+out of the question - the high function values that force the point
+inside the region would distort the estimation.
+[list_end]
+
+Here is an example of finding an optimum inside a circle:
+
+[example {
+    puts [::simulation::annealing::findMinimum \
+        -trials 3000 \
+        -reduce 0.98 \
+        -parameters {x -5.0 5.0 y -5.0 5.0} \
+        -code {
+            if { hypot($x-5.0,$y-5.0) < 4.0 } {
+                set result [expr {$x*$x+$y*$y+sin(10.0*$x)+4.0*cos(20.0*$y)}]
+            } else {
+                set result 1.0e100
+            }
+        }]
+}]
+
+The method is theoretically capable of determining the global optimum,
+but often you need to use a large number of trials and a slow reduction
+of temperature to get reliable and repeatable estimates.
+
+[para]
+You can use the [term -final] option to use a deterministic optimization
+method, once you are sure you are near the required optimum.
+
+[para]
+The [term findCombinatorialMinimum] procedure is suited for situations
+where the parameters have the values 0 or 1 (and there can be many of
+them). Here is an example:
+
+[list_begin itemized]
+
+[item]
+We have a function that attains an absolute minimum if the first ten
+numbers are 1 and the rest is 0:
+
+[example {
+proc cost {params} {
+    set cost 0
+    foreach p [lrange $params 0 9] {
+        if { $p == 0 } {
+            incr cost
+        }
+    }
+    foreach p [lrange $params 10 end] {
+        if { $p == 1 } {
+            incr cost
+        }
+    }
+    return $cost
+}
+}]
+
+[item]
+We want to find the solution that gives this minimum for various lengths
+of the solution vector [term params]:
+
+[example {
+foreach n {100 1000 10000} {
+    break
+    puts "Problem size: $n"
+    puts [::simulation::annealing::findCombinatorialMinimum \
+        -trials 300 \
+        -verbose 0 \
+        -number-params $n \
+        -code {set result [cost $params]}]
+}
+}]
+
+[item]
+As the vector grows, the computation time increases, but the procedure
+will stop if some kind of equilibrium is reached. To achieve a useful
+solution you may want to try different values of the trials parameter
+for instance. Also ensure that the function to be minimized depends on
+all or most parameters - see the source code for a counter example and
+run that.
+[list_end]
+[manpage_end]

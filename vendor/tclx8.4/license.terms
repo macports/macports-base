@@ -1,0 +1,7 @@
+Extended Tcl was designed and implemented by Karl Lehenbauer (karl at
+procplace.com) and Mark Diekhans (markd at Kermodei.com), with help in the
+earliest stages from Peter da Silva (peter at NeoSoft.com).
+TclX 8.4 work was done by Jeff Hobbs.
+
+As with Tcl, all of Extended Tcl is freely redistributable, including for
+commercial use and resale (BSD-style license).

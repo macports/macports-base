@@ -1,0 +1,166 @@
+# -*- tcl -*-
+# xsxp.test:  tests for the xsxp package.
+
+# This file contains a collection of tests for the xsxp
+# package. Sourcing this file into Tcl runs the tests and generates
+# output for errors.  No output means no errors were found.
+
+# Copyright (c) 2006,2008 Darren New. All Rights Reserved.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#               (Boilerplate stuff (header, footer))
+# All rights reserved.
+#
+# RCS: @(#) $Id: xsxp.test,v 1.3 2008/09/04 02:11:13 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+if {[catch {package require xml}]} {
+    puts "    Aborting the tests found in \"[file tail [info script]]\""
+    puts "    Requiring xml package, not found."
+    return
+}
+
+support {
+    # Requires xml (TclXML)
+}
+testing {
+    useLocal xsxp.tcl xsxp
+}
+
+# -------------------------------------------------------------------------
+package require -exact xsxp 1.0
+
+tcltest::configure -verbose {body error pass}
+tcltest::configure -debug 1
+
+set setup_one {
+    set xml {<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Owner><AccessControlList><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Grantee><Permission>FULL_CONTROL</Permission></Grant></AccessControlList></AccessControlPolicy>}
+}
+
+tcltest::test xsxp-1.10 {Basic parsing} -setup $setup_one -body {
+    set pxml [::xsxp::parse $xml]
+    return [lindex $pxml 0]
+} -result {AccessControlPolicy}
+
+tcltest::test xsxp-1.20 {Precision parsing} -setup $setup_one -body {
+    return [::xsxp::parse $xml]
+} -result {AccessControlPolicy {} {Owner {} {ID {} {%PCDATA {} 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd}} {DisplayName {} {%PCDATA {} dnew@san.rr.com}}} {AccessControlList {} {Grant {} {Grantee {xsi:type CanonicalUser} {ID {} {%PCDATA {} 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd}} {DisplayName {} {%PCDATA {} dnew@san.rr.com}}} {Permission {} {%PCDATA {} FULL_CONTROL}}}}}
+
+tcltest::test xsxp-1.30 {Test pretty printing} -setup $setup_one -body {
+    ::xsxp::prettyprint [::xsxp::parse $xml]
+} -output {AccessControlPolicy
+  Owner
+    ID
+      %PCDATA: 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd
+    DisplayName
+      %PCDATA: dnew@san.rr.com
+  AccessControlList
+    Grant
+      Grantee xsi:type='CanonicalUser'
+        ID
+          %PCDATA: 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd
+        DisplayName
+          %PCDATA: dnew@san.rr.com
+      Permission
+        %PCDATA: FULL_CONTROL
+}
+
+tcltest::test xsxp-1.40 {Access via path string} -setup $setup_one -body {
+    set pxml [::xsxp::parse $xml]
+    return [::xsxp::fetch $pxml "Owner/DisplayName" %PCDATA]
+} -result {dnew@san.rr.com}
+
+tcltest::test xsxp-1.50 {Access via path list} -setup $setup_one -body {
+    set pxml [::xsxp::parse $xml]
+    return [::xsxp::fetch $pxml "Owner DisplayName" %PCDATA]
+} -result {dnew@san.rr.com}
+
+set setup_two {
+set xml {<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Name>darren</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>t1.jpg</Key><LastModified>2006-10-27T23:19:07.000Z</LastModified><ETag>&quot;a251eabc2e69e9716878924b6ec291c7&quot;</ETag><Size>1512545</Size><Owner><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Owner><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>t2.jpg</Key><LastModified>2006-10-27T23:19:44.000Z</LastModified><ETag>&quot;ebc9b242811239ada85f202346353f31&quot;</ETag><Size>1826062</Size><Owner><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Owner><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>}
+set pxml [::xsxp::parse $xml]
+}
+
+tcltest::test xsxp-2.10 {Fetch top-level item} -setup $setup_two -body {
+    ::xsxp::fetch $pxml MaxKeys
+} -result {MaxKeys {} {%PCDATA {} 1000}}
+
+set c0 {Contents {} {Key {} {%PCDATA {} t1.jpg}} {LastModified {} {%PCDATA {} 2006-10-27T23:19:07.000Z}} {ETag {} {%PCDATA {} {"a251eabc2e69e9716878924b6ec291c7"}}} {Size {} {%PCDATA {} 1512545}} {Owner {} {ID {} {%PCDATA {} 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd}} {DisplayName {} {%PCDATA {} dnew@san.rr.com}}} {StorageClass {} {%PCDATA {} STANDARD}}}
+
+tcltest::test xsxp-2.20 {Fetch another top-level item} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Contents
+} -result $c0
+
+tcltest::test xsxp-2.30 {Fetch #0 item} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Contents
+} -result $c0
+
+set c1 {Contents {} {Key {} {%PCDATA {} t2.jpg}} {LastModified {} {%PCDATA {} 2006-10-27T23:19:44.000Z}} {ETag {} {%PCDATA {} {"ebc9b242811239ada85f202346353f31"}}} {Size {} {%PCDATA {} 1826062}} {Owner {} {ID {} {%PCDATA {} 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd}} {DisplayName {} {%PCDATA {} dnew@san.rr.com}}} {StorageClass {} {%PCDATA {} STANDARD}}}
+
+tcltest::test xsxp-2.40 {Fetch #1 item} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Contents#1
+} -result $c1
+
+tcltest::test xsxp-2.50 {Fetch item past end} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Contents#2
+} -result {}
+
+tcltest::test xsxp-2.60 {Check %TAGNAME} -setup $setup_two -body {
+    ::xsxp::fetch $pxml #4 %TAGNAME
+} -result {IsTruncated}
+
+tcltest::test xsxp-2.70 {check merge of PCDATA} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Contents/ETag %PCDATA
+} -result {"a251eabc2e69e9716878924b6ec291c7"}
+
+tcltest::test xsxp-2.80 {Check lack of PCDATA} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Prefix %PCDATA
+} -returnCodes 1 -result "xsxp::fetch did not find requested PCDATA"
+
+tcltest::test xsxp-2.90 {Check lack of PCDATA?} -setup $setup_two -body {
+    ::xsxp::fetch $pxml Prefix %PCDATA?
+} -result ""
+
+
+tcltest::test xsxp-3.10 {only} -setup $setup_two -body {
+    set only [::xsxp::only $pxml Contents]
+    return [list [llength $only] [lindex $only 0 0] [lindex $only 1 0]]
+} -result {2 Contents Contents}
+
+tcltest::test xsxp-4.10 {fetchall basic} -setup $setup_two -body {
+    set only [::xsxp::only $pxml Contents]
+    ::xsxp::fetchall $only Key %PCDATA
+} -result {t1.jpg t2.jpg}
+
+tcltest::test xsxp-5.10 {only} -setup $setup_two -body {
+    set only [::xsxp::only $pxml Contents]
+    ::xsxp::fetch $pxml Contents#1/Key/%PCDATA %CHILDREN
+} -result {t2.jpg}
+
+
+
+if {0} {
+    foreach file [glob -directory xml *] {
+	puts $file
+	if {".xml" != [string range $file end-3 end]} continue
+	set in [open $file r]
+	set xml [read $in]
+	close $in
+	set pxml [::xsxp::parse $xml]
+	set out [open [string range $file 0 end-4].txt w] ; #lazy
+	::xsxp::prettyprint $pxml $out
+	close $out
+    }
+}
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+puts "Done!" ; after 5000

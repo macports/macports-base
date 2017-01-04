@@ -1,0 +1,278 @@
+
+<div class='fossil-doc' data-title='map::slippy - Mapping utilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">map::slippy(n) 0.5 tcllib &quot;Mapping utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>map::slippy - Common code for slippy based map packages</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Coordinate systems</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Geographic</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Tiles</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Pixels/Points</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">References</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">Tk 8.4</b></li>
+<li>package require <b class="pkgname">map::slippy <span class="opt">?0.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::map::slippy</b> <b class="method">length</b> <i class="arg">level</i></a></li>
+<li><a href="#2"><b class="cmd">::map::slippy</b> <b class="method">tiles</b> <i class="arg">level</i></a></li>
+<li><a href="#3"><b class="cmd">::map::slippy</b> <b class="method">tile size</b></a></li>
+<li><a href="#4"><b class="cmd">::map::slippy</b> <b class="method">tile valid</b> <i class="arg">tile</i> <i class="arg">levels</i> <span class="opt">?<i class="arg">msgvar</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::map::slippy</b> <b class="method">geo 2tile</b> <i class="arg">geo</i></a></li>
+<li><a href="#6"><b class="cmd">::map::slippy</b> <b class="method">geo 2tile.float</b> <i class="arg">geo</i></a></li>
+<li><a href="#7"><b class="cmd">::map::slippy</b> <b class="method">geo 2point</b> <i class="arg">geo</i></a></li>
+<li><a href="#8"><b class="cmd">::map::slippy</b> <b class="method">tile 2geo</b> <i class="arg">tile</i></a></li>
+<li><a href="#9"><b class="cmd">::map::slippy</b> <b class="method">tile 2point</b> <i class="arg">tile</i></a></li>
+<li><a href="#10"><b class="cmd">::map::slippy</b> <b class="method">point 2geo</b> <i class="arg">point</i></a></li>
+<li><a href="#11"><b class="cmd">::map::slippy</b> <b class="method">point 2tile</b> <i class="arg">point</i></a></li>
+<li><a href="#12"><b class="cmd">::map::slippy</b> <b class="method">fit geobox</b> <i class="arg">canvdim</i> <i class="arg">geobox</i> <i class="arg">zmin</i> <i class="arg">zmax</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a number of methods doing things needed by all
+types of slippy-based map packages.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::map::slippy</b> <b class="method">length</b> <i class="arg">level</i></a></dt>
+<dd><p>This method returns the width/height of a slippy-based map at the
+specified zoom <i class="arg">level</i>, in pixels. This is, in essence, the result
+of</p>
+<pre class="doctools_example">
+	expr { [tiles $level] * [tile size] }
+</pre>
+</dd>
+<dt><a name="2"><b class="cmd">::map::slippy</b> <b class="method">tiles</b> <i class="arg">level</i></a></dt>
+<dd><p>This method returns the width/height of a slippy-based map at the
+specified zoom <i class="arg">level</i>, in <i class="term">tiles</i>.</p></dd>
+<dt><a name="3"><b class="cmd">::map::slippy</b> <b class="method">tile size</b></a></dt>
+<dd><p>This method returns the width/height of a tile in a slippy-based map,
+in pixels.</p></dd>
+<dt><a name="4"><b class="cmd">::map::slippy</b> <b class="method">tile valid</b> <i class="arg">tile</i> <i class="arg">levels</i> <span class="opt">?<i class="arg">msgvar</i>?</span></a></dt>
+<dd><p>This method checks whether <i class="arg">tile</i> described a valid tile in a
+slippy-based map containing that many zoom <i class="arg">levels</i>. The result is
+a boolean value, <b class="const">true</b> if the tile is valid, and <b class="const">false</b>
+otherwise. For the latter a message is left in the variable named by
+<i class="arg">msgvar</i>, should it be specified.</p>
+<p>A tile identifier as stored in <i class="arg">tile</i> is a list containing zoom
+level, tile row, and tile column, in this order. The command
+essentially checks this, i.e. the syntax, that the zoom level is
+between 0 and &quot;<i class="arg">levels</i>-1&quot;, and that the row/col information is
+within the boundaries for the zoom level, i.e. 0 ...
+&quot;[tiles $zoom]-1&quot;.</p></dd>
+<dt><a name="5"><b class="cmd">::map::slippy</b> <b class="method">geo 2tile</b> <i class="arg">geo</i></a></dt>
+<dd><p>Converts a geographical location at a zoom level (<i class="arg">geo</i>, a list
+containing zoom level, latitude, and longitude, in this order) to a
+tile identifier (list containing zoom level, row, and column) at that
+level. The tile identifier uses pure integer numbers for the tile
+coordinates, for all geographic coordinates mapping to that tile.</p></dd>
+<dt><a name="6"><b class="cmd">::map::slippy</b> <b class="method">geo 2tile.float</b> <i class="arg">geo</i></a></dt>
+<dd><p>Converts a geographical location at a zoom level (<i class="arg">geo</i>, a list
+containing zoom level, latitude, and longitude, in this order) to a
+tile identifier (list containing zoom level, row, and column) at that
+level. The tile identifier uses floating point numbers for the tile
+coordinates, representing not only the tile the geographic coordinates
+map to, but also the fractional location inside of that tile.</p></dd>
+<dt><a name="7"><b class="cmd">::map::slippy</b> <b class="method">geo 2point</b> <i class="arg">geo</i></a></dt>
+<dd><p>Converts a geographical location at a zoom level (<i class="arg">geo</i>, a list
+containing zoom level, latitude, and longitude, in this order) to a
+pixel position (list containing zoom level, y, and x) at that level.</p></dd>
+<dt><a name="8"><b class="cmd">::map::slippy</b> <b class="method">tile 2geo</b> <i class="arg">tile</i></a></dt>
+<dd><p>Converts a tile identifier at a zoom level (<i class="arg">tile</i>, list
+containing zoom level, row, and column) to a geographical location
+(list containing zoom level, latitude, and longitude, in this order)
+at that level.</p></dd>
+<dt><a name="9"><b class="cmd">::map::slippy</b> <b class="method">tile 2point</b> <i class="arg">tile</i></a></dt>
+<dd><p>Converts a tile identifier at a zoom level (<i class="arg">tile</i>, a list
+containing zoom level, row, and column, in this order) to a pixel
+position (list containing zoom level, y, and x) at that level.</p></dd>
+<dt><a name="10"><b class="cmd">::map::slippy</b> <b class="method">point 2geo</b> <i class="arg">point</i></a></dt>
+<dd><p>Converts a pixel position at a zoom level (<i class="arg">point</i>, list
+containing zoom level, y, and x) to a geographical location (list
+containing zoom level, latitude, and longitude, in this order) at that
+level.</p></dd>
+<dt><a name="11"><b class="cmd">::map::slippy</b> <b class="method">point 2tile</b> <i class="arg">point</i></a></dt>
+<dd><p>Converts a pixel position at a zoom level (<i class="arg">point</i>, a list
+containing zoom level, y, and x, in this order) to a tile identifier
+(list containing zoom level, row, and column) at that level.</p></dd>
+<dt><a name="12"><b class="cmd">::map::slippy</b> <b class="method">fit geobox</b> <i class="arg">canvdim</i> <i class="arg">geobox</i> <i class="arg">zmin</i> <i class="arg">zmax</i></a></dt>
+<dd><p>Calculates the zoom level (whithin the bounds <i class="arg">zmin</i> and
+<i class="arg">zmax</i>) such that <i class="arg">geobox</i> (a 4-element list containing the
+latitudes and longitudes lat0, lat1, lon0 and lon1 of a geo box,
+in this order) fits into a viewport given by <i class="arg">canvdim</i>, a
+2-element list containing the width and height of the viewport, in
+this order.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Coordinate systems</a></h2>
+<p>The commands of this package operate on three distinct coordinate
+systems, which are explained below.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Geographic</a></h3>
+<p><i class="term">Geographic</i>al coordinates are represented by <i class="term">Latitude</i> and
+<i class="term"><a href="../../../../index.html#key203">Longitude</a></i>, each of which is measured in degrees, as they are
+essentially angles.</p>
+<p><b class="const">Zero</b> longitude is the <i class="term">Greenwich meridian</i>, with
+positive values going <i class="term">east</i>, and negative values going
+<i class="term">west</i>, for a total range of +/- 180 degrees. Note that +180 and
+-180 longitude are the same <i class="term">meridian</i>, opposite to greenwich.</p>
+<p><b class="const">zero</b> latitude the <i class="term">Equator</i>, with positive values
+going <i class="term">north</i> and negative values going <i class="term">south</i>. While the
+true range is +/- 90 degrees the projection used by the package
+requires us to cap the range at +/- 85.05112877983284 degrees. This
+means that north and south pole are not representable and not part of
+any map.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Tiles</a></h3>
+<p>While <span class="sectref"><a href="#subsection1">Geographic</a></span>al coordinates of the previous section are
+independent of zoom level the <i class="term">tile coordinates</i> are not.</p>
+<p>Generally the integer part of tile coordinates represent the
+row and column number of the tile in question, wheras the fractional
+parts signal how far inside the tile the location in question is, with
+pure integer coordinates (no fractional part) representing the upper
+left corner of the tile.</p>
+<p>The zero point of the map is at the upper left corner,
+regardless of zoom level, with larger coordinates going right (east)
+and down (south), and smaller coordinates going left (west) and up
+(north). Again regardless of zxoom level.</p>
+<p>Negative tile coordinates are not allowed.</p>
+<p>At zoom level 0 the whole map is represented by a single,
+putting the geographic zero at 1/2, 1/2 of tile coordinates, and the
+range of tile coordinates as [0...1].</p>
+<p>To go from a zoom level N to the next deeper level N+1 each
+tile of level N is split into its four quadrants, which then are the
+tiles of level N+1.</p>
+<p>This means that at zoom level N the map is sliced (horizontally
+and vertically) into 2^N stripes, for a total of 4^N tiles, with tile
+coordinates ranging from 0 to 2^N+1.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Pixels/Points</a></h3>
+<p><i class="term">pixel coordinates</i>, also called <i class="term">point coordinates</i> are
+in essence <span class="sectref"><a href="#subsection2">tile coordinates</a></span> scaled by the size of
+the image representing a tile. This tile size currently has a fixed
+value, <b class="const">256</b>.</p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http://wiki.openstreetmap.org/wiki/Main_Page">http://wiki.openstreetmap.org/wiki/Main_Page</a></p></li>
+</ol>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key197">geodesy</a>, <a href="../../../../index.html#key202">geography</a>, <a href="../../../../index.html#key196">latitute</a>, <a href="../../../../index.html#key200">location</a>, <a href="../../../../index.html#key203">longitude</a>, <a href="../../../../index.html#key201">map</a>, <a href="../../../../index.html#key199">slippy</a>, <a href="../../../../index.html#key198">zoom</a></p>
+</div>
+</div>

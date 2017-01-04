@@ -1,0 +1,58 @@
+barf			{}				{Bad instruction "branchlabel barf", unknown command "barf"}
+ict_advance		{}				{Bad instruction "branchlabel ict_advance", expected 1 argument}
+ict_advance		{goob message}			{Bad instruction "branchlabel ict_advance goob message", expected 1 argument}
+ict_match_token		{}				{Bad instruction "branchlabel ict_match_token", expected 2 arguments}
+ict_match_token		{message}			{Bad instruction "branchlabel ict_match_token message", expected 2 arguments}
+ict_match_token		{foo tok message}		{Bad instruction "branchlabel ict_match_token foo tok message", expected 2 arguments}
+ict_match_tokrange	{}				{Bad instruction "branchlabel ict_match_tokrange", expected 3 arguments}
+ict_match_tokrange	{foo}				{Bad instruction "branchlabel ict_match_tokrange foo", expected 3 arguments}
+ict_match_tokrange	{foo bar}			{Bad instruction "branchlabel ict_match_tokrange foo bar", expected 3 arguments}
+ict_match_tokrange	{tokb:1 tokend message}		{Bad assembly, mixing plain and ranked tokens}
+ict_match_tokrange	{feh tokbegin tokend message}	{Bad instruction "branchlabel ict_match_tokrange feh tokbegin tokend message", expected 3 arguments}
+ict_match_tokclass	{}				{Bad instruction "branchlabel ict_match_tokclass", expected 2 arguments}
+ict_match_tokclass	{alnum}				{Bad instruction "branchlabel ict_match_tokclass alnum", expected 2 arguments}
+ict_match_tokclass	{bogus message}			{Bad instruction "branchlabel ict_match_tokclass bogus message", unknown class code "bogus"}
+ict_match_tokclass	{fee alnum message}		{Bad instruction "branchlabel ict_match_tokclass fee alnum message", expected 2 arguments}
+inc_restore		{}				{Bad instruction "branchlabel inc_restore", expected 2 arguments}
+inc_restore		{branchlabel}			{Bad instruction "branchlabel inc_restore branchlabel", expected 2 arguments}
+inc_restore		{badlabel nt}			{Bad instruction "branchlabel inc_restore badlabel nt", unknown branch destination "badlabel"}
+inc_restore		{branchlabel nt foo}		{Bad instruction "branchlabel inc_restore branchlabel nt foo", expected 2 arguments}
+inc_save		{}				{Bad instruction "branchlabel inc_save", expected 1 argument}
+inc_save		{foo nt}			{Bad instruction "branchlabel inc_save foo nt", expected 1 argument}
+icf_ntcall		{}				{Bad instruction "branchlabel icf_ntcall", expected 1 argument}
+icf_ntcall		badlabel			{Bad instruction "branchlabel icf_ntcall badlabel", unknown branch destination "badlabel"}
+icf_ntcall		{foo branchlabel}		{Bad instruction "branchlabel icf_ntcall foo branchlabel", expected 1 argument}
+icf_ntreturn		{bogus}				{Bad instruction "branchlabel icf_ntreturn bogus", expected 0 arguments}
+iok_ok			{bogus}				{Bad instruction "branchlabel iok_ok bogus", expected 0 arguments}
+iok_fail		{bogus}				{Bad instruction "branchlabel iok_fail bogus", expected 0 arguments}
+iok_negate		{bogus}				{Bad instruction "branchlabel iok_negate bogus", expected 0 arguments}
+icf_jalways		{}				{Bad instruction "branchlabel icf_jalways", expected 1 argument}
+icf_jalways		badlabel			{Bad instruction "branchlabel icf_jalways badlabel", unknown branch destination "badlabel"}
+icf_jalways		{foo branchlabel}		{Bad instruction "branchlabel icf_jalways foo branchlabel", expected 1 argument}
+icf_jok			{}				{Bad instruction "branchlabel icf_jok", expected 1 argument}
+icf_jok			badlabel			{Bad instruction "branchlabel icf_jok badlabel", unknown branch destination "badlabel"}
+icf_jok			{foo branchlabel}		{Bad instruction "branchlabel icf_jok foo branchlabel", expected 1 argument}
+icf_jfail		{}				{Bad instruction "branchlabel icf_jfail", expected 1 argument}
+icf_jfail		badlabel			{Bad instruction "branchlabel icf_jfail badlabel", unknown branch destination "badlabel"}
+icf_jfail		{foo branchlabel}		{Bad instruction "branchlabel icf_jfail foo branchlabel", expected 1 argument}
+icf_halt		{bogus}				{Bad instruction "branchlabel icf_halt bogus", expected 0 arguments}
+icl_push		{bogus}				{Bad instruction "branchlabel icl_push bogus", expected 0 arguments}
+icl_rewind		{bogus}				{Bad instruction "branchlabel icl_rewind bogus", expected 0 arguments}
+icl_pop			{bogus}				{Bad instruction "branchlabel icl_pop bogus", expected 0 arguments}
+ier_push		{bogus}				{Bad instruction "branchlabel ier_push bogus", expected 0 arguments}
+ier_clear		{bogus}				{Bad instruction "branchlabel ier_clear bogus", expected 0 arguments}
+ier_nonterminal		{}				{Bad instruction "branchlabel ier_nonterminal", expected 1 argument}
+ier_nonterminal		{foo message}			{Bad instruction "branchlabel ier_nonterminal foo message", expected 1 argument}
+ier_merge		{bogus}				{Bad instruction "branchlabel ier_merge bogus", expected 0 arguments}
+isv_clear		{bogus}				{Bad instruction "branchlabel isv_clear bogus", expected 0 arguments}
+isv_terminal		{bogus}				{Bad instruction "branchlabel isv_terminal bogus", expected 0 arguments}
+isv_nonterminal_leaf	{}				{Bad instruction "branchlabel isv_nonterminal_leaf", expected 1 argument}
+isv_nonterminal_leaf	{foo nt}			{Bad instruction "branchlabel isv_nonterminal_leaf foo nt", expected 1 argument}
+isv_nonterminal_range	{}				{Bad instruction "branchlabel isv_nonterminal_range", expected 1 argument}
+isv_nonterminal_range	{foo nt}			{Bad instruction "branchlabel isv_nonterminal_range foo nt", expected 1 argument}
+isv_nonterminal_reduce	{}				{Bad instruction "branchlabel isv_nonterminal_reduce", expected 1 argument}
+isv_nonterminal_reduce	{foo nt}			{Bad instruction "branchlabel isv_nonterminal_reduce foo nt", expected 1 argument}
+ias_push		{bogus}				{Bad instruction "branchlabel ias_push bogus", expected 0 arguments}
+ias_mark		{bogus}				{Bad instruction "branchlabel ias_mark bogus", expected 0 arguments}
+ias_mrewind		{bogus}				{Bad instruction "branchlabel ias_mrewind bogus", expected 0 arguments}
+ias_mpop		{bogus}				{Bad instruction "branchlabel ias_mpop bogus", expected 0 arguments}

@@ -1,0 +1,2255 @@
+# exact.test --
+#
+#    Test cases for the math::exact package
+#
+# Copyright (c) 2015 by Kevin B. Kenny
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+#-----------------------------------------------------------------------------
+
+source [file join \
+	    [file dirname [file dirname [file join [pwd] [info script]]]] \
+	    devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2.3
+
+support {
+    use     grammar_aycock/aycock-runtime.tcl grammar::aycock::runtime grammar::aycock
+    useKeep grammar_aycock/aycock-debug.tcl   grammar::aycock::debug   grammar::aycock
+    useKeep grammar_aycock/aycock-build.tcl   grammar::aycock          grammar::aycock
+}
+testing {
+    useLocal exact.tcl             math::exact
+}
+
+package require Tcl             8.6
+package require grammar::aycock 1.0
+package require math::exact     1.0
+
+#-----------------------------------------------------------------------------
+
+namespace eval math::exact::test {
+
+    namespace import ::math::exact::exactexpr
+
+    proc signum {x} {expr {($x > 0) - ($x < 0)}}
+
+    proc leakBaseline {} {
+	variable leakBaseline
+	foreach o [info commands ::oo::Obj*] {
+	    dict set leakBaseline $o {}
+	}
+	return
+    }
+
+    proc leakCheck {} {
+	variable leakBaseline
+	set trouble {}
+	set sep {}
+	foreach o [lsort -dictionary [info commands ::oo::Obj*]] {
+	    if {![dict exists $leakBaseline $o]} {
+		if {[info object isa typeof $o math::exact::counted]} {
+		    append trouble $sep "Leaked counted object " \
+			$o ": " [$o dump] \n
+		} else {
+		    append trouble $sep "Leaked object " $o \n
+		}
+	    }
+	}
+	if {$trouble ne {}} {
+	    return -code error -errorcode {LEAKCHECK} $trouble
+	}
+	return
+    }
+			  
+    namespace import ::tcltest::test
+
+    test math::exact-1.0 {unit test gcd} {
+	math::exact::gcd 2
+    } 2
+    test math::exact-1.1 {unit test gcd} {
+	math::exact::gcd 2 0
+    } 2
+    test math::exact-1.2 {unit test gcd} {
+	math::exact::gcd 0 2
+    } 2
+    test math::exact-1.3 {unit test gcd} {
+	math::exact::gcd 2 3
+    } 1
+    test math::exact-1.4 {unit test gcd} {
+	math::exact::gcd 3 2
+    } 1
+    test math::exact-1.5 {unit test gcd} {
+	math::exact::gcd 21 12
+     } 3
+    test math::exact-1.6 {unit test gcd} {
+	math::exact::gcd 12 21
+    } 3
+    test math::exact-1.5 {unit test gcd} {
+	math::exact::gcd 21 12
+     } 3
+    test math::exact-1.6 {unit test gcd} {
+	math::exact::gcd 12 21
+    } 3
+    test math::exact-1.7 {unit test gcd} {
+	math::exact::gcd 108 66
+     } 6
+    test math::exact-1.8 {unit test gcd} {
+	math::exact::gcd 66 108
+    } 6
+    test math::exact-1.9 {unit test gcd} {
+	math::exact::gcd 66 108 88
+    } 2
+
+    test math::exact-2.0 {unit test transpose matrix} {
+	math::exact::trans {{0 1} {2 3}}
+    } {{0 2} {1 3}}
+    test math::exact-2.1 {unit test transpose 2x2x2} {
+	math::exact::trans {{{0 1} {2 3}} {{4 5} {6 7}}}
+    } {{{0 1} {4 5}} {{2 3} {6 7}}}
+
+    test math::exact-3.1 {unit test determinant} {
+	math::exact::determinant {{2 3} {5 7}}
+    } -1
+
+    test math::exact-4.1 {unit test reverse} {
+	math::exact::reverse {{2 3} {5 7}}
+    } {{7 -3} {-5 2}}
+
+    test math::exact-5.1 {unit test veven} {
+	math::exact::veven {2 4}
+    } 1
+    test math::exact-5.2 {unit test veven} {
+	math::exact::veven {2 3}
+    } 0
+
+    test math::exact-6.1 {unit test meven} {
+	math::exact::meven {{2 4} {6 8}}
+    } 1
+    test math::exact-6.2 {unit test meven} {
+	math::exact::meven {{2 3} {6 8}}
+    } 0
+
+    test math::exact-7.1 {unit test teven} {
+	math::exact::teven {{{2 4} {6 8}} {{10 12} {14 16}}}
+    } 1
+    test math::exact-7.2 {unit test teven} {
+	math::exact::teven {{{2 4} {6 8}} {{10 13} {14 16}}}
+    } 0
+
+    test math::exact-8.1 {unit test vhalf} {
+	math::exact::vhalf {6 8}
+    } {3 4}
+
+    test math::exact-9.1 {unit test mhalf} {
+	math::exact::mhalf {{6 8} {10 12}}
+    } {{3 4} {5 6}}
+
+    test math::exact-10.1 {unit test thalf} {
+	math::exact::thalf {{{6 8} {10 12}} {{14 16} {18 20}}}
+    } {{{3 4} {5 6}} {{7 8} {9 10}}}
+
+    test math::exact-11.1 {unit test sign} {
+	set trouble {}
+	set sep \n
+	for {set a -1} {$a <= 1} {incr a} {
+	    for {set b -1} {$b <= 1} {incr b} {
+		if {$a ==0 && $b == 0} {
+		    set sb 0
+		} elseif {$a == 0} {
+		    set sb [signum $b]
+		} elseif {$b == 0} {
+		    set sb [signum $a]
+		} elseif {$a/$b < 0} {
+		    set sb 0
+		} else {
+		    set sb [signum $a]
+		}
+		set is [math::exact::sign [list $a $b]]
+		if {$is != $sb} {
+		    append trouble "sign(" $a "," $b ") is " $is \
+			", should be " $sb "\n"
+		}
+	    }
+	}
+	set trouble
+    } {}
+
+    test math::exact-12.1 {unit test vrefines} {
+	set trouble {}
+	set sep {}
+	for {set a -1} {$a <= 1} {incr a} {
+	    for {set b -1} {$b <= 1} {incr b} {
+		if {$a ==0 && $b == 0} {
+		    set sb 0
+		} elseif {$a == 0} {
+		    set sb 1
+		} elseif {$b == 0} {
+		    set sb 1
+		} elseif {$a/$b < 0} {
+		    set sb 0
+		} else {
+		    set sb 1
+		}
+		set is [math::exact::vrefines [list $a $b]]
+		if {$is != $sb} {
+		    append trouble $sep "vrefines(" $a "," $b ") is " $is \
+			", should be " $sb
+		    set sep \n
+		}
+	    }
+	}
+	set trouble
+    } {}
+
+    test math::exact-13.1 {unit test mrefines} {
+	math::exact::mrefines {{1 2} {3 4}}
+    } 1
+    test math::exact-13.2 {unit test mrefines} {
+	math::exact::mrefines {{1 2} {-3 -4}}
+    } 0
+    test math::exact-13.3 {unit test mrefines} {
+	math::exact::mrefines {{-1 -2} {-3 -4}}
+    } 1
+    test math::exact-13.4 {unit test mrefines} {
+	math::exact::mrefines {{-1 2} {-3 4}}
+    } 0
+
+    test math::exact-14.1 {unit test trefines} {
+	math::exact::trefines {{{1 2} {3 4}} {{5 6} {7 8}}}
+    } 1
+    test math::exact-14.2 {unit test trefines} {
+	math::exact::trefines {{{-1 -2} {-3 -4}} {{-5 -6} {-7 -8}}}
+    } 1
+    test math::exact-14.3 {unit test trefines} {
+	math::exact::trefines {{{-1 2} {-3 4}} {{-5 6} {-7 8}}}
+    } 0
+    test math::exact-14.4 {unit test trefines} {
+	math::exact::trefines {{{1 2} {3 4}} {{5 6}} {{-7 -8}}}
+    } 0
+    test math::exact-14.5 {unit test trefines} {
+	math::exact::trefines {{{1 2} {3 4}} {{-5 -6}} {{-7 -8}}}
+    } 0
+    test math::exact-14.6 {unit test trefines} {
+	math::exact::trefines {{{1 2} {-3 -4}} {{-5 -6}} {{-7 -8}}}
+    } 0
+
+    test math::exact-15.1 {unit test vlessv} {
+	set intervals {
+	    {-1 0} {-2 1} {-1 1} {-1 2} {0 1} {2 4} {3 3} {14 7} {1 0}
+	}
+	set trouble {}
+	set sep {}
+	set i 0
+	foreach a $intervals {
+	    set j 0
+	    foreach b $intervals {
+		set is [math::exact::vlessv $a $b]
+		if {[lindex $a 1] == 0 && [lindex $b 1] == 0} {
+		    set sb 0
+		} else {
+		    set sb [expr {$i < $j}]
+		}
+		if {$is != $sb} {
+		    append trouble $sep "vlessv(" $a ";" $b ") is " $is \
+			" should be " $sb
+		    set sep \n
+		}
+		incr j
+	    }
+	    incr i
+	}
+	set trouble
+    } {}
+    
+    test math::exact-16.1 {unit test mlessm - also tests mlessv} {
+	set intervals {
+	    {-2 1} {-1 1} {-1 2} {0 1} {2 4} {3 3} {14 7} {1 0}
+	}
+	set trouble {}
+	set sep {}
+	set i 0
+	foreach a $intervals {
+	    set j $i
+	    foreach b [lrange $intervals $i end] {
+		set k 0
+		foreach c $intervals {
+		    set l $k
+		    foreach d [lrange $intervals $k end] {
+			if {[lindex $b 1] == 0 && [lindex $c 1] == 0} {
+			    set sb 0
+			} else {
+			    set sb [expr {$j < $k}]
+			}
+			set is [math::exact::mlessm [list $b $a] [list $d $c]]
+			if {$is != $sb} {
+			    append trouble $sep "mlessm(" $a "," $b ";" \
+				$c "," $d ") is " $is \
+				" should be " $sb " -- " \
+				[list i $i j $j k $k l $k]
+			    set sep \n
+			}
+			incr l
+		    }
+		    incr k
+		}
+		incr j
+	    }
+	    incr i
+	}
+	set trouble
+    } {}
+
+    test math::exact-17.1 {unit test vscale} {
+	math::exact::vscale {2 3}
+    } {2 3}
+    test math::exact-17.2 {unit test vscale} {
+	math::exact::vscale {4 6}
+    } {2 3}
+    test math::exact-17.1 {unit test vscale} {
+	math::exact::vscale {8 12}
+    } {2 3}
+
+    test math::exact-18.1 {unit test mscale} {
+	math::exact::mscale {{2 3} {4 5}}
+    } {{2 3} {4 5}}
+    test math::exact-18.2 {unit test mscale} {
+	math::exact::mscale {{4 6} {8 10}}
+    } {{2 3} {4 5}}
+    test math::exact-18.3 {unit test mscale} {
+	math::exact::mscale {{8 12} {16 20}}
+    } {{2 3} {4 5}}
+    
+    test math::exact-19.1 {unit test tscale} {
+	math::exact::tscale {{{2 3} {4 5}} {{6 7} {8 9}}}
+    } {{{2 3} {4 5}} {{6 7} {8 9}}}
+    test math::exact-19.2 {unit test tscale} {
+	math::exact::tscale {{{4 6} {8 10}} {{12 14} {16 18}}}
+    } {{{2 3} {4 5}} {{6 7} {8 9}}}
+    test math::exact-10.3 {unit test tscale} {
+	math::exact::tscale {{{8 12} {16 20}} {{24 28} {32 36}}}
+    } {{{2 3} {4 5}} {{6 7} {8 9}}}
+    
+    test math::exact-20.1 {unit test vreduce} {
+	math::exact::vreduce {2 3}
+    } {2 3}
+    test math::exact-20.2 {unit test vreduce} {
+	math::exact::vreduce {4 6}
+    } {2 3}
+    test math::exact-20.1 {unit test vreduce} {
+	math::exact::vreduce {8 12}
+    } {2 3}
+
+    test math::exact-21.1 {unit test mreduce} {
+	math::exact::mreduce {{2 3} {4 5}}
+    } {{2 3} {4 5}}
+    test math::exact-21.2 {unit test mreduce} {
+	math::exact::mreduce {{4 6} {8 10}}
+    } {{2 3} {4 5}}
+    test math::exact-21.3 {unit test mreduce} {
+	math::exact::mreduce {{8 12} {16 20}}
+    } {{2 3} {4 5}}
+    
+    test math::exact-22.1 {unit test treduce} {
+	math::exact::treduce {{{2 3} {4 5}} {{6 7} {8 9}}}
+    } {{{2 3} {4 5}} {{6 7} {8 9}}}
+    test math::exact-22.2 {unit test treduce} {
+	math::exact::treduce {{{4 6} {8 10}} {{12 14} {16 18}}}
+    } {{{2 3} {4 5}} {{6 7} {8 9}}}
+    test math::exact-22.3 {unit test treduce} {
+	math::exact::treduce {{{8 12} {16 20}} {{24 28} {32 36}}}
+    } {{{2 3} {4 5}} {{6 7} {8 9}}}
+
+    test math::exact-23.1 {unit test mdotv} {
+	math::exact::mdotv {{2 3} {4 5}} {10 1}
+    } {24 35}
+
+    test math::exact-24.1 {unit test mdotm} {
+	math::exact::mdotm {{2 3} {4 5}} {{1000 10} {100 1}}
+    } {{2040 3050} {204 305}}
+
+    test math::exact-25.1 {unit test mdott} {
+	math::exact::mdott {{1000 10} {100 1}} {{{2 3} {4 5}} {{6 7} {8 9}}}
+    } {{{2300 23} {4500 45}} {{6700 67} {8900 89}}}
+
+    test math::exact-26.1 {unit test tleftv} {
+	math::exact::tleftv {{{2 3} {4 5}} {{6 7} {8 9}}} {10 1}
+    } {{26 37} {48 59}}
+
+    test math::exact-27.1 {unit test trightv} {
+	math::exact::trightv {{{2 3} {4 5}} {{6 7} {8 9}}} {10 1}
+    } {{24 35} {68 79}}
+
+    test math::exact-28.1 {unit test tleftm} {
+	math::exact::tleftm {{{2 3} {4 5}} {{6 7} {8 9}}} {{1000 10} {100 1}}
+    } {{{2060 3070} {4080 5090}} {{206 307} {408 509}}}
+
+    test math::exact-29.1 {unit test trightm} {
+	math::exact::trightm {{{2 3} {4 5}} {{6 7} {8 9}}} {{1000 10} {100 1}}
+    } {{{2040 3050} {204 305}} {{6080 7090} {608 709}}}
+
+    test math::exact-30.1 {unit test mdisjointm} {
+	set intervals {
+	    {-2 1} {-1 1} {-1 2} {0 1} {2 4} {3 3} {14 7} {1 0}
+	}
+	set trouble {}
+	set sep {}
+	set i 0
+	foreach a $intervals {
+	    set j $i
+	    foreach b [lrange $intervals $i end] {
+		set k 0
+		foreach c $intervals {
+		    set l $k
+		    foreach d [lrange $intervals $k end] {
+			set sb [expr {$j < $k || $l < $i}]
+			set is [math::exact::mdisjointm \
+				    [list $b $a] [list $d $c]]
+			if {$is != $sb} {
+			    append trouble $sep "mdisjointm(" $a "," $b ";" \
+				$c "," $d ") is " $is \
+				" should be " $sb " -- " \
+				[list i $i j $j k $k l $k]
+			    set sep \n
+			}
+			incr l
+		    }
+		    incr k
+		}
+		incr j
+	    }
+	    incr i
+	}
+	set trouble
+    } {}
+
+    test math::exact-31.0 {mAsFloat, rational} {
+	math::exact::mAsFloat {{1 3} {1 3}}
+    } 1/3
+
+    test math::exact-31.1 {mAsFloat, scientificNotation, mantissa, eFormat} {
+	set p 0
+	set q 1
+	set res {}
+	for {set i 0} {$i < 16} {incr i} {
+	    set r [expr {$p + $q}]
+	    if {$q * $q > $p * $r} {
+		set m [list [list $q $p] \
+			   [list $r $q]]
+	    } else {
+		set m [list [list $r $q] \
+			   [list $q $p]]
+	    }
+	    lappend res [math::exact::mAsFloat $m]
+	    set p $q
+	    set q $r
+	}
+	set res
+    } [list \
+	   Undetermined 1.e0 1.e0 1.6e0 1.6e0 1.6e0 1.62e0 1.61e0 1.61e0 \
+	   1.618e0 1.618e0 1.6180e0 1.6180e0 1.61803e0 1.61803e0 1.61803e0]
+    
+    test math::exact-31.2 {mAsFloat, scientificNotation, mantissa, eFormat} {
+	set p 0
+	set q 1
+	set res {}
+	for {set i 0} {$i < 16} {incr i} {
+	    set r [expr {$p + $q}]
+	    if {$q * $q > $p * $r} {
+		set m [list [list [expr {1000*$q}] $p] \
+			   [list [expr {1000*$r}] $q]]
+	    } else {
+		set m [list [list [expr {1000*$r}] $q] \
+			   [list [expr {1000*$q}] $p]]
+	    }
+	    lappend res [math::exact::mAsFloat $m]
+	    set p $q
+	    set q $r
+	}
+	set res
+    } [list \
+	   Undetermined 1.e3 1.e3 1.6e3 1.6e3 1.6e3 1.62e3 1.61e3 1.61e3 \
+	   1.618e3 1.618e3 1.6180e3 1.6180e3 1.61803e3 1.61803e3 1.61803e3]
+
+    test math::exact-31.3 {mAsFloat, scientificNotation, mantissa, eFormat} {
+	set p 0
+	set q 1
+	set res {}
+	for {set i 0} {$i < 16} {incr i} {
+	    set r [expr {$p + $q}]
+	    if {$q * $q > $p * $r} {
+		set m [list [list $q [expr {1000*$p}]] \
+			   [list $r [expr {1000*$q}]]]
+	    } else {
+		set m [list [list $r [expr {1000*$q}]] \
+			   [list $q [expr {1000*$p}]]]
+	    }
+	    lappend res [math::exact::mAsFloat $m]
+	    set p $q
+	    set q $r
+	}
+	set res
+    } [list \
+	   Undetermined 1.e-3 1.e-3 1.6e-3 1.6e-3 \
+	   1.6e-3 1.62e-3 1.61e-3 1.61e-3 \
+	   1.618e-3 1.618e-3 1.6180e-3 1.6180e-3 \
+	   1.61803e-3 1.61803e-3 1.61803e-3]
+    
+    test math::exact-31.4 {mAsFloat, scientificNotation, mantissa, eFormat} {
+	set p 0
+	set q 1
+	set res {}
+	for {set i 0} {$i < 16} {incr i} {
+	    set r [expr {$p + $q}]
+	    set mq [expr {-$q}]
+	    set mr [expr {-$r}]
+	    if {$q * $q > $p * $r} {
+		set m [list [list $mq $p] \
+			   [list $mr $q]]
+	    } else {
+		set m [list [list $mr $q] \
+			   [list $mq $p]]
+	    }
+	    lappend res [math::exact::mAsFloat $m]
+	    set p $q
+	    set q $r
+	}
+	set res
+    } [list \
+	   Undetermined -2.e0 -2.e0 -1.6e0 \
+	   -1.7e0 -1.7e0 -1.62e0 -1.62e0 \
+	   -1.62e0 -1.618e0 -1.618e0 -1.6180e0 \
+	   -1.6181e0 -1.61803e0 -1.61804e0 -1.61804e0]
+
+    test math::exact-31.5 {mAsFloat, 0/0} {
+	math::exact::mAsFloat {{0 0} {0 0}}
+    } NaN
+
+    test math::exact-31.6 {mAsFloat, infinity} {
+	math::exact::mAsFloat {{1 0} {1 0}}
+    } Inf
+
+    test math::exact-31.7 {mAsFloat, zero} {
+	math::exact::mAsFloat {{0 1} {0 1}}
+    } 0
+
+    test math::exact-31.8 {mAsFloat, integer} {
+	math::exact::mAsFloat {{2 1} {2 1}}
+    } 2
+
+    test math::exact-31.9 {mAsFloat, reverse signs} {
+	list [math::exact::mAsFloat {{2 -1} {2 -1}}] \
+	    [math::exact::mAsFloat {{-2 -1} {-2 -1}}]
+    } {-2 2}
+
+    test math::exact-40.1 {simple expr} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {1}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e0}
+    }
+    
+    test math::exact-40.2 {unary plus} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {+ 1}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e0}
+    }
+    
+    test math::exact-40.3 {unary minus} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {- 1}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {-1 -9.999999999999999e-1}
+    }
+
+    test math::exact-40.4 {product} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 * 3}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {6 6.000000000000000e0}
+    }
+
+    test math::exact-40.5 {quotient} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 / 3}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {2/3 6.666666666666666e-1}
+    }
+
+    test math::exact-40.6 {associativity of /} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 / 3 / 4}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1/6 1.6666666666666667e-1}
+    }
+
+    test math::exact-40.7 {associativity of */} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 / 3 * 4}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {8/3 2.6666666666666667e0}
+    }
+
+    test math::exact-40.8 {associativity of */} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 * 3 / 4}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {3/2 1.5000000000000000e0}
+    }
+
+    test math::exact-40.9 {sum} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 + 3}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {5 5.000000000000000e0}
+    }
+
+    test math::exact-40.10 {difference} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 - 3}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {-1 -9.999999999999999e-1}
+    }
+
+    test math::exact-40.11 {associativity of -} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 - 3 - 4}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {-5 -5.000000000000000e0}
+    }
+
+    test math::exact-40.12 {associativity of +-} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 - 3 + 4}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {3 3.0000000000000001e0}
+    }
+
+    test math::exact-40.13 {associativity of +-} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 + 3 - 4}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e0}
+    }
+
+    test math::exact-40.14 {precedence of +*} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {3 + 5 * 7}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {38 3.800000000000000e1}
+    }
+
+    test math::exact-40.15 {precedence of +*} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {3 * 5 + 7}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {22 2.200000000000000e1}
+    }
+
+    test math::exact-40.16 {parentheses} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(2 + 3) * 5}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {25 2.500000000000000e1}
+    }
+
+    test math::exact-40.17 {V + E} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 + real(-3/5)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1.4000000000000000e0 1.4000000000000000e0}
+    }
+
+    test math::exact-40.18 {V - E} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {2 - real(3/5)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1.4000000000000000e0 1.4000000000000000e0}
+    }
+
+    test math::exact-40.19 {E / E} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {real(3/5)/real(2/5)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1.5000000000000000e0 1.5000000000000000e0}
+    }
+
+    test math::exact-40.20 {E + V} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {real(3/2) + (2/5)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1.9000000000000000e0 1.9000000000000000e0}
+    }
+	
+    test math::exact-40.21 {E - V} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {real(3/2) - (2/5)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1.1000000000000000e0 1.1000000000000000e0}
+    }
+
+    test math::exact-40.22 {E * V} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {real(3/2) * (2/5)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {6.0000000000000001e-1 6.0000000000000001e-1}
+    }
+	
+    test math::exact-40.23 {E / V} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {real(3/2) / (5/2)}] ref]
+	    set result [list [$v asPrint 57] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {6.0000000000000001e-1 6.0000000000000001e-1}
+    }
+
+    test math::exact-40.24 {lexical error} {
+	-setup leakBaseline
+	-body {
+	    set result [list [catch {exactexpr {2 ! 1}} m] $m]
+	    leakCheck
+	    set result
+	}
+	-match glob
+	-result {1 {invalid character*}}
+    }
+	
+    test math::exact-40.25 {syntax error} {
+	-setup leakBaseline
+	-body {
+	    set result [list [catch {exactexpr {2 $ 1}} m] $m]
+	    leakCheck
+	    set result
+	}
+	-match glob
+	-result {1 {syntax error*}}
+    }
+	
+    test math::exact-41.1 {square root} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(25/16)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    #leakCheck
+	    set result
+	}
+	-result {1 1.2500000000000000e0}
+    }
+
+    test math::exact-41.2 {square root} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.4142135623730950e0}
+    }
+
+    test math::exact-41.3 {square root} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(2000000)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.4142135623731e3}
+    }
+
+    test math::exact-41.4 {square root} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(2 / 1000000)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.41421356237309e-3}
+    }
+
+    test math::exact-41.5 {square root} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(sqrt(1/81))}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 3.3333333333333333e-1}
+    }
+
+    test math::exact-41.6 {square root of negative rational} {
+	-setup {
+	    leakBaseline
+	    catch {unset v}
+	}
+	-body {
+	    set v [[exactexpr {sqrt(-1)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    unset v
+	    set result
+	}
+	-cleanup {
+	    if {[info exists v]} {$v unref}
+	}
+	-match glob
+	-returnCodes error
+	-result {*negative argument*}
+    }
+
+    test math::exact-41.7 {square root of negative real} {
+	-setup {
+	    leakBaseline
+	    catch {unset v}
+	}
+	-body {
+	    set v [[exactexpr {sqrt(-sqrt(81))}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    unset v
+	    set result
+	}
+	-cleanup {
+	    if {[info exists v]} {$v unref}
+	}
+	-match glob
+	-returnCodes error
+	-result {*negative argument*}
+    }
+
+    test math::exact-41.8 {square root, cached result} {
+	-setup leakBaseline
+	-body {
+	    set x [[exactexpr {sqrt(2)}] ref]
+	    set y [[exactexpr {$x * $x}] ref]
+	    $x unref
+	    set result [list [$y asFloat 57] [$y asFloat 57]]
+	    $y unref
+	    leakCheck
+	    set result
+	}
+	-result {2.0000000000000000e0 2.0000000000000000e0}
+    }
+    
+    test math::exact-42.1 {exponential} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {exp(1)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 2.7182818284590452e0}
+    }
+
+    test math::exact-42.2 {exponential} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {exp(4)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.45981500331442e1}
+    }
+
+    test math::exact-42.3 {exponential} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {exp(0)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e0}
+    }
+
+    test math::exact-43.1 {logarithm} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {log(1)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-43.2 {logarithm} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {log(2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 6.931471805599453e-1}
+    }
+
+    test math::exact-43.3 {logarithm} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {log(1/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -6.931471805599454e-1}
+    }
+
+    test math::exact-43.4 {logarithm} {
+	-setup {
+	    # Consume digits from math::exact::log2 to avoid appearance of
+	    # a leak in its cache
+	    $math::exact::log2 asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {log(4)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.3862943611198906e0}
+    }
+
+    test math::exact-43.5 {logarithm} {
+	-setup {
+	    # Consume digits from math::exact::log2 to avoid appearance of
+	    # a leak in its cache
+	    $math::exact::log2 asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {log(1/4)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -1.3862943611198907e0}
+    }
+
+    test math::exact-43.6 {logarithm} {
+	-setup {
+	    # Consume digits from math::exact::log2 to avoid appearance of
+	    # a leak in its cache
+	    $math::exact::log2 asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {log(exp(10))}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e1}
+    }
+
+    test math::exact-43.7 {logarithm} {
+	-setup {
+	    # Consume digits from math::exact::log2 to avoid appearance of
+	    # a leak in its cache
+	    $math::exact::log2 asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {log(exp(1/10))}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e-1}
+    }
+
+    test math::exact-43.8 {logarithm of negative argument} {
+	-setup {
+	    leakBaseline
+	    catch {unset v}
+	}
+	-body {
+	    set v [[exactexpr {log(-sqrt(81))}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    unset v
+	    set result
+	}
+	-cleanup {
+	    if {[info exists v]} {$v unref}
+	}
+	-match glob
+	-returnCodes error
+	-result {*negative argument*}
+    }
+
+    test math::exact-44.1 {pi} {
+	-setup {
+	    # Consume digits from math::exact::pi to avoid appearance of
+	    # a leak in its cache
+	    $math::exact::pi asFloat 3000
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {pi()}] ref]
+	    set result [$v asFloat 3000]
+	    $v unref
+	    leakCheck
+	    list [string range $result 0 4] \
+		[string first 999999 $result] \
+		[string range $result end-1 end]
+	}
+	-result {3.141 763 e0}
+    }
+    
+    test math::exact-44.2 {Ramanujan constant} {
+	-setup {
+	    # Consume digits from math::exact::pi to avoid appearance of
+	    # a leak in its cache
+	    $math::exact::pi asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {exp(pi()*sqrt(163))}] ref]
+	    set result [$v asFloat 160]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 2.625374126407687439999999999992e17
+    }
+	
+
+    test math::exact-45.1 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {tan(0)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.2 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {tan(pi()/4)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e0}
+    }
+
+    test math::exact-45.3 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {tan(pi()/-4)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -1.0000000000000000e0}
+    }
+
+    test math::exact-45.4 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {tan(pi()/3)-sqrt(3)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.5 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {tan(-pi()/3)+sqrt(3)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.6 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {1/tan(pi()/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.7 {tangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {tan(pi()/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 Undetermined}
+    }
+
+    test math::exact-46.1 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(0)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-46.2 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(pi()/6)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.000000000000000e-1}
+    }
+
+    test math::exact-46.3 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(-pi()/6)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -5.000000000000000e-1}
+    }
+
+    test math::exact-46.4 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(pi()/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.0000000000000000e0}
+    }
+
+    test math::exact-46.5 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(-pi()/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -1.0000000000000000e0}
+    }
+
+    test math::exact-46.6 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(pi())}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-46.7 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(-pi())}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-46.8 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(13*pi()/6)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.000000000000000e-1}
+    }
+
+    test math::exact-46.9 {sine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sin(-13*pi()/6)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -5.000000000000000e-1}
+    }
+    
+    test math::exact-47.1 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(0)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 9.999999999999999e-1}
+    }
+
+    test math::exact-47.2 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(pi()/3)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.000000000000000e-1}
+    }
+
+    test math::exact-47.3 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(-pi()/3)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.000000000000000e-1}
+    }
+
+    test math::exact-47.4 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(pi()/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-47.5 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(-pi()/2)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-47.6 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(pi())}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -1.0000000000000000e0}
+    }
+
+    test math::exact-47.7 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(-pi())}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 -1.0000000000000000e0}
+    }
+
+    test math::exact-47.8 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(7*pi()/3)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.000000000000000e-1}
+    }
+
+    test math::exact-47.9 {cosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {cos(-7*pi()/3)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 5.000000000000000e-1}
+    }
+    
+    test math::exact-45.1 {arctangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {atan(0)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.2 {arctangent} {
+	-setup leakBaseline
+	-body {
+	    # Hack to get $szer as a sign matrix
+	    set v [[exactexpr {atan(pi()-pi())}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.3 {arctangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {4*atan(1)-pi()}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+	
+    test math::exact-45.4 {arctangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {4*atan(-1)+pi()}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-45.5 {arctangent} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {atan(tan(157/100))}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 1.5700000000000000e0}
+    }
+	    
+    test math::exact-45.6 {arctangent, cached} {
+	-setup leakBaseline
+	-body {
+	    set u [[exactexpr {atan(1)}] ref]
+	    set v [[exactexpr {$u + $u + $u + $u}] ref]
+	    $u unref
+	    set result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 3.1415926535897933e0
+    }
+
+    test math::exact-46.1 {arcsine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {asin(0)}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-46.2 {arcsine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {asin(1/2)-pi()/6}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-46.3 {arcsine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {asin(-1/2)+pi()/6}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-47.1 {arccosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {acos(0)-pi()/2}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-47.2 {arccosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {acos(1/2)-pi()/3}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+
+    test math::exact-47.3 {arccosine} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {acos(-1/2)-2*pi()/3}] ref]
+	    set result [list [$v refcount] [$v asFloat 57]]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1 0e-18}
+    }
+    
+    test math::exact-48.1 {hyperbolic functions} {
+	-setup leakBaseline
+	-body {
+	    set result {}
+	    set v [[exactexpr {sinh(0)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {cosh(0)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {tanh(0)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {0e-18 1.0000000000000000e0 0e-18}
+    }
+
+    test math::exact-48.2 {hyperbolic functions} {
+	-setup leakBaseline
+	-body {
+	    set result {}
+	    set v [[exactexpr {sinh(1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {cosh(1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {tanh(1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1.1752011936438014e0 1.5430806348152437e0 7.615941559557649e-1}
+    }
+
+    test math::exact-48.3 {hyperbolic functions} {
+	-setup leakBaseline
+	-body {
+	    set result {}
+	    set v [[exactexpr {sinh(-1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {cosh(-1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {tanh(-1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {-1.1752011936438015e0 1.5430806348152437e0 -7.615941559557649e-1}
+    }
+
+    test math::exact-49.1 {asinh} {
+	-setup leakBaseline
+	-body {
+	    set result {}
+	    set v [[exactexpr {asinh(-1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {asinh(0)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {asinh(1)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {-8.813735870195431e-1 0e-18 8.813735870195430e-1}
+    }
+	
+    test math::exact-50.1 {acosh} {
+	-setup leakBaseline
+	-body {
+	    set result {}
+	    set v [[exactexpr {acosh(3/2)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {acosh(2)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {acosh(3)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {9.624236501192069e-1 1.3169578969248167e0 1.7627471740390860e0}
+    }
+
+    test math::exact-51.1 {atanh} {
+	-setup leakBaseline
+	-body {
+	    set result {}
+	    set v [[exactexpr {atanh(-1/2)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {atanh(0)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    set v [[exactexpr {atanh(1/2)}] ref]
+	    lappend result [$v asFloat 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {-5.4930614433405485e-1 0e-18 5.4930614433405485e-1}
+    }
+    
+    test math::exact-52.1 {e} {
+	-setup {
+	    # don't report cached digits of e as a leak
+	    $math::exact::e asPrint 100;
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {e()}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 2.7182818284590452e0
+    }
+    
+    test math::exact-52.2 {e} {
+	-setup {
+	    # don't report cached digits of e as a leak
+	    $math::exact::e asPrint 100;
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {log(e())}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 1.0000000000000000e0
+    }
+
+    test math::exact-52.2 {e} {
+	-setup {
+	    # don't report cached digits of e as a leak
+	    $math::exact::e asPrint 100;
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {asinh((e() - 1/e()) / 2)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 1.0000000000000000e0
+    }
+
+    test math::exact-53.1 {real**real} {
+	-setup {
+	    # Consume digits from math::exact::e and math::exact::log2
+	    # to avoid appearance of a leak in the cache
+	    $math::exact::e asFloat 100
+	    $math::exact::log2 asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {e() ** log(2)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 2.0000000000000000e0
+    }
+
+    test math::exact-53.2 {rational**real} {
+	-setup {
+	    # Consume digits from math::exact::e
+	    # to avoid appearance of a leak in the cache
+	    $math::exact::e asFloat 100
+	    leakBaseline
+	}
+	-body {
+	    set v [[exactexpr {2 ** e()}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 6.580885991017921e0
+    }
+
+    test math::exact-53.3 {real**1} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4) ** 1}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 2.0000000000000000e0
+    }
+
+    test math::exact-53.4 {real**-1} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4) ** (-1)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 5.000000000000000e-1
+    }
+
+    test math::exact-53.5 {real**0} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4) ** 0}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 1
+    }
+
+    test math::exact-53.6 {real**+int} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4)**2}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 4.000000000000000e0
+    }
+
+    test math::exact-53.7 {real**+int} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4)**5}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 3.200000000000000e1
+    }
+
+    test math::exact-53.6 {real**-int} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4)**-2}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 2.5000000000000000e-1
+    }
+
+    test math::exact-53.7 {real**+int} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(4)**-5}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 3.125000000000000e-2
+    }
+
+    test math::exact-53.8 {real**rational} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(64)**(10/3)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 1.02400000000000e3
+    }
+
+    test math::exact-53.9 {real**rational} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {sqrt(64)**(1/-3)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 5.000000000000000e-1
+    }
+	
+    test math::exact-53.10 {real**integer, accidental} {
+	-setup leakBaseline
+	-body {
+	    set v [[math::exact::real**rat [exactexpr {3}] 2 1] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 9
+    }
+	
+    test math::exact-53.11 {zero to zero power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {0**0}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-returnCodes error
+	-result "zero to zero power"
+    }
+
+    test math::exact-53.12 {zero to infinite power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {0**(1/0)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-returnCodes error
+	-result "zero to infinite power"
+    }
+	
+    test math::exact-53.13 {zero to rational power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {0**(1/2)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 0
+    }
+	
+    test math::exact-53.14 {infinity to zero power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(1/0)**0}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-returnCodes error
+	-result "infinity to zero power"
+    }
+	
+    test math::exact-53.15 {infinity to negative power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(1/0)**-1}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 0
+    }
+	
+    test math::exact-53.15 {infinity to positive power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(1/0)**1}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result Inf
+    }
+	
+    test math::exact-53.16 {rational to zero power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(2/3)**0}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 1
+    }
+
+    test math::exact-53.17 {rational power of negative real argument} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(-sqrt(64))**(1/3)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result -2.0000000000000000e0
+    }
+
+    test math::exact-53.18 {rational power of argument near zero} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {log(exp(1/8))**(1/3)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 5.000000000000000e-1
+    }
+
+    test math::exact-53.19 {negative real to real power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(-sqrt(4))**(1/2)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-returnCodes error
+	-result "negative number to real power"
+    }
+	
+    test math::exact-53.20 {rational to zero power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(2/3)**0}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 1
+    }
+
+    test math::exact-53.21 {rational to positive integer power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(2/3)**2}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 4/9
+    }
+	
+    test math::exact-53.22 {rational to negative integer power} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(2/3)**-2}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result 9/4
+    }
+
+    test math::exact-53.23 {rational to rational} {
+	-setup leakBaseline
+	-body {
+	    set v [[exactexpr {(-8)**(1/3)}] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result -2.0000000000000000e0
+    }
+
+    test math::exact-53.24 {real to 0/0} {
+	-setup leakBaseline
+	-body {
+	    set bad [[math::exact::V new {0 0}] ref]
+	    set v [[exactexpr {sqrt(2)**$bad}] ref]
+	    $bad unref
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-returnCodes error
+	-result {zero divided by zero}
+    }
+	
+    test math::exact-53.24 {rational to 0/0} {
+	-setup leakBaseline
+	-body {
+	    set bad [[math::exact::V new {0 0}] ref]
+	    set v [[exactexpr {(1/2)**$bad}] ref]
+	    $bad unref
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-returnCodes error
+	-result {zero divided by zero}
+    }
+	
+    test math::exact-53.26 {unit test - rat**int (2/3)**0} {
+	-setup leakBaseline
+	-body {
+	    set v [[math::exact::rat**int 2 3 0] ref]
+	    set result [$v asPrint 57]
+	    $v unref
+	    leakCheck
+	    set result
+	}
+	-result {1}
+    }
+
+    test math::exact-53.27 {rational powers - normalize base and exponent} {
+	-setup leakBaseline
+	-body {
+	    set p [[math::exact::V new {-2 -1}] ref]
+	    set q [[math::exact::V new {-3 -1}] ref]
+	    set r [[exactexpr {$p ** $q}] ref]
+	    $p unref
+	    $q unref
+	    set result [$r asPrint 57]
+	    $r unref
+	    leakCheck
+	    set result
+	}
+	-result 8
+    }
+
+    test math::exact-54.1 {abs1, signum1} {
+	-setup leakBaseline
+	-body {
+	    set p [[exactexpr {0}] ref]
+	    set q [[exactexpr {2}] ref]
+	    while 1 {
+		set t [[exactexpr {($q-$p) * 10**36}] ref]
+		set f [math::exact::abs1 $t]; $t unref
+		if {!$f} break
+		set x [[exactexpr {($p+$q)/2}] ref]
+		set resid [[exactexpr {$x*$x-2}] ref]
+		set t [[exactexpr {$resid * 10**36}] ref]
+		if {[math::exact::signum1 $t] > 0} {
+		    $q unref; set q $x
+		} else {
+		    $p unref; set p $x
+		}
+		$t unref; $resid unref
+	    }
+	    set result [$p asFloat 100]
+	    $p unref
+	    $q unref
+	    leakCheck
+	    set result
+	}
+	-result 1.41421356237309504880168872421e0
+    }
+
+    # following are demos that I don't know where to put, yet
+
+    if 0 {
+    set p 1
+	for {set i 0} {$i < 20} {incr i} {
+	    set f [expr {sin(0.01 * $p* acos(-1))}]
+	    set v [[exactexpr "sin($p * pi() / 100)"] ref]
+	    set a [$v asPrint 57]
+	    set r [expr {$f - $a}]
+	    puts "i: $i p: $p float: $f exact: $a difference: $r"
+	    $v unref
+	    set p [expr {11 * $p}]
+    }
+    }
+
+    if 0 {
+	for {set x 100} {$x <= 12200} {incr x 100} {
+	    set ex [[exactexpr $x] ref]
+	    puts "x $x ex [$ex asPrint 57]"
+	    set fa [expr {-(double($x)**-4)}]
+	    set ea [[exactexpr {-($ex**-4)}] ref]
+	    puts "fa $fa ea [$ea asPrint 57]"
+	    set fb [expr {exp($fa)}]
+	    set eb [[exactexpr {exp($ea)}] ref]
+	    puts "fb $fb eb [$eb asPrint 120]"
+	    set fc [expr {log($fb)}]
+	    set ec [[exactexpr {log($eb)}] ref]
+	    puts "fc $fc ec [$ec asPrint 120]"
+	    catch {expr {(-$fc) ** -0.25}} ff
+	    set ef [[exactexpr {(-$ec)**(-1/4)}] ref]
+	    puts [format "kahan's function: %s %g" $ff [$ef asFloat 28]]
+	    $ef unref
+	    $ec unref
+	    $eb unref
+	    $ea unref
+	    $ex unref
+	}
+    }
+
+    if 0 {
+	set x0 4.0
+	set x1 4.25
+	set ex0 [[exactexpr 4] ref]
+	set ex1 [[exactexpr 4+25/100] ref]
+	for {set i 1} {$i < 100} {incr i} {
+	    set x2 [expr {108. - (815. - 1500. / $x0) / $x1}]
+	    set x0 $x1
+	    set x1 $x2
+	    set ex2 [[exactexpr {108 - (815 - 1500 / $ex0) / $ex1}] ref]
+	    $ex0 unref
+	    set ex0 $ex1
+	    set ex1 $ex2
+	    puts "$i $x2 [$ex2 asFloat 57]"
+	}
+	$ex0 unref
+	$ex1 unref
+    }
+
+    testsuiteCleanup
+
+}
+
+#-----------------------------------------------------------------------------
+
+# End of test cases
+
+testsuiteCleanup
+
+# Exit if running this test standalone, to allow for Nagelfar coverage
+if {$::argv0 eq [info script]} {
+    exit
+}
+
+# Local Variables:
+# mode: tcl
+# End:
+

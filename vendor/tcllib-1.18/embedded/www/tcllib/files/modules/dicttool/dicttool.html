@@ -1,0 +1,198 @@
+
+<div class='fossil-doc' data-title='dicttool - Extensions to the standard "dict" command'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">dicttool(n) 1.0 tcllib &quot;Extensions to the standard &quot;dict&quot; command&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>dicttool - Dictionary Tools</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">ladd</b> <i class="arg">varname</i> <i class="arg">args</i></a></li>
+<li><a href="#2"><b class="cmd">ldelete</b> <i class="arg">varname</i> <i class="arg">args</i></a></li>
+<li><a href="#3"><b class="cmd">dict getnull</b> <i class="arg">args</i></a></li>
+<li><a href="#4"><b class="cmd">dict print</b> <i class="arg">dict</i></a></li>
+<li><a href="#5"><b class="cmd">dict is_dict</b> <i class="arg">value</i></a></li>
+<li><a href="#6"><b class="cmd">rmerge</b> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">dicttool</b> package enhances the standard <em>dict</em> command with several new
+commands. In addition, the package also defines several &quot;creature comfort&quot; list commands as well.
+Each command checks to see if a command already exists of the same name before adding itself,
+just in case any of these slip into the core.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">ladd</b> <i class="arg">varname</i> <i class="arg">args</i></a></dt>
+<dd><p>This command will add a new instance of each element in <i class="arg">args</i> to <i class="arg">varname</i>, but only if that element
+is not already present.</p></dd>
+<dt><a name="2"><b class="cmd">ldelete</b> <i class="arg">varname</i> <i class="arg">args</i></a></dt>
+<dd><p>This command will add a delete all instances of each element in <i class="arg">args</i> from <i class="arg">varname</i>.</p></dd>
+<dt><a name="3"><b class="cmd">dict getnull</b> <i class="arg">args</i></a></dt>
+<dd><p>Operates like <b class="cmd">dict get</b>, however if the key <i class="arg">args</i> does not exist, it returns an empty
+list instead of throwing an error.</p></dd>
+<dt><a name="4"><b class="cmd">dict print</b> <i class="arg">dict</i></a></dt>
+<dd><p>This command will produce a string representation of <i class="arg">dict</i>, with each nested branch on
+a newline, and indented with two spaces for every level.</p></dd>
+<dt><a name="5"><b class="cmd">dict is_dict</b> <i class="arg">value</i></a></dt>
+<dd><p>This command will return true if <i class="arg">value</i> can be interpreted as a dict. The command operates in
+such a way as to not force an existing dict representation to shimmer into another internal rep.</p></dd>
+<dt><a name="6"><b class="cmd">rmerge</b> <i class="arg">args</i></a></dt>
+<dd><p>Return a dict which is the product of a recursive merge of all of the arguments. Unlike <b class="cmd">dict merge</b>,
+this command descends into all of the levels of a dict. Dict keys which end in a : indicate a leaf, which
+will be interpreted as a literal value, and not descended into further.</p>
+<pre class="doctools_example">
+set items [dict merge {
+  option {color {default: green}}
+} {
+  option {fruit {default: mango}}
+} {
+  option {color {default: blue} fruit {widget: select values: {mango apple cherry grape}}}
+}]
+puts [dict print $items]
+</pre>
+<p>Prints the following result:</p>
+<pre class="doctools_example">
+option {
+  color {
+    default: blue
+  }
+  fruit {
+    widget: select
+    values: {mango apple cherry grape}
+  }
+}
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>dict</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key704">dict</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Utilites</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2015 Sean Woods &lt;yoda@etoyoc.com&gt;</p>
+</div>
+</div>

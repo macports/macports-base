@@ -1,0 +1,176 @@
+
+<html><head>
+<title>BASIC - </title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file '.FILE.' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; .COPYRIGHT.
+   -->
+<! -- BASIC.a
+   -->
+<body><div class="doctools">
+<h1 class="doctools_title">BASIC(a) 5 .MODULE. &quot;&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>BASIC -</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1">a-command</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>OK</p>
+<dl class="doctools_arguments">
+<dt>integer <i class="arg">argument-1</i></dt>
+<dd><p>verification</p></dd>
+<dt>string <i class="arg">argument-2</i> (out)</dt>
+<dd><p>mogrification</p></dd>
+</dl>
+<dl class="doctools_commands">
+<dt><b class="cmd">command-a</b></dt>
+<dd><p>explanation</p></dd>
+<dt><b class="cmd">command-b</b></dt>
+<dd><p>elucidation</p></dd>
+</dl>
+<dl class="doctools_definitions">
+<dt>term</dt>
+<dd><p>definition</p></dd>
+<dt><a name="1">a-command</a></dt>
+<dd><p>semantic</p></dd>
+</dl>
+<ol class="doctools_enumerated">
+<li><p>A</p></li>
+<li><p>B</p>
+<p>C</p>
+<p>D</p></li>
+</ol>
+<ul class="doctools_itemized">
+<li><p>1</p></li>
+<li><p>2</p>
+<p>2a</p>
+<p>2b</p></li>
+</ul>
+<dl class="doctools_options">
+<dt><b class="option">option-1</b></dt>
+<dd><p>meaning</p></dd>
+<dt><b class="option">option-2</b> value</dt>
+<dd><p>elaboration</p></dd>
+</dl>
+<dl class="doctools_tkoptions">
+<dt>Command-Line Switch:	<b class="option">background</b><br>
+Database Name:	<b class="optdbname">Background</b><br>
+Database Class:	<b class="optdbclass">Color</b><br>
+</dt>
+<dd><p>candy</p></dd>
+<dt>Command-Line Switch:	<b class="option">foreground</b><br>
+Database Name:	<b class="optdbname">Foreground</b><br>
+Database Class:	<b class="optdbclass">Color</b><br>
+</dt>
+<dd><p>caramel</p></dd>
+</dl>
+<p>KO</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; .COPYRIGHT.</p>
+</div>
+</div></body></html>

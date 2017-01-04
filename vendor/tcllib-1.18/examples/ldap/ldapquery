@@ -1,0 +1,106 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+#-----------------------------------------------------------------------------
+#   
+#   A small tool to query a LDAP database and to display all/some
+#   attributes.
+#
+#
+#   $Log: ldapquery,v $
+#   Revision 1.2  2004/04/27 21:15:02  andreas_kupries
+#   Fixed buglet. (Typo of varname).
+#
+#   Revision 1.1  2004/04/27 19:45:35  andreas_kupries
+#
+#   	* installed_modules.tcl: Added new module.
+#   	* examples/ldap:
+#   	* modules/ldap: New module: LDAP client. Provided to us by Joechen
+#   	  Loewer <loewerj@web.de>.
+#
+#   	* Added doctools documentation.
+#
+#   Revision 1.3  2000/03/23  18:03:10  18:03:10  jolo (Jochen Loewer)
+#   added sorting of types when all types/attributes 
+#   are listed
+#   
+#   Revision 1.2  2000/03/23  17:45:40  17:45:40  jolo (Jochen Loewer)
+#   does a package require now!
+#   
+#   Revision 1.1  2000/03/23  17:40:23  17:40:23  jolo (Jochen Loewer)
+#   Initial revision
+#   
+#
+#
+#   written by Jochen Loewer
+#   4 June, 1999
+#
+#-----------------------------------------------------------------------------
+
+package require ldap
+#source ./ldap.tcl
+
+#-----------------------------------------------------------------------------
+#                begin of   M A I N  part
+#-----------------------------------------------------------------------------
+
+if {$argc <  3} {
+    puts stderr "usage: "
+    puts stderr "    ldapquery <ldapserver> <base> <filter> ?<attribute> <attribute> ...?"
+    puts stderr "example: "
+    puts stderr "    ldapquery ldap.acme.com \"o=acme.com\" \"(cn=Miller*)\" "
+    puts stderr "    ldapquery ldap.acme.com:389 \"o=acme.com\" \"(cn=Miller*)\" l mail"
+    puts stderr "    ldapquery ldap \"o=acme.com\" \"&(l=Paris*)(cn=Miller*)\" cn telephonenumber ou"
+    exit 1
+}
+foreach {server base query} [lrange $argv 0 2] break
+set fields [lrange $argv 3 end]
+
+
+set port 389
+regexp {([^:]*):([0-9]*)} $server --> server port
+
+set handle [ldap::connect $server $port]
+
+ldap::bind $handle
+
+set results [ldap::search $handle $base $query $fields]
+
+foreach result $results {
+
+    foreach {object attributes} $result break
+
+    #------------------------------------------
+    #    calculate optimal width
+    #------------------------------------------
+    set width 0
+    set sortedAttribs {}
+    foreach {type values} $attributes {
+	if {[string length $type] > $width} {
+	    set width [string length $type] 
+	}
+	lappend sortedAttribs [list $type $values]
+    }     
+
+    if {$fields == {}} {
+	# sort all by type
+	set sortedAttribs [lsort -index 0 $sortedAttribs]
+    }
+
+    puts "object='$object'"
+
+    foreach sortedAttrib  $sortedAttribs {
+	foreach {type values} $sortedAttrib break
+	foreach value $values {
+	    regsub -all "\[\x01-\x1f\]" $value ? value
+	    puts [format "  %-${width}s %s" $type $value]
+	}
+    }
+    puts ""
+}
+
+ldap::unbind $handle
+ldap::disconnect $handle
+
+#-----------------------------------------------------------------------------
+#                begin of   M A I N  part
+#-----------------------------------------------------------------------------

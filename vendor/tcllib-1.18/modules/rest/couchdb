@@ -1,0 +1,56 @@
+# documentation: http://wiki.apache.org/couchdb/HTTP_Document_API
+
+package require rest
+
+set couchdb(list_dbs) {
+   url http://%server%/_all_dbs/
+   result json
+}
+
+set couchdb(create_db) {
+   url http://%server%/%name%/
+   method put
+}
+
+set couchdb(delete_db) {
+   url http://%server%/%name%/
+   method delete
+}
+
+set couchdb(db_info) {
+   url http://%server%/%name%/
+}
+
+set couchdb(list_docs) {
+   url http://%server%/%db%/_all_docs
+   opt_args { descending: startkey: endkey: limit: }
+}
+
+set couchdb(get) {
+   url http://%server%/%db%/%doc%
+}
+
+set couchdb(put) {
+   url http://%server%/%db%/%doc%
+   method put
+}
+
+set couchdb(delete) {
+   url http://%server%/%db%/%doc%
+   req_args { rev: }
+   method delete
+}
+
+set couchdb(copy) {
+   url http://%server%/%db%/%from%
+   method copy
+   headers { Destination: %to% }
+}
+
+set couchdb(move) {
+   url http://%server%/%db%/%from%
+   method copy
+   headers { Destination: %to% }
+}
+
+rest::create_interface couchdb

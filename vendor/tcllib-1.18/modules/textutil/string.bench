@@ -1,0 +1,116 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'textutil::string' 
+# module. This allow developers to monitor/gauge/track package 
+# performance.
+#
+# (c) 2008 Michael Schlenker <mic42@sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget log
+catch {namespace delete ::log}
+source [file join [file dirname [file dirname [info script]]] log log.tcl]
+
+package forget textutil::string
+catch {namespace delete ::textutil}
+source [file join [file dirname [info script]] string.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "longestCommonPrefixList - $n char match - 2 elements list" -pre {
+    set list [list [string repeat a $n]b [string repeat a $n]c]
+} -body {
+    set prefix [::textutil::string::longestCommonPrefixList $list]
+} -post {
+    unset list
+    unset prefix
+}
+}
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "longestCommonPrefixList - 10 char match - $n elements list" -pre {
+    set elem [string repeat a 10]
+    for {set i 0} {$i < $n} {incr i} {
+	lappend list "$elem$i"
+    }
+} -body {
+    set prefix [::textutil::string::longestCommonPrefixList $list]
+} -post {
+    unset list
+    unset prefix
+}
+}
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "longestCommonPrefixList - no match - $n elements list" -pre {
+    set elem [string repeat a 10]
+    for {set i 0} {$i < $n} {incr i} {
+	lappend list "$elem$i"
+    }
+    lappend list "NOPREFIX"
+} -body {
+    set prefix [::textutil::string::longestCommonPrefixList $list]
+} -post {
+    unset list
+    unset prefix
+}
+}
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "chop one char from $n char string" -pre {
+    set str [string repeat a $n]
+} -body {
+    set chopped [::textutil::string::chop $str]
+} -post {
+    unset str
+    unset chopped 
+}
+}
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "tail one char from $n char string" -pre {
+    set str [string repeat a $n]
+} -body {
+    set tailed [::textutil::string::tail $str]
+} -post {
+    unset str
+    unset tailed
+}
+}
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "cap from $n char string" -pre {
+    set str [string repeat a $n]
+} -body {
+    set capped [::textutil::string::cap $str]
+} -post {
+    unset str
+    unset capped
+}
+}
+
+foreach n {1 10 100 1000 5000} {
+bench -desc "uncap from $n char string" -pre {
+    set str [string repeat a $n]
+} -body {
+    set uncapped [::textutil::string::uncap $str]
+} -post {
+    unset str
+    unset uncapped
+}
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

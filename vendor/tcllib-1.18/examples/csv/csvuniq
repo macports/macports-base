@@ -1,0 +1,80 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Make CSV data the specified column unique.
+
+package require csv
+package require cmdline
+
+# ----------------------------------------------------
+# csvuniq ?-sep sepchar? column file.in|- file.out|-
+#
+# Argument processing and checks.
+
+set sepChar ,
+
+set usage "Usage: $argv0 ?-sep sepchar? column file.in|- file.out|-"
+
+while {[set ok [cmdline::getopt argv {sep.arg} opt val]] > 0} {
+    #puts stderr "= $opt $val"
+    switch -exact -- $opt {
+	sep  {set sepChar $val}
+    }
+}
+if {($ok < 0) || ([llength $argv] != 3)} {
+    puts stderr $usage
+    exit -1
+}
+
+foreach {uniCol in out} $argv break
+
+if {
+    ![string is integer $uniCol] ||
+    ($uniCol < 0)                ||
+    ![string compare $in  ""]     ||
+    ![string compare $out ""]
+} {
+    puts stderr $usage
+    exit -1    
+}
+
+if {![string compare $in -]} {
+    set in stdin
+} else {
+    set in [open $in r]
+}
+if {![string compare $out -]} {
+    set out stdout
+} else {
+    set out [open $out w]
+}
+
+# ----------------------------------------------------
+# Actual processing, uses the following information from the
+# commandline:
+#
+# in      - channel for input
+# out     - channel for output
+# sepChar - separator character
+# uniCol  - column to make unique
+
+set last ""
+set first 1
+
+while {![eof $in]} {
+    if {[gets $in line] < 0} {
+	continue
+    }
+
+    set data [::csv::split $line $sepChar]
+
+    if {$first} {
+	set first 0
+	set last  [lindex $data $uniCol]
+	puts $out [::csv::join $data $sepChar]
+    } elseif {[string compare $last [lindex $data $uniCol]] != 0} {
+	set last  [lindex $data $uniCol]
+	puts $out [::csv::join $data $sepChar]
+    } ; # else {no change in column, ignore record}
+}
+
+exit ; # automatically closes the channels

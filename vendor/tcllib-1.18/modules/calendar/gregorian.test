@@ -1,0 +1,407 @@
+#----------------------------------------------------------------------
+#
+# calendar.test --
+#
+#		Tests for [calendar::CommonCalendar] and
+#	[calendar::GregorianCalendar]
+#
+# RCS: @(#) $Id: gregorian.test,v 1.6 2006/10/09 21:41:40 andreas_kupries Exp $
+#
+#----------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal calendar.tcl calendar
+}
+
+#----------------------------------------------------------------------
+#
+# TEST CASES
+#
+#----------------------------------------------------------------------
+# Unix epoch
+
+array set gregChange {
+    ERA          CE
+    YEAR         1752
+    MONTH        9
+    DAY_OF_MONTH 14
+}
+
+array set gregUnixEpoch {
+    ERA          CE
+    YEAR         1970
+    MONTH        1
+    DAY_OF_MONTH 1
+}
+
+set gregChangeJ [calendar::GregorianCalendar::EYMDToJulianDay gregChange]
+set unixEpoch   [calendar::GregorianCalendar::EYMDToJulianDay gregUnixEpoch]
+
+if 0 {
+    puts "Gregorian calendar was adopted in England on Julian Day $gregChangeJ"
+    puts "Posix epoch is Julian day $unixEpoch"
+}
+
+#----------------------------------------------------------------------
+# Procedure that tests EYMDToJulianDay, EYDToJulianDay, JulianDayToEYD,
+# and JulianDayToEYMD
+
+proc testCal { month day year } {
+
+    global unixEpoch
+
+    # Convert the requested date to seconds from the Posix epoch
+
+    set seconds [clock scan $month/$day/$year -gmt true]
+
+    # Convert to days from the Posix epoch
+
+    set days [ expr { $seconds / 86400 }]
+
+    # Test EYMDToJulianDay
+
+    set dateIn(ERA) CE
+    set dateIn(YEAR) $year
+    set dateIn(MONTH) $month
+    set dateIn(DAY_OF_MONTH) $day
+    set dateIn(DAY_OF_YEAR) \
+	[string trimleft [clock format $seconds -gmt true -format %j] 0]
+    set jcdOut [calendar::GregorianCalendar::EYMDToJulianDay dateIn]
+    if { $jcdOut - $unixEpoch != $days } {
+	error "date $month/$day/$year julian day is $jcdout\
+               should be [expr $days + $unixEpoch]"
+    }
+
+    # Test JulianDayToEYMD and its internal call to JulianDayToEYD
+
+    calendar::GregorianCalendar::JulianDayToEYMD $jcdOut dateOut
+    foreach f {ERA YEAR DAY_OF_YEAR MONTH DAY_OF_MONTH} {
+	if { [string compare $dateIn($f) $dateOut($f)] } {
+	    error "date $month/$day/$year field $f\
+                   is $dateOut($f) should be $dateIn($f)"
+	}
+    }
+
+    # Test EYDToJulianDay (possible because JulianDayToEYMD leaves
+    # DAY_OF_YEAR
+
+    set jcdOut2 [calendar::GregorianCalendar::EYDToJulianDay dateOut]
+    if { $jcdOut2 - $unixEpoch != $days } {
+	error "date $month/$day/$year julian day is $jcdout2\
+               should be [expr $days + $unixEpoch]"
+    }
+
+
+}
+
+# Procedure that tests EFYWDToJulianDay and JulianDayToEFYWD.  Inputs are
+# fiscal year, week, day, calendar year, month, and day of month.  Conversion
+# in both directions is tested.
+
+proc testISO { fy w d cy m dm } {
+    set date(ERA) CE
+    set date(FISCAL_YEAR) $fy
+    set date(WEEK_OF_YEAR) $w
+    set date(DAY_OF_WEEK) $d
+    set dayNo [calendar::GregorianCalendar::EFYWDToJulianDay date]
+    calendar::GregorianCalendar::JulianDayToEYMD $dayNo date2
+    if { $date2(YEAR) != $cy
+	 || $date2(MONTH) != $m
+	 || $date2(DAY_OF_MONTH) != $dm } {
+	error "[info level 0]: bad date should be $cy-$m-$dm:\
+               year $date2(YEAR) month $date2(MONTH) day $date2(DAY_OF_MONTH)"
+    }
+
+    set date3(ERA) CE
+    set date3(YEAR) $cy
+    set date3(MONTH) $m
+    set date3(DAY_OF_MONTH) $dm
+    set dayNo [calendar::GregorianCalendar::EYMDToJulianDay date3]
+    calendar::GregorianCalendar::JulianDayToEFYWD $dayNo date4
+    if { $date4(FISCAL_YEAR) != $fy
+	 || $date4(WEEK_OF_YEAR) != $w
+	 || $date4(DAY_OF_WEEK) != $d } {
+	error "[info level 0]: bad date should be $fy-W$w-$d:
+               year $date4(FISCAL_YEAR) week $date4(WEEK_OF_YEAR) day $date4(DAY_OF_WEEK)"
+    }
+
+}
+
+# Procedure that tests day-of-week-in-month for a given year-month-day.
+# Assumes that days of month are presented in order.
+
+proc testWeekInMonth { y m d } {
+    global count lastYM
+    if { ![info exists lastYM]
+	 || [string compare $lastYM [list $y $m]] } {
+	set lastYM [list $y $m]
+	for { set dw 0 } { $dw < 7 } { incr dw } {
+	    set count($dw) 0
+	}
+    }
+    set date(ERA) CE
+    set date(YEAR) $y
+    set date(MONTH) $m
+    set date(DAY_OF_MONTH) $d
+    set jd [calendar::GregorianCalendar::EYMDToJulianDay date]
+    calendar::GregorianCalendar::JulianDayToEYMWD $jd date2
+    set s [clock scan "$m/$d/$y" -gmt true]
+    set dw [clock format $s -format "%w" -gmt true]
+    if { $dw != $date2(DAY_OF_WEEK) } {
+	error "JulianDayToEYMWD computed wrong day\
+                       $date2(DAY_OF_WEEK) for $y-$m-$d should be $dw"
+    }
+    incr count($dw)
+    if { $count($dw) != $date2(DAY_OF_WEEK_IN_MONTH) } {
+	error "JulianDateToEYMD computed wrong week\
+                       $date2(DAY_OF_WEEK_IN_MONTH) for $y-$m-$d\
+                       should be $count($dw)"
+    }
+    foreach field {ERA YEAR MONTH DAY_OF_WEEK_IN_MONTH DAY_OF_WEEK} {
+	set date3($field) $date2($field)
+    }
+    set jd2 [calendar::GregorianCalendar::EYMWDToJulianDay date3]
+    unset date2 date3
+    if { $jd2 != $jd } {
+	error "EYMDToJulianDate computed wrong day $jd2\
+                       for $y-$m-$d should be $jd"
+    }
+    return
+}
+
+# Procedure that tests day-of-week-from-end-ofmonth for a given year-month-day.
+# Assumes that days of month are presented in reverse order.
+
+proc testWeekFromEndOfMonth { y m d } {
+    global count lastYM
+    if { ![info exists lastYM]
+	 || [string compare $lastYM [list $y $m]] } {
+	set lastYM [list $y $m]
+	for { set dw 0 } { $dw < 7 } { incr dw } {
+	    set count($dw) 0
+	}
+    }
+    set date(ERA) CE
+    set date(YEAR) $y
+    set date(MONTH) $m
+    set date(DAY_OF_MONTH) $d
+    set jd [calendar::GregorianCalendar::EYMDToJulianDay date]
+
+    set s [clock scan "$m/$d/$y" -gmt true]
+    set dw [clock format $s -format "%w" -gmt true]
+    incr count($dw) -1
+
+    foreach field {ERA YEAR MONTH} {
+	set date2($field) $date($field)
+    }
+    set date2(DAY_OF_WEEK_IN_MONTH) $count($dw)
+    set date2(DAY_OF_WEEK) $dw
+    set jd2 [calendar::GregorianCalendar::EYMWDToJulianDay date2]
+    if { $jd2 != $jd } {
+	error "EYMWDToJulianDate computed wrong day $jd2\
+                       for $y-$m-$d (week $count($dw), day $dw) should be $jd"
+    }
+    return
+}
+
+#----------------------------------------------------------------------
+
+test calendar-1.1 {Julian Day converting to/from Gregorian year-month-day} {
+
+    set n 0
+    for { set year 1902 } { $year < 2038 } { incr year } {
+
+	# Test the first and last day of each month.  Test 28 February
+	# always, 29 February of leap years.
+
+	testCal 1 1 $year
+	testCal 1 31 $year
+	testCal 2 28 $year
+	if { $year % 4  == 0} {
+	    testCal 2 29 $year
+	    incr n
+	}
+	testCal 3 1 $year
+	testCal 3 31 $year
+	testCal 4 1 $year
+	testCal 4 30 $year
+	testCal 5 1 $year
+	testCal 5 31 $year
+	testCal 6 1 $year
+	testCal 6 30 $year
+	testCal 7 1 $year
+	testCal 7 31 $year
+	testCal 8 1 $year
+	testCal 8 31 $year
+	testCal 9 1 $year
+	testCal 9 30 $year
+	testCal 10 1 $year
+	testCal 10 31 $year
+	testCal 11 1 $year
+	testCal 11 30 $year
+	testCal 12 1 $year
+	testCal 12 31 $year
+	incr n 24
+    }
+
+    set n
+} 3298
+
+test calendar-2.1 {ISO date conversions} {
+
+    # Test the first and last week of a 52- and 53-week year beginning on each
+    # possible day of week
+
+    testISO 2000 52 1 2000 12 25
+    testISO 2000 52 7 2000 12 31
+    testISO 2001 1 1 2001 1 1
+    testISO 2001 1 7 2001 1 7
+    testISO 2001 2 1 2001 1 8
+
+    testISO 2001 52 1 2001 12 24
+    testISO 2001 52 7 2001 12 30
+    testISO 2002 1 1 2001 12 31
+    testISO 2002 1 2 2002 1 1
+    testISO 2002 1 7 2002 1 6
+    testISO 2002 2 1 2002 1 7
+
+    testISO 2002 52 1 2002 12 23
+    testISO 2002 52 7 2002 12 29
+    testISO 2003 1 1 2002 12 30
+    testISO 2003 1 2 2002 12 31
+    testISO 2003 1 3 2003 1 1
+    testISO 2003 1 7 2003 1 5
+    testISO 2003 2 1 2003 1 6
+
+    testISO 2003 52 1 2003 12 22
+    testISO 2003 52 7 2003 12 28
+    testISO 2004 1 1 2003 12 29
+    testISO 2004 1 3 2003 12 31
+    testISO 2004 1 4 2004 1 1
+    testISO 2004 1 7 2004 1 4
+    testISO 2004 2 1 2004 1 5
+
+    testISO 2004 52 1 2004 12 20
+    testISO 2004 52 7 2004 12 26
+    testISO 2004 53 1 2004 12 27
+    testISO 2004 53 5 2004 12 31
+    testISO 2004 53 6 2005 1 1
+    testISO 2004 53 7 2005 1 2
+    testISO 2005 1 1 2005 1 3
+    testISO 2005 1 7 2005 1 9
+    testISO 2005 2 1 2005 1 10
+
+    testISO 2005 52 1 2005 12 26
+    testISO 2005 52 6 2005 12 31
+    testISO 2005 52 7 2006 1 1
+    testISO 2006 1 1 2006 1 2
+    testISO 2006 1 7 2006 1 8
+    testISO 2006 2 1 2006 1 9
+
+    testISO 2009 52 1 2009 12 21
+    testISO 2009 52 7 2009 12 27
+    testISO 2009 53 1 2009 12 28
+    testISO 2009 53 4 2009 12 31
+    testISO 2009 53 5 2010 1 1
+    testISO 2009 53 7 2010 1 3
+    testISO 2010 1 1 2010 1 4
+    testISO 2010 1 7 2010 1 10
+    testISO 2010 2 1 2010 1 11
+
+} {}
+
+test calendar-3.1 {Day-of-week-in-month} {
+    # Test each day of month for one month of each possible length
+    # starting on each day of the week.
+
+    foreach { y m l } {
+	2001 1 31
+	2001 11 30
+	2001 2 28
+	2001 3 31
+	2001 4 30
+	2001 5 31
+	2001 6 30
+	2001 7 31
+	2001 8 31
+	2001 9 30
+	2002 2 28
+	2002 3 31
+	2002 4 30
+	2003 2 28
+	2003 3 31
+	2003 4 30
+	2004 2 29
+	2004 9 30
+	2005 2 28
+	2006 2 28
+	2008 2 29
+	2009 2 28
+	2010 2 28
+	2012 2 29
+	2016 2 29
+	2020 2 29
+	2024 2 29
+	2028 2 29
+    } {
+	for { set d 1 } { $d <= $l } { incr d } {
+	    testWeekInMonth $y $m $d
+	}
+    }
+    concat
+} {}
+
+test calendar-3.2 {Day-of-week from end of month} {
+    # Test each day of month for one month of each possible length
+    # starting on each day of the week.
+
+    foreach { y m l } {
+	2001 1 31
+	2001 11 30
+	2001 2 28
+	2001 3 31
+	2001 4 30
+	2001 5 31
+	2001 6 30
+	2001 7 31
+	2001 8 31
+	2001 9 30
+	2002 2 28
+	2002 3 31
+	2002 4 30
+	2003 2 28
+	2003 3 31
+	2003 4 30
+	2004 2 29
+	2004 9 30
+	2005 2 28
+	2006 2 28
+	2008 2 29
+	2009 2 28
+	2010 2 28
+	2012 2 29
+	2016 2 29
+	2020 2 29
+	2024 2 29
+	2028 2 29
+    } {
+	for { set d $l } { $d >= 1 } { incr d -1 } {
+	    testWeekFromEndOfMonth $y $m $d
+	}
+    }
+    concat
+} {}
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+
+# Local Variables:
+# mode:tcl
+# End:

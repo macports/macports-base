@@ -1,0 +1,154 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::interact::pager n 0.1]
+[keywords control]
+[keywords pager]
+[keywords terminal]
+[keywords {text display}]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {Terminal widget, paging}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::interact::pager [opt 0.1]]
+[description]
+
+This package provides a class for the creation of a simple paging
+text display.
+
+[section {Class API}]
+
+The package exports a single command, the class command, enabling the
+creation of pager instances. Its API is:
+
+[list_begin definitions]
+
+[call [cmd term::interact::pager] [arg object] [arg text] [opt [arg options]...]]
+
+This command creates a new pager object with the name [arg object],
+initializes it, and returns the fully qualified name of the object
+command as its result.
+
+[para]
+
+The argument is the text to show, possibly followed by configuration
+options and their values. The options are explained in the section
+[sectref Configuration].
+
+[list_end]
+
+[section {Object API}]
+
+The objects created by the class command provide the methods listed
+below:
+
+[list_begin definitions]
+[call [arg object] [method interact]]
+
+Show the pager in the screen at the configured location and start
+interacting with it. This opens its own event loop for the processing
+of incoming characters. The method returns when the interaction has
+completed. See section [sectref Interaction] for a description of the
+possible interaction.
+
+[call [arg object] [method done]]
+
+This method can be used by user supplied actions to terminate the
+interaction with the object.
+
+[call [arg object] [method clear]]
+
+This method can be used by user supplied actions to remove the pager
+from the terminal.
+
+[call [arg object] [method text] [arg text]]
+
+This method can be used to change the text shown by the pager.
+The pager will reset the dispay to show the first line of the
+text at the top.
+
+[call [arg object] [method configure]]
+[call [arg object] [method configure] [arg option]]
+[call [arg object] [method configure] [arg option] [arg value]...]
+[call [arg object] [method cget] [arg option]]
+
+Standard methods to retrieve and configure the options of the pager.
+
+[list_end]
+
+[section Configuration]
+
+A pager instance recognizes the following options:
+
+[list_begin options]
+[opt_def -in chan]
+
+Specifies the channel to read character sequences from. Defaults to
+[const stdin].
+
+[opt_def -out chan]
+
+Specifies the channel to write the pager contents to. Defaults to
+[const stdout].
+
+[opt_def -column int]
+
+Specifies the column of the terminal where the left margin of the
+pager display should appear. Defaults to 0, i.e. the left-most
+column.
+
+[opt_def -line int]
+
+Specifies the line of the terminal where the top margin of the pager
+display should appear. Defaults to 0, i.e. the top-most line.
+
+[opt_def -height int]
+
+Specifies the number of lines of text to show at most in the
+display. Defaults to 25.
+
+[opt_def -actions dict]
+
+Specifies a dictionary containing additional actions, using character
+sequences as keys. Note that these sequences cannot override the
+hardwired sequences described in section [sectref Interaction].
+
+[list_end]
+
+[section Interaction]
+
+A pager object recognizes the control sequences listed below and acts
+as described. The user can supply more control sequences to act on via
+the configuration, but is not able to overide these defaults.
+
+[list_begin definitions]
+[def {Cursor Up}]
+
+The text is scrolled down a single line, making one more line visible
+at the top. The pager will not react if the first line of the text is
+already shown.
+
+[def {Cursor Down}]
+
+The text is scrolled up a single line, making one more line visible at
+the bottom. The pager will not react if the last line of the text is
+already shown.
+
+[def {Page Up}]
+
+The text is scrolled down a page. The pager will not react if the
+first line of the text is already shown.
+
+[def {Page Down}]
+
+The text is scrolled up a page. The pager will not react if the last
+line of the text is already shown.
+
+[def Enter/Return]
+
+The interaction with the object is terminated.
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

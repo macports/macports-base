@@ -1,0 +1,252 @@
+<div class='fossil-doc' data-title='control - Tcl Control Flow Commands'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">control(n) 0.1.3 tcllib &quot;Tcl Control Flow Commands&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>control - Procedures for control flow structures.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">LIMITATIONS</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">control <span class="opt">?0.1.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">control::control</b> <i class="arg">command</i> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">control::assert</b> <i class="arg">expr</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">control::do</b> <i class="arg">body</i> <span class="opt">?<i class="arg">option test</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">control::no-op</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">control</b> package provides a variety of commands that provide
+additional flow of control structures beyond the built-in ones
+provided by Tcl.  These are commands that in many programming
+languages might be considered <em>keywords</em>, or a part of the
+language itself.  In Tcl, control flow structures are just commands
+like everything else.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">control::control</b> <i class="arg">command</i> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>The <b class="cmd">control</b> command is used as a configuration command for
+customizing the other public commands of the control package.  The
+<i class="arg">command</i> argument names the command to be customized.  The set of
+valid <i class="arg">option</i> and subsequent arguments are determined by the
+command being customized, and are documented with the command.</p></dd>
+<dt><a name="2"><b class="cmd">control::assert</b> <i class="arg">expr</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>When disabled, the <b class="cmd"><a href="../../../../index.html#key144">assert</a></b> command behaves exactly like the
+<b class="cmd"><a href="../../../../index.html#key143">no-op</a></b> command.</p>
+<p>When enabled, the <b class="cmd"><a href="../../../../index.html#key144">assert</a></b> command evaluates <i class="arg">expr</i> as an
+expression (in the same way that <b class="cmd">expr</b> evaluates its argument).
+If evaluation reveals that <i class="arg">expr</i> is not a valid boolean
+expression (according to [<b class="cmd">string is boolean -strict</b>]),
+an error is raised.  If <i class="arg">expr</i> evaluates to a true boolean value
+(as recognized by <b class="cmd">if</b>), then <b class="cmd"><a href="../../../../index.html#key144">assert</a></b> returns an empty
+string.  Otherwise, the remaining arguments to <b class="cmd"><a href="../../../../index.html#key144">assert</a></b> are used
+to construct a message string.  If there are no arguments, the message
+string is &quot;assertion failed: $expr&quot;.  If there are arguments, they are
+joined by <b class="cmd"><a href="../../../../index.html#key558">join</a></b> to form the message string.  The message string
+is then appended as an argument to a callback command, and the
+completed callback command is evaluated in the global namespace.</p>
+<p>The <b class="cmd"><a href="../../../../index.html#key144">assert</a></b> command can be customized by the <b class="cmd">control</b>
+command in two ways:</p>
+<p>[<b class="cmd">control::control assert enabled</b> <span class="opt">?<i class="arg">boolean</i>?</span>]
+queries or sets whether <b class="cmd">control::assert</b> is enabled.  When called
+without a <i class="arg">boolean</i> argument, a boolean value is returned
+indicating whether the <b class="cmd">control::assert</b> command is enabled.  When
+called with a valid boolean value as the <i class="arg">boolean</i> argument, the
+<b class="cmd">control::assert</b> command is enabled or disabled to match the
+argument, and an empty string is returned.</p>
+<p>[<b class="cmd">control::control assert callback</b> <span class="opt">?<i class="arg">command</i>?</span>]
+queries or sets the callback command that will be called by an enabled
+<b class="cmd"><a href="../../../../index.html#key144">assert</a></b> on assertion failure.  When called without a
+<i class="arg">command</i> argument, the current callback command is returned.
+When called with a <i class="arg">command</i> argument, that argument becomes the
+new assertion failure callback command.  Note that an assertion
+failure callback command is always defined, even when <b class="cmd"><a href="../../../../index.html#key144">assert</a></b>
+is disabled.  The default callback command is
+[<b class="cmd">return -code error</b>].</p>
+<p>Note that <b class="cmd">control::assert</b> has been written so that in
+combination with [<b class="cmd">namespace import</b>], it is possible to
+use enabled <b class="cmd"><a href="../../../../index.html#key144">assert</a></b> commands in some namespaces and disabled
+<b class="cmd"><a href="../../../../index.html#key144">assert</a></b> commands in other namespaces at the same time.  This
+capability is useful so that debugging efforts can be independently
+controlled module by module.</p>
+<pre class="doctools_example">
+% package require control
+% control::control assert enabled 1
+% namespace eval one namespace import ::control::assert
+% control::control assert enabled 0
+% namespace eval two namespace import ::control::assert
+% one::assert {1 == 0}
+assertion failed: 1 == 0
+% two::assert {1 == 0}
+</pre>
+</dd>
+<dt><a name="3"><b class="cmd">control::do</b> <i class="arg">body</i> <span class="opt">?<i class="arg">option test</i>?</span></a></dt>
+<dd><p>The <b class="cmd"><a href="../../../../index.html#key145">do</a></b> command evaluates the script <i class="arg">body</i> repeatedly
+<em>until</em> the expression <i class="arg">test</i> becomes true or as long as
+(<em>while</em>) <i class="arg">test</i> is true, depending on the value of
+<i class="arg">option</i> being <b class="const">until</b> or <b class="const">while</b>. If
+<i class="arg">option</i> and <i class="arg">test</i> are omitted the body is evaluated exactly
+once. After normal completion, <b class="cmd"><a href="../../../../index.html#key145">do</a></b> returns an empty string.
+Exceptional return codes (<b class="cmd">break</b>, <b class="cmd">continue</b>, <b class="cmd"><a href="../../../../index.html#key161">error</a></b>,
+etc.) during the evaluation of <i class="arg">body</i> are handled in the same way
+the <b class="cmd">while</b> command handles them, except as noted in
+<span class="sectref"><a href="#section3">LIMITATIONS</a></span>, below.</p></dd>
+<dt><a name="4"><b class="cmd">control::no-op</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>The <b class="cmd"><a href="../../../../index.html#key143">no-op</a></b> command takes any number of arguments and does
+nothing.  It returns an empty string.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">LIMITATIONS</a></h2>
+<p>Several of the commands provided by the <b class="cmd">control</b> package accept
+arguments that are scripts to be evaluated.  Due to fundamental
+limitations of Tcl's <b class="cmd">catch</b> and <b class="cmd"><a href="../../../../index.html#key187">return</a></b> commands, it is not
+possible for these commands to properly evaluate the command
+[<b class="cmd">return -code $code</b>] within one of those script
+arguments for any value of <i class="arg">$code</i> other than <i class="arg">ok</i>.  In this
+way, the commands of the <b class="cmd">control</b> package are limited as compared
+to Tcl's built-in control flow commands (such as <b class="cmd">if</b>,
+<b class="cmd">while</b>, etc.) and those control flow commands that can be
+provided by packages coded in C.  An example of this difference:</p>
+<pre class="doctools_example">
+% package require control
+% proc a {} {while 1 {return -code error a}}
+% proc b {} {control::do {return -code error b} while 1}
+% catch a
+1
+% catch b
+0
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>control</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>break, continue, expr, if, <a href="../../../../index.html#key558">join</a>, namespace, <a href="../../../../index.html#key187">return</a>, <a href="../../../../index.html#key280">string</a>, while</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key144">assert</a>, <a href="../../../../index.html#key95">control</a>, <a href="../../../../index.html#key145">do</a>, <a href="../../../../index.html#key141">flow</a>, <a href="../../../../index.html#key143">no-op</a>, <a href="../../../../index.html#key142">structure</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div>

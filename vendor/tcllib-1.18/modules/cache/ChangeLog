@@ -1,0 +1,52 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* async.tcl: Moved the cleanup of state regarding pending
+	* async.man: callbacks in the notification methods forward
+	* pkgIndex.tcl: to ensure consistent internal state in case of
+	  recursive call to set method by the callbacks. Also added guard
+	  in 'set' to avoid multiple sets for identical values. Bumped to
+	  version 0.3.
+
+2008-11-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* async.tcl (exists): Added method querying the cache about
+	  knowledge of a key. Fixed handling of provider command
+	  prefix. Bumped version to 0.2.
+
+2008-11-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* async.man: New module 'cache', containing the new package
+	* async.tcl: 'cache::async'.
+	* async.test: 
+	* pkgIndex.tcl: 
+

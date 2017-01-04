@@ -1,0 +1,1096 @@
+.\"
+.\" ObjCmdWrite.3
+.\"
+.\" Command writing manual.
+.\"----------------------------------------------------------------------------
+.\" Copyright 1992-1999 Karl Lehenbauer and Mark Diekhans.
+.\"
+.\" Permission to use, copy, modify, and distribute this software and its
+.\" documentation for any purpose and without fee is hereby granted, provided
+.\" that the above copyright notice appear in all copies.  Karl Lehenbauer and
+.\" Mark Diekhans make no representations about the suitability of this
+.\" software for any purpose.  It is provided "as is" without express or
+.\" implied warranty.
+.\"----------------------------------------------------------------------------
+.\" $Id: ObjCmdWrite.3,v 8.4 1999/03/31 06:37:42 markd Exp $
+.\"----------------------------------------------------------------------------
+.\"
+.TH "Command Writing" TCL "" "Tcl"
+.ad b
+.SH NAME
+TclCommandWriting - Writing C language extensions to Tcl.
+'
+.SH OVERVIEW
+This document is intended to help the programmer who wishes to extend
+Tcl with C language routines.  It should also be useful to someone
+wishing to add Tcl to an existing editor, communications program, 
+window manager, etc.  Experienced extension writers may find this manual
+helpful in rewriting their applications to use the new Tcl object system.
+We assume you are already fluent in the C programming language and that
+you have built and installed Tcl on your machine.
+.PP
+Information on the available C interface routines to Tcl can be found in 
+the \fI*.3\fR manual pages in the \fIdoc\fR directory of the baseline Tcl 
+distribution, and in the \fI*.3\fR manpages in the \fIdoc\fR directory of 
+Extended Tcl.
+'
+.SH TCL OBJECT SYSTEM
+'
+With the release of Tcl version 8, Tcl has a new system for managing Tcl 
+values internally.  To the Tcl programmer, the new objects look and act 
+like strings, as before.  But at the C level, these objects can now also 
+hold cached internal representations of the strings in various native
+datatypes.  For example, an object containing a string consisting of an 
+integer, will now maintain a machine-code integer representation, if an
+integer representation has been needed.  
+Using these objects is much more efficient than
+using the older-style Tcl strings, although the older style is still
+(currently) supported.
+.PP
+Although the object system has almost no effect at all on how the Tcl
+programmer uses Tcl, the object system's C interfaces to strings, integers,
+lists, etc., have changed considerably.  While converting a package
+to use the new system can be a lot of work, the combination of the
+object system, which saves Tcl from having to constantly convert strings
+to integers and back, etc., and the on-the-fly bytecode compiler (which
+keeps Tcl from having to continually reparse code it is to execute) yield 
+Tcl programs
+that routinely execute several times more quickly than with previous
+versions (Tcl 7 and before), and in some cases run as much
+as 2500 (!) times faster than before.
+.PP
+We have chosen, then, to rewrite the Command Writer's manpage, which has
+been shipping with Extended Tcl for a number of years, to produce this
+new version based on the new object system.  The old manpage, based on
+the older string-oriented routines, will still be included in TclX releases
+for now, as it is still relevant to Tcl releases through version 7,
+and may be of use to those modifying/upgrading packages written for
+the old model.  The old manual will be dropped from the release once
+we deem it unneeded; the old interfaces should now be considered legacy
+interfaces, and all new development should be done using the new object
+interfaces, unless backwards compatibility to pre-Tcl-8 releases is needed.
+
+.SH A SIMPLE C EXTENSION
+All C-based Tcl commands are called with four arguments: a client data pointer,
+an interpreter pointer, an argument count and a pointer to an array of
+Tcl objects containing the arguments to the command.
+.PP
+A simple C extension to Tcl is now presented, and described below:
+.sp
+.nf
+.ft CW
+    #include "tcl.h"
+
+    int App_DumpArgsObjCmd(clientData, interp, objc, objv)
+        void          *clientData;
+        Tcl_Interp    *interp;
+        int            objc;
+        Tcl_Obj      **objv;
+    {
+            int   i;
+	    int   stringLen;
+	    char *stringPtr;
+
+            for (i = 1; i < objc; i++) {
+		    stringPtr = Tcl_GetStringFromObj (objv [i], &stringLen);
+                    printf("%s", stringPtr);
+		    if (i < objc - 1) printf(" ");
+            }
+            printf("\\n");
+            return TCL_OK;
+    }
+.ft R
+.fi
+.PP      
+The client data pointer will be described later.
+.SH INTERPRETERS
+The interpreter pointer is the ``key'' to an interpreter.  It is returned by
+\fBTcl_CreateInterp\fR and is used extensively
+within Tcl, and will be used by your C extensions.  The data structure 
+pointed to by the interpreter pointer,
+and all of the subordinate structures that branch off of it, make up a
+Tcl interpreter, which includes all of the currently defined 
+procedures, commands, variables, arrays and the execution state of that
+interpreter.  (For more information on creating and deleting interpreters,
+please examine the \fBCrtInterp\fR(3) manpage in the core Tcl distribution.
+For information on creating interpreters that include the commands provided
+by Extended Tcl, check out the \fBTclX_Init\fR(3) manpage of Extended
+Tcl.
+For a manual page describing the user-visible fields of a Tcl interpreter,
+please look at \fBInterp\fR(3) in core Tcl.)
+.SH OBJECT COUNT AND ARGUMENTS
+The argument count, or object count (objc), and pointer to an array of 
+pointers to Tcl objects of the command's arguments (objv) is handled by your 
+C code, in a manner similar to the one you would use in writing a C \fImain\fR 
+function -- an argument count and array of pointers works the same as in a 
+C \fImain\fR call; pointers to the arguments to the function are contained in 
+the \fIobjv\fR array.  Similar to a C main, the first argument 
+(\fIobjv[0]\fR) is an object containing the name the routine was called as 
+(in a C main, the name the program was invoked as).
+.PP
+In Tcl, however, the array of pointers are not pointers to character
+strings (although they were in all version of Tcl before 8.0).
+.PP
+In the above example, all of the arguments are output with a space between
+each one by looping through elements of the \fIobjv\fR array from one to the 
+argument count, \fIobjc\fR, and a
+newline is output to terminate the line -- a simple ``echo'' command.
+This example uses printf for simplicity.  Of course in production code
+you would want to use the Tcl filesystem interfaces.  See 
+\fBGetFile\fR(3) and friends for more information.
+.PP
+All arguments from a Tcl call to a Tcl C extension are passed as Tcl Objects.
+If your C routine wants to look at one of those arguments as an integer, 
+you need to make a call to a routine to fetch the representation of the
+object that you need.  In the earlier example, for instance, 
+\fBTcl_GetStringFromObj\fR is called to obtain a textual representation
+of an object.  Additional routines are available to fetch the representation
+of a data element as other data types.  Tcl_GetBooleanFromObj,
+Tcl_GetDoubleFromObj, Tcl_GetIntFromObj, Tcl_GetLongFromObj,  and 
+Tcl_GetIndexFromObj, fetch object representations of Tcl strings as booleans, 
+double-precision floating point, integer, long integer, and lists, among 
+others.
+.PP
+These routines automatically leave an appropriate error message in
+the Tcl interpreter's result object and return \fBTCL_ERROR\fR if
+a conversion error occurs.   (For more information on these
+routines, please look at the \fBObject\fR(3) manpage in the
+core Tcl distribution.)
+'
+.SH RETURNING RESULTS
+'
+As you might expect, the API for setting results from C extensions has
+changed significantly under the object system.
+The old technique of writing small results directory into the interpreter's
+result buffer is no longer used, for example.  The notion of
+having to tell Tcl whether a result is static or dynamic is also
+a thing of the past.  Under the object system, results are objects that 
+are set up by your code, and objects are freed when their reference
+counts say they should be.  More on this later.
+.P
+If you program produces a numeric result, it should
+set the result object to contain that numeric value.  
+A common way of doing this is something like...
+.sp
+.nf
+.ft CW
+        Tcl_Obj *obj;
+
+        obj = Tcl_GetObjResult (interp);
+	Tcl_SetIntObj (obj, value);
+.ft R
+.fi
+.PP
+The above code obtains a pointer to the result object (an object made
+available to your routine that you're supposed to store your results
+into) and sets the integer value \fIvalue\fR into it.
+.PP
+Another way to do it would be to set up a new object and tell Tcl that
+this object contains the result...
+.sp
+.nf
+.ft CW
+        Tcl_Obj *resultObj;
+
+        /* create a new object for use as a result */
+	resultObj = Tcl_NewObj ();
+
+	Tcl_SetIntObj (obj, value);
+	Tcl_SetObjResult (interp, resultObj);
+.ft R
+.fi
+.PP
+Understanding how results
+are passed back to Tcl is essential to the C extension writer.
+Please study the \fBSetObjResult\fR(3) manual page in the Tcl 
+distribution for more information.
+'
+.SH VALIDATING ARGUMENTS
+'
+It is a design goal of Tcl that no Tcl program be able to cause Tcl to
+dump core.  It is important that the extension writers, likewise,
+use the avaiable methods and tools to make sure that their extensions
+do not allow unchecked input, for example, to cause the code to get
+some kind of runtime exception.
+.PP
+The object system has simplified, to some degree, the task of validating 
+arguments, in that the object system automatically attempts type 
+conversions as needed, and will return an error when a type conversion fails.
+.PP
+A simple, but important, check that every C extension should do is verify
+that it has the right number of arguments.  
+.PP
+The act of trying to use, say, a string as an integer, implicitly performs
+the type conversion of the string and, if it doesn't work as an integer,
+returns TCL_ERROR.  The developer should check for the TCL_ERROR return
+from all of the GetXxxFromObj commands, and handle them as appropriate.
+Usually this will mean propagating the error on back to the user, or to
+an intevening catch, as the case may be.
+.PP
+You should also check that values are in range (when their ranges are known), 
+and so forth.  When C data structures need to be handled in Tcl in some 
+form or another, yet the contents of the data must remain opaque to Tcl,
+as is usually the case with binary data (although futures releases of
+Tcl are expected to have native abilities to read, write and manipulate
+binary data instrinsically), \fIhandles\fR need to be used.  Handles will
+be described and examples presented, later in this doc.
+'
+.SH ANOTHER C EXTENSION - THE MAX COMMAND
+'
+In the command below, two or more arguments are compared, and the one with
+the maximum value is returned, if all goes well.  It is an error if there
+are fewer than two arguments (the pointer to the ``max'' command text itself,
+\fIobjv[0]\fR, and a pointer to at least one object to compare the
+values of).
+.PP
+.nf
+.ft CW
+    int
+    Tcl_MaxCmd (clientData, interp, objc, objv)
+        char         *clientData;
+        Tcl_Interp   *interp;
+        int           objc;
+        Tcl_Obj     **objv;
+    {
+        int maxVal = MININT;
+        int value, idx;
+
+
+        if (objc < 3)
+	    return TclX_WrongArgs (interp, objv[0], 
+                                   " num1 num2 [..numN]");
+
+        for (idx = 1; idx < objc; idx++) {
+            if (Tcl_GetIntFromObj (interp, objv[idx], &value) != TCL_OK)
+                return TCL_ERROR;
+
+            if (value > maxVal) {
+                maxVal = value;
+            }
+        }
+	Tcl_SetIntObj (Tcl_GetObjResult (interp), value);
+        return TCL_OK;
+    }
+.ft R
+.fi
+.PP      
+Here we introduce the Extended Tcl helper function
+\fBTclX_WrongArgs\fR.  This routine makes it easy to create an
+error message and error return in response to the common mistake of being
+called with a wrong number.
+.PP
+\fBTcl_GetIntFromObj\fR is used to fetch the integer values of the
+remaining arguments.  If any fail to be converted, we return a Tcl
+error.  If an interpreter is specified in the call to 
+\fBTcl_GetIntFromObj\fR, an appropriate error message about the
+conversion failure will be left in the result, so we do that here.
+.PP
+After examining all of the arguments to find the largest value, we
+set the result object to contain that value, and return \fBTCL_OK\fR.
+'
+.SH RETURNING RESULTS
+'
+When Tcl-callable functions complete, they should normally return
+\fBTCL_OK\fR or \fBTCL_ERROR\fR.
+\fBTCL_OK\fR is returned when the command succeeded, and \fBTCL_ERROR\fR
+is returned when the command has failed in some abnormal way.  
+\fBTCL_ERROR\fR should
+be returned for all syntax errors, non-numeric values when numeric ones
+were expected, and so forth.  Less clear in some cases is whether Tcl errors
+should be returned or whether a function should just return a status value.
+For example, end-of-file during a \fIgets\fR returns a status,
+but \fIopen\fR
+returns an error if it fails.  Errors can be caught from
+Tcl programs using the \fIcatch\fR command.  (See Tcl's \fBcatch\fR(n)
+and \fBerror\fR(n) manual pages.)
+.PP
+Less common return values are 
+\fBTCL_RETURN\fR, \fBTCL_BREAK\fR and \fBTCL_CONTINUE\fR.
+These are used if you are adding new control and/or looping
+structures to Tcl.  To see these values in action, examine the source code to
+Extended Tcl's \fIloop\fR commands.  Tcl's \fIwhile\fR, \fIfor\fR and 
+\fIif\fR commands used to work in the just same manner, but are now compiled 
+into bytecode by the bytecode for performance.
+.PP
+
+.SH ANOTHER C EXTENSION - THE LREVERSE COMMAND
+
+In the command below, a list is passed as an argument, and a list
+containing all of the elements of the list in reverse order is
+returned.  It is an error if anything other than two arguments are
+passed (the pointer to the ``lreverse'' command text itself,
+\fIobjv[0]\fR, and a pointer to the list to reverse.
+.PP
+Once \fIlreverse\fR has determined that it has received the correct
+number of arguments, \fBTcl_ListObjGetElements\fR is called to split the
+list into its own \fIobjc\fR count of elements and \fIobjv\fR array of 
+pointers to the list's elements.
+.PP
+\fIlreverse\fR then operates on the array of pointers, swapping them
+from lowest to highest, second-lowest to second-highest, and so forth.
+.PP
+\fBTcl_ListObjAppendElement\fR is called on successive list elements
+to build up the new list, which is finally returned as result of the
+command.
+.PP
+.sp
+.nf
+.ft CW
+int
+Tcl_LreverseObjCmd(notUsed, interp, objc, objv)
+    ClientData    notUsed;		/* Not used. */
+    Tcl_Interp   *interp;		/* Current interpreter. */
+    int           objc;			/* Number of arguments. */
+    Tcl_Obj     **obj;			/* Argument strings. */
+{
+    int listObjc, lowListIndex, hiListIndex;
+    Tcl_Obj **listObjv;
+    char *temp, *resultList;
+    Tcl_Obj **newListObjv;
+
+    /* Verify argument count.  Since we take only one argument, argument
+     * count must be 2 (command plus one argument).
+     */
+    if (objc != 2)
+	return TclX_WrongArgs (interp, objv [0], "list");
+
+    /* Create an object to handle the new list we're creating */
+    newListObjv = Tcl_NewObj();
+
+    /* Crack the list at objv[1] into its own count and array of object
+     * pointers.
+     */
+    if (Tcl_ListObjGetElements (interp, objv[1], &listObjc, &listObjv) != TCL_OK) {
+	return TCL_ERROR;
+    }
+
+    /* For each element in the source list from last to first, append an
+     * element to the new list.
+     */
+    for (listIndex = listObjc - 1; listIndex >= 0; listIndex--) {
+	Tcl_ListObjAppendElement (interp, newListObjv, listObjv[listIndex]);
+    }
+FIX: NEED TO RETURN THE LIST.
+    return TCL_OK;
+}
+.ft R
+.fi
+.PP
+'
+.SH INSTALLING YOUR COMMAND
+.P
+To install your command into Tcl you must call 
+\fBTcl_CreateObjCommand\fR, passing
+it the pointer to the interpreter you want to install the command into,
+the name of the command, a pointer to the C function that implements the
+command, a client data pointer,
+and a pointer to an optional callback routine.
+.PP
+The client data pointer and the callback routine will be described later.
+.PP
+For example, for the max function above (which, incidentally, comes from
+TclX's tclXmath.c in the \fITclX7.4/src\fR directory):
+.sp
+.nf
+.ft CW
+    Tcl_CreateCommand (interp, "max", Tcl_MaxCmd, (ClientData)NULL, 
+                      (void (*)())NULL);
+.ft R
+.fi
+.PP
+In the above example, the max function is added
+to the specified interpreter.  The client data pointer and callback
+function pointer are NULL.  (For complete information on
+\fBTcl_CreateCommand\fR and its companion routine, \fBTcl_CommandInfo\fR,
+please examine the \fBCrtCommand\fR(3) command page in the
+core Tcl distribution.)
+.PP
+.SH DYNAMIC STRINGS
+.PP
+
+\fIDynamic strings\fR
+are an important abstraction that first became 
+available with Tcl 7.0.  Dynamic strings, or \fIDStrings\fR, provide
+a way to build up arbitrarily long strings through a repeated process
+of appending information to them.  DStrings reduce the amount of
+allocating and copying required to add information to a string.
+Further, they simplify the process of doing so.  
+.PP
+At first glance, it may seem that the object system supersedes DStrings.
+It does not, in that the performance improvements made possible by the
+lazy conversion of an object's representation from one datatype to another
+does not come into play much while constructing strings as the string
+representation is always available either without any type conversion or 
+where type conversion would be necessary in any case as a string 
+representation of the object is required when strings are being constructed 
+by concatenation, etc.
+.PP
+It should be noted, however, that the C level string manipulation capabilites 
+of objects, such as \fBTcl_AppendToObj\fR and \fBTcl_AppendStringsToObj\fR,
+are often plenty enough for what you need to do.
+For complete information on dynamic strings, please examine the 
+\fBDString\fR(3) manual page in the core Tcl distribution.  For more
+on Tcl object's string-oriented calls, seek \fBTcl_StringObj\fR(3) in
+the same location.
+.PP
+.SH CLIENT DATA
+.PP
+The client data pointer provides a means for Tcl commands to have data
+associated with them that is not global to the C program nor included in
+the Tcl core.  Client data is essential in a multi-interpreter environment
+(where a single program has created and is making use of multiple
+Tcl interpreters)
+for the C routines to maintain any permanent data they need on a 
+per-interpreter basis.
+If needed static data was simply declared static in C, you will probably
+have reentrancy problems when you work with multiple interpreters.
+.PP
+Tcl solves this through the client data mechanism.  When you are about
+to call 
+\fBTcl_CreateObjCommand\fR to add a new command to an interpreter, if your
+command needs to keep some read/write data across invocations,
+you should allocate the space, preferably using \fBTcl_Alloc\fR instead
+of \fBmalloc\fR, then pass
+the address of that space as the ClientData pointer to
+\fBTcl_CreateObjCommand\fR.
+.PP
+When your command is called from Tcl, the ClientData pointer you passed to 
+\fBTcl_CreateObjCommand\fR will be passed to your C routine through the 
+ClientData pointer calling argument.
+.PP
+Commands that need to share this data with one another can do so by using the
+same ClientData pointer when the commands are added.
+.PP
+It is important to note that the Tcl extensions in the \fItclX8.0.0\fR
+directory have had all of their data set up in this way.
+Since release 6.2, Extended Tcl has supported
+multiple interpreters within one invocation of Tcl.
+'
+.SH THEORY OF HANDLES
+Sometimes you need to have a data element that isn't readily representable
+as a string within Tcl, for example a pointer to a complex C data structure.
+It is not a good idea to try to pass pointers around within
+Tcl as strings by converting them to and from hex or integer representations,
+for example.  It is too easy to mess one up, and the likely outcome of
+doing that is a core dump.
+.PP
+Instead we have developed and made use of the concept 
+of \fIhandles\fR.
+Handles are identifiers a C extension can pass to, and accept from,
+Tcl to make the transition between what your C code knows something as
+and what name Tcl knows it by to be as safe and painless as possible.  
+For example,
+the I/O system included in Tcl uses file handles.  When you open a
+file from Tcl, a handle is returned of the form \fBfile\fIn\fR where
+\fIn\fR is a file number.  When you pass the file handle back to \fIputs\fR,
+\fIgets\fR, \fIseek\fR, \fIflush\fR and so forth, they validate the file
+handle by checking the the \fBfile\fR text is present, then converting
+the file number to an integer that they use to look into a data
+structure of pointers
+to Tcl open file structures, which contain a Unix file descriptor, flags
+indicating whether or not the file is currently open, whether the file is
+a file or a pipe and so forth.
+.PP
+Handles have proven so useful that, since TclX release 6.1a, general support
+has been available to help create and manipulate them.  Many of these
+capabilities have migrated into baseline Tcl.
+If you have a similar need, you might like to use the handle
+routines documented in \fBHandles\fR(3) in Extended Tcl.
+We recommend that you use a
+unique-to-your-package textual handle coupled with a specific identifier
+and let the handle management routines validate it when it's passed back.
+It is much easier to
+track down a bug with an implicated handle named something like \fBfile4\fR
+or \fBbitmap6\fR than just \fB6\fR.
+.PP
+Note that Tcl's object offers another way for complex data structures to
+exist in parallel with and underneath Tcl strings.  As of this writing
+(May 30, 1997) this is fairly new territory, but things are looking good
+for the prospects of using the Tcl object system in this manner, and for
+enhancements to the object system that allow even Tcl objects to have 
+methods in a very straightforward and simple way.
+'
+.SH USING COMMANDS TO DO THE SAME THING, AND MORE
+.PP
+Another handle-like technique, first popularized in the Tk toolkit, offers
+handle-like capabilities as well as some neat additional capabilities.
+That is to create a new Tcl command, from C, that uses ClientData to keep
+a "handle" on its complex underlying data structure.  Then by having
+that command look at its second argument for what it is to do (its
+sub-functions), you get these nice methods, where you have several additional
+sub-commands that don't pollute the global namespace and only work on (and
+are available with) the objects (new commands) they are relevant to.
+For example, in Tk, creating a checkbutton (\fBcheckbutton .b\fB) creates a 
+new Tcl command (\fB.b\fB), that has methods to configure the button,
+select, deselect, toggle and flash it.
+.PP
+A lot of people think this is really the way to go, and I am pretty much
+leaning that way myself.  If you use the \fBincr tcl\fR script-level object 
+system for Tcl, objects that you define in Tcl will be highly compatible
+in terms of their command interfaces and configuration management with
+objects you create in C using the the command-and-ClientData technique
+described here.  I believe \fBTk\fR has some nice facilities for making this
+easy for the Tcl programmer.  \fBItcl\fR certainly does.
+.PP
+.SH TRACKING MEMORY CORRUPTION PROBLEMS
+Occasionally you may write code that scribbles past the end of an
+allocated piece of memory.  This will usually result in a core dump or
+memory allocation failure sometime later in the program, often implicating
+code that is not actually responsible for the problem (as you start looking
+from the point where the error is detected, which is usually where the later 
+routine has failed).
+.PP
+The memory debugging routines included in Tcl can help find these problems.  
+Developed by Mark and Karl, the memory debugging routines are now part of
+baseline Tcl, and is to our knowledge the largest piece of TclX to drop
+into the core without being reengineered first.  (You see, summer back
+in '91, John was sitting in his office in the CS building at UC Berkeley
+trying to find a memory leak somewhere in Tcl, when he was paid a visit
+by two long-haired-yet-polite programmers bearing gifts in the form of
+the technology grab-bag known as Extended Tcl.  He saw that, using TclX's 
+malloc routines, Tcl could be prompted to print the filename and line number 
+of every single memory allocation that did not have a corresponding free.  
+It was just what the doctor ordered ;-)
+See
+\fIMemory(TCL)\fR for details.
+.PP
+.SH INSTALLING YOUR EXTENSIONS INTO TCL
+To add your extensions to Tcl, you used to have to statically link them,
+together with any other extensions, into a single binary executable
+image.  Today, although the statically linked executable is still an option,
+most operating systems, even Microsoft Windows, support shared libraries,
+and in most cases, Tcl can now make use of those shared libraries such
+that you extensions, and most others, can now be built a shared libraries
+that can be loaded in (using \fBpackage require\fR) by scripts that need
+them.  Shared libraries can simplify a Tcl installation, because only
+one copy of Tcl is required, rather than a hodepodge of combinations of
+applications that you might have found at a big Tcl site in the previous
+era.
+'
+.SH GNU AUTOCONF
+While the build procedure for shared libraries varies from system to system,
+most Unix and Unix workalike systems will figure out the nuances of the
+compiler and linker arguments automatically when the \fIconfigure\fR script
+is run.  If you are building a package that you plan to make generally
+available, we strongly recommend that you use \fBGNU autoconf\fR 
+(ftp://prep.ai.mit.edu/pub/gnu) to set up an automatic \fIconfigure\fR script 
+for it.  Be forewarned that \fIautoconf\fR uses some pretty heavy duty
+shell and sed script magic to get the job done, and the learning curve
+can be pretty steep.  Once done and shaken out, though, it's rewarding
+to know that your package can build and run on everything from a notebook 
+to a Cray to a RISC SMP server.
+.PP
+Application-specific startup is accomplished by creating or editing the
+\fITcl_AppInit\fR function.  In \fITcl_AppInit\fR you should add a
+call to an application-specific init function which you create.  This
+function should take the address of the interpreter it should install its
+commands into, and it should install those commands with \fBTcl_CreateCommand\fR
+and do any other application-specific startup that is necessary.
+.PP
+The naming convention for application startup routines is \fBApp_Init\fR,
+where \fIApp\fR is the name of your application.  For example, to add
+an application named \fIcute\fR one would create a \fICute_Init\fR routine
+that expected a \fBTcl_Interp\fR pointer as an argument, and add the following
+code to \fITcl_AppInit\fR:
+.sp
+.nf
+.ft CW
+    if (Cute_Init (interp) == TCL_ERROR) {
+	return TCL_ERROR;
+    }
+.ft R
+.fi
+.PP
+As you can guess from the above example, if your init routine is unable
+to initialize, it should use \fBTcl_AppendResult\fR to provide some kind
+of useful error message back to TclX, then return \fBTCL_ERROR\fR to
+indicate that an error occurred.  If the routine executed successfully,
+it should return \fBTCL_OK\fR.
+.PP
+When you examine \fITcl_AppInit\fR, note that there is 
+one call already there to install an application -- the call to
+\fITclX_Init\fR installs Extended Tcl into the Tcl core.
+
+.SH MAKING APPLICATION INFORMATION VISIBLE FROM EXTENDED TCL
+TclX's \fBinfox\fR command can return several pieces of information
+relevant to Extended Tcl, including the application's name, descriptive
+name, patch level and version.  Your application's startup can set
+these variables to application-specific values.  If it doesn't, they
+are given default values for Extended Tcl.
+.PP
+To set these values, first be sure that you include either \fBtclExtend.h\fR
+or \fBtclExtdInt.h\fR from the source file that defines your init routine.
+This will create external declarations for the variables.  Then, set the
+variables in your init route, for example:
+.sp
+.nf
+.ft CW
+    tclAppName = "cute";
+    tclAppLongName = "Call Unix/Tcl Environment";
+    tclAppVersion = "2.1";
+.ft R
+.fi
+.PP
+Note that the default values are set by \fITclX_Init\fR, so if you wish
+to override them, you must call your init routine in \fITcl_AppInit\fR
+after its call to \fITclX_Init\fR.
+.PP
+.SH EXTENDED TCL EXIT
+.PP
+When Extended Tcl exits,
+\fBTcl_DeleteInterp\fR may be called to free memory used by Tcl -- normally,
+this is only called if \fBTCL_MEM_DEBUG\fR was defined, since Unix
+will return all of the allocated memory back to the system, anyway.
+If \fBTCL_MEM_DEBUG\fR was defined, it is called so that any memory that
+was allocated without ever being freed can be detected.  This greatly
+reduces the amount of work to detect and track down memory leaks, a
+situation where some piece of your code allocates memory repeatedly without
+ever freeing it, or at least without always freeing it.
+.PP
+It is often necessary for an application to perform special cleanup
+functions upon the deletion of an interpreter as well.  To facilitate
+this activity, Tcl provides the ability to perform a function callback
+when an interpreter is deleted.  To arrange for a C function to be
+called when the interpreter is deleted, call \fBTcl_CallWhenDeleted\fR
+from your application initialization routine.  For details on how to
+use this function, read the \fBCallDel\fR(3) manual page that ships with
+core Tcl.
+.PP
+.SH EXECUTING TCL CODE FROM YOUR C EXTENSION
+
+Suppose you are in the middle of coding a C extension and you realize
+that you need some operation performed, one that would be simple from
+Tcl, but possibly excruciating to do directly in C.  Tcl provides
+a number of C-level interfaces whereby you can cause Tcl code to be
+executeed.  The old-style calls are \fBTcl_Eval\fR, \fBTcl_VarEval\fR, 
+\fBTcl_EvalFile\fR and \fBTcl_GlobalEval\fR.  The results of these calls 
+can be dug out of the interpreter using \fBTcl_GetStringResult\fR, if you
+want a string representation of the result, or \fBTcl_GetObjResult\fR
+if you want the object.  (The use of \fBinterp->result\fR to access
+the result string has been deprecated.)  
+.PP
+The Tcl object system adds \fBTcl_EvalObj\fR and \fBTcl_GlobalEvalObj\fR.
+The difference here is that we are evaluating an object, not just a
+string, and using these routines in preference to the aforementioned
+ones can result in a major performance improvement in your code, when
+the code is executed repeatedly (even if it only executes once but
+loops several times within itself), as these routines make it possible
+for the bytecode compiler to compile the code being evaluated and save
+the compiled code with the data structure, in an implementation-dependent
+manner.
+.PP
+
+For more information please consult the
+\fBEvalObj\fR(3) and \fBEval\fR(3) manual pages within the Tcl distribution.
+.PP
+.SH ACCESSING TCL VARIABLES AND ARRAYS FROM YOUR C EXTENSIONS
+
+In addition to the non-object-system ways of reading from and storing to
+Tcl variables, using routines such as \fBTcl_SetVar2\fR and
+\fBTcl_GetVar2\fR, Tcl variables and arrays can be read from a C extension
+as Tcl objects by using the \fBTcl_ObjGetVar2\fR function, and
+set from C extensions through the \fBTcl_ObjSetVar2\fR function.
+.PP
+Please note that the object versions do not carry forward analogues
+to the one-variable-name-argument \fBTcl_GetVar\fR, \fBTcl_SetVar\fR,
+and \fBTcl_UnsetVar\fR.  If you know you have a scalar, call the object 
+variable get and set functions with a NULL second argument.  If your variable 
+name might contain an array reference via a self-contained embedded array 
+index (i.e., I'm asking \fBTcl_ObjGetVar2\fR for \fB"foo(5)"\fR instead 
+of \fB"foo" "5"\fR), add the \fBTCL_PARSE_PART1\fR to the flags in your call.
+.PP
+While the fact that \fBTcl_ObjGetVar2\fR retrieves Tcl objects, rather
+than strings, is critical for the object system to be able to provide
+the performance boosts from "lazy" type conversion and the binary data
+capabilities, the arguments containing the variable name, or the
+array name and element name if they've been split out, also must be
+specified as Tcl objects rather than strings.  While this is useful
+on occasion, those writing C extensions for Tcl in the post-object-system
+era usually have the names available as plain old \fIchar *\fR variables,
+requiring conversion of the strings to objects before use and account for
+their possible destruction afterwards.
+.PP
+To simplify the task in those cases, TclX adds the 
+\fBTclX_ObjGetVar2S\fR subroutine.  It works just like
+\fBTcl_ObjGetVar2\fR, except the one or two variable name arguments
+are specified as strings, and the routine takes care of making and
+disposing of object equivalents.
+.PP
+Tcl variables can be unset from C via the \fBTcl_UnsetVar\fR and 
+\fBTcl_UnsetVar2\fR functions.  There are currently (as of 8.0)
+no object-system equivalents, so in the rare case where you have the
+name of the variable you want unset as an object instead of a string,
+you can call \fBTcl_GetStringFromObj\fR to obtain the string
+representation first.
+.PP
+For complete information on these functions,
+please refer to the \fBObjSetVar\fR(3) and \fBSetVar\fR(3) manual
+pages in the \fIdoc\fR directory of the core Tcl distribution.
+.PP
+.SH LINKING TCL VARIABLES TO C VARIABLES
+
+\fBTcl_LinkVar\fR and \fBTcl_UnlinkVar\fR can be used to automatically
+keep Tcl variables synchronized with corresponding C variables.  Once
+a Tcl variable has been linked to a C variable with \fBTcl_LinkVar\fR,
+anytime the Tcl variable is read, the value of the C variable is
+converted (if necessary) and returned, and when the Tcl variable is 
+written, the C variable will be updated with the new value.
+.PP
+\fBTcl_LinkVar\fR uses variable traces to keep the Tcl variable
+named by \fIvarName\fR in sync with the C variable at the address
+given by \fIaddr\fR.
+.PP
+\fIInt\fR, \fIdouble\fR, \fIboolean\fR and \fIchar *\fR variables
+are supported.  You can make your linked variables read only
+from the Tcl side, as well.  Please note that the C variables must
+continually exist while they are linked, in other words, linking
+"automatic" C variables, those created on the stack while a routine
+is being executed and destroyed afterwards, will result in a
+malfunctioning program at best and a coredump or more at worst.
+.PP
+For more information, please examine the 
+\fBLinkVar\fR(3) manual page in the core Tcl distribution.
+.PP
+.SH ADDING NEW MATH FUNCTIONS TO TCL
+As of Tcl version 7.0, math functions such as \fIsin\fR, \fIcos\fR, etc,
+are directly supported within Tcl expressions.  These obsolete the
+Extended Tcl commands that provided explicit commands for these functions
+for many, many releases, although procs equivalencing the old TclX commands
+to the new math functions are still provided for backwards compatibility.
+.PP
+New math functions can be added to Tcl, or existing math functions
+can be replaced, by calling \fBTcl_CreateMathFunc\fR.
+.PP
+.SH ACCESSING AND MANIPULATING THE RANDOM NUMBER GENERATOR
+Prior to Tcl version 8.0, the Tcl core did not provide access to a
+random number generator, but TclX did, through its \fIrandom\fR
+command.  As of Tcl version 8.0, access to a random number generator is 
+provided by baseline Tcl through the new math functions, \fIrand\fR and 
+\fIsrand\fR.
+.PP
+The TclX \fIrandom\fR command is still available -- it has some useful
+capabilities not directly provided by the new baseline functions.
+.PP
+For more information on adding your own math functions to Tcl, please study 
+the \fBCrtMathFnc\fR(3) manual page in the core Tcl distribution.
+.PP
+.SH CONVERTING FILENAMES TO NATIVE FORM AND PERFORMING TILDE SUBSTITUTIONS
+
+The \fBTcl_TranslateFileName\fR function is available to C extension writers
+to translate filenames to a form suitable for use by the local operating
+system.  It converts network names to their native form, and if the name 
+starts with a ``~'' character, the function returns a new string where
+the name is replaced with the home directory of the given user.
+.PP
+For more information please consult the \fBTranslate\fR(3) manual
+page in the core Tcl distribution.
+.PP
+.SH SETTING THE RECURSION LIMIT
+
+Tcl has a preset recursion limit that limits the maximum allowable nesting
+depth of calls within an interpreter.  This is useful for detecting
+infinite recursions before other limits such as the process memory limit
+or, worse, available swap space on the system, run out.
+.PP
+The default limit is just a guess, however, and applications that make
+heavy use of recursion may need to call \fBTcl_SetRecursionLimit\fR
+to raise this limit.  For more information, please consult the
+\fBSetRecLmt\fR(3) manual page in the core Tcl distribution.
+.PP
+.SH HANDLING SIGNALS FROM TCL EXTENSIONS
+
+If an event such as a signal occurs while a Tcl script is being
+executed, it isn't safe to do much in the signal handling routine --
+the Tcl environment cannot be safely manipulated at this point because
+it could be in the middle of some operation, such as updating pointers,
+leaving the interpreter in an unreliable state.
+.PP
+The only safe approach is to set a flag indicating that the event
+occurred, then handle the event later when the interpreter has returned
+to a safe state, such as after the current Tcl command completes.
+.PP
+The \fBTcl_AsyncCreate\fR, \fBTcl_AsyncMark\fR, \fBTcl_AsyncInvoke\fR,
+and \fBTcl_AsyncDelete\fR functions provide a safe mechanism for dealing
+with signals and other asynchronous events.  For more information on how
+to use this capability, please refer to the \fBAsync\fR(3) manual page
+in the core Tcl distribution.
+.PP
+Note that Extended Tcl provides built-in support for managing
+signals in numerous ways, including generating them with \fIalarm\fR(2)
+and \fIkill\fR(2), ignoring them, trapping them, getting, setting,
+blocking and unblocking them.  You can cause specific code to execute at
+a safe point after a signal occurs, or cause a Tcl error backtrace on
+one's occurrence.  For more information, please examine the TclX 
+documentation.
+
+.SH PARSING BACKSLASH SEQUENCES
+
+The \fBTcl_Backslash\fR function is called to parse Tcl backslash sequences.
+These backslash sequences are the usual sort that you see in the C
+programming language, such as \fB\\n\fR for newline, \fB\\r\fR for return, and
+so forth.  \fBTcl_Backslash\fR parses a single backslash sequence and
+returns a single character corresponding to the backslash sequence.
+.PP
+For more info on this call, look at the \fBBackslash\fR(3) manual page
+in the core Tcl distribution.  For information on the valid backslash
+sequences, consult the summary of Tcl language syntax, \fBTcl\fR(n)
+in the same distribution.
+.PP
+.SH HASH TABLES
+
+\fIHash tables\fR provide Tcl with a high-performance facility for looking up
+and managing key-value pairs located and maintained in memory.  Tcl uses 
+hash tables internally to locate procedure definitions, Tcl variables, 
+array elements, file handles and so forth.  Tcl makes the hash table
+functions accessible to C extension writers as well.
+.PP
+Hash tables grow automatically to maintain efficiency, rather than exposing
+the table size to the programmer at allocation time, which would needlessly 
+add complexity to Tcl and would be prone to inefficiency due 
+to the need to guess the number of items that will go into the table,
+and the seemingly inevitable growth in amount of data processed
+per run over the useful life of the program.
+.PP
+For more information on hash tables, please consult the \fBHash\fR(3) manual
+page in the core Tcl distribution.
+.PP
+.SH TRACING VARIABLE ACCESSES
+
+The C extension writer can arrange to have a C routine called whenever a
+Tcl variable is read, written, or unset.  Variable traces are the
+mechanism by which Tk toolkit widgets such as radio and checkbuttons,
+messages and so forth update without Tcl programmer intervention when their 
+data variables are changed.  They are also used by the routine that links
+Tcl and C variables, \fBTcl_LinkVar\fR, described above.
+.PP
+\fBTcl_TraceVar\fR is called to establish a variable trace.  Entire arrays
+and individual array elements can be traced as well.  If the programmer
+already has an array name in one string and a variable name in another,
+\fBTcl_TraceVar2\fR can be called.  Calls are also available to
+request information about traces and to delete them.
+.PP
+For more information on variable traces, consult the \fBTraceVar\fR(3)
+manual page in the core Tcl distribution.
+.PP
+.SH TRACING TCL EXECUTION
+
+Tcl has the ability to call C routines each time it executes a Tcl command,
+up to a specified depth of nesting levels.  The command \fBTcl_CreateTrace\fR
+creates an execution trace; \fBTcl_DeleteTrace\fR deletes it.
+.PP
+Command tracing is used in Extended Tcl to implement the
+\fIcmdtrace\fR Tcl command, a useful command for debugging
+Tcl applications.
+.PP
+For complete information on execution tracing, please look at
+the \fBCrtTrace\fR(3) manual pages in the core Tcl distribution.
+.PP
+.SH EVALUATING TCL EXPRESSIONS FROM C
+
+\fBTcl_ExprLong\fR, \fBTcl_ExprDouble\fR, \fBTcl_ExprBool\fR,
+and \fBTcl_ExprString\fR all take string arguments and, when
+called, evaluate those strings as Tcl expressions.
+Depending on the routine called, the
+result is either a C \fIlong\fR, a \fIdouble\fR, a boolean
+(\fIint\fR with a value of \fB0\fR or \fI1\fR), or a \fIchar *\fR
+(obtainable through \fBTcl_GetResult\fR).
+.PP
+To take advantage of the performance gains available through the bytecode
+compiler, \fBTcl_ExprLongObj\fR, \fBTcl_ExprDoubleObj\fR, 
+\fBTcl_ExprBoolObj\fR, and \fBTcl_ExprObj\fR all take an object containing
+an expression to be evaluated (rather than a string.)  The result
+is that bytecode-compiled version of the expression will be kept in the
+object, alongside the string representation.  If the expression is evaluated
+again, without being changed, it does not have to be recompiled... a major
+performance win.
+.PP
+For complete information on evaluating Tcl expressions from C, you
+are invited to examine the \fBExprLong\fR(3) and \fBExprLongObj\fR(3)
+manpages in the core Tcl distribution.
+.PP
+.SH PATTERN MATCHING
+
+The \fBTcl_StringMatch\fR function can be called to see
+if a string matches a specified pattern.  \fBTcl_StringMatch\fR
+is called by the Tcl \fIstring match\fR command, so the format for
+patterns is identical.  The pattern format is similar to the one
+used by the C-shell; \fBstring\fR(n) describes this format.
+.PP
+More information about \fBTcl_StringMatch\fR is available in
+the \fBStrMatch\fR(3) manpage in the core Tcl distribution.
+.PP
+.SH REGULAR EXPRESSION PATTERN MATCHING
+\fBTcl_RegExpMatch\fR can be called to determine whether
+a string matches a regular expression.  \fBTcl_RegExpMatch\fR
+is used internally by the \fIregexp\fR Tcl command.
+.PP
+As regular expressions are typically "compiled" before use, a fairly
+involved process, Tcl also supports routines that separate the compilation
+of an expression from its use:  \fBTcl_RegExpCompile\fR, \fBTcl_RegExpExec\fR, 
+and \fBTcl_RegExpRange\fR.  If an expression is going to be matched
+many times, doing the compile once and caching the compiled regular
+expression result, then reusing the cached version by using 
+\fBTcl_RegExpExec\fR, can be a significant performance win.
+.PP
+For more information on this function, please consult
+the \fBRegExp\fR(3) manpage in the core Tcl distribution.
+.PP
+.SH MANIPULATING TCL LISTS FROM C EXTENSIONS
+
+The C extension writer often needs to create, manipulate and decompose
+Tcl lists.  \fBTcl_SplitList\fR and \fBTcl_Merge\fR used to be the only
+way to parse strings into lists and vice versa.  As of Tcl 8, lists
+can be parsed and assembled, object-style, using
+\fBTcl_ListObjGetElements\fR and \fBTcl_SetListObj\fR, and friends.
+Once again the "win" of using object-system-based list manipulation,
+instead of the previous string based routines, is that the parsing of a 
+string in an object to a list is cached in the object structure, the same as
+with integers and floating point numbers, compiled procedures, etc.  The
+next time this string needs to be looked at as a list, if the contents
+of the string have not changed, the string does not have to be parsed.
+.PP
+In the author's experience, working with an admittedly degenerate test
+whereby we iterated rather inefficiently across a 6,000-element list,
+a speedup factor of more than 2500 was obtained over the previous
+non-object-based version of Tcl.
+.PP
+For more information on these commands, please consult the
+\fBListObj\fR(3) manual page in the core Tcl distribution.
+.PP
+.SH CONCATENATING STRINGS
+
+\fBTcl_ConcatObj\fR concatenates the string representation of
+zero or more objects into a single new object.
+The elements of the new string are space-separated.  \fBTcl_Concat\fR
+does the same thing for strings, as \fBTcl_ConcatObj\fR does for
+objects.
+.PP
+Concatenating strings is similar to constructing lists from them,
+except that \fBTcl_ConcatObj\fR and \fBTcl_Concat\fR do not attempt to 
+make the resulting string into a valid Tcl list.
+.PP
+\fBTcl_Concat\fR is documented in the \fBConcat\fR(3) manpage,
+and \fBTcl_ConcatObj\fR in the \fBtringObj\fR manpage,
+both in the core Tcl distribution.
+.PP
+.SH DETECTING WHETHER OR NOT YOU HAVE A COMPLETE COMMAND
+
+C routines that collect data to form a command to be passed to
+\fITcl_Eval\fR often need a way to tell whether they have a complete
+command already or whether they need more data.  (Programs that read
+typed-in Tcl input such as Tcl shells need this capability, for instance.)
+\fBTcl_CommandComplete\fR can be used to tell whether or not you have a
+complete command.
+.PP
+For more information examine \fBCmdCmplt\fR(3) in the
+core Tcl distribution.
+.PP
+.SH RECORDING COMMANDS FOR COMMAND HISTORY
+
+Tcl has a history mechanism that is accessed from Tcl through the
+\fIhistory\fR command.  If you want your extension to propagate commands 
+into the command history, you should call \fITcl_RecordAndEvalObj\fR (object
+system) or \fITcl_RecordAndEval\fR (old system),
+.PP
+These commands work like \fITcl_EvalObj\fR and \fITcl_Eval\fR, 
+respectively, except that these versions record the command as well as 
+executing it.
+.PP
+\fITcl_RecordAndEval\fR and \fITcl_RecordAndEvlObj\fR should only be called 
+with user-entered top-level commands, since the history mechanism exists to 
+allow the user to easily access, edit and reissue previously issued
+commands.
+.PP
+For complete information on these functions, please examine the
+\fBRecordEval\fR.3 and \fBRecEvalObj\fR.3 manual pages in the core Tcl 
+distribution.
+.PP
+.SH CONVERTING FLOATING POINT VALUES TO STRINGS
+
+The Tcl object system's \fBTcl_GetDoubleFromObj\fR and
+\fBTcl_SetDoubleObj\fR use Tcl objects, rather than
+the strings used by \fBTcl_PrintDouble\fR, and convert,
+when necessary, an ASCII string to a \fIdouble\fR and
+back again.
+.PP
+These routines ensure that the string output
+will continue to be interpretable as a floating point
+number, rather than an integer, by always putting a 
+``.'' or ``e'' into the string representing the number.
+.PP
+The precision of the output
+string is controlled by the Tcl \fBtcl_precision\fR
+variable.
+.PP
+For complete information on these routines, please
+examine \fBDoubleObj\fR(3) and \fBPrintDbl\fR(3) in the core
+Tcl distribution.
+.PP
+.SH CREATING CHILD PROCESSES AND PIPELINES FROM C
+
+\fBTcl_OpenCommandChannel\fR provides a C-level interface
+to the \fBexec\fR and \fBopen\fR commands.
+The child (or pipeline of children)
+can have its standard input, output and error redirected
+from files, variables or pipes.  To understand the meaning
+of the redirection symbols understood by this function,
+look at the \fBexec\fR(n) Tcl
+command.  For complete information on \fBTcl_OpenCommandChannel\fR,
+please examine \fBOpenFileChnl\fR(3).
+.PP
+.SH ACCESSING TCL FILEHANDLES FROM C
+
+On Posix/Unix systems, Tcl filehandles
+passed to your C extension can be translated to a Posix
+\fIFILE *\fR structure using the \fBTcl_GetOpenFile\fR function,
+documented in \fBGetOpnFl\fR.3.
+.PP
+.SH MANAGING BACKGROUND PROCESS TERMINATION AND CLEANUP
+
+When a Posix system does a \fIfork\fR to create a new process,
+the process ID of the child is returned to the caller.  After
+the child process exits, its process table entry (and some
+other data associated with the process) cannot be
+reclaimed by the operating system until a call to
+\fIwaitpid\fR, or one of a couple of other, similar system calls,
+has been made by the parent process.
+.PP
+The C extension writer who has created a subprocess, by whatever
+mechanism, can turn over responsibility for detecting
+the processes' termination and calling \fIwaitpid\fR to obtain
+its exit status, by calling \fBTcl_DetachPids\fR on it.
+.PP
+\fBTcl_ReapDetachedProcs\fR is the C routine that will
+detect the termination of any processes turned over to Tcl,
+permitting the processes to be fully reclaimed by the operating system.
+It is usually not necessary to call \fBTcl_ReapDetachedProcs\fR,
+as it is called automatically every time \fBexec\fR is performed.
+.PP
+For complete information on these routines, please look at
+\fIDetachPids(3)\fR in the core Tcl distribution.
+.PP
+.SH FOR MORE INFORMATION
+.PP
+In addition to the documentation referenced above, you can learn a lot
+by studying the source code of the commands added by Tcl, Tk and 
+Extended Tcl, etc.  The \fIcomp.lang.tcl\fR Usenet newsgroup is read by
+hundreds of thousands of Tcl people.  A number of Frequently Asked Questions
+(FAQs) about Tcl are posted there periodically.  The newsgroup is a good
+place to ask questions (after you've made sure they're not already
+answered in the FAQ ;-)
+.PP
+Finally, if you have interactive Internet access, you can ftp to
+\fIftp://ftp.neosoft.com/pub/tcl\fR, the site for contributed Tcl sources.
+This site contains quite a few extensions, applications, and so forth,
+including several object-oriented extension packages.
+.PP
+If you have access via the world-wide web, check out the
+Sun Microsystems site (\fIhttp://sunscript.sun.com\fR),
+the contributed sources archive website (\fIhttp://www.neosoft.com/tcl\fR),
+and the homepage for Extended Tcl (\fIhttp://www.neosoft.com/tclx\fR).
+.PP
+.SH AUTHORS
+.PP
+Extended Tcl was created by Karl Lehenbauer (karl@neosoft.com) and
+Mark Diekhans (markd@grizzly.com).
+.PP

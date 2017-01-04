@@ -1,0 +1,193 @@
+
+<html><head>
+<title>base32::core - Base32 encoding</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'base32core.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Public domain
+   -->
+<! -- base32::core.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">base32::core(n) 0.1 tcllib &quot;Base32 encoding&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>base32::core - Expanding basic base32 maps</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">base32::core <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::base32::core::define</b> <i class="arg">map</i> <i class="arg">forwvar</i> <i class="arg">backwvar</i> <i class="arg">ivar</i></a></li>
+<li><a href="#2"><b class="cmd">::base32::core::valid</b> <i class="arg">string</i> <i class="arg">pattern</i> <i class="arg">mvar</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides generic commands for the construction of full
+base32 mappings from a basic mapping listing just the codes and
+associated characters. The full mappings, regular and inverse, created
+here map to and from bit sequences, and also handle the partial
+mappings at the end of a string.</p>
+<p>This is in essence an internal package to be used by implementors of a
+base32 en- and decoder. A regular user has no need of this package at
+all.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::base32::core::define</b> <i class="arg">map</i> <i class="arg">forwvar</i> <i class="arg">backwvar</i> <i class="arg">ivar</i></a></dt>
+<dd><p>This command computes full forward and backward (inverse) mappings
+from the basic <i class="arg">map</i> and stores them in the variables named by
+<i class="arg">forwvar</i> and <i class="arg">backwvar</i> resp. It also constructs a regexp
+pattern for the detection of invalid characters in supposedly base32
+encoded input and stores it in the variable named by <i class="arg">ivar</i>.</p></dd>
+<dt><a name="2"><b class="cmd">::base32::core::valid</b> <i class="arg">string</i> <i class="arg">pattern</i> <i class="arg">mvar</i></a></dt>
+<dd><p>This command checks if the input <i class="arg">string</i> is a valid base32
+encoded string, based on the <i class="arg">pattern</i> of invalid characters as
+generated by <b class="cmd">::base32::core::define</b>, and some other general
+rules.</p>
+<p>The result of the command is a boolean flag. Its value is <b class="const">True</b>
+for a valid <i class="arg">string</i>, and <b class="const">False</b> otherwise. In the latter
+case an error message describing the problem with the input is stored
+into the variable named by <i class="arg">mvar</i>. The variable is not touched if
+the input was found to be valid.</p>
+<p>The rules checked by the command, beyond rejection of bad characters,
+are:</p>
+<ol class="doctools_enumerated">
+<li><p>The length of the input is not a multiple of eight,</p></li>
+<li><p>The padding appears not at the end of input, but in the middle,</p></li>
+<li><p>The padding has not of length six, four, three, or one characters,</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>base32</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key299">base32</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Public domain</p>
+</div>
+</div></body></html>

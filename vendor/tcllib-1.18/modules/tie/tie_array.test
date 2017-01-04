@@ -1,0 +1,301 @@
+# Tests for the tie module.                              -*- tcl -*- 
+#
+# Copyright (c) 2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tie_array.test,v 1.7 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use      snit/snit.tcl snit
+    useLocal tie.tcl       tie
+}
+testing {
+    useLocal tie_array.tcl tie::std::array
+}
+
+# -------------------------------------------------------------------------
+
+proc group {dict} {
+    set res {}
+    foreach {k v} $dict {lappend res [list $k $v]}
+    return $res
+}
+
+proc ignore {dict args} {
+    array set tmp $dict
+    foreach k $args {unset tmp($k)}
+    array get tmp
+}
+
+# -------------------------------------------------------------------------
+# Creation of array data sources
+# Errors: Undefined variable, scalar, local variable
+
+test tie-array-1.0 {array creation, wrong#args} {
+    catch {tie::std::array} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::array::Snit_constructor type selfns win self rvar"}
+
+test tie-array-1.1 {array creation, wrong#args} {
+    catch {tie::std::array x} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::array::Snit_constructor type selfns win self rvar"}
+
+test tie-array-1.2 {array creation, wrong#args} {
+    catch {tie::std::array x y z} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::array::Snit_constructor type selfns win self rvar"}
+
+
+test tie-array-1.3 {array creation, fixed name, undefined array} {
+    catch {tie::std::array x y} msg
+    set msg
+} {Error in constructor: Undefined source array variable "y"}
+
+test tie-array-1.4 {array creation, fixed name, proc local array} {
+    proc foo {} {
+	global msg
+	catch {tie::std::array x y} msg
+    }
+    foo
+    set msg
+} {Error in constructor: Illegal use of proc local array variable "y"}
+
+test tie-array-1.5 {array creation, fixed name, scalar variable} {
+    unset -nocomplain av ; set av SCALAR
+    catch {tie::std::array x av} msg
+    set msg
+} {Error in constructor: Undefined source array variable "av"}
+
+test tie-array-1.6 {array creation, fixed name, array} {
+    unset -nocomplain av ; array set av {}
+    set msg [tie::std::array x av]
+    x destroy
+    set msg
+} {::x}
+
+test tie-array-1.7 {array creation, %AUTO%} {
+    unset -nocomplain av ; array set av {}
+    set msg [tie::std::array %AUTO% av]
+    $msg destroy
+    set msg
+} {::array9}
+
+# -------------------------------------------------------------------------
+## Methods
+
+test tie-array-2.0 {array get, wrong#args} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::array x av
+    catch {x get a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodget type selfns win self"}
+
+test tie-array-2.1 {array get} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::array x av
+    set res [dictsort [x get]]
+    x destroy
+    set res
+} {a 1 b 2}
+
+
+test tie-array-3.0 {array set, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x set} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodset type selfns win self dict"}
+
+test tie-array-3.1 {array set, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x set a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodset type selfns win self dict"}
+
+test tie-array-3.2 {array set} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    lappend res [x set {c 3 b 2 a 1}]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {a 1 b 2 c 3}}
+
+
+test tie-array-4.0 {array names, wrong#args} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::array x av
+    catch {x names a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodnames type selfns win self"}
+
+test tie-array-4.1 {array names} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::array x av
+    set res [lsort [x names]]
+    x destroy
+    set res
+} {a b}
+
+
+test tie-array-5.0 {array size, wrong#args} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::array x av
+    catch {x size a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodsize type selfns win self"}
+
+test tie-array-5.1 {array size} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::array x av
+    set res [x size]
+    x destroy
+    set res
+} 2
+
+
+test tie-array-6.0 {array unset, wrong#args} {
+    unset -nocomplain av ; array set av {foo bar fox snarf a 3}
+    tie::std::array x av
+    set     res {}
+    catch {x unset a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodunset type selfns win self ?pattern?"}
+
+test tie-array-6.1 {array unset, default pattern} {
+    unset -nocomplain av ; array set av {foo bar fox snarf a 3}
+    tie::std::array x av
+    set     res {}
+    lappend res [x unset]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {}}
+
+test tie-array-6.2 {array unset, by pattern} {
+    unset -nocomplain av ; array set av {foo bar fox snarf a 3}
+    tie::std::array x av
+    set     res {}
+    lappend res [x unset f*]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {a 3}}
+
+
+test tie-array-7.0 {array getv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x getv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodgetv type selfns win self index"}
+
+test tie-array-7.1 {array getv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x getv a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodgetv type selfns win self index"}
+
+test tie-array-7.2 {array getv} {
+    unset -nocomplain av ; array set av {a 3 b 4}
+    tie::std::array x av
+    set     res {}
+    lappend res [x getv a]
+    x destroy
+    set res
+} 3
+
+
+test tie-array-8.0 {array setv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x setv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodsetv type selfns win self index value"}
+
+test tie-array-8.1 {array setv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x setv a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodsetv type selfns win self index value"}
+
+test tie-array-8.2 {array setv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x setv a b c} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodsetv type selfns win self index value"}
+
+test tie-array-8.3 {array setv} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    lappend res [x setv fox snarf]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {fox snarf}}
+
+
+test tie-array-9.0 {array unsetv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x unsetv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodunsetv type selfns win self index"}
+
+test tie-array-9.1 {array unsetv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::array x av
+    set     res {}
+    catch {x unsetv a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::array::Snit_methodunsetv type selfns win self index"}
+
+test tie-array-9.2 {array unsetv} {
+    unset -nocomplain av ; array set av {a 3 b 4}
+    tie::std::array x av
+    set     res {}
+    lappend res [x unsetv a]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {b 4}}
+
+testsuiteCleanup
+return

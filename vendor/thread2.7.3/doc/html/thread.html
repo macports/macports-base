@@ -1,0 +1,727 @@
+<! -- -*- tcl -*- doctools manpage
+   -->
+<html><head>
+<title>thread - Tcl Threading </title>
+</head>
+<! -- Generated from file '' by tcllib/doctools with format 'html'
+   -->
+
+<body>
+<h1> thread(n) 2.7  &quot;Tcl Threading&quot;</h1>
+<h2><a name="name">NAME</a></h2>
+<p>
+<p> thread - Extension for script access to Tcl threading
+
+
+
+
+
+<h2><a name="table_of_contents">TABLE OF CONTENTS</a></h2>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#table_of_contents">TABLE OF CONTENTS</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#synopsis">SYNOPSIS</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#description">DESCRIPTION</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#commands">COMMANDS</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#discussion">DISCUSSION</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#see_also">SEE ALSO</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#keywords">KEYWORDS</a><br>
+<h2><a name="synopsis">SYNOPSIS</a></h2>
+<p>
+package require <b>Tcl 8.4</b><br>
+package require <b>Thread ?2.7?</b><br>
+<br><table border=1 width=100% cellspacing=0 cellpadding=0><tr            bgcolor=lightyellow><td bgcolor=lightyellow><table 0 width=100% cellspacing=0 cellpadding=0><tr valign=top ><td ><a href="#1"><b class='cmd'>thread::create</b> ?-joinable? ?-preserved? ?script?</a></td></tr>
+<tr valign=top ><td ><a href="#2"><b class='cmd'>thread::preserve</b> ?id?</a></td></tr>
+<tr valign=top ><td ><a href="#3"><b class='cmd'>thread::release</b> ?-wait? ?id?</a></td></tr>
+<tr valign=top ><td ><a href="#4"><b class='cmd'>thread::id</b> </a></td></tr>
+<tr valign=top ><td ><a href="#5"><b class='cmd'>thread::errorproc</b> ?procname?</a></td></tr>
+<tr valign=top ><td ><a href="#6"><b class='cmd'>thread::unwind</b> </a></td></tr>
+<tr valign=top ><td ><a href="#7"><b class='cmd'>thread::exit</b> </a></td></tr>
+<tr valign=top ><td ><a href="#8"><b class='cmd'>thread::names</b> </a></td></tr>
+<tr valign=top ><td ><a href="#9"><b class='cmd'>thread::exists</b> <i class='arg'>id</i></a></td></tr>
+<tr valign=top ><td ><a href="#10"><b class='cmd'>thread::send</b> ?-async? ?-head? <i class='arg'>id</i> <i class='arg'>script</i> ?varname?</a></td></tr>
+<tr valign=top ><td ><a href="#11"><b class='cmd'>thread::broadcast</b> <i class='arg'>id</i> <i class='arg'>script</i></a></td></tr>
+<tr valign=top ><td ><a href="#12"><b class='cmd'>thread::wait</b> </a></td></tr>
+<tr valign=top ><td ><a href="#13"><b class='cmd'>thread::eval</b> ?-lock mutex? <i class='arg'>arg</i> ?arg ...?</a></td></tr>
+<tr valign=top ><td ><a href="#14"><b class='cmd'>thread::join</b> <i class='arg'>id</i></a></td></tr>
+<tr valign=top ><td ><a href="#15"><b class='cmd'>thread::configure</b> <i class='arg'>id</i> ?option? ?value? ?...?</a></td></tr>
+<tr valign=top ><td ><a href="#16"><b class='cmd'>thread::transfer</b> <i class='arg'>id</i> <i class='arg'>channel</i></a></td></tr>
+<tr valign=top ><td ><a href="#17"><b class='cmd'>thread::detach</b> <i class='arg'>channel</i></a></td></tr>
+<tr valign=top ><td ><a href="#18"><b class='cmd'>thread::attach</b> <i class='arg'>channel</i></a></td></tr>
+<tr valign=top ><td ><a href="#19"><b class='cmd'>thread::mutex</b> </a></td></tr>
+<tr valign=top ><td ><a href="#20"><b class='cmd'>thread::mutex</b> <strong>create</strong> ?-recursive?</a></td></tr>
+<tr valign=top ><td ><a href="#21"><b class='cmd'>thread::mutex</b> <strong>destroy</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#22"><b class='cmd'>thread::mutex</b> <strong>lock</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#23"><b class='cmd'>thread::mutex</b> <strong>unlock</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#24"><b class='cmd'>thread::rwmutex</b> </a></td></tr>
+<tr valign=top ><td ><a href="#25"><b class='cmd'>thread::rwmutex</b> <strong>create</strong></a></td></tr>
+<tr valign=top ><td ><a href="#26"><b class='cmd'>thread::rwmutex</b> <strong>destroy</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#27"><b class='cmd'>thread::rwmutex</b> <strong>rlock</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#28"><b class='cmd'>thread::rwmutex</b> <strong>wlock</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#29"><b class='cmd'>thread::rwmutex</b> <strong>unlock</strong> <i class='arg'>mutex</i></a></td></tr>
+<tr valign=top ><td ><a href="#30"><b class='cmd'>thread::cond</b> </a></td></tr>
+<tr valign=top ><td ><a href="#31"><b class='cmd'>thread::cond</b> <strong>create</strong></a></td></tr>
+<tr valign=top ><td ><a href="#32"><b class='cmd'>thread::cond</b> <strong>destroy</strong> <i class='arg'>cond</i></a></td></tr>
+<tr valign=top ><td ><a href="#33"><b class='cmd'>thread::cond</b> <strong>notify</strong> <i class='arg'>cond</i></a></td></tr>
+<tr valign=top ><td ><a href="#34"><b class='cmd'>thread::cond</b> <strong>wait</strong> <i class='arg'>cond</i> <i class='arg'>mutex</i> ?ms?</a></td></tr>
+</table></td></tr></table>
+<h2><a name="description">DESCRIPTION</a></h2>
+<p>
+The <strong>thread</strong> extension creates threads that contain Tcl
+interpreters, and it lets you send scripts to those threads for
+evaluation.
+
+Additionaly, it provides script-level access to basic thread
+synchronization primitives, like mutexes and condition variables.
+
+<h2><a name="commands">COMMANDS</a></h2>
+<p>
+This section describes commands for creating and destroying threads
+and sending scripts to threads for evaluation.
+
+
+
+<dl>
+
+<dt><a name="1"><b class='cmd'>thread::create</b> ?-joinable? ?-preserved? ?script?</a><dd>
+
+
+This command creates a thread that contains a Tcl interpreter.
+The Tcl interpreter either evaluates the optional <strong>script</strong>, if
+specified, or it waits in the event loop for scripts that arrive via
+the <b class='cmd'>thread::send</b> command. The result, if any, of the
+optional <strong>script</strong> is never returned to the caller.
+The result of <b class='cmd'>thread::create</b> is the ID of the thread. This is
+the opaque handle which identifies the newly created thread for
+all other package commands. The handle of the thread goes out of scope
+automatically when thread is marked for exit
+(see the <b class='cmd'>thread::release</b> command below).
+
+<br><br>
+
+If the optional <strong>script</strong> argument contains the <b class='cmd'>thread::wait</b>
+command the thread will enter into the event loop. If such command is not
+found  in the <strong>script</strong> the thread will run the <strong>script</strong> to
+the end and exit. In that case, the handle may be safely ignored since it
+refers to a thread which does not exists any more at the time when the
+command returns.
+
+<br><br>
+
+Using flag <strong>-joinable</strong> it is possible to create a joinable
+thread, i.e. one upon whose exit can be waited upon by using
+<b class='cmd'>thread::join</b> command.
+Note that failure to join a thread created with <strong>-joinable</strong> flag
+results in resource and memory leaks.
+
+
+<br><br>
+
+Threads created by the <b class='cmd'>thread::create</b> cannot be destroyed
+forcefully. Consequently, there is no corresponding thread destroy
+command. A thread may only be released using the <b class='cmd'>thread::release</b>
+and if its internal reference count drops to zero, the thread is
+marked for exit. This kicks the thread out of the event loop
+servicing and the thread continues to execute commands passed in
+the <strong>script</strong> argument, following the <b class='cmd'>thread::wait</b>
+command. If this was the last command in the script, as usualy the
+case, the thread will exit.
+
+<br><br>
+
+It is possible to create a situation in which it may be impossible
+to terminate the thread, for example by putting some endless loop
+after the <b class='cmd'>thread::wait</b> or entering the event loop again by
+doing an vwait-type of command. In such cases, the thread may never
+exit. This is considered to be a bad practice and should be avoided
+if possible. This is best illustrated by the example below:
+
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+    # You should never do ...
+    set tid [thread::create {
+        package require Http
+        thread::wait
+        vwait forever ; # &lt;-- this!
+    }]
+</pre></td></tr></table></p>
+
+The thread created in the above example will never be able to exit.
+After it has been released with the last matching <b class='cmd'>thread::release</b>
+call, the thread will jump out of the <b class='cmd'>thread::wait</b> and continue
+to execute commands following. It will enter <b class='cmd'>vwait</b> command and
+wait endlessly for events. There is no way one can terminate such thread,
+so you wouldn't want to do this!
+
+<br><br>
+
+Each newly created has its internal reference counter set to 0 (zero),
+i.e. it is unreserved. This counter gets incremented by a call to
+<b class='cmd'>thread::preserve</b> and decremented by a call to <b class='cmd'>thread::release</b>
+command. These two commands implement simple but effective thread
+reservation system and offer predictable and controllable thread
+termination capabilities. It is however possible to create initialy
+preserved threads by using flag <strong>-preserved</strong> of the
+<b class='cmd'>thread::create</b> command. Threads created with this flag have the
+initial value of the reference counter of 1 (one), and are thus
+initially marked reserved.
+
+
+<br><br>
+<dt><a name="2"><b class='cmd'>thread::preserve</b> ?id?</a><dd>
+
+
+This command increments the thread reference counter. Each call
+to this command increments the reference counter by one (1).
+Command returns the value of the reference counter after the increment.
+If called with the optional thread <strong>id</strong>, the command preserves
+the given thread. Otherwise the current thread is preserved.
+
+<br><br>
+
+With reference counting, one can implement controlled access to a
+shared Tcl thread. By incrementing the reference counter, the
+caller signalizes that he/she wishes to use the thread for a longer
+period of time. By decrementing the counter, caller signalizes that
+he/she has finished using the thread.
+
+<br><br>
+<dt><a name="3"><b class='cmd'>thread::release</b> ?-wait? ?id?</a><dd>
+
+
+This command decrements the thread reference counter. Each call to
+this command decrements the reference counter by one (1).
+If called with the optional thread <strong>id</strong>, the command releases
+the given thread. Otherwise, the current thread is released.
+Command returns the value of the reference counter after the decrement.
+When the reference counter reaches zero (0), the target thread is
+marked for termination. You should not reference the thread after the
+<b class='cmd'>thread::release</b> command returns zero or negative integer.
+The handle of the thread goes out of scope and should not be used any
+more. Any following reference to the same thread handle will result
+in Tcl error.
+
+<br><br>
+
+Optional flag <strong>-wait</strong> instructs the caller thread to wait for
+the target thread to exit, if the effect of the command would result
+in termination of the target thread, i.e. if the return result would
+be zero (0). Without the flag, the caller thread does not wait for
+the target thread to exit. Care must be taken when using the
+<strong>-wait</strong>, since this may block the caller thread indefinitely.
+This option has been implemented for some special uses of the extension
+and is deprecated for regular use. Regular users should create joinable
+threads by using the <strong>-joinable</strong> option of the <b class='cmd'>thread::create</b>
+command and the <b class='cmd'>thread::join</b> to wait for thread to exit.
+
+<br><br>
+<dt><a name="4"><b class='cmd'>thread::id</b> </a><dd>
+
+
+This command returns the ID of the current thread.
+
+<br><br>
+<dt><a name="5"><b class='cmd'>thread::errorproc</b> ?procname?</a><dd>
+
+
+This command sets a handler for errors that occur in scripts sent
+asynchronously, using the <strong>-async</strong> flag of the
+<b class='cmd'>thread::send</b> command, to other threads. If no handler
+is specified, the current handler is returned. The empty string
+resets the handler to default (unspecified) value.
+An uncaught error in a thread causes an error message to be sent
+to the standard error channel. This default reporting scheme can
+be changed by registering a procedure which is called to report
+the error. The <i class='arg'>procname</i> is called in the interpreter that
+invoked the <b class='cmd'>thread::errorproc</b> command. The <i class='arg'>procname</i>
+is called like this:
+
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+    myerrorproc thread_id errorInfo
+</pre></td></tr></table></p>
+
+<br><br>
+<dt><a name="6"><b class='cmd'>thread::unwind</b> </a><dd>
+
+
+Use of this command is deprecated in favour of more advanced thread
+reservation system implemented with <b class='cmd'>thread::preserve</b> and
+<b class='cmd'>thread::release</b> commands. Support for <b class='cmd'>thread::unwind</b>
+command will dissapear in some future major release of the extension.
+<br><br>
+This command stops a prior <b class='cmd'>thread::wait</b> command. Execution of
+the script passed to newly created thread will continue from the
+<b class='cmd'>thread::wait</b> command. If <b class='cmd'>thread::wait</b> was the last command
+in the script, the thread will exit. The command returns empty result
+but may trigger Tcl error with the message &quot;target thread died&quot; in some
+situations.
+
+
+<br><br>
+<dt><a name="7"><b class='cmd'>thread::exit</b> </a><dd>
+
+
+Use of this command is deprecated in favour of more advanced thread
+reservation system implemented with <b class='cmd'>thread::preserve</b> and
+<b class='cmd'>thread::release</b> commands. Support for <b class='cmd'>thread::exit</b>
+command will dissapear in some future major release of the extension.
+<br><br>
+This command forces a thread stuck in the <b class='cmd'>thread::wait</b>
+command to unconditionaly exit. The execution of <b class='cmd'>thread::exit</b>
+command is guaranteed to leave the program memory in the unconsistent
+state, produce memory leaks and otherwise affect other subsytem(s)
+of the Tcl application in an unpredictable manner. The command
+returns empty result but may trigger Tcl error with the message
+&quot;target thread died&quot; in some situations.
+
+<br><br>
+<dt><a name="8"><b class='cmd'>thread::names</b> </a><dd>
+
+
+This command returns a list of thread IDs. These are only for
+threads that have been created via <b class='cmd'>thread::create</b> command.
+If your application creates other threads at the C level, they
+are not reported by this command.
+
+
+<br><br>
+<dt><a name="9"><b class='cmd'>thread::exists</b> <i class='arg'>id</i></a><dd>
+
+
+Returns true (1) if thread given by the <i class='arg'>id</i> parameter exists,
+false (0) otherwise. This applies only for threads that have
+been created via <b class='cmd'>thread::create</b> command.
+
+
+<br><br>
+<dt><a name="10"><b class='cmd'>thread::send</b> ?-async? ?-head? <i class='arg'>id</i> <i class='arg'>script</i> ?varname?</a><dd>
+
+
+This command passes a <i class='arg'>script</i> to another thread and, optionally,
+waits for the result. If the <strong>-async</strong> flag is specified, the
+command does not wait for the result and it returns empty string.
+The target thread must enter it's event loop in order to receive
+scripts sent via this command. This is done by default for threads
+created without a startup script. Threads can enter the event loop
+explicitly by calling <b class='cmd'>thread::wait</b> or any other relevant Tcl/Tk
+command, like <b class='cmd'>update</b>, <b class='cmd'>vwait</b>, etc.
+
+<br><br>
+
+Optional <strong>varname</strong> specifies name of the variable to store
+the result of the <i class='arg'>script</i>. Without the <strong>-async</strong> flag,
+the command returns the evaluation code, similarily to the standard
+Tcl <b class='cmd'>catch</b> command. If, however, the <strong>-async</strong> flag is
+specified, the command returns immediately and caller can later
+<b class='cmd'>vwait</b> on ?varname? to get the result of the passed <i class='arg'>script</i>
+
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+    set t1 [thread::create]
+    set t2 [thread::create]
+    thread::send -async $t1 &quot;set a 1&quot; result
+    thread::send -async $t2 &quot;set b 2&quot; result
+    for {set i 0} {$i &lt; 2} {incr i} {
+        vwait result
+    }
+</pre></td></tr></table></p>
+
+In the above example, two threads were fed work and both of them were
+instructed to signalize the same variable &quot;result&quot; in the calling thread.
+The caller entered the event loop twice to get both results. Note,
+however, that the order of the received results may vary, depending on
+the current system load, type of work done, etc, etc.
+
+<br><br>
+
+Many threads can simultaneously send scripts to the target thread for
+execution. All of them are entered into the event queue of the target
+thread and executed on the FIFO basis, intermingled with optional other
+events pending in the event queue of the target thread.
+Using the optional ?-head? switch, scripts posted to the thread's
+event queue can be placed on the head, instead on the tail of the queue,
+thus being executed in the LIFO fashion.
+
+
+<br><br>
+<dt><a name="11"><b class='cmd'>thread::broadcast</b> <i class='arg'>id</i> <i class='arg'>script</i></a><dd>
+
+
+This command passes a <i class='arg'>script</i> to all threads created by the
+package for execution. It does not wait for response from any of
+the threads.
+
+<br><br>
+<dt><a name="12"><b class='cmd'>thread::wait</b> </a><dd>
+
+
+This enters the event loop so a thread can receive messages from
+the <b class='cmd'>thread::send</b> command. This command should only be used
+within the script passed to the <b class='cmd'>thread::create</b>. It should
+be the very last command in the script. If this is not the case,
+the exiting thread will continue executing the script lines pass
+the <b class='cmd'>thread::wait</b> which is usually not what you want and/or
+expect.
+
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+    set t1 [thread::create {
+        #
+        # Do some initialization work here
+        #
+        thread::wait ; # Enter the event loop
+    }]
+</pre></td></tr></table></p>
+
+<br><br>
+<dt><a name="13"><b class='cmd'>thread::eval</b> ?-lock mutex? <i class='arg'>arg</i> ?arg ...?</a><dd>
+
+
+This command concatenates passed arguments and evaluates the
+resulting script under the mutex protection. If no mutex is
+specified by using the ?-lock mutex? optional argument,
+the internal static mutex is used.
+
+
+<br><br>
+<dt><a name="14"><b class='cmd'>thread::join</b> <i class='arg'>id</i></a><dd>
+
+
+This command waits for the thread with ID <i class='arg'>id</i> to exit and
+then returns it's exit code. Errors will be returned for threads
+which are not joinable or already waited upon by another thread.
+Upon the join the handle of the thread has gone out of scope and
+should not be used any more.
+
+
+<br><br>
+<dt><a name="15"><b class='cmd'>thread::configure</b> <i class='arg'>id</i> ?option? ?value? ?...?</a><dd>
+
+
+This command configures various low-level aspects of the thread with
+ID <i class='arg'>id</i> in the similar way as the standard Tcl command
+<b class='cmd'>fconfigure</b> configures some Tcl channel options. Options currently
+supported are: <strong>-eventmark</strong> and <strong>-unwindonerror</strong>.
+
+<br><br>
+
+The <strong>-eventmark</strong> option, when set, limits the number of
+asynchronously posted scripts to the thread event loop.
+The <b class='cmd'>thread::send -async</b> command will block until the number
+of pending scripts in the event loop does not drop below the value
+configured with <strong>-eventmark</strong>. Default value for the
+<strong>-eventmark</strong> is 0 (zero) which effectively disables the checking,
+i.e. allows for unlimited number of posted scripts.
+
+<br><br>
+
+The <strong>-unwindonerror</strong> option, when set, causes the
+target thread to unwind if the result of the script processing
+resulted in error. Default value for the <strong>-unwindonerror</strong>
+is 0 (false), i.e. thread continues to process scripts after one
+of the posted scripts fails.
+
+
+<br><br>
+<dt><a name="16"><b class='cmd'>thread::transfer</b> <i class='arg'>id</i> <i class='arg'>channel</i></a><dd>
+
+
+This moves the specified <i class='arg'>channel</i> from the current thread
+and interpreter to the main interpreter of the thread with the
+given <i class='arg'>id</i>. After the move the current interpreter has no
+access to the channel any more, but the main interpreter of the
+target thread will be able to use it from now on.
+The command waits until the other thread has incorporated the
+channel. Because of this it is possible to deadlock the
+participating threads by commanding the other through a
+synchronous <b class='cmd'>thread::send</b> to transfer a channel to us.
+This easily extends into longer loops of threads waiting for
+each other. Other restrictions: the channel in question must
+not be shared among multiple interpreters running in the
+sending thread. This automatically excludes the special channels
+for standard input, output and error.
+
+<br><br>
+
+Due to the internal Tcl core implementation and the restriction on
+transferring shared channels, one has to take extra measures when
+transferring socket channels created by accepting the connection
+out of the <b class='cmd'>socket</b> commands callback procedures:
+
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+    socket -server _Accept 2200
+    proc _Accept {s ipaddr port} {
+        after idle [list Accept $s $ipaddr $port]
+    }
+    proc Accept {s ipaddr port} {
+        set tid [thread::create]
+        thread::transfer $tid $s
+    }
+</pre></td></tr></table></p>
+
+<br><br>
+<dt><a name="17"><b class='cmd'>thread::detach</b> <i class='arg'>channel</i></a><dd>
+
+
+This detaches the specified <i class='arg'>channel</i> from the current thread and
+interpreter. After that, the current interpreter has no access to the
+channel any more. The channel is in the parked state until some other
+(or the same) thread attaches the channel again with <b class='cmd'>thread::attach</b>.
+Restrictions: same as for transferring shared channels with the
+<b class='cmd'>thread::transfer</b> command.
+
+<br><br>
+<dt><a name="18"><b class='cmd'>thread::attach</b> <i class='arg'>channel</i></a><dd>
+
+
+This attaches the previously detached <i class='arg'>channel</i> in the
+current thread/interpreter. For already existing channels,
+the command does nothing, i.e. it is not an error to attach the
+same channel more than once. The first operation will actualy
+perform the operation, while all subsequent operation will just
+do nothing. Command throws error if the <i class='arg'>channel</i> cannot be
+found in the list of detached channels and/or in the current
+interpreter.
+
+<br><br>
+<dt><a name="19"><b class='cmd'>thread::mutex</b> </a><dd>
+
+
+Mutexes are most common thread synchronization primitives.
+They are used to synchronize access from two or more threads to one or
+more shared resources. This command provides script-level access to
+exclusive and/or recursive mutexes. Exclusive mutexes can be locked
+only once by one thread, while recursive mutexes can be locked many
+times by the same thread. For recursive mutexes, number of lock and
+unlock operations must match, otherwise, the mutex will never be
+released, which would lead to various deadlock situations.
+<br><br>
+Care has to be taken when using mutexes in an multithreading program.
+Improper use of mutexes may lead to various deadlock situations,
+especially when using exclusive mutexes.
+
+<br><br>
+
+The <b class='cmd'>thread::mutex</b> command supports following subcommands and options:
+
+<br><br>
+<dl>
+
+<dt><a name="20"><b class='cmd'>thread::mutex</b> <strong>create</strong> ?-recursive?</a><dd>
+
+
+Creates the mutex and returns it's opaque handle. This handle
+should be used for any future reference to the newly created mutex.
+If no optional ?-recursive? argument was specified, the command
+creates the exclusive mutex. With the ?-recursive? argument,
+the command creates a recursive mutex.
+
+<br><br>
+<dt><a name="21"><b class='cmd'>thread::mutex</b> <strong>destroy</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Destroys the <i class='arg'>mutex</i>. Mutex should be in unlocked state before
+the destroy attempt. If the mutex is locked, the command will throw
+Tcl error.
+
+<br><br>
+<dt><a name="22"><b class='cmd'>thread::mutex</b> <strong>lock</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Locks the <i class='arg'>mutex</i>. Locking the exclusive mutex may throw Tcl
+error if on attempt to lock the same mutex twice from the same
+thread. If your program logic forces you to lock the same mutex
+twice or more from the same thread (this may happen in recursive
+procedure invocations) you should consider using the recursive mutexes.
+
+<br><br>
+<dt><a name="23"><b class='cmd'>thread::mutex</b> <strong>unlock</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Unlocks the <i class='arg'>mutex</i> so some other thread may lock it again.
+Attempt to unlock the already unlocked mutex will throw Tcl error.
+
+</dl>
+
+<br><br>
+
+<dt><a name="24"><b class='cmd'>thread::rwmutex</b> </a><dd>
+
+
+This command creates many-readers/single-writer mutexes. Reader/writer
+mutexes allow you to serialize access to a shared resource more optimally.
+In situations where a shared resource gets mostly read and seldom modified,
+you might gain some performace by using reader/writer mutexes instead of
+exclusive or recursive mutexes.
+<br><br>
+For reading the resource, thread should obtain a read lock on the resource.
+Read lock is non-exclusive, meaning that more than one thread can
+obtain a read lock to the same resource, without waiting on other readers.
+For changing the resource, however, a thread must obtain a exclusive
+write lock. This lock effectively blocks all threads from gaining the
+read-lock while the resource is been modified by the writer thread.
+Only after the write lock has been released, the resource may be read-locked
+again.
+
+<br><br>
+
+The <b class='cmd'>thread::rwmutex</b> command supports following subcommands and options:
+
+<br><br>
+<dl>
+
+<dt><a name="25"><b class='cmd'>thread::rwmutex</b> <strong>create</strong></a><dd>
+
+
+Creates the reader/writer mutex and returns it's opaque handle.
+This handle should be used for any future reference to the newly
+created mutex.
+
+<br><br>
+<dt><a name="26"><b class='cmd'>thread::rwmutex</b> <strong>destroy</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Destroys the reader/writer <i class='arg'>mutex</i>. If the mutex is already locked,
+attempt to destroy it will throw Tcl error.
+
+<br><br>
+<dt><a name="27"><b class='cmd'>thread::rwmutex</b> <strong>rlock</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Locks the <i class='arg'>mutex</i> for reading. More than one thread may read-lock
+the same <i class='arg'>mutex</i> at the same time.
+
+<br><br>
+<dt><a name="28"><b class='cmd'>thread::rwmutex</b> <strong>wlock</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Locks the <i class='arg'>mutex</i> for writing. Only one thread may write-lock
+the same <i class='arg'>mutex</i> at the same time. Attempt to write-lock same
+<i class='arg'>mutex</i> twice from the same thread will throw Tcl error.
+
+<br><br>
+<dt><a name="29"><b class='cmd'>thread::rwmutex</b> <strong>unlock</strong> <i class='arg'>mutex</i></a><dd>
+
+
+Unlocks the <i class='arg'>mutex</i> so some other thread may lock it again.
+Attempt to unlock already unlocked <i class='arg'>mutex</i> will throw Tcl error.
+
+</dl>
+
+<br><br>
+
+<dt><a name="30"><b class='cmd'>thread::cond</b> </a><dd>
+
+
+This command provides script-level access to condition variables.
+A condition variable creates a safe environment for the program
+to test some condition, sleep on it when false and be awakened
+when it might have become true. A condition variable is always
+used in the conjuction with an exclusive mutex. If you attempt
+to use other type of mutex in conjuction with the condition
+variable, a Tcl error will be thrown.
+
+<br><br>
+
+The command supports following subcommands and options:
+
+<br><br>
+<dl>
+
+<dt><a name="31"><b class='cmd'>thread::cond</b> <strong>create</strong></a><dd>
+
+
+Creates the condition variable and returns it's opaque handle.
+This handle should be used for any future reference to newly
+created condition variable.
+
+<br><br>
+<dt><a name="32"><b class='cmd'>thread::cond</b> <strong>destroy</strong> <i class='arg'>cond</i></a><dd>
+
+
+Destroys condition variable <i class='arg'>cond</i>. Extreme care has to be taken
+that nobody is using (i.e. waiting on) the condition variable,
+otherwise unexpected errors may happen.
+
+<br><br>
+<dt><a name="33"><b class='cmd'>thread::cond</b> <strong>notify</strong> <i class='arg'>cond</i></a><dd>
+
+
+Wakes up all threads waiting on the condition variable <i class='arg'>cond</i>.
+
+<br><br>
+<dt><a name="34"><b class='cmd'>thread::cond</b> <strong>wait</strong> <i class='arg'>cond</i> <i class='arg'>mutex</i> ?ms?</a><dd>
+
+
+This command is used to suspend program execution until the condition
+variable <i class='arg'>cond</i> has been signalled or the optional timer has expired.
+The exclusive <i class='arg'>mutex</i> must be locked by the calling thread on entrance
+to this command. If the mutex is not locked, Tcl error is thrown.
+While waiting on the <i class='arg'>cond</i>, the command releases <i class='arg'>mutex</i>.
+Before returning to the calling thread, the command re-acquires the
+<i class='arg'>mutex</i> again. Unlocking the <i class='arg'>mutex</i> and waiting on the
+condition variable <i class='arg'>cond</i> is done atomically.
+
+<br><br>
+
+The <strong>ms</strong> command option, if given, must be an integer specifying
+time interval in milliseconds the command waits to be signalled.
+Otherwise the command waits on condition notify forever.
+
+<br><br>
+
+In multithreading programs, there are many situations where a thread has
+to wait for some event to happen until it is allowed to proceed.
+This is usually accomplished by repeatedly testing a condition under the
+mutex protection and waiting on the condition variable until the condition
+evaluates to true:
+
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+    set mutex [thread::mutex create]
+    set cond  [thread::cond  create]
+
+    thread::mutex lock $mutex
+    while {&lt;some_condition_is_true&gt;} {
+        thread::cond wait $cond $mutex
+    }
+    # Do some work under mutex protection
+    thread::mutex unlock $mutex
+</pre></td></tr></table></p>
+
+Repeated testing of the condition is needed since the condition variable
+may get signalled without the condition being actually changed (spurious
+thread wake-ups, for example).
+
+</dl>
+
+</dl>
+
+<h2><a name="discussion">DISCUSSION</a></h2>
+<p>
+The fundamental threading model in Tcl is that there can be one or
+more Tcl interpreters per thread, but each Tcl interpreter should
+only be used by a single thread which created it.
+A &quot;shared memory&quot; abstraction is awkward to provide in Tcl because
+Tcl makes assumptions about variable and data ownership. Therefore
+this extension supports a simple form of threading where the main
+thread can manage several background, or &quot;worker&quot; threads.
+For example, an event-driven server can pass requests to worker
+threads, and then await responses from worker threads or new client
+requests. Everything goes through the common Tcl event loop, so
+message passing between threads works naturally with event-driven I/O,
+<b class='cmd'>vwait</b> on variables, and so forth. For the transfer of bulk
+information it is possible to move channels between the threads.
+
+<p>
+
+For advanced multithreading scripts, script-level access to two
+basic synchronization primitives, mutex and condition variables,
+is also supported.
+
+
+
+
+
+<h2><a name="see_also">SEE ALSO</a></h2>
+<p>
+<a href="http://www.tcl.tk/doc/howto/thread_model.html">http://www.tcl.tk/doc/howto/thread_model.html</a>, tpool, tsv, ttrace
+<h2><a name="keywords">KEYWORDS</a></h2>
+<p>
+events, message passing, mutex, synchronization, thread
+</body></html>
+

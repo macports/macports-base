@@ -1,0 +1,20 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term n 0.1]
+[keywords control]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {General terminal control}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term [opt 0.1]]
+[description]
+
+It is planned to have this package provide highlevel general terminal control
+commands, in the vein of ncurses or similar packages. Currently nothing has
+been implemented however. I.e. this package is empty. It can be loaded, yet
+provides nothing.
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

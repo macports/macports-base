@@ -1,0 +1,64 @@
+2013-12-17  Andreas Kupries  <andreask@activestate.com>
+
+	* xsxp.man: Fixed missing requirement on the package itself.
+	* S3.man: Ditto.
+
+2013-02-08  Andreas Kupries  <andreask@activestate.com>
+
+	* xsxp.man: Fixed moddesc/titledesc confusion.
+	* S3.man: Ditto.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-09-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* S3.test: Added guards to protect testsuite against a
+	* xsxp.test: missing xml package.
+
+2008-07-08  Andreas Kupries  <andreask@activestate.com>
+
+	* xsxp.man: Added boilerplate section to the documentation
+	* S3.man: directing bug reports and other feedback to the Tcllib
+	  SF trackers.
+
+	* xsxp.test: Added the boilerplate necessary for integration
+	* S3.test: with tcllib's test framework.
+
+	* New module 'amazon-s3', with packages S3 and xsxp, by Darren
+	  New. Physical integration of all the new files.
+	  Todo: Integration with the installer, and fixes for the
+	  testsuites to use Tcllib's boilerplate.

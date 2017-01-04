@@ -1,0 +1,248 @@
+
+<div class='fossil-doc' data-title='crc32 - Cyclic Redundancy Checks'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">crc32(n) 1.3.2 tcllib &quot;Cyclic Redundancy Checks&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>crc32 - Perform a 32bit Cyclic Redundancy Check</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section4">PROGRAMMING INTERFACE</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section6">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">crc32 <span class="opt">?1.3.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::crc::crc32</b> <span class="opt">?-format <i class="arg">format</i>?</span> <span class="opt">?-seed <i class="arg">value</i>?</span> [ <i class="arg">-channel chan</i> | <i class="arg">-filename file</i> | <i class="arg">message</i> ]</a></li>
+<li><a href="#2"><b class="cmd">::crc::Crc32Init</b> <span class="opt">?<i class="arg">seed</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::crc::Crc32Update</b> <i class="arg">token</i> <i class="arg">data</i></a></li>
+<li><a href="#4"><b class="cmd">::crc::Crc32Final</b> <i class="arg">token</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a Tcl implementation of the CRC-32
+algorithm based upon information provided at
+http://www.naaccr.org/standard/crc32/document.html
+If either the <b class="package">critcl</b> package or the <b class="package">Trf</b> package
+are available then a compiled version may be used internally to
+accelerate the checksum calculation.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::crc::crc32</b> <span class="opt">?-format <i class="arg">format</i>?</span> <span class="opt">?-seed <i class="arg">value</i>?</span> [ <i class="arg">-channel chan</i> | <i class="arg">-filename file</i> | <i class="arg">message</i> ]</a></dt>
+<dd><p>The command takes either string data or a channel or file name and
+returns a checksum value calculated using the CRC-32 algorithm. The
+result is formatted using the <i class="arg">format</i>(n) specifier provided. The
+default is to return the value as an unsigned integer (format %u).</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">OPTIONS</a></h2>
+<dl class="doctools_definitions">
+<dt>-channel <i class="arg">name</i></dt>
+<dd><p>Return a checksum for the data read from a channel. The command will
+read data from the channel until the <b class="cmd">eof</b> is true. If you need
+to be able to process events during this calculation see the
+<span class="sectref"><a href="#section4">PROGRAMMING INTERFACE</a></span> section</p></dd>
+<dt>-filename <i class="arg">name</i></dt>
+<dd><p>This is a convenience option that opens the specified file, sets the
+encoding to binary and then acts as if the <i class="arg">-channel</i> option had
+been used. The file is closed on completion.</p></dd>
+<dt>-format <i class="arg">string</i></dt>
+<dd><p>Return the checksum using an alternative format template.</p></dd>
+<dt>-seed <i class="arg">value</i></dt>
+<dd><p>Select an alternative seed value for the CRC calculation. The default
+is 0xffffffff. This can be useful for calculating the CRC for data
+structures without first converting the whole structure into a
+string. The CRC of the previous member can be used as the seed for
+calculating the CRC of the next member.
+Note that the crc32 algorithm includes a final XOR step. If
+incremental processing is desired then this must be undone before
+using the output of the algorithm as the seed for further
+processing. A simpler alternative is to use the
+<span class="sectref"><a href="#section4">PROGRAMMING INTERFACE</a></span> which is intended for this mode of
+operation.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">PROGRAMMING INTERFACE</a></h2>
+<p>The CRC-32 package implements the checksum using a context variable to
+which additional data can be added at any time. This is expecially
+useful in an event based environment such as a Tk application or a web
+server package. Data to be checksummed may be handled incrementally
+during a <b class="cmd">fileevent</b> handler in discrete chunks. This can improve
+the interactive nature of a GUI application and can help to avoid
+excessive memory consumption.</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">::crc::Crc32Init</b> <span class="opt">?<i class="arg">seed</i>?</span></a></dt>
+<dd><p>Begins a new CRC32 context. Returns a token ID that must be used for the
+remaining functions. An optional seed may be specified if required.</p></dd>
+<dt><a name="3"><b class="cmd">::crc::Crc32Update</b> <i class="arg">token</i> <i class="arg">data</i></a></dt>
+<dd><p>Add data to the checksum identified by token. Calling
+<em>Crc32Update $token &quot;abcd&quot;</em> is equivalent to calling
+<em>Crc32Update $token &quot;ab&quot;</em> followed by
+<em>Crc32Update $token &quot;cb&quot;</em>. See <span class="sectref"><a href="#section5">EXAMPLES</a></span>.</p></dd>
+<dt><a name="4"><b class="cmd">::crc::Crc32Final</b> <i class="arg">token</i></a></dt>
+<dd><p>Returns the checksum value and releases any resources held by this
+token. Once this command completes the token will be invalid. The
+result is a 32 bit integer value.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% crc::crc32 &quot;Hello, World!&quot;
+3964322768
+</pre>
+<pre class="doctools_example">
+% crc::crc32 -format 0x%X &quot;Hello, World!&quot;
+0xEC4AC3D0
+</pre>
+<pre class="doctools_example">
+% crc::crc32 -file crc32.tcl
+483919716
+</pre>
+<pre class="doctools_example">
+% set tok [crc::Crc32Init]
+% crc::Crc32Update $tok &quot;Hello, &quot;
+% crc::Crc32Update $tok &quot;World!&quot;
+% crc::Crc32Final $tok
+3964322768
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">AUTHORS</a></h2>
+<p>Pat Thoyts</p>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>crc</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="cksum.html">cksum(n)</a>, <a href="crc16.html">crc16(n)</a>, <a href="sum.html">sum(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key150">checksum</a>, <a href="../../../../index.html#key149">cksum</a>, <a href="../../../../index.html#key146">crc</a>, <a href="../../../../index.html#key147">crc32</a>, <a href="../../../../index.html#key148">cyclic redundancy check</a>, <a href="../../../../index.html#key124">data integrity</a>, <a href="../../../../index.html#key122">security</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Hashes, checksums, and encryption</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002, Pat Thoyts</p>
+</div>
+</div>

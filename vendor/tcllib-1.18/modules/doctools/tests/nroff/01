@@ -1,0 +1,34 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) **Copyright**
+'\"
+.TH "TEST" z 3\&.14\&.15\&.926 \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+TEST \-
+.SH DESCRIPTION
+Argument	::\fIArgument\fR::
+Class		::\fBClass\fR::
+Command		::\fBCommand\fR::
+Comment		::::
+Const		::\fBConstant\fR::
+Emphasis	::\fIEmphasis\fR::
+File		::"\fIFile/Path\fR"::
+Function	::\fBFunction\fR::
+Method		::\fBMethod\fR::
+Namespace	::\fBNamespace\fR::
+Option		::\fBOption\fR::
+Optional	::?Optional?::
+Package		::\fBPackage\fR::
+Syscmd		::\fBSystemCommand\fR::
+Term		::\fITerm\fR::
+Type		::\fBType\fR::
+Uri		::\fIUri\fR::
+Variable	::\fBVariable\fR::
+Widget		::\fBWidget\fR::
+.SH COPYRIGHT
+.nf
+Copyright (c) **Copyright**
+
+.fi

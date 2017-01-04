@@ -1,0 +1,83 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-05-11  Andreas Kupries  <andreask@activestate.com>
+
+	* map_slippy_fetcher.tcl: Added timeouts to the http queries issued
+	* map_geocode_nominatim.tcl: by the fetcher and geo-name
+	  resolver. Fetcher bumped to version 0.3.
+
+	* map_slippy.tcl: Integrated code contributed by <tomasz@tuxteam.de>
+	* map_slippy.man: providing a command to compute a zoom level which
+	* pkgIndex.tcl: fits around a rectangular geographic area described
+	  by the limiting lati- and longitudes. Version bumped to 0.5.
+
+	* map_geocode_nominatim.man: Added new package to resolve
+	* map_geocode_nominatim.tcl: geographical names via the
+	* pkgIndex.tcl: nominatim service, contributed by
+	  <tomasz@tuxteam.de>.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-03-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* map_slippy.man: Documented the three coordinate systems used.
+	* map_slippy.tcl: Extended the testsuite to cover all coordinate
+	* map_slippy.test: conversions. Fixed a number of problems (wrong
+	* pkgIndex.tcl: scaling, bad rounding) uncovered by this. Bumped
+	  package version to 0.4.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-05-27  Andreas Kupries  <andreask@activestate.com>
+
+	* map_slippy.man: [Bug 2999022]: Fixed bogus use of integer
+	* map_slippy.tcl: division in 'tile 2geo'. Thanks to Matt
+	* map_slippy.test: Morian <mmoria01@users.sourceforge.net>
+	* pkgIndex.tcl: for the report. Bumped version to 0.3. Started a
+	  testsuite.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-11-28  Andreas Kupries  <andreask@activestate.com>
+
+	* map_slippy_cache.man: Version mismatch code / index.
+	* map_slippy_cache.tcl: Fix and bump to 0.2 as it was
+	* map_slippy_fetcher.man: already distributed.
+	* map_slippy_fetcher.tcl: 
+	* map_slippy.man: 
+	* map_slippy.tcl: 
+	* pkgIndex.tcl:
+
+2008-11-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module for packages dealing with slippy-based maps.
+
+	* map_slippy_cache.man: Openstreetmap's slippy system. Accessing
+	* map_slippy_cache.tcl: slippy servers and fetching tiles, caching
+	* map_slippy_fetcher.man: tiles in the local filesystem, and shared
+	* map_slippy_fetcher.tcl: utility code.
+	* map_slippy.man: 
+	* map_slippy.tcl: 
+	* pkgIndex.tcl:

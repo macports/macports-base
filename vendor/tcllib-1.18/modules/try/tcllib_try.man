@@ -1,0 +1,122 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin try n 1]
+[see_also catch(n)]
+[see_also error(n)]
+[see_also return(n)]
+[see_also throw(n)]
+[keywords cleanup]
+[keywords error]
+[keywords exception]
+[keywords final]
+[keywords {resource management}]
+[copyright {2008 Donal K. Fellows, BSD licensed}]
+[moddesc {Forward compatibility implementation of [try]}]
+[titledesc {try - Trap and process errors and exceptions}]
+[category  Utility]
+[require Tcl 8.5]
+[require try [opt 1]]
+[description]
+[para]
+
+This package provides a forward-compatibility implementation of Tcl
+8.6's try/finally command (TIP 329), for Tcl 8.5. The code was
+directly pulled from Tcl 8.6 revision ?, when try/finally was
+implemented as Tcl procedure instead of in C.
+
+[list_begin definitions]
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd ::try] [arg body] [opt [arg handler...]] [opt "[method finally] [arg script]"]]
+
+This command executes the script [arg body] and, depending on what the
+outcome of that script is (normal exit, error, or some other
+exceptional result), runs a handler script to deal with the case. Once
+that has all happened, if the [method finally] clause is present, the
+[arg script] it includes will be run and the result of the handler (or
+the [arg body] if no handler matched) is allowed to continue to
+propagate. Note that the [method finally] clause is processed even if
+an error occurs and irrespective of which, if any, [arg handler] is
+used.
+
+[para] The [arg handler] clauses are each expressed as several words,
+and must have one of the following forms:
+
+[list_begin definitions]
+[def "[method on] [arg {code variableList script}]"]
+
+This clause matches if the evaluation of [arg body] completed with the
+exception code [arg code]. The [arg code] may be expressed as an
+integer or one of the following literal words:
+
+[const ok], [const error], [const return], [const break], or
+[const continue]. Those literals correspond to the integers 0 through
+4 respectively.
+
+[def "[method trap] [arg {pattern variableList script}]"]
+
+This clause matches if the evaluation of [arg body] resulted in an
+error and the prefix of the [option -errorcode] from the interpreter's
+status dictionary is equal to the [arg pattern]. The number of prefix
+words taken from the [option -errorcode] is equal to the list-length
+of [arg pattern], and inter-word spaces are normalized in both the
+[option -errorcode] and [arg pattern] before comparison.
+
+[para] The [arg variableList] word in each [arg handler] is always
+interpreted as a list of variable names. If the first word of the list
+is present and non-empty, it names a variable into which the result of
+the evaluation of [arg body] (from the main [cmd try]) will be placed;
+this will contain the human-readable form of any errors. If the second
+word of the list is present and non-empty, it names a variable into
+which the options dictionary of the interpreter at the moment of
+completion of execution of [arg body] will be placed.
+
+[para] The [arg script] word of each [arg handler] is also always
+interpreted the same: as a Tcl script to evaluate if the clause is
+matched. If [arg script] is a literal [const -] and the [arg handler]
+is not the last one, the [arg script] of the following [arg handler]
+is invoked instead (just like with the [cmd switch] command).
+
+[para] Note that [arg handler] clauses are matched against in order,
+and that the first matching one is always selected.
+
+At most one [arg handler] clause will selected.
+
+As a consequence, an [method {on error}] will mask any subsequent
+[method trap] in the [cmd try]. Also note that [method {on error}] is
+equivalent to [method {trap {}}].
+
+[para] If an exception (i.e. any non-[const ok] result) occurs during
+the evaluation of either the [arg handler] or the [method finally]
+clause, the original exception's status dictionary will be added to
+the new exception's status dictionary under the [option -during] key.
+
+[list_end]
+[list_end]
+
+[section EXAMPLES]
+
+Ensure that a file is closed no matter what:
+
+[para][example_begin]
+set f [lb]open /some/file/name a[rb]
+[cmd try] {
+    puts \$f "some message"
+    # ...
+} [cmd finally] {
+    close \$f
+}
+[example_end]
+
+[para] Handle different reasons for a file to not be openable for reading:
+[para][example_begin]
+[cmd try] {
+    set f [lb]open /some/file/name[rb]
+} [method trap] {POSIX EISDIR} {} {
+    puts "failed to open /some/file/name: it's a directory"
+} [method trap] {POSIX ENOENT} {} {
+    puts "failed to open /some/file/name: it doesn't exist"
+}
+[example_end]
+
+[vset CATEGORY try]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

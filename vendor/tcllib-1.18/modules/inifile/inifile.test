@@ -1,0 +1,218 @@
+# -*- tcl -*-
+# Tests for module 'inifile'
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ini.tcl inifile
+}
+
+#---------------------------------------------------------------------
+
+set inifile [localPath ini.tcl]
+set testini [localPath test.ini]
+set sampini [localPath sample.ini]
+
+#---------------------------------------------------------------------
+
+test inifile-1.1 {ini::open} {
+    set res [ini::open $testini r]
+    ini::close $res
+    set res
+} {ini0}
+
+test inifile-1.2 {ini::sections} {
+    set hdl [ini::open $testini r]
+    set res [ini::sections $hdl]
+    ini::close $hdl
+    set res
+} {emptysection section1 \{test section2}
+
+test inifile-1.3 {ini::keys} {
+    set hdl [ini::open $testini r]
+    set res [ini::keys $hdl section1]
+    ini::close $hdl
+    set res
+} {testkey key}
+
+test inifile-1.4 {ini::keys} {
+    set hdl [ini::open $testini r]
+    set res [ini::keys $hdl \{test]
+    ini::close $hdl
+    set res
+} {\}key}
+
+test inifile-1.5 {ini::get} {
+    set hdl [ini::open $testini r]
+    set res [ini::get $hdl section1]
+    ini::close $hdl
+    set res
+} {testkey hi key value}
+
+test inifile-1.6 {ini::get} {
+    set hdl [ini::open $testini r]
+    set res [ini::get $hdl \{test]
+    ini::close $hdl
+    set res
+} {\}key {$blah}}
+
+test inifile-1.7 {ini::value} {
+    set hdl [ini::open $testini r]
+    set res [ini::value $hdl section1 key]
+    ini::close $hdl
+    set res
+} {value}
+
+test inifile-1.8 {ini::value} {
+    set hdl [ini::open $testini r]
+    set res [ini::value $hdl \{test \}key]
+    ini::close $hdl
+    set res
+} {$blah}
+
+test inifile-1.9 {ini::exists} {
+    set hdl [ini::open $testini r]
+    set res [ini::exists $hdl section1]
+    ini::close $hdl
+    set res
+} {1}
+
+test inifile-1.10 {ini::exists} {
+    set hdl [ini::open $testini r]
+    set res [ini::exists $hdl section]
+    ini::close $hdl
+    set res
+} {0}
+
+test inifile-1.11 {ini::exists} {
+    set hdl [ini::open $testini r]
+    set res [ini::exists $hdl section1 testkey]
+    ini::close $hdl
+    set res
+} {1}
+
+test inifile-1.12 {ini:::exists} {
+    set hdl [ini::open $testini r]
+    set res [ini::exists $hdl section1 blah]
+    ini::close $hdl
+    set res
+} {0}
+
+test inifile-1.13 {ini:::exists} {
+    set hdl [ini::open $testini r]
+    set res [ini::exists $hdl \{test]
+    ini::close $hdl
+    set res
+} {1}
+
+test inifile-1.14 {ini:::exists} {
+    set hdl [ini::open $testini r]
+    set res [ini::exists $hdl \{test \}key]
+    ini::close $hdl
+    set res
+} {1}
+
+#---------------------------------------------------------------------
+# Tests for bug #1281136 --
+set N 0
+foreach name {nexthandle commentchar} {
+    test inifile-2.$N {bug 1281136 - collision with global variable names} {
+        set script {list [catch {
+            array set ::%var {}
+            source %file
+        } err] $err}
+        regsub {%file} $script $inifile script
+        regsub {%var} $script $name script
+        interp create slave0
+        set r [slave0 eval $script]
+        interp delete slave0
+        set r
+    } {0 {}}
+    incr N
+}
+foreach name {data comments sections} {
+    test inifile-2.$N {bug 1281136 - collision with global variable names} {
+        set script {list [catch {
+            ::set ::%var 0
+            source %file
+            set res [ini::open %testini r]
+            ini::close $res
+        } err] $err}
+        foreach {s v} [list %file $inifile %var $name %testini $testini] {
+            regsub $s $script $v script
+        }
+        interp create slave0
+        set r [slave0 eval $script]
+        interp delete slave0
+        set r
+    } {0 {}}
+    incr N
+}
+
+#---------------------------------------------------------------------
+
+test inifile-3.0 {bug 3612465, leading & trailing spaces} {
+    set fh [ini::open $sampini]
+    set res [ini::sections $fh]
+    ini::close $fh
+    unset fh
+    set res
+} General
+
+test inifile-3.1 {bug 3612465, leading & trailing spaces} {
+    set fh [ini::open $sampini]
+    #set res [llength [ini::sections $fh]]
+    set res [lsort -dict [ini::keys $fh General]]
+    ini::close $fh
+    unset fh
+    set res
+} {key key2}
+
+#---------------------------------------------------------------------
+
+test inifile-4.0 {bug c4b8162da5 - ini::open} {
+    set res [ini::open $testini -encoding unicode r]
+    ini::close $res
+    set res
+} {ini16}
+
+# Test various error conditions.
+test inifile-4.1 {bug c4b8162da5 - ini::open - invalid encoding} {
+    catch {
+	ini::open $testini -encoding foo r
+    } res
+    set res
+} {unknown encoding "foo"}
+
+test inifile-4.2 {bug c4b8162da5 - ini::open - invalid option} {
+    catch {
+	ini::open $testini -bogus foo r
+    } res
+    set res
+} {Invalid option -bogus, expected -encoding}
+
+test inifile-4.3 {bug c4b8162da5 - ini::open - invalid mode} {
+    catch {
+	ini::open $testini x
+    } res
+    set res
+} {x is not a valid access mode}
+
+test inifile-4.4 {bug c4b8162da5 - ini::open - invalid mode} {
+    catch {
+	set res [ini::open $testini w-]
+    } res
+    set res
+} {w- is not a valid access mode}
+
+#---------------------------------------------------------------------
+# Clean up
+testsuiteCleanup
+return

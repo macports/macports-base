@@ -1,0 +1,138 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+package require Tcl 8.5
+package require nntp
+package require fileutil
+
+# This application connects to an nntp server and retrieves all
+# messages it currently has for a named group. Both are specified as
+# command line arguments. All retrieved messages are fed into the
+# command specified as the third and further arguments, via a pipe.
+# That command is responsible for storing the message as it sees fit.
+
+# Signature (syntax) of the storage command:
+#
+# (1) <cmd> last      => Returns last id processed.
+# (2) <cmd> save <id> => Take message through stdin, and save, mark <id> as last.
+
+
+
+proc main {} {
+    if {![cmdline]} usage
+    pullmessages
+}
+
+proc cmdline {} {
+    global argv newsserver newsgroup user password storecommand
+
+    if {[lindex $argv 0] eq "-via"} {
+	if {[llength $argv] < 5} {return 0}
+	set argv [lassign $argv _ accountfile]
+
+	lassign [split [validatefile {account file} $accountfile] \n] user password
+    }
+
+    if {[llength $argv] < 3} {return 0}
+
+    # Retrieve arguments
+
+    set storecommand [lassign $argv newsserver newsgroup]
+    if {![llength $storecommand]} { return 0 }
+
+    return 1
+}
+
+proc validatefile {which path} {
+    if {![file exists   $path]} { stop "$which does not exist: $path" }
+    if {![file isfile   $path]} { stop "$which not a file: $path" }
+    if {![file readable $path]} { stop "$which not readable: $path" }
+    return [fileutil::cat $path]
+}
+
+proc usage {} {
+    global argv0
+    puts stderr "$argv0: wrong # args, should be \"$argv0 ?-via accountfile? server group cmd...\""
+    exit 1
+}
+
+proc stop {text} {
+    global argv0
+    puts stderr "$argv0: $text"
+    exit 1
+}
+
+proc pullmessages {} {
+    global newsserver newsgroup user password
+
+    nntp_cmd 1 {open       } {set news [nntp::nntp $newsserver]}
+    nntp_cmd 1 {mode reader} {$news mode_reader}
+
+    if {[info exists user]} {
+	nntp_cmd 1 {authinfo   } {$news authinfo $user $password}
+    }
+
+    nntp_cmd 1 {group info } {
+	set info [$news group $newsgroup]
+    }
+    lassign $info total firstid lastid _
+    set n [string length $lastid]
+
+    # TODO: iterate over all messages we have no seen yet.
+
+    set lasthandled [store_cmd {} last]
+    if {$lasthandled eq {}} {
+	set  lasthandled $firstid
+	incr lasthandled -1
+    }
+
+    while {$lasthandled < $lastid} {
+	incr lasthandled
+	if {![nntp_cmd 0 "get [format %${n}d $lasthandled]" {
+	    set lines [$news article $lasthandled]
+	    set x ok
+	}]} continue
+
+	store_cmd [join $lines \n] save $lasthandled
+    }
+
+    nntp_cmd 1 {quit       } {$news quit}
+    return
+}
+
+proc store_cmd {si args} {
+    global storecommand
+
+    if {$si ne {}} {
+	return [exec << $si {*}$storecommand {*}$args]
+    } else {
+	return [exec {*}$storecommand {*}$args]
+    }
+}
+
+proc nntp_cmd {exit title cmd {oktitle {}}} {
+    global argv0 
+
+    puts -nonewline stdout $title
+    flush stdout
+    if {[catch {
+	set res [uplevel 1 $cmd]
+    } msg]} {
+	puts stdout " error: $msg"
+	#puts stderr "$argv0: nntp error: $msg"
+	if {$exit} {
+	    exit 1
+	}
+	return 0
+    } else {
+	if {$oktitle != {}} {
+	    puts stdout " $res $oktitle"
+	} else {
+	    puts stdout " $res"
+	}
+	return 1
+    }
+}
+
+main
+exit

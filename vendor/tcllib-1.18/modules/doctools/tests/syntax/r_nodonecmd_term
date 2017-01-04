@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[term .t.]
+--> (FmtError) Manpage error (nodonecmd), "term .t." : Command not allowed after [manpage_end].

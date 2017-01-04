@@ -1,0 +1,11 @@
+{
+    "pt::grammar::peg" : {
+        "rules" : {
+            "TEST" : {
+                "is"   : "x {& {t a}} {n IDENTIFIER}",
+                "mode" : "value"
+            }
+        },
+        "start" : "n TEST"
+    }
+}

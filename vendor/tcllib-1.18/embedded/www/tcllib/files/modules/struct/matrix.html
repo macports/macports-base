@@ -1,0 +1,553 @@
+
+<div class='fossil-doc' data-title='struct::matrix - Tcl Data Structures'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">struct::matrix(n) 2.0.3 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>struct::matrix - Create and manipulate matrix objects</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">struct::matrix <span class="opt">?2.0.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::struct::matrix</b> <span class="opt">?<i class="arg">matrixName</i>?</span> <span class="opt">?<b class="const">=</b>|<b class="const">:=</b>|<b class="const">as</b>|<b class="const">deserialize</b> <i class="arg">source</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">matrixName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">matrixName</i> <b class="method">=</b> <i class="arg">sourcematrix</i></a></li>
+<li><a href="#4"><i class="arg">matrixName</i> <b class="method">--&gt;</b> <i class="arg">destmatrix</i></a></li>
+<li><a href="#5"><i class="arg">matrixName</i> <b class="method">add column</b> <span class="opt">?<i class="arg">values</i>?</span></a></li>
+<li><a href="#6"><i class="arg">matrixName</i> <b class="method">add row</b> <span class="opt">?<i class="arg">values</i>?</span></a></li>
+<li><a href="#7"><i class="arg">matrixName</i> <b class="method">add columns</b> <i class="arg">n</i></a></li>
+<li><a href="#8"><i class="arg">matrixName</i> <b class="method">add rows</b> <i class="arg">n</i></a></li>
+<li><a href="#9"><i class="arg">matrixName</i> <b class="method">cells</b></a></li>
+<li><a href="#10"><i class="arg">matrixName</i> <b class="method">cellsize</b> <i class="arg">column row</i></a></li>
+<li><a href="#11"><i class="arg">matrixName</i> <b class="method">columns</b></a></li>
+<li><a href="#12"><i class="arg">matrixName</i> <b class="method">columnwidth</b> <i class="arg">column</i></a></li>
+<li><a href="#13"><i class="arg">matrixName</i> <b class="method">delete column</b> <i class="arg">column</i></a></li>
+<li><a href="#14"><i class="arg">matrixName</i> <b class="method">delete columns</b> <i class="arg">n</i></a></li>
+<li><a href="#15"><i class="arg">matrixName</i> <b class="method">delete row</b> <i class="arg">row</i></a></li>
+<li><a href="#16"><i class="arg">matrixName</i> <b class="method">delete rows</b> <i class="arg">n</i></a></li>
+<li><a href="#17"><i class="arg">matrixName</i> <b class="method">deserialize</b> <i class="arg">serialization</i></a></li>
+<li><a href="#18"><i class="arg">matrixName</i> <b class="method">destroy</b></a></li>
+<li><a href="#19"><i class="arg">matrixName</i> <b class="method">format 2string</b> <span class="opt">?<i class="arg">report</i>?</span></a></li>
+<li><a href="#20"><i class="arg">matrixName</i> <b class="method">format 2chan</b> <span class="opt">?<span class="opt">?<i class="arg">report</i>?</span> <i class="arg">channel</i>?</span></a></li>
+<li><a href="#21"><i class="arg">matrixName</i> <b class="method">get cell</b> <i class="arg">column row</i></a></li>
+<li><a href="#22"><i class="arg">matrixName</i> <b class="method">get column</b> <i class="arg">column</i></a></li>
+<li><a href="#23"><i class="arg">matrixName</i> <b class="method">get rect</b> <i class="arg">column_tl row_tl column_br row_br</i></a></li>
+<li><a href="#24"><i class="arg">matrixName</i> <b class="method">get row</b> <i class="arg">row</i></a></li>
+<li><a href="#25"><i class="arg">matrixName</i> <b class="method">insert column</b> <i class="arg">column</i> <span class="opt">?<i class="arg">values</i>?</span></a></li>
+<li><a href="#26"><i class="arg">matrixName</i> <b class="method">insert row</b> <i class="arg">row</i> <span class="opt">?<i class="arg">values</i>?</span></a></li>
+<li><a href="#27"><i class="arg">matrixName</i> <b class="method">link</b> <span class="opt">?-transpose?</span> <i class="arg">arrayvar</i></a></li>
+<li><a href="#28"><i class="arg">matrixName</i> <b class="method">links</b></a></li>
+<li><a href="#29"><i class="arg">matrixName</i> <b class="method">rowheight</b> <i class="arg">row</i></a></li>
+<li><a href="#30"><i class="arg">matrixName</i> <b class="method">rows</b></a></li>
+<li><a href="#31"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">all</b> <i class="arg">pattern</i></a></li>
+<li><a href="#32"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">column</b> <i class="arg">column pattern</i></a></li>
+<li><a href="#33"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">row</b> <i class="arg">row pattern</i></a></li>
+<li><a href="#34"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">rect</b> <i class="arg">column_tl row_tl column_br row_br pattern</i></a></li>
+<li><a href="#35"><i class="arg">matrixName</i> <b class="method">serialize</b> <span class="opt">?<i class="arg">column_tl row_tl column_br row_br</i>?</span></a></li>
+<li><a href="#36"><i class="arg">matrixName</i> <b class="method">set cell</b> <i class="arg">column row value</i></a></li>
+<li><a href="#37"><i class="arg">matrixName</i> <b class="method">set column</b> <i class="arg">column values</i></a></li>
+<li><a href="#38"><i class="arg">matrixName</i> <b class="method">set rect</b> <i class="arg">column row values</i></a></li>
+<li><a href="#39"><i class="arg">matrixName</i> <b class="method">set row</b> <i class="arg">row values</i></a></li>
+<li><a href="#40"><i class="arg">matrixName</i> <b class="method">sort columns</b> <span class="opt">?<b class="option">-increasing</b>|<b class="option">-decreasing</b>?</span> <i class="arg">row</i></a></li>
+<li><a href="#41"><i class="arg">matrixName</i> <b class="method">sort rows</b> <span class="opt">?<b class="option">-increasing</b>|<b class="option">-decreasing</b>?</span> <i class="arg">column</i></a></li>
+<li><a href="#42"><i class="arg">matrixName</i> <b class="method">swap columns</b> <i class="arg">column_a column_b</i></a></li>
+<li><a href="#43"><i class="arg">matrixName</i> <b class="method">swap rows</b> <i class="arg">row_a row_b</i></a></li>
+<li><a href="#44"><i class="arg">matrixName</i> <b class="method">transpose</b></a></li>
+<li><a href="#45"><i class="arg">matrixName</i> <b class="method">unlink</b> <i class="arg">arrayvar</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>A matrix is a rectangular collection of cells, i.e. organized in rows
+and columns. Each cell contains exactly one value of arbitrary
+form. The cells in the matrix are addressed by pairs of integer
+numbers, with the first (left) number in the pair specifying the
+column and the second (right) number specifying the row the cell is
+in. These indices are counted from 0 upward. The special non-numeric
+index <b class="const">end</b> refers to the last row or column in the matrix,
+depending on the context. Indices of the form
+<b class="const">end</b>-<b class="variable">number</b> are counted from the end of the row or
+column, like they are for standard Tcl lists. Trying to access
+non-existing cells causes an error.</p>
+<p>The matrices here are created empty, i.e. they have neither rows nor
+columns. The user then has to add rows and columns as needed by his
+application. A specialty of this structure is the ability to export an
+array-view onto its contents. Such can be used by tkTable, for
+example, to link the matrix into the display.</p>
+<p>The main command of the package is:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::struct::matrix</b> <span class="opt">?<i class="arg">matrixName</i>?</span> <span class="opt">?<b class="const">=</b>|<b class="const">:=</b>|<b class="const">as</b>|<b class="const">deserialize</b> <i class="arg">source</i>?</span></a></dt>
+<dd><p>The command creates a new matrix object with an associated global Tcl
+command whose name is <i class="arg">matrixName</i>.  This command may be used to
+invoke various operations on the matrix.  It has the following general
+form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">matrixName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command.</p></dd>
+</dl>
+<p>If <i class="arg">matrixName</i> is not specified a unique name will be generated
+by the package itself. If a <i class="arg">source</i> is specified the new matrix
+will be initialized to it. For the operators <b class="const">=</b>, <b class="const">:=</b>,
+and <b class="const">as</b> the argument <i class="arg">source</i> is interpreted as the name of
+another matrix object, and the assignment operator <b class="method">=</b> will be
+executed. For <b class="const">deserialize</b> the <i class="arg">source</i> is a serialized
+matrix object and <b class="method">deserialize</b> will be executed.</p>
+<p>In other words</p>
+<pre class="doctools_example">
+    ::struct::matrix mymatrix = b
+</pre>
+<p>is equivalent to</p>
+<pre class="doctools_example">
+    ::struct::matrix mymatrix
+    mymatrix = b
+</pre>
+<p>and</p>
+<pre class="doctools_example">
+    ::struct::matrix mymatrix deserialize $b
+</pre>
+<p>is equivalent to</p>
+<pre class="doctools_example">
+    ::struct::matrix mymatrix
+    mymatrix deserialize $b
+</pre>
+</dd>
+</dl>
+<p>The following commands are possible for matrix objects:</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">matrixName</i> <b class="method">=</b> <i class="arg">sourcematrix</i></a></dt>
+<dd><p>This is the assignment operator for matrix objects. It copies the matrix
+contained in the matrix object <i class="arg">sourcematrix</i> over the matrix data in
+<i class="arg">matrixName</i>. The old contents of <i class="arg">matrixName</i> are deleted by
+this operation.</p>
+<p>This operation is in effect equivalent to</p>
+<pre class="doctools_example">
+    <i class="arg">matrixName</i> <b class="method">deserialize</b> [<i class="arg">sourcematrix</i> <b class="method">serialize</b>]
+</pre>
+</dd>
+<dt><a name="4"><i class="arg">matrixName</i> <b class="method">--&gt;</b> <i class="arg">destmatrix</i></a></dt>
+<dd><p>This is the reverse assignment operator for matrix objects. It copies
+the matrix contained in the matrix object <i class="arg">matrixName</i> over the matrix
+data in the object <i class="arg">destmatrix</i>.
+The old contents of <i class="arg">destmatrix</i> are deleted by this operation.</p>
+<p>This operation is in effect equivalent to</p>
+<pre class="doctools_example">
+    <i class="arg">destmatrix</i> <b class="method">deserialize</b> [<i class="arg">matrixName</i> <b class="method">serialize</b>]
+</pre>
+</dd>
+<dt><a name="5"><i class="arg">matrixName</i> <b class="method">add column</b> <span class="opt">?<i class="arg">values</i>?</span></a></dt>
+<dd><p>Extends the matrix by one column and then acts like <b class="method">set column</b>
+(see below) on this new column if there were <i class="arg">values</i>
+supplied. Without <i class="arg">values</i> the new cells will be set to the empty
+string. The new column is appended immediately behind the last
+existing column.</p></dd>
+<dt><a name="6"><i class="arg">matrixName</i> <b class="method">add row</b> <span class="opt">?<i class="arg">values</i>?</span></a></dt>
+<dd><p>Extends the matrix by one row and then acts like <b class="method">set row</b> (see
+below) on this new row if there were <i class="arg">values</i> supplied. Without
+<i class="arg">values</i> the new cells will be set to the empty string. The new
+row is appended immediately behind the last existing row.</p></dd>
+<dt><a name="7"><i class="arg">matrixName</i> <b class="method">add columns</b> <i class="arg">n</i></a></dt>
+<dd><p>Extends the matrix by <i class="arg">n</i> columns. The new cells will be set to
+the empty string. The new columns are appended immediately behind the
+last existing column. A value of <i class="arg">n</i> equal to or smaller than 0 is
+not allowed.</p></dd>
+<dt><a name="8"><i class="arg">matrixName</i> <b class="method">add rows</b> <i class="arg">n</i></a></dt>
+<dd><p>Extends the matrix by <i class="arg">n</i> rows. The new cells will be set to the
+empty string. The new rows are appended immediately behind the last
+existing row. A value of <i class="arg">n</i> equal to or smaller than 0 is not
+allowed.</p></dd>
+<dt><a name="9"><i class="arg">matrixName</i> <b class="method">cells</b></a></dt>
+<dd><p>Returns the number of cells currently managed by the matrix. This is
+the product of <b class="method">rows</b> and <b class="method">columns</b>.</p></dd>
+<dt><a name="10"><i class="arg">matrixName</i> <b class="method">cellsize</b> <i class="arg">column row</i></a></dt>
+<dd><p>Returns the length of the string representation of the value currently
+contained in the addressed cell.</p></dd>
+<dt><a name="11"><i class="arg">matrixName</i> <b class="method">columns</b></a></dt>
+<dd><p>Returns the number of columns currently managed by the matrix.</p></dd>
+<dt><a name="12"><i class="arg">matrixName</i> <b class="method">columnwidth</b> <i class="arg">column</i></a></dt>
+<dd><p>Returns the length of the longest string representation of all the
+values currently contained in the cells of the addressed column if
+these are all spanning only one line. For cell values spanning
+multiple lines the length of their longest line goes into the
+computation.</p>
+<p><em>Note:</em> The command recognizes ANSI color control sequences
+and excludes them from the width of a line, as they are logically of
+zero width.</p></dd>
+<dt><a name="13"><i class="arg">matrixName</i> <b class="method">delete column</b> <i class="arg">column</i></a></dt>
+<dd><p>Deletes the specified column from the matrix and shifts all columns
+with higher indices one index down.</p></dd>
+<dt><a name="14"><i class="arg">matrixName</i> <b class="method">delete columns</b> <i class="arg">n</i></a></dt>
+<dd><p>Deletes <i class="arg">n</i> columns from the right of the matrix. The value of
+<i class="arg">n</i> has to satisfy the constraint
+&quot;0 &lt; <i class="arg">n</i> &lt; [<b class="cmd">matrixName</b> <b class="method">columns</b>]&quot;</p></dd>
+<dt><a name="15"><i class="arg">matrixName</i> <b class="method">delete row</b> <i class="arg">row</i></a></dt>
+<dd><p>Deletes the specified row from the matrix and shifts all row with
+higher indices one index down.</p></dd>
+<dt><a name="16"><i class="arg">matrixName</i> <b class="method">delete rows</b> <i class="arg">n</i></a></dt>
+<dd><p>Deletes <i class="arg">n</i> rows from the bottom of the matrix. The value of
+<i class="arg">n</i> has to satisfy the constraint
+&quot;0 &lt; <i class="arg">n</i> &lt; [<b class="cmd">matrixName</b> <b class="method">rows</b>]&quot;</p></dd>
+<dt><a name="17"><i class="arg">matrixName</i> <b class="method">deserialize</b> <i class="arg">serialization</i></a></dt>
+<dd><p>This is the complement to <b class="method">serialize</b>. It replaces matrix data
+in <i class="arg">matrixName</i> with the matrix described by the <i class="arg">serialization</i>
+value. The old contents of <i class="arg">matrixName</i> are deleted by this
+operation.</p></dd>
+<dt><a name="18"><i class="arg">matrixName</i> <b class="method">destroy</b></a></dt>
+<dd><p>Destroys the matrix, including its storage space and associated
+command.</p></dd>
+<dt><a name="19"><i class="arg">matrixName</i> <b class="method">format 2string</b> <span class="opt">?<i class="arg">report</i>?</span></a></dt>
+<dd><p>Formats the matrix using the specified report object and returns the
+string containing the result of this operation. The report has to
+support the <b class="method">printmatrix</b> method. If no <i class="arg">report</i> is
+specified the system will use an internal report definition to format
+the matrix.</p></dd>
+<dt><a name="20"><i class="arg">matrixName</i> <b class="method">format 2chan</b> <span class="opt">?<span class="opt">?<i class="arg">report</i>?</span> <i class="arg">channel</i>?</span></a></dt>
+<dd><p>Formats the matrix using the specified report object and writes the
+string containing the result of this operation into the channel. The
+report has to support the <b class="method">printmatrix2channel</b> method.  If no
+<i class="arg">report</i> is specified the system will use an internal report
+definition to format the matrix. If no <i class="arg">channel</i> is specified the
+system will use <b class="const">stdout</b>.</p></dd>
+<dt><a name="21"><i class="arg">matrixName</i> <b class="method">get cell</b> <i class="arg">column row</i></a></dt>
+<dd><p>Returns the value currently contained in the cell identified by row
+and column index.</p></dd>
+<dt><a name="22"><i class="arg">matrixName</i> <b class="method">get column</b> <i class="arg">column</i></a></dt>
+<dd><p>Returns a list containing the values from all cells in the column
+identified by the index. The contents of the cell in row 0 are stored
+as the first element of this list.</p></dd>
+<dt><a name="23"><i class="arg">matrixName</i> <b class="method">get rect</b> <i class="arg">column_tl row_tl column_br row_br</i></a></dt>
+<dd><p>Returns a list of lists of cell values. The values stored in the
+result come from the sub-matrix whose top-left and bottom-right cells
+are specified by <i class="arg">column_tl, row_tl</i> and
+<i class="arg">column_br, row_br</i> resp. Note that the following equations have
+to be true: &quot;<i class="arg">column_tl</i> &lt;= <i class="arg">column_br</i>&quot; and &quot;<i class="arg">row_tl</i> &lt;=
+<i class="arg">row_br</i>&quot;. The result is organized as follows: The outer list is
+the list of rows, its elements are lists representing a single
+row. The row with the smallest index is the first element of the outer
+list. The elements of the row lists represent the selected cell
+values. The cell with the smallest index is the first element in each
+row list.</p></dd>
+<dt><a name="24"><i class="arg">matrixName</i> <b class="method">get row</b> <i class="arg">row</i></a></dt>
+<dd><p>Returns a list containing the values from all cells in the row
+identified by the index. The contents of the cell in column 0 are
+stored as the first element of this list.</p></dd>
+<dt><a name="25"><i class="arg">matrixName</i> <b class="method">insert column</b> <i class="arg">column</i> <span class="opt">?<i class="arg">values</i>?</span></a></dt>
+<dd><p>Extends the matrix by one column and then acts like <b class="method">set column</b>
+(see below) on this new column if there were <i class="arg">values</i>
+supplied. Without <i class="arg">values</i> the new cells will be set to the empty
+string. The new column is inserted just before the column specified by
+the given index. This means, if <i class="arg">column</i> is less than or equal to
+zero, then the new column is inserted at the beginning of the matrix,
+before the first column. If <i class="arg">column</i> has the value <b class="const">end</b>,
+or if it is greater than or equal to the number of columns in the
+matrix, then the new column is appended to the matrix, behind the last
+column. The old column at the chosen index and all columns with higher
+indices are shifted one index upward.</p></dd>
+<dt><a name="26"><i class="arg">matrixName</i> <b class="method">insert row</b> <i class="arg">row</i> <span class="opt">?<i class="arg">values</i>?</span></a></dt>
+<dd><p>Extends the matrix by one row and then acts like <b class="method">set row</b> (see
+below) on this new row if there were <i class="arg">values</i> supplied. Without
+<i class="arg">values</i> the new cells will be set to the empty string. The new
+row is inserted just before the row specified by the given index. This
+means, if <i class="arg">row</i> is less than or equal to zero, then the new row is
+inserted at the beginning of the matrix, before the first row. If
+<i class="arg">row</i> has the value <b class="const">end</b>, or if it is greater than or
+equal to the number of rows in the matrix, then the new row is
+appended to the matrix, behind the last row. The old row at that index
+and all rows with higher indices are shifted one index upward.</p></dd>
+<dt><a name="27"><i class="arg">matrixName</i> <b class="method">link</b> <span class="opt">?-transpose?</span> <i class="arg">arrayvar</i></a></dt>
+<dd><p>Links the matrix to the specified array variable. This means that the
+contents of all cells in the matrix is stored in the array too, with
+all changes to the matrix propagated there too. The contents of the
+cell <i class="arg">(column,row)</i> is stored in the array using the key
+<i class="arg">column,row</i>. If the option <b class="option">-transpose</b> is specified the
+key <i class="arg">row,column</i> will be used instead. It is possible to link the
+matrix to more than one array. Note that the link is bidirectional,
+i.e. changes to the array are mirrored in the matrix too.</p></dd>
+<dt><a name="28"><i class="arg">matrixName</i> <b class="method">links</b></a></dt>
+<dd><p>Returns a list containing the names of all array variables the matrix
+was linked to through a call to method <b class="method">link</b>.</p></dd>
+<dt><a name="29"><i class="arg">matrixName</i> <b class="method">rowheight</b> <i class="arg">row</i></a></dt>
+<dd><p>Returns the height of the specified row in lines. This is the highest
+number of lines spanned by a cell over all cells in the row.</p></dd>
+<dt><a name="30"><i class="arg">matrixName</i> <b class="method">rows</b></a></dt>
+<dd><p>Returns the number of rows currently managed by the matrix.</p></dd>
+<dt><a name="31"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">all</b> <i class="arg">pattern</i></a></dt>
+<dd><p>Searches the whole matrix for cells matching the <i class="arg">pattern</i> and
+returns a list with all matches. Each item in the aforementioned list
+is a list itself and contains the column and row index of the matching
+cell, in this order. The results are ordered by column first and row
+second, both times in ascending order. This means that matches to the
+left and the top of the matrix come before matches to the right and
+down.</p>
+<p>The type of the pattern (string, glob, regular expression) is
+determined by the option after the <b class="method">search</b> keyword. If no
+option is given it defaults to <b class="option">-exact</b>.</p>
+<p>If the option <b class="option">-nocase</b> is specified the search will be
+case-insensitive.</p></dd>
+<dt><a name="32"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">column</b> <i class="arg">column pattern</i></a></dt>
+<dd><p>Like <b class="method">search all</b>, but the search is restricted to the
+specified column.</p></dd>
+<dt><a name="33"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">row</b> <i class="arg">row pattern</i></a></dt>
+<dd><p>Like <b class="method">search all</b>, but the search is restricted to the
+specified row.</p></dd>
+<dt><a name="34"><i class="arg">matrixName</i> <b class="method">search</b> <span class="opt">?-nocase?</span> <span class="opt">?-exact|-glob|-regexp?</span> <b class="method">rect</b> <i class="arg">column_tl row_tl column_br row_br pattern</i></a></dt>
+<dd><p>Like <b class="method">search all</b>, but the search is restricted to the
+specified rectangular area of the matrix.</p></dd>
+<dt><a name="35"><i class="arg">matrixName</i> <b class="method">serialize</b> <span class="opt">?<i class="arg">column_tl row_tl column_br row_br</i>?</span></a></dt>
+<dd><p>This method serializes the sub-matrix spanned up by the rectangle
+specification. In other words it returns a tcl <em>value</em> completely
+describing that matrix. If no rectangle is specified the whole matrix
+will be serialized.
+This allows, for example, the transfer of matrix objects (or parts
+thereof) over arbitrary channels, persistence, etc.
+This method is also the basis for both the copy constructor and the
+assignment operator.</p>
+<p>The result of this method has to be semantically identical over all
+implementations of the matrix interface. This is what will enable us
+to copy matrix data between different implementations of the same
+interface.</p>
+<p>The result is a list containing exactly three items.</p>
+<p>The first two elements of the list specify the number of rows and
+columns of the matrix, in that order. The values integer numbers
+greater than or equal to zero.</p>
+<p>The last element of the list contains the values of the matrix cells
+we have serialized, in the form of a value like it is returned by the
+<b class="method">get rect</b>. However empty cells to the right and bottom of
+the matrix can be left out of that value as the size information in
+the serialization allows the receiver the creation of a matrix with
+the proper size despite the missing values.</p>
+<pre class="doctools_example">
+    # A possible serialization for the matrix structure
+    #
+    # | a b d g |
+    # | c e     |
+    # | f       |
+    #
+    # is
+    #
+    # 3 4 {{a b d g} {c e} {f}}
+</pre>
+</dd>
+<dt><a name="36"><i class="arg">matrixName</i> <b class="method">set cell</b> <i class="arg">column row value</i></a></dt>
+<dd><p>Sets the value in the cell identified by row and column index to the
+data in the third argument.</p></dd>
+<dt><a name="37"><i class="arg">matrixName</i> <b class="method">set column</b> <i class="arg">column values</i></a></dt>
+<dd><p>Sets the values in the cells identified by the column index to the
+elements of the list provided as the third argument. Each element of
+the list is assigned to one cell, with the first element going into
+the cell in row 0 and then upward. If there are less values in the
+list than there are rows the remaining rows are set to the empty
+string. If there are more values in the list than there are rows the
+superfluous elements are ignored. The matrix is not extended by this
+operation.</p></dd>
+<dt><a name="38"><i class="arg">matrixName</i> <b class="method">set rect</b> <i class="arg">column row values</i></a></dt>
+<dd><p>Takes a list of lists of cell values and writes them into the
+submatrix whose top-left cell is specified by the two indices. If the
+sublists of the outerlist are not of equal length the shorter sublists
+will be filled with empty strings to the length of the longest
+sublist. If the submatrix specified by the top-left cell and the
+number of rows and columns in the <i class="arg">values</i> extends beyond the
+matrix we are modifying the over-extending parts of the values are
+ignored, i.e. essentially cut off. This subcommand expects its input
+in the format as returned by <b class="method">get rect</b>.</p></dd>
+<dt><a name="39"><i class="arg">matrixName</i> <b class="method">set row</b> <i class="arg">row values</i></a></dt>
+<dd><p>Sets the values in the cells identified by the row index to the
+elements of the list provided as the third argument. Each element of
+the list is assigned to one cell, with the first element going into
+the cell in column 0 and then upward. If there are less values in the
+list than there are columns the remaining columns are set to the empty
+string. If there are more values in the list than there are columns
+the superfluous elements are ignored. The matrix is not extended by
+this operation.</p></dd>
+<dt><a name="40"><i class="arg">matrixName</i> <b class="method">sort columns</b> <span class="opt">?<b class="option">-increasing</b>|<b class="option">-decreasing</b>?</span> <i class="arg">row</i></a></dt>
+<dd><p>Sorts the columns in the matrix using the data in the specified
+<i class="arg">row</i> as the key to sort by. The options <b class="option">-increasing</b>
+and <b class="option">-decreasing</b> have the same meaning as for <b class="cmd">lsort</b>.
+If no option is specified <b class="option">-increasing</b> is assumed.</p></dd>
+<dt><a name="41"><i class="arg">matrixName</i> <b class="method">sort rows</b> <span class="opt">?<b class="option">-increasing</b>|<b class="option">-decreasing</b>?</span> <i class="arg">column</i></a></dt>
+<dd><p>Sorts the rows in the matrix using the data in the specified
+<i class="arg">column</i> as the key to sort by. The options <b class="option">-increasing</b>
+and <b class="option">-decreasing</b> have the same meaning as for <b class="cmd">lsort</b>.
+If no option is specified <b class="option">-increasing</b> is assumed.</p></dd>
+<dt><a name="42"><i class="arg">matrixName</i> <b class="method">swap columns</b> <i class="arg">column_a column_b</i></a></dt>
+<dd><p>Swaps the contents of the two specified columns.</p></dd>
+<dt><a name="43"><i class="arg">matrixName</i> <b class="method">swap rows</b> <i class="arg">row_a row_b</i></a></dt>
+<dd><p>Swaps the contents of the two specified rows.</p></dd>
+<dt><a name="44"><i class="arg">matrixName</i> <b class="method">transpose</b></a></dt>
+<dd><p>Transposes the contents of the matrix, i.e. swaps rows for columns and
+vice versa.</p></dd>
+<dt><a name="45"><i class="arg">matrixName</i> <b class="method">unlink</b> <i class="arg">arrayvar</i></a></dt>
+<dd><p>Removes the link between the matrix and the specified arrayvariable,
+if there is one.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">EXAMPLES</a></h2>
+<p>The examples below assume a 5x5 matrix M with the first row containing
+the values 1 to 5, with 1 in the top-left cell. Each other row
+contains the contents of the row above it, rotated by one cell to the
+right.</p>
+<pre class="doctools_example">
+ % M get rect 0 0 4 4
+ {{1 2 3 4 5} {5 1 2 3 4} {4 5 1 2 3} {3 4 5 1 2} {2 3 4 5 1}}
+</pre>
+<pre class="doctools_example">
+ % M set rect 1 1 {{0 0 0} {0 0 0} {0 0 0}}
+ % M get rect 0 0 4 4
+ {{1 2 3 4 5} {5 0 0 0 4} {4 0 0 0 3} {3 0 0 0 2} {2 3 4 5 1}}
+</pre>
+<p>Assuming that the style definitions in the example section of the
+manpage for the package <b class="package"><a href="../report/report.html">report</a></b> are loaded into the
+interpreter now an example which formats a matrix into a tabular
+report. The code filling the matrix with data is not shown.  contains
+useful data.</p>
+<pre class="doctools_example">
+    % ::struct::matrix m
+    % # ... fill m with data, assume 5 columns
+    % ::report::report r 5 style captionedtable 1
+    % m format 2string r
+    +---+-------------------+-------+-------+--------+
+    |000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
+    +---+-------------------+-------+-------+--------+
+    |001|CATCH return ok    |7      |13     |53.85   |
+    |002|CATCH return error |68     |91     |74.73   |
+    |003|CATCH no catch used|7      |14     |50.00   |
+    |004|IF if true numeric |12     |33     |36.36   |
+    |005|IF elseif          |15     |47     |31.91   |
+    |   |true numeric       |       |       |        |
+    +---+-------------------+-------+-------+--------+
+    %
+    % # alternate way of doing the above
+    % r printmatrix m
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>struct :: matrix</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key51">matrix</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002-2013 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

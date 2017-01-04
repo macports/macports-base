@@ -1,0 +1,968 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 1.1.5]
+[manpage_begin math::linearalgebra n [vset VERSION]]
+[keywords {least squares}]
+[keywords {linear algebra}]
+[keywords {linear equations}]
+[keywords math]
+[keywords matrices]
+[keywords matrix]
+[keywords vectors]
+[copyright {2004-2008 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[copyright {2004 Ed Hume <http://www.hume.com/contact.us.htm>}]
+[copyright {2008 Michael Buadin <relaxkmike@users.sourceforge.net>}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Linear Algebra}]
+[category  Mathematics]
+[require Tcl [opt 8.4]]
+[require math::linearalgebra [opt [vset VERSION]]]
+[description]
+[para]
+This package offers both low-level procedures and high-level algorithms
+to deal with linear algebra problems:
+
+[list_begin itemized]
+[item]
+robust solution of linear equations or least squares problems
+[item]
+determining eigenvectors and eigenvalues of symmetric matrices
+[item]
+various decompositions of general matrices or matrices of a specific
+form
+[item]
+(limited) support for matrices in band storage, a common type of sparse
+matrices
+[list_end]
+
+It arose as a re-implementation of Hume's LA package and the desire to
+offer low-level procedures as found in the well-known BLAS library.
+Matrices are implemented as lists of lists rather linear lists with
+reserved elements, as in the original LA package, as it was found that
+such an implementation is actually faster.
+
+[para]
+It is advisable, however, to use the procedures that are offered, such
+as [emph setrow] and [emph getrow], rather than rely on this
+representation explicitly: that way it is to switch to a possibly even
+faster compiled implementation that supports the same API.
+
+[para]
+[emph Note:] When using this package in combination with Tk, there may
+be a naming conflict, as both this package and Tk define a command
+[emph scale]. See the [sectref "NAMING CONFLICT"] section below.
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures (several exist as
+specialised procedures, see below):
+
+[para]
+[emph "Constructing matrices and vectors"]
+
+[list_begin definitions]
+
+[call [cmd ::math::linearalgebra::mkVector] [arg ndim] [arg value]]
+
+Create a vector with ndim elements, each with the value [emph value].
+
+[list_begin arguments]
+[arg_def integer ndim] Dimension of the vector (number of components)
+[arg_def double value] Uniform value to be used (default: 0.0)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkUnitVector] [arg ndim] [arg ndir]]
+
+Create a unit vector in [emph ndim]-dimensional space, along the
+[emph ndir]-th direction.
+
+[list_begin arguments]
+[arg_def integer ndim] Dimension of the vector (number of components)
+[arg_def integer ndir] Direction (0, ..., ndim-1)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkMatrix] [arg nrows] [arg ncols] [arg value]]
+
+Create a matrix with [emph nrows] rows and [emph ncols] columns. All
+elements have the value [emph value].
+
+[list_begin arguments]
+[arg_def integer nrows] Number of rows
+[arg_def integer ncols] Number of columns
+[arg_def double value] Uniform value to be used (default: 0.0)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::getrow] [arg matrix] [arg row] [opt imin] [opt imax]]
+
+Returns a single row of a matrix as a list
+
+[list_begin arguments]
+[arg_def list matrix] Matrix in question
+[arg_def integer row] Index of the row to return
+[arg_def integer imin] Minimum index of the column (default: 0)
+[arg_def integer imax] Maximum index of the column (default: ncols-1)
+
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::setrow] [arg matrix] [arg row] [arg newvalues] [opt imin] [opt imax]]
+
+Set a single row of a matrix to new values (this list must have the same
+number of elements as the number of [emph columns] in the matrix)
+
+[list_begin arguments]
+[arg_def list matrix] [emph name] of the matrix in question
+[arg_def integer row] Index of the row to update
+[arg_def list newvalues] List of new values for the row
+[arg_def integer imin] Minimum index of the column (default: 0)
+[arg_def integer imax] Maximum index of the column (default: ncols-1)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::getcol] [arg matrix] [arg col] [opt imin] [opt imax]]
+
+Returns a single column of a matrix as a list
+
+[list_begin arguments]
+[arg_def list matrix] Matrix in question
+[arg_def integer col] Index of the column to return
+[arg_def integer imin] Minimum index of the row (default: 0)
+[arg_def integer imax] Maximum index of the row (default: nrows-1)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::setcol] [arg matrix] [arg col] [arg newvalues] [opt imin] [opt imax]]
+
+Set a single column of a matrix to new values (this list must have
+the same number of elements as the number of [emph rows] in the matrix)
+
+[list_begin arguments]
+[arg_def list matrix] [emph name] of the matrix in question
+[arg_def integer col] Index of the column to update
+[arg_def list newvalues] List of new values for the column
+[arg_def integer imin] Minimum index of the row (default: 0)
+[arg_def integer imax] Maximum index of the row (default: nrows-1)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::getelem] [arg matrix] [arg row] [arg col]]
+
+Returns a single element of a matrix/vector
+
+[list_begin arguments]
+[arg_def list matrix] Matrix or vector in question
+[arg_def integer row] Row of the element
+[arg_def integer col] Column of the element (not present for vectors)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::setelem] [arg matrix] [arg row] [opt col] [arg newvalue]]
+
+Set a single element of a matrix (or vector) to a new value
+
+[list_begin arguments]
+[arg_def list matrix] [emph name] of the matrix in question
+[arg_def integer row] Row of the element
+[arg_def integer col] Column of the element (not present for vectors)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::swaprows] [arg matrix] [arg irow1] [arg irow2] [opt imin] [opt imax]]
+
+Swap two rows in a matrix completely or only a selected part
+
+[list_begin arguments]
+[arg_def list matrix] [emph name] of the matrix in question
+[arg_def integer irow1] Index of first row
+[arg_def integer irow2] Index of second row
+[arg_def integer imin] Minimum column index (default: 0)
+[arg_def integer imin] Maximum column index (default: ncols-1)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::swapcols] [arg matrix] [arg icol1] [arg icol2] [opt imin] [opt imax]]
+
+Swap two columns in a matrix completely or only a selected part
+
+[list_begin arguments]
+[arg_def list matrix] [emph name] of the matrix in question
+[arg_def integer irow1] Index of first column
+[arg_def integer irow2] Index of second column
+[arg_def integer imin] Minimum row index (default: 0)
+[arg_def integer imin] Maximum row index (default: nrows-1)
+[list_end]
+
+[list_end]
+
+[para]
+[emph "Querying matrices and vectors"]
+
+[list_begin definitions]
+
+[call [cmd ::math::linearalgebra::show] [arg obj] [opt format] [opt rowsep] [opt colsep]]
+
+Return a string representing the vector or matrix, for easy printing.
+(There is currently no way to print fixed sets of columns)
+
+[list_begin arguments]
+[arg_def list obj] Matrix or vector in question
+[arg_def string format] Format for printing the numbers (default: %6.4f)
+[arg_def string rowsep] String to use for separating rows (default: newline)
+[arg_def string colsep] String to use for separating columns (default: space)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::dim] [arg obj]]
+
+Returns the number of dimensions for the object (either 0 for a scalar,
+1 for a vector and 2 for a matrix)
+
+[list_begin arguments]
+[arg_def any obj] Scalar, vector, or matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::shape] [arg obj]]
+
+Returns the number of elements in each dimension for the object (either
+an empty list for a scalar, a single number for a vector and a list of
+the number of rows and columns for a matrix)
+
+[list_begin arguments]
+[arg_def any obj] Scalar, vector, or matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::conforming] [arg type] [arg obj1] [arg obj2]]
+
+Checks if two objects (vector or matrix) have conforming shapes, that is
+if they can be applied in an operation like addition or matrix
+multiplication.
+
+[list_begin arguments]
+
+[arg_def string type] Type of check:
+[list_begin itemized]
+[item]
+"shape" - the two objects have the same shape (for all element-wise
+operations)
+[item]
+"rows" - the two objects have the same number of rows (for use as A and
+b in a system of linear equations [emph "Ax = b"]
+[item]
+"matmul" - the first object has the same number of columns as the number
+of rows of the second object. Useful for matrix-matrix or matrix-vector
+multiplication.
+[list_end]
+
+[arg_def list obj1] First vector or matrix (left operand)
+[arg_def list obj2] Second vector or matrix (right operand)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::symmetric] [arg matrix] [opt eps]]
+
+Checks if the given (square) matrix is symmetric. The argument eps
+is the tolerance.
+
+[list_begin arguments]
+[arg_def list matrix] Matrix to be inspected
+[arg_def float eps] Tolerance for determining approximate equality
+(defaults to 1.0e-8)
+[list_end]
+
+[list_end]
+
+[para]
+[emph "Basic operations"]
+
+[list_begin definitions]
+
+[call [cmd ::math::linearalgebra::norm] [arg vector] [arg type]]
+
+Returns the norm of the given vector. The type argument can be: 1,
+2, inf or max, respectively the sum of absolute values, the ordinary
+Euclidean norm or the max norm.
+
+[list_begin arguments]
+[arg_def list vector] Vector, list of coefficients
+[arg_def string type] Type of norm (default: 2, the Euclidean norm)
+[list_end]
+
+[call [cmd ::math::linearalgebra::norm_one] [arg vector]]
+
+Returns the L1 norm of the given vector, the sum of absolute values
+
+[list_begin arguments]
+[arg_def list vector] Vector, list of coefficients
+[list_end]
+
+[call [cmd ::math::linearalgebra::norm_two] [arg vector]]
+
+Returns the L2 norm of the given vector, the ordinary Euclidean norm
+
+[list_begin arguments]
+[arg_def list vector] Vector, list of coefficients
+[list_end]
+
+[call [cmd ::math::linearalgebra::norm_max] [arg vector] [opt index]]
+
+Returns the Linf norm of the given vector, the maximum absolute
+coefficient
+
+[list_begin arguments]
+[arg_def list vector] Vector, list of coefficients
+[arg_def integer index] (optional) if non zero, returns a list made of the maximum
+value and the index where that maximum was found.
+if zero, returns the maximum value.
+
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::normMatrix] [arg matrix] [arg type]]
+
+Returns the norm of the given matrix. The type argument can be: 1,
+2, inf or max, respectively the sum of absolute values, the ordinary
+Euclidean norm or the max norm.
+
+[list_begin arguments]
+[arg_def list matrix] Matrix, list of row vectors
+[arg_def string type] Type of norm (default: 2, the Euclidean norm)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::dotproduct] [arg vect1] [arg vect2]]
+
+Determine the inproduct or dot product of two vectors. These must have
+the same shape (number of dimensions)
+
+[list_begin arguments]
+[arg_def list vect1] First vector, list of coefficients
+[arg_def list vect2] Second vector, list of coefficients
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::unitLengthVector] [arg vector]]
+
+Return a vector in the same direction with length 1.
+
+[list_begin arguments]
+[arg_def list vector] Vector to be normalized
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::normalizeStat] [arg mv]]
+
+Normalize the matrix or vector in a statistical sense: the mean of the
+elements of the columns of the result is zero and the standard deviation
+is 1.
+
+[list_begin arguments]
+[arg_def list mv] Vector or matrix to be normalized in the above sense
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::axpy] [arg scale] [arg mv1] [arg mv2]]
+
+Return a vector or matrix that results from a "daxpy" operation, that
+is: compute a*x+y (a a scalar and x and y both vectors or matrices of
+the same shape) and return the result.
+[para]
+Specialised variants are: axpy_vect and axpy_mat (slightly faster,
+but no check on the arguments)
+
+[list_begin arguments]
+[arg_def double scale] The scale factor for the first vector/matrix (a)
+[arg_def list mv1] First vector or matrix (x)
+[arg_def list mv2] Second vector or matrix (y)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::add] [arg mv1] [arg mv2]]
+
+Return a vector or matrix that is the sum of the two arguments (x+y)
+[para]
+Specialised variants are: add_vect and add_mat (slightly faster,
+but no check on the arguments)
+
+[list_begin arguments]
+[arg_def list mv1] First vector or matrix (x)
+[arg_def list mv2] Second vector or matrix (y)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::sub] [arg mv1] [arg mv2]]
+
+Return a vector or matrix that is the difference of the two arguments
+(x-y)
+[para]
+Specialised variants are: sub_vect and sub_mat (slightly faster,
+but no check on the arguments)
+
+[list_begin arguments]
+[arg_def list mv1] First vector or matrix (x)
+[arg_def list mv2] Second vector or matrix (y)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::scale] [arg scale] [arg mv]]
+
+Scale a vector or matrix and return the result, that is: compute a*x.
+[para]
+Specialised variants are: scale_vect and scale_mat (slightly faster,
+but no check on the arguments)
+
+[list_begin arguments]
+[arg_def double scale] The scale factor for the vector/matrix (a)
+[arg_def list mv] Vector or matrix (x)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::rotate] [arg c] [arg s] [arg vect1] [arg vect2]]
+
+Apply a planar rotation to two vectors and return the result as a list
+of two vectors: c*x-s*y and s*x+c*y. In algorithms you can often easily
+determine the cosine and sine of the angle, so it is more efficient to
+pass that information directly.
+
+[list_begin arguments]
+[arg_def double c] The cosine of the angle
+[arg_def double s] The sine of the angle
+[arg_def list vect1] First vector (x)
+[arg_def list vect2] Seocnd vector (x)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::transpose] [arg matrix]]
+
+Transpose a matrix
+
+[list_begin arguments]
+[arg_def list matrix] Matrix to be transposed
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::matmul] [arg mv1] [arg mv2]]
+
+Multiply a vector/matrix with another vector/matrix. The result is
+a matrix, if both x and y are matrices or both are vectors, in
+which case the "outer product" is computed. If one is a vector and the
+other is a matrix, then the result is a vector.
+
+[list_begin arguments]
+[arg_def list mv1] First vector/matrix (x)
+[arg_def list mv2] Second vector/matrix (y)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::angle] [arg vect1] [arg vect2]]
+
+Compute the angle between two vectors (in radians)
+
+[list_begin arguments]
+[arg_def list vect1] First vector
+[arg_def list vect2] Second vector
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::crossproduct] [arg vect1] [arg vect2]]
+
+Compute the cross product of two (three-dimensional) vectors
+
+[list_begin arguments]
+[arg_def list vect1] First vector
+[arg_def list vect2] Second vector
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::matmul] [arg mv1] [arg mv2]]
+
+Multiply a vector/matrix with another vector/matrix. The result is
+a matrix, if both x and y are matrices or both are vectors, in
+which case the "outer product" is computed. If one is a vector and the
+other is a matrix, then the result is a vector.
+
+[list_begin arguments]
+[arg_def list mv1] First vector/matrix (x)
+[arg_def list mv2] Second vector/matrix (y)
+[list_end]
+
+[list_end]
+
+[para]
+[emph "Common matrices and test matrices"]
+
+[list_begin definitions]
+
+[call [cmd ::math::linearalgebra::mkIdentity] [arg size]]
+
+Create an identity matrix of dimension [emph size].
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkDiagonal] [arg diag]]
+
+Create a diagonal matrix whose diagonal elements are the elements of the
+vector [emph diag].
+
+[list_begin arguments]
+[arg_def list diag] Vector whose elements are used for the diagonal
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkRandom] [arg size]]
+
+Create a square matrix whose elements are uniformly distributed random
+numbers between 0 and 1 of dimension [emph size].
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkTriangular] [arg size] [opt uplo] [opt value]]
+
+Create a triangular matrix with non-zero elements in the upper or lower
+part, depending on argument [emph uplo].
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[arg_def string uplo] Fill the upper (U) or lower part (L)
+[arg_def double value] Value to fill the matrix with
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkHilbert] [arg size]]
+
+Create a Hilbert matrix of dimension [emph size].
+Hilbert matrices are very ill-conditioned with respect to
+eigenvalue/eigenvector problems. Therefore they
+are good candidates for testing the accuracy
+of algorithms and implementations.
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkDingdong] [arg size]]
+
+Create a "dingdong" matrix of dimension [emph size].
+Dingdong matrices are imprecisely represented,
+but have the property of being very stable in
+such algorithms as Gauss elimination.
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkOnes] [arg size]]
+
+Create a square matrix of dimension [emph size] whose entries are all 1.
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkMoler] [arg size]]
+
+Create a Moler matrix of size [emph size]. (Moler matrices have
+a very simple Choleski decomposition. It has one small eigenvalue
+and it can easily upset elimination methods for systems of linear
+equations.)
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkFrank] [arg size]]
+
+Create a Frank matrix of size [emph size]. (Frank matrices are
+fairly well-behaved matrices)
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkBorder] [arg size]]
+
+Create a bordered matrix of size [emph size]. (Bordered matrices have
+a very low rank and can upset certain specialised algorithms.)
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkWilkinsonW+] [arg size]]
+
+Create a Wilkinson W+ of size [emph size]. This kind of matrix
+has pairs of eigenvalues that are very close together. Usually
+the order (size) is odd.
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::mkWilkinsonW-] [arg size]]
+
+Create a Wilkinson W- of size [emph size]. This kind of matrix
+has pairs of eigenvalues with opposite signs, when the order (size)
+is odd.
+
+[list_begin arguments]
+[arg_def integer size] Dimension of the matrix
+[list_end]
+
+[list_end]
+
+[para]
+[emph "Common algorithms"]
+
+[list_begin definitions]
+
+[call [cmd ::math::linearalgebra::solveGauss] [arg matrix] [arg bvect]]
+
+Solve a system of linear equations (Ax=b) using Gauss elimination.
+Returns the solution (x) as a vector or matrix of the same shape as
+bvect.
+
+[list_begin arguments]
+[arg_def list matrix] Square matrix (matrix A)
+[arg_def list bvect] Vector or matrix whose columns are the individual
+b-vectors
+[list_end]
+
+[call [cmd ::math::linearalgebra::solvePGauss] [arg matrix] [arg bvect]]
+
+Solve a system of linear equations (Ax=b) using Gauss elimination with
+partial pivoting. Returns the solution (x) as a vector or matrix of the
+same shape as bvect.
+
+[list_begin arguments]
+[arg_def list matrix] Square matrix (matrix A)
+[arg_def list bvect] Vector or matrix whose columns are the individual
+b-vectors
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::solveTriangular] [arg matrix] [arg bvect] [opt uplo]]
+
+Solve a system of linear equations (Ax=b) by backward substitution. The
+matrix is supposed to be upper-triangular.
+
+[list_begin arguments]
+[arg_def list matrix] Lower or upper-triangular matrix (matrix A)
+[arg_def list bvect] Vector or matrix whose columns are the individual
+b-vectors
+[arg_def string uplo] Indicates whether the matrix is lower-triangular
+(L) or upper-triangular (U). Defaults to "U".
+[list_end]
+
+[call [cmd ::math::linearalgebra::solveGaussBand] [arg matrix] [arg bvect]]
+
+Solve a system of linear equations (Ax=b) using Gauss elimination,
+where the matrix is stored as a band matrix ([emph cf.] [sectref STORAGE]).
+Returns the solution (x) as a vector or matrix of the same shape as
+bvect.
+
+[list_begin arguments]
+[arg_def list matrix] Square matrix (matrix A; in band form)
+[arg_def list bvect] Vector or matrix whose columns are the individual
+b-vectors
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::solveTriangularBand] [arg matrix] [arg bvect]]
+
+Solve a system of linear equations (Ax=b) by backward substitution. The
+matrix is supposed to be upper-triangular and stored in band form.
+
+[list_begin arguments]
+[arg_def list matrix] Upper-triangular matrix (matrix A)
+[arg_def list bvect] Vector or matrix whose columns are the individual
+b-vectors
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::determineSVD] [arg A] [arg eps]]
+
+Determines the Singular Value Decomposition of a matrix: A = U S Vtrans.
+Returns a list with the matrix U, the vector of singular values S and
+the matrix V.
+
+[list_begin arguments]
+[arg_def list A] Matrix to be decomposed
+[arg_def float eps] Tolerance (defaults to 2.3e-16)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::eigenvectorsSVD] [arg A] [arg eps]]
+
+Determines the eigenvectors and eigenvalues of a real
+[emph symmetric] matrix, using SVD. Returns a list with the matrix of
+normalized eigenvectors and their eigenvalues.
+
+[list_begin arguments]
+[arg_def list A] Matrix whose eigenvalues must be determined
+[arg_def float eps] Tolerance (defaults to 2.3e-16)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::leastSquaresSVD] [arg A] [arg y] [arg qmin] [arg eps]]
+
+Determines the solution to a least-sqaures problem Ax ~ y via singular
+value decomposition. The result is the vector x.
+
+[para]
+Note that if you add a column of 1s to the matrix, then this column will
+represent a constant like in: y = a*x1 + b*x2 + c. To force the
+intercept to be zero, simply leave it out.
+
+[list_begin arguments]
+[arg_def list A] Matrix of independent variables
+[arg_def list y] List of observed values
+[arg_def float qmin] Minimum singular value to be considered (defaults to 0.0)
+[arg_def float eps] Tolerance (defaults to 2.3e-16)
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::choleski] [arg matrix]]
+
+Determine the Choleski decomposition of a symmetric positive
+semidefinite matrix (this condition is not checked!). The result
+is the lower-triangular matrix L such that L Lt = matrix.
+
+[list_begin arguments]
+[arg_def list matrix] Matrix to be decomposed
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::orthonormalizeColumns] [arg matrix]]
+
+Use the modified Gram-Schmidt method to orthogonalize and normalize
+the [emph columns] of the given matrix and return the result.
+
+[list_begin arguments]
+[arg_def list matrix] Matrix whose columns must be orthonormalized
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::orthonormalizeRows] [arg matrix]]
+
+Use the modified Gram-Schmidt method to orthogonalize and normalize
+the [emph rows] of the given matrix and return the result.
+
+[list_begin arguments]
+[arg_def list matrix] Matrix whose rows must be orthonormalized
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::dger] [arg matrix] [arg alpha] [arg x] [arg y] [opt scope]]
+
+Perform the rank 1 operation A + alpha*x*y' inline (that is: the matrix A is adjusted).
+For convenience the new matrix is also returned as the result.
+
+[list_begin arguments]
+[arg_def list matrix] Matrix whose rows must be adjusted
+[arg_def double alpha] Scale factor
+[arg_def list x] A column vector
+[arg_def list y] A column vector
+[arg_def list scope] If not provided, the operation is performed on all rows/columns of A
+if provided, it is expected to be the list {imin imax jmin jmax}
+where:
+[list_begin itemized]
+[item] [term imin] Minimum row index
+[item] [term imax] Maximum row index
+[item] [term jmin] Minimum column index
+[item] [term jmax] Maximum column index
+[list_end]
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::dgetrf] [arg matrix]]
+
+Computes an LU factorization of a general matrix, using partial,
+pivoting with row interchanges. Returns the permutation vector.
+[para]
+The factorization has the form
+[example {
+   P * A = L * U
+}]
+where P is a permutation matrix, L is lower triangular with unit
+diagonal elements, and U is upper triangular.
+Returns the permutation vector, as a list of length n-1.
+The last entry of the permutation is not stored, since it is
+implicitely known, with value n (the last row is not swapped
+with any other row).
+At index #i of the permutation is stored the index of the row #j
+which is swapped with row #i at step #i. That means that each
+index of the permutation gives the permutation at each step, not the
+cumulated permutation matrix, which is the product of permutations.
+
+[list_begin arguments]
+[arg_def list matrix] On entry, the matrix to be factored.
+On exit, the factors L and U from the factorization
+P*A = L*U; the unit diagonal elements of L are not stored.
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::det] [arg matrix]]
+
+Returns the determinant of the given matrix, based on PA=LU
+decomposition, i.e. Gauss partial pivotal.
+
+[list_begin arguments]
+[arg_def list matrix] Square matrix (matrix A)
+[arg_def list ipiv] The pivots (optionnal).
+If the pivots are not provided, a PA=LU decomposition
+is performed.
+If the pivots are provided, we assume that it
+contains the pivots and that the matrix A contains the
+L and U factors, as provided by dgterf.
+b-vectors
+[list_end]
+
+[para]
+[call [cmd ::math::linearalgebra::largesteigen] [arg matrix] [arg tolerance] [arg maxiter]]
+
+Returns a list made of the largest eigenvalue (in magnitude)
+and associated eigenvector.
+Uses iterative Power Method as provided as algorithm #7.3.3 of Golub & Van Loan.
+This algorithm is used here for a dense matrix (but is usually
+used for sparse matrices).
+
+[list_begin arguments]
+[arg_def list matrix] Square matrix (matrix A)
+[arg_def double tolerance] The relative tolerance of the eigenvalue (default:1.e-8).
+[arg_def integer maxiter] The maximum number of iterations (default:10).
+[list_end]
+
+[list_end]
+
+[para]
+[emph "Compability with the LA package"]
+
+Two procedures are provided for compatibility with Hume's LA package:
+
+[list_begin definitions]
+
+[call [cmd ::math::linearalgebra::to_LA] [arg mv]]
+
+Transforms a vector or matrix into the format used by the original LA
+package.
+
+[list_begin arguments]
+[arg_def list mv] Matrix or vector
+[list_end]
+
+[call [cmd ::math::linearalgebra::from_LA] [arg mv]]
+
+Transforms a vector or matrix from the format used by the original LA
+package into the format used by the present implementation.
+
+[list_begin arguments]
+[arg_def list mv] Matrix or vector as used by the LA package
+[list_end]
+
+[list_end]
+
+[para]
+
+[section "STORAGE"]
+
+While most procedures assume that the matrices are given in full form,
+the procedures [emph solveGaussBand] and [emph solveTriangularBand]
+assume that the matrices are stored as [emph "band matrices"]. This
+common type of "sparse" matrices is related to ordinary matrices as
+follows:
+
+[list_begin itemized]
+[item]
+"A" is a full-size matrix with N rows and M columns.
+[item]
+"B" is a band matrix, with m upper and lower diagonals and n rows.
+[item]
+"B" can be stored in an ordinary matrix of (2m+1) columns (one for
+each off-diagonal and the main diagonal) and n rows.
+[item]
+Element i,j (i = -m,...,m; j =1,...,n) of "B" corresponds to element
+k,j of "A" where k = M+i-1 and M is at least (!) n, the number of rows
+in "B".
+[item]
+To set element (i,j) of matrix "B" use:
+[example {
+    setelem B $j [expr {$N+$i-1}] $value
+}]
+[list_end]
+(There is no convenience procedure for this yet)
+
+[section "REMARKS ON THE IMPLEMENTATION"]
+
+There is a difference between the original LA package by Hume and the
+current implementation. Whereas the LA package uses a linear list, the
+current package uses lists of lists to represent matrices. It turns out
+that with this representation, the algorithms are faster and easier to
+implement.
+
+[para]
+The LA package was used as a model and in fact the implementation of,
+for instance, the SVD algorithm was taken from that package. The set of
+procedures was expanded using ideas from the well-known BLAS library and
+some algorithms were updated from the second edition of J.C. Nash's
+book, Compact Numerical Methods for Computers, (Adam Hilger, 1990) that
+inspired the LA package.
+
+[para]
+Two procedures are provided to make the transition between the two
+implementations easier: [emph to_LA] and [emph from_LA]. They are
+described above.
+
+[section TODO]
+
+Odds and ends: the following algorithms have not been implemented yet:
+[list_begin itemized]
+
+[item]
+determineQR
+
+[item]
+certainlyPositive, diagonallyDominant
+[list_end]
+
+[section "NAMING CONFLICT"]
+If you load this package in a Tk-enabled shell like wish, then the
+command
+[example {namespace import ::math::linearalgebra}]
+results in an error
+message about "scale". This is due to the fact that Tk defines all
+its commands in the global namespace. The solution is to import
+the linear algebra commands in a namespace that is not the global one:
+[example {
+package require math::linearalgebra
+namespace eval compute {
+    namespace import ::math::linearalgebra::*
+    ... use the linear algebra version of scale ...
+}
+}]
+To use Tk's scale command in that same namespace you can rename it:
+[example {
+namespace eval compute {
+    rename ::scale scaleTk
+    scaleTk .scale ...
+}
+}]
+
+[vset CATEGORY {math :: linearalgebra}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

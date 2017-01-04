@@ -1,0 +1,105 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctoc_intro n 1.0]
+[see_also docidx_intro]
+[see_also doctoc_lang_cmdref]
+[see_also doctoc_lang_faq]
+[see_also doctoc_lang_intro]
+[see_also doctoc_lang_syntax]
+[see_also doctoc_plugin_apiref]
+[see_also doctools::toc]
+[see_also doctools_intro]
+[keywords markup]
+[keywords {semantic markup}]
+[keywords {table of contents}]
+[keywords toc]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctoc introduction}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+[term doctoc] (short for [emph {documentation tables of contents}])
+stands for a set of related, yet different, entities which are working
+together for the easy creation and transformation of tables of
+contents for documentation. These are
+
+[list_begin enumerated]
+[enum]
+
+A tcl based language for the semantic markup of a table of
+contents. Markup is represented by Tcl commands.
+
+[enum]
+
+A package providing the ability to read and transform texts written in
+that markup language. It is important to note that the actual
+transformation of the input text is delegated to plugins.
+
+[enum]
+
+An API describing the interface between the package above and a
+plugin.
+
+[list_end]
+
+[para]
+
+Which of the more detailed documents are relevant to the reader of
+this introduction depends on their role in the documentation process.
+
+[para]
+
+[list_begin enumerated]
+[enum]
+A [term writer] of documentation has to understand the markup language
+itself. A beginner to doctoc should read the more informally written
+[term {doctoc language introduction}] first. Having digested this
+the formal [term {doctoc language syntax}] specification should
+become understandable. A writer experienced with doctoc may only
+need the [term {doctoc language command reference}] from time to
+time to refresh her memory.
+
+[para]
+
+While a document is written the [syscmd dtp] application can be used
+to validate it, and after completion it also performs the conversion
+into the chosen system of visual markup, be it *roff, HTML, plain
+text, wiki, etc. The simpler [syscmd dtplite] application makes
+internal use of doctoc when handling directories of documentation,
+automatically generating a proper table of contents for them.
+
+[enum]
+A [term processor] of documentation written in the [term doctoc]
+markup language has to know which tools are available for use.
+
+[para]
+
+The main tool is the aforementioned [syscmd dtp] application provided
+by Tcllib. The simpler [syscmd dtplite] does not expose doctoc to the
+user.
+
+At the bottom level, common to both applications, however sits the
+package [package doctoools::toc], providing the basic facilities to
+read and process files containing text in the doctoc format.
+
+[enum]
+At last, but not least, [term {plugin writers}] have to understand the
+interaction between the [package doctools::toc] package and its
+plugins, as described in the [term {doctoc plugin API reference}].
+
+[list_end]
+
+[section {RELATED FORMATS}]
+
+doctoc does not stand alone, it has two companion formats. These are
+called [term docidx] and [term doctools], and they are for the markup
+of [term {keyword indices}], and general documentation, respectively.
+
+They are described in their own sets of documents, starting at the
+[term {docidx introduction}] and the [term {doctools introduction}],
+respectively.
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

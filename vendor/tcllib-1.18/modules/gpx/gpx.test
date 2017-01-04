@@ -1,0 +1,317 @@
+# -*- tcl -*-
+# gpx.test:  tests for the gpx package.
+#
+# Copyright (c) 2010-2015 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: gpx.test,v 1.2 2010/07/10 15:58:23 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+if {[file exists testutilities.tcl]} {
+	source testutilities.tcl
+} else {
+	source [file join \
+				[file dirname [file dirname [file join [pwd] [info script]]]] \
+				devtools testutilities.tcl]
+}
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+testsNeed tdom 0.8
+
+testing {
+    useLocal gpx.tcl gpx
+}
+# -------------------------------------------------------------------------
+
+set rawXML {<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" 
+	 creator="ExpertGPS 3.80" 
+	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	 xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.topografix.com/GPX/gpx_overlay/0/3 http://www.topografix.com/GPX/gpx_overlay/0/3/gpx_overlay.xsd http://www.topografix.com/GPX/gpx_modified/0/1 http://www.topografix.com/GPX/gpx_modified/0/1/gpx_modified.xsd">
+  <metadata>
+	<name>Sample GPX file</name>
+	<desc>GPX data for testing</desc>
+	<author>
+	  <name>Keith Vetter</name>
+	  <email id="kvetter" domain="gmail.com"/>
+	  <link href="http://www.klimb.org">
+		<text>KLIMB Bike Mapping program</text>
+		<type>text/html</type>
+	  </link>
+	</author>
+	<copyright author="Keith Vetter">
+	  <year>2010</year>
+	  <license>http://anywhere.com</license>
+	</copyright>
+    <link href="http://www.garmin.com">
+      <text>Garmin International</text>
+	  <type>text/html</type>
+    </link>
+    <time>2009-10-17T22:58:43Z</time>
+	<keywords>gpx test file</keywords>
+  </metadata>
+  <wpt lat="41.61629786" lon="-70.61782860">
+	<ele>33.531</ele>
+	<time>2010-06-17T16:02:28Z</time>
+	<name>Trail head</name>
+  </wpt>
+  <wpt lat="41.61794834" lon="-70.61709418">
+	<ele>31.128</ele>
+	<time>2010-06-17T16:06:58Z</time>
+	<name>Abandoned car</name>
+  </wpt>
+  <trk>
+	<name>First track</name>
+	<type>GPS Tracklog</type>
+	<trkseg>
+	  <trkpt lat="41.61716028" lon="-70.61758477">
+		<ele>35.706</ele>
+		<time>2010-06-17T16:02:28Z</time>
+	  </trkpt>
+	  <trkpt lat="41.61718609" lon="-70.61757144">
+		<ele>36.667</ele>
+		<time>2010-06-17T16:02:40Z</time>
+	  </trkpt>
+	  <trkpt lat="41.61736211" lon="-70.61755426">
+		<ele>35.706</ele>
+		<time>2010-06-17T16:02:49Z</time>
+	  </trkpt>
+	</trkseg>
+  </trk>
+  <trk>
+	<name>Second track</name>
+	<type>GPS Tracklog</type>
+	<trkseg>
+	  <trkpt lat="41.64316086" lon="-70.60154080">
+		<ele>15.038</ele>
+		<time>2010-07-09T14:28:20Z</time>
+	  </trkpt>
+	  <trkpt lat="41.64325641" lon="-70.60175169">
+		<ele>13.596</ele>
+		<time>2010-07-09T14:28:32Z</time>
+	  </trkpt>
+	</trkseg>
+	<trkseg>
+	  <trkpt lat="41.64335188" lon="-70.60195579">
+		<ele>13.596</ele>
+		<time>2010-07-09T14:28:43Z</time>
+	  </trkpt>
+	  <trkpt lat="41.64339547" lon="-70.60203558">
+		<ele>13.596</ele>
+		<time>2010-07-09T14:28:48Z</time>
+	  </trkpt>
+	  <trkpt lat="41.64344785" lon="-70.60210507">
+		<ele>13.115</ele>
+		<time>2010-07-09T14:28:53Z</time>
+	  </trkpt>
+	</trkseg>
+  </trk>
+  <rte>
+    <name>KLIMB Route 1</name>
+    <number>1</number>
+    <rtept lat="41.64383611111111" lon="-70.60295833333333">
+      <ele>21.6</ele>
+      <name>M1</name>
+      <desc><![CDATA[Node 1]]></desc>
+      <sym>Waypoint</sym>
+      <type>KLIMB node</type>
+    </rtept>
+    <rtept lat="41.64373333333333" lon="-70.6031611111111">
+      <ele>22.9</ele>
+    </rtept>
+    <rtept lat="41.64364166666667" lon="-70.60331388888888">
+      <ele>23.5</ele>
+    </rtept>
+    <rtept lat="41.643502777777776" lon="-70.60352777777777">
+      <ele>23.8</ele>
+    </rtept>
+    <rtept lat="41.64322222222222" lon="-70.603725">
+      <ele>23.5</ele>
+    </rtept>
+    <rtept lat="41.64293055555555" lon="-70.6038611111111">
+      <ele>23.5</ele>
+      <name>M2</name>
+      <desc><![CDATA[Node 2]]></desc>
+      <sym>Waypoint</sym>
+      <type>KLIMB node</type>
+    </rtept>
+  </rte>	
+</gpx>}
+set gpxFile [tcltest::makeFile $rawXML testGPXfile.gpx]
+
+# -------------------------------------------------------------------------
+
+test gpx-1.0 {create error} -body {
+    gpx::Create
+} -returnCodes error \
+    -result {wrong # args: should be "gpx::Create gpxFilename ?rawXML?"}
+
+test gpx-1.1 {create error} -body {
+    gpx::Create F XML X
+} -returnCodes error \
+    -result {wrong # args: should be "gpx::Create gpxFilename ?rawXML?"}
+
+test gpx-2.0 {create & destroy} -body {
+    gpx::Cleanup [gpx::Create $gpxFile]
+} -result {}
+
+test gpx-2.1 {create & destroy} -body {
+    gpx::Cleanup [gpx::Create {} $rawXML]
+} -result {}
+
+# -------------------------------------------------------------------------
+#
+# GetGPXMetadata tests
+#
+set token [gpx::Create "" $rawXML]
+
+test gpx-3.0 {GetGPXMetadata simple} -body {
+	llength [gpx::GetGPXMetadata $token]
+} -result 18
+
+test gpx-3.1 {GetGPXMetadata item} -body {
+	dict get [gpx::GetGPXMetadata $token] version
+} -result {1.1}
+
+test gpx-3.2 {GetGPXMetadata complex item} -body {
+	dict get [gpx::GetGPXMetadata $token] link href
+} -result {http://www.garmin.com}
+
+# -------------------------------------------------------------------------
+#
+# Waypoint tests
+#
+test gpx-4.0 {GetWaypointCount} -body {
+	gpx::GetWaypointCount $token
+} -result {2}
+
+test gpx-4.1 {Waypoint location} -body {
+	lrange [lindex [gpx::GetAllWaypoints $token] 0] 0 1
+} -result {41.61629786 -70.61782860}
+
+test gpx-4.2 {first waypoint metadata} -body {
+	llength [lindex [gpx::GetAllWaypoints $token] 0 2]
+} -result 6
+
+test gpx-4.3 {first waypoint metadata item} -body {
+	dict get [lindex [gpx::GetAllWaypoints $token] 0 2] ele
+} -result {33.531}
+
+test gpx-4.4 {second waypoint metadata} -body {
+	llength [lindex [gpx::GetAllWaypoints $token] 1 2]
+} -result 6
+
+test gpx-4.5 {second waypoint metadata item} -body {
+	dict get [lindex [gpx::GetAllWaypoints $token] 1 2] name
+} -result {Abandoned car}
+
+#----------------------------------------------------------------------
+#
+# Track tests
+#
+
+test gpx-5.0 {track count} -body {
+	gpx::GetTrackCount $token
+} -result {2}
+
+test gpx-5.1 {track metadata} -body {
+	llength [gpx::GetTrackMetadata $token 1] 
+} -result 4
+
+test gpx-5.2 {track metadata item} -body {
+	dict get [gpx::GetTrackMetadata $token 1] name
+} -result {First track}
+
+test gpx-5.3 {total track points} -body {
+	llength [gpx::GetTrackPoints $token 1]
+} -result {3}
+
+test gpx-5.4 {total track points second track} -body {
+	llength [gpx::GetTrackPoints $token 2]
+} -result {5}
+
+test gpx-5.5 {first track first point location} -body {
+	lrange [lindex [gpx::GetTrackPoints $token 1] 0] 0 1
+} -result {41.61716028 -70.61758477}
+
+test gpx-5.6 {first track first point metadata} -body {
+	llength [lindex [gpx::GetTrackPoints $token 1] 0 2]
+} -result 4
+
+test gpx-5.7 {first track first point metadata item} -body {
+	dict get [lindex [gpx::GetTrackPoints $token 1] 0 2] ele
+} -result {35.706}
+
+test gpx-5.8 {second track last point location} -body {
+	lrange [lindex [gpx::GetTrackPoints $token 2] end] 0 1
+} -result {41.64344785 -70.60210507}
+
+test gpx-5.9 {second track last point metadata} -body {
+	llength [lindex [gpx::GetTrackPoints $token 2] end 2]
+} -result 4
+
+test gpx-5.10 {second track last point metadata item} -body {
+	dict get [lindex [gpx::GetTrackPoints $token 2] end 2] ele
+} -result {13.115}
+
+#----------------------------------------------------------------------
+#
+# Route tests
+#
+
+test gpx-6.0 {route count} -body {
+	gpx::GetRouteCount $token
+} -result 1
+
+test gpx-6.1 {route metadata} -body {
+	llength [gpx::GetRouteMetadata $token 1]
+} -result 4
+
+test gpx-6.2 {route metadata item} -body {
+	dict get [gpx::GetRouteMetadata $token 1] name
+} -result {KLIMB Route 1}
+
+test gpx-6.3 {total route points} -body {
+	llength [gpx::GetRoutePoints $token 1]
+} -result 6
+
+test gpx-6.4 {route first point location} -body {
+	lrange [lindex [gpx::GetRoutePoints $token 1] 0] 0 1
+} -result {41.64383611111111 -70.60295833333333}
+
+test gpx-6.5 {route first point metadata} -body {
+	llength [lindex [gpx::GetRoutePoints $token 1] 0 2]
+} -result 10
+
+test gpx-6.6 {route first point metadata item} -body {
+	dict get [lindex [gpx::GetRoutePoints $token 1] 0 2] type
+} -result {KLIMB node}
+
+test gpx-6.7 {route second point metadata} -body {
+	llength [lindex [gpx::GetRoutePoints $token 1] 1 2]
+} -result 2
+
+test gpx-6.8 {route last point location} -body {
+	lrange [lindex [gpx::GetRoutePoints $token 1] end] 0 1
+} -result {41.64293055555555 -70.6038611111111}
+
+test gpx-6.8 {route last point metadata} -body {
+	llength [lindex [gpx::GetRoutePoints $token 1] end 2]
+} -result 10
+
+test gpx-6.9 {route last point metadata item} -body {
+	dict get [lindex [gpx::GetRoutePoints $token 1] end 2] desc
+} -result {Node 2}
+
+
+#----------------------------------------------------------------------
+gpx::Cleanup $token
+tcltest::removeFile $gpxFile
+unset rawXML gpxFile token
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+return

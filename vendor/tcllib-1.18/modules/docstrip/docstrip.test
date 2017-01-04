@@ -1,0 +1,243 @@
+## 
+## This is the file `docstrip.test',
+## generated with the SAK utility
+## (sak docstrip/regen).
+## 
+## The original source files were:
+## 
+## tcldocstrip.dtx  (with options: `test tcllibtest')
+## 
+## In other words:
+## **************************************
+## * This Source is not the True Source *
+## **************************************
+## the true source is the file from which this one was generated.
+##
+source [file join\
+  [file dirname [file dirname [file join [pwd] [info script]]]]\
+  devtools testutilities.tcl]
+testsNeedTcl     8.4
+testsNeedTcltest 2
+testing {useLocal docstrip.tcl docstrip}
+variable docstrip_sources_dir [localPath {}]
+tcltest::testConstraint docstripSourcesAvailable [expr {[
+   file exists [file join $docstrip_sources_dir docstrip.tcl]
+] && [
+   file exists [file join $docstrip_sources_dir tcldocstrip.dtx]
+]}]
+tcltest::test docstrip-1.1 {code/comment line distinction} -body {
+   docstrip::extract [join {
+     {% comment}
+     {% more comment !"#$%&/(}
+     {some command}
+     { % blah $blah "Not a comment."}
+     {% abc; this is comment}
+     {# def; this is code}
+     {ghi}
+     {% jkl}
+   } \n] {}
+} -result [
+   join {
+     {some command}
+     { % blah $blah "Not a comment."}
+     {# def; this is code}
+     {ghi} ""
+   } \n
+]
+tcltest::test docstrip-1.2 {blocks and nesting} -body {
+   set text [join {
+      {begin}
+      {%<*foo>}
+      {1}
+      {%<*bar>}
+      {2}
+      {%</bar>}
+      {%<*!bar>}
+      {3}
+      {%</!bar>}
+      {4}
+      {%</foo>}
+      {5}
+      {%<*bar>}
+      {6}
+      {%</bar>}
+      {end}
+   } \n]
+   set res [docstrip::extract $text foo]
+   append res [docstrip::extract $text {foo bar}]
+   append res [docstrip::extract $text bar]
+} -result [
+   join {
+      {begin}
+      {1}
+      {3}
+      {4}
+      {5}
+      {end}
+      {begin}
+      {1}
+      {2}
+      {4}
+      {5}
+      {6}
+      {end}
+      {begin}
+      {5}
+      {6}
+      {end} ""
+   } \n
+]
+tcltest::test docstrip-1.3 {plusminus guards and metacomments} -body {
+   set text [join {
+      {begin}
+      {%<foo> foo}
+      {%<+foo>plusfoo}
+      {%<-foo>minusfoo}
+      {middle}
+      {%% some metacomment}
+      {%<*foo>}
+      {%%another metacomment}
+      {%</foo>}
+      {end}
+   } \n]
+   set res [docstrip::extract $text foo -metaprefix {# }]
+   append res [docstrip::extract $text bar -metaprefix {#}]
+} -result [
+   join {
+      {begin}
+      { foo}
+      {plusfoo}
+      {middle}
+      {#  some metacomment}
+      {# another metacomment}
+      {end}
+      {begin}
+      {minusfoo}
+      {middle}
+      {# some metacomment}
+      {end} ""
+   } \n
+]
+tcltest::test docstrip-1.4 {verbatim mode} -body {
+   set text [join {
+      {begin}
+      {%<*myblock>}
+      {some stupid()}
+      {   #computer<program>}
+      {%<<QQQ-98765}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%</myblock>}
+      {%QQQ-98765}
+      {   using*strange@programming<language>}
+      {%</myblock>}
+      {end}
+   } \n]
+   set res [docstrip::extract $text myblock -metaprefix {# }]
+   append res [docstrip::extract $text {}]
+} -result [
+   join {
+      {begin}
+      {some stupid()}
+      {   #computer<program>}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%</myblock>}
+      {   using*strange@programming<language>}
+      {end}
+      {begin}
+      {end} ""
+   } \n
+]
+tcltest::test docstrip-1.5 {annotation} -body {
+   set text [join {
+      {begin}
+      {%<*myblock>}
+      {some stupid()}
+      {%<foo>   #computer<program>}
+      {%<<QQQ-98765}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%</myblock>}
+      {%QQQ-98765}
+      {   using*strange@programming<language>}
+      {%</myblock>}
+      {%%end}
+   } \n]
+   docstrip::extract $text {myblock foo} -metaprefix {# } -annotate 3
+} -result [
+   join {
+      {begin} {. "" ""} 1 {}
+      {some stupid()} {. "" ""} 3 myblock
+      {   #computer<program>} {+ %<foo> {}} 4 myblock
+      {% These three lines are copied verbatim (including percents}
+        {V "" ""} 6 myblock
+      {%% even if -metaprefix is something different than %%).}
+        {V "" ""} 7 myblock
+      {%</myblock>} {V "" ""} 8 myblock
+      {   using*strange@programming<language>} {. "" ""} 10 myblock
+      {# end} {M %% {# }} 12 {}
+      ""
+   } \n
+]
+tcltest::test docstrip-2.1 {have docstrip extract itself} -constraints {
+   docstripSourcesAvailable
+} -body {
+   # First read in the ready-stripped file, but gobble the preamble and
+   # postamble, as those are a bit messy to reproduce.
+   set F [open [file join $docstrip_sources_dir docstrip.tcl] r]
+   regsub -all -- {(^|\n)#[^\n]*} [read $F] {} stripped
+   close $F
+   # Then read the master source and strip it manually.
+   set F [open [file join $docstrip_sources_dir tcldocstrip.dtx] r]
+   set source [read $F]
+   close $F
+   set stripped2 [docstrip::extract $source pkg -metaprefix ##]
+   # Finally compare the two.
+   if {[string trim $stripped \n] ne [string trim $stripped2 \n]} then {
+      error "$strippped\n ne \n$stripped2"
+   }
+}
+tcltest::test docstrip-2.2 {soucefrom} -setup {
+   set dtxname [tcltest::makeFile [join {
+      {% Just a minor test file.}
+      {puts A}
+      {%<*bar>}
+      {puts B}
+      {%<*foo>}
+      {puts [info exists baz]}
+      {set baz 1}
+      {%</foo>}
+      {%<-foo>return}
+      {%</bar>}
+      {puts $baz}
+      {puts [file tail [info script]]}
+      {%<*!foo>}
+      {puts C}
+      "%% Tricky comment; guess what comes next\\"
+      {%</!foo>}
+      {incr baz}
+      {puts "baz=$baz"}
+   } \n] te27st01.dtx]
+} -body {
+   set baz 0
+   puts [info script]
+   docstrip::sourcefrom $dtxname {foo bar}
+   puts [info script]
+   docstrip::sourcefrom $dtxname {}
+   docstrip::sourcefrom $dtxname {bar}
+   puts $baz
+} -cleanup {
+   tcltest::removeFile $dtxname
+} -output [join [list\
+   [info script]\
+   {A} {B} {1} {1} {te27st01.dtx} {baz=2}\
+   [info script]\
+   {A} {2} {te27st01.dtx} {C} {baz=2}\
+   {A} {B}\
+   {2} ""
+] \n]
+testsuiteCleanup
+## 
+## 
+## End of file `docstrip.test'.

@@ -1,0 +1,95 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_reverse.test,v 1.5 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-reverse-${setimpl}-1.0 {reverse, error} {
+    catch {grammar::fa::op::reverse} res
+    set res
+} {wrong # args: should be "grammar::fa::op::reverse fa"}
+
+
+test faop-reverse-${setimpl}-1.1 {reverse, error} {
+    catch {grammar::fa::op::reverse a b} res
+    set res
+} {wrong # args: should be "grammar::fa::op::reverse fa"}
+
+
+test faop-reverse-${setimpl}-1.2 {reverse, error} {
+    catch {grammar::fa::op::reverse a} res
+    set res
+} {invalid command name "a"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code result} {
+    00 x       {grammar::fa {} {x {0 0 {}}}}
+    01 x-      {grammar::fa @  {x {0 0 {@ x}}}}
+    02 xe      {grammar::fa {} {x {0 0 {{} x}}}}
+    03 xy      {grammar::fa {} {x {0 0 {}} y {0 0 {}}}}
+    04 xy-     {grammar::fa @  {x {0 0 {}} y {0 0 {@  x}}}}
+    05 xye     {grammar::fa {} {x {0 0 {}} y {0 0 {{} x}}}}
+    06 xyee    {grammar::fa {} {x {0 0 {{} y}} y {0 0 {{} x}}}}
+    07 xyz/ee  {grammar::fa {}    {x {0 0 {}} y {0 0 {{} x}} z {0 0 {{} x}}}}
+    08 xyz/-=  {grammar::fa {@ =} {x {0 0 {}} y {0 0 {@  x}} z {0 0 {=  x}}}}
+    09 xyz|ee  {grammar::fa {}    {x {0 0 {}} y {0 0 {}} z {0 0 {{} {x y}}}}}
+    10 xyz|-=  {grammar::fa {@ =} {x {0 0 {}} y {0 0 {}} z {0 0 {@ x = y}}}}
+    11 xyz+eee {grammar::fa {}      {x {0 0 {{} z}} y {0 0 {{} x}} z {0 0 {{} y}}}}
+    12 xyz+-=_ {grammar::fa {@ % =} {x {0 0 {%  z}} y {0 0 {@  x}} z {0 0 {=  y}}}}
+    13 xyz&eee {grammar::fa {}      {x {0 0 {}} y {0 0 {{} x}} z {0 0 {{} {x y}}}}}
+    14 xyz&-=_ {grammar::fa {@ % =} {x {0 0 {}} y {0 0 {@  x}} z {0 0 {=  x %  y}}}}
+    15 xyz!ee  {grammar::fa {}      {x {0 0 {}} y {0 0 {{} x}} z {0 0 {{} y}}}}
+    16 xyz!-=  {grammar::fa {@ % =} {x {0 0 {}} y {0 0 {@  x}} z {0 0 {=  y}}}}
+} {
+    set key ${n}.${code}
+
+    test faop-reverse-${setimpl}-2.$key {reverse} {
+	grammar::fa a
+	gen $code
+	grammar::fa::op::reverse a
+	set res [validate_serial $result a]
+	a destroy
+	set res
+    } ok
+
+    test faop-reverse-${setimpl}-3.$key {double reverse is identity} {
+	grammar::fa a
+	gen $code
+	set res [a serialize]
+	grammar::fa::op::reverse a
+	grammar::fa::op::reverse a
+	set res [validate_serial $res a]
+	a destroy
+	set res
+    } ok
+
+    test faop-reverse-${setimpl}-4.$key {reverse, as method} {
+	grammar::fa a
+	gen $code
+	a reverse
+	set res [validate_serial $result a]
+	a destroy
+	set res
+    } ok
+
+    test faop-reverse-${setimpl}-5.$key {double reverse is identity, for method} {
+	grammar::fa a
+	gen $code
+	set res [a serialize]
+	a reverse
+	a reverse
+	set res [validate_serial $res a]
+	a destroy
+	set res
+    } ok
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

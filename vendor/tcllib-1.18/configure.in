@@ -1,0 +1,50 @@
+AC_INIT(ChangeLog)
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT* | *CYGWIN_98* | *CYGWIN_95*)
+	CYGPATH="cygpath -w"
+	;;
+    *)
+	CYGPATH=echo
+	;;
+esac
+AC_SUBST(CYGPATH)
+
+AC_ARG_WITH(tclsh, [  --with-tclsh=FILE location of a working tclsh executable], with_tclsh=${withval})
+
+SC_SIMPLE_EXEEXT
+
+# allow user to override the tclsh we think we found
+if test x"${with_tclsh}" != x ; then
+    AC_MSG_CHECKING([for tclsh])
+    if "${with_tclsh}" < /dev/null > /dev/null 2> /dev/null
+    then
+        TCLSH_PROG=${with_tclsh}
+        AC_MSG_RESULT([$TCLSH_PROG, via --with-tclsh])
+    else
+        AC_MSG_ERROR([Bad --with-tclsh ${with_tclsh}, not found or not executable])
+    fi
+    AC_SUBST(TCLSH_PROG)
+else
+    SC_PROG_TCLSH
+fi
+
+
+# ### ######### ###########################
+
+SAK=`$CYGPATH ${srcdir}/sak.tcl`
+
+PACKAGE=`$TCLSH_PROG "${SAK}" name`
+MAJOR_VERSION=`$TCLSH_PROG "${SAK}" major`
+MINOR_VERSION=`$TCLSH_PROG "${SAK}" minor`
+PATCHLEVEL=""
+
+VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
+NODOT_VERSION=${MAJOR_VERSION}${MINOR_VERSION}
+
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
+# ### ######### ###########################
+
+AC_OUTPUT([Makefile])

@@ -335,12 +335,8 @@ prefix=$oldprefix
 exec_prefix=$oldexec_prefix
 
 ## Tcl package
-tcl_version=8.5.18
-tcl_thread_version=2.7.3
-tclx_version=8.4.1
-tcllib_version=1.17
-MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
-VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
+MP_CONFIG_SUBDIR([vendor/tcl/unix], [--prefix=${macports_libexec_dir} --enable-threads])
+VENDOR_TCL_SUBDIR=tcl/unix
 VENDOR_TCL_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCL_SUBDIR)
 AC_SUBST(VENDOR_TCL_INSTALL)
@@ -352,16 +348,16 @@ AC_SUBST(VENDOR_DESTROOT)
 ## Tcl Thread package
 # Tcl supports Threads internally, but to use threads from Tcl code we need
 # this package
-MP_CONFIG_TARBALL([vendor/thread${tcl_thread_version}.tar.gz], [vendor/thread${tcl_thread_version}], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLTHREAD_SUBDIR=thread${tcl_thread_version}
+MP_CONFIG_SUBDIR([vendor/thread], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLTHREAD_SUBDIR=thread
 VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLTHREAD_SUBDIR)
 AC_SUBST(VENDOR_TCLTHREAD_INSTALL)
 
 ## TclX package
 # TclX is required for signal handling
-MP_CONFIG_TARBALL([vendor/tclx${tclx_version}.tar.bz2], [vendor/tclx8.4], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLX_SUBDIR=tclx8.4
+MP_CONFIG_SUBDIR([vendor/tclx], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLX_SUBDIR=tclx
 VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLX_SUBDIR)
 AC_SUBST(VENDOR_TCLX_INSTALL)
@@ -370,8 +366,8 @@ AC_SUBST(VENDOR_TCLX_INSTALL)
 # Note that Tcllib needs a Tcl interpreter during installation; it will *not*
 # be the one we configure above, because that one isn't built yet. That's not
 # a problem, though -- it's only used during installation.
-MP_CONFIG_TARBALL([vendor/tcllib-${tcllib_version}.tar.gz], [vendor/tcllib-${tcllib_version}], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLLIB_SUBDIR=tcllib-${tcllib_version}
+MP_CONFIG_SUBDIR([vendor/tcllib], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLLIB_SUBDIR=tcllib
 VENDOR_TCLLIB_INSTALL="install-libraries"
 AC_SUBST(VENDOR_TCLLIB_SUBDIR)
 AC_SUBST(VENDOR_TCLLIB_INSTALL)

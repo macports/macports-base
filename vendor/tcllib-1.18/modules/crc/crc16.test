@@ -1,0 +1,233 @@
+# crc16.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the crc16 commands
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: crc16.test,v 1.7 2012/01/23 20:28:11 patthoyts Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+            [file dirname [file dirname [file join [pwd] [info script]]]] \
+            devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal crc16.tcl crc16 ::crc
+}
+
+# -------------------------------------------------------------------------
+
+test crc16-1.0 {crc16 with no parameters } {
+    catch {::crc::crc16} result
+    string match "wrong # args: *" $result
+} {1}
+
+test crc16-1.1 {crc16 with single parameter} {
+    list [catch {::crc::crc16 abc} err] $err
+} {0 38712}
+
+test crc16-1.2 {crc16 with "--" parameter} {
+    list [catch {::crc::crc16 -- abc} err] $err
+} {0 38712}
+
+test crc16-1.3 {crc16 with leading hyphen data} {
+    list [catch {::crc::crc16 -abc} err] $err
+} {0 64305}
+
+test crc16-1.4 {crc16 with leading hyphen data and option separator} {
+    list [catch {::crc::crc16 -- -abc} err] $err
+} {0 64305}
+
+test crc16-1.5 {crc16 with leading hyphen data and format option} {
+    list [catch {::crc::crc16 -format %04x -abc} err] $err
+} {0 fb31}
+
+test crc16-1.6 {crc16 with leading hyphen data, format option separator} {
+    list [catch {::crc::crc16 -format %04x -- -abc} err] $err
+} {0 fb31}
+
+test crc16-1.7 {crc-ccitt with leading hyphen data} {
+    list [catch {::crc::crc-ccitt -abc} err] $err
+} {0 6110}
+
+test crc16-1.8 {crc-ccitt with leading hyphen data and option separator} {
+    list [catch {::crc::crc-ccitt -- -abc} err] $err
+} {0 6110}
+
+
+# -------------------------------------------------------------------------
+# CRC16 tests
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "0"
+    2    "123456789"
+    "47933"
+    3    "abc"
+    "38712"
+    4    "ABC"
+    "17697"
+    5    "This is a string"
+    "19524"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "47537"
+} {
+    test crc16-2.$n {crc16 and unsigned integer} {
+        list [catch {::crc::crc16 $msg} res] $res
+    } [list 0 $expected]
+}
+
+foreach {n msg expected} {
+    1    ""
+    "0x0"
+    2    "123456789"
+    "0xBB3D"
+    3    "abc"
+    "0x9738"
+    4    "ABC"
+    "0x4521"
+    5    "This is a string"
+    "0x4C44"
+    6    "\uFFFE\u0000\u0001\u0002"
+    "0xB9B1"
+} {
+    test crc16-3.$n {crc16 as hexadecimal string} {
+        list [catch {::crc::crc16 -format 0x%X $msg} res] $res
+    } [list 0 $expected]
+}
+
+# -------------------------------------------------------------------------
+# Implementation tests
+# -------------------------------------------------------------------------
+
+set ::crc::testfile [info script]
+
+proc crc::loaddata {filename} {
+    set f [open $filename r]
+    fconfigure $f -translation binary
+    set data [read $f]
+    close $f
+    return $data
+}
+
+test crc16-4.0 {crc16 file option} {
+    set r1 [::crc::crc16 -file [info script]]
+    list [catch {
+        set r2 [::crc::crc16 [crc::loaddata [info script]]]
+        if {$r1 != $r2} {
+            set r "differing results: $r1 != $r2"
+        } else {
+            set r ok
+        }
+    } result] $result
+} {0 ok}
+
+test crc16-4.1 {crc16 channel option} {
+    set r1 [::crc::crc16 [crc::loaddata $crc::testfile]]
+    list [catch {
+        set f [open $crc::testfile r]
+        set r2 [::crc::crc16 -channel $f]
+        close $f
+        if {$r1 != $r2} {
+            set r "differing results: $r1 != $r2"
+        } else {
+            set r ok
+        }
+        set r
+    } result] $result
+} {0 ok}
+
+test crc16-5.0 {crc implementation option} {
+    proc crc::junk {s seed} {
+        return 0
+    }
+
+    list [catch {::crc::crc16 -impl crc::junk {Hello, World!}} res] $res
+} {0 0}
+
+# -------------------------------------------------------------------------
+# CRC-CCITT tests
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "0xFFFF"
+    2    "123456789"
+    "0x29B1"
+    3    "abc"
+    "0x514A"
+    4    "ABC"
+    "0xF508"
+    5    "This is a string"
+    "0x4BE9"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "0xAAA4"
+} {
+    test crc16-6.$n {crc-ccitt and unsigned integer} {
+        list [catch {::crc::crc-ccitt -format 0x%X $msg} res] $res
+    } [list 0 $expected]
+}
+
+# -------------------------------------------------------------------------
+# CRC32 tests
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "0x0"
+    2    "123456789"
+    "0xCBF43926"
+    3    "abc"
+    "0x352441C2"
+    4    "ABC"
+    "0xA3830348"
+    5    "This is a string"
+    "0x876633F"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "0xB0E8EEE5"
+} {
+    test crc16-7.$n {crc-32 from the crc16 algorithms} {
+        list [catch {::crc::crc-32 -format 0x%X $msg} res] $res
+    } [list 0 $expected]
+}
+
+# -------------------------------------------------------------------------
+# XMODEM CRC tests
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "0x0"
+    2    "T"
+    "0x1A71"
+    3    "123456789"
+    "0x31C3"
+    4    "abc"
+    "0x9DD6"
+    5    "ABC"
+    "0x3994"
+    6    "This is a string"
+    "0x21E3"
+    7    "\uFFFE\u0000\u0001\u0002"
+    "0x2E64"
+} {
+    test crc16-8.$n {XMODEM CRCs as hexadecimal string} {
+        list [catch {::crc::xmodem -format 0x%X $msg} res] $res
+    } [list 0 $expected]
+}
+# -------------------------------------------------------------------------
+
+catch {unset crc::filename}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

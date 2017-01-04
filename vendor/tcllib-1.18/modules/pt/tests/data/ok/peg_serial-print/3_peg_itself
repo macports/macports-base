@@ -1,0 +1,445 @@
+pt::grammar::peg
+    start := (Grammar)
+    rules
+        ALNUM :: <leaf> :=
+            x
+                '<'
+                'a'
+                'l'
+                'n'
+                'u'
+                'm'
+                '>'
+                (WHITESPACE)
+        ALPHA :: <leaf> :=
+            x
+                '<'
+                'a'
+                'l'
+                'p'
+                'h'
+                'a'
+                '>'
+                (WHITESPACE)
+        AND :: <leaf> :=
+            x
+                '&'
+                (WHITESPACE)
+        APOSTROPH :: <void> :=
+            '''
+        ASCII :: <leaf> :=
+            x
+                '<'
+                'a'
+                's'
+                'c'
+                'i'
+                'i'
+                '>'
+                (WHITESPACE)
+        Attribute :: <value> :=
+            x
+                /
+                    (VOID)
+                    (LEAF)
+                (COLON)
+        CLOSE :: <void> :=
+            x
+                '\)'
+                (WHITESPACE)
+        CLOSEB :: <void> :=
+            ']'
+        COLON :: <void> :=
+            x
+                ':'
+                (WHITESPACE)
+        COMMENT :: <void> :=
+            x
+                '#'
+                *
+                    x
+                        !
+                            (EOL)
+                        <dot>
+                (EOL)
+        CONTROL :: <leaf> :=
+            x
+                '<'
+                'c'
+                'o'
+                'n'
+                't'
+                'r'
+                'o'
+                'l'
+                '>'
+                (WHITESPACE)
+        Char :: <value> :=
+            /
+                (CharSpecial)
+                (CharOctalFull)
+                (CharOctalPart)
+                (CharUnicode)
+                (CharUnescaped)
+        CharOctalFull :: <leaf> :=
+            x
+                '\'
+                range (0 .. 2)
+                range (0 .. 7)
+                range (0 .. 7)
+        CharOctalPart :: <leaf> :=
+            x
+                '\'
+                range (0 .. 7)
+                ?
+                    range (0 .. 7)
+        CharSpecial :: <leaf> :=
+            x
+                '\'
+                /
+                    'n'
+                    'r'
+                    't'
+                    '''
+                    '\"'
+                    '['
+                    ']'
+                    '\'
+        CharUnescaped :: <leaf> :=
+            x
+                !
+                    '\'
+                <dot>
+        CharUnicode :: <leaf> :=
+            x
+                '\'
+                'u'
+                <xdigit>
+                ?
+                    x
+                        <xdigit>
+                        ?
+                            x
+                                <xdigit>
+                                ?
+                                    <xdigit>
+        Class :: <value> :=
+            x
+                (OPENB)
+                *
+                    x
+                        !
+                            (CLOSEB)
+                        (Range)
+                (CLOSEB)
+                (WHITESPACE)
+        DAPOSTROPH :: <void> :=
+            '\"'
+        DDIGIT :: <leaf> :=
+            x
+                '<'
+                'd'
+                'd'
+                'i'
+                'g'
+                'i'
+                't'
+                '>'
+                (WHITESPACE)
+        DIGIT :: <leaf> :=
+            x
+                '<'
+                'd'
+                'i'
+                'g'
+                'i'
+                't'
+                '>'
+                (WHITESPACE)
+        DOT :: <leaf> :=
+            x
+                '.'
+                (WHITESPACE)
+        Definition :: <value> :=
+            x
+                ?
+                    (Attribute)
+                (Identifier)
+                (IS)
+                (Expression)
+                (SEMICOLON)
+        EOF :: <void> :=
+            !
+                <dot>
+        EOL :: <void> :=
+            /
+                '\n'
+                '\r'
+        Expression :: <value> :=
+            x
+                (Sequence)
+                *
+                    x
+                        (SLASH)
+                        (Sequence)
+        Final :: <void> :=
+            x
+                'E'
+                'N'
+                'D'
+                (WHITESPACE)
+                (SEMICOLON)
+                (WHITESPACE)
+        GRAPH :: <leaf> :=
+            x
+                '<'
+                'g'
+                'r'
+                'a'
+                'p'
+                'h'
+                '>'
+                (WHITESPACE)
+        Grammar :: <value> :=
+            x
+                (WHITESPACE)
+                (Header)
+                *
+                    (Definition)
+                (Final)
+                (EOF)
+        Header :: <value> :=
+            x
+                (PEG)
+                (Identifier)
+                (StartExpr)
+        IS :: <void> :=
+            x
+                '<'
+                '-'
+                (WHITESPACE)
+        Ident :: <leaf> :=
+            x
+                /
+                    '_'
+                    ':'
+                    <alpha>
+                *
+                    /
+                        '_'
+                        ':'
+                        <alnum>
+        Identifier :: <value> :=
+            x
+                (Ident)
+                (WHITESPACE)
+        LEAF :: <leaf> :=
+            x
+                'l'
+                'e'
+                'a'
+                'f'
+                (WHITESPACE)
+        LOWER :: <leaf> :=
+            x
+                '<'
+                'l'
+                'o'
+                'w'
+                'e'
+                'r'
+                '>'
+                (WHITESPACE)
+        Literal :: <value> :=
+            /
+                x
+                    (APOSTROPH)
+                    *
+                        x
+                            !
+                                (APOSTROPH)
+                            (Char)
+                    (APOSTROPH)
+                    (WHITESPACE)
+                x
+                    (DAPOSTROPH)
+                    *
+                        x
+                            !
+                                (DAPOSTROPH)
+                            (Char)
+                    (DAPOSTROPH)
+                    (WHITESPACE)
+        NOT :: <leaf> :=
+            x
+                '!'
+                (WHITESPACE)
+        OPEN :: <void> :=
+            x
+                '\('
+                (WHITESPACE)
+        OPENB :: <void> :=
+            '['
+        PEG :: <void> :=
+            x
+                'P'
+                'E'
+                'G'
+                !
+                    /
+                        '_'
+                        ':'
+                        <alnum>
+                (WHITESPACE)
+        PLUS :: <leaf> :=
+            x
+                '+'
+                (WHITESPACE)
+        PRINTABLE :: <leaf> :=
+            x
+                '<'
+                'p'
+                'r'
+                'i'
+                'n'
+                't'
+                '>'
+                (WHITESPACE)
+        PUNCT :: <leaf> :=
+            x
+                '<'
+                'p'
+                'u'
+                'n'
+                'c'
+                't'
+                '>'
+                (WHITESPACE)
+        Prefix :: <value> :=
+            x
+                ?
+                    /
+                        (AND)
+                        (NOT)
+                (Suffix)
+        Primary :: <value> :=
+            /
+                (ALNUM)
+                (ALPHA)
+                (ASCII)
+                (CONTROL)
+                (DDIGIT)
+                (DIGIT)
+                (GRAPH)
+                (LOWER)
+                (PRINTABLE)
+                (PUNCT)
+                (SPACE)
+                (UPPER)
+                (WORDCHAR)
+                (XDIGIT)
+                (Identifier)
+                x
+                    (OPEN)
+                    (Expression)
+                    (CLOSE)
+                (Literal)
+                (Class)
+                (DOT)
+        QUESTION :: <leaf> :=
+            x
+                '?'
+                (WHITESPACE)
+        Range :: <value> :=
+            /
+                x
+                    (Char)
+                    (TO)
+                    (Char)
+                (Char)
+        SEMICOLON :: <void> :=
+            x
+                ';'
+                (WHITESPACE)
+        SLASH :: <void> :=
+            x
+                '/'
+                (WHITESPACE)
+        SPACE :: <leaf> :=
+            x
+                '<'
+                's'
+                'p'
+                'a'
+                'c'
+                'e'
+                '>'
+                (WHITESPACE)
+        STAR :: <leaf> :=
+            x
+                '*'
+                (WHITESPACE)
+        Sequence :: <value> :=
+            +
+                (Prefix)
+        StartExpr :: <value> :=
+            x
+                (OPEN)
+                (Expression)
+                (CLOSE)
+        Suffix :: <value> :=
+            x
+                (Primary)
+                ?
+                    /
+                        (QUESTION)
+                        (STAR)
+                        (PLUS)
+        TO :: <void> :=
+            '-'
+        UPPER :: <leaf> :=
+            x
+                '<'
+                'u'
+                'p'
+                'p'
+                'e'
+                'r'
+                '>'
+                (WHITESPACE)
+        VOID :: <leaf> :=
+            x
+                'v'
+                'o'
+                'i'
+                'd'
+                (WHITESPACE)
+        WHITESPACE :: <void> :=
+            *
+                /
+                    <space>
+                    (COMMENT)
+        WORDCHAR :: <leaf> :=
+            x
+                '<'
+                'w'
+                'o'
+                'r'
+                'd'
+                'c'
+                'h'
+                'a'
+                'r'
+                '>'
+                (WHITESPACE)
+        XDIGIT :: <leaf> :=
+            x
+                '<'
+                'x'
+                'd'
+                'i'
+                'g'
+                'i'
+                't'
+                '>'
+                (WHITESPACE)

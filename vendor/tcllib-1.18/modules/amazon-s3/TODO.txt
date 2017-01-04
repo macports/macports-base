@@ -1,0 +1,20 @@
+STILL TO DO: Implement S3::Acl.
+
+STILL TO DO: Optional argument to Put and Get for compares: remote 
+bucket holding the contents you're comparing, so if you do a GetBucket
+you don't have to do Head.
+
+STILL TO DO: Parse headers with multiple lines per header. (Especially
+x-amz-meta-* headers.)
+
+STILL TO DO: Fix Push, Pull, Toss to not be cut-paste development.
+
+STILL TO DO: Add test to check that -compare never -delete true does
+what you would want it to do.
+
+STILL TO DO: Modify S3.tcl to remove xsxp and use TclDOM instead.
+
+STILL TO DO: Add UI, both command-line and graphical.
+
+STILL TO DO: Finish OddJob, a separate application based on S3.
+

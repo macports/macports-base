@@ -1,0 +1,159 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-05-28  Andreas Kupries  <andreask@activestate.com>
+
+	* autoproxy.tcl: Fixed bug where https proxying was attempted
+	* autoproxy.man: in the face of a domain exception. The TLS
+	* pkgIndex.tcl: setup code has to 'filter' properly. Further
+	  check for existence of state(code), it may not exist (Server
+	  accepts initial connection, then eof's during the TLS
+	  handshake). Bumped version number to 1.5.3.
+
+2012-02-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Applied suggested fix from bug #3313923 to fix
+	handling of the -authProc option.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-10-26  Andreas Kupries  <andreask@activestate.com>
+
+	* autoproxy.man: [Bug 3094654]: Made the spelling of options
+	  consistent, all using their '-'.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* autoproxy.pcx: New file. Syntax definitions for the public
+	  commands of the autoproxy package.
+
+2008-02-29  Andreas Kupries  <andreask@activestate.com>
+
+	* autoproxy.tcl (::autoproxy::init, ::autoproxy::GetWin32Proxy):
+	  Added tclchecker pragmas to suppress false non-portable command
+	  warnings.
+
+	* autoproxy.tcl (::autoproxy::cget): Removed bogus closing
+	* autoproxy.man: bracket. Bumped version to 1.5.1
+	* pkgIndex.tcl:
+
+2008-02-27  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Fix title usage in defAuthProc
+
+2008-02-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.man: Increment version to 1.5 and document.
+	* autoproxy.tcl: Fixed architectural problems that prevented the
+	http registered command from having tls package options
+	appended. This makes an incompatible change to the tls_connect
+	command and the host and port must now be the last two options.
+	* autoproxy.tcl: Re-organised the tls_connect code to split out
+	the connect and the tls parts to create a tunnel_connect command
+	that can form a non-SSL tunnel through a proxy.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* autoproxy.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2007-03-12  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Removed even the demo reference to BWidgets to
+	avoid confising the auto-dependency checker. Rearranged the tls
+	connection code to permit use outside of the http package as
+	tls_connect.
+	* autoproxy.man: Documented the tls functions.
+	* pkgIndex.tcl: Increment version to 1.4
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* autoproxy.man: Bumped version to 1.3
+	* autoproxy.tcl:
+	* pkgIndex.tcl:
+
+2006-04-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Added a tls_socket procedure that can use
+	                 registered as the protocol handler for https
+	                 with the core http package and will do the right
+	                 thing when a proxy is in use.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-02-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Dealt with the parsing requirements as mentioned
+	* autoproxy.man: in bug #1099162. In theory we may have different
+	* pkgIndex.tcl:  proxy settings for https and http (and other
+	protocols) but to deal with these we will need to change the http
+	package so we do not deal with them now.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-07-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Removed the stuff for Digest and NTLM until it
+	is working properly. Added an authProc configuration option to
+	permit application code to specify a procedure to get
+	authentication information from the user.
+	
+2004-07-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Fix the version number.
+
+2004-07-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* autoproxy.tcl: Import of the wiki version.
+	* autoproxy.man: Wrote a manual page.

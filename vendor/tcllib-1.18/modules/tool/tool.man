@@ -1,0 +1,233 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tool n 0.4.2]
+[keywords TOOL]
+[copyright {2015 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Standardized OO Framework for development}]
+[titledesc {Dictionary Tools}]
+[category Utility]
+[keywords TclOO]
+[require Tcl 8.6]
+[require sha1]
+[require dicttool]
+[require oo::meta]
+[require oo::dialect]
+[description]
+[para]
+This module implements the Tcl Object Oriented Library framework, or [emph TOOL]. It is
+intended to be a general purpose framework that is useable in its own right, and
+easily extensible.
+[para]
+TOOL defines a metaclass with provides several additional keywords to the TclOO
+description langauge, default behaviors for its consituent objects, and
+top-down integration with the capabilities provided by the [package oo::meta] package.
+[para]
+The TOOL metaclass was build with the [package oo::dialect] package, and thus can
+be used as the basis for additional metaclasses. As a metaclass, TOOL has it's own
+"class" class, "object" class, and define namespace.
+[example {
+# tool::class workds just like oo::class
+tool::class create myclass {
+}
+
+# tool::define works just like oo::define
+tool::define myclass method noop {} {}
+
+# tool::define and tool::class understand additional keywords
+tool::define myclass array_ensemble mysettings mysettings {}
+
+# And tool interoperates with oo::define
+oo::define myclass method do_something {} { return something }
+
+# TOOL and TclOO objects are interchangeable
+oo::class create myooclass {
+  superclass myclass
+}
+}]
+[para]
+Several manual pages go into more detail about specific keywords and methods.
+[list_begin definitions]
+[def [package tool::array_ensemble]]
+[def [package tool::dict_ensemble]]
+[def [package tool::method_ensemble]]
+[def [package tool::object]]
+[def [package tool::option_handling]]
+[list_end]
+
+[section Keywords]
+TOOL adds new (or modifies) keywords used in the definitions of classes. However,
+the new keywords are only available via calls to [emph {tool::class create}] or [emph tool::define]
+
+[list_begin definitions]
+
+[call tool::define [cmd class_method] [arg arglist] [arg body]]
+Defines a method for the class object itself. This method will be passed on to descendents of the class,
+unlike [cmd {self method}].
+
+[call tool::define [cmd array] [arg name] [arg contents]]
+
+Declares a variable [arg name] which will be initialized as an array, populated with [arg contents] for objects of this class, as well as any
+objects for classes which are descendents of this class.
+
+[call tool::define [cmd array_ensemble] [arg methodname] [arg varname] [opt cases]]
+
+Declares a method ensemble [arg methodname] which will control access to variable
+[arg varname]. Cases are a key/value list of method names and bodies which will be
+overlaid on top of the standard template. See [package tool::array_ensemble].
+[para]
+One method name is reserved: [cmd initialize]. [cmd initialize] Declares the initial values to be populated in the array, as a key/value list,
+and will not be expressed as a method for the ensemble.
+
+[call tool::define [cmd dict_ensemble] [arg methodname] [arg varname] [opt cases]]
+
+Declares a method ensemble [arg methodname] which will control access to variable
+[arg varname]. Cases are a key/value list of method names and bodies which will be
+overlaid on top of the standard template. See [package tool::dict_ensemble].
+[para]
+One method name is reserved: [cmd initialize]. [cmd initialize] Declares the initial values to be populated in the array, as a key/value list,
+and will not be expressed as a method for the ensemble.
+
+[call tool::define [cmd method] [arg methodname] [arg arglist] [arg body]]
+
+If [arg methodname] contains ::, the method is considered to be
+part of a method ensemble. See [package tool::method_ensembles]. Otherwise
+this command behaves exactly like the standard [namespace oo::define] [cmd method]
+command.
+
+
+[call tool::define [cmd option] [arg name] [arg dictopts]]
+
+Declares an option. [arg dictopts] is a key/value list defining parameters for the option. See [package tool::option_handling].
+
+[example {
+tool::class create myclass {
+  option color {
+    post-command: {puts [list %self%'s %field% is now %value%]}
+    default: green
+  }
+}
+myclass create foo
+foo configure color purple
+> foo's color is now purple
+}]
+
+[call tool::define [cmd property] [opt branch] [arg field] [arg value]]
+
+Defines a new leaf in the class metadata tree. With no branch, the
+leaf will appear in the [emph const] section, accessible by either the
+object's [cmd property] method, or via [cmd oo::meta::info] [emph class] [cmd {get const}] [emph field]:
+
+[call tool::define [cmd variable] [arg name] [arg value]]
+
+Declares a variable [arg name] which will be initialized with the value [arg value] for objects of this class, as well as any
+objects for classes which are descendents of this class.
+
+[list_end]
+
+[section {Public Object Methods}]
+ 
+The TOOL object mother of all classes defines several methods to enforces consistent
+behavior throughout the framework.
+
+[list_begin definitions]
+
+[call [emph object] [cmd cget] [arg option]]
+
+Return the value of this object's option [arg option]. If the [cmd {property options_strict}] is true
+for this class, calling an option which was not declared by the [cmd option] keyword will throw
+an error. In all other cases if the value is present in the object's [emph options] array that
+value is returned. If it does not exist, the object will attempt to retrieve a property of the same
+name.
+
+[call [emph object] [cmd configure] [opt keyvaluelist]]
+[call [emph object] [cmd configure] [arg field] [arg value] [opt field] [opt value] [opt ...]]
+
+This command will inject new values into the objects [emph options] array, according to the rules
+as set forth by the option descriptions. See [package tool::option_handling] for details.
+
+[cmd configure] will strip leading -'s off of field names, allowing it to behave in a quasi-backward
+compatible manner to tk options.
+
+[call [emph object] [cmd configurelist] [opt keyvaluelist]]
+
+This command will inject new values into the objects [emph options] array, according to the rules
+as set forth by the option descriptions. This command will perform validation and alternate storage
+rules. It will not invoke trigger rules. See [package tool::option_handling] for details.
+
+[call [emph object] [cmd forward] [arg stub] [arg forward]]
+
+A passthrough to [cmd {oo:objdefine [self] forward}]
+
+[call [emph object] [cmd graft] [arg stub] [arg forward]]
+
+Delegates the [arg <stub>] method to the object or command designated by [arg forward]
+
+[example {
+tool::object create A
+tool::object create B
+A graft buddy B
+A configure color red
+B configure color blue
+A cget color
+> red
+A <buddy> cget color
+> blue
+}]
+
+[list_end]
+
+[section {Private Object Methods}]
+[list_begin definitions]
+[call [emph object] [cmd InitializePublic]]
+Consults the metadata for the class to ensure every array, option, and variable
+which has been declared but not initialized is initialized with the default value.
+
+This method is called by the constructor and the morph method. It is safe to
+invoke multiple times.
+
+[call [emph object] [cmd Eval_Script] [opt script]]
+Executes a block of text within the namespace of the object. Lines that
+begin with a # are ignored as comments. Commands
+that begin with :: are interpreted as calling a global command. All other
+Tcl commands that lack a "my" prefix are given one, to allow the script
+to exercise internal methods. This method is intended for configuration scripts,
+where the object's methods are intepreting a domain specific language.
+
+[example {
+tool::class myclass {
+  constructor script {
+    my Eval_Script $script
+  }
+  method node {nodename info} {
+    my variable node
+    dict set node $nodename $info
+  }
+  method get {args} {
+    my variable node
+    return [dict get $node $args]
+  }
+}
+myclass create movies {
+  # This block of code is executed by the object
+  node {The Day the Earth Stood Still} {
+    date: 1952
+    characters: {GORT Klatoo}
+  }
+}
+movies get {The Day the Earth Stood Still} date:
+> 1952
+}]
+
+[call [emph object] [cmd Option_Default] [arg field]]
+
+Computes the default value for an option. See [package tool::option_handling].
+
+[list_end]
+
+[section AUTHORS]
+Sean Woods
+
+[vset CATEGORY tool]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]
+
+

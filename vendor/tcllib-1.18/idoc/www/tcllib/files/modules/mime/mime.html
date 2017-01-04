@@ -1,0 +1,373 @@
+
+<html><head>
+<title>mime - Mime</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'mime.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 1999-2000 Marshall T. Rose
+   -->
+<! -- mime.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">mime(n) 1.6 tcllib &quot;Mime&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>mime - Manipulation of MIME body parts</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">KNOWN BUGS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">mime <span class="opt">?1.6?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::mime::initialize</b> <span class="opt">?<b class="option">-canonical</b> <i class="arg">type/subtype</i> <span class="opt">?<b class="option">-param</b> {<i class="arg">key value</i>}...?</span> <span class="opt">?<b class="option">-encoding</b> <i class="arg">value</i>?</span> <span class="opt">?<b class="option">-header</b> {<i class="arg">key value</i>}...?</span>?</span> (<b class="option">-file</b> <i class="arg">name</i> | <b class="option">-string</b> <i class="arg">value</i> | <b class="option">-parts</b> {<i class="arg">token1</i> ... <i class="arg">tokenN</i>})</a></li>
+<li><a href="#2"><b class="cmd">::mime::finalize</b> <i class="arg">token</i> <span class="opt">?<b class="option">-subordinates</b> <b class="const">all</b> | <b class="const">dynamic</b> | <b class="const">none</b>?</span></a></li>
+<li><a href="#3"><b class="cmd">::mime::getproperty</b> <i class="arg">token</i> <span class="opt">?<i class="arg">property</i> | <b class="option">-names</b>?</span></a></li>
+<li><a href="#4"><b class="cmd">::mime::getheader</b> <i class="arg">token</i> <span class="opt">?<i class="arg">key</i> | <b class="option">-names</b>?</span></a></li>
+<li><a href="#5"><b class="cmd">::mime::setheader</b> <i class="arg">token</i> <i class="arg">key value</i> <span class="opt">?<b class="option">-mode</b> <b class="const">write</b> | <b class="const">append</b> | <b class="const">delete</b>?</span></a></li>
+<li><a href="#6"><b class="cmd">::mime::getbody</b> <i class="arg">token</i> <span class="opt">?<b class="option">-decode</b>?</span> <span class="opt">?<b class="option">-command</b> <i class="arg">callback</i> <span class="opt">?<b class="option">-blocksize</b> <i class="arg">octets</i>?</span>?</span></a></li>
+<li><a href="#7"><b class="cmd">::mime::copymessage</b> <i class="arg">token</i> <i class="arg">channel</i></a></li>
+<li><a href="#8"><b class="cmd">::mime::buildmessage</b> <i class="arg">token</i></a></li>
+<li><a href="#9"><b class="cmd">::mime::parseaddress</b> <i class="arg">string</i></a></li>
+<li><a href="#10"><b class="cmd">::mime::parsedatetime</b> (<i class="arg">string</i> | <b class="option">-now</b>) <i class="arg">property</i></a></li>
+<li><a href="#11"><b class="cmd">::mime::mapencoding</b> <i class="arg">encoding_name</i></a></li>
+<li><a href="#12"><b class="cmd">::mime::reversemapencoding</b> <i class="arg">charset_type</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">mime</b> library package provides the commands to create and
+manipulate MIME body parts.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::mime::initialize</b> <span class="opt">?<b class="option">-canonical</b> <i class="arg">type/subtype</i> <span class="opt">?<b class="option">-param</b> {<i class="arg">key value</i>}...?</span> <span class="opt">?<b class="option">-encoding</b> <i class="arg">value</i>?</span> <span class="opt">?<b class="option">-header</b> {<i class="arg">key value</i>}...?</span>?</span> (<b class="option">-file</b> <i class="arg">name</i> | <b class="option">-string</b> <i class="arg">value</i> | <b class="option">-parts</b> {<i class="arg">token1</i> ... <i class="arg">tokenN</i>})</a></dt>
+<dd><p>This command creates a MIME part and returns a token representing it.</p>
+<ul class="doctools_itemized">
+<li><p>If the <b class="option">-canonical</b> option is present, then the body is in
+canonical (raw) form and is found by consulting either the
+<b class="option">-file</b>, <b class="option">-string</b>, or <b class="option">-parts</b> option.</p>
+<p>In addition, both the <b class="option">-param</b> and <b class="option">-header</b> options may
+occur zero or more times to specify <b class="const">Content-Type</b> parameters
+(e.g., <b class="const">charset</b>) and header keyword/values (e.g.,
+<b class="const">Content-Disposition</b>), respectively.</p>
+<p>Also, <b class="option">-encoding</b>, if present, specifies the
+<b class="const">Content-Transfer-Encoding</b> when copying the body.</p></li>
+<li><p>If the <b class="option">-canonical</b> option is not present, then the MIME part
+contained in either the <b class="option">-file</b> or the <b class="option">-string</b> option
+is parsed, dynamically generating subordinates as appropriate.</p></li>
+</ul></dd>
+<dt><a name="2"><b class="cmd">::mime::finalize</b> <i class="arg">token</i> <span class="opt">?<b class="option">-subordinates</b> <b class="const">all</b> | <b class="const">dynamic</b> | <b class="const">none</b>?</span></a></dt>
+<dd><p>This command destroys the MIME part represented by <i class="arg">token</i>. It
+returns an empty string.</p>
+<p>If the <b class="option">-subordinates</b> option is present, it specifies which
+subordinates should also be destroyed. The default value is
+<b class="const">dynamic</b>, destroying all subordinates which were created by
+<b class="cmd">::mime::initialize</b> together with the containing body part.</p></dd>
+<dt><a name="3"><b class="cmd">::mime::getproperty</b> <i class="arg">token</i> <span class="opt">?<i class="arg">property</i> | <b class="option">-names</b>?</span></a></dt>
+<dd><p>This command returns a string or a list of strings containing the
+properties of a MIME part. If the command is invoked with the name of
+a specific property, then the corresponding value is returned;
+instead, if <b class="option">-names</b> is specified, a list of all properties is
+returned; otherwise, a serialized array of properties and values is
+returned.</p>
+<p>The possible properties are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">content</b></dt>
+<dd><p>The type/subtype describing the content</p></dd>
+<dt><b class="const">encoding</b></dt>
+<dd><p>The &quot;Content-Transfer-Encoding&quot;</p></dd>
+<dt><b class="const">params</b></dt>
+<dd><p>A list of &quot;Content-Type&quot; parameters</p></dd>
+<dt><b class="const">parts</b></dt>
+<dd><p>A list of tokens for the part's subordinates.  This property is
+present only if the MIME part has subordinates.</p></dd>
+<dt><b class="const">size</b></dt>
+<dd><p>The approximate size of the content (unencoded)</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::mime::getheader</b> <i class="arg">token</i> <span class="opt">?<i class="arg">key</i> | <b class="option">-names</b>?</span></a></dt>
+<dd><p>This command returns the header of a MIME part, as a list of strings.</p>
+<p>A header consists of zero or more key/value pairs. Each value is a
+list containing one or more strings.</p>
+<p>If this command is invoked with the name of a specific <i class="arg">key</i>, then
+a list containing the corresponding value(s) is returned; instead, if
+-names is specified, a list of all keys is returned; otherwise, a
+serialized array of keys and values is returned. Note that when a key
+is specified (e.g., &quot;Subject&quot;), the list returned usually contains
+exactly one string; however, some keys (e.g., &quot;Received&quot;) often occur
+more than once in the header, accordingly the list returned usually
+contains more than one string.</p></dd>
+<dt><a name="5"><b class="cmd">::mime::setheader</b> <i class="arg">token</i> <i class="arg">key value</i> <span class="opt">?<b class="option">-mode</b> <b class="const">write</b> | <b class="const">append</b> | <b class="const">delete</b>?</span></a></dt>
+<dd><p>This command writes, appends to, or deletes the <i class="arg">value</i> associated
+with a <i class="arg">key</i> in the header. It returns a list of strings
+containing the previous value associated with the key.</p>
+<p>The value for <b class="option">-mode</b> is one of:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">write</b></dt>
+<dd><p>The <i class="arg">key</i>/<i class="arg">value</i> is either created or overwritten (the default).</p></dd>
+<dt><b class="const">append</b></dt>
+<dd><p>A new <i class="arg">value</i> is appended for the <i class="arg">key</i> (creating it as necessary).</p></dd>
+<dt><b class="const">delete</b></dt>
+<dd><p>All values associated with the key are removed (the <i class="arg">value</i>
+parameter is ignored).</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::mime::getbody</b> <i class="arg">token</i> <span class="opt">?<b class="option">-decode</b>?</span> <span class="opt">?<b class="option">-command</b> <i class="arg">callback</i> <span class="opt">?<b class="option">-blocksize</b> <i class="arg">octets</i>?</span>?</span></a></dt>
+<dd><p>This command returns a string containing the body of the leaf MIME
+part represented by <i class="arg">token</i> in canonical form.</p>
+<p>If the <b class="option">-command</b> option is present, then it is repeatedly
+invoked with a fragment of the body as this:</p>
+<pre class="doctools_example">
+  uplevel #0 $callback [list &quot;data&quot; $fragment]
+</pre>
+<p>(The <b class="option">-blocksize</b> option, if present, specifies the maximum
+size of each fragment passed to the callback.)</p>
+<p>When the end of the body is reached, the callback is invoked as:</p>
+<pre class="doctools_example">
+    uplevel #0 $callback &quot;end&quot;
+</pre>
+<p>Alternatively, if an error occurs, the callback is invoked as:</p>
+<pre class="doctools_example">
+    uplevel #0 $callback [list &quot;error&quot; reason]
+</pre>
+<p>Regardless, the return value of the final invocation of the callback
+is propagated upwards by <b class="cmd">::mime::getbody</b>.</p>
+<p>If the <b class="option">-command</b> option is absent, then the return value of
+<b class="cmd">::mime::getbody</b> is a string containing the MIME part's entire
+body.</p>
+<p>If the option <b class="option">-decode</b> is absent the return value computed
+above is returned as is. This means that it will be in the charset
+specified for the token and not the usual utf-8.
+If the option <b class="option">-decode</b> is present however the command will use
+the charset information associated with the token to convert the
+string from its encoding into utf-8 before returning it.</p></dd>
+<dt><a name="7"><b class="cmd">::mime::copymessage</b> <i class="arg">token</i> <i class="arg">channel</i></a></dt>
+<dd><p>This command copies the MIME represented by <i class="arg">token</i> part to the
+specified <i class="arg">channel</i>. The command operates synchronously, and uses
+fileevent to allow asynchronous operations to proceed
+independently. It returns an empty string.</p></dd>
+<dt><a name="8"><b class="cmd">::mime::buildmessage</b> <i class="arg">token</i></a></dt>
+<dd><p>This command returns the MIME part represented by <i class="arg">token</i> as a
+string.  It is similar to <b class="cmd">::mime::copymessage</b>, only it returns
+the data as a return string instead of writing to a channel.</p></dd>
+<dt><a name="9"><b class="cmd">::mime::parseaddress</b> <i class="arg">string</i></a></dt>
+<dd><p>This command takes a string containing one or more 822-style address
+specifications and returns a list of serialized arrays, one element
+for each address specified in the argument. If the string contains
+more than one address they will be separated by commas.</p>
+<p>Each serialized array contains the properties below. Note that one or
+more of these properties may be empty.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">address</b></dt>
+<dd><p>local@domain</p></dd>
+<dt><b class="const">comment</b></dt>
+<dd><p>822-style comment</p></dd>
+<dt><b class="const">domain</b></dt>
+<dd><p>the domain part (rhs)</p></dd>
+<dt><b class="const">error</b></dt>
+<dd><p>non-empty on a parse error</p></dd>
+<dt><b class="const">group</b></dt>
+<dd><p>this address begins a group</p></dd>
+<dt><b class="const">friendly</b></dt>
+<dd><p>user-friendly rendering</p></dd>
+<dt><b class="const">local</b></dt>
+<dd><p>the local part (lhs)</p></dd>
+<dt><b class="const">memberP</b></dt>
+<dd><p>this address belongs to a group</p></dd>
+<dt><b class="const">phrase</b></dt>
+<dd><p>the phrase part</p></dd>
+<dt><b class="const">proper</b></dt>
+<dd><p>822-style address specification</p></dd>
+<dt><b class="const">route</b></dt>
+<dd><p>822-style route specification (obsolete)</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::mime::parsedatetime</b> (<i class="arg">string</i> | <b class="option">-now</b>) <i class="arg">property</i></a></dt>
+<dd><p>This command takes a string containing an 822-style date-time
+specification and returns the specified property as a serialized
+array.</p>
+<p>The list of properties and their ranges are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">hour</b></dt>
+<dd><p>0 .. 23</p></dd>
+<dt><b class="const">lmonth</b></dt>
+<dd><p>January, February, ..., December</p></dd>
+<dt><b class="const">lweekday</b></dt>
+<dd><p>Sunday, Monday, ... Saturday</p></dd>
+<dt><b class="const">mday</b></dt>
+<dd><p>1 .. 31</p></dd>
+<dt><b class="const">min</b></dt>
+<dd><p>0 .. 59</p></dd>
+<dt><b class="const">mon</b></dt>
+<dd><p>1 .. 12</p></dd>
+<dt><b class="const">month</b></dt>
+<dd><p>Jan, Feb, ..., Dec</p></dd>
+<dt><b class="const">proper</b></dt>
+<dd><p>822-style date-time specification</p></dd>
+<dt><b class="const">rclock</b></dt>
+<dd><p>elapsed seconds between then and now</p></dd>
+<dt><b class="const">sec</b></dt>
+<dd><p>0 .. 59</p></dd>
+<dt><b class="const">wday</b></dt>
+<dd><p>0 .. 6 (Sun .. Mon)</p></dd>
+<dt><b class="const">weekday</b></dt>
+<dd><p>Sun, Mon, ..., Sat</p></dd>
+<dt><b class="const">yday</b></dt>
+<dd><p>1 .. 366</p></dd>
+<dt><b class="const">year</b></dt>
+<dd><p>1900 ...</p></dd>
+<dt><b class="const">zone</b></dt>
+<dd><p>-720 .. 720 (minutes east of GMT)</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">::mime::mapencoding</b> <i class="arg">encoding_name</i></a></dt>
+<dd><p>This commansd maps tcl encodings onto the proper names for their MIME
+charset type.  This is only done for encodings whose charset types
+were known.  The remaining encodings return &quot;&quot; for now.</p></dd>
+<dt><a name="12"><b class="cmd">::mime::reversemapencoding</b> <i class="arg">charset_type</i></a></dt>
+<dd><p>This command maps MIME charset types onto tcl encoding names.  Those
+that are unknown return &quot;&quot;.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">KNOWN BUGS</a></h2>
+<dl class="doctools_definitions">
+<dt>Tcllib Bug #447037</dt>
+<dd><p>This problem affects only people which are using Tcl and Mime on a
+64-bit system. The currently recommended fix for this problem is to
+upgrade to Tcl version 8.4. This version has extended 64 bit support
+and the bug does not appear anymore.</p>
+<p>The problem could have been generally solved by requiring the use of
+Tcl 8.4 for this package. We decided against this solution as it would
+force a large number of unaffected users to upgrade their Tcl
+interpreter for no reason.</p>
+<p>See <a href="/tktview?name=447037">Ticket 447037</a> for additional information.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>mime</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../ftp/ftp.html">ftp</a>, <a href="../../../../index.html#key445">http</a>, <a href="../pop3/pop3.html">pop3</a>, <a href="smtp.html">smtp</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key335">email</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key330">mail</a>, <a href="../../../../index.html#key230">mime</a>, <a href="../../../../index.html#key295">net</a>, <a href="../../../../index.html#key811">rfc 2045</a>, <a href="../../../../index.html#key812">rfc 2046</a>, <a href="../../../../index.html#key810">rfc 2049</a>, <a href="../../../../index.html#key332">rfc 821</a>, <a href="../../../../index.html#key333">rfc 822</a>, <a href="../../../../index.html#key337">smtp</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 1999-2000 Marshall T. Rose</p>
+</div>
+</div></body></html>

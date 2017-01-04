@@ -1,0 +1,102 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_optional.test,v 1.4 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-optional-${setimpl}-1.0 {optional, error} {
+    catch {grammar::fa::op::optional} res
+    set res
+} {wrong # args: should be "grammar::fa::op::optional fa"}
+
+
+test faop-optional-${setimpl}-1.1 {optional, error} {
+    catch {grammar::fa::op::optional a b} res
+    set res
+} {wrong # args: should be "grammar::fa::op::optional fa"}
+
+
+test faop-optional-${setimpl}-1.2 {optional, error} {
+    catch {grammar::fa::op::optional a} res
+    set res
+} {invalid command name "a"}
+
+
+test faop-optional-${setimpl}-1.3 {optional, error} {
+    grammar::fa a
+    catch {grammar::fa::op::optional a} res
+    a destroy
+    set res
+} {Unable to make a FA without start/final states optional}
+
+
+test faop-optional-${setimpl}-1.4 {optional, error} {
+    grammar::fa a
+    a state add x
+    a start add x
+    catch {grammar::fa::op::optional a} res
+    a destroy
+    set res
+} {Unable to make a FA without start/final states optional}
+
+
+test faop-optional-${setimpl}-1.5 {optional, error} {
+    grammar::fa a
+    a state add x
+    a final add x
+    catch {grammar::fa::op::optional a} res
+    a destroy
+    set res
+} {Unable to make a FA without start/final states optional}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code st fin result} {
+    00 datom x y
+    {grammar::fa @ {x {0 0 {@ y}} y {0 0 {{} f.0}} s.0 {1 0 {{} {x f.0}}} f.0 {0 1 {}}}}
+
+    01 dalt  u z
+    {grammar::fa {@ =} {u {0 0 {{} {v w}}} v {0 0 {@ x}} w {0 0 {= y}} x {0 0 {{} z}} y {0 0 {{} z}} z {0 0 {{} f.0}} s.0 {1 0 {{} {u f.0}}} f.0 {0 1 {}}}}
+
+    02 daltb  u z
+    {grammar::fa {@ =} {u {0 0 {{} {v w}}} v {0 0 {@ x}} w {0 0 {= y}} x {0 0 {{} z}} y {0 0 {{} z}} z {0 0 {{} {u f.0}}} s.0 {1 0 {{} {u f.0}}} f.0 {0 1 {}}}}
+
+    03 dopt  u x
+    {grammar::fa @ {u {0 0 {{} {v x}}} v {0 0 {@ w}} w {0 0 {{} x}} x {0 0 {{} f.0}} s.0 {1 0 {{} {u f.0}}} f.0 {0 1 {}}}}
+
+    04 drep  u x
+    {grammar::fa @ {u {0 0 {{} {v x}}} v {0 0 {@ w}} w {0 0 {{} x}} x {0 0 {{} {u f.0}}} s.0 {1 0 {{} {u f.0}}} f.0 {0 1 {}}}}
+} {
+    set key ${n}.${code}
+
+    test faop-optional-${setimpl}-2.$key {optional} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	grammar::fa::op::optional a
+	set res [validate_serial $result a]
+	a destroy
+	set res
+    } ok
+
+    test faop-optional-${setimpl}-3.$key {optional, as method} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	a optional
+	set res [validate_serial $result a]
+	a destroy
+	set res
+    } ok
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

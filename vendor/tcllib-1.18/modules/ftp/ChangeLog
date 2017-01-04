@@ -1,0 +1,621 @@
+2013-03-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rfc959.txt: Removed copies of RFC documents. Keep only links.
+	* std9.txt:
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-08-09  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.man: Bumped version to 2.4.11.
+	* ftp.tcl:
+	* pkgIndex.tcl:
+
+	* ftp.tcl (::ftp::OpenActiveConn, ::ftp::OpenControlConn):
+	  [Bug 3325112]: Accepted patch by Alexandre Ferrieux
+	  <ferrieux@users.sourceforge.net> reducing the number of reverse
+	  DNS lookups.
+
+2011-04-18  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::__ftp_ls): [Bug 3288793]: Fixed ftp::List
+	  variant used by Tkcon, to not only print the result, but
+	  continue returning it as well, for non-interactive use. Thanks
+	  to Pedro <proteco@users.sourceforge.net>
+
+	* ftp.tcl (::ftp::StateHandler): [Bug 3288977]: Fixed handling of
+	  multi-line replies which are not strictly RFC 959. Thanks to
+	  Shaun Zinck <szinck@users.sourceforge.net>. This partially fixes
+	  [Bug 2813069].
+
+	* pkgIndex.tcl: Bumped version to 2.4.10.
+	* ftp.man:
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-08-05  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl: Fixed [Bug 2038279], a creative-writing problem.
+	* ftp.man: Bumped package version to 2.4.9.
+	* pkgIndex.tcl:
+
+2008-03-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ftp_geturl.man: Separated the documentation of the ftp and
+	* ftp.man: ftp::geturl packages into two files.
+
+2007-09-13  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp_geturl.tcl (::ftp::geturl): Fixed the handling of urls which
+	* pkgIndex.tcl: are directories instead of files, per the patch
+	* ftp.man: coming with [SF Tcllib Bug 1793855], suggested by
+	  Gerald Lester. Bumped version of ftp::geturl to 0.2.1.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-05-07  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::Get): SF Bug 1708350. Do not unset get:channel
+	* pkgIndex.tcl: state information to prevent async get from
+	* ftp.man: blowing in HandleData. More comments in the
+	  code. Version bumped to 2.4.8.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ftp.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-11-09  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::StateHandler): Fixed [Bug 1191607] using the
+	* ftp.man: minimum possible change. Exporting information
+	* pkgIndex.tcl: accumulated in buffer to msgtext. Version is
+	  now 2.4.7.
+
+2006-10-23  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::StateHandler): Applied patch by Guy Hofkens
+	* ftp.man: <hofkensg@users.sourceforge.net>, with small
+	* pkgIndex.tcl: modification by myself (removing a no-op), for
+	  [SF Tcllib Bug 15822535], reported by same person, fixing an
+	  infinite recursion through vwait because the ctrl socket at eof
+	  is not closed and immediately waited upon again for more
+	  events. Version now 2.4.6.
+
+2006-10-20  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl: Wrapped several 'unset ftp(state.data)' into 'catch'
+	* ftp.man: as the state-logic apparently is able to run several
+	* pkgIndex.tcl: of them multiple times in exceptional situations
+	  (i.e. ftp errors). This should fix both [SF Tcllib Bug 1234831]
+	  and [SF Tcllib Bug 1581453]. Version now 2.4.5. Thanks to
+	  <goodegod@users.sourceforge.net> who tracked this down.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-22  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::NList): Fixed [SF Tcllib Bug 1563137] using the
+	* ftp.man:       patch submitted by Keith Vetter
+	* pkgIndex.tcl: <keithv@users.sourceforge.net> as part of his
+	  report. Bumped version to 2.4.4 See also the duplicate entry
+	  [SF Tcllib Bug 1553919]. And also [SF Tcllib Bug 748758].
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.man: Bumped version to 2.4.3
+	* ftp.tcl:
+	* pkgIndex.tcl:
+
+2006-06-13  Andreas Kupries <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::StateHandler): Replaced use of 8.4ism (expr 'ne'
+	  operator) with appropriate invokation of 'string equal'. This
+	  fixes [SF Tcllib Bug 1429377], reported by John Mercogliano III.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-02-14  Andreas Kupries <andreask@activestate.com>
+
+	* ftp.tcl (::ftp::StateHandler): Accepted patch by Keith Vetter
+	  <keithv@users.sourceforge.net> for [SF Tcllib Bug 1076923], also
+	  reported by him. This fixes a race condition where the client
+	  has sent QUIT and is waiting for response, but gets the socket
+	  closed without any.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-12-01  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (ftp::StateHandler): See last entry. The condition to
+	  invoke a report for a failure of the regex was wrong, and
+	  missing a negation. Fixed this. Also cleaned up the regexp, it
+	  had a caret to much in it. Thanks to <nafis@crd.ge.com> for
+	  reporting this. The bug report is at -->
+	  http://bugs.activestate.com/show_bug.cgi?id=28433, and not on
+	  SourceForge.
+
+2003-10-21  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (ftp::StateHandler): Accepted change to the regexp
+	  pattern to handle irregular input better. [Bug 739393]. Also
+	  added code to handle future regex failures better.
+
+2003-07-28 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* ftp.tcl: fixed bug #753770, added verbose flag check in
+	  ElapsedTime.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl:
+	* ftp.man:
+	* ftp_geturl.tcl:
+	* pkgIndex.tcl: Fixed bug #614591. Set version of the package to
+	  to 2.4. Set version of geturl package to 0.2.
+
+2003-03-31  Andreas Kupries  <andreask@activestate.com>
+
+	* ftp.tcl (ModTime): Applied patch #659238 supplied by Dan Rogahn
+	  <ddrogahn@users.sourceforge.net> to allow setting the
+	  modification time of a file, assuming the server allows this as
+	  well.
+
+2003-03-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ftp.tcl (ftp::InitDataConn): revert -regexp to fix bug 701288.
+
+2003-02-24  David N. Welton  <davidw@dedasys.com>
+
+	* ftp.tcl (ftp::OpenControlConn): Use string map instead of
+	regsub.
+
+2003-01-28  David N. Welton  <davidw@dedasys.com>
+
+	* ftp.tcl (ftp::InitDataConn): Use 'string match' instead of
+	  regexp.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ftp.man: More semantic markup, less visual one.
+
+2002-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples (hpupdate.tcl): Updated 'info exist' to 'info exists'.
+
+2002-08-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftpdemo.tcl (Examples): Changed ftp.tcl to ftpdemo.tcl in
+	  [test_40afile] and [test_70append]. Problem found and reported
+	  by Jussi Kuosa <Jussi.Kuosa@tellabs.com>.
+
+2002-08-06  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Fixed SF Bug #582668, reported by Frank Richter
+	  <frari@users.sourceforge.net>.
+
+2002-03-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.man: New, doctools manpage.
+
+2002-02-14  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Frink run.
+
+	* ftp: Version is now 2.3.1 to distinguish this from the code in
+	  tcllib release 1.2
+
+2002-01-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ftp_geturl.tcl: Re-opened FR #476804 to add support for
+	username and password and for non-unix based FTP servers.
+
+2002-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 2.3
+
+2002-01-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Fix for bug #503471. The commands Get, Reget, and Newer
+	  now check if the directory the local file is to be placed in
+	  does exist. They now immediately throw an error if the directory
+	  does not exist instead of starting the download and getting
+	  confused.
+
+	* ftp.n: Typo fix. Updates in the descriptions of Get, Reget, and
+	  Newer explaining the new behaviour, s.a.
+
+2001-11-20  Joe English <jenglish@users.sourceforge.net>
+
+	* ftp.n: (r1.6 -> r1.8) Update for bug report #474999 
+	  "ftp man page description typo" -- attempt to clarify
+	  description of "ftp::List" command.  Also fixed minor 
+	  markup errors.
+
+2001-11-19  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Tested implementation of FR #481161. Fixed the errors
+	  found that way (incomplete cleanup by 'Get', interfered with the
+	  following 'Put' command).
+
+2001-11-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl, ftp.n: Implemented and documented FR #481161.
+
+	* ftp.tcl: Applied patch #428053 provided by Sreangsu Acharyya
+	  <srean_list@myrealbox.com>. The patch extends 'Reget' to allow
+	  download of an exactly specified slice of the the source
+	  file. This enables the implementation of a 'resume' after a
+	  partial download and also the parallel download of
+	  non-overlaping parts of the same file from different servers.
+
+	* ftp.n: updated documentation to cover the new code above and
+	  below.
+	
+	* ftp_geturl.tcl: New file, provides a geturl command for use by
+	  uri. Declared in a separate package to avoid a cyclic dependency
+	  between the ftp and uri packages. The uri package is changed to
+	  try for a scheme::geturl package first and then for a scheme
+	  package to get the desired functionality. Implements FR #476804.
+
+2001-11-06  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Applied patch in #478478 to handle non-standard date
+	  information from servers with a buggy y2k patch. 2001 is
+	  rendered as 19101 (19*100 + 101 = 2001).
+
+2001-11-04  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.n: Updated description of DisplayMsg to the changed
+	  behaviour and added a discussion of what happens should it throw
+	  errors. Also added a description of option -output to the
+	  description of ftp::Open.
+
+	* ftp.tcl: Fixed bug #476729. Instead of describing the behaviour
+	  of the default 'DisplayMsg' the procedure is changed instead to
+	  throw no errors, and to use the log module of tcllib. Thanks to
+	  Larry Virden <lvirden@users.sourceforge.net> for pointing out
+	  the deficiencies in the documentation.
+
+2001-10-20  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Fixed bug #466746. Reporter of bug unknown, provided
+	  fix too. Problem was incomplete handling of [gets] return
+	  values. Value -1 signaling an incomplete line was not handled.
+
+2001-10-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.n:
+	* ftp.tcl:
+	* pkgIndex.tcl: Version up to 2.2.1.
+
+2001-09-17  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* example/hpupdate.tcl: Some cleanups in the example code,
+	  provided by Larry Virden <lvirden@users.sourceforge.net>. This
+	  fixes [440064].
+
+2001-09-12  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Added manpages for ftp package.
+
+2001-08-01  Don Porter  <dgp@users.sourceforge.net>
+
+	* example/hpupdate.tcl:  Workaround for moving Tk internal
+	command [tkButtonInvoke].  [Bug 450914]
+
+2001-08-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* ftp.tcl: added eval in ftp::List wrapper when used in tkcon.
+	[Bug: #439779] (loring)
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftp.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ftpdemo.tcl:
+	* ftp.tcl: Fixed dubious code reported by frink.
+
+2000-10-01  Dan Kuchler <kuchler@ajubasolutions.com>
+
+      * ftp.tcl: Moved the call to 'DisplayMsg' from inside of the
+      fileevent loop (in ftp::StateHandler) to WaitorTimeout.  Now
+      errors that occur in StateHandler won't be thrown until after the
+      the asynchronous (fileevent) portion of the code has completed.
+      ftp::OpenActiveConn and ftp::OpenPassiveConn can both still generate
+      errors in the event loop, which will cause a bgerror to be thrown.
+      Added some (untested) code to support Tenex mode ftp transfers.  So
+      far tenex mode sends across 'TYPE L', and then does the transfer with
+      a binary encoded channel. Since I don't have a tenex system to test
+      it with, this feature is very alpha at this point.
+
+2000-09-28  Dan Kuchler <kuchler@ajubasolutions.com>
+
+      * ftp.tcl: Fixed a line of code in the "list_close" state of StateHandler,
+      switching a ![info exists... to [info exists... 
+
+2000-09-25  Sandeep Tamhankar <sandeep@ajubasolutions.com>
+
+       * ftp.tcl: Fixed a line of code in the "connect" state of StateHandler,
+       switching a ![info exists... to [info exists...  It was originally
+       stack tracing when opening a connection.
+
+2000-08-29  Steve Ball   <Steve.Ball@zveno.com>
+
+       * README
+       * ftp.tcl
+       * pkgIndex.tcl
+       * docs/Open.html: Added '-command' configuration to the Open
+       command.  This option indicates that all operations performed
+       on this connection are to be made asynchronously.  The value
+       given to the option is a script which is invoked when operations
+       have finished.  Updated documentation and bumped the version
+       number from 2.1 to 2.2 because a new feature was added.
+
+2000-08-16  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+       * README
+       * ftp.tcl
+       * pkgIndex.tcl
+       * docs/*.html: Added new optional arguments to the Get, Put, and
+       Append commands.  The Append and Put commands have a new optional
+       argument '-data "data"' that can be used to specify data to transfer
+       instead of transferring data from a local file.  The Get command has
+       a new optional argument '-variable varname' that specifies a variable
+       to store the retrieved data into, that can be used instead of
+       specifying a local filename.  Updated the documentation to reflect
+       the changes and bumped the version number from 2.0 to 2.1 because
+       new features were added.
+
+
+2000-08-10  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * ftp.tcl
+        * pkgIndex.tcl: Fixed the ftp package to allow for
+        the destination location of the ftp::Get command to
+        be a directory as well as a file.
+
+2000-07-08  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * README
+        * ftp.tcl
+        * ftpdemo.tcl
+        * pkgIndex.tcl
+        * example/README
+        * example/hpupdate.tcl
+        * example/mirror.tcl
+        * example/newer.tcl
+        * docs/*.html: Updated for the change of ftp_lib.tcl -> ftp.tcl, for
+        the change of ftp_demo.tcl to ftpdemo.tcl, and for the FTP namespace
+        change.  Made lots of fixes to complete the partially done work to
+        make ftp handle multiple concurrent ftps at the same time. Updated the
+        version in the docs, examples, source, and pkgIndex to be version 2.0
+
+2000-06-02  Eric Melski  <ericm@scriptics.com>
+
+	* ftp.tcl: Changed namespace to ftp (from FTP).  Updated license
+	information.  Renamed ftp_lib.tcl to ftp.tcl in preparation for
+	inclusion in tcllib.
+
+1999-12-31  Peter MacDonald  <peter@pdqi.com> 
+	* ftp_lib.tcl: Modified to allow multiple concurrent ftps at the same
+	time.  Unfortunately this is incompatible with the old procs.
+	Rewrite proc headers to be declared outside namespace eval.
+	Incremented version to 2.0.
+
+-------------------------- Released 1.2 -----------------------------
+
+1999-04-30  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: added new FTP command FTP::Append to append local
+	files to remote files.
+
+	* ftp_lib.tcl: Added TkCon support to make FTP::List inside TkCon
+	more readable. 
+
+	* ftp_lib.tcl: In some strange cases ftp_lib overlaps the state
+	machine, to prevent this the state handler disables fileevents on
+	control socket a the beginning and enables it again at the end
+	(this failure comes with an earlier release of tkcon, it is only a
+	debugging feature now and commented).
+
+	* examples/*.tcl: Store the example files in a separate directory.
+	
+-------------------------- Released 1.12 ----------------------------
+
+1999-02-28  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: Disabled remote Abort command, it doesn't work.
+	Insert an internal CloseDataConn command instaed of Abort.
+	Get/Reget: create local file only if the remote file really
+	exist.  Fix major bug for passive mode that ftp_lib blocks in
+	every cases if file or directory doesn't exist at the remote
+	machine, THANKS to Brian Lalo <blalor@hcirisc.cs.binghamton.edu>
+	for his investigation.  Added current namespace prefix to
+	InitDataConn procedure.
+
+1999-01-31  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: Changed return values of the FTP::Quote command,
+	sent back the string it received instead of any parsing THANKS
+	Keith Vetter <kvetter@us.oracle.com> for his patch.  Improved
+	buffer mechanism in StateHandler, buffer represents the whole
+	received data.  VERBOSE variable controlled output now will be
+	handled by the package not by the application.  New online HTML
+	help files are available under the directory docs.
+	
+1998-11-30  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl:  Can now also operate in the passive data transfer
+	mode, added "PASV" ability for every command that uses data
+	connection.  Improved procedure return codes for a better error
+	handling.  Restore correct type after switching to ascii mode in
+	FTP::List and FTP::NList.  Insert a hook for using a graphical
+	progress bar that shows the elapsed time.  Added new command
+	FTP::FileSize which gets the file size of the file on the remote
+	machine.  FTP::Newer now is able to compare the modification date
+	of a remote file with the date of any local file.  Enabled DEBUG
+	variable displays in additional the real FTP commands (old VERBOSE
+	feature).  Signification of the VERBOSE variable is changed, if
+	enabled it shows the responses from the remote server.  Allows to
+	call FTP::Cd without any parameter.  Include some examples in
+	ftp_lib distribution.
+  
+1998-05-31  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: Fixed a little bug in FTP::Open that makes it not
+	possible to use this procedure in a proc (upvar #0 ..)
+
+1998-03-31  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: Non-Blocking I/O of the control channel doesn't
+	work on Windows, changed to block the I/O channel
+
+-------------------------- Released 1.0 -----------------------------
+
+1998-03-30  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: Complete redesign to handle timeouts after
+	specified amount of time.  Added new FTP command FTP::Quote for
+	sending verbatim commands to the FTP server THANKS to Ron Zajac
+	<Ron.Zajac.zajac@nt.com> for inspiration
+	
+-------------------------- Released 0.9 -----------------------------
+
+1998-02-28  Steffen Traeger  <Steffen.Traeger@t-online.de>
+
+	* ftp_lib.tcl: Uses only the highest-order digit of the 3-digit
+	reply code for switching in procedure StateHandler.  Added new FTP
+	command FTP::ModTime to show the last modification time of a file
+	on the remote machine.  THANKS to Bill Thorson
+	<thorson@typhoon.atmos.colostate.edu> for the patch.  Added new
+	FTP command FTP::Newer to get remote file only if it is newer than
+	local file.  DEBUG flag.  VERBOSE flag.  Added two options for
+	FTP::Open command: -timeout seconds, sets up timeout; -blocksize
+	size, writes "size" bytes at once.  Procedure DisplayMsg now is
+	provided to display in different colors.
+	
+0.84 (02/98)
+-----------
+- FTP commands now runs only if control connection is available
+- changed ls-output, removed "total"-line and blank lines from
+  the list
+
+0.83 (02/98)
+-----------
+- changed the FTP::NList command to query data of empty directories
+- added new FTP command FTP::Reget to skip over big files after
+  broken file transfer
+  THANKS to Paulo da Silva <pdasilva@mail2.esoterica.pt> for help
+- specially interpretation of the 421 reply code ("Service
+  not available, closing control connection"), it is necessary
+  for reget
+  
+0.82 (12/97)
+-----------
+- added current namespace prefix to CopyNext procedure,
+  because of ftp_lib doesn't work correctly with tlc/tk8.0p2
+  
+0.81 (08/97)
+-----------
+- replaced tkwait with vwait, this allows only to use
+  tcl shell for FTP library
+
+0.8 (07/97)
+-----------
+- redesigned to support namespace
+- added simple installation program
+- modified to support the tcl package specification
+
+0.7 (06/97)
+-----------
+- changed to tcl/tk version 8.0
+- used the new fcopy command to transfer binary data
+
+0.6 (02/97)
+-----------
+- bugfix: close data socket after every data transfer
+- added the rename command
+
+0.5 (02/97)
+-----------
+- bugfixes
+- added directory manipulation commands
+
+0.4 (02/97)
+-----------
+- changed to tcl7.6/tk4.2
+- added put/get commands
+
+0.1 - 0.3 (01/97)
+-----------------
+- ???
+

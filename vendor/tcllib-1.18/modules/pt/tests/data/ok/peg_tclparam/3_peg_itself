@@ -1,0 +1,2367 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<self>> sym_Grammar
+    return
+}
+
+#
+# leaf Symbol 'ALNUM'
+#
+
+<<def>> <<ns>>sym_ALNUM {} {
+    # x
+    #     "<alnum>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start ALNUM
+    <<self>> sequence_4
+    <<runtime>> si:void_leaf_symbol_end ALNUM
+    return
+}
+
+<<def>> <<ns>>sequence_4 {} {
+    # x
+    #     "<alnum>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <alnum>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'ALPHA'
+#
+
+<<def>> <<ns>>sym_ALPHA {} {
+    # x
+    #     "<alpha>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start ALPHA
+    <<self>> sequence_9
+    <<runtime>> si:void_leaf_symbol_end ALPHA
+    return
+}
+
+<<def>> <<ns>>sequence_9 {} {
+    # x
+    #     "<alpha>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <alpha>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'AND'
+#
+
+<<def>> <<ns>>sym_AND {} {
+    # x
+    #     '&'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start AND
+    <<self>> sequence_14
+    <<runtime>> si:void_leaf_symbol_end AND
+    return
+}
+
+<<def>> <<ns>>sequence_14 {} {
+    # x
+    #     '&'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char &
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'APOSTROPH'
+#
+
+<<def>> <<ns>>sym_APOSTROPH {} {
+    # '''
+
+    <<runtime>> si:void_void_symbol_start APOSTROPH
+    <<runtime>> si:next_char '
+    <<runtime>> si:void_clear_symbol_end APOSTROPH
+    return
+}
+
+#
+# leaf Symbol 'ASCII'
+#
+
+<<def>> <<ns>>sym_ASCII {} {
+    # x
+    #     "<ascii>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start ASCII
+    <<self>> sequence_21
+    <<runtime>> si:void_leaf_symbol_end ASCII
+    return
+}
+
+<<def>> <<ns>>sequence_21 {} {
+    # x
+    #     "<ascii>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <ascii>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Attribute'
+#
+
+<<def>> <<ns>>sym_Attribute {} {
+    # x
+    #     /
+    #         (VOID)
+    #         (LEAF)
+    #     (COLON)
+
+    <<runtime>> si:value_symbol_start Attribute
+    <<self>> sequence_29
+    <<runtime>> si:reduce_symbol_end Attribute
+    return
+}
+
+<<def>> <<ns>>sequence_29 {} {
+    # x
+    #     /
+    #         (VOID)
+    #         (LEAF)
+    #     (COLON)
+
+    <<runtime>> si:value_state_push
+    <<self>> choice_26
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_COLON
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>choice_26 {} {
+    # /
+    #     (VOID)
+    #     (LEAF)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_VOID
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_LEAF
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# value Symbol 'Char'
+#
+
+<<def>> <<ns>>sym_Char {} {
+    # /
+    #     (CharSpecial)
+    #     (CharOctalFull)
+    #     (CharOctalPart)
+    #     (CharUnicode)
+    #     (CharUnescaped)
+
+    <<runtime>> si:value_symbol_start Char
+    <<self>> choice_37
+    <<runtime>> si:reduce_symbol_end Char
+    return
+}
+
+<<def>> <<ns>>choice_37 {} {
+    # /
+    #     (CharSpecial)
+    #     (CharOctalFull)
+    #     (CharOctalPart)
+    #     (CharUnicode)
+    #     (CharUnescaped)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_CharSpecial
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_CharOctalFull
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_CharOctalPart
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_CharUnicode
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_CharUnescaped
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# leaf Symbol 'CharOctalFull'
+#
+
+<<def>> <<ns>>sym_CharOctalFull {} {
+    # x
+    #     '\'
+    #     range (0 .. 2)
+    #     range (0 .. 7)
+    #     range (0 .. 7)
+
+    <<runtime>> si:void_symbol_start CharOctalFull
+    <<self>> sequence_44
+    <<runtime>> si:void_leaf_symbol_end CharOctalFull
+    return
+}
+
+<<def>> <<ns>>sequence_44 {} {
+    # x
+    #     '\'
+    #     range (0 .. 2)
+    #     range (0 .. 7)
+    #     range (0 .. 7)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \134
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_range 0 2
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_range 0 7
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_range 0 7
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'CharOctalPart'
+#
+
+<<def>> <<ns>>sym_CharOctalPart {} {
+    # x
+    #     '\'
+    #     range (0 .. 7)
+    #     ?
+    #         range (0 .. 7)
+
+    <<runtime>> si:void_symbol_start CharOctalPart
+    <<self>> sequence_52
+    <<runtime>> si:void_leaf_symbol_end CharOctalPart
+    return
+}
+
+<<def>> <<ns>>sequence_52 {} {
+    # x
+    #     '\'
+    #     range (0 .. 7)
+    #     ?
+    #         range (0 .. 7)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \134
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_range 0 7
+    <<runtime>> si:voidvoid_part
+    <<self>> optional_50
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_50 {} {
+    # ?
+    #     range (0 .. 7)
+
+    <<runtime>> si:void2_state_push
+    <<runtime>> si:next_range 0 7
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+#
+# leaf Symbol 'CharSpecial'
+#
+
+<<def>> <<ns>>sym_CharSpecial {} {
+    # x
+    #     '\'
+    #     [nrt'\"[]\]
+
+    <<runtime>> si:void_symbol_start CharSpecial
+    <<self>> sequence_57
+    <<runtime>> si:void_leaf_symbol_end CharSpecial
+    return
+}
+
+<<def>> <<ns>>sequence_57 {} {
+    # x
+    #     '\'
+    #     [nrt'\"[]\]
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \134
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_class nrt'\42\133\135\134
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'CharUnescaped'
+#
+
+<<def>> <<ns>>sym_CharUnescaped {} {
+    # x
+    #     !
+    #         '\'
+    #     <dot>
+
+    <<runtime>> si:void_symbol_start CharUnescaped
+    <<self>> sequence_64
+    <<runtime>> si:void_leaf_symbol_end CharUnescaped
+    return
+}
+
+<<def>> <<ns>>sequence_64 {} {
+    # x
+    #     !
+    #         '\'
+    #     <dot>
+
+    <<runtime>> si:void_state_push
+    <<self>> notahead_61
+    <<runtime>> si:voidvoid_part
+    <<runtime>> i_input_next dot
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_61 {} {
+    # !
+    #     '\'
+
+    <<runtime>> i_loc_push
+    <<runtime>> si:next_char \134
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+#
+# leaf Symbol 'CharUnicode'
+#
+
+<<def>> <<ns>>sym_CharUnicode {} {
+    # x
+    #     "\u"
+    #     <xdigit>
+    #     ?
+    #         x
+    #             <xdigit>
+    #             ?
+    #                 x
+    #                     <xdigit>
+    #                     ?
+    #                         <xdigit>
+
+    <<runtime>> si:void_symbol_start CharUnicode
+    <<self>> sequence_82
+    <<runtime>> si:void_leaf_symbol_end CharUnicode
+    return
+}
+
+<<def>> <<ns>>sequence_82 {} {
+    # x
+    #     "\u"
+    #     <xdigit>
+    #     ?
+    #         x
+    #             <xdigit>
+    #             ?
+    #                 x
+    #                     <xdigit>
+    #                     ?
+    #                         <xdigit>
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str \134u
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_xdigit
+    <<runtime>> si:voidvoid_part
+    <<self>> optional_80
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_80 {} {
+    # ?
+    #     x
+    #         <xdigit>
+    #         ?
+    #             x
+    #                 <xdigit>
+    #                 ?
+    #                     <xdigit>
+
+    <<runtime>> si:void2_state_push
+    <<self>> sequence_78
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+<<def>> <<ns>>sequence_78 {} {
+    # x
+    #     <xdigit>
+    #     ?
+    #         x
+    #             <xdigit>
+    #             ?
+    #                 <xdigit>
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_xdigit
+    <<runtime>> si:voidvoid_part
+    <<self>> optional_76
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_76 {} {
+    # ?
+    #     x
+    #         <xdigit>
+    #         ?
+    #             <xdigit>
+
+    <<runtime>> si:void2_state_push
+    <<self>> sequence_74
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+<<def>> <<ns>>sequence_74 {} {
+    # x
+    #     <xdigit>
+    #     ?
+    #         <xdigit>
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_xdigit
+    <<runtime>> si:voidvoid_part
+    <<self>> optional_72
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_72 {} {
+    # ?
+    #     <xdigit>
+
+    <<runtime>> si:void2_state_push
+    <<runtime>> si:next_xdigit
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+#
+# value Symbol 'Class'
+#
+
+<<def>> <<ns>>sym_Class {} {
+    # x
+    #     (OPENB)
+    #     *
+    #         x
+    #             !
+    #                 (CLOSEB)
+    #             (Range)
+    #     (CLOSEB)
+    #     (WHITESPACE)
+
+    <<runtime>> si:value_symbol_start Class
+    <<self>> sequence_96
+    <<runtime>> si:reduce_symbol_end Class
+    return
+}
+
+<<def>> <<ns>>sequence_96 {} {
+    # x
+    #     (OPENB)
+    #     *
+    #         x
+    #             !
+    #                 (CLOSEB)
+    #             (Range)
+    #     (CLOSEB)
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_OPENB
+    <<runtime>> si:voidvalue_part
+    <<self>> kleene_92
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_CLOSEB
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_92 {} {
+    # *
+    #     x
+    #         !
+    #             (CLOSEB)
+    #         (Range)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_90
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_90 {} {
+    # x
+    #     !
+    #         (CLOSEB)
+    #     (Range)
+
+    <<runtime>> si:void_state_push
+    <<self>> notahead_87
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Range
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_87 {} {
+    # !
+    #     (CLOSEB)
+
+    <<runtime>> i_loc_push
+    <<self>> sym_CLOSEB
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+#
+# void Symbol 'CLOSE'
+#
+
+<<def>> <<ns>>sym_CLOSE {} {
+    # x
+    #     '\)'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start CLOSE
+    <<self>> sequence_101
+    <<runtime>> si:void_clear_symbol_end CLOSE
+    return
+}
+
+<<def>> <<ns>>sequence_101 {} {
+    # x
+    #     '\)'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \51
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'CLOSEB'
+#
+
+<<def>> <<ns>>sym_CLOSEB {} {
+    # ']'
+
+    <<runtime>> si:void_void_symbol_start CLOSEB
+    <<runtime>> si:next_char \135
+    <<runtime>> si:void_clear_symbol_end CLOSEB
+    return
+}
+
+#
+# void Symbol 'COLON'
+#
+
+<<def>> <<ns>>sym_COLON {} {
+    # x
+    #     ':'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start COLON
+    <<self>> sequence_108
+    <<runtime>> si:void_clear_symbol_end COLON
+    return
+}
+
+<<def>> <<ns>>sequence_108 {} {
+    # x
+    #     ':'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char :
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'COMMENT'
+#
+
+<<def>> <<ns>>sym_COMMENT {} {
+    # x
+    #     '#'
+    #     *
+    #         x
+    #             !
+    #                 (EOL)
+    #             <dot>
+    #     (EOL)
+
+    <<runtime>> si:void_void_symbol_start COMMENT
+    <<self>> sequence_121
+    <<runtime>> si:void_clear_symbol_end COMMENT
+    return
+}
+
+<<def>> <<ns>>sequence_121 {} {
+    # x
+    #     '#'
+    #     *
+    #         x
+    #             !
+    #                 (EOL)
+    #             <dot>
+    #     (EOL)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char #
+    <<runtime>> si:voidvoid_part
+    <<self>> kleene_118
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_EOL
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_118 {} {
+    # *
+    #     x
+    #         !
+    #             (EOL)
+    #         <dot>
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_116
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_116 {} {
+    # x
+    #     !
+    #         (EOL)
+    #     <dot>
+
+    <<runtime>> si:void_state_push
+    <<self>> notahead_113
+    <<runtime>> si:voidvoid_part
+    <<runtime>> i_input_next dot
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_113 {} {
+    # !
+    #     (EOL)
+
+    <<runtime>> i_loc_push
+    <<self>> sym_EOL
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+#
+# leaf Symbol 'CONTROL'
+#
+
+<<def>> <<ns>>sym_CONTROL {} {
+    # x
+    #     "<control>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start CONTROL
+    <<self>> sequence_126
+    <<runtime>> si:void_leaf_symbol_end CONTROL
+    return
+}
+
+<<def>> <<ns>>sequence_126 {} {
+    # x
+    #     "<control>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <control>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'DAPOSTROPH'
+#
+
+<<def>> <<ns>>sym_DAPOSTROPH {} {
+    # '\"'
+
+    <<runtime>> si:void_void_symbol_start DAPOSTROPH
+    <<runtime>> si:next_char \42
+    <<runtime>> si:void_clear_symbol_end DAPOSTROPH
+    return
+}
+
+#
+# leaf Symbol 'DDIGIT'
+#
+
+<<def>> <<ns>>sym_DDIGIT {} {
+    # x
+    #     "<ddigit>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start DDIGIT
+    <<self>> sequence_133
+    <<runtime>> si:void_leaf_symbol_end DDIGIT
+    return
+}
+
+<<def>> <<ns>>sequence_133 {} {
+    # x
+    #     "<ddigit>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <ddigit>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Definition'
+#
+
+<<def>> <<ns>>sym_Definition {} {
+    # x
+    #     ?
+    #         (Attribute)
+    #     (Identifier)
+    #     (IS)
+    #     (Expression)
+    #     (SEMICOLON)
+
+    <<runtime>> si:value_symbol_start Definition
+    <<self>> sequence_143
+    <<runtime>> si:reduce_symbol_end Definition
+    return
+}
+
+<<def>> <<ns>>sequence_143 {} {
+    # x
+    #     ?
+    #         (Attribute)
+    #     (Identifier)
+    #     (IS)
+    #     (Expression)
+    #     (SEMICOLON)
+
+    <<runtime>> si:value_state_push
+    <<self>> optional_137
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Identifier
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_IS
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Expression
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_SEMICOLON
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_137 {} {
+    # ?
+    #     (Attribute)
+
+    <<runtime>> si:void2_state_push
+    <<self>> sym_Attribute
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+#
+# leaf Symbol 'DIGIT'
+#
+
+<<def>> <<ns>>sym_DIGIT {} {
+    # x
+    #     "<digit>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start DIGIT
+    <<self>> sequence_148
+    <<runtime>> si:void_leaf_symbol_end DIGIT
+    return
+}
+
+<<def>> <<ns>>sequence_148 {} {
+    # x
+    #     "<digit>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <digit>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'DOT'
+#
+
+<<def>> <<ns>>sym_DOT {} {
+    # x
+    #     '.'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start DOT
+    <<self>> sequence_153
+    <<runtime>> si:void_leaf_symbol_end DOT
+    return
+}
+
+<<def>> <<ns>>sequence_153 {} {
+    # x
+    #     '.'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char .
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'EOF'
+#
+
+<<def>> <<ns>>sym_EOF {} {
+    # !
+    #     <dot>
+
+    <<runtime>> si:void_void_symbol_start EOF
+    <<self>> notahead_157
+    <<runtime>> si:void_clear_symbol_end EOF
+    return
+}
+
+<<def>> <<ns>>notahead_157 {} {
+    # !
+    #     <dot>
+
+    <<runtime>> i_loc_push
+    <<runtime>> i_input_next dot
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+#
+# void Symbol 'EOL'
+#
+
+<<def>> <<ns>>sym_EOL {} {
+    # [\n\r]
+
+    <<runtime>> si:void_void_symbol_start EOL
+    <<runtime>> si:next_class \n\r
+    <<runtime>> si:void_clear_symbol_end EOL
+    return
+}
+
+#
+# value Symbol 'Expression'
+#
+
+<<def>> <<ns>>sym_Expression {} {
+    # x
+    #     (Sequence)
+    #     *
+    #         x
+    #             (SLASH)
+    #             (Sequence)
+
+    <<runtime>> si:value_symbol_start Expression
+    <<self>> sequence_169
+    <<runtime>> si:reduce_symbol_end Expression
+    return
+}
+
+<<def>> <<ns>>sequence_169 {} {
+    # x
+    #     (Sequence)
+    #     *
+    #         x
+    #             (SLASH)
+    #             (Sequence)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_Sequence
+    <<runtime>> si:valuevalue_part
+    <<self>> kleene_167
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_167 {} {
+    # *
+    #     x
+    #         (SLASH)
+    #         (Sequence)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_165
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_165 {} {
+    # x
+    #     (SLASH)
+    #     (Sequence)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_SLASH
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Sequence
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# void Symbol 'Final'
+#
+
+<<def>> <<ns>>sym_Final {} {
+    # x
+    #     "END"
+    #     (WHITESPACE)
+    #     (SEMICOLON)
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start Final
+    <<self>> sequence_176
+    <<runtime>> si:void_clear_symbol_end Final
+    return
+}
+
+<<def>> <<ns>>sequence_176 {} {
+    # x
+    #     "END"
+    #     (WHITESPACE)
+    #     (SEMICOLON)
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str END
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_SEMICOLON
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Grammar'
+#
+
+<<def>> <<ns>>sym_Grammar {} {
+    # x
+    #     (WHITESPACE)
+    #     (Header)
+    #     *
+    #         (Definition)
+    #     (Final)
+    #     (EOF)
+
+    <<runtime>> si:value_symbol_start Grammar
+    <<self>> sequence_186
+    <<runtime>> si:reduce_symbol_end Grammar
+    return
+}
+
+<<def>> <<ns>>sequence_186 {} {
+    # x
+    #     (WHITESPACE)
+    #     (Header)
+    #     *
+    #         (Definition)
+    #     (Final)
+    #     (EOF)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Header
+    <<runtime>> si:valuevalue_part
+    <<self>> kleene_182
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Final
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_EOF
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_182 {} {
+    # *
+    #     (Definition)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sym_Definition
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+#
+# leaf Symbol 'GRAPH'
+#
+
+<<def>> <<ns>>sym_GRAPH {} {
+    # x
+    #     "<graph>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start GRAPH
+    <<self>> sequence_191
+    <<runtime>> si:void_leaf_symbol_end GRAPH
+    return
+}
+
+<<def>> <<ns>>sequence_191 {} {
+    # x
+    #     "<graph>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <graph>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Header'
+#
+
+<<def>> <<ns>>sym_Header {} {
+    # x
+    #     (PEG)
+    #     (Identifier)
+    #     (StartExpr)
+
+    <<runtime>> si:value_symbol_start Header
+    <<self>> sequence_197
+    <<runtime>> si:reduce_symbol_end Header
+    return
+}
+
+<<def>> <<ns>>sequence_197 {} {
+    # x
+    #     (PEG)
+    #     (Identifier)
+    #     (StartExpr)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_PEG
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Identifier
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_StartExpr
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# leaf Symbol 'Ident'
+#
+
+<<def>> <<ns>>sym_Ident {} {
+    # x
+    #     /
+    #         [_:]
+    #         <alpha>
+    #     *
+    #         /
+    #             [_:]
+    #             <alnum>
+
+    <<runtime>> si:void_symbol_start Ident
+    <<self>> sequence_210
+    <<runtime>> si:void_leaf_symbol_end Ident
+    return
+}
+
+<<def>> <<ns>>sequence_210 {} {
+    # x
+    #     /
+    #         [_:]
+    #         <alpha>
+    #     *
+    #         /
+    #             [_:]
+    #             <alnum>
+
+    <<runtime>> si:void_state_push
+    <<self>> choice_202
+    <<runtime>> si:voidvoid_part
+    <<self>> kleene_208
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>choice_202 {} {
+    # /
+    #     [_:]
+    #     <alpha>
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_class _:
+    <<runtime>> si:voidvoid_branch
+    <<runtime>> si:next_alpha
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_208 {} {
+    # *
+    #     /
+    #         [_:]
+    #         <alnum>
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> choice_206
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>choice_206 {} {
+    # /
+    #     [_:]
+    #     <alnum>
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_class _:
+    <<runtime>> si:voidvoid_branch
+    <<runtime>> si:next_alnum
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Identifier'
+#
+
+<<def>> <<ns>>sym_Identifier {} {
+    # x
+    #     (Ident)
+    #     (WHITESPACE)
+
+    <<runtime>> si:value_symbol_start Identifier
+    <<self>> sequence_215
+    <<runtime>> si:reduce_symbol_end Identifier
+    return
+}
+
+<<def>> <<ns>>sequence_215 {} {
+    # x
+    #     (Ident)
+    #     (WHITESPACE)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_Ident
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# void Symbol 'IS'
+#
+
+<<def>> <<ns>>sym_IS {} {
+    # x
+    #     "<-"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start IS
+    <<self>> sequence_220
+    <<runtime>> si:void_clear_symbol_end IS
+    return
+}
+
+<<def>> <<ns>>sequence_220 {} {
+    # x
+    #     "<-"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <-
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'LEAF'
+#
+
+<<def>> <<ns>>sym_LEAF {} {
+    # x
+    #     "leaf"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start LEAF
+    <<self>> sequence_225
+    <<runtime>> si:void_leaf_symbol_end LEAF
+    return
+}
+
+<<def>> <<ns>>sequence_225 {} {
+    # x
+    #     "leaf"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str leaf
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Literal'
+#
+
+<<def>> <<ns>>sym_Literal {} {
+    # /
+    #     x
+    #         (APOSTROPH)
+    #         *
+    #             x
+    #                 !
+    #                     (APOSTROPH)
+    #                 (Char)
+    #         (APOSTROPH)
+    #         (WHITESPACE)
+    #     x
+    #         (DAPOSTROPH)
+    #         *
+    #             x
+    #                 !
+    #                     (DAPOSTROPH)
+    #                 (Char)
+    #         (DAPOSTROPH)
+    #         (WHITESPACE)
+
+    <<runtime>> si:value_symbol_start Literal
+    <<self>> choice_254
+    <<runtime>> si:reduce_symbol_end Literal
+    return
+}
+
+<<def>> <<ns>>choice_254 {} {
+    # /
+    #     x
+    #         (APOSTROPH)
+    #         *
+    #             x
+    #                 !
+    #                     (APOSTROPH)
+    #                 (Char)
+    #         (APOSTROPH)
+    #         (WHITESPACE)
+    #     x
+    #         (DAPOSTROPH)
+    #         *
+    #             x
+    #                 !
+    #                     (DAPOSTROPH)
+    #                 (Char)
+    #         (DAPOSTROPH)
+    #         (WHITESPACE)
+
+    <<runtime>> si:value_state_push
+    <<self>> sequence_239
+    <<runtime>> si:valuevalue_branch
+    <<self>> sequence_252
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>sequence_239 {} {
+    # x
+    #     (APOSTROPH)
+    #     *
+    #         x
+    #             !
+    #                 (APOSTROPH)
+    #             (Char)
+    #     (APOSTROPH)
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_APOSTROPH
+    <<runtime>> si:voidvalue_part
+    <<self>> kleene_235
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_APOSTROPH
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_235 {} {
+    # *
+    #     x
+    #         !
+    #             (APOSTROPH)
+    #         (Char)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_233
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_233 {} {
+    # x
+    #     !
+    #         (APOSTROPH)
+    #     (Char)
+
+    <<runtime>> si:void_state_push
+    <<self>> notahead_230
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Char
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_230 {} {
+    # !
+    #     (APOSTROPH)
+
+    <<runtime>> i_loc_push
+    <<self>> sym_APOSTROPH
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+<<def>> <<ns>>sequence_252 {} {
+    # x
+    #     (DAPOSTROPH)
+    #     *
+    #         x
+    #             !
+    #                 (DAPOSTROPH)
+    #             (Char)
+    #     (DAPOSTROPH)
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_DAPOSTROPH
+    <<runtime>> si:voidvalue_part
+    <<self>> kleene_248
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_DAPOSTROPH
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_248 {} {
+    # *
+    #     x
+    #         !
+    #             (DAPOSTROPH)
+    #         (Char)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_246
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_246 {} {
+    # x
+    #     !
+    #         (DAPOSTROPH)
+    #     (Char)
+
+    <<runtime>> si:void_state_push
+    <<self>> notahead_243
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Char
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_243 {} {
+    # !
+    #     (DAPOSTROPH)
+
+    <<runtime>> i_loc_push
+    <<self>> sym_DAPOSTROPH
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+#
+# leaf Symbol 'LOWER'
+#
+
+<<def>> <<ns>>sym_LOWER {} {
+    # x
+    #     "<lower>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start LOWER
+    <<self>> sequence_259
+    <<runtime>> si:void_leaf_symbol_end LOWER
+    return
+}
+
+<<def>> <<ns>>sequence_259 {} {
+    # x
+    #     "<lower>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <lower>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'NOT'
+#
+
+<<def>> <<ns>>sym_NOT {} {
+    # x
+    #     '!'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start NOT
+    <<self>> sequence_264
+    <<runtime>> si:void_leaf_symbol_end NOT
+    return
+}
+
+<<def>> <<ns>>sequence_264 {} {
+    # x
+    #     '!'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char !
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'OPEN'
+#
+
+<<def>> <<ns>>sym_OPEN {} {
+    # x
+    #     '\('
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start OPEN
+    <<self>> sequence_269
+    <<runtime>> si:void_clear_symbol_end OPEN
+    return
+}
+
+<<def>> <<ns>>sequence_269 {} {
+    # x
+    #     '\('
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \50
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'OPENB'
+#
+
+<<def>> <<ns>>sym_OPENB {} {
+    # '['
+
+    <<runtime>> si:void_void_symbol_start OPENB
+    <<runtime>> si:next_char \133
+    <<runtime>> si:void_clear_symbol_end OPENB
+    return
+}
+
+#
+# void Symbol 'PEG'
+#
+
+<<def>> <<ns>>sym_PEG {} {
+    # x
+    #     "PEG"
+    #     !
+    #         /
+    #             [_:]
+    #             <alnum>
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start PEG
+    <<self>> sequence_281
+    <<runtime>> si:void_clear_symbol_end PEG
+    return
+}
+
+<<def>> <<ns>>sequence_281 {} {
+    # x
+    #     "PEG"
+    #     !
+    #         /
+    #             [_:]
+    #             <alnum>
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str PEG
+    <<runtime>> si:voidvoid_part
+    <<self>> notahead_278
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_278 {} {
+    # !
+    #     /
+    #         [_:]
+    #         <alnum>
+
+    <<runtime>> i_loc_push
+    <<self>> choice_206
+    <<runtime>> si:void_notahead_exit
+    return
+}
+
+#
+# leaf Symbol 'PLUS'
+#
+
+<<def>> <<ns>>sym_PLUS {} {
+    # x
+    #     '+'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start PLUS
+    <<self>> sequence_286
+    <<runtime>> si:void_leaf_symbol_end PLUS
+    return
+}
+
+<<def>> <<ns>>sequence_286 {} {
+    # x
+    #     '+'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char +
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Prefix'
+#
+
+<<def>> <<ns>>sym_Prefix {} {
+    # x
+    #     ?
+    #         /
+    #             (AND)
+    #             (NOT)
+    #     (Suffix)
+
+    <<runtime>> si:value_symbol_start Prefix
+    <<self>> sequence_296
+    <<runtime>> si:reduce_symbol_end Prefix
+    return
+}
+
+<<def>> <<ns>>sequence_296 {} {
+    # x
+    #     ?
+    #         /
+    #             (AND)
+    #             (NOT)
+    #     (Suffix)
+
+    <<runtime>> si:value_state_push
+    <<self>> optional_293
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Suffix
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_293 {} {
+    # ?
+    #     /
+    #         (AND)
+    #         (NOT)
+
+    <<runtime>> si:void2_state_push
+    <<self>> choice_291
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+<<def>> <<ns>>choice_291 {} {
+    # /
+    #     (AND)
+    #     (NOT)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_AND
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_NOT
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# value Symbol 'Primary'
+#
+
+<<def>> <<ns>>sym_Primary {} {
+    # /
+    #     (ALNUM)
+    #     (ALPHA)
+    #     (ASCII)
+    #     (CONTROL)
+    #     (DDIGIT)
+    #     (DIGIT)
+    #     (GRAPH)
+    #     (LOWER)
+    #     (PRINTABLE)
+    #     (PUNCT)
+    #     (SPACE)
+    #     (UPPER)
+    #     (WORDCHAR)
+    #     (XDIGIT)
+    #     (Identifier)
+    #     x
+    #         (OPEN)
+    #         (Expression)
+    #         (CLOSE)
+    #     (Literal)
+    #     (Class)
+    #     (DOT)
+
+    <<runtime>> si:value_symbol_start Primary
+    <<self>> choice_322
+    <<runtime>> si:reduce_symbol_end Primary
+    return
+}
+
+<<def>> <<ns>>choice_322 {} {
+    # /
+    #     (ALNUM)
+    #     (ALPHA)
+    #     (ASCII)
+    #     (CONTROL)
+    #     (DDIGIT)
+    #     (DIGIT)
+    #     (GRAPH)
+    #     (LOWER)
+    #     (PRINTABLE)
+    #     (PUNCT)
+    #     (SPACE)
+    #     (UPPER)
+    #     (WORDCHAR)
+    #     (XDIGIT)
+    #     (Identifier)
+    #     x
+    #         (OPEN)
+    #         (Expression)
+    #         (CLOSE)
+    #     (Literal)
+    #     (Class)
+    #     (DOT)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_ALNUM
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_ALPHA
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_ASCII
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_CONTROL
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_DDIGIT
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_DIGIT
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_GRAPH
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_LOWER
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_PRINTABLE
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_PUNCT
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_SPACE
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_UPPER
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_WORDCHAR
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_XDIGIT
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_Identifier
+    <<runtime>> si:valuevalue_branch
+    <<self>> sequence_317
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_Literal
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_Class
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_DOT
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>sequence_317 {} {
+    # x
+    #     (OPEN)
+    #     (Expression)
+    #     (CLOSE)
+
+    <<runtime>> si:void_state_push
+    <<self>> sym_OPEN
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Expression
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_CLOSE
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# leaf Symbol 'PRINTABLE'
+#
+
+<<def>> <<ns>>sym_PRINTABLE {} {
+    # x
+    #     "<print>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start PRINTABLE
+    <<self>> sequence_327
+    <<runtime>> si:void_leaf_symbol_end PRINTABLE
+    return
+}
+
+<<def>> <<ns>>sequence_327 {} {
+    # x
+    #     "<print>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <print>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'PUNCT'
+#
+
+<<def>> <<ns>>sym_PUNCT {} {
+    # x
+    #     "<punct>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start PUNCT
+    <<self>> sequence_332
+    <<runtime>> si:void_leaf_symbol_end PUNCT
+    return
+}
+
+<<def>> <<ns>>sequence_332 {} {
+    # x
+    #     "<punct>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <punct>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'QUESTION'
+#
+
+<<def>> <<ns>>sym_QUESTION {} {
+    # x
+    #     '?'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start QUESTION
+    <<self>> sequence_337
+    <<runtime>> si:void_leaf_symbol_end QUESTION
+    return
+}
+
+<<def>> <<ns>>sequence_337 {} {
+    # x
+    #     '?'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char ?
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Range'
+#
+
+<<def>> <<ns>>sym_Range {} {
+    # /
+    #     x
+    #         (Char)
+    #         (TO)
+    #         (Char)
+    #     (Char)
+
+    <<runtime>> si:value_symbol_start Range
+    <<self>> choice_346
+    <<runtime>> si:reduce_symbol_end Range
+    return
+}
+
+<<def>> <<ns>>choice_346 {} {
+    # /
+    #     x
+    #         (Char)
+    #         (TO)
+    #         (Char)
+    #     (Char)
+
+    <<runtime>> si:value_state_push
+    <<self>> sequence_343
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_Char
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>sequence_343 {} {
+    # x
+    #     (Char)
+    #     (TO)
+    #     (Char)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_Char
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_TO
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Char
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# void Symbol 'SEMICOLON'
+#
+
+<<def>> <<ns>>sym_SEMICOLON {} {
+    # x
+    #     ';'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start SEMICOLON
+    <<self>> sequence_351
+    <<runtime>> si:void_clear_symbol_end SEMICOLON
+    return
+}
+
+<<def>> <<ns>>sequence_351 {} {
+    # x
+    #     ';'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \73
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'Sequence'
+#
+
+<<def>> <<ns>>sym_Sequence {} {
+    # +
+    #     (Prefix)
+
+    <<runtime>> si:value_symbol_start Sequence
+    <<self>> poskleene_355
+    <<runtime>> si:reduce_symbol_end Sequence
+    return
+}
+
+<<def>> <<ns>>poskleene_355 {} {
+    # +
+    #     (Prefix)
+
+    <<runtime>> i_loc_push
+    <<self>> sym_Prefix
+    <<runtime>> si:kleene_abort
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sym_Prefix
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+#
+# void Symbol 'SLASH'
+#
+
+<<def>> <<ns>>sym_SLASH {} {
+    # x
+    #     '/'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_void_symbol_start SLASH
+    <<self>> sequence_360
+    <<runtime>> si:void_clear_symbol_end SLASH
+    return
+}
+
+<<def>> <<ns>>sequence_360 {} {
+    # x
+    #     '/'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char /
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'SPACE'
+#
+
+<<def>> <<ns>>sym_SPACE {} {
+    # x
+    #     "<space>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start SPACE
+    <<self>> sequence_365
+    <<runtime>> si:void_leaf_symbol_end SPACE
+    return
+}
+
+<<def>> <<ns>>sequence_365 {} {
+    # x
+    #     "<space>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <space>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'STAR'
+#
+
+<<def>> <<ns>>sym_STAR {} {
+    # x
+    #     '*'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start STAR
+    <<self>> sequence_370
+    <<runtime>> si:void_leaf_symbol_end STAR
+    return
+}
+
+<<def>> <<ns>>sequence_370 {} {
+    # x
+    #     '*'
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char *
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# value Symbol 'StartExpr'
+#
+
+<<def>> <<ns>>sym_StartExpr {} {
+    # x
+    #     (OPEN)
+    #     (Expression)
+    #     (CLOSE)
+
+    <<runtime>> si:value_symbol_start StartExpr
+    <<self>> sequence_317
+    <<runtime>> si:reduce_symbol_end StartExpr
+    return
+}
+
+#
+# value Symbol 'Suffix'
+#
+
+<<def>> <<ns>>sym_Suffix {} {
+    # x
+    #     (Primary)
+    #     ?
+    #         /
+    #             (QUESTION)
+    #             (STAR)
+    #             (PLUS)
+
+    <<runtime>> si:value_symbol_start Suffix
+    <<self>> sequence_386
+    <<runtime>> si:reduce_symbol_end Suffix
+    return
+}
+
+<<def>> <<ns>>sequence_386 {} {
+    # x
+    #     (Primary)
+    #     ?
+    #         /
+    #             (QUESTION)
+    #             (STAR)
+    #             (PLUS)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_Primary
+    <<runtime>> si:valuevalue_part
+    <<self>> optional_384
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_384 {} {
+    # ?
+    #     /
+    #         (QUESTION)
+    #         (STAR)
+    #         (PLUS)
+
+    <<runtime>> si:void2_state_push
+    <<self>> choice_382
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+<<def>> <<ns>>choice_382 {} {
+    # /
+    #     (QUESTION)
+    #     (STAR)
+    #     (PLUS)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_QUESTION
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_STAR
+    <<runtime>> si:valuevalue_branch
+    <<self>> sym_PLUS
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# void Symbol 'TO'
+#
+
+<<def>> <<ns>>sym_TO {} {
+    # '-'
+
+    <<runtime>> si:void_void_symbol_start TO
+    <<runtime>> si:next_char -
+    <<runtime>> si:void_clear_symbol_end TO
+    return
+}
+
+#
+# leaf Symbol 'UPPER'
+#
+
+<<def>> <<ns>>sym_UPPER {} {
+    # x
+    #     "<upper>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start UPPER
+    <<self>> sequence_393
+    <<runtime>> si:void_leaf_symbol_end UPPER
+    return
+}
+
+<<def>> <<ns>>sequence_393 {} {
+    # x
+    #     "<upper>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <upper>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'VOID'
+#
+
+<<def>> <<ns>>sym_VOID {} {
+    # x
+    #     "void"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start VOID
+    <<self>> sequence_398
+    <<runtime>> si:void_leaf_symbol_end VOID
+    return
+}
+
+<<def>> <<ns>>sequence_398 {} {
+    # x
+    #     "void"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str void
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# void Symbol 'WHITESPACE'
+#
+
+<<def>> <<ns>>sym_WHITESPACE {} {
+    # *
+    #     /
+    #         <space>
+    #         (COMMENT)
+
+    <<runtime>> si:void_void_symbol_start WHITESPACE
+    <<self>> kleene_405
+    <<runtime>> si:void_clear_symbol_end WHITESPACE
+    return
+}
+
+<<def>> <<ns>>kleene_405 {} {
+    # *
+    #     /
+    #         <space>
+    #         (COMMENT)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> choice_403
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>choice_403 {} {
+    # /
+    #     <space>
+    #     (COMMENT)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_space
+    <<runtime>> si:voidvoid_branch
+    <<self>> sym_COMMENT
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'WORDCHAR'
+#
+
+<<def>> <<ns>>sym_WORDCHAR {} {
+    # x
+    #     "<wordchar>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start WORDCHAR
+    <<self>> sequence_410
+    <<runtime>> si:void_leaf_symbol_end WORDCHAR
+    return
+}
+
+<<def>> <<ns>>sequence_410 {} {
+    # x
+    #     "<wordchar>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <wordchar>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+# leaf Symbol 'XDIGIT'
+#
+
+<<def>> <<ns>>sym_XDIGIT {} {
+    # x
+    #     "<xdigit>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_symbol_start XDIGIT
+    <<self>> sequence_415
+    <<runtime>> si:void_leaf_symbol_end XDIGIT
+    return
+}
+
+<<def>> <<ns>>sequence_415 {} {
+    # x
+    #     "<xdigit>"
+    #     (WHITESPACE)
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str <xdigit>
+    <<runtime>> si:voidvoid_part
+    <<self>> sym_WHITESPACE
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+#

@@ -1,0 +1,248 @@
+#! /bin/sh
+# -*- tcl -*- \
+exec tclsh "$0" ${1+"$@"}
+
+# TMC - Trival Magic Compiler
+# === = =====================
+
+# Use cases
+# ---------
+ 
+# (-)	Compilation of one or more files in magic(5) syntax into a
+#	single recognizer performing all the checks and mappings
+#	encoded in them.
+# 
+# Command syntax
+# --------------
+# 
+# Ad 1)	tmc procname magic-file ?magic-file...?
+#
+#	Compile all magic files into a recognizer, put it into the
+#	named procedure, and write the result to stdout.
+# 
+# Ad 2)	tmc -merge tclfile procname magic-file ?magic-file...?
+#
+#	Same as (1), but does not write to stdout. Instead the part of
+#	the 'tclfile' delineated by marker lines containing "BEGIN
+#	GENERATED CODE" and "END GENERATED CODE" is replaced with the
+#	generated code.
+
+package require Tcl 8.4
+lappend auto_path [file dirname [file normalize [info script]]] ; # This directory
+lappend auto_path [file dirname [lindex $auto_path end]]        ; # and the one above
+#puts *\t[join $auto_path \n*\t]
+package require fileutil::magic::cfront
+
+# ### ### ### ######### ######### #########
+## Internal data and status
+
+namespace eval ::tmc {
+
+    # Path to where the output goes to. An empty string signals that
+    # the output is written to stdout. Otherwise it goes to the
+    # specified file, which has to exist, and is merged into it.
+    #
+    # Specified through the optional option '-merge'.
+
+    variable output ""
+
+    # Name of the procedure to generate from the input files.
+
+    variable proc ""
+
+    # List of the input files to process.
+
+    variable magic {}
+}
+
+# ### ### ### ######### ######### #########
+## External data and status
+#
+## Only the file merge mode uses external data, which is explicitly
+## specified via the command line. It is a template the generated
+## recognizer is merged into, completely replacing an existing
+## recognizer.
+
+# ### ### ### ######### ######### #########
+## Option processing.
+## Validate command line.
+## Full command line syntax.
+##
+# tmc ?-merge iofile? procname magic ?magic...?
+##
+
+proc ::tmc::processCmdline {} {
+    global argv
+
+    variable output
+    variable magic
+    variable proc
+
+    set output ""
+    set magic  {}
+    set proc   ""
+
+    # Process the options, perform basic validation.
+
+    while {[llength $argv]} {
+	set opt [lindex $argv 0]
+	if {![string match "-*" $opt]} break
+	if {$opt eq "-merge"} {
+	    if {[llength $argv] < 2} Usage
+	    set output [lindex $argv 1]
+	    set argv   [lrange $argv 2 end]
+	} else {
+	    Usage
+	}
+    }
+
+    # Additional validation, and extraction of the non-option
+    # arguments.
+
+    if {[llength $argv] != 2} Usage
+
+    set proc  [lindex $argv 0]
+    set magic [lrange $argv 1 end]
+
+    # Final validation across the whole configuration.
+
+    if {$proc eq ""} {
+	ArgError "Illegal empty proc name"
+    }
+    foreach m $magic {
+	CheckInput $m {Magic file}
+    }
+    if {$output ne ""} {
+	CheckTheMerge
+    }
+    return
+}
+
+# ### ### ### ######### ######### #########
+## Option processing.
+## Helpers: Generation of error messages.
+## I.  General usage/help message.
+## II. Specific messages.
+#
+# Both write their messages to stderr and then
+# exit the application with status 1.
+##
+
+proc ::tmc::Usage {} {
+    global argv0
+    puts stderr "$argv0 wrong#args, expected:\
+	    ?-merge iofile? procname magic magic..."
+    exit 1
+}
+
+proc ::tmc::ArgError {text} {
+    global argv0
+    puts stderr "$argv0: $text"
+    exit 1
+}
+
+proc in {list item} {
+    expr {([lsearch -exact $list $item] >= 0)}
+}
+
+# ### ### ### ######### ######### #########
+## Check existence and permissions of an input/output file or
+## directory.
+
+proc ::tmc::CheckInput {f label} {
+    if {![file exists $f]} {
+	ArgError "Unable to find $label \"$f\""
+    } elseif {![file readable $f]} {
+	ArgError "$label \"$f\" not readable (permission denied)"
+    }
+    return
+}
+
+proc ::tmc::CheckTheMerge {} {
+    variable output
+
+    if {$output eq ""} {
+	ArgError "No merge file specified"
+    }
+    if {![file exists $output]} {
+	ArgError "Merge file \"$output\" not found"
+    } elseif {![file isfile $output]} {
+	ArgError "Merge file \"$output\" is no such (is a directory)"
+    } elseif {![file readable $output]} {
+	ArgError "Merge file \"$output\" not readable (permission denied)"
+    } elseif {![file writable $output]} {
+	ArgError "Merge file \"$output\" not writable (permission denied)"
+    }
+    return
+}
+
+# ### ### ### ######### ######### #########
+## Helper commands. File reading and writing.
+
+proc ::tmc::Get {f} {
+    return [read [set in [open $f r]]][close $in]
+}
+
+proc ::tmc::Write {f data} {
+    puts -nonewline [set out [open $f w]] $data
+    close $out
+    return
+}
+
+# ### ### ### ######### ######### #########
+## Configuation phase, validate command line.
+
+::tmc::processCmdline
+
+# ### ### ### ######### ######### #########
+## Helper command implementing the file merge functionality.
+
+proc ::tmc::Merge {f script} {
+    set out {}
+    set skip 0
+    foreach l [split [Get $f] \n] {
+	if {$skip == 0} {
+	    lappend out $l
+	    if {[string match {*BEGIN GENERATED CODE*} $l]} {
+		set skip 1
+		lappend out $script
+	    }
+	} elseif {$skip == 1} {
+	    if {[string match {*END GENERATED CODE*} $l]} {
+		lappend out $l
+		set skip 2
+	    }
+	} else {
+	    # Skip == 2
+	    lappend out $l
+	}
+    }
+    Write $f [join $out \n]
+    return
+}
+
+# ### ### ### ######### ######### #########
+## Invoking the functionality.
+
+if {[catch {
+    # Read and process all input files.
+    # Generate a single tcl procedure from them.
+    # Write the result either to stdout, or merge
+    # into the specified output file.
+
+    set tcl [eval [linsert $tmc::magic 0 \
+	    fileutil::magic::cfront::procdef \
+	    $tmc::proc]]
+
+    if {$tmc::output eq ""} {
+	puts stdout $tcl
+    } else {
+	::tmc::Merge $tmc::output \n${tcl}\n
+    }
+} msg]} {
+    puts $::errorInfo
+    ::tmc::ArgError $msg
+}
+
+# ### ### ### ######### ######### #########
+exit

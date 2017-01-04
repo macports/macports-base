@@ -1,0 +1,73 @@
+# tree.test:  tests for the tree structure. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: tree.test,v 1.46 2007/04/12 03:01:54 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocal list.tcl struct::list
+    useLocalFile tree/tests/Xsupport
+}
+testing {
+    useAccel [useTcllibC] struct/tree.tcl struct::tree
+    TestAccelInit                         struct::tree
+}
+
+#----------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite
+# (in tree.testsuite) can expect from the environment.
+
+TestAccelDo struct::tree impl {
+    namespace import -force struct::tree
+
+    switch -exact -- $impl {
+	critcl {
+	    set MY mytree
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		return [tcltest::wrongNumArgs "mytree $m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		return [tcltest::tooManyArgs "mytree $m" $loarg]
+	    }
+	}
+	tcl {
+	    set MY ::mytree
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		if {$xarg == {}} {set xarg $loarg}
+		if {$xarg != {}} {set xarg " $xarg"}
+		incr n
+		return [tcltest::wrongNumArgs "::struct::tree::_$m" "name$xarg" $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		if {$xarg == {}} {set xarg $loarg}
+		if {$xarg != {}} {set xarg " $xarg"}
+		return [tcltest::tooManyArgs "::struct::tree::_$m" "name$xarg"]
+	    }
+	}
+    }
+
+    source [localPath tree.testsuite]
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::tree
+testsuiteCleanup

@@ -1,0 +1,339 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: [Bug 3575707]: Actually a feature change, the commands
+	* csv.test: join, joinlist, and joinmatrix are extended with a flag
+	* csv.pcx: argument to force use of the delimiter/quoting character,
+	* csv.man: regardless of need. Original patch by Pietro Cerutti
+	* pkgIndex.tcl: <gahr@users.sourceforge.net>. Version bumped to 0.8
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: [Bug 1724818]: Applied the patch supplied by Jeremy
+	* csv.man:  Cowgar <jeremy@cowgar.com> fixing the issue. Bumped
+	* csv.test: version to 0.7.3. Extended testsuite.
+	* pkgIndex.tcl:
+
+2011-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.man: [Bug 3281791]: Followup to fix for [Bug 3061815], fixed
+	  forgotten change in the text after the examples. Thanks to
+	  <guardus@users.sourceforge.net>.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-09-08  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.man: [Bug 3061815]: Fixed a mixup in the examples which
+	matched regular output to alternate format and vice versa. Thanks
+	to Harald Oehlmann <oehhar@users.sourceforge.net>.
+
+2010-01-19  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.tcl (::csv::read2queue): [Bug 2926387]: Fix use of wrong
+	* csv.test: variable when handling multi-line fields reported by
+	* csv.man: Jeff Rogers <dvrsn@users.sourceforge.net>. Extended
+	* pkgIndex.tcl: testsuite. Bumped version to 0.7.2.
+	* 2926387.csv: <New file>, for the new tests.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-09-17  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.man: [Bug 2860843]. Fixed two documentation typos reported
+	  by Larry Virden <lvirden@users.sourceforge.net>
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-10-02  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.tcl: Fixed [SF Bug 2123513]. Added protections against
+	* csv.man: malformed separator characters (empty or string) to the
+	* csv.test: read2 and split2 commands. Extended test suite to
+	* pkgIndex.tcl: cover these cases. Bumped the package version to
+	  0.7.1.
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.pcx: New file. Syntax definitions for the public commands of
+	  the csv package.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.man: Bumped version to 0.7.
+	* csv.tcl:
+	* pkgIndex.tcl
+
+2006-06-15  Andreas Kupries <andreask@activestate.com>
+
+	* csv.tcl:  Extended csv processing to allow different
+	* csv.test: quoting chars beyond double-quote. Patch origin at [SF
+	* csv.man:  Tcllib Patch 1469593]. Needed small fix in
+	  join. Extended testsuite, documentation.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test: Fixed use and cleanup of temp. files.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test: More boilerplate simplified via use of test support.
+
+2006-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test: Removed some 8.4'isms out of the csv testsuite, the
+	  package under test works for 8.3+.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test: Hooked into the new common test support code.
+
+2006-01-16  Andreas Kupries  <akupries@shaw.ca>
+
+	* csv.man: New command 'iscomplete' to detect partial csv
+	* csv.tcl: records. Used to enable the read2* commands to handle
+	  multi-line csv records. Code provided by Jeff Hobbs, via [SF
+	  Tcllib Patch 1407811]. See also the [Tcllib FR 733407].
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* csv.bench: New file. Basic benchmarks for CSV processing.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-30  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Added command 'csv::joinmatrix', which converts a
+	* csv.man:      matrix object into CSV records, one record per
+	* csv.tcl:      row. Inspired by [SF Tcllib RFE 1204345] which
+	                brought the conversion up, but went a round-about
+			way via a report object.
+
+2005-04-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test: Testsuite package requirements fixed to ensure use of
+	  local packages.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: Updated version number to sync with 1.6.1
+	* csv.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: Rel. engineering. Updated version number 
+	* csv.man: of csv to reflect its changes, to 0.5.1.
+	* pkgIndex.tcl:
+
+2004-05-03  Andreas Kupries  <andreask@pliers.activestate.com>
+
+	* csv.tcl (read2matrix): Fixed bogus switch case. Had case "4"
+	  twice, second should have been "5". [SF Tcllib Bug 940651].
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-11-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.man: Extended the explanation for the example to cover the
+	  alternate format as well [SF Tcllib RFE 737770].
+
+2003-05-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.man: Changed the phrasing for the alternate format a bit,
+	  and reworded the text enclosing the example.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-24  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.tcl:      Bumped version to 0.4. This had been
+	* csv.man:      forgotten before.
+	* pkgIndex.tcl:
+
+2003-04-23  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.tcl (Split): Rewrote parser for alternate syntax to handle
+	  the remaining known bug. Now it passes the testsuite completely.
+
+	* csv.man:  Extended to handle a slightly different alternate
+	* cvs.tcl:  syntax of CSV files. This takes care of bug
+	* csv.test: [606141].
+
+2003-03-31  Andreas Kupries  <andreask@activestate.com>
+
+	* csv.tcl (split): Fixed bug #709123 reported by Jamie Honan
+	  <jhonan@users.sourceforge.net>. The separator character is used
+	  in regular epxressions, but was not protected against special
+	  interpretation by the RE engine.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.man: More semantic markup, less visual one.
+
+2002-06-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl (csv::split): Fixed bug #565051, found by Tod A. olson
+	  <todolson@users.sourceforge.net>. The described bug is actually
+	  none, given the definition of the CSV format, but the examples
+	  do contain a related bug. Just swap what is seen as ok and
+	  bug. Because of this the provided patched code was rejected, and
+	  a new patch created. The patched code passes the extended
+	  testsuite (see below).
+
+	* csv.test: Extended testsuite regarding the handling of empty
+	  fields and quote characters. Part of the investigation into bug
+	  #565051.
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.man: Fixed formatting errors in the doctools manpage.
+
+2002-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Version up to 0.3 to differentiate development from the
+	  version in the tcllib 1.2 release.
+
+	* mem_debug_bench_a.csv: New file, contains empty lines to test
+	  that part of the code. See below.
+	* csv.tcl: 
+	* csv.test: Updated code and tests to cover all paths through the
+	  code.
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 0.2
+
+2001-11-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.n: Applied patch #482570 correcting a typo and adding more
+	  cross-references (see also, keywords). Patch provided by Larry
+	  Virden <lvirden@users.sourceforge.net>.
+
+2001-11-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test:
+	* cvs.n:
+	* csv.tcl (split2matrix, read2matrix): Implemented FR
+	  #481023. Added additional expansion behaviours, controlled via
+	  an optional argument.
+
+2001-10-14  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* csv.test (csv-1.7): 
+	* csv.tcl: Fixed [Bug #469855] where starting "s could not come
+	out right from csv::split.
+	Updated to 0.2
+
+2001-09-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.test: Added test to verify that the problem is fixed.
+
+	* csv.tcl (joinlist): Fixed bug [#465210] "::csv::joinlist
+	  sepChar handling". The "sepChar" was not propagated to the
+	  actual join operation.
+
+2001-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: Restricted export list to public API.
+	  [456255]. Patch by Hemang Lavana
+	  <hemanglavana@users.sourceforge.net>
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl: Fixed dubious code reported by frink and procheck.
+
+2001-06-19  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* csv.n: Fixed nroff trouble.
+
+2001-05-01  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Committed to CVS head at SF.
+
+2001-04-18  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* csv.tcl:  Added more code to read and write CSV formatted data
+	  from and to various datastructures (queue, matrix). The basic
+	  functionality is now complete.
+
+	* csv.test: Extended the testsuite to cover the new code.
+	* csv.n:    Extended the documentation to cover the new code.
+
+2001-04-12  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module for the processing of CSV lines and files.

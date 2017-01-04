@@ -1,0 +1,171 @@
+# -------------------------------------------------------------------------
+# iban.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# (C) 2011 Max Jarek
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+}
+testing {
+    useLocal iban.tcl valtype::iban
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-iban-1.0 {iban validation wrong\#args} -body {
+    valtype::iban validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::iban validate value"}
+
+test valtype-iban-1.1 {iban validation wrong\#args} -body {
+    valtype::iban validate A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::iban validate value"}
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach iban {
+    AD1200012030200359100100
+    AE070331234567890123456
+    AL47212110090000000235698741
+    AT611904300234573201
+    AZ21NABZ00000000137010001944
+    BA391290079401028494
+    BE68539007547034
+    BG80BNBG96611020345678
+    BH67BMAG00001299123456
+    BR9700360305000010009795493P1
+    BR1800000000141455123924100C2
+    CH9300762011623852957
+    CY17002001280000001200527600
+    CZ6508000000192000145399
+    DE89370400440532013000
+    DK5000400440116243
+    DO28BAGR00000001212453611324
+    EE382200221020145685
+    ES9121000418450200051332
+    FI2112345600000785
+    FO6264600001631634
+    FR1420041010050500013M02606
+    GB29NWBK60161331926819
+    GE29NB0000000101904917
+    GI75NWBK000000007099453
+    GL8964710001000206
+    GR1601101250000000012300695
+    GT82TRAJ01020000001210029690
+    HR1210010051863000160
+    HU42117730161111101800000000
+    IE29AIBK93115212345678
+    IL620108000000099999999
+    IS140159260076545510730339
+    IT60X0542811101000000123456
+    JO94CBJO0010000000000131000302
+    KW81CBKU0000000000001234560101
+    KZ86125KZT5004100100
+    LB62099900000001001901229114
+    LI21088100002324013AA
+    LT121000011101001000
+    LU280019400644750000
+    LV80BANK0000435195001
+    MC5811222000010123456789030
+    MD24AG000225100013104168
+    ME25505000012345678951
+    MK07250120000058984
+    MR1300020001010000123456753
+    MT84MALT011000012345MTLCAST001S
+    MU17BOMM0101101030300200000MUR
+    NL91ABNA0417164300
+    NO9386011117947
+    PK36SCBL0000001123456702
+    PL27114020040000300201355387
+    PS92PALS000000000400123456702
+    PT50000201231234567890154
+    RO49AAAA1B31007593840000
+    RS35260005601001611379
+    SA0380000000608010167519
+    SE4550000000058398257466
+    SI56191000000123438
+    SK3112000000198742637541
+    SM86U0322509800000000270100
+    TL380080012345678910157
+    TN5914207207100707129648
+    TR330006100519786457841326
+    VG96VPVG0000012345678901
+    PL26105014451000002276470461
+    PL67114020040000310200082366
+    QA58DOHB00001234567890ABCDEFG
+    FR7611008000010004126302470
+    FR1420041010050500013M02606
+    GB29NWBK60161331926819
+    IT60X0542811101000000123456
+    XK051000000000000053
+} {
+    set cc      [string range $iban 0 1]
+    set len     [valtype::iban cclen $cc]
+    set badchar [string map {0 - 9 -} $iban]
+    set short   [string range $iban 0 end-1]
+    set long    ${iban}45
+
+    # Flip two digits to generate a bad number, try check digits
+    # first, then across border of check digits to bban.
+    set check [string range $iban 0 1][string index $iban 3][string index $iban 2][string range $iban 4 end]
+    if {$check eq $iban} {
+        set check [string range $iban 0 2][string index $iban 4][string index $iban 3][string range $iban 5 end]
+    }
+
+    test valtype-iban-2.0.$n "iban validation failure, bad char, $badchar" -body {
+	valtype::iban validate $badchar
+    } -returnCodes error \
+	-result {Not an IBAN number, expected country code followed by alphanumerics}
+
+    test valtype-iban-2.1.$n "iban validation failure, bad length, $short" -body {
+	valtype::iban validate $short
+    } -returnCodes error \
+	-result "Not an IBAN number, incorrect length, expected $len characters"
+
+    test valtype-iban-2.2.$n "iban validation failure, bad length, $long" -body {
+	valtype::iban validate $long
+    } -returnCodes error \
+	-result "Not an IBAN number, incorrect length, expected $len characters"
+
+    test valtype-iban-3.$n "iban validation failure, bad check, $iban, $check" -body {
+	valtype::iban validate $check
+    } -returnCodes error \
+	-result {Not an IBAN number, the check digit is incorrect}
+
+    test valtype-iban-4.$n "iban validation, $iban" -body {
+	valtype::iban validate $iban
+    } -result $iban
+
+    incr n
+}
+
+set n 0
+foreach iban {
+    PL78102030170000270200618694
+} {
+   test valtype-iban-5.$n "iban validation failure, bad check, $iban" -body {
+	valtype::iban validate $iban
+    } -returnCodes error \
+	-result {Not an IBAN number, the check digit is incorrect}
+    incr n
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

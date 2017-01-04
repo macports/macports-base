@@ -1,0 +1,196 @@
+# -*- tcl -*-
+# aycock.test --
+#
+#       Tests for the Aycock-Earley-Horspool parser generator
+#
+# Tests for the Aycock-Earley-Horspool parser generator are quite rudimentary
+# at this point; they walk through only basic functionality and surely do not
+# explore corner cases.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    useLocal     aycock-runtime.tcl grammar::aycock::runtime grammar::aycock
+    useLocalKeep aycock-debug.tcl   grammar::aycock::debug   grammar::aycock
+}
+testing {
+    useLocalKeep aycock-build.tcl   grammar::aycock          grammar::aycock
+}
+
+# -------------------------------------------------------------------------
+
+proc parser1 {} {
+    grammar::aycock::parser {
+        S ::= if E then S else S {
+            set _
+        }
+        S ::= if E then S {
+            set _
+        }
+        S ::= X {}
+    }
+}
+
+test aycock-1.1 {basic parser for an ambiguous grammar} {
+    -body {
+        set parser [parser1]
+        set result [$parser parse \
+                        {if E  then if E  then X  else X } \
+                        {if E1 then if E2 then S1 else S2}]
+        $parser destroy
+        unset parser
+        set result
+    }
+    -cleanup {unset result}
+    -result {if E1 then {if E2 then S1 else S2}}
+}
+test aycock-1.2 {basic parser, another case} {
+    -setup {
+        set parser [parser1]
+    }
+    -body {
+        $parser parse \
+            {if E  then if E  then X  else X  else if E  then X  else X } \
+            {if E1 then if E2 then S1 else S2 else if E3 then S3 else S4}
+    }
+    -cleanup {$parser destroy; unset parser}
+    -result {if E1 then {if E2 then S1 else S2} else {if E3 then S3 else S4}}
+}
+
+test aycock-2.1 {save and restore a parser} {
+    -body {
+        set parser1 [parser1]
+        set saved [$parser1 save]
+        $parser1 destroy
+        set parser2 [eval $saved]
+        $parser2 parse \
+            {if E  then if E  then X  else X } \
+            {if E1 then if E2 then S1 else S2}
+    }
+    -cleanup {
+        catch {$parser2 destroy}
+        catch {unset parser2}
+        catch {unset saved}
+        catch {$parser1 destroy}
+        catch {unset parser1}
+    }
+    -result {if E1 then {if E2 then S1 else S2}}
+}
+
+rename parser1 {}
+
+test aycock-3.1 {dangling else grammar, another form} {
+    -body {
+        set parser [grammar::aycock::parser {
+            S ::= if E then S elsepart {
+                set _
+            }
+            elsepart ::= else S {
+                set _
+            }
+            elsepart ::= {
+                list (empty)
+            }
+            S ::= X {}
+        }]
+        list [$parser parse \
+		  {if E  then if E  then X  else X } \
+		  {if E1 then if E2 then S1 else S2}] \
+	    [$parser parse \
+		 {if E  then if E  then X  else X  else if E  then X  else X } \
+		 {if E1 then if E2 then S1 else S2 else if E3 then S3 else S4}]
+    }
+    -cleanup {
+        catch {$parser destroy}
+        catch {unset parser}
+    }
+    -result {{if E1 then {if E2 then S1 (empty)} {else S2}} {if E1 then {if E2 then S1 {else S2}} {else {if E3 then S3 {else S4}}}}}
+}
+
+test aycock-3.2 {unary and binary operations, wrong precedence} {
+    -body {
+	set parser [grammar::aycock::parser {
+	    E ::= E - E {set _}
+	    E ::= E + E {set _}
+	    E ::= UMINUS E {set _}
+	    E ::= X {set _}
+	    UMINUS ::= - {list UMINUS}
+	}]
+	list \
+	    [$parser parse \
+		 {- X - X} \
+		 {- a - b}] \
+	    [$parser parse \
+		 {X - X - X} \
+		 {a - b - c}] \
+	    [$parser parse \
+		 {X + X - X} \
+		 {a + b - c}]
+    }
+    -cleanup {
+	catch {$parser destroy}
+	catch {unset parser}
+    }
+    -result {{UMINUS {a - b}} {{a - b} - c} {{a + b} - c}}
+}
+
+test aycock-4.1 {parses with lots of ambiguity} {
+    -body {
+	set parser [grammar::aycock::parser {
+	    A ::= b B {set _}
+	    B ::= P P Q {linsert $_ 0 rule1}
+	    B ::= P Q Q {linsert $_ 0 rule2}
+	    P ::= p {}
+	    P ::= {list empty P}
+	    Q ::= q {}
+	    Q ::= {list empty Q}
+	}]
+	list \
+	    [$parser parse {b} {b}] \
+	    [$parser parse {b p q} {b p q}] \
+	    [$parser parse {b q q} {b q q}]
+    }
+    -cleanup {
+	catch {$parser destroy}
+	catch {unset parser}
+    }
+    -result {{b {rule1 {empty P} {empty P} {empty Q}}} {b {rule1 {empty P} p q}} {b {rule2 {empty P} q q}}}
+}
+
+test aycock-5.1 {desk calculator skeleton} {
+    -body {
+	set p [grammar::aycock::parser {
+	    start ::= E {}
+	    E ::= E + T {expr {[lindex $_ 0] + [lindex $_ 2]}}
+	    E ::= T {}
+	    T ::= T * F {expr {[lindex $_ 0] * [lindex $_ 2]}}
+	    T ::= F {}
+	    F ::= NUMBER {}
+	    F ::= ( E ) {lindex $_ 1}
+	}]
+	list \
+	    [$p parse \
+		 {NUMBER * NUMBER + NUMBER} \
+		 {2      * 3      + 4     }] \
+	    [$p parse \
+		 {NUMBER * ( NUMBER + NUMBER )} \
+		 {2      * ( 3      + 4      )}]
+    }
+    -cleanup {
+	catch {$p destroy}
+	catch {unset p}
+    }
+    -result {10 14}
+}
+
+# -------------------------------------------------------------------------
+
+tcltest::cleanupTests
+return

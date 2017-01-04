@@ -1,0 +1,519 @@
+'\"
+'\" Generated from file 'debug\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 200?, Colin McCormack, Wub Server Utilities
+'\" Copyright (c) 2012-2014, Andreas Kupries <andreas_kupries@users\&.sourceforge\&.net>
+'\"
+.TH "debug" n 1\&.0\&.6 tcllib "debug narrative"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+debug \- debug narrative - core
+.SH SYNOPSIS
+package require \fBTcl  8\&.5\fR
+.sp
+package require \fBdebug  ?1\&.0\&.6?\fR
+.sp
+\fBdebug\&.\fR\fBtag\fR \fImessage\fR ?\fIlevel\fR?
+.sp
+\fBdebug\fR \fB2array\fR
+.sp
+\fBdebug\fR \fBdefine\fR \fItag\fR
+.sp
+\fBdebug\fR \fBheader\fR \fItext\fR
+.sp
+\fBdebug\fR \fBlevel\fR \fItag\fR ?\fIlevel\fR? ?\fIfd\fR?
+.sp
+\fBdebug\fR \fBnames\fR
+.sp
+\fBdebug\fR \fBoff\fR \fItag\fR
+.sp
+\fBdebug\fR \fBon\fR \fItag\fR
+.sp
+\fBdebug\fR \fBparray\fR \fIarrayvarname\fR
+.sp
+\fBdebug\fR \fBpdict\fR \fIdict\fR
+.sp
+\fBdebug\fR \fBhexl\fR \fIdata\fR ?\fIprefix\fR?
+.sp
+\fBdebug\fR \fBnl\fR
+.sp
+\fBdebug\fR \fBtab\fR
+.sp
+\fBdebug\fR \fBprefix\fR \fItag\fR ?\fItext\fR?
+.sp
+\fBdebug\fR \fBsetting\fR (\fItag\fR \fIlevel\fR) \&.\&.\&. ?\fIfd\fR?
+.sp
+\fBdebug\fR \fBsuffix\fR \fItag\fR ?\fItext\fR?
+.sp
+\fBdebug\fR \fBtrailer\fR \fItext\fR
+.sp
+.BE
+.SH DESCRIPTION
+Debugging areas of interest are represented by 'tags' which have
+independently settable levels of interest (an integer, higher is more
+detailed)\&.
+.SH API
+.TP
+\fBdebug\&.\fR\fBtag\fR \fImessage\fR ?\fIlevel\fR?
+For each known tag the package creates a command with this signature
+the user can then use to provide the debug narrative of the tag\&.
+The narrative \fImessage\fR is provided as a Tcl script whose value is
+\fBsubst\fRed in the caller's scope if and only if the current level of
+interest for the \fItag\fR matches or exceeds the call's \fIlevel\fR
+of detail\&.  This is useful, as one can place arbitrarily complex
+narrative in code without unnecessarily evaluating it\&.
+.sp
+See methods \fBlevel\fR and \fBsetting\fR for querying
+and manipulating the current level of detail for tags\&.
+.sp
+The actually printed text consists of not only the
+\fImessage\fR, but also global and tag-specific prefix and suffix,
+should they exist, with each line in the message having the specified
+headers and trailers\&.
+.sp
+All these parts are \fBsubst\fRableTcl scripts, which are
+substituted once per message before assembly\&.
+.TP
+\fBdebug\fR \fB2array\fR
+This method returns a dictionary mapping the names of all debug tags
+currently known to the package to their state and log level\&. The
+latter are encoded in a single numeric value, where a negative number
+indicates an inactive tag at the level given by the absolute value, and
+a positive number is an active tag at that level\&.
+.sp
+See also method \fBsettings\fR below\&.
+.TP
+\fBdebug\fR \fBdefine\fR \fItag\fR
+This method registers the named \fItag\fR with the package\&.  If the
+tag was not known before it is placed in an inactive state\&. The state
+of an already known tag is left untouched\&.
+.sp
+The result of the method is the empty string\&.
+.TP
+\fBdebug\fR \fBheader\fR \fItext\fR
+This method defines a global \fBsubst\fRable Tcl script which provides
+a text printed before each line of output\&.
+.sp
+Note how this is tag-independent\&.
+.sp
+Further note that the header substitution happens only once per
+actual printed message, i\&.e\&. all lines of the same message will have
+the same actual heading text\&.
+.sp
+The result of the method is the specified text\&.
+.TP
+\fBdebug\fR \fBlevel\fR \fItag\fR ?\fIlevel\fR? ?\fIfd\fR?
+This method sets the detail-\fIlevel\fR for the \fItag\fR, and the
+channel \fIfd\fR to write the tags narration into\&.
+The level is an integer value >= 0 defaulting to \fB1\fR\&.
+The channel defaults to \fBstderr\fR\&.
+.sp
+The result of the method is the new detail-level for the tag\&.
+.TP
+\fBdebug\fR \fBnames\fR
+This method returns a list containing the names of all debug tags
+currently known to the package\&.
+.TP
+\fBdebug\fR \fBoff\fR \fItag\fR
+This method registers the named \fItag\fR with the package and sets it
+inactive\&.
+.sp
+The result of the method is the empty string\&.
+.TP
+\fBdebug\fR \fBon\fR \fItag\fR
+This method registers the named \fItag\fR with the package, as active\&.
+.sp
+The result of the method is the empty string\&.
+.TP
+\fBdebug\fR \fBparray\fR \fIarrayvarname\fR
+This is a convenience method formatting the named array like the
+builtin command \fBparray\fR, except it returns the resulting string
+instead of writing it directly to \fBstdout\fR\&.
+.sp
+This makes it suitable for use in debug messages\&.
+.TP
+\fBdebug\fR \fBpdict\fR \fIdict\fR
+This is a convenience method formatting the dictionary similarly to
+how the builtin command \fBparray\fR does for array, and returns the
+resulting string\&.
+.sp
+This makes it suitable for use in debug messages\&.
+.TP
+\fBdebug\fR \fBhexl\fR \fIdata\fR ?\fIprefix\fR?
+This is a convenience method formatting arbitrary data into a hex-dump
+and returns the resulting string\&.
+.sp
+This makes it suitable for use in debug messages\&.
+.sp
+Each line of the dump is prefixed with \fIprefix\fR\&. This prefix
+defaults to the empty string\&.
+.TP
+\fBdebug\fR \fBnl\fR
+This is a convenience method to insert a linefeed character (ASCII 0x0a)
+into a debug message\&.
+.TP
+\fBdebug\fR \fBtab\fR
+This is a convenience method to insert a TAB character (ASCII 0x09)
+into a debug message\&.
+.TP
+\fBdebug\fR \fBprefix\fR \fItag\fR ?\fItext\fR?
+This method is similar to the method \fBheader\fR above, in that it
+defines \fBsubst\fRable Tcl script which provides more text for debug
+messages\&.
+.sp
+In contrast to \fBheader\fR the generated text is added to the
+user's message before it is split into lines, making it a per-message
+extension\&.
+.sp
+Furthermore the script is tag-dependent\&.
+.sp
+In exception to that, a script for tag \fB::\fR is applied
+to all messages\&.
+.sp
+If both global and tag-dependent prefix exist, both are
+applied, with the global prefix coming before the tag-dependent
+prefix\&.
+.sp
+Note that the prefix substitution happens only once per
+actual printed message\&.
+.sp
+The result of the method is the empty string\&.
+.sp
+If the \fItag\fR was not known at the time of the call it is
+registered, and set inactive\&.
+.TP
+\fBdebug\fR \fBsetting\fR (\fItag\fR \fIlevel\fR) \&.\&.\&. ?\fIfd\fR?
+This method is a multi-tag variant of method \fBlevel\fR above,
+with the functionality of methods \fBon\fR, and \fBoff\fR also
+folded in\&.
+.sp
+Each named \fItag\fR is set to the detail-\fIlevel\fR following
+it, with a negative level deactivating the tag, and a positive level
+activating it\&.
+.sp
+If the last argument is not followed by a level it is not
+treated as tag name, but as the channel all the named tags should
+print their messages to\&.
+.sp
+The result of the method is the empty string\&.
+.TP
+\fBdebug\fR \fBsuffix\fR \fItag\fR ?\fItext\fR?
+This method is similar to the method \fBtrailer\fR below, in that
+it defines \fBsubst\fRable Tcl script which provides more text for
+debug messages\&.
+.sp
+In contrast to \fBtrailer\fR the generated text is added to
+the user's message before it is split into lines, making it a
+per-message extension\&.
+.sp
+Furthermore the script is tag-dependent\&.
+.sp
+In exception to that, a script for tag \fB::\fR is applied
+to all messages\&.
+.sp
+If both global and tag-dependent suffix exist, both are
+applied, with the global suffix coming after the tag-dependent suffix\&.
+.sp
+Note that the suffix substitution happens only once per actual
+printed message\&.
+.sp
+The result of the method is the empty string\&.
+.sp
+If the \fItag\fR was not known at the time of the call it is
+registered, and set inactive\&.
+.TP
+\fBdebug\fR \fBtrailer\fR \fItext\fR
+This method defines a global \fBsubst\fRable Tcl script which provides
+a text printed after each line of output (before the EOL however)\&.
+.sp
+Note how this is tag-independent\&.
+.sp
+Further note that the trailer substitution happens only once
+per actual printed message, i\&.e\&. all lines of the same message will
+have the same actual trailing text\&.
+.sp
+The result of the method is the specified text\&.
+.PP
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIdebug\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.SH KEYWORDS
+debug, log, narrative, trace
+.SH CATEGORY
+debugging, tracing, and logging
+.SH COPYRIGHT
+.nf
+Copyright (c) 200?, Colin McCormack, Wub Server Utilities
+Copyright (c) 2012-2014, Andreas Kupries <andreas_kupries@users\&.sourceforge\&.net>
+
+.fi

@@ -1,0 +1,326 @@
+# -*- tcl -*-
+# Graph tests - arcs
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: arcs.test,v 1.4 2009/11/03 17:38:30 andreas_kupries Exp $
+
+# Syntax: graph arcs
+# (1)     graph arcs -key KEY
+#         graph arcs -key KEY -value VALUE
+# (2)     graph arcs -filter CMDPREFIX
+# (3)     graph arcs -in       NODE...
+#         graph arcs -out      NODE...
+#         graph arcs -adj      NODE...
+#         graph arcs -inner    NODE...
+#         graph arcs -embedded NODE...
+
+# We can use one in each group (1,2,3)
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+# Cannot have missing arguments (zero is fine),
+# except when switches are in use. That however
+# is tested with the switches. Ditto for too many
+# arguments.
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arcs-1.0 {arcs, bad switch} {
+    SETUP
+    catch {mygraph arcs -foo} msg
+    mygraph destroy
+    set msg
+} {bad restriction "-foo": must be -adj, -embedding, -filter, -in, -inner, -key, -out, or -value}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arcs-2.0 {arcs, empty graph} {
+    SETUP
+    set result [mygraph arcs]
+    mygraph destroy
+    set result
+} {}
+
+test graph-${impl}-${setimpl}-arcs-2.1 {arcs, nodes without arcs} {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+    set result [mygraph arcs]
+    mygraph destroy
+    set result
+} {}
+
+test graph-${impl}-${setimpl}-arcs-2.2 {arcs} {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+    mygraph arc  insert 0 1 a
+    mygraph arc  insert 2 3 b
+    mygraph arc  insert 4 5 c
+    set result [lsort [mygraph arcs]]
+    mygraph destroy
+    set result
+} {a b c}
+
+# ---------------------------------------------------
+
+# (1) -key, -value
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arcs-key-1.0 {arcs, wrong#args, missing} {
+    SETUP
+    catch {mygraph arcs -key} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY arcs ?-key key? ?-value value? ?-filter cmd? ?-in|-out|-adj|-inner|-embedding node node...?\""
+
+test graph-${impl}-${setimpl}-arcs-key-1.1 {arcs, wrong#args, missing} {
+    SETUP
+    catch {mygraph arcs -value} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY arcs ?-key key? ?-value value? ?-filter cmd? ?-in|-out|-adj|-inner|-embedding node node...?\""
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arcs-key-2.0 {arcs, multiple -key} {
+    SETUP
+    catch {mygraph arcs -key foobar -value 1 -key foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-key"}
+
+test graph-${impl}-${setimpl}-arcs-key-2.1 {arcs, multiple -value} {
+    SETUP
+    catch {mygraph arcs -key foobar -value 1 -value foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-value"}
+
+test graph-${impl}-${setimpl}-arcs-key-2.2 {arcs, -value without -key} {
+    SETUP
+    catch {mygraph arcs -value 1} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: use of "-value" without "-key"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arcs-key-3.0 {arcs, -key} {
+    SETUP
+    mygraph node insert n0 n1
+    mygraph arc  insert n0 n1 a1
+    mygraph arc  insert n0 n1 a2
+    mygraph arc set a1 foobar  1
+    mygraph arc set a2 blubber 2
+
+    catch {mygraph arcs -key foobar} msg
+    mygraph destroy
+    set msg
+} a1
+
+test graph-${impl}-${setimpl}-arcs-key-3.1 {arcs, -key, -value} {
+    SETUP
+    mygraph node insert n0 n1
+    mygraph arc  insert n0 n1 a1
+    mygraph arc  insert n0 n1 a2
+    mygraph arc  set a1 foobar 1
+    mygraph arc  set a2 foobar 2
+
+    catch {mygraph arcs -key foobar -value 1} msg
+    mygraph destroy
+    set msg
+} a1
+
+# ---------------------------------------------------
+
+# (2) -filter
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arcs-filter-1.0 {arcs, wrong#args, missing} {
+    SETUP
+    catch {mygraph arcs -filter} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY arcs ?-key key? ?-value value? ?-filter cmd? ?-in|-out|-adj|-inner|-embedding node node...?\""
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arcs-filter-2.0 {arcs, multiple -filter} {
+    SETUP
+    catch {mygraph arcs -filter foobar -filter foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-filter"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arcs-filter-3.0 {arcs, -filter} {
+    SETUP
+
+    mygraph node insert 1 2 3 4 5 6
+
+    mygraph arc insert 4 1 A
+    mygraph arc insert 5 2 B
+    mygraph arc insert 6 3 C
+    mygraph arc insert 3 1 D
+    mygraph arc insert 1 2 E
+    mygraph arc insert 2 3 F
+
+    mygraph arc set A volume 30
+    mygraph arc set C volume 50
+
+    proc vol {g n} {
+	$g arc keyexists $n volume
+    }
+
+    set result [lsort [mygraph arcs -filter vol]]
+    mygraph destroy
+    rename vol {}
+
+    set result
+} {A C}
+
+test graph-${impl}-${setimpl}-arcs-filter-3.1 {arcs, -filter} {
+    SETUP
+
+    mygraph node insert 1 2 3 4 5 6
+
+    mygraph arc insert 4 1 A
+    mygraph arc insert 5 2 B
+    mygraph arc insert 6 3 C
+    mygraph arc insert 3 1 D
+    mygraph arc insert 1 2 E
+    mygraph arc insert 2 3 F
+
+    mygraph arc set A volume 30
+    mygraph arc set C volume 50
+
+    proc vol {g n} {
+	if {![$g arc keyexists $n volume]} {return 0}
+	expr {[$g arc get $n volume] > 40}
+    }
+
+    set result [mygraph arcs -filter vol]
+    mygraph destroy
+    rename vol {}
+
+    set result
+} C
+
+# ---------------------------------------------------
+
+# (3) -in, -out, -adj, -inner, -embedding
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+set n 0
+foreach switch {-in -out -adj -inner -embedding} {
+
+    test graph-${impl}-${setimpl}-arcs-ioaie-1.$n "arcs, $switch, wrong#args, missing" {
+	SETUP
+	catch {mygraph arcs $switch} msg
+	mygraph destroy
+	set msg
+    } "wrong # args: should be \"$MY arcs ?-key key? ?-value value? ?-filter cmd? ?-in|-out|-adj|-inner|-embedding node node...?\"" ; # {}
+
+    incr n
+}
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+set n 0
+foreach switch {-in -out -adj -inner -embedding} {
+
+    test graph-${impl}-${setimpl}-arcs-ioaie-2.$n "arcs, $switch, missing node" {
+	SETUP
+	catch {mygraph arcs $switch x} msg
+	mygraph destroy
+	set msg
+    } [MissingNode $MY x] ; # {}
+
+    incr n
+
+    foreach switchB {-in -out -adj -inner -embedding} {
+
+	test graph-${impl}-${setimpl}-arcs-ioaie-2.$n "arcs, $switch, $switchB together" {
+	    SETUP
+	    catch {mygraph arcs $switch $switchB x} msg
+	    mygraph destroy
+	    set msg
+	} {invalid restriction: illegal multiple use of "-in"|"-out"|"-adj"|"-inner"|"-embedding"} ; # {}
+
+	incr n
+    }
+}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+set n 0
+foreach {switch nodes expected} {
+    -in        {1 2 3} {A B C D E F}    -in        {4 5 6} {}
+    -out       {1 2 3} {D E F}          -out       {4 5 6} {A B C}
+    -adj       {1 2 3} {A B C D E F}    -adj       {4 5 6} {A B C}
+    -inner     {1 2 3} {D E F}          -inner     {4 5 6} {}
+    -embedding {1 2 3} {A B C}          -embedding {4 5 6} {A B C}
+    -in        {1 2}   {A B D E}        -in        {4 5}   {}
+    -out       {1 2}   {E F}            -out       {4 5}   {A B}
+    -adj       {1 2}   {A B D E F}      -adj       {4 5}   {A B}
+    -inner     {1 2}   {E}              -inner     {4 5}   {}
+    -embedding {1 2}   {A B D F}        -embedding {4 5}   {A B}
+    -in        {1}     {A D}            -in        {4}     {}
+    -out       {1}     {E}              -out       {4}     {A}
+    -adj       {1}     {A D E}          -adj       {4}     {A}
+    -inner     {1}     {}               -inner     {4}     {}
+    -embedding {1}     {A D E}          -embedding {4}     {A}
+    -in        {1 4}   {A D}            -in        {4 2}   {B E}
+    -out       {1 4}   {A E}            -out       {4 2}   {A F}
+    -adj       {1 4}   {A D E}          -adj       {4 2}   {A B E F}
+    -inner     {1 4}   {A}              -inner     {4 2}   {}
+    -embedding {1 4}   {D E}            -embedding {4 2}   {A B E F}
+    -in        {1 1}   {A D}            -in        {4 4}   {}
+    -out       {1 1}   {E}              -out       {4 4}   {A}
+    -adj       {1 1}   {A D E}          -adj       {4 4}   {A}
+    -inner     {1 1}   {}               -inner     {4 4}   {}
+    -embedding {1 1}   {A D E}          -embedding {4 4}   {A}
+} {
+    test graph-${impl}-${setimpl}-arcs-ioaie-3.$n "arcs, $switch" {
+	SETUP
+
+	mygraph node insert 1 2 3 4 5 6
+	mygraph arc  insert 4 1 A
+	mygraph arc  insert 5 2 B
+	mygraph arc  insert 6 3 C
+	mygraph arc  insert 3 1 D
+	mygraph arc  insert 1 2 E
+	mygraph arc  insert 2 3 F
+
+	set result [lsort [eval [linsert $nodes 0 mygraph arcs $switch]]]
+	mygraph destroy
+	set result
+    } $expected ; # {}
+
+    incr n
+}
+
+test graph-${impl}-${setimpl}-arcs-adj-1.0 {arcs -adj, border case C code failure} -setup {
+    struct::graph mygraph
+    mygraph node insert E
+    mygraph node insert F
+    mygraph arc  insert E F E_F
+} -body {
+    mygraph arcs -adj E
+} -cleanup {
+    mygraph destroy
+} -result {E_F}
+
+# ---------------------------------------------------

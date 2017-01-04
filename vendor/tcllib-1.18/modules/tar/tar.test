@@ -1,0 +1,119 @@
+# -*- tcl -*-
+# These tests are in the public domain
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file normalize [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5 ; # Virt channel support!
+testsNeedTcltest 1.0
+
+# Check if we have TclOO available.
+tcltest::testConstraint tcloo [expr {![catch {package require TclOO}]}]
+
+support {
+    if {[tcltest::testConstraint tcloo]} {
+	use virtchannel_base/memchan.tcl tcl::chan::memchan
+    }
+    useLocalFile tests/support.tcl
+}
+testing {
+    useLocal tar.tcl tar
+}
+
+# -------------------------------------------------------------------------
+
+test tar-stream {stream} -constraints tcloo -setup {
+    setup1
+} -body {
+    string length [read $chan1]
+} -cleanup {
+    cleanup1
+} -result 128000
+
+test tar-pad {pad} -body {
+    tar::pad 230 
+} -result {282}
+
+test tar-skip {skip} -constraints tcloo -setup {
+    setup1
+} -body {
+    tar::skip $chan1 10
+    lappend res [read $chan1 10]
+    tar::skip $chan1 72313
+    lappend res [read $chan1 10]
+} -cleanup {
+    cleanup1
+} -result {{6 7 8 9 10} {07 13908 1}}
+
+test tar-seekorskip-backwards {seekorskip} -constraints tcl8.6plus -setup setup1 -body {
+    # The zlib push stuff is Tcl 8.6+. Properly restrict the test.
+    zlib push gzip $chan1
+    catch {tar::seekorskip $chan1 -10 start} cres
+    lappend res $cres
+    catch {tar::seekorskip $chan1 10 start} cres
+    lappend res $cres
+    catch {tar::seekorskip $chan1 -10 end} cres
+    lappend res $cres
+    catch {tar::seekorskip $chan1 10 end} cres
+    lappend res $cres
+    lappend res [read $chan1 10]
+} -cleanup cleanup1 -match glob \
+    -result [list \
+		 {WHENCE=start not supported*} \
+		 {WHENCE=start not supported*} \
+		 {WHENCE=end not supported*} \
+		 {WHENCE=end not supported*} \
+		 {1 2 3 4 5 } \
+		]
+
+test tar-header {header} -body {
+    set file1 [dict get $filesys Dir1 File1]
+    dict set file1 path /Dir1/File1
+    set header [header_posix $file1]
+    set parsed [string trim [tar::readHeader $header]]
+    set golden "name /Dir1/File1 mode 755 uid 13103 gid 18103 size 100 mtime 5706756101 cksum 3676 type 0 linkname {} magic ustar\0 version 00 uname {} gname {} devmajor 0 devminor 0 prefix {}"
+    set len [string length $parsed]
+    foreach {key value} $golden {
+	if {[set value1 [dict get $parsed $key]] ne $value } {
+	    lappend res [list $key $value $value1]
+	}
+    }
+} -result {}
+
+test tar-add {add} -constraints tcloo -setup {
+    setup1
+} -body {
+    tar::create $chan1 [list $tmpdir/one/a $tmpdir/one/two/a $tmpdir/one/three/a] -chan
+    seek $chan1 0
+    lappend res {*}[tar::contents $chan1 -chan]
+    seek $chan1 0
+    lappend res [string trim [tar::get $chan1 $tmpdir/one/two/a -chan]]
+} -cleanup {
+    cleanup1
+} -result {tartest/one/a tartest/one/two/a tartest/one/three/a hello2}
+
+
+test tar-bug-2840180 {} -setup {
+    setup2
+} -body {
+    tar::create $chan1 [list $tmpdir/[large-path]/a] -chan
+    seek $chan1 0
+
+    # What the package sees.
+    lappend res {*}[tar::contents $chan1 -chan]
+    close $chan1
+
+    # What a regular tar package sees.
+    lappend res [exec 2> $tmpfile.err tar tvf $tmpfile]
+    join $res \n
+} -cleanup {
+    cleanup2
+} -match glob -result [join [list \
+				 tartest/[large-path]/a \
+				 "* tartest/[large-path]/a" \
+				] \n]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

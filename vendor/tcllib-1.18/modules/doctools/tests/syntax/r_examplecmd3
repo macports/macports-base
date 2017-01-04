@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[example_end]
+--> (FmtError) Manpage error (examplecmd), "example_end" : Command allowed only to close example section.

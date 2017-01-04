@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[method .m.]
+--> (FmtError) Manpage error (nodonecmd), "method .m." : Command not allowed after [manpage_end].

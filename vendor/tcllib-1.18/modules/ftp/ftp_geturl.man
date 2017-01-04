@@ -1,0 +1,57 @@
+[vset VERSION 0.2.2]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin ftp::geturl n [vset VERSION]]
+[see_also ftpd]
+[see_also mime]
+[see_also pop3]
+[see_also smtp]
+[keywords ftp]
+[keywords internet]
+[keywords net]
+[keywords {rfc 959}]
+[moddesc   {ftp client}]
+[titledesc {Uri handler for ftp urls}]
+[category  Networking]
+[require Tcl 8.2]
+[require ftp::geturl [opt [vset VERSION]]]
+[description]
+
+This package provides a command which wraps around the client side of
+the [term ftp] protocol provided by package [package ftp] to allow the
+retrieval of urls using the [term ftp] schema.
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::ftp::geturl] [arg url]]
+
+This command can be used by the generic command [cmd ::uri::geturl]
+(See package [package uri]) to retrieve the contents of ftp
+urls. Internally it uses the commands of the package [package ftp] to
+fulfill the request.
+
+[para]
+
+The contents of a [term ftp] url are defined as follows:
+
+[list_begin definitions]
+
+[def [term file]]
+
+The contents of the specified file itself.
+
+[def [term directory]]
+
+A listing of the contents of the directory in key value notation where
+the file name is the key and its attributes the associated value.
+
+[def [term link]]
+
+The attributes of the link, including the path it refers to.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY ftp]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

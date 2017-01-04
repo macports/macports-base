@@ -1,0 +1,149 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id: loggerUtils.man,v 1.7 2009/01/29 06:16:19 andreas_kupries Exp $}]
+[manpage_begin logger::utils n 1.3]
+[keywords appender]
+[keywords logger]
+[copyright {2005 Aamer Akhter <aakhter@cisco.com>}]
+[moddesc {Object Oriented logging facility}]
+[titledesc {Utilities for logger}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require logger::utils [opt 1.3]]
+[description]
+
+This package adds template based [term appenders].
+
+[list_begin definitions]
+
+[call [cmd ::logger::utils::createFormatCmd] [arg formatString]]
+
+This command translates [arg formatString] into an expandable command
+string.
+
+The following strings are the known substitutions (from log4perl)
+allowed to occur in the [arg formatString]:
+
+[list_begin definitions]
+[def %c] Category of the logging event
+[def %C] Fully qualified name of logging event
+[def %d] Current date in yyyy/MM/dd hh:mm:ss
+[def %H] Hostname
+[def %m] Message to be logged
+[def %M] Method where logging event was issued
+[def %p] Priority of logging event
+[def %P] Pid of current process
+[list_end]
+
+[call [cmd ::logger::utils::createLogProc] \
+	[option -procName] [arg procName] \
+	[opt [arg options]...]]
+
+This command ...
+
+[list_begin options]
+
+[opt_def -procName procName]
+
+The name of the procedure to create.
+
+[opt_def -conversionPattern pattern]
+
+See [cmd ::logger::utils::createFormatCmd] for the substitutions
+allowed in the [arg pattern].
+
+[opt_def -category category]
+
+The category (service).
+
+[opt_def -priority priority]
+
+The priority (level).
+
+[opt_def -outputChannel channel]
+
+channel to output on (default stdout)
+
+[list_end]
+
+[call [cmd ::logger::utils::applyAppender] \
+	[option -appender] [arg appenderType] \
+	[opt [arg options]...]]
+
+This command will create an appender for the specified logger
+services. If no service is specified then the appender will be added
+as the default appender for the specified levels. If no levels are
+specified, then all levels are assumed.
+
+[para]
+
+[list_begin options]
+
+[opt_def -service    loggerservices]
+[opt_def -serviceCmd loggerserviceCmds]
+
+Name of the logger instance to modify. [option -serviceCmd] takes as
+input the return of [cmd logger::init].
+
+[opt_def -appender appenderType]
+
+Type of the appender to use.
+One of [const console], [const colorConsole].
+
+
+[opt_def -appenderArgs appenderArgs]
+
+Additional arguments to apply to the appender.
+The argument of the option is a list of options
+and their arguments.
+
+[para] For example
+[example_begin]
+logger::utils::applyAppender -serviceCmd $log -appender console -appenderArgs {-conversionPattern {\[lb]%M\[rb] \[lb]%p\[rb] - %m}}
+[example_end]
+
+The usual Tcl quoting rules apply.
+
+
+[opt_def -levels levelList]
+
+The list of levels to apply this appender to. If not specified all
+levels are assumed.
+
+[list_end]
+[para]
+
+Example of usage:
+
+[para]
+[example {
+   % set log [logger::init testLog]
+   ::logger::tree::testLog
+   % logger::utils::applyAppender -appender console -serviceCmd $log
+   % ${log}::error "this is an error"
+   [2005/08/22 10:14:13] [testLog] [global] [error] this is an error
+}]
+
+[call [cmd ::logger::utils::autoApplyAppender] \
+	[arg command] [arg command-string] [arg log] [arg op] [arg args]... \
+]
+
+This command is designed to be added via [cmd {trace leave}] to calls
+of [cmd logger::init]. It will look at preconfigured state (via
+[cmd ::logger::utils::applyAppender]) to autocreate appenders for
+newly created logger instances.
+
+It will return its argument [arg log].
+
+[para]
+Example of usage:
+[para]
+[example {
+  logger::utils::applyAppender -appender console
+  set log [logger::init applyAppender-3]
+  ${log}::error "this is an error"
+}]
+[list_end]
+
+[vset CATEGORY logger]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,5 @@
+PEG err (eos)
+ eos <- ex (<space>+ ex)*;
+ ex  <- (!X ('x'/'z'))+ X? ;
+ X   <- "x" ;
+END;

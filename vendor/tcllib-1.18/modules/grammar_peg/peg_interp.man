@@ -1,0 +1,122 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::peg::interp n 0.1.1]
+[keywords {context-free languages}]
+[keywords expression]
+[keywords grammar]
+[keywords LL(k)]
+[keywords matching]
+[keywords parsing]
+[keywords {parsing expression}]
+[keywords {parsing expression grammar}]
+[keywords {push down automaton}]
+[keywords {recursive descent}]
+[keywords state]
+[keywords TDPL]
+[keywords {top-down parsing languages}]
+[keywords transducer]
+[keywords {virtual machine}]
+[copyright {2005-2011 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Grammar operations and usage}]
+[titledesc {Interpreter for parsing expression grammars}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require grammar::mengine     [opt 0.1]]
+[require grammar::peg::interp [opt 0.1.1]]
+[description]
+[para]
+
+This package provides commands for the controlled matching of a
+character stream via a parsing expression grammar and the creation
+of an abstract syntax tree for the stream and partials.
+
+[para]
+
+It is built on top of the virtual machine provided by the package
+[package grammar::me::tcl] and directly interprets the parsing
+expression grammar given to it.
+
+In other words, the grammar is [emph not] pre-compiled but used as is.
+
+[para]
+
+The grammar to be interpreted is taken from a container object
+following the interface specified by the package
+[package grammar::peg::container]. Only the relevant parts
+are copied into the state of this package.
+
+[para]
+
+It should be noted that the package provides exactly one instance
+of the interpreter, and interpreting a second grammar requires
+the user to either abort or complete a running interpretation, or
+to put them into different Tcl interpreters.
+
+[para]
+
+Also of note is that the implementation assumes a pull-type
+handling of the input. In other words, the interpreter pulls
+characters from the input stream as it needs them. For usage
+in a push environment, i.e. where the environment pushes new
+characters as they come we have to put the engine into its
+own thread.
+
+[section {THE INTERPRETER API}]
+
+The package exports the following API
+
+[list_begin definitions]
+
+[call [cmd ::grammar::peg::interp::setup] [arg peg]]
+
+This command (re)initializes the interpreter. It returns the
+empty string. This command has to be invoked first, before any
+matching run.
+
+[para]
+
+Its argument [arg peg] is the handle of an object containing the
+parsing expression grammar to interpret. This grammar has to be
+valid, or an error will be thrown.
+
+[call [cmd ::grammar::peg::interp::parse] [arg nextcmd] [arg errorvar] [arg astvar]]
+
+This command interprets the loaded grammar and tries to match it
+against the stream of characters represented by the command prefix
+[arg nextcmd].
+
+[para]
+
+The command prefix [arg nextcmd] represents the input stream of
+characters and is invoked by the interpreter whenever the a new
+character from the stream is required.
+
+The callback has to return either the empty list, or a list of 4
+elements containing the token, its lexeme attribute, and its location
+as line number and column index, in this order.
+
+The empty list is the signal that the end of the input stream has been
+reached. The lexeme attribute is stored in the terminal cache, but
+otherwise not used by the machine.
+
+[para]
+
+The result of the command is a boolean value indicating whether the
+matching process was successful ([const true]), or not
+([const false]). In the case of a match failure error information will
+be stored into the variable referenced by [arg errorvar]. The variable
+referenced by [arg astvar] will always contain the generated abstract
+syntax tree, however in the case of an error it will be only partial
+and possibly malformed.
+
+[para]
+
+The abstract syntax tree is represented by a nested list, as
+described in section [sectref-external {AST VALUES}] of
+document [term grammar::me_ast].
+
+[list_end]
+[para]
+
+[vset CATEGORY grammar_peg]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,83 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::me::util n 0.1]
+[keywords {abstract syntax tree}]
+[keywords {syntax tree}]
+[keywords tree]
+[copyright {2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Grammar operations and usage}]
+[titledesc {AST utilities}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require grammar::me::util [opt 0.1]]
+[description]
+[para]
+
+This package provides a number of utility command for the conversion
+between the various representations of abstract syntax trees as
+specified in the document [syscmd grammar::me_ast].
+
+[list_begin definitions]
+
+[call [cmd ::grammar::me::util::ast2tree] [arg ast] [arg tree] [opt [arg root]]]
+
+This command converts an [arg ast] from value to object
+representation. All nodes in the [arg ast] will be converted into
+nodes of this [arg tree], with the root of the AST a child of the node
+[arg root]. If this node is not explicitly specified the root of the
+tree is used. Existing content of tree is not touched, i.e.  neither
+removed nor changed, with the exception of the specified root node,
+which will gain a new child.
+
+[call [cmd ::grammar::me::util::ast2etree] [arg ast] [arg mcmd] [arg tree] [opt [arg root]]]
+
+This command is like [cmd ::grammar::me::util::ast2tree], except that
+the result is in the extended object representation of the input AST.
+
+The source of the extended information is the command prefix
+
+[arg mcmd].
+
+It has to understand two methods, [method lc], and [method tok], with
+the semantics specified below.
+
+[list_begin definitions]
+
+[call [cmd mcmd] [method lc] [arg location]]
+
+Takes the location of a token given as offset in the input stream and
+return a 2-element list containing the associated line number and
+column index, in this order.
+
+[call [cmd mcmd] [method tok] [arg from] [opt [arg to]]]
+
+Takes one or two locations [arg from] and [arg to] as offset in the
+input stream and returns a Tcl list containing the specified part of
+the input stream. Both location are inclusive. If [arg to] is not
+specified it will default to the value of [arg from].
+
+[para]
+
+Each element of the returned list is a list containing the token, its
+associated lexeme, the line number, and column index, in this order.
+
+[list_end]
+[para]
+
+Both the ensemble command [cmd ::grammar::me::tcl] provided by the
+package [package grammar::me::tcl] and the objects command created by
+the package [package ::grammar::me::cpu] fit the above specification.
+
+[call [cmd ::grammar::me::util::tree2ast] [arg tree] [opt [arg root]]]
+
+This command converts an [arg ast] in (extended) object representation
+into a value and returns it.
+
+If a [arg root] node is specified the AST is generated from that node
+downward. Otherwise the root of the tree object is used as the
+starting point.
+
+[list_end]
+
+[vset CATEGORY grammar_me]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

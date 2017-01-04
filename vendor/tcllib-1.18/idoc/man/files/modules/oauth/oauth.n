@@ -1,0 +1,492 @@
+'\"
+'\" Generated from file 'oauth\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2014 Javi P\&. <hxm@eggdrop\&.es>
+'\"
+.TH "oauth" n 1\&.0 tcllib "oauth"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+oauth \- oauth API base signature
+.SH SYNOPSIS
+package require \fBTcl  8\&.5\fR
+.sp
+package require \fBoauth  ?1\&.0?\fR
+.sp
+\fB::oauth::config\fR
+.sp
+\fB::oauth::config\fR ?\fIoptions\fR\&.\&.\&.?
+.sp
+\fB::oauth::header\fR \fIbaseURL\fR ?\fIpostQuery\fR?
+.sp
+\fB::oauth::query\fR \fIbaseURL\fR ?\fIpostQuery\fR?
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+The \fBoauth\fR package provides a simple Tcl-only library
+for communication with \fIoauth\fR [http://oauth\&.net] APIs\&.
+This current version of the package supports the Oauth 1\&.0 Protocol,
+as specified in \fIRFC 5849\fR [http://tools\&.ietf\&.org/rfc/rfc5849\&.txt]\&.
+.SH "TLS SECURITY CONSIDERATIONS"
+This package uses the \fBTLS\fR package to handle the security
+for \fBhttps\fR urls and other socket connections\&.
+.PP
+Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of \fBTLS\fR, nor of
+this package itself however\&.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well\&.
+.PP
+For example, in light of the recent
+\fIPOODLE attack\fR [http://googleonlinesecurity\&.blogspot\&.co\&.uk/2014/10/this-poodle-bites-exploiting-ssl-30\&.html] discovered by Google many servers will disable support
+for the SSLv3 protocol\&.
+To handle this change the applications using \fBTLS\fR must be
+patched, and not this package, nor \fBTLS\fR itself\&.
+Such a patch may be as simple as generally activating \fBtls1\fR
+support, as shown in the example below\&.
+.CS
+
+
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+
+    \&.\&.\&. your own application code \&.\&.\&.
+
+.CE
+.SH COMMANDS
+.TP
+\fB::oauth::config\fR
+When this command is invoked without arguments it returns a dictionary
+containing the current values of all options\&.
+.TP
+\fB::oauth::config\fR ?\fIoptions\fR\&.\&.\&.?
+When invoked with arguments, options followed by their values, it is used
+to set and query various parameters of application and client, like proxy
+host and user agent for the HTTP requests\&. The detailed list of options
+is below:
+.RS
+.TP
+\fB-accesstoken\fR \fIstring\fR
+This is the user's token\&.
+.TP
+\fB-accesstokensecret\fR \fIstring\fR
+This is the user's secret token\&.
+.TP
+\fB-consumerkey\fR \fIstring\fR
+This is the public token of your app\&.
+.TP
+\fB-consumersecret\fR \fIstring\fR
+This is the private token of your app\&.
+.TP
+\fB-debug\fR \fIbool\fR
+The default value is \fBoff\fR\&. If you change this option to \fBon\fR,
+the basic signature just created will be printed to stdout, among other
+debug output\&.
+.TP
+\fB-oauthversion\fR \fIversion\fR
+This is the version of the OAuth protocol to use\&.
+At the moment only \fB1\&.0\fR is supported, the default\&.
+.TP
+\fB-proxyhost\fR \fIhostname\fR
+You can set up a proxy host for send contact the oauth's api server\&.
+.TP
+\fB-proxyport\fR \fIport-number\fR
+Port number of your proxy\&.
+.TP
+\fB-signmethod\fR \fImethod\fR
+The signature method to use\&. OAuth 1\&.0 only supports \fBHMAC-SHA1\fR, the default\&.
+.TP
+\fB-timeout\fR \fImilliseconds\fR
+Timeout in milliseconds for your query\&.
+The default value is \fB6000\fR, i\&.e\&. 6 seconds\&.
+.TP
+\fB-urlencoding\fR \fIencoding\fR
+The encoding used for creating the x-url-encoded URLs with
+\fB::http::formatQuery\fR\&. The default is \fButf-8\fR, as specified
+by \fIRFC 2718\fR [http://tools\&.ietf\&.org/rfc/rfc2718\&.txt]\&.
+.RE
+.TP
+\fB::oauth::header\fR \fIbaseURL\fR ?\fIpostQuery\fR?
+This command is the base signature creator\&. With proper settings for various tokens
+and secrets (See \fB::oauth::config\fR) the result is the base authentication string
+to send to the server\&.
+.sp
+You do not need to call this procedure to create the query because
+\fB::oauth::query\fR (see below) will do for it for you\&.
+Doing so is useful for debugging purposes, though\&.
+.RS
+.TP
+url \fIbaseURL\fR
+This argument is the URI path to the OAuth API server\&.
+If you plan send a GET query, you should provide a full path\&.
+.CS
+
+
+HTTP GET
+::oauth::header {https://api\&.twitter\&.com/1\&.1/users/lookup\&.json?screen_name=AbiertaMente}
+
+.CE
+.TP
+url-encoded-string \fIpostQuery\fR
+When you have to send a header in POST format, you have to put the query string into this argument\&.
+.CS
+
+
+::oauth::header {https://api\&.twitter\&.com/1\&.1/friendships/create\&.json} {user_id=158812437&follow=true}
+
+.CE
+.RE
+.TP
+\fB::oauth::query\fR \fIbaseURL\fR ?\fIpostQuery\fR?
+This procedure will use the settings made with \fB::oauth::config\fR to create the
+basic authentication and then send the command to the server API\&.
+It takes the same arguments as \fB::oauth::header\fR\&.
+.sp
+The returned result will be a list containing 2 elements\&. The first
+element will be a dictionary containing the HTTP header data response\&.
+This allows you, for example, to check the X-Rate-Limit from OAuth\&.
+The second element will be the raw data returned from API server\&.
+This string is usually a json object which can be further decoded with the
+functions of package \fBjson\fR, or any other json-parser for Tcl\&.
+.sp
+Here is an example of how it would work in Twitter\&. Do not forget to
+replace the placeholder tokens and keys of the example with your own tokens
+and keys when trying it out\&.
+.CS
+
+% package require oauth
+% package require json
+% oauth::config -consumerkey {your_consumer_key} -consumersecret {your_consumer_key_secret} -accesstoken {your_access_token} -accesstokensecret {your_access_token_secret}
+
+% set response [oauth::query https://api\&.twitter\&.com/1\&.1/users/lookup\&.json?screen_name=AbiertaMente]
+% set jsondata [lindex $response 1]
+% set data [json::json2dict $jsondata]
+$ set data [lindex $data 0]
+% dict for {key val} $data {puts "$key => $val"}
+id => 158812437
+id_str => 158812437
+name => Un Librepensador
+screen_name => AbiertaMente
+location => Explico mis tuits ahí →
+description => 160Caracteres para un SMS y contaba mi vida entera sin recortar vocales\&. Ahora en Twitter, podemos usar hasta 140 y a mí me sobrarían 20 para contaros todo lo q
+url => http://t\&.co/SGs3k9odBn
+entities => url {urls {{url http://t\&.co/SGs3k9odBn expanded_url http://librepensamiento\&.es display_url librepensamiento\&.es indices {0 22}}}} description {urls {}}
+protected => false
+followers_count => 72705
+friends_count => 53099
+listed_count => 258
+created_at => Wed Jun 23 18:29:58 +0000 2010
+favourites_count => 297
+utc_offset => 7200
+time_zone => Madrid
+geo_enabled => false
+verified => false
+statuses_count => 8996
+lang => es
+status => created_at {Sun Oct 12 08:02:38 +0000 2014} id 521209314087018496 id_str 521209314087018496 text {@thesamethanhim http://t\&.co/WFoXOAofCt} source {<a href="http://twitter\&.com" rel="nofollow">Twitter Web Client</a>} truncated false in_reply_to_status_id 521076457490350081 in_reply_to_status_id_str 521076457490350081 in_reply_to_user_id 2282730867 in_reply_to_user_id_str 2282730867 in_reply_to_screen_name thesamethanhim geo null coordinates null place null contributors null retweet_count 0 favorite_count 0 entities {hashtags {} symbols {} urls {{url http://t\&.co/WFoXOAofCt expanded_url http://www\&.elmundo\&.es/internacional/2014/03/05/53173dc1268e3e3f238b458a\&.html display_url elmundo\&.es/internacional/… indices {16 38}}} user_mentions {{screen_name thesamethanhim name Ἑλένη id 2282730867 id_str 2282730867 indices {0 15}}}} favorited false retweeted false possibly_sensitive false lang und
+contributors_enabled => false
+is_translator => true
+is_translation_enabled => false
+profile_background_color => 709397
+profile_background_image_url => http://pbs\&.twimg\&.com/profile_background_images/704065051/9309c02aa2728bdf543505ddbd408e2e\&.jpeg
+profile_background_image_url_https => https://pbs\&.twimg\&.com/profile_background_images/704065051/9309c02aa2728bdf543505ddbd408e2e\&.jpeg
+profile_background_tile => true
+profile_image_url => http://pbs\&.twimg\&.com/profile_images/2629816665/8035fb81919b840c5cc149755d3d7b0b_normal\&.jpeg
+profile_image_url_https => https://pbs\&.twimg\&.com/profile_images/2629816665/8035fb81919b840c5cc149755d3d7b0b_normal\&.jpeg
+profile_banner_url => https://pbs\&.twimg\&.com/profile_banners/158812437/1400828874
+profile_link_color => FF3300
+profile_sidebar_border_color => FFFFFF
+profile_sidebar_fill_color => A0C5C7
+profile_text_color => 333333
+profile_use_background_image => true
+default_profile => false
+default_profile_image => false
+following => true
+follow_request_sent => false
+notifications => false
+.CE
+.PP
+.PP
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIoauth\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.SH KEYWORDS
+RFC 2718, RFC 5849, oauth, twitter
+.SH CATEGORY
+Networking
+.SH COPYRIGHT
+.nf
+Copyright (c) 2014 Javi P\&. <hxm@eggdrop\&.es>
+
+.fi

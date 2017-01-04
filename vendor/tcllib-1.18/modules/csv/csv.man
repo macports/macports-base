@@ -1,0 +1,247 @@
+[comment {-*- tcl -*-}]
+[vset VERSION 0.8.1]
+[manpage_begin csv n [vset VERSION]]
+[see_also matrix]
+[see_also queue]
+[keywords csv]
+[keywords matrix]
+[keywords package]
+[keywords queue]
+[keywords tcllib]
+[copyright {2002-2015 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {CSV processing}]
+[titledesc {Procedures to handle CSV data.}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require csv [opt [vset VERSION]]]
+[description]
+
+[para]
+
+The [package csv] package provides commands to manipulate information
+in CSV [sectref FORMAT] (CSV = Comma Separated Values).
+
+[section COMMANDS]
+[para]
+
+The following commands are available:
+
+[list_begin definitions]
+
+[call [cmd ::csv::iscomplete] [arg data]]
+
+A predicate checking if the argument [arg data] is a complete csv
+record. The result is a boolean flag indicating the completeness of
+the data. The result is true if the data is complete.
+
+[call [cmd ::csv::join] [arg values] [opt [arg sepChar]] [opt [arg delChar]] [opt [arg delMode]]]
+
+Takes a list of values and returns a string in CSV format containing
+these values. The separator character can be defined by the caller,
+but this is optional. The default is ",". The quoting aka delimiting character can
+be defined by the caller, but this is optional. The default is '"'.
+
+By default the quoting mode [arg delMode] is "auto", surrounding
+values with [arg delChar] only when needed. When set to "always"
+however, values are always surrounded by the [arg delChar] instead.
+
+[call [cmd ::csv::joinlist] [arg values] [opt [arg sepChar]] [opt [arg delChar]] [opt [arg delMode]]]
+
+Takes a list of lists of values and returns a string in CSV format
+containing these values. The separator character can be defined by the
+caller, but this is optional. The default is ",". The quoting character
+can be defined by the caller, but this is optional. The default is '"'.
+
+By default the quoting mode [arg delMode] is "auto", surrounding
+values with [arg delChar] only when needed. When set to "always"
+however, values are always surrounded by the [arg delChar] instead.
+
+Each element of the outer list is considered a record, these are
+separated by newlines in the result. The elements of each record are
+formatted as usual (via [cmd ::csv::join]).
+
+[call [cmd ::csv::joinmatrix] [arg matrix] [opt [arg sepChar]] [opt [arg delChar]] [opt [arg delMode]]]
+
+Takes a [arg matrix] object following the API specified for the
+struct::matrix package and returns a string in CSV format containing
+these values. The separator character can be defined by the caller,
+but this is optional. The default is ",". The quoting character
+can be defined by the caller, but this is optional. The default is
+'"'.
+
+By default the quoting mode [arg delMode] is "auto", surrounding
+values with [arg delChar] only when needed. When set to "always"
+however, values are always surrounded by the [arg delChar] instead.
+
+Each row of the matrix is considered a record, these are
+separated by newlines in the result. The elements of each record are
+formatted as usual (via [cmd ::csv::join]).
+
+[call [cmd ::csv::read2matrix] [opt [option -alternate]] [arg "chan m"] "{[arg sepChar] ,} {[arg expand] none}"]
+
+A wrapper around [cmd ::csv::split2matrix] (see below) reading
+CSV-formatted lines from the specified channel (until EOF) and adding
+them to the given matrix. For an explanation of the [arg expand]
+argument see [cmd ::csv::split2matrix].
+
+[call [cmd ::csv::read2queue] [opt [option -alternate]] [arg "chan q"] "{[arg sepChar] ,}"]
+
+A wrapper around [cmd ::csv::split2queue] (see below) reading
+CSV-formatted lines from the specified channel (until EOF) and adding
+them to the given queue.
+
+[call [cmd ::csv::report] [arg "cmd matrix"] [opt [arg chan]]]
+
+A report command which can be used by the matrix methods
+
+[cmd "format 2string"] and [cmd "format 2chan"]. For the latter this
+command delegates the work to [cmd ::csv::writematrix]. [arg cmd] is
+expected to be either [method printmatrix] or
+
+[method printmatrix2channel]. The channel argument, [arg chan], has
+to be present for the latter and must not be present for the first.
+
+[call [cmd ::csv::split] [opt [option -alternate]] [arg line] [opt [arg sepChar]] [opt [arg delChar]]]
+
+converts a [arg line] in CSV format into a list of the values
+contained in the line. The character used to separate the values from
+each other can be defined by the caller, via [arg sepChar], but this
+is optional. The default is ",". The quoting character can be defined
+by the caller, but this is optional. The default is '"'.
+
+[para]
+
+If the option [option -alternate] is specified a slightly different
+syntax is used to parse the input. This syntax is explained below, in
+the section [sectref FORMAT].
+
+[call [cmd ::csv::split2matrix] [opt [option -alternate]] [arg "m line"] "{[arg sepChar] ,} {[arg expand] none}"]
+
+The same as [cmd ::csv::split], but appends the resulting list as a
+new row to the matrix [arg m], using the method [cmd "add row"]. The
+expansion mode specified via [arg expand] determines how the command
+handles a matrix with less columns than contained in [arg line]. The
+allowed modes are:
+
+[list_begin definitions]
+
+[def [const none]]
+
+This is the default mode. In this mode it is the responsibility of the
+caller to ensure that the matrix has enough columns to contain the
+full line. If there are not enough columns the list of values is
+silently truncated at the end to fit.
+
+[def [const empty]]
+
+In this mode the command expands an empty matrix to hold all columns
+of the specified line, but goes no further. The overall effect is that
+the first of a series of lines determines the number of columns in the
+matrix and all following lines are truncated to that size, as if mode
+[const none] was set.
+
+[def [const auto]]
+
+In this mode the command expands the matrix as needed to hold all
+columns contained in [arg line]. The overall effect is that after
+adding a series of lines the matrix will have enough columns to hold
+all columns of the longest line encountered so far.
+
+[list_end]
+
+[call [cmd ::csv::split2queue] [opt [option -alternate]] [arg "q line"] "{[arg sepChar] ,}"]
+
+The same as [cmd ::csv::split], but appending the resulting list as a
+single item to the queue [arg q], using the method [cmd put].
+
+[call [cmd ::csv::writematrix] [arg "m chan"] [opt [arg sepChar]] [opt [arg delChar]]]
+
+A wrapper around [cmd ::csv::join] taking all rows in the matrix
+[arg m] and writing them CSV formatted into the channel [arg chan].
+
+[call [cmd ::csv::writequeue] [arg "q chan"] [opt [arg sepChar]] [opt [arg delChar]]]
+
+A wrapper around [cmd ::csv::join] taking all items in the queue
+[arg q] (assumes that they are lists) and writing them CSV formatted
+into the channel [arg chan].
+
+[list_end]
+
+[section FORMAT]
+[para]
+
+The format of regular CSV files is specified as
+
+[list_begin enumerated]
+
+[enum]
+Each record of a csv file (comma-separated values, as exported e.g. by
+Excel) is a set of ASCII values separated by ",". For other languages
+it may be ";" however, although this is not important for this case as
+the functions provided here allow any separator character.
+
+[enum]
+If and only if a value contains itself the separator ",", then it (the
+value) has to be put between "". If the value does not contain the
+separator character then quoting is optional.
+
+[enum]
+If a value contains the character ", that character is represented by "".
+
+[enum]
+The output string "" represents the value ". In other words, it is
+assumed that it was created through rule 3, and only this rule,
+i.e. that the value was not quoted.
+
+[list_end]
+[para]
+
+An alternate format definition mainly used by MS products specifies
+that the output string "" is a representation of the empty
+string. In other words, it is assumed that the output was generated
+out of the empty string by quoting it (i.e. rule 2), and not through
+rule 3. This is the only difference between the regular and the
+alternate format.
+
+[para]
+
+The alternate format is activated through specification of the option
+[option -alternate] to the various split commands.
+
+[section EXAMPLE]
+
+Using the regular format the record
+
+[para]
+[example {
+123,"123,521.2","Mary says ""Hello, I am Mary""",""
+}]
+
+[para]
+is parsed into the items
+
+[para]
+[example {
+a) 123
+b) 123,521.2
+c) Mary says "Hello, I am Mary"
+d) "
+}]
+[para]
+
+Using the alternate format the result is
+
+[para]
+[example {
+a) 123
+b) 123,521.2
+c) Mary says "Hello, I am Mary"
+d) (the empty string)
+}]
+
+instead. As can be seen only item (d) is different, now the empty string
+instead of a ".
+
+[vset CATEGORY csv]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

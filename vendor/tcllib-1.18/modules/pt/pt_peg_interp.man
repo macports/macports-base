@@ -1,0 +1,80 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 1.0.1]
+[manpage_begin pt::peg::interp n [vset PACKAGE_VERSION]]
+[include include/module.inc]
+[titledesc {Interpreter for parsing expression grammars}]
+[require pt::peg::interp [opt [vset PACKAGE_VERSION]]]
+[require pt::rde         [opt 1]]
+[require snit]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a class whose instances are Packrat parsers
+configurable with a parsing expression grammar. The grammar is
+executed directly, i.e. interpreted, with the underlying runtime
+provided by the package [package pt::rde], basing everything on the
+PARAM.
+
+[para]
+
+Like the supporting runtime this package resides in the Execution
+section of the Core Layer of Parser Tools.
+[para][image arch_core_transform][para]
+
+[para]
+
+The interpreted grammar is copied from an instance of [package \
+pt::peg::container], or anything providing the same API, like the
+container classes created by [package pt::peg::to::container] or the
+associated export plugin [package pt::peg::export::container].
+
+[subsection {Class API}]
+
+The package exports the API described here.
+
+[list_begin definitions]
+
+[call [cmd ::pt::peg::interp] [arg objectName] [arg grammar]]
+
+The command creates a new parser object and returns the fully
+qualified name of the object command as its result. The API of this
+object command is described in the section [sectref {Object API}]. It
+may be used to invoke various operations on the object.
+
+[para]
+
+This new parser is configured for the execution of an empty PEG. To
+configure the object for any other PEG use the method [method use] of
+the [sectref {Object API}].
+
+[list_end]
+
+[subsection {Object API}]
+
+All objects created by this package provide the following methods.
+
+[list_begin definitions]
+
+[call [arg objectName] [method use] [arg grammar]]
+
+This method configures the grammar interpreter / parser for the
+execution of the PEG stored in [arg grammar], an object which is
+API-compatible to instances of [package pt::peg::container]. The
+parser copies the relevant information of the grammar, and does
+[emph not] take ownership of the object.
+
+[para]
+
+The information of any previously used grammar is overwritten.
+
+[para]
+
+The result of the method the empty string.
+
+[include include/std_parser_object_api.inc]
+[list_end]
+
+[include include/serial/ast.inc]
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

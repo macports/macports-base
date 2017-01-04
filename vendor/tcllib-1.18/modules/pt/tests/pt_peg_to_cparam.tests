@@ -1,0 +1,64 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-to-cparam-1.0 {convert, wrong#args} -body {
+    pt::peg::to::cparam convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::cparam convert serial"}
+
+test pt-peg-to-cparam-1.1 {convert, wrong#args} -body {
+    pt::peg::to::cparam convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::cparam convert serial"}
+
+test pt-peg-to-cparam-2.0 {reset, wrong#args} -body {
+    pt::peg::to::cparam reset XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::cparam reset"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of peg output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+TestFilesProcess $mytestdir ok peg_serial-canonical peg_cparam -> n label input data expected {
+    test pt-peg-to-cparam-3.$n "pt::peg::to::cparam, $label, ok :- $input" -setup {
+
+	text::write reset
+	text::write field   {/*}                                           ; text::write /line
+	text::write field   { *} -*- tcl -*-                               ; text::write /line
+	text::write field   { *} Parsing Expression Grammar '@name@'.      ; text::write /line
+	text::write field   { *} Generated for @user@, from file '@file@'  ; text::write /line
+	text::write field   { */}                                          ; text::write /line
+	text::write /line
+	text::write field   @code@                                         ; text::write /line
+	text::write field   {/*}                                           ; text::write /line
+	text::write field   { */}                                          ; text::write /line
+
+	pt::peg::to::cparam reset
+	pt::peg::to::cparam configure -name     TEMPLATE
+	pt::peg::to::cparam configure -file     TEST
+	pt::peg::to::cparam configure -template [text::write get]
+
+	pt::peg::to::cparam configure -fun-qualifier   <<attributes>>
+	pt::peg::to::cparam configure -self-command    <<self>>
+	pt::peg::to::cparam configure -prelude         <<prelude>>
+	pt::peg::to::cparam configure -namespace       <<ns>>
+	pt::peg::to::cparam configure -main            <<main>>
+
+	pt::peg::to::cparam configure -state-decl       {<<STATE>> <<state>>}
+	pt::peg::to::cparam configure -state-ref        <<state>>
+	pt::peg::to::cparam configure -string-varname   <<string-table>>
+
+	text::write reset
+    } -body {
+	pt::peg::to::cparam convert $data
+    } -cleanup {
+	pt::peg::to::cparam reset
+    } -result $expected
+}
+
+
+#----------------------------------------------------------------------
+unset n label input data expected

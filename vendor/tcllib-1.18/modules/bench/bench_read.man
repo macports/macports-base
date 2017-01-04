@@ -1,0 +1,65 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin bench::in n 0.1]
+[see_also bench]
+[see_also bench::out::csv]
+[see_also bench::out::text]
+[see_also bench_intro]
+[keywords benchmark]
+[keywords csv]
+[keywords formatting]
+[keywords {human readable}]
+[keywords parsing]
+[keywords performance]
+[keywords reading]
+[keywords testing]
+[keywords text]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Benchmarking/Performance tools}]
+[titledesc {bench::in - Reading benchmark results}]
+[category  {Benchmark tools}]
+[require Tcl 8.2]
+[require csv]
+[require bench::in [opt 0.1]]
+[description]
+
+This package provides a command for reading benchmark results from
+files, sockets, etc.
+
+[para]
+
+A reader interested in the creation, processing or writing of such
+results should go and read
+[term {bench - Processing benchmark suites}] instead.
+
+[para]
+
+If the bench language itself is the actual interest please start with
+the [term {bench language introduction}] and then proceed from there
+to the formal [term {bench language specification}].
+
+[para]
+
+[section {PUBLIC API}]
+
+[list_begin definitions]
+
+[call [cmd ::bench::in::read] [arg file]]
+
+This command reads a benchmark result from the specified [arg file]
+and returns it as its result. The command understands the three
+formats created by the commands
+
+[list_begin commands]
+[cmd_def bench::out::raw]  Provided by package [package bench].
+[cmd_def bench::out::csv]  Provided by package [package bench::out::csv].
+[cmd_def bench::out::text] Provided by package [package bench::out::text].
+[list_end]
+[para]
+
+and automatically detects which format is used by the input file.
+
+[list_end]
+
+[vset CATEGORY bench]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

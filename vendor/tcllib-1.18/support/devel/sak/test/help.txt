@@ -1,0 +1,46 @@
+
+    test -- Execute testsuites
+
+    sak test run ?-s|--shell PATH? ?-l|--log STEM? ?-g|--valgrind? ?-v? ?MODULE ...?
+
+        Run the testsuites of the specified modules, using the shell
+        running SAK for the testsuites as well. If no modules are
+        specified the testsuites of all modules are run.
+
+        If --valgrind is specified the testsuites are run under the
+        valgrind memory checker. NOTE. This feature is not available
+        on the windows platform. Requests for it will be ignored.
+
+        If one or more --shell's are specified the testsuites are run
+        against them. If none are specified the shells registered with
+        'shell add' (see below) are used instead. If none are
+        specified the shell executing the sak is used instead.
+
+        By default the output from a run is animated feedback of the
+        progress made. If -v is specified the actual log is returned
+        instead.
+
+        If a log STEM is specified the extended log normally activated
+        via -v is written to STEM.log while the user is provided with
+        the regular feedback during execution. In addition the
+        summaries from the feedback are written to STEM.summary as
+        well, and also sorted into STEM.failures, STEM.skipped, and
+        STEM.none. The -l switch overides -v.
+
+    sak test shells
+
+        Returns a list of the registered shells, one per line, used to
+        execute the testsuites.
+
+    sak test shell add PATH...
+
+        Adds the specified paths to the list of shells to use when
+        executing testsuites.
+
+    sak test shell delete PATH...
+
+        Removes the specified paths from the list of shells to use
+        when executing testsuites.
+
+    NOTE: The list of registered shells is a per-user configuration
+          setting and is saved in the file "$HOME/.Tcllib/Registry".

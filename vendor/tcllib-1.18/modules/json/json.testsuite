@@ -1,0 +1,102 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+set i 0
+foreach name [lsort -dict [array names JSON]] {
+    test json-${impl}-1.[incr i] "test JSON $name" -body {
+	transform [json::json2dict $JSON($name)] $name
+    } -result [resultfor $name]
+}
+
+set i 0
+foreach name [lsort -dict [array names JSON]] {
+    test json-${impl}-7.[incr i] "validate JSON $name" -body {
+        json::validate $JSON($name)
+    } -result 1
+}
+
+set i 0
+foreach name [lsort -dict [array names FAIL]] {
+    test json-${impl}-8.[incr i] "test FAIL $name" -body {
+	json::json2dict $FAIL($name)
+    } -returnCodes error -result $ERR(${name}-${impl})
+}
+
+set i 0
+foreach name [lsort -dict [array names FAIL]] {
+    test json-${impl}-9.[incr i] "validate FAIL $name" -body {
+        json::validate $FAIL($name)
+    } -result 0
+}
+
+# -------------------------------------------------------------------------
+# More Tests - list2json, string2json
+# TODO: dict2json
+# -------------------------------------------------------------------------
+
+test json-${impl}-2.0 {list2json} -body {
+    json::list2json {{"a"} {"b"} {"c"}}
+} -result {["a","b","c"]}
+
+test json-${impl}-2.1 {string2json} -body {
+    json::string2json a
+} -result {"a"}
+
+# -------------------------------------------------------------------------
+# many-json2dict
+# -------------------------------------------------------------------------
+
+test json-${impl}-3.0 {many-json2dict, wrong args, not enough} -body {
+    json::many-json2dict
+} -returnCodes error -match glob -result {wrong # args: should be "*json::many[-_]json2dict* jsonText ?max?"}
+
+test json-${impl}-3.1 {many-json2dict, wrong args, too many} -body {
+    json::many-json2dict J M X
+} -returnCodes error -match glob -result {wrong # args: should be "*json::many[-_]json2dict* jsonText ?max?"}
+
+test json-${impl}-3.2 {many-json2dict, bad limit, zero} -body {
+    json::many-json2dict {[]} 0
+} -returnCodes error -result {Bad limit 0 of json entities to extract.}
+
+set i 0
+foreach first [lsort -dict [array names JSON]] {
+    foreach second [lsort -dict [array names JSON]] {
+        set    input $JSON($first)
+        append input " " $JSON($second)
+
+        set     output {}
+        lappend output [resultfor $first]
+        lappend output [resultfor $second]
+
+        test json-${impl}-4.[incr i] "many-json2dict: $first/$second, all" -body {
+            transform* [json::many-json2dict $input] $first $second
+        } -result $output
+    }
+}
+
+set i 0
+foreach first [lsort -dict [array names JSON]] {
+    foreach second [lsort -dict [array names JSON]] {
+        set    input $JSON($first)
+        append input " " $JSON($second)
+
+        set     output {}
+        lappend output [resultfor $first]
+
+        test json-${impl}-5.[incr i] "many-json2dict: $first/$second, first only" -body {
+            transform* [json::many-json2dict $input 1] $first
+        } -result $output
+    }
+}
+
+set i 0
+foreach first [lsort -dict [array names JSON]] {
+    set input $JSON($first)
+    test json-${impl}-6.[incr i] "many-json2dict, bad limit, 3 over 1" -body {
+        json::many-json2dict $input 3
+    } -returnCodes error -result {Bad limit 3 of json entities to extract, found only 1.}
+}
+
+# -------------------------------------------------------------------------

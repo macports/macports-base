@@ -1,0 +1,34 @@
+# documentation: http://code.google.com/p/bitly-api/wiki/ApiDocumentation
+
+package require rest
+
+set bitly(shorten) {
+    url http://api.bit.ly/v3/shorten
+    req_args { login: apiKey: }
+    opt_args { domain: }
+    body { argument longUrl }
+    check_result { {[dict get $result status_code] == "200"} {} }
+}
+
+set bitly(expand) {
+    url http://api.bit.ly/v3/expand
+    req_args { login: apiKey: }
+    body { arg shortUrl }
+    check_result { {[dict get $result status_code] == "200"} {} }
+}
+
+set bitly(clicks) {
+    url http://api.bit.ly/v3/clicks
+    req_args { login: apiKey: }
+    body { arg shortUrl }
+    check_result { {[dict get $result status_code] == "200"} {} }
+}
+
+set bitly(referrers) {
+    url http://api.bit.ly/v3/referrers
+    req_args { login: apiKey: }
+    body { arg shortUrl }
+    check_result { {[dict get $result status_code] == "200"} {} }
+}
+
+rest::create_interface bitly

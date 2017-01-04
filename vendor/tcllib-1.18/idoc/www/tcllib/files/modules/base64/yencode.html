@@ -1,0 +1,210 @@
+<html><head>
+<title>yencode - Text encoding &amp; decoding binary data</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'yencode.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002, Pat Thoyts
+   -->
+<! -- yencode.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">yencode(n) 1.1.2 tcllib &quot;Text encoding &amp; decoding binary data&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>yencode - Y-encode/decode binary data</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section3">References</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">yencode <span class="opt">?1.1.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::yencode::encode</b> <i class="arg">string</i></a></li>
+<li><a href="#2"><b class="cmd">::yencode::decode</b> <i class="arg">string</i></a></li>
+<li><a href="#3"><b class="cmd">::yencode::yencode</b> <span class="opt">?<b class="option">-name</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-line</b> <i class="arg">integer</i>?</span> <span class="opt">?<b class="option">-crc32</b> <i class="arg">boolean</i>?</span> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></li>
+<li><a href="#4"><b class="cmd">::yencode::ydecode</b> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a Tcl-only implementation of the yEnc file
+encoding. This is a recently introduced method of encoding binary
+files for transmission through Usenet. This encoding packs binary data
+into a format that requires an 8-bit clean transmission layer but that
+escapes characters special to the <i class="term"><a href="../../../../index.html#key651">NNTP</a></i> posting protocols. See
+<a href="http://www.yenc.org/">http://www.yenc.org/</a> for details concerning the algorithm.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::yencode::encode</b> <i class="arg">string</i></a></dt>
+<dd><p>returns the yEnc encoded data.</p></dd>
+<dt><a name="2"><b class="cmd">::yencode::decode</b> <i class="arg">string</i></a></dt>
+<dd><p>Decodes the given yEnc encoded data.</p></dd>
+<dt><a name="3"><b class="cmd">::yencode::yencode</b> <span class="opt">?<b class="option">-name</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-line</b> <i class="arg">integer</i>?</span> <span class="opt">?<b class="option">-crc32</b> <i class="arg">boolean</i>?</span> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></dt>
+<dd><p>Encode a file or block of data.</p></dd>
+<dt><a name="4"><b class="cmd">::yencode::ydecode</b> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></dt>
+<dd><p>Decode a file or block of data. A file may contain more than one
+embedded file so the result is a list where each element is a three
+element list of filename, file size and data.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">OPTIONS</a></h2>
+<dl class="doctools_definitions">
+<dt>-filename name</dt>
+<dd><p>Cause the yencode or ydecode commands to read their data from the
+named file rather that taking a string parameter.</p></dd>
+<dt>-name string</dt>
+<dd><p>The encoded data header line contains the suggested file name to be
+used when unpacking the data. Use this option to change this from the
+default of &quot;data.dat&quot;.</p></dd>
+<dt>-line integer</dt>
+<dd><p>The yencoded data header line contains records the line length used
+during the encoding. Use this option to select a line length other
+that the default of 128. Note that NNTP imposes a 1000 character line
+length limit and some gateways may have trouble with more than 255
+characters per line.</p></dd>
+<dt>-crc32 boolean</dt>
+<dd><p>The yEnc specification recommends the inclusion of a cyclic redundancy
+check value in the footer. Use this option to change the default from
+<i class="arg">true</i> to <i class="arg">false</i>.</p></dd>
+</dl>
+<pre class="doctools_example">
+% set d [yencode::yencode -file testfile.txt]
+=ybegin line=128 size=584 name=testfile.txt
+ -o- data not shown -o-
+=yend size=584 crc32=ded29f4f
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http://www.yenc.org/yenc-draft.1.3.txt">http://www.yenc.org/yenc-draft.1.3.txt</a></p></li>
+</ol>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>base64</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key254">encoding</a>, <a href="../../../../index.html#key707">yEnc</a>, <a href="../../../../index.html#key705">ydecode</a>, <a href="../../../../index.html#key706">yencode</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002, Pat Thoyts</p>
+</div>
+</div></body></html>

@@ -1,0 +1,115 @@
+# -------------------------------------------------------------------------
+# luhn5.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+}
+testing {
+    useLocal luhn5.tcl valtype::luhn5
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-luhn5-1.0 {luhn5 validation wrong\#args} -body {
+    valtype::luhn5 validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::luhn5 validate value ?code?"}
+
+test valtype-luhn5-1.1 {luhn5 validation wrong\#args} -body {
+    valtype::luhn5 validate A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::luhn5 validate value ?code?"}
+
+# -------------------------------------------------------------------------
+
+test valtype-luhn5-2.0 {luhn5 validation failure, bad char} -body {
+    valtype::luhn5 validate A
+} -returnCodes error \
+    -result {Not a LUHN5 number, expected only digits}
+
+foreach {n in} {
+    1  49999999
+    2  37
+    3  49927398717 
+    4  1234567812345678
+} {
+    test valtype-luhn5-2.1.$n {luhn5 validation failure, bad check} -body {
+	valtype::luhn5 validate $in
+    } -returnCodes error \
+	-result {Not a LUHN5 number, the check digit is incorrect}
+}
+
+test valtype-luhn5-3.0 {luhn5 checkdigit wrong\#args} -body {
+    valtype::luhn5 checkdigit0
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::luhn5 checkdigit0 value ?code?"}
+
+test valtype-luhn5-3.1 {luhn5 checkdigit wrong\#args} -body {
+    valtype::luhn5 checkdigit0 A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::luhn5 checkdigit0 value ?code?"}
+
+test valtype-luhn5-3.2 {luhn5 checkdigit wrong\#args} -body {
+    valtype::luhn5 checkdigit5
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::luhn5 checkdigit5 value ?code?"}
+
+test valtype-luhn5-3.3 {luhn5 checkdigit wrong\#args} -body {
+    valtype::luhn5 checkdigit5 A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::luhn5 checkdigit5 value ?code?"}
+
+# -------------------------------------------------------------------------
+
+test valtype-luhn5-5.0 {luhn5 checkdigit calculation failure, bad char} -body {
+    valtype::luhn5 checkdigit0 A
+} -returnCodes error \
+    -result {Not a LUHN5 number, expected only digits}
+
+test valtype-luhn5-5.1 {luhn5 checkdigit calculation failure, bad char} -body {
+    valtype::luhn5 checkdigit5 A
+} -returnCodes error \
+    -result {Not a LUHN5 number, expected only digits}
+
+foreach {n in check0 check5} {
+    1          4999999 8 3
+    2                3 4 9
+    3               35 6 1
+    4       4992739871 6 1
+    5  123456781234567 0 5
+} {
+    test valtype-luhn5-4.$n.10 {luhn5 validation 0 % 10} -body {
+	valtype::luhn5 validate $in$check0
+    } -result $in$check0
+
+    test valtype-luhn5-4.$n.5 {luhn5 validation 5 % 10} -body {
+	valtype::luhn5 validate $in$check5
+    } -result $in$check5
+
+    test valtype-luhn5-6.$n.10 {luhn5 checkdigit 0 % 10} -body {
+	valtype::luhn5 checkdigit0 $in
+    } -result $check0
+
+    test valtype-luhn5-6.$n.5 {luhn5 checkdigit 5 % 10} -body {
+	valtype::luhn5 checkdigit5 $in
+    } -result $check5
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

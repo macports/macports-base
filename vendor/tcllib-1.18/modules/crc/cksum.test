@@ -1,0 +1,111 @@
+# cksum.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib cksum command
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: cksum.test,v 1.7 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal cksum.tcl cksum ::crc
+}
+
+# -------------------------------------------------------------------------
+
+test cksum-1.0 {cksum with no parameters } {
+    catch {::crc::cksum} result
+    set result
+} {wrong # args: should be cksum ?-format string? -channel chan | -filename file | string}
+
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "4294967295"
+    2    "a"
+    "1220704766"
+    3    "abc"
+    "1219131554"
+    4    "message digest"
+    "3644109718"
+    5    "abcdefghijklmnopqrstuvwxyz"
+    "2713270184"
+    6    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "81918263"
+    7    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1939911592"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "893385333"
+} {
+    test cksum-2.$n {cksum and unsigned integer} {
+	::crc::cksum $msg
+    } $expected
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "0xFFFFFFFF"
+    2    "a"
+    "0x48C279FE"
+    3    "abc"
+    "0x48AA78A2"
+    4    "message digest"
+    "0xD934B396"
+    5    "abcdefghijklmnopqrstuvwxyz"
+    "0xA1B937A8"
+    6    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "0x4E1F937"
+    7    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "0x73A0B3A8"
+    8    "\uFFFE\u0000\u0001\u0002"
+    "0x353FFA75"
+} {
+    test cksum-3.$n {cksum as hexadecimal string} {
+	::crc::cksum -format 0x%X $msg
+    } $expected
+}
+
+# -------------------------------------------------------------------------
+
+set crc::testfile [info script]
+
+proc crc::loaddata {filename} {
+    set f [open $filename r]
+    fconfigure $f -translation binary
+    set data [read $f]
+    close $f
+    return $data
+}
+
+test cksum-4.0 {cksum file option} {
+    set r1 [crc::cksum -file $crc::testfile]
+    set r2 [crc::cksum [crc::loaddata $crc::testfile]]
+    if {$r1 != $r2} {
+        set r "differing results: $r1 != $r2"
+    } else {
+        set r ok
+    }
+} {ok}
+        
+# -------------------------------------------------------------------------
+
+catch {unset crc::testfile}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

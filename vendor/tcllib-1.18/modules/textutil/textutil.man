@@ -1,0 +1,388 @@
+[manpage_begin textutil n 0.8]
+[see_also regexp(n)]
+[see_also split(n)]
+[see_also string(n)]
+[keywords formatting]
+[keywords hyphenation]
+[keywords indenting]
+[keywords paragraph]
+[keywords {regular expression}]
+[keywords string]
+[keywords TeX]
+[keywords trimming]
+[moddesc   {Text and string utilities, macro processing}]
+[titledesc {Procedures to manipulate texts and strings.}]
+[category  {Text processing}]
+[require Tcl 8.2]
+[require textutil [opt 0.8]]
+[description]
+
+The package [package textutil] provides commands that manipulate
+strings or texts (a.k.a. long strings or string with embedded newlines
+or paragraphs).
+
+It is actually a bundle providing the commands of the six packages
+
+[list_begin definitions]
+[def [package textutil::adjust]]
+[def [package textutil::repeat]]
+[def [package textutil::split]]
+[def [package textutil::string]]
+[def [package textutil::tabify]]
+[def [package textutil::trim]]
+[list_end]
+
+in the namespace [namespace textutil].
+
+[para]
+
+The bundle is [emph deprecated], and it will be removed in a future
+release of Tcllib, after the next release. It is recommended to use the
+relevant sub packages instead for whatever functionality is needed by
+the using package or application.
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[call [cmd ::textutil::adjust] [arg "string args"]]
+
+Do a justification on the [arg string] according to [arg args].  The
+string is taken as one big paragraph, ignoring any newlines.  Then the
+line is formatted according to the options used, and the command
+return a new string with enough lines to contain all the printable
+chars in the input string. A line is a set of chars between the
+beginning of the string and a newline, or between 2 newlines, or
+between a newline and the end of the string. If the input string is
+small enough, the returned string won't contain any newlines.
+
+[para]
+
+Together with [cmd ::textutil::indent] it is possible to create
+properly wrapped paragraphs with arbitrary indentations.
+
+[para]
+
+By default, any occurrence of spaces characters or tabulation are
+replaced by a single space so each word in a line is separated from
+the next one by exactly one space char, and this forms a [emph real]
+line. Each [emph real] line is placed in a [emph logical] line, which
+have exactly a given length (see [option -length] option below). The
+[emph real] line may have a lesser length. Again by default, any
+trailing spaces are ignored before returning the string (see
+
+[option -full] option below). The following options may be used after the
+[arg string] parameter, and change the way the command place a
+
+[emph real] line in a [emph logical] line.
+
+[list_begin definitions]
+
+[def "-full [arg boolean]"]
+
+If set to [const false], any trailing space chars are deleted before
+returning the string. If set to [const true], any trailing space
+chars are left in the string. Default to [const false].
+
+[def "[option -hyphenate] [arg boolean]"]
+
+if set to [const false], no hyphenation will be done. If set to
+[const true], the last word of a line is tried to be hyphenated.
+Defaults to [const false]. Note: hyphenation patterns must be loaded
+prior, using the command [cmd ::textutil::adjust::readPatterns].
+
+[def "[option -justify] [const center|left|plain|right]"]
+
+Set the justification of the returned string to [const center],
+
+[const left], [const plain] or [const right]. By default, it is set to
+[const left].  The justification means that any line in the returned
+string but the last one is build according to the value. If the
+justification is set to [const plain] and the number of printable
+chars in the last line is less than 90% of the length of a line (see
+[option -length]), then this line is justified with the [const left]
+value, avoiding the expansion of this line when it is too small. The
+meaning of each value is:
+
+[list_begin definitions]
+
+[def [const center]]
+
+The real line is centered in the logical line. If needed, a set of
+space characters are added at the beginning (half of the needed set)
+and at the end (half of the needed set) of the line if required (see
+the option [option -full]).
+
+[def [const left]]
+
+The real line is set on the left of the logical line. It means that
+there are no space chars at the beginning of this line. If required,
+all needed space chars are added at the end of the line (see the
+option [option -full]).
+
+[def [const plain]]
+
+The real line is exactly set in the logical line. It means that there
+are no leading or trailing space chars. All the needed space chars are
+added in the [emph real] line, between 2 (or more) words.
+
+[def [const right]]
+
+The real line is set on the right of the logical line. It means that
+there are no space chars at the end of this line, and there may be
+some space chars at the beginning, despite of the [option -full] option.
+
+[list_end]
+
+[def "[option -length] [arg integer]"]
+
+Set the length of the [emph logical] line in the string to
+[arg integer].  [arg integer] must be a positive integer
+value. Defaults to [const 72].
+
+[def "[option -strictlength] [arg boolean]"]
+
+If set to [const false], a line can exceed the specified
+
+[option -length] if a single word is longer than [option -length]. If
+set to [const true], words that are longer than [option -length] are
+split so that no line exceeds the specified [option -length]. Defaults
+to [const false].
+
+[list_end]
+
+[call [cmd ::textutil::adjust::readPatterns] [arg filename]]
+
+Loads the internal storage for hyphenation patterns with the contents
+of the file [arg filename]. This has to be done prior to calling
+command [cmd ::textutil::adjust] with
+
+"[option -hyphenate] [const true]", or the hyphenation process will
+not work correctly.
+
+[para]
+
+The package comes with a number of predefined pattern files, and the
+command [cmd ::textutil::adjust::listPredefined] can be used to find
+out their names.
+
+[call [cmd ::textutil::adjust::listPredefined]]
+
+This command returns a list containing the names of the hyphenation
+files coming with this package.
+
+[call [cmd ::textutil::adjust::getPredefined] [arg filename]]
+
+Use this command to query the package for the full path name of the
+hyphenation file [arg filename] coming with the package. Only the
+filenames found in the list returned by
+
+[cmd ::textutil::adjust::listPredefined] are legal arguments for this
+command.
+
+[call [cmd ::textutil::indent] [arg string] [arg prefix] [opt [arg skip]]]
+
+Each line in the [arg string] indented by adding the string
+[arg prefix] at its beginning. The modified string is returned
+as the result of the command.
+
+[para]
+
+If [arg skip] is specified the first [arg skip] lines are left
+untouched. The default for [arg skip] is [const 0], causing the
+modification of all lines. Negative values for [arg skip] are treated
+like [const 0]. In other words, [arg skip] > [const 0] creates a
+hanging indentation.
+
+[para]
+
+Together with [cmd ::textutil::adjust] it is possible to create
+properly wrapped paragraphs with arbitrary indentations.
+
+[call [cmd ::textutil::undent] [arg string]]
+
+The command computes the common prefix for all
+lines in [arg string] consisting solely out of whitespace,
+removes this from each line and returns the modified string.
+
+[para]
+
+Lines containing only whitespace are always reduced to completely
+empty lines. They and empty lines are also ignored when computing the
+prefix to remove.
+
+[para]
+
+Together with [cmd ::textutil::adjust] it is possible to create
+properly wrapped paragraphs with arbitrary indentations.
+
+[call [cmd ::textutil::splitn] [arg string] [opt [arg len]]]
+
+This command splits the given [arg string] into chunks of [arg len]
+characters and returns a list containing these chunks. The argument
+[arg len] defaults to [const 1] if none is specified. A negative
+length is not allowed and will cause the command to throw an
+error. Providing an empty string as input is allowed, the command will
+then return an empty list. If the length of the [arg string] is not an
+entire multiple of the chunk length, then the last chunk in the
+generated list will be shorter than [arg len].
+
+[call [cmd ::textutil::splitx] [arg string] [opt [arg regexp]]]
+
+Split the [arg string] and return a list. The string is split
+according to the regular expression [arg regexp] instead of a simple
+list of chars. Note that if you add parenthesis into the [arg regexp],
+the parentheses part of separator would be added into list as
+additional element. If the [arg string] is empty the result is the
+empty list, like for [cmd split]. If [arg regexp] is empty the
+
+[arg string] is split at every character, like [cmd split] does.
+
+The regular expression [arg regexp] defaults to "[lb]\\t \\r\\n[rb]+".
+
+[call [cmd ::textutil::tabify] [arg string] [opt [arg num]]]
+
+Tabify the [arg string] by replacing any substring of [arg num] space
+chars by a tabulation and return the result as a new string. [arg num]
+defaults to 8.
+
+[call [cmd ::textutil::tabify2] [arg string] [opt [arg num]]]
+
+Similar to [cmd ::textutil::tabify] this command tabifies the
+
+[arg string] and returns the result as a new string. A different
+algorithm is used however. Instead of replacing any substring of
+
+[arg num] spaces this command works more like an editor. [arg num]
+defaults to 8.
+
+[para]
+
+Each line of the text in [arg string] is treated as if there are
+tabstops every [arg num] columns. Only sequences of space characters
+containing more than one space character and found immediately before
+a tabstop are replaced with tabs.
+
+[call [cmd ::textutil::trim] [arg string] [opt [arg regexp]]]
+
+Remove in [arg string] any leading and trailing substring according to
+the regular expression [arg regexp] and return the result as a new
+string.  This apply on any [emph line] in the string, that is any
+substring between 2 newline chars, or between the beginning of the
+string and a newline, or between a newline and the end of the string,
+or, if the string contain no newline, between the beginning and the
+end of the string.
+
+The regular expression [arg regexp] defaults to "[lb] \\t[rb]+".
+
+[call [cmd ::textutil::trimleft] [arg string] [opt [arg regexp]]]
+
+Remove in [arg string] any leading substring according to the regular
+expression [arg regexp] and return the result as a new string. This
+apply on any [emph line] in the string, that is any substring between
+2 newline chars, or between the beginning of the string and a newline,
+or between a newline and the end of the string, or, if the string
+contain no newline, between the beginning and the end of the string.
+
+The regular expression [arg regexp] defaults to "[lb] \\t[rb]+".
+
+[call [cmd ::textutil::trimright] [arg string] [opt [arg regexp]]]
+
+Remove in [arg string] any trailing substring according to the regular
+expression [arg regexp] and return the result as a new string. This
+apply on any [emph line] in the string, that is any substring between
+2 newline chars, or between the beginning of the string and a newline,
+or between a newline and the end of the string, or, if the string
+contain no newline, between the beginning and the end of the string.
+
+The regular expression [arg regexp] defaults to "[lb] \\t[rb]+".
+
+[call [cmd ::textutil::trimPrefix] [arg string] [arg prefix]]
+
+Removes the [arg prefix] from the beginning of [arg string] and
+returns the result. The [arg string] is left unchanged if it doesn't
+have [arg prefix] at its beginning.
+
+[call [cmd ::textutil::trimEmptyHeading] [arg string]]
+
+Looks for empty lines (including lines consisting of only whitespace)
+at the beginning of the [arg string] and removes it. The modified
+string is returned as the result of the command.
+
+[call [cmd ::textutil::untabify] [arg string] [opt [arg num]]]
+
+Untabify the [arg string] by replacing any tabulation char by a
+substring of [arg num] space chars and return the result as a new
+string. [arg num] defaults to 8.
+
+[call [cmd ::textutil::untabify2] [arg string] [opt [arg num]]]
+
+Untabify the [arg string] by replacing any tabulation char by a
+substring of at most [arg num] space chars and return the result as a
+new string. Unlike [cmd textutil::untabify] each tab is not replaced
+by a fixed number of space characters.  The command overlays each line
+in the [arg string] with tabstops every [arg num] columns instead and
+replaces tabs with just enough space characters to reach the next
+tabstop. This is the complement of the actions taken by
+
+[cmd ::textutil::tabify2]. [arg num] defaults to 8.
+
+[para]
+
+There is one asymmetry though: A tab can be replaced with a single
+space, but not the other way around.
+
+[call [cmd ::textutil::strRepeat] [arg "text num"]]
+
+The implementation depends on the core executing the package. Used
+[cmd "string repeat"] if it is present, or a fast tcl implementation
+if it is not. Returns a string containing the [arg text] repeated
+
+[arg num] times. The repetitions are joined without characters between
+them. A value of [arg num] <= 0 causes the command to return an empty
+string.
+
+[call [cmd ::textutil::blank] [arg num]]
+
+A convenience command. Returns a string of [arg num] spaces.
+
+[call [cmd ::textutil::chop] [arg string]]
+
+A convenience command. Removes the last character of [arg string] and
+returns the shortened string.
+
+[call [cmd ::textutil::tail] [arg string]]
+
+A convenience command. Removes the first character of [arg string] and
+returns the shortened string.
+
+[call [cmd ::textutil::cap] [arg string]]
+
+Capitalizes the first character of [arg string] and returns the modified string.
+
+[call [cmd ::textutil::uncap] [arg string]]
+
+The complementary operation to [cmd ::textutil::cap]. Forces the first
+character of [arg string] to lower case and returns the modified
+string.
+
+[call [cmd ::textutil::longestCommonPrefixList] [arg list]]
+[call [cmd ::textutil::longestCommonPrefix] [opt [arg string]...]]
+
+Computes the longest common prefix for either the [arg string]s given
+to the command, or the strings specified in the single [arg list], and
+returns it as the result of the command.
+
+[para]
+
+If no strings were specified the result is the empty string.  If only
+one string was specified, the string itself is returned, as it is its
+own longest common prefix.
+
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

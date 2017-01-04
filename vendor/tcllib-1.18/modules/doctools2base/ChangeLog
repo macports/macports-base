@@ -1,0 +1,50 @@
+2013-12-17  Andreas Kupries  <andreask@activestate.com>
+
+	* tcl_parse.man: Fixed missing requirement of the package itself.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-06-08  Andreas Kupries  <andreask@activestate.com>
+
+	* msgcat.man: [Bug 3012669]: Renamed this manpage, conflicted with
+	* tcllib_msgcat.man: the manpage for package msgcat in the core.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-04-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* paths.tcl: Fixed version mismatch.
+	* nroff_manmacros.tcl: Renamed package (man.macros -> man_macros)
+	* nroff_manmacros.man: to match the set of allowed characters in
+	* tests/common: Tcl Module names. This fixes [Bug 2782256].
+	* pkgIndex.tcl:
+
+2009-04-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.tcl: Fix version mismatch.
+	* text.tcl: Fix version mismatch.
+	* tests/common: Fix handling of directories.
+
+2009-03-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Doctools version 2, base packages.

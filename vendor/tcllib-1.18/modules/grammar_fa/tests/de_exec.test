@@ -1,0 +1,104 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa::dexec engine
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: de_exec.test,v 1.6 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+# Regular expression for C comments (Extended notation, using the 'not' operator).
+#
+#       '/' . '*' . (! (ALL* . '*' . '/' . ALL*)) . '*' . '/'
+# ALL = '/' | '*' | 'any'
+#
+# Generated minimal DFA
+#
+#               any/   *
+#               |      |
+# 0 -/-> 1 -*-> 2 -*-> 3 -/-> 4
+#               \<-any-/
+
+#puts -nonewline "    RE compile, " ; flush stdout
+
+grammar::fa ccomments fromRegex {. {S /}
+                                   {S *}
+				   {! {. {* {| {S *} {S /} {S any}}}
+				         {S *}
+					 {S /}
+					 {* {| {S *} {S /} {S any}}}}}
+				   {S *}
+				   {S /}
+			       } {/ * any}
+
+#puts -nonewline {FA, } ; flush stdout
+
+ccomments determinize ; #puts -nonewline {deterministic, } ; flush stdout
+ccomments minimize    ; #puts minimal                      ; flush stdout
+
+# -------------------------------------------------------------------------
+
+global events
+
+# -------------------------------------------------------------------------
+
+test de-reset-${setimpl}-1.0 {reset error} {
+    grammar::fa::dexec de ccomments -command {lappend events}
+    catch {de reset x} msg
+    de destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::dexec::Snit_methodreset type selfns win self"}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+foreach {n string acceptany accept} {
+    0 {x y}
+    {reset . error BADTRANS {Bad transition ("0" "any"), no destination} .}
+    {reset . error BADSYM {Bad symbol "x"} .}
+
+    1 {/ * * /}
+    {reset . state 1 . state 2 . state 3 . state 4 final 4}
+    {reset . state 1 . state 2 . state 3 . state 4 final 4}
+
+    2 {/ * x * /}
+    {reset . state 1 . state 2 . state 2 . state 3 . state 4 final 4}
+    {reset . state 1 . state 2 . error BADSYM {Bad symbol "x"} . .}
+
+    3 {/ * * / * /}
+    {reset . state 1 . state 2 . state 3 . state 4 final 4 . error BADTRANS {Bad transition ("4" "*"), no destination} .}
+    {reset . state 1 . state 2 . state 3 . state 4 final 4 . error BADTRANS {Bad transition ("4" "*"), no destination} .}
+
+    4 {/ * x * / x * /}
+    {reset . state 1 . state 2 . state 2 . state 3 . state 4 final 4 . error BADTRANS {Bad transition ("4" "any"), no destination} . .}
+    {reset . state 1 . state 2 . error BADSYM {Bad symbol "x"} . . . . .}
+
+    5 {/ * * * / * * /}
+    {reset . state 1 . state 2 . state 3 . state 3 . state 4 final 4 . error BADTRANS {Bad transition ("4" "*"), no destination} . .}
+    {reset . state 1 . state 2 . state 3 . state 3 . state 4 final 4 . error BADTRANS {Bad transition ("4" "*"), no destination} . .}
+} {
+    test de-put-${setimpl}-2.$n {put, -any any} {
+	set events {}
+	grammar::fa::dexec de ccomments -any any -command {lappend events}
+	foreach sy $string {
+	    lappend events .
+	    de put $sy
+	}
+	de destroy
+	set events
+    } $acceptany ; # {}
+
+    test de-put-${setimpl}-3.$n {put} {
+	set events {}
+	grammar::fa::dexec de ccomments -command {lappend events}
+	foreach sy $string {
+	    lappend events .
+	    de put $sy
+	}
+	de destroy
+	set events
+    } $accept ; # {}
+}
+
+# -------------------------------------------------------------------------
+ccomments destroy
+unset events
+::tcltest::cleanupTests

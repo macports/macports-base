@@ -1,0 +1,560 @@
+
+<html><head>
+<title>rest - A framework for RESTful web services</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'rest.man' by tcllib/doctools with format 'html'
+   -->
+<! -- rest.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">rest(n) 1.0.2 tcllib &quot;A framework for RESTful web services&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>rest - define REST web APIs and call them inline or asychronously</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Simple usage</a></li>
+<li class="doctools_section"><a href="#section3">Interface usage</a></li>
+<li class="doctools_section"><a href="#section4">Examples</a></li>
+<li class="doctools_section"><a href="#section5">INCLUDED</a></li>
+<li class="doctools_section"><a href="#section6">TLS</a></li>
+<li class="doctools_section"><a href="#section7">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section8">Bugs, Ideas, Feedback</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">rest <span class="opt">?1.0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::rest::simple</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::rest::get</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::rest::post</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::rest::head</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::rest::put</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::rest::delete</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::rest::save</b> <i class="arg">name</i> <i class="arg">file</i></a></li>
+<li><a href="#8"><b class="cmd">::rest::describe</b> <i class="arg">name</i></a></li>
+<li><a href="#9"><b class="cmd">::rest::parameters</b> <i class="arg">url</i> <span class="opt">?<i class="arg">key</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">::rest::parse_opts</b> <i class="arg">static</i> <i class="arg">required</i> <i class="arg">optional</i> <i class="arg">words</i></a></li>
+<li><a href="#11"><b class="cmd">::rest::substitute</b> <i class="arg">string</i> <i class="arg">var</i></a></li>
+<li><a href="#12"><b class="cmd">::rest::create_interface</b> <i class="arg">name</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>There are two types of usage this package supports: <i class="term">simple calls</i>,
+and complete <i class="term">interfaces</i>.
+In an <i class="term">interface</i> you specify a set of rules and then the package
+builds the commands which correspond to the REST methods. These
+commands can have many options such as input and output
+transformations and data type specific formatting. This results in a
+cleaner and simpler script.
+On the other hand, while a <i class="term">simple call</i> is easier and quicker
+to implement it is also less featureful. It takes the url and a few
+options about the command and returns the result directly. Any
+formatting or checking is up to rest of the script.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Simple usage</a></h2>
+<p>In simple usage you make calls using the http method procedures and
+then check or process the returned data yourself</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::rest::simple</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="2"><b class="cmd">::rest::get</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="3"><b class="cmd">::rest::post</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="4"><b class="cmd">::rest::head</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="5"><b class="cmd">::rest::put</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="6"><b class="cmd">::rest::delete</b> <i class="arg">url</i> <i class="arg">query</i> <span class="opt">?<i class="arg">config</i>?</span> <span class="opt">?<i class="arg">body</i>?</span></a></dt>
+<dd><p>These commands are all equivalent except for the http method
+used.
+If you use <b class="cmd">simple</b> then the method should be specified as an
+option in the <i class="arg">config</i> dictionary. If that is not done it defaults
+to <b class="const">get</b>. If a <i class="arg">body</i> is needed then the <i class="arg">config</i>
+dictionary must be present, however it is allowed to be empty.</p>
+<p>The <i class="arg">config</i> dictionary supports the following keys</p>
+<dl class="doctools_definitions">
+<dt><b class="const">auth</b></dt>
+<dd></dd>
+<dt><b class="const">content-type</b></dt>
+<dd></dd>
+<dt><b class="const">cookie</b></dt>
+<dd></dd>
+<dt><b class="const">format</b></dt>
+<dd></dd>
+<dt><b class="const">headers</b></dt>
+<dd></dd>
+<dt><b class="const">method</b></dt>
+<dd></dd>
+</dl>
+<p>Two quick examples:</p>
+<p>Example 1, Yahoo Boss:</p>
+<pre class="doctools_example">
+    set appid APPID
+    set search tcl
+    set res [rest::get http://boss.yahooapis.com/ysearch/web/v1/$search [list appid $appid]]
+    set res [rest::format_json $res]
+</pre>
+<p>Example 2, Twitter:</p>
+<pre class="doctools_example">
+    set url   http://twitter.com/statuses/update.json
+    set query [list status $text]
+    set res [rest::simple $url $query {
+        method post
+        auth   {basic user password}
+        format json
+    }]
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Interface usage</a></h2>
+<p>An interface to a REST API consists of a series of definitions of REST
+calls contained in an array.
+The name of that array becomes a namespace containing the defined
+commands. Each key of the array specifies the name of the call, with
+the associated configuration a dictionary, i.e. key/value pairs.
+The acceptable keys, i.e. legal configuration options are described
+below.
+After creating the definitions in the array simply calling
+<b class="cmd">rest::create_interface</b> with the array as argument will then
+create the desired commands.</p>
+<p>Example, Yahoo Weather:</p>
+<pre class="doctools_example">
+    package require rest
+    set yweather(forecast) {
+       url      http://weather.yahooapis.com/forecastrss
+       req_args { p: }
+       opt_args { u: }
+    }
+    rest::create_interface yweather
+    puts [yweather::forecast -p 94089]
+</pre>
+<dl class="doctools_definitions">
+<dt><a name="7"><b class="cmd">::rest::save</b> <i class="arg">name</i> <i class="arg">file</i></a></dt>
+<dd><p>This command saves a copy of the dynamically created procedures for
+all the API calls specified in the array variable <i class="arg">name</i> to the
+<i class="arg">file</i>, for later loading.</p>
+<p>The result of the command is the empty string</p></dd>
+<dt><a name="8"><b class="cmd">::rest::describe</b> <i class="arg">name</i></a></dt>
+<dd><p>This command prints a description of all API calls specified in the array
+variable <i class="arg">name</i> to the channel <b class="const">stdout</b>.</p>
+<p>The result of the command is the empty string.</p></dd>
+<dt><a name="9"><b class="cmd">::rest::parameters</b> <i class="arg">url</i> <span class="opt">?<i class="arg">key</i>?</span></a></dt>
+<dd><p>This command parses an <i class="arg">url</i> query string into a dictionary and
+returns said dictionary as its result.</p>
+<p>If <i class="arg">key</i> is specified the command will not return the
+entire dictionary, but only the value of that <i class="arg">key</i>.</p></dd>
+<dt><a name="10"><b class="cmd">::rest::parse_opts</b> <i class="arg">static</i> <i class="arg">required</i> <i class="arg">optional</i> <i class="arg">words</i></a></dt>
+<dd><p>This command implements a custom parserfor command options.</p>
+<dl class="doctools_arguments">
+<dt>dict <i class="arg">static</i></dt>
+<dd><p>A dictionary of options and their values that are always present in
+the output.</p></dd>
+<dt>list <i class="arg">required</i></dt>
+<dd><p>A list of options that must be supplied by <i class="arg">words</i></p></dd>
+<dt>list <i class="arg">optional</i></dt>
+<dd><p>A list of options that may appear in the <i class="arg">words</i>, but are not required.
+The elements must be in one of three forms:</p>
+<dl class="doctools_definitions">
+<dt>name</dt>
+<dd><p>The option may be present or not, no default.</p></dd>
+<dt>name:</dt>
+<dd><p>When present the option requires an argument.</p></dd>
+<dt>name:value</dt>
+<dd><p>When not present use <b class="const">value</b> as default.</p></dd>
+</dl></dd>
+<dt>list <i class="arg">words</i></dt>
+<dd><p>The words to parse into options and values.</p></dd>
+</dl>
+<p>The result of the command is a list containing two elements.
+The first element is a dictionary containing the parsed options and
+their values.  The second element is a list of the remaining words.</p></dd>
+<dt><a name="11"><b class="cmd">::rest::substitute</b> <i class="arg">string</i> <i class="arg">var</i></a></dt>
+<dd><p>This command takes a <i class="arg">string</i>, substitutes values for any option
+identifiers found inside and returns the modified string as its
+results.</p>
+<p>The values to substitute are found in the variable <i class="arg">var</i>,
+which is expected to contain a dictionary mapping from the option
+identifiers to replace to their values.
+<em>Note</em> that option identifiers which have no key in <i class="arg">var</i> are
+replaced with the empty string.</p>
+<p>The option identifiers in <i class="arg">string</i> have to follow the
+syntax <b class="const">%...%</b> where <b class="variable">...</b> may contain any combination of
+lower-case alphanumeric characters, plus underscore, colon and dash.</p></dd>
+<dt><a name="12"><b class="cmd">::rest::create_interface</b> <i class="arg">name</i></a></dt>
+<dd><p>This command creates procedures for all the API calls specified in the
+array variable <i class="arg">name</i>.</p>
+<p>The name of that array becomes a namespace containing the defined
+commands. Each key of the array specifies the name of the call, with
+the associated configuration a dictionary, i.e. key/value pairs.
+The legal keys and their meanings are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">url</b></dt>
+<dd><p>The value of this <em>required</em> option must be the target of the
+http request.</p></dd>
+<dt><b class="const">description</b></dt>
+<dd><p>The value of this option must be a short string describing the call.
+Default to the empty string, if not specified.
+Used only by <b class="cmd">::rest::describe</b>.</p></dd>
+<dt><b class="const">body</b></dt>
+<dd><p>The value of this option indicates if arguments are required for the
+call's request body or not. The acceptable values are listed below.
+Defaults to <b class="const">optional</b> if not specified.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">none</b></dt>
+<dd><p>The call has no request body, none must be supplied.</p></dd>
+<dt><b class="const">optional</b></dt>
+<dd><p>A request body can be supplied, but is not required.</p></dd>
+<dt><b class="const">required</b></dt>
+<dd><p>A request body must be supplied.</p></dd>
+<dt><b class="const">argument</b></dt>
+<dd><p>This value must be followed by the name of an option, treating the
+entire string as a list. The request body will be used as the value of
+that option.</p></dd>
+<dt><b class="const">mime_multipart</b></dt>
+<dd><p>A request body must be supplied and will be interpreted as each
+argument representing one part of a mime/multipart document.
+Arguments must be lists containing 2 elements, a list of header keys
+and values, and the mime part body, in this order.</p></dd>
+</dl></dd>
+<dt><b class="const">method</b></dt>
+<dd><p>The value of this option must be the name of the HTTP method to call
+on the url.
+Defaults to GET, if not specified.
+The acceptable values are <b class="const">GET</b>, <b class="const">POST</b>, and <b class="const">PUT</b>,
+regardless of letter-case.</p></dd>
+<dt><b class="const">copy</b></dt>
+<dd><p>When present the value of this option specifies the name of a
+previously defined call. The definition of that call is copied to the
+current call, except for the options specified by the current call
+itself.</p></dd>
+<dt><b class="const">unset</b></dt>
+<dd><p>When present the value of this option names an option in the current
+call. This option is removed from the definition. Use this after
+<b class="const">copy</b>ing an existing definition to remove options, instead of
+overriding their value.</p></dd>
+<dt><b class="const">headers</b></dt>
+<dd><p>Specification of additional header fields. The value of this option
+must be a dictionary, interpreted to contain the new header fields and
+their values. The default is to not add any additional headers.</p></dd>
+<dt><b class="const">content-type</b></dt>
+<dd><p>The value of this option specifies the content type for the request data.</p></dd>
+<dt><b class="const">req_args</b></dt>
+<dd><p>The value of this option is a list naming the required arguments of
+the call.  Names ending in a colon will require a value.</p></dd>
+<dt><b class="const">opt_args</b></dt>
+<dd><p>The value of this option a list naming the arguments that may be
+present for a call but are not required.</p></dd>
+<dt><b class="const">static_args</b></dt>
+<dd><p>The value of this option a list naming the arguments that are always
+the same.  No sense in troubling the user with these.  A leading dash
+(<b class="const">-</b>) is allowed but not required to maintain consistency with
+the command line.</p></dd>
+<dt><b class="const">auth</b></dt>
+<dd><p>The value of this option specifies how to authenticate the calls.
+No authentication is done if the option is not specified.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">basic</b></dt>
+<dd><p>The user may configure the <i class="term">basic authentication</i> by overriding
+the procedure <b class="cmd">basic_auth</b> in the namespace of interface. This
+procedure takes two arguments, the username and password, in this
+order.</p></dd>
+<dt><b class="const">sign</b></dt>
+<dd><p>The value must actually be a list with the second element the name of
+a procedure which will be called to perform request signing.</p></dd>
+</dl></dd>
+<dt><b class="const">callback</b></dt>
+<dd><p>If this option is present then the method will be created as an
+<i class="term">async</i> call. Such calls will return immediately with the value
+of the associated http token instead of the call's result. The event
+loop must be active to use this option.</p>
+<p>The value of this option is the name of a procedure which is
+invoked when the HTTP call is complete. The procedure will receive
+three arguments, the name of the calling procedure, the status of the
+result (one of <b class="const">OK</b> or <b class="const">ERROR</b>), and the data associated
+with the result, in this order.
+The http request header will be available in that procedure via
+<b class="cmd">upvar token token</b>.</p></dd>
+<dt><b class="const">cookie</b></dt>
+<dd><p>The value of this option is a list of cookies to be passed in the http
+header. This is a shortcut to the <b class="const">headers</b> option.</p></dd>
+<dt><b class="const">input_transform</b></dt>
+<dd><p>The value of this option is a command prefix or script to perform a
+transformation on the query before invoking the call. A script
+transform is wrapped into an automatically generated internal
+procedure.</p>
+<p>If not specified no transformation is done.</p>
+<p>The command (prefix) must accept a single argument, the query
+(a dictionary) to transform, and must return the modified query (again
+as dictionary) as its result.
+The request body is accessible in the transform command via
+<b class="cmd">upvar body body</b>.</p></dd>
+<dt><b class="const">format</b></dt>
+<dd></dd>
+<dt><b class="const">result</b></dt>
+<dd><p>The value of this option specifies the format of the returned
+data.
+Defaults to <b class="const">auto</b> if not specified.
+The acceptable values are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">auto</b></dt>
+<dd><p>Auto detect between <b class="const">xml</b> and <b class="const">json</b>.</p></dd>
+<dt><b class="const">discard</b></dt>
+<dd></dd>
+<dt><b class="const">json</b></dt>
+<dd></dd>
+<dt><b class="const">raw</b></dt>
+<dd></dd>
+<dt><b class="const">rss</b></dt>
+<dd><p>This is formatted as a special case of <b class="const">xml</b>.</p></dd>
+<dt><b class="const">tdom</b></dt>
+<dd></dd>
+<dt><b class="const">xml</b></dt>
+<dd></dd>
+</dl></dd>
+<dt><b class="const">pre_transform</b></dt>
+<dd><p>The value of this option is a command prefix or script to perform a
+transformation on the result of a call (<em>before</em> the application
+of the output transform as per <b class="const">format</b>). A script transform is
+wrapped into an automatically generated internal procedure.</p>
+<p>If not specified no transformation is done.</p>
+<p>The command (prefix) must accept a single argument, the result
+to transform, and must return the modified result as its result.</p>
+<p>The http request header is accessible in the transform command
+via <b class="cmd">upvar token token</b></p></dd>
+<dt><b class="const">post_transform</b></dt>
+<dd><p>The value of this option is a command prefix or script to perform a
+transformation on the result of a call (<em>after</em> the application
+of the output transform as per <b class="const">format</b>). A script transform is
+wrapped into an automatically generated internal procedure.</p>
+<p>If not specified no transformation is done.</p>
+<p>The command (prefix) must accept a single argument, the result
+to transform, and must return the modified result as its result.</p>
+<p>The http request header is accessible in the transform command
+via <b class="cmd">upvar token token</b></p></dd>
+<dt><b class="const">check_result</b></dt>
+<dd><p>The value of this option must be list of two expressions, either of
+which may be empty.</p>
+<p>The first expression is checks the OK condition, it must return
+<b class="const">true</b> when the result is satisfactory, and <b class="const">false</b>
+otherwise.</p>
+<p>The second expression is the ERROR condition, it must return
+<b class="const">false</b> unless there is an error, then it has to return
+<b class="const">true</b>.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Examples</a></h2>
+<p>Yahoo Geo:</p>
+<pre class="doctools_example">
+set ygeo(parse) {
+    url http://wherein.yahooapis.com/v1/document
+    method post
+    body { arg documentContent }
+}
+ygeo::parse &quot;san jose ca&quot;
+# &quot;san jose ca&quot; will be interpreted as if it were specified as the -documentContent option
+</pre>
+<p>Google Docs:</p>
+<pre class="doctools_example">
+set gdocs(upload) {
+    url http://docs.google.com/feeds/default/private/full
+    body mime_multipart
+}
+gdocs::upload [list {Content-Type application/atom+xml} $xml] [list {Content-Type image/jpeg} $filedata]
+</pre>
+<p>Delicious:</p>
+<pre class="doctools_example">
+set delicious(updated) {
+    url https://api.del.icio.us/v1/posts/update
+    auth basic
+}
+rest::create_interface flickr
+flickr::basic_auth username password
+</pre>
+<p>Flickr:</p>
+<pre class="doctools_example">
+set flickr(auth.getToken) {
+   url http://api.flickr.com/services/rest/
+   req_args { api_key: secret: }
+   auth { sign do_signature }
+}
+rest::create_interface flickr
+proc ::flickr::do_signature {query} {
+    # perform some operations on the query here
+    return $query
+}
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">INCLUDED</a></h2>
+<p>The package provides functional but incomplete implementations for the following services:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">del.icio.us</b></dt>
+<dd></dd>
+<dt><b class="const">facebook</b></dt>
+<dd></dd>
+<dt><b class="const">flickr</b></dt>
+<dd></dd>
+<dt><b class="const">twitter</b></dt>
+<dd></dd>
+<dt><b class="const">google calendar</b></dt>
+<dd></dd>
+<dt><b class="const">yahoo boss</b></dt>
+<dd></dd>
+<dt><b class="const">yahoo weather</b></dt>
+<dd></dd>
+</dl>
+<p>Please either read the package's implementation, or use
+<b class="cmd">rest::describe</b> after loading it for their details.</p>
+<p>Do not forget developers' documentation on the respective sites either.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">TLS</a></h2>
+<p>The <b class="package">rest</b> package can be used with <i class="term">https</i>-secured
+services, by requiring the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package and then registering
+it with the <b class="package"><a href="../../../../index.html#key445">http</a></b> package it is sitting on top of.
+Example</p>
+<pre class="doctools_example">
+    package require tls
+    http::register https 443 ::tls::socket
+</pre>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>rest</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+</div></body></html>

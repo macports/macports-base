@@ -1,0 +1,17 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+term::ansi::send::import vt
+
+vt::init
+vt::clear
+
+puts \n\n\n\n\n\n\n\n\n\n\n
+
+vt::showat  3  5 "Hello world,\nhow are you"
+vt::showat 10 10 "Hello world,\nhow are you"
+
+puts ""
+exit

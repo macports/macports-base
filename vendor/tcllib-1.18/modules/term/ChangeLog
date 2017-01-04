@@ -1,0 +1,164 @@
+2013-11-22  Andreas Kupries <andreask@activestate.com>
+
+	* ansi/send.tcl: Revert Tcl 8.5 dependency introduced by an
+	  unlogged rewrite [c80b6fffde].
+
+2013-11-20  PoorYorick
+
+	* ansi/code.tcl: Unlogged rewrite, with commit message:
+	* ansi/code/ctrl.tcl: add support for default arguments to
+	* ansi/send.tcl: term::ansi::send fix documentation types
+	* ansi_ctrlu.tcl: quoting cleanup 
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ansi/code/ctrl.tcl: Bumped to version 0.1.2. Moved character
+	  definition around to prevent mis-interpretation as a bad
+	  continuation line by static syntax checkers.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-05-20  Andreas Kupries  <andreask@activestate.com>
+
+	* ansi/ctrlunix.tcl (::term::ansi::ctrl::unix::INIT): Modified to
+	  explictly avoid Solaris' /usr/ucb/stty. Its command line syntax
+	  does not fit our expecations. Bumped version to 0.1.1
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	*
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	*
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	*
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	*
+
+2008-03-14  Andreas Kupries  <andreask@activestate.com>
+
+	* ansi/code/ctrl.tcl (DEFC): Fixed bad use of 'args' argument,
+	* pkgIndex.tcl: reported in [SF Tcllib Bug 1826418], by Erik
+	* ansi_cctrl.man: Leunissen. Bumped to version 0.1.1.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	*
+
+2007-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ansi_cattr.man: Fixed all warnings due to use of now
+	* ansi_cctrl.man: deprecated. Added a section about how
+	* ansi_cmacros.man: to give feedback.
+	* ansi_code.man:
+	* ansi_ctrlu.man:
+	* ansi_send.man:
+	* imenu.man:
+	* ipager.man:
+	* receive.man:
+	* term.man:
+	* term_bind.man:
+	* term_send.man:
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	*
+
+2006-08-09  Andreas Kupries <andreask@activestate.com>
+
+	* ../../examples/term/menu2: Updated to changes in the
+	  package term::receive::bind.
+	* term_bind.man: Updated documentation as well.
+
+2006-07-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bind.tcl: Added methods 'default' and 'unlisten', changed action
+	  callbacks to take the invoking character sequence.
+	* term_bind.man: Documented above changes.
+
+	* imenu.tcl:  New packages, terminal widgets, menu and paging text
+	* ipager.tcl: display.
+
+	* imenu.man: Documentation for the new packages above.
+	* ipager.man:
+
+	* ../../examples/term/imenu: Examples for the new packages.
+	* ../../examples/term/ipager:
+
+2006-07-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* receive.tcl: New file, package. Basic receiver functionality
+	* receive.man: (getting chars, event listener). Documentation.
+
+	* bind.tcl:      New file, package. Recognition of character
+	* term_bind.man: sequences in the input, execution of
+	  actions. Dispatcher. A 'bind' for character sequences.
+
+	* pkgIndex.tcl: New packages registered.
+
+	* ../../examples/term/menu2: Example for receive and bind.
+
+	* ansi_code.man: Typos.
+	* ansi_send.man:
+	* term.man:
+	* term_send.man:
+
+	* ansi/ctrlunix.tcl: New file, package. Control operations, unix
+	* ansi_ctrlu.man:    specific, dependent on external commands
+	  (stty, tput). Documentation.
+	* pkgIndex.tcl: New package registered.
+
+	* ansi_cctrl.man:   Fixed typos.
+	* ansi_cmacros.man:
+
+2006-07-21  Andreas Kupries <andreask@activestate.com>
+
+	* send.man:      Renamed to term_send.man, to avoid
+	* term_send.man: clashing with Tk's 'send' manpage.
+
+2006-07-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ansi_cattr.man: More documentation.
+	* ansi_cctrl.man:
+	* ansi_cmacros.man:
+	* ansi_code.man:
+	* ansi_send.man: Tweaked
+	* ansi/code/ctrl.tcl: Fixed argument bug
+	* ansi/code/macros.tcl: Fixed argument bug.
+
+2006-07-18  Andreas Kupries  <andreask@activestate.com>
+
+	* term.man: Added some documentation.
+	* send.man:
+	* ansi_send.man:
+
+2006-07-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module "term". Terminal control.

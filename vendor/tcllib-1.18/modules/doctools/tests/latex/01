@@ -1,0 +1,33 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) **Copyright**
+% CVS: @ID@ TEST.z
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+Argument	::\underline{Argument}::
+Class		::{\bf Class}::
+Command		::{\bf Command}::
+Comment		::::
+Const		::{\bf Constant}::
+Emphasis	::{\it Emphasis}::
+File		::"{\it File/Path}"::
+Function	::{\bf Function}::
+Method		::{\bf Method}::
+Namespace	::{\bf Namespace]}::
+Option		::{\bf Option}::
+Optional	::?Optional?::
+Package		::{\bf Package}::
+Syscmd		::{\bf SystemCommand}::
+Term		::{\it Term}::
+Type		::{\bf Type}::
+Uri		::\underline{Uri}::
+Variable	::{\bf Variable}::
+Widget		::{\bf Widget}::
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) **Copyright**\linebreak
+\end{flushleft}
+\end{document}

@@ -1,0 +1,137 @@
+[manpage_begin xsxp n 1.0]
+[keywords dom]
+[keywords parser]
+[keywords xml]
+[moddesc {Amazon S3 Web Service Utilities}]
+[titledesc {eXtremely Simple Xml Parser}]
+[copyright {Copyright 2006 Darren New. All Rights Reserved.}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require xsxp 1]
+[require xml]
+[description]
+This package provides a simple interface to parse XML into a pure-value list.
+It also provides accessor routines to pull out specific subtags,
+not unlike DOM access.
+This package was written for and is used by Darren New's Amazon S3 access package.
+
+[para]
+This is pretty lame, but I needed something like this for S3,
+and at the time, TclDOM would not work with the new 8.5 Tcl
+due to version number problems.
+[para]
+In addition, this is a pure-value implementation. There is no
+garbage to clean up in the event of a thrown error, for example.
+This simplifies the code for sufficiently small XML documents,
+which is what Amazon's S3 guarantees.
+
+[para]
+Copyright 2006 Darren New. All Rights Reserved.
+NO WARRANTIES OF ANY TYPE ARE PROVIDED.
+COPYING OR USE INDEMNIFIES THE AUTHOR IN ALL WAYS.
+This software is licensed under essentially the same
+terms as Tcl. See LICENSE.txt for the terms.
+
+[section COMMANDS]
+The package implements five rather simple procedures.
+One parses, one is for debugging, and the rest pull various
+parts of the parsed document out for processing.
+
+[list_begin definitions]
+
+[call [cmd xsxp::parse] [arg xml]]
+
+This parses an XML document (using the standard xml tcllib module in a SAX sort of way) and builds a data structure which it returns if the parsing succeeded. The return value is referred to herein as a "pxml", or "parsed xml". The list consists of two or more elements:
+
+[list_begin itemized]
+[item]
+The first element is the name of the tag.
+[item]
+The second element is an array-get formatted list of key/value pairs. The keys are attribute names and the values are attribute values. This is an empty list if there are no attributes on the tag.
+[item]
+The third through end elements are the children of the node, if any. Each child is, recursively, a pxml.
+[item]
+Note that if the zero'th element, i.e. the tag name, is "%PCDATA", then
+the attributes will be empty and the third element will be the text of the element. In addition, if an element's contents consists only of PCDATA, it will have only one child, and all the PCDATA will be concatenated. In other words,
+this parser works poorly for XML with elements that contain both child tags and PCDATA.  Since Amazon S3 does not do this (and for that matter most
+uses of XML where XML is a poor choice don't do this), this is probably
+not a serious limitation.
+[list_end]
+
+[para]
+
+[call [cmd xsxp::fetch] [arg pxml] [arg path] [opt [arg part]]]
+
+[arg pxml] is a parsed XML, as returned from xsxp::parse.
+[arg path] is a list of element tag names. Each element is the name
+of a child to look up, optionally followed by a
+hash ("#") and a string of digits. An empty list or an initial empty element
+selects [arg pxml]. If no hash sign is present, the behavior is as if "#0"
+had been appended to that element. (In addition to a list, slashes can separate subparts where convenient.)
+
+[para]
+
+An element of [arg path] scans the children at the indicated level
+for the n'th instance of a child whose tag matches the part of the
+element before the hash sign. If an element is simply "#"  followed
+by digits, that indexed child is selected, regardless of the tags
+in the children. Hence, an element of "#3" will always select
+the fourth child of the node under consideration.
+
+[para]
+[arg part] defaults to "%ALL". It can be one of the following case-sensitive terms:
+[list_begin definitions]
+[def %ALL] returns the entire selected element.
+[def %TAGNAME] returns lindex 0 of the selected element.
+[def %ATTRIBUTES] returns index 1 of the selected element.
+
+[def %CHILDREN] returns lrange 2 through end of the selected element,
+resulting in a list of elements being returned.
+
+[def %PCDATA] returns a concatenation of all the bodies of
+direct children of this node whose tag is %PCDATA.
+It throws an error if no such children are found. That
+is, part=%PCDATA means return the textual content found
+in that node but not its children nodes.
+
+[def %PCDATA?] is like %PCDATA, but returns an empty string if
+no PCDATA is found.
+
+[list_end]
+
+[para]
+For example, to fetch the first bold text from the fifth paragraph of the body of your HTML file,
+[example {xsxp::fetch $pxml {body p#4 b} %PCDATA}]
+
+[para]
+
+[call [cmd xsxp::fetchall] [arg pxml_list] [arg path] [opt [arg part]]]
+
+This iterates over each PXML in [arg pxml_list] (which must be a list
+of pxmls) selecting the indicated path from it, building a new list
+with the selected data, and returning that new list.
+
+[para]
+
+For example, [arg pxml_list] might be
+the %CHILDREN of a particular element, and the [arg path] and [arg part]
+might select from each child a sub-element in which we're interested.
+
+[para]
+
+[call [cmd xsxp::only] [arg pxml] [arg tagname]]
+This iterates over the direct children of [arg pxml] and selects only
+those with [arg tagname] as their tag. Returns a list of matching
+elements.
+
+[para]
+
+[call [cmd xsxp::prettyprint] [arg pxml] [opt [arg chan]]]
+This outputs to [arg chan] (default stdout) a pretty-printed
+version of [arg pxml].
+
+[list_end]
+
+[vset CATEGORY amazon-s3]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

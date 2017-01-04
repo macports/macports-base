@@ -1,0 +1,291 @@
+
+<html><head>
+<title>doctools::idx::structure - Documentation tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'idx_structure.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- doctools::idx::structure.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools::idx::structure(n) 0.1 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools::idx::structure - Docidx serialization utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Keyword index serialization format</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">doctools::idx::structure <span class="opt">?0.1?</span></b></li>
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">logger</b></li>
+<li>package require <b class="pkgname">snit</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::doctools::idx::structure</b> <b class="method">verify</b> <i class="arg">serial</i> <span class="opt">?<i class="arg">canonvar</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::doctools::idx::structure</b> <b class="method">verify-as-canonical</b> <i class="arg">serial</i></a></li>
+<li><a href="#3"><b class="cmd">::doctools::idx::structure</b> <b class="method">canonicalize</b> <i class="arg">serial</i></a></li>
+<li><a href="#4"><b class="cmd">::doctools::idx::structure</b> <b class="method">print</b> <i class="arg">serial</i></a></li>
+<li><a href="#5"><b class="cmd">::doctools::idx::structure</b> <b class="method">merge</b> <i class="arg">seriala</i> <i class="arg">serialb</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands to work with the serializations of
+keyword indices as managed by the doctools system v2, and specified in
+section <span class="sectref"><a href="#section3">Keyword index serialization format</a></span>.</p>
+<p>This is an internal package of doctools, for use by the higher level
+packages handling keyword indices and their conversion into and out of
+various other formats, like documents written using <i class="term"><a href="../../../../index.html#key178">docidx</a></i>
+markup.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::doctools::idx::structure</b> <b class="method">verify</b> <i class="arg">serial</i> <span class="opt">?<i class="arg">canonvar</i>?</span></a></dt>
+<dd><p>This command verifies that the content of <i class="arg">serial</i> is a valid
+<i class="term">regular</i> serialization of a keyword index and will throw an
+error if that is not the case. The result of the command is the empty
+string.</p>
+<p>If the argument <i class="arg">canonvar</i> is specified it is interpreted as the
+name of a variable in the calling context. This variable will be
+written to if and only if <i class="arg">serial</i> is a valid regular
+serialization. Its value will be a boolean, with <b class="const">True</b>
+indicating that the serialization is not only valid, but also
+<i class="term">canonical</i>. <b class="const">False</b> will be written for a valid, but
+non-canonical serialization.</p>
+<p>For the specification of regular and canonical keyword index
+serializations see the section
+<span class="sectref"><a href="#section3">Keyword index serialization format</a></span>.</p></dd>
+<dt><a name="2"><b class="cmd">::doctools::idx::structure</b> <b class="method">verify-as-canonical</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command verifies that the content of <i class="arg">serial</i> is a valid
+<i class="term">canonical</i> serialization of a keyword index and will throw an
+error if that is not the case. The result of the command is the empty
+string.</p>
+<p>For the specification of canonical keyword index serializations see
+the section <span class="sectref"><a href="#section3">Keyword index serialization format</a></span>.</p></dd>
+<dt><a name="3"><b class="cmd">::doctools::idx::structure</b> <b class="method">canonicalize</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command assumes that the content of <i class="arg">serial</i> is a valid
+<i class="term">regular</i> serialization of a keyword index and will throw an
+error if that is not the case.</p>
+<p>It will then convert the input into the <i class="term">canonical</i> serialization
+of the contained keyword index and return it as its result. If the
+input is already canonical it will be returned unchanged.</p>
+<p>For the specification of regular and canonical keyword index
+serializations see the section
+<span class="sectref"><a href="#section3">Keyword index serialization format</a></span>.</p></dd>
+<dt><a name="4"><b class="cmd">::doctools::idx::structure</b> <b class="method">print</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command assumes that the argument <i class="arg">serial</i> contains a valid
+regular serialization of a keyword index and returns a string
+containing that index in a human readable form.</p>
+<p>The exact format of this form is not specified and cannot be relied on
+for parsing or other machine-based activities.</p>
+<p>For the specification of regular keyword index serializations see the
+section <span class="sectref"><a href="#section3">Keyword index serialization format</a></span>.</p></dd>
+<dt><a name="5"><b class="cmd">::doctools::idx::structure</b> <b class="method">merge</b> <i class="arg">seriala</i> <i class="arg">serialb</i></a></dt>
+<dd><p>This command accepts the regular serializations of two keyword indices
+and uses them to create their union.  The result of the command is the
+canonical serialization of this unified keyword index.</p>
+<p>Title and label of the resulting index are taken from the index
+contained in <i class="arg">serialb</i>. The set of keys, references and their
+connections is the union of the set of keys and references of the two
+inputs.</p>
+<p>For the specification of regular and canonical keyword index
+serializations see the section
+<span class="sectref"><a href="#section3">Keyword index serialization format</a></span>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Keyword index serialization format</a></h2>
+<p>Here we specify the format used by the doctools v2 packages to
+serialize keyword indices as immutable values for transport,
+comparison, etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations. While a keyword index may have more than one regular
+serialization only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>An index serialization is a nested Tcl dictionary.</p></li>
+<li><p>This dictionary holds a single key, <b class="const">doctools::idx</b>, and its
+value. This value holds the contents of the index.</p></li>
+<li><p>The contents of the index are a Tcl dictionary holding the title of
+the index, a label, and the keywords and references. The relevant keys
+and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">title</b></dt>
+<dd><p>The value is a string containing the title of the index.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the index.</p></dd>
+<dt><b class="const">keywords</b></dt>
+<dd><p>The value is a Tcl dictionary, using the keywords known to the index
+as keys. The associated values are lists containing the identifiers of
+the references associated with that particular keyword.</p>
+<p>Any reference identifier used in these lists has to exist as a key in
+the <b class="const">references</b> dictionary, see the next item for its
+definition.</p></dd>
+<dt><b class="const">references</b></dt>
+<dd><p>The value is a Tcl dictionary, using the identifiers for the
+references known to the index as keys. The associated values are
+2-element lists containing the type and label of the reference, in
+this order.</p>
+<p>Any key here has to be associated with at least one keyword,
+i.e. occur in at least one of the reference lists which are the values
+in the <b class="const">keywords</b> dictionary, see previous item for its
+definition.</p></dd>
+</dl>
+</li>
+<li><p>The <i class="term"><a href="../../../../index.html#key117">type</a></i> of a reference can be one of two values,</p>
+<dl class="doctools_definitions">
+<dt><b class="const">manpage</b></dt>
+<dd><p>The identifier of the reference is interpreted as symbolic file name,
+refering to one of the documents the index was made for.</p></dd>
+<dt><b class="const">url</b></dt>
+<dd><p>The identifier of the reference is interpreted as an url, refering to
+some external location, like a website, etc.</p></dd>
+</dl>
+</li>
+</ol></dd>
+<dt>canonical serialization</dt>
+<dd><p>The canonical serialization of a keyword index has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of the keyword index.</p>
+<ol class="doctools_enumerated">
+<li><p>The keys found in all the nested Tcl dictionaries are sorted in
+ascending dictionary order, as generated by Tcl's builtin command
+<b class="cmd">lsort -increasing -dict</b>.</p></li>
+<li><p>The references listed for each keyword of the index, if any, are
+listed in ascending dictionary order of their <em>labels</em>, as
+generated by Tcl's builtin command <b class="cmd">lsort -increasing -dict</b>.</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key292">deserialization</a>, <a href="../../../../index.html#key178">docidx</a>, <a href="../../../../index.html#key179">doctools</a>, <a href="../../../../index.html#key109">serialization</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

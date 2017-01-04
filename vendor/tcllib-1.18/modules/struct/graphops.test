@@ -1,0 +1,67 @@
+# -*- tcl -*-
+# graphops.test:  tests for the operations on graph structures.
+#
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: graphops.test,v 1.4 2009/09/24 19:30:11 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    useLocal list.tcl struct::list
+
+    useAccel [useTcllibC] struct/tree.tcl  struct::tree
+    TestAccelInit                          struct::tree
+
+    useAccel [useTcllibC] struct/queue.tcl struct::queue
+    TestAccelInit                          struct::queue
+
+    useAccel [useTcllibC] struct/stack.tcl struct::stack
+    TestAccelInit                          struct::stack
+
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    useAccel [useTcllibC] struct/graph.tcl struct::graph
+    TestAccelInit                          struct::graph
+
+    useLocalFile graph/tests/XOpsSupport
+}
+testing {
+    useLocal graphops.tcl struct::graph::op
+}
+
+# -------------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite
+# (in graphops.testsuite) is expecting from the environment. This code
+# runs the testsuite 32 (2^5) times, covering all possible
+# combinations of tcl/c implementations.
+
+TestAccelDo struct::tree treeimpl {
+    TestAccelDo struct::stack stkimpl {
+	TestAccelDo struct::queue queimpl {
+	    TestAccelDo struct::set setimpl {
+		TestAccelDo struct::graph impl {
+		    source [localPath graph/tests/XOpsControl]
+		}
+	    }
+	}
+    }
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::graph
+TestAccelExit struct::set
+TestAccelExit struct::queue
+TestAccelExit struct::stack
+TestAccelExit struct::tree
+testsuiteCleanup

@@ -1,0 +1,196 @@
+[manpage_begin jpeg n 0.5]
+[keywords comment]
+[keywords exif]
+[keywords image]
+[keywords jfif]
+[keywords jpeg]
+[keywords thumbnail]
+[copyright {2004-2005, Code: Aaron Faupell <afaupell@users.sourceforge.net>}]
+[copyright {2007, Code:  Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2004-2009, Doc:  Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2011, Code: Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc   {JPEG image manipulation}]
+[titledesc {JPEG querying and manipulation of meta data}]
+[category  {File formats}]
+[require Tcl 8.2]
+[require jpeg [opt 0.5]]
+[description]
+[para]
+
+This package provides commands to query and modify JPEG images. JPEG
+stands for [term {Joint Photography Experts Group}] and is a standard
+for the lossy compression of photographical images. It is specified at
+[uri LINK_HERE].
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd ::jpeg::isJPEG] [arg file]]
+
+Returns a boolean value indicating if [arg file] is a
+JPEG image.
+
+[call [cmd ::jpeg::imageInfo] [arg file]]
+
+Returns a dictionary with keys [const version], [const units],
+[const xdensity], [const ydensity], [const xthumb], and
+[const ythumb]. The values are the associated properties of the JPEG
+image in [arg file].
+
+Throws an error if [arg file] is not a JPEG image.
+
+[call [cmd ::jpeg::dimensions] [arg file]]
+
+Returns the dimensions of the JPEG [arg file] as a list of the
+horizontal and vertical pixel count.
+
+Throws an error if [arg file] is not a JPEG image.
+
+[call [cmd ::jpeg::getThumbnail] [arg file]]
+
+This procedure will return the binary thumbnail image data, if a JPEG
+thumbnail is included in [arg file], and the empty string
+otherwise. Note that it is possible to include thumbnails in formats
+other than JPEG although that is not common. The command finds
+thumbnails that are encoded in either the JFXX or EXIF segments of the
+JPEG information. If both are present the EXIF thumbnail will take precedence.
+
+Throws an error if [arg file] is not a JPEG image.
+
+[example {
+    set fh [open thumbnail.jpg w+]
+    fconfigure $fh -translation binary -encoding binary
+    puts -nonewline $fh [::jpeg::getThumbnail photo.jpg]
+    close $fh
+}]
+
+[call [cmd ::jpeg::getExif] [arg file] [opt [arg section]]]
+
+[arg section] must be one of [const main] or [const thumbnail].
+The default is [const main].
+
+Returns a dictionary containing the EXIF information for the specified section.
+
+For example:
+[para]
+[example {
+    set exif {
+	Make     Canon
+	Model    {Canon DIGITAL IXUS}
+	DateTime {2001:06:09 15:17:32}
+    }
+}]
+
+Throws an error if [arg file] is not a JPEG image.
+
+[call [cmd ::jpeg::getExifFromChannel] [arg channel] [opt [arg section]]]
+
+This command is as per [cmd ::jpeg::getExif] except that it uses a
+previously opened channel.  [arg channel] should be a seekable channel
+and [arg section] is as described in the documentation of
+[cmd ::jpeg::getExif].
+
+[para][emph Note]: The jpeg parser expects that the start of the
+channel is the start of the image data. If working with an image
+embedded in a container file format it may be necessary to read the
+jpeg data into a temporary container: either a temporary file or a
+memory channel.
+
+[para][emph Attention]: It is the resonsibility of the caller to close
+the channel after its use.
+
+
+[call [cmd ::jpeg::formatExif] [arg keys]]
+
+Takes a list of key-value pairs as returned by [cmd getExif] and formats
+many of the values into a more human readable form. As few as one key-value
+may be passed in, the entire exif is not required.
+
+[example {
+    foreach {key val} [::jpeg::formatExif [::jpeg::getExif photo.jpg]] {
+        puts "$key: $val"
+    }
+}]
+[para]
+[example {
+    array set exif [::jpeg::getExif photo.jpg]
+    puts "max f-stop: [::jpeg::formatExif [list MaxAperture $exif(MaxAperture)]]
+}]
+
+[call [cmd ::jpeg::exifKeys]]
+
+Returns a list of the EXIF keys which are currently understood.
+There may be keys present in [cmd getExif] data that are not understood.
+Those keys will appear in a 4 digit hexadecimal format.
+
+[call [cmd ::jpeg::removeExif] [arg file]]
+
+Removes the Exif data segment from the specified file and replaces
+it with a standard JFIF segment.
+
+Throws an error if [arg file] is not a JPEG image.
+
+[call [cmd ::jpeg::stripJPEG] [arg file]]
+
+Removes all metadata from the JPEG file leaving only
+the image. This includes comments, EXIF segments, JFXX
+segments, and application specific segments.
+
+Throws an error if [arg file] is not a JPEG image.
+
+[call [cmd ::jpeg::getComments] [arg file]]
+
+Returns a list containing all the JPEG comments found in
+the [arg file].
+
+Throws an error if [arg file] is not a valid JPEG image.
+
+[call [cmd ::jpeg::addComment] [arg file] [arg text]...]
+
+Adds one or more plain [arg text] comments to the JPEG image
+in [arg file].
+
+Throws an error if [arg file] is not a valid JPEG image.
+
+[call [cmd ::jpeg::removeComments] [arg file]]
+
+Removes all comments from the file specified.
+
+Throws an error if [arg file] is not a valid JPEG image.
+
+[call [cmd ::jpeg::replaceComment] [arg file] [arg text]]
+
+Replaces the first comment in the file with the new [arg text].
+This is merely a shortcut for [cmd ::jpeg::removeComments]
+and [cmd ::jpeg::addComment]
+
+Throws an error if [arg file] is not a valid JPEG image.
+
+[call [cmd ::jpeg::debug] [arg file]]
+
+Prints everything we know about the given file in a nice format.
+
+[call [cmd ::jpeg::markers] [arg channel]]
+
+This is an internal helper command, we document it for use by advanced
+users of the package. The argument [arg channel] is an open file
+handle positioned at the start of the first marker (usually 2
+bytes). The command returns a list with one element for each JFIF
+marker found in the file. Each element consists of a list of the
+marker name, its offset in the file, and its length. The offset points
+to the beginning of the sections data, not the marker itself.  The
+length is the length of the data from the offset listed to the start
+of the next marker.
+
+[list_end]
+
+[section LIMITATIONS]
+
+can only work with files
+cant write exif data
+gps exif data not parsed
+makernote data not yet implemented
+
+[vset CATEGORY jpeg]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,91 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin bench_intro n 1.0]
+[see_also bench]
+[see_also bench_lang_faq]
+[see_also bench_lang_intro]
+[see_also bench_lang_spec]
+[keywords {bench language}]
+[keywords benchmark]
+[keywords performance]
+[keywords testing]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Benchmarking/Performance tools}]
+[titledesc {bench introduction}]
+[category  {Benchmark tools}]
+[description]
+[para]
+
+The [term bench] (short for [emph {benchmark tools}]), is a set of
+related, yet different, entities which are working together for the
+easy creation and execution of performance test suites, also known as
+benchmarks. These are
+
+[list_begin enumerated]
+[enum]
+
+A tcl based language for the declaration of test cases. A test case is
+represented by a tcl command declaring the various parts needed to
+execute it, like setup, cleanup, the commands to test, etc.
+
+[enum]
+
+A package providing the ability to execute test cases written in that
+language.
+
+[comment {
+[enum]
+In the future we will also provide an application which wraps around the package.
+}]
+[list_end]
+
+[para]
+
+Which of the more detailed documents are relevant to the reader of
+this introduction depends on their role in the benchmarking process.
+
+[para]
+
+[list_begin enumerated]
+[enum]
+
+A [term writer] of benchmarks has to understand the bench language
+itself. A beginner to bench should read the more informally written
+[term {bench language introduction}] first. Having digested this the
+formal [term {bench language specification}] should become
+understandable. A writer experienced with bench may only need this
+last document from time to time, to refresh her memory.
+
+[comment {
+[para]
+
+While a benchmark is written the [syscmd bench] application can be
+used to validate it, and after completion it also performs the
+execution of the whole benchmark suite.
+}]
+
+[enum]
+A [term user] of benchmark suites written in the [term bench] language
+has to know which tools are available for use.
+
+[comment {
+[para]
+
+The main tool is the aforementioned [syscmd bench] application
+provided by Tcllib.
+}]
+
+At the bottom level sits the package [package bench], providing the
+basic facilities to read and execute files containing benchmarks
+written in the bench language, and to manipulate benchmark results.
+
+[list_end]
+
+[section {HISTORICAL NOTES}]
+
+This module and package have been derived from Jeff Hobbs'
+[syscmd tclbench] application for the benchmarking of the Tcl core and
+its ancestor [file runbench.tcl].
+
+[vset CATEGORY bench]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,153 @@
+# -*- tcl -*-
+# docidx_parse.test:  tests for the doctools::idx::parse package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: parse.test,v 1.1 2009/04/01 04:28:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    useAccel [useTcllibC] struct/tree.tcl  struct::tree
+    TestAccelInit                          struct::tree
+
+    useAccel [useTcllibC] struct/stack.tcl struct::stack
+    TestAccelInit                          struct::stack
+
+    useAccel [useTcllibC] struct/sets.tcl  struct::set
+    TestAccelInit                          struct::set
+
+    use      struct/list.tcl               struct::list
+    use      snit/snit.tcl                 snit
+    use      fileutil/fileutil.tcl         fileutil
+    use      log/logger.tcl                logger
+    use      treeql/treeql.tcl             treeql
+
+    use      doctools2base/tcl_parse.tcl  doctools::tcl::parse
+    use      doctools2base/msgcat.tcl     doctools::msgcat
+    useLocal msgcat_c.tcl                 doctools::msgcat::idx::c
+    useLocal structure.tcl                doctools::idx::structure
+
+    msgcat::mclocale C
+}
+testing {
+    useLocal parse.tcl doctools::idx::parse
+}
+
+# -------------------------------------------------------------------------
+
+# General set of error cases regarding the number of arguments.
+
+test doctools-idx-parse-1.0 {parse file, wrong#args} -body {
+    doctools::idx::parse file
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_typemethodfile type path"}
+
+test doctools-idx-parse-1.1 {parse file, wrong#args} -body {
+    doctools::idx::parse file P XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_typemethodfile type path"}
+
+test doctools-idx-parse-2.0 {parse text, wrong#args} -body {
+    doctools::idx::parse text
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_typemethodtext type text ?path?"}
+
+test doctools-idx-parse-2.1 {parse text, wrong#args} -body {
+    doctools::idx::parse text T P XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_typemethodtext type text ?path?"}
+
+test doctools-idx-parse-3.0 {vars, wrong#args} -body {
+    doctools::idx::parse vars XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_typemethodvars type"}
+
+test doctools-idx-parse-4.0 {var, bogus submethod} -body {
+    doctools::idx::parse var bogus
+} -returnCodes error -result {"::doctools::idx::parse var bogus" is not defined}
+
+test doctools-idx-parse-5.0 {var set, wrong#args} -body {
+    doctools::idx::parse var set
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodvar_set type name value"}
+
+test doctools-idx-parse-5.1 {var set, wrong#args} -body {
+    doctools::idx::parse var set N
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodvar_set type name value"}
+
+test doctools-idx-parse-5.2 {var set, wrong#args} -body {
+    doctools::idx::parse var set N V XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodvar_set type name value"}
+
+test doctools-idx-parse-6.0 {var load, wrong#args} -body {
+    doctools::idx::parse var load
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodvar_load type dict"}
+
+test doctools-idx-parse-6.1 {var load, wrong#args} -body {
+    doctools::idx::parse var load D XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodvar_load type dict"}
+
+# var unset - 0+ arguments, no checking possible.
+
+test doctools-idx-parse-7.0 {includes, wrong#args} -body {
+    doctools::idx::parse includes XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_typemethodincludes type"}
+
+test doctools-idx-parse-8.0 {include, bogus submethod} -body {
+    doctools::idx::parse include bogus
+} -returnCodes error -result {"::doctools::idx::parse include bogus" is not defined}
+
+test doctools-idx-parse-9.0 {include set, wrong#args} -body {
+    doctools::idx::parse include set
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_set type paths"}
+
+test doctools-idx-parse-9.1 {include set, wrong#args} -body {
+    doctools::idx::parse include set P XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_set type paths"}
+
+test doctools-idx-parse-10.0 {include add, wrong#args} -body {
+    doctools::idx::parse include add
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_add type path"}
+
+test doctools-idx-parse-10.1 {include add, wrong#args} -body {
+    doctools::idx::parse include add P XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_add type path"}
+
+test doctools-idx-parse-11.0 {include remove, wrong#args} -body {
+    doctools::idx::parse include remove
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_remove type path"}
+
+test doctools-idx-parse-11.1 {include remove, wrong#args} -body {
+    doctools::idx::parse include remove P XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_remove type path"}
+
+test doctools-idx-parse-12.0 {include clear, wrong#args} -body {
+    doctools::idx::parse include clear XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::parse::Snit_htypemethodinclude_clear type"}
+
+# idx_parse tests, numbering starts at 20
+# -------------------------------------------------------------------------
+
+array_unset env LANG*
+array_unset env LC_*
+set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::stack stkimpl {
+    TestAccelDo struct::set setimpl {
+	TestAccelDo struct::tree impl {
+	    source [localPath tests/parse]
+	}
+    }
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::tree
+TestAccelExit struct::set
+TestAccelExit struct::stack
+testsuiteCleanup
+return

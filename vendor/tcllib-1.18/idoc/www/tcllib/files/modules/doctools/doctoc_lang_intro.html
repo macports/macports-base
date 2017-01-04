@@ -1,0 +1,362 @@
+
+<html><head>
+<title>doctoc_lang_intro - Documentation tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'doctoc_lang_intro.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- doctoc_lang_intro.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctoc_lang_intro(n) 1.0 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctoc_lang_intro - doctoc language introduction</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Fundamentals</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Basic structure</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Items</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Divisions</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Advanced structure</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Escapes</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">FURTHER READING</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document is an informal introduction to version 1.1 of the doctoc
+markup language based on a multitude of examples. After reading this a
+writer should be ready to understand the two parts of the formal
+specification, i.e. the <i class="term"><a href="doctoc_lang_syntax.html">doctoc language syntax</a></i> specification
+and the <i class="term"><a href="doctoc_lang_cmdref.html">doctoc language command reference</a></i>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Fundamentals</a></h3>
+<p>While the <i class="term">doctoc markup language</i> is quite similar to the
+<i class="term">doctools markup language</i>, in the broadest terms possible,
+there is one key difference. A table of contents consists essentially
+only of markup commands, with no plain text interspersed between them,
+except for whitespace.</p>
+<p>Each markup command is a Tcl command surrounded by a matching pair of
+<b class="const">[</b> and <b class="const">]</b>. Inside of these delimiters the usual
+rules for a Tcl command apply with regard to word quotation, nested
+commands, continuation lines, etc. I.e.</p>
+<pre class="doctools_example">
+    ... [division_start {Appendix 1}] ...
+</pre>
+<pre class="doctools_example">
+  ... [item thefile \\
+          label {file description}] ...
+</pre>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Basic structure</a></h3>
+<p>The most simple document which can be written in doctoc is</p>
+<pre class="doctools_example">
+    [toc_begin GROUPTITLE TITLE]
+    [toc_end]
+</pre>
+<p>This also shows us that all doctoc documents consist of only one
+part where we will list <i class="term">items</i> and <i class="term">divisions</i>.</p>
+<p>The user is free to mix these as she sees fit. This is a change from
+version 1 of the language, which did not allow this mixing, but only
+the use of either a series of items or a series of divisions.</p>
+<p>We will discuss the commands for each of these two possibilities in
+the next sections.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Items</a></h3>
+<p>Use the command <b class="cmd">item</b> to put an <i class="term">item</i> into a table of
+contents. This is essentially a reference to a section, subsection,
+etc. in the document, or set of documents, the table of contents is
+for. The command takes three arguments, a symbolic name for the file
+the item is for and two text to label the item and describe the
+referenced section.</p>
+<p>Symbolic names are used to preserve the convertibility of this format
+to any output format. The actual name of any file will be inserted by
+the chosen formatting engine when converting the input, based on a
+mapping from symbolic to actual names given to the engine.</p>
+<p>Here a made up example for a table of contents of this document:</p>
+<pre class="doctools_example">
+[toc_begin Doctoc {Language Introduction}]
+[<b class="cmd">item 1 DESCRIPTION</b>]
+[<b class="cmd">item 1.1 {Basic structure}</b>]
+[<b class="cmd">item 1.2 Items</b>]
+[<b class="cmd">item 1.3 Divisions</b>]
+[<b class="cmd">item 2 {FURTHER READING}</b>]
+[toc_end]
+</pre>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Divisions</a></h3>
+<p>One thing of notice in the last example in the previous section is
+that the referenced sections actually had a nested structure,
+something which was expressed in the item labels, by using a common
+prefix for all the sections nested under section 1.</p>
+<p>This kind of structure can be made more explicit in the doctoc
+language by using divisions. Instead of using a series of plain items
+we use a series of divisions for the major references, and then place
+the nested items inside of these.</p>
+<p>Of course, instead of the nested items we can again use divisions and
+thus nest arbitrarily deep.</p>
+<p>A division is marked by two commands instead of one, one to start it,
+the other to close the last opened division. They are:</p>
+<dl class="doctools_commands">
+<dt><b class="cmd">division_start</b></dt>
+<dd><p>This command opens a new division. It takes one or two arguments, the
+title of the division, and the symbolic name of the file it refers
+to. The latter is optional.
+If the symbolic filename is present then the section title should link
+to the referenced document, if links are supported by the output
+format.</p></dd>
+<dt><b class="cmd">division_end</b></dt>
+<dd><p>This command closes the last opened and not yet closed division.</p></dd>
+</dl>
+<p>Using this we can recast the last example like this</p>
+<pre class="doctools_example">
+[toc_begin Doctoc {Language Introduction}]
+[<b class="cmd">division_start DESCRIPTION</b>]
+[item 1 {Basic structure}]
+[item 2 Items]
+[item 3 Divisions]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_start {FURTHER READING}</b>]
+[<b class="cmd">division_end</b>]
+[toc_end]
+</pre>
+<p>Or, to demonstrate deeper nesting</p>
+<pre class="doctools_example">
+[toc_begin Doctoc {Language Introduction}]
+[<b class="cmd">division_start DESCRIPTION</b>]
+[<b class="cmd">division_start {Basic structure}</b>]
+[item 1 Do]
+[item 2 Re]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_start Items</b>]
+[item a Fi]
+[item b Fo]
+[item c Fa]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_start Divisions</b>]
+[item 1 Sub]
+[item 1 Zero]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_start {FURTHER READING}</b>]
+[<b class="cmd">division_end</b>]
+[toc_end]
+</pre>
+<p>And do not forget, it is possible to freely mix items and divisions,
+and to have empty divisions.</p>
+<pre class="doctools_example">
+[toc_begin Doctoc {Language Introduction}]
+[item 1 Do]
+[<b class="cmd">division_start DESCRIPTION</b>]
+[<b class="cmd">division_start {Basic structure}</b>]
+[item 2 Re]
+[<b class="cmd">division_end</b>]
+[item a Fi]
+[<b class="cmd">division_start Items</b>]
+[item b Fo]
+[item c Fa]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_start Divisions</b>]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_end</b>]
+[<b class="cmd">division_start {FURTHER READING}</b>]
+[<b class="cmd">division_end</b>]
+[toc_end]
+</pre>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Advanced structure</a></h3>
+<p>In all previous examples we fudged a bit regarding the markup actually
+allowed to be used before the <b class="cmd">toc_begin</b> command opening the
+document.</p>
+<p>Instead of only whitespace the two templating commands <b class="cmd">include</b>
+and <b class="cmd">vset</b> are also allowed, to enable the writer to either set
+and/or import configuration settings relevant to the table of
+contents. I.e. it is possible to write</p>
+<pre class="doctools_example">
+[<b class="cmd">include FILE</b>]
+[<b class="cmd">vset VAR VALUE</b>]
+[toc_begin GROUPTITLE TITLE]
+...
+[toc_end]
+</pre>
+<p>Even more important, these two commands are allowed anywhere where a
+markup command is allowed, without regard for any other
+structure.</p>
+<pre class="doctools_example">
+[toc_begin GROUPTITLE TITLE]
+[<b class="cmd">include FILE</b>]
+[<b class="cmd">vset VAR VALUE</b>]
+...
+[toc_end]
+</pre>
+<p>The only restriction <b class="cmd">include</b> has to obey is that the contents of
+the included file must be valid at the place of the inclusion. I.e. a
+file included before <b class="cmd">toc_begin</b> may contain only the templating
+commands <b class="cmd">vset</b> and <b class="cmd">include</b>, a file included in a division
+may contain only items or divisions commands, etc.</p>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Escapes</a></h3>
+<p>Beyond the 6 commands shown so far we have two more available.
+However their function is not the marking up of toc structure, but the
+insertion of characters, namely <b class="const">[</b> and <b class="const">]</b>.
+These commands, <b class="cmd">lb</b> and <b class="cmd">rb</b> respectively, are required
+because our use of [ and ] to bracket markup commands makes it
+impossible to directly use [ and ] within the text.</p>
+<p>Our example of their use are the sources of the last sentence in the
+previous paragraph, with some highlighting added.</p>
+<pre class="doctools_example">
+  ...
+  These commands, [cmd lb] and [cmd lb] respectively, are required
+  because our use of [<b class="cmd">lb</b>] and [<b class="cmd">rb</b>] to bracket markup commands makes it
+  impossible to directly use [<b class="cmd">lb</b>] and [<b class="cmd">rb</b>] within the text.
+  ...
+</pre>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">FURTHER READING</a></h2>
+<p>Now that this document has been digested the reader, assumed to be a
+<i class="term">writer</i> of documentation should be fortified enough to be able
+to understand the formal <i class="term"><a href="doctoc_lang_syntax.html">doctoc language syntax</a></i>
+specification as well. From here on out the
+<i class="term"><a href="doctoc_lang_cmdref.html">doctoc language command reference</a></i> will also serve as the
+detailed specification and cheat sheet for all available commands and
+their syntax.</p>
+<p>To be able to validate a document while writing it, it is also
+recommended to familiarize oneself with Tclapps' ultra-configurable
+<b class="syscmd">dtp</b>.</p>
+<p>On the other hand, doctoc is perfectly suited for the automatic
+generation from doctools documents, and this is the route Tcllib's
+easy and simple <b class="syscmd"><a href="../dtplite/pkg_dtplite.html">dtplite</a></b> goes, creating a table of contents
+for a set of documents behind the scenes, without the writer having to
+do so on their own.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="doctoc_intro.html">doctoc_intro</a>, <a href="doctoc_lang_cmdref.html">doctoc_lang_cmdref</a>, <a href="doctoc_lang_syntax.html">doctoc_lang_syntax</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key511">doctoc commands</a>, <a href="../../../../index.html#key510">doctoc language</a>, <a href="../../../../index.html#key386">doctoc markup</a>, <a href="../../../../index.html#key545">doctoc syntax</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key136">semantic markup</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,88 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<MAIN>>:
+         call              sym_TEST
+         halt
+
+#
+# value Symbol 'TEST'
+#
+
+sym_TEST:
+# x
+#     !
+#         'a'
+#     (IDENTIFIER)
+
+         symbol_restore    TEST
+  found! jump              found_10
+         loc_push
+
+         call              sequence_7
+
+   fail! value_clear
+     ok! value_leaf        TEST
+         symbol_save       TEST
+         error_nonterminal TEST
+         loc_pop_discard
+
+found_10:
+     ok! ast_value_push
+         return
+
+sequence_7:
+# x
+#     !
+#         'a'
+#     (IDENTIFIER)
+
+         loc_push
+         error_clear
+
+         error_push
+
+         call              notahead_4
+
+         error_pop_merge
+   fail! jump              failed_8
+         error_push
+
+         status_fail             ; # Undefined symbol 'IDENTIFIER'
+
+         error_pop_merge
+   fail! jump              failed_8
+
+         loc_pop_discard
+         return
+
+failed_8:
+         loc_pop_rewind
+         return
+
+notahead_4:
+# !
+#     'a'
+
+         loc_push
+
+         call              char_2
+
+         loc_pop_rewind
+         status_negate
+         return
+
+char_2:
+# 'a'
+
+         input_next        "t a"
+     ok! test_char         "a"
+         return
+
+#
+#

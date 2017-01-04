@@ -1,0 +1,23 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% CVS: @ID@ TEST.z
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+BEGINNE HIER
+\begin{verbatim}
+	 Example Block  More Lines
+\end{verbatim}
+\begin{verbatim}
+Inlined Example \
+Next Line
+\end{verbatim}
+FERTIG
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

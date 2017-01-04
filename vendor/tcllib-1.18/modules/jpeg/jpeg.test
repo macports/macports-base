@@ -1,0 +1,503 @@
+# -*- tcl -*-
+# jpeg.test:  Tests for the JPEG utilities.
+#
+# Copyright (c) 2008-2013 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# JPEG: @(#) $Id: jpeg.test,v 1.2 2011/05/06 13:39:27 patthoyts Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    use fileutil/fileutil.tcl fileutil
+}
+testing {
+    useLocal jpeg.tcl jpeg
+}
+
+# -------------------------------------------------------------------------
+
+proc strdiff {a b} {
+    set la [string length $a]
+    set lb [string length $b]
+    if {$la < $lb} {
+	set b [string range $b 0 [expr {$la - 1}]]
+	set s b
+    } elseif {$lb < $la} {
+	set a [string range $a 0 [expr {$lb - 1}]]
+	set s a
+    } else {
+	set s -
+    }
+    set n -1
+    foreach ca [split $a {}] cb [split $b {}] {
+	incr n
+	if {[string equal $ca $cb]} continue
+	lappend s $n $ca $cb
+    }
+    return $s
+}
+
+proc fixupdata {dict} {
+    array set tmp $dict
+    catch {unset tmp(MakerNote)}
+    foreach k {
+	FocalPlaneXResolution
+	FocalPlaneYResolution
+    } {
+	if {![info exists tmp($k)]} continue
+	set tmp($k) [format %8.2f $tmp($k)]
+    }
+    return [array get tmp]
+}
+
+# -------------------------------------------------------------------------
+
+test jpeg-1.0 {isJPEG error, wrong#args, not enough} -body {
+    ::jpeg::isJPEG
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::isJPEG} {file} 0]
+
+test jpeg-1.1 {isJPEG error, wrong#args, too many} -body {
+    ::jpeg::isJPEG foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::isJPEG} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-2.$n "isJPEG, ok, [file tail $f]" -body {
+	::jpeg::isJPEG $f
+    } -result 1
+    incr n
+}
+
+test jpeg-2.$n "isJPEG, fail, [file tail [info script]]" -body {
+    ::jpeg::isJPEG [info script]
+} -result 0
+
+# -------------------------------------------------------------------------
+
+test jpeg-2.0 {imageInfo error, wrong#args, not enough} -body {
+    ::jpeg::imageInfo
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::imageInfo} {file} 0]
+
+test jpeg-2.1 {imageInfo error, wrong#args, too many} -body {
+    ::jpeg::imageInfo foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::imageInfo} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.JPG] {
+    test jpeg-3.$n "imageInfo regular, [file tail $f]" -body {
+	::jpeg::imageInfo $f
+    } -result [string trim [fileutil::cat [file rootname $f].info.txt]]
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.thumb] {
+    test jpeg-4.$n "imageInfo thumbnails, [file tail $f]" -body {
+	::jpeg::imageInfo $f
+    } -result {}
+    incr n
+}
+
+test jpeg-5.0 "imageInfo, fail, [file tail [info script]]" -body {
+    ::jpeg::imageInfo [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-6.0 {dimensions error, wrong#args, not enough} -body {
+    ::jpeg::dimensions
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::dimensions} {file} 0]
+
+test jpeg-6.1 {dimensions error, wrong#args, too many} -body {
+    ::jpeg::dimensions foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::dimensions} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.JPG] {
+    test jpeg-7.$n "dimensions regular, [file tail $f]" -body {
+	::jpeg::dimensions $f
+    } -result [string trim [fileutil::cat [file rootname $f].WxH.txt]]
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.thumb] {
+    test jpeg-8.$n "dimensions thumbnails, [file tail $f]" -body {
+	::jpeg::dimensions $f
+    } -result {160 120}
+    incr n
+}
+
+test jpeg-9.0 "dimensions, fail, [file tail [info script]]" -body {
+::jpeg::dimensions [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-10.0 {getThumbnail error, wrong#args, not enough} -body {
+    ::jpeg::getThumbnail
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::getThumbnail} {file} 0]
+
+test jpeg-10.1 {getThumbnail error, wrong#args, too many} -body {
+    ::jpeg::getThumbnail foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::getThumbnail} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.JPG] {
+    if {![file exists $f.thumb]} {
+	test jpeg-11.$n "getThumbnail - no thumbnail, [file tail $f]" -body {
+	    ::jpeg::getThumbnail $f
+	} -result {}
+    } else {
+	test jpeg-11.$n "getThumbnail regular, [file tail $f]" -body {
+	    #fileutil::writeFile -translation binary ${f}.x.jpg [::jpeg::getThumbnail $f]
+	    # Note: The .thumb files were created from the .JPG files
+	    # using 'jhead -st', version 2.6.
+	    set expected [fileutil::cat -translation binary ${f}.thumb]
+	    set have     [::jpeg::getThumbnail $f]
+	    list [string equal $expected $have] [strdiff $expected $have]
+	} -result {1 -}
+    }
+
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.thumb] {
+    test jpeg-12.$n "getThumbnail thumbnails, [file tail $f]" -body {
+	::jpeg::getThumbnail $f
+    } -result {}
+    incr n
+}
+
+test jpeg-13.0 "getThumbnail, fail, [file tail [info script]]" -body {
+    ::jpeg::getThumbnail [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-14.0 {exifKeys error, wrong#args, too many} -body {
+    ::jpeg::exifKeys bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::exifKeys} {}]
+
+# -------------------------------------------------------------------------
+
+test jpeg-15.0 {exifKeys} -body {
+    ::jpeg::exifKeys
+} -result {SubjectDistanceRange InterColorProfile InteroperabilityIndex InteroperabilityVersion Copyright ShutterSpeedValue ApertureValue BrightnessValue ImageDescription ExposureBiasValue Make MaxApertureValue SubjectDistance FlashpixVersion MeteringMode ColorSpace LightSource XResolution ExifImageWidth Flash YResolution ExifImageHeight ImageNumber PlanarConfiguration RelatedSoundFile SecurityClassification CustomRendered ImageHistory ExposureMode WhiteBalance SubjectArea ExposureIndex DigitalZoomRatio ImageWidth UserComment TIFF/EPStandardID FocalLengthIn35mmFilm ImageLength TimeZoneOffset SceneCaptureType BitsPerSample SelfTimerMode GainControl Compression SubsecTime Contrast SubsecTimeOriginal Saturation SubsecTimeDigitized PhotometricInterpretation TransferFunction RelatedImageFileFormat RelatedImageWidth Model NewSubfileType RelatedImageLength StripOffsets SubfileType Orientation FlashEnergy SpatialFrequencyResponse Artist ImageUniqueID SamplesPerPixel Predictor FocalPlaneXResolution RowsPerStrip FocalPlaneYResolution StripByteCounts WhitePoint ExifVersion PrimaryChromaticities JPEGInterchangeFormat JPEGInterchangeFormatLength DateTimeOriginal ExposureProgram DateTimeDigitized CFARepeatPatternDim SubIFDs SpectralSensitivity GPSInfo CFAPattern BatteryLevel ISOSpeedRatings OECF Interlace ResolutionUnit YCbCrCoefficients ExposureTime YCbCrSubSampling Software YCbCrPositioning DateTime IPTC/NAA ReferenceBlackWhite FNumber JPEGTables ComponentsConfiguration FocalPlaneResolutionUnit FocalLength CompressedBitsPerPixel MakerNote SpatialFrequencyResponse Noise TileWidth TileLength SubjectLocation TileOffsets ExposureIndex TileByteCounts SensingMethod FileSource SceneType Sharpness CFAPattern DeviceSettingDescription}
+
+# -------------------------------------------------------------------------
+
+test jpeg-16.0 {getComments error, wrong#args, not enough} -body {
+    ::jpeg::getComments
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::getComments} {file} 0]
+
+test jpeg-16.1 {getComments error, wrong#args, too many} -body {
+    ::jpeg::getComments foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::getComments} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.JPG] {
+    test jpeg-17.$n "getComments regular, [file tail $f]" -body {
+	::jpeg::getComments $f
+    } -result {}
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.thumb] {
+    test jpeg-18.$n "getComments thumbnails, [file tail $f]" -body {
+	::jpeg::getComments $f
+    } -result {}
+    incr n
+}
+
+test jpeg-19.0 "getComments, fail, [file tail [info script]]" -body {
+    ::jpeg::getComments [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-20.0 {addComment error, wrong#args, not enough} -body {
+    ::jpeg::addComment
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::addComment} {file comment args} 0]
+
+test jpeg-20.1 {addComment error, wrong#args, not enough} -body {
+    ::jpeg::addComment foo
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::addComment} {file comment args} 1]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-21.$n "addComment regular, [file tail $f]" -setup {
+	file copy -force $f [set fx [makeFile {} jtmp]]
+	::jpeg::addComment $fx {a b} {c d}
+    } -body {
+	::jpeg::getComments $fx
+    } -cleanup {
+	removeFile $fx
+	unset fx
+    } -result {{a b} {c d}}
+    incr n
+}
+
+test jpeg-22.0 "addComment, fail, [file tail [info script]]" -body {
+    ::jpeg::addComment [info script] foo
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-23.0 {removeComments error, wrong#args, not enough} -body {
+    ::jpeg::removeComments
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::removeComments} {file} 0]
+
+test jpeg-23.1 {removeComments error, wrong#args, too many} -body {
+    ::jpeg::removeComments foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::removeComments} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-24.$n "removeComments regular, [file tail $f]" -setup {
+	file copy -force $f [set fx [makeFile {} jtmp]]
+	::jpeg::addComment     $fx {a b} {c d}
+    } -body {
+	::jpeg::removeComments $fx
+	::jpeg::getComments $fx
+    } -cleanup {
+	removeFile $fx
+	unset fx
+    } -result {}
+    incr n
+}
+
+test jpeg-25.0 "removeComments, fail, [file tail [info script]]" -body {
+    ::jpeg::removeComments [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-26.0 {replaceComment error, wrong#args, not enough} -body {
+    ::jpeg::replaceComment
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::replaceComment} {file comment} 0]
+
+test jpeg-26.1 {replaceComment error, wrong#args, not enough} -body {
+    ::jpeg::replaceComment foo
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::replaceComment} {file comment} 0]
+
+test jpeg-26.2 {replaceComment error, wrong#args, too many} -body {
+    ::jpeg::replaceComment foo bar barf
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::replaceComment} {file comment}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-27.$n "replaceComment regular, [file tail $f]" -setup {
+	file copy -force $f [set fx [makeFile {} jtmp]]
+	::jpeg::addComment      $fx {a b} {c d}
+    } -body {
+	::jpeg::replaceComment $fx new
+	::jpeg::getComments $fx
+    } -cleanup {
+	removeFile $fx
+	unset fx
+    } -result {new {c d}}
+    incr n
+}
+
+test jpeg-28.0 "replaceComment, fail, [file tail [info script]]" -body {
+    ::jpeg::replaceComment [info script] foo
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-29.0 {getExif error, wrong#args, not enough} -body {
+    ::jpeg::getExif
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::getExif} {file ?type?} 0]
+
+test jpeg-29.1 {getExif error, wrong#args, too many} -body {
+    ::jpeg::getExif foo bar barf
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::getExif} {file ?type?}]
+
+test jpeg-29.2 {getExif error, bad section type} -body {
+    ::jpeg::getExif [localPath testimages/IMG_7950.JPG] fufara
+} -returnCodes error -result {Bad type "fufara", expected one of "main", or "thumbnail"}
+
+test jpeg-29.3 {getExifFromChannel error, wrong#args, not enough} -body {
+    ::jpeg::getExifFromChannel
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::getExifFromChannel} {chan ?type?} 0]
+
+test jpeg-29.4 {getExifFromChannel error, wrong#args, too many} -body {
+    ::jpeg::getExifFromChannel foo bar barf
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::getExifFromChannel} {chan ?type?}]
+
+test jpeg-29.5 {getExifFromChannel error, bad section type} -setup {
+    set fd [::jpeg::openJFIF [localPath testimages/IMG_7950.JPG] r]
+} -body {
+    ::jpeg::getExifFromChannel $fd fufara
+} -cleanup {
+    close $fd
+    unset fd
+} -returnCodes error -result {Bad type "fufara", expected one of "main", or "thumbnail"}
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.JPG] {
+    test jpeg-30.$n "getExif, main section, $f" -body {
+	dictsort [fixupdata [::jpeg::formatExif [::jpeg::getExif $f]]]
+    } -result [string trimright [fileutil::cat [file rootname $f].exif.txt]]
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.thumb] {
+    test jpeg-31.$n "getExif, main section, $f" -body {
+	dictsort [fixupdata [::jpeg::formatExif [::jpeg::getExif $f]]]
+    } -result {}
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.JPG] {
+    test jpeg-32.$n "getExif, thumbnail section, $f" -body {
+	dictsort [fixupdata [::jpeg::formatExif [::jpeg::getExif $f thumbnail]]]
+    } -result [string trimright [fileutil::cat [file rootname $f].thumbexif.txt]]
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.thumb] {
+    test jpeg-33.$n "getExif, thumbnail section, $f" -body {
+	dictsort [fixupdata [::jpeg::formatExif [::jpeg::getExif $f thumbnail]]]
+    } -result {}
+    incr n
+}
+
+test jpeg-34.0 "getExif, fail, [file tail [info script]]" -body {
+    ::jpeg::getExif [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+# formatExif is implicitly tested in the previous tests (30-33), with getExif.
+
+test jpeg-33.0 {formatExif error, wrong#args, not enough} -body {
+    ::jpeg::formatExif
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::formatExif} {exif} 0]
+
+test jpeg-33.1 {formatExif error, wrong#args, too many} -body {
+    ::jpeg::formatExif foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::formatExif} {exif}]
+
+# -------------------------------------------------------------------------
+
+test jpeg-34.0 {removeExif error, wrong#args, not enough} -body {
+    ::jpeg::removeExif
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::removeExif} {file} 0]
+
+test jpeg-34.1 {removeExif error, wrong#args, too many} -body {
+    ::jpeg::removeExif foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::removeExif} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-35.$n "removeExif ok, [file tail $f]" -setup {
+	file copy -force $f [set fx [makeFile {} jtmp]]
+	::jpeg::addComment $fx {a b} {c d}
+    } -body {
+	::jpeg::removeExif $fx
+	set res [list [::jpeg::getComments $fx] [::jpeg::getExif $fx] [::jpeg::getExif $fx thumbnail]]
+    } -cleanup {
+	removeFile $fx
+	unset fx
+    } -result {{{a b} {c d}} {} {}}
+    incr n
+}
+
+test jpeg-36.0 "removeExif, fail, [file tail [info script]]" -body {
+::jpeg::removeExif [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-37.0 {stripJPEG error, wrong#args, not enough} -body {
+    ::jpeg::stripJPEG
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::stripJPEG} {file} 0]
+
+test jpeg-37.1 {stripJPEG error, wrong#args, too many} -body {
+    ::jpeg::stripJPEG foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::stripJPEG} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-38.$n "stripJPEG ok, [file tail $f]" -setup {
+	file copy -force $f [set fx [makeFile {} jtmp]]
+	::jpeg::addComment $fx {a b} {c d}
+    } -body {
+	::jpeg::stripJPEG $fx
+	set res [list [::jpeg::getComments $fx] [::jpeg::getExif $fx] [::jpeg::getExif $fx thumbnail]]
+    } -cleanup {
+	removeFile $fx
+	unset fx
+    } -result {{} {} {}}
+    incr n
+}
+
+test jpeg-39.0 "stripJPEG, fail, [file tail [info script]]" -body {
+    ::jpeg::stripJPEG [info script]
+}  -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+
+test jpeg-40.0 {debug error, wrong#args, not enough} -body {
+    ::jpeg::debug
+} -returnCodes error -result [tcltest::wrongNumArgs {::jpeg::debug} {file} 0]
+
+test jpeg-40.1 {debug error, wrong#args, too many} -body {
+    ::jpeg::debug foo bar
+} -returnCodes error -result [tcltest::tooManyArgs {::jpeg::debug} {file}]
+
+# -------------------------------------------------------------------------
+# We do not try to actually run 'debug', because it prints its results
+# to stdout. This may change when we can capture stdout as test result
+
+set n 0
+foreach f [TestFilesGlob testimages/*JPG*] {
+    test jpeg-41.$n "debug ok, [file tail $f]" -constraints donotrun -body {
+	::jpeg::debug $f
+    } -result {}
+    incr n
+}
+
+test jpeg-42.0 "debug, fail, [file tail [info script]]" -body {
+    ::jpeg::debug [info script]
+} -returnCodes error -result {not a jpg file}
+
+# -------------------------------------------------------------------------
+rename strdiff {}
+testsuiteCleanup

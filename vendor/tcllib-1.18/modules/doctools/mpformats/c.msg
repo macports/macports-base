@@ -1,0 +1,58 @@
+# -*- tcl -*-
+package require    msgcat
+namespace import ::msgcat::*
+
+mcset c end/open/list    "End of manpage reached, \[list_end\] missing"
+mcset c end/open/example "End of manpage reached, \[example_end\] missing"
+mcset c end/open/mp	  "End of manpage reached, \[manpage_end\] missing"
+mcset c mpbegin          "Command must be first of manpage"
+mcset c mptitle          "Spaces not allowed in manpage title"
+mcset c hdrcmd           "Command not allowed outside of the header section"
+mcset c bodycmd          "Command not allowed outside of the body of the manpage"
+mcset c body             "Plain text not allowed outside of the body of the manpage"
+mcset c reqcmd           "Command not allowed outside of header or requirement section"
+mcset c invalidlist      "Invalid list type \"@\""
+mcset c nolistcmd        "Command not allowed inside of a list"
+mcset c nolisthdr        "Command not allowed between beginning of a list and its first item"
+mcset c nolisttxt        "Plain text not allowed between beginning of a list and its first item"
+mcset c listcmd          "Command not allowed outside of a list"
+mcset c deflist          "Command restricted to usage in definition lists"
+mcset c bulletlist       "Command restricted to usage in itemized lists"
+mcset c enumlist         "Command restricted to usage in enumerated lists"
+mcset c examplecmd       "Command allowed only to close example section"
+mcset c listcmd          "Command not allowed outside of a list"
+mcset c nodonecmd        "Command not allowed after \[manpage_end\]"
+mcset c arg_list         "Command restricted to usage in argument lists"
+mcset c cmd_list         "Command restricted to usage in command lists"
+mcset c opt_list         "Command restricted to usage in option lists"
+mcset c tkoption_list    "Command restricted to usage in tkoption lists"
+mcset c depr_strong      "Deprecated command \"%s\".\n\tPlease consider appropriate semantic markup or \[emph\] instead."
+mcset c depr_lstitem     "Deprecated command \"%s\".\n\tPlease use \[def\] instead."
+mcset c depr_nl          "Deprecated command \"%s\".\n\tPlease use \[para\] instead."
+mcset c depr_bullet      "Deprecated command \"%s\".\n\tPlease use \[item\] instead."
+mcset c depr_ltype       "Deprecated list type \"%s\".\n\tPlease use \"%s\" instead."
+mcset c sectambig        "(Sub)Section title \"%s\" causes ambiguous section references."
+mcset c missingsect      "Refered (Sub)Section \"%s\" is not known."
+
+# TOC messages
+
+mcset c end/open/toc  "\[toc_end\] missing."
+mcset c toc/plaintext "Plain text beyond whitespace is not allowed."
+mcset c toc/begincmd  "Command not allowed here."
+mcset c toc/endcmd    "Command not allowed here."
+mcset c toc/titlecmd  "Command not allowed here."
+mcset c toc/sectcmd   "Command not allowed here."
+mcset c toc/sectecmd  "Command not allowed here."
+mcset c toc/itemcmd   "Command not allowed here."
+mcset c toc/nodonecmd "Command not allowed after \[toc_end\]"
+
+# IDX messages
+
+mcset c end/open/idx   "\[index_end\] missing."
+mcset c idx/plaintext  "Plain text beyond whitespace is not allowed."
+mcset c idx/begincmd   "Command not allowed here."
+mcset c idx/endcmd     "Command not allowed here."
+mcset c idx/keycmd     "Command not allowed here."
+mcset c idx/manpagecmd "Command not allowed here."
+mcset c idx/urlcmd     "Command not allowed here."
+mcset c idx/nodonecmd  "Command not allowed after \[index_end\]"

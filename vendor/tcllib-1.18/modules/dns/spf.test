@@ -1,0 +1,244 @@
+# spf.test - Copyright (C) 2004 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib SPF package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: spf.test,v 1.8 2007/08/22 20:37:50 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocal dns.tcl            dns;          # tcllib 1.3
+    useLocal ip.tcl             ip;           # tcllib 1.7
+    use      log/logger.tcl     logger;       # tcllib 1.3
+    use      struct/list.tcl    struct::list; # tcllib 1.7
+    use      uri/uri.tcl        uri;          # - clear scheme registry
+    use      uri/urn-scheme.tcl uri::urn;     # tcllib 1.3
+}
+testing {
+    useLocal spf.tcl spf
+}
+
+# -------------------------------------------------------------------------
+# Helpers
+# -------------------------------------------------------------------------
+
+# These tests do not make any network calls. Instead we emulate the
+# DNS query results wiht the following functions.
+
+foreach cmd [list SPF TXT A PTR MX] {
+    catch {rename ::spf::$cmd ::spf::tmp_$cmd}
+}
+proc ::spf::A {name} { return 192.0.2.3 }
+proc ::spf::AAAA {name} { return 5f05:2000:80ad:5800::1 }
+proc ::spf::PTR {addr} { return mx.example.org }
+proc ::spf::MX {domain} { return {{10 mx1.example.org} {20 mx2.example.org}} }
+proc ::spf::TXT {domain} { return "Only mail from local hosts permitted." }
+proc ::spf::SPF {domain} { return "v=spf1 ?all" }
+set email strong-bad@email.example.com
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+test spf-1.1 {a directive: fallthrough} {
+    list [catch {
+        spf::Spf 192.168.0.1 email.example.com $::email "v=spf1 a -all"
+    } r] $r
+} {0 -}
+
+test spf-1.2 {a directive: fallthrough} {
+    list [catch {
+        spf::Spf 192.168.0.1 email.example.com $::email "v=spf1 a ?all"
+    } r] $r
+} {0 ?}
+
+test spf-1.3 {a directive: matching subnet} {
+    list [catch {
+        spf::Spf 192.0.2.1 email.example.com $::email "v=spf1 a/24 ?all"
+    } r] $r
+} {0 +}
+
+test spf-1.4 {a directive: rejected matching subnet} {
+    list [catch {
+        spf::Spf 192.0.2.1 email.example.com $::email "v=spf1 -a/24 ?all"
+    } r] $r
+} {0 ?}
+
+test spf-1.5 {a directive: match host} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email "v=spf1 a ?all"
+    } r] $r
+} {0 +}
+
+test spf-2.1 {mx directive: fail mx} {
+    list [catch {
+        spf::Spf 192.168.0.1 email.example.com $::email "v=spf1 mx ?all"
+    } r] $r
+} {0 ?}
+
+test spf-2.2 {mx directive: match mx subnet} {
+    list [catch {
+        spf::Spf 192.0.2.1 email.example.com $::email "v=spf1 mx/24 ?all"
+    } r] $r
+} {0 +}
+
+test spf-2.3 {mx directive: fail match explict mx} {
+    list [catch {
+        spf::Spf 192.168.0.1 email.example.com $::email \
+            "v=spf1 mx:mail.local.net ?all"
+    } r] $r
+} {0 ?}
+
+test spf-2.4 {mx directive: match explict mx} {
+    list [catch {
+        spf::Spf 192.0.2.1 email.example.com $::email \
+            "v=spf1 mx:mail.local.net/24 ?all"
+    } r] $r
+} {0 +}
+
+test spf-2.5 {mx directive: match explict mx} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email \
+            "v=spf1 mx:mx2.example.org ?all"
+    } r] $r
+} {0 +}
+
+test spf-3.1 {ptr directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email "v=spf1 ptr ?all"
+    } r] $r
+} {0 ?}
+
+test spf-3.2 {ptr directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email "v=spf1 ptr ?all"
+    } r] $r
+} {0 ?}
+
+test spf-3.3 {ptr directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email \
+            "v=spf1 ptr:example.org ?all"
+    } r] $r
+} {0 +}
+
+test spf-3.4 {ptr directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email \
+            "v=spf1 ptr:example.com ?all"
+    } r] $r
+} {0 ?}
+
+test spf-4.1 {ip4 directive} {
+    list [catch {
+        spf::Spf 192.168.2.3 email.example.com $::email \
+            "v=spf1 ip4:192.0.2.3/32 ?all"
+    } r] $r
+} {0 ?}
+
+test spf-4.2 {ip4 directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email \
+            "v=spf1 ip4:192.0.2.0/24 ?all"
+    } r] $r
+} {0 +}
+
+test spf-4.3 {ip4 directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email \
+            "v=spf1 ip4:192.0.0.0/16 ?all"
+    } r] $r
+} {0 +}
+
+test spf-4.4 {ip4 directive} {
+    list [catch {
+        spf::Spf 192.255.2.3 email.example.com $::email \
+            "v=spf1 ip4:192.0.0.0/16 ?all"
+    } r] $r
+} {0 ?}
+
+test spf-4.5 {ip4 directive} {
+    list [catch {
+        spf::Spf 192.0.2.3 email.example.com $::email \
+            "v=spf1 ip4:192.0/16 ?all"
+    } r] $r
+} {0 +}
+
+# -------------------------------------------------------------------------
+# Macros language tests
+# These are all taken from the specification document.
+
+set Data {
+    %{s}     strong-bad@email.example.com
+    %{o}                email.example.com
+    %{d}                email.example.com
+    %{d4}               email.example.com
+    %{d3}               email.example.com
+    %{d2}                     example.com
+    %{d1}                             com
+    %{dr}               com.example.email
+    %{d2r}                  example.email
+    %{l}                       strong-bad
+    %{l-}                      strong.bad
+    %{lr}                      strong-bad
+    %{lr-}                     bad.strong
+    %{l1r-}                        strong
+    %{ir}.%{v}._spf.%{d2}              3.2.0.192.in-addr._spf.example.com
+    %{lr-}.lp._spf.%{d2}                   bad.strong.lp._spf.example.com
+    
+    %{lr-}.lp.%{ir}.%{v}._spf.%{d2}
+                         bad.strong.lp.3.2.0.192.in-addr._spf.example.com
+    
+    %{ir}.%{v}.%{l1r-}.lp._spf.%{d2}
+                             3.2.0.192.in-addr.strong.lp._spf.example.com
+    
+    %{d2}.trusted-domains.example.net
+                                  example.com.trusted-domains.example.net
+}
+set n 0
+foreach {macro check} $Data {
+    test spf-5.[incr n] [list spf macro language $macro] {
+        list [catch {
+            ::spf::Expand $macro 192.0.2.3 email.example.com $::email
+        } msg] $msg
+    } [list 0 $check]
+}
+
+set Data {
+   %{ir}.%{v}._spf.%{d2}
+   1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.5.d.a.0.8.0.0.0.2.5.0.f.5.ip6._spf.example.com
+}
+set n 0
+foreach {macro check} $Data {
+    test spf-6.0 [list spf macro language ipv6] {
+        list [catch {
+            ::spf::Expand $macro 5f05:2000:80ad:5800::1 \
+                email.example.com $::email
+        } msg] $msg
+    } [list 0 $check]
+}
+
+# -------------------------------------------------------------------------
+
+foreach cmd [list SPF TXT A PTR MX] {
+    catch {rename ::spf::$cmd {}}
+    catch {rename ::spf::tmp_$cmd ::spf::$cmd}
+}
+
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

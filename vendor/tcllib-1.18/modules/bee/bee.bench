@@ -1,0 +1,79 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'bee' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.4]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget bee
+catch {namespace delete ::bee}
+source [file join [file dirname [info script]] bee.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {
+    -10 -100 -1000 -10000 -100000 -1000000
+    0
+    10 100 1000 10000 100000 1000000
+} {
+    bench -desc "BEE encode Number $n" -body {
+	bee::encodeNumber $n
+    }
+
+    bench -desc "BEE decode Number $n" -pre {
+	set str [bee::encodeNumber $n]
+    } -body {
+	 bee::decode $str
+    } -post {
+	unset str
+    }
+
+    bench -desc "BEE decodeIndices Number $n" -pre {
+	set str [bee::encodeNumber $n]
+    } -body {
+	 bee::decodeIndices $str
+    } -post {
+	unset str
+    }
+}
+
+foreach n {10 100 1000 10000} {
+    bench -desc "BEE encode String $n" -pre {
+	set str [string repeat X $n]
+    } -body {
+	bee::encodeString $str
+    } -post {
+	unset str
+    }
+
+    bench -desc "BEE decode String $n" -pre {
+	set str [bee::encodeString [string repeat X $n]]
+    } -body {
+	 bee::decode $str
+    } -post {
+	unset str
+    }
+
+    bench -desc "BEE decodeIndices String $n" -pre {
+	set str [bee::encodeString [string repeat X $n]]
+    } -body {
+	 bee::decodeIndices $str
+    } -post {
+	unset str
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

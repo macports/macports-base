@@ -1,0 +1,152 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+#-----------------------------------------------------------------------------
+#   
+#   A small script to test the update/modify/delete capabilites of
+#   pure-Tcl LDAP package.
+#
+#   This has been used against OpenLDAP test suite 
+#   (pause at step 'test003-search' Waiting 5 secods for slapd to start ...'
+#
+#-----------------------------------------------------------------------------
+
+package require ldap
+#source ./ldap.tcl
+
+#-----------------------------------------------------------------------------
+#   Query
+#
+#-----------------------------------------------------------------------------
+
+proc Query {handle} {
+    set results [ldap::search $handle \
+	    "o=University of Michigan,c=US" \
+	    "(cn=Tes*)" {}]
+
+    foreach result $results {
+	foreach {object attributes} $result break
+
+	#------------------------------------------
+	#    calculate optimal width
+	#------------------------------------------
+	set width 0
+	set Attribs {}
+	foreach {type values} $attributes {
+	    if {[string length $type] > $width} {
+		set width [string length $type] 
+	    }
+	    lappend Attribs [list $type $values]
+	}     
+
+	puts "object='$object'"
+
+	foreach sortedAttrib  [lsort -index 0 $Attribs] {
+	    foreach {type values} $sortedAttrib break
+	    foreach value $values {
+		regsub -all "\[\x01-\x1f\]" $value ? value
+		puts [format "  %-${width}s %s" $type $value]
+	    }
+	}
+	puts ""
+    }
+}
+
+#-----------------------------------------------------------------------------
+#                begin of   M A I N  part
+#-----------------------------------------------------------------------------
+
+#---------------------------------------------------------------
+#   connect to the local LDAP server using a non standard port
+#   (here OpenLDAP test suite)
+#
+#---------------------------------------------------------------
+set handle [ldap::connect localhost 9009]
+
+#---------------------------------------------------------------
+#   bind to the manager user (which was update/insert rights)
+#   ie. login into LDAP server
+#
+#---------------------------------------------------------------
+set dn "cn=Manager, o=University of Michigan, c=US"
+set pw secret
+
+ldap::bind $handle $dn $pw
+
+#---------------------------------------------------------------
+#   create a new object (DN) with a couple of attrbitues
+#
+#---------------------------------------------------------------
+set dn "cn=Test User,ou=People,o=University of Michigan,c=US"
+
+ldap::add $handle $dn {
+
+    objectClass OpenLDAPperson
+    cn          "Test User"
+    mail        "test.user@google.com"
+    uid         "testuid"
+    sn          User
+}
+
+puts "after DN creation:"
+Query $handle
+
+#---------------------------------------------------------------
+#   replace some attributes (overwrite or create new one!)
+#
+#---------------------------------------------------------------
+ldap::modify $handle $dn [list drink icetea uid JOLO]
+
+puts "after replacing some attrbitues:"
+Query $handle
+
+#---------------------------------------------------------------
+#   add some attributes (even multiple times!)
+#
+#---------------------------------------------------------------
+ldap::modify $handle $dn {} {} [list drink water \
+	drink orangeJuice pager "+1 313 555 7671"]
+
+puts "after adding multiple attrbitues:"
+Query $handle
+
+#----------------------------------------------------------------
+#   delete some attributes ( delete the whole attribute or only
+#   matching ones)
+#
+#----------------------------------------------------------------
+ldap::modify $handle $dn {} [list drink water \
+	pager ""]
+
+puts "after delete some attrbitues:"
+Query $handle
+
+#----------------------------------------------------------------
+#   move object (DN) to different place in LDAP tree, 
+#   here: basically rename it
+#
+#----------------------------------------------------------------
+ldap::modifyDN $handle $dn "cn=Tester"
+
+puts "after moving/renaming DN:"
+Query $handle
+
+#---------------------------------------------------------------
+#   delete the whole object plus all its attrbutes
+#
+#---------------------------------------------------------------
+set dn "cn=Tester,ou=People,o=University of Michigan,c=US"
+ldap::delete $handle $dn 
+
+puts "after deleting the whole DN:"
+Query $handle
+
+#---------------------------------------------------------------
+#   unbind and disconnect from the LDAP server
+#
+#---------------------------------------------------------------
+ldap::unbind     $handle
+ldap::disconnect $handle
+
+#-----------------------------------------------------------------------------
+#                end of   M A I N  part
+#-----------------------------------------------------------------------------

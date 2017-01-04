@@ -1,0 +1,54 @@
+# -*- tcl -*- textutil::adjust.pcx
+# Syntax of the commands provided by package textutil::adjust.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register textutil::adjust
+pcx::tcldep   0.7 needs tcl 8.2
+
+namespace eval ::textutil::adjust {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.7 std ::textutil::adjust::adjust \
+    {checkSimpleArgs 1 -1 {
+	checkWord
+	{checkSwitches 1 {
+	    {-full         checkBoolean}
+	    {-hyphenate    checkBoolean}
+	    {-justify      {checkKeyword 1 {left center right}}}
+	    {-length       checkNatNum}
+	    {-strictlength checkBoolean}
+	} {}}
+    }}
+pcx::check 0.7 std ::textutil::adjust::getPredefined \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.7 std ::textutil::adjust::indent \
+    {checkSimpleArgs 2 3 {
+	checkWord
+	checkWord
+	checkInt
+    }}
+pcx::check 0.7 std ::textutil::adjust::listPredefined \
+    {checkSimpleArgs 0 0 {
+    }}
+pcx::check 0.7 std ::textutil::adjust::readPatterns \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.7 std ::textutil::adjust::undent \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::textutil::adjust::init procedure for non-standard initialization.
+pcx::complete

@@ -1,0 +1,481 @@
+
+<html><head>
+<title>pt::peg::interp - Parser Tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'pt_peg_interp.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- pt::peg::interp.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pt::peg::interp(n) 1.0.1 tcllib &quot;Parser Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pt::peg::interp - Interpreter for parsing expression grammars</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Class API</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Object API</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">AST serialization format</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection3">Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">PE serialization format</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection4">Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">pt::peg::interp <span class="opt">?1.0.1?</span></b></li>
+<li>package require <b class="pkgname">pt::rde <span class="opt">?1?</span></b></li>
+<li>package require <b class="pkgname">snit</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pt::peg::interp</b> <i class="arg">objectName</i> <i class="arg">grammar</i></a></li>
+<li><a href="#2"><i class="arg">objectName</i> <b class="method">use</b> <i class="arg">grammar</i></a></li>
+<li><a href="#3"><i class="arg">objectName</i> <b class="method">destroy</b></a></li>
+<li><a href="#4"><i class="arg">objectName</i> <b class="method">parse</b> <i class="arg">chan</i></a></li>
+<li><a href="#5"><i class="arg">objectName</i> <b class="method">parset</b> <i class="arg">text</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Are you lost ?
+Do you have trouble understanding this document ?
+In that case please read the overview provided by the
+<i class="term"><a href="pt_introduction.html">Introduction to Parser Tools</a></i>. This document is the
+entrypoint to the whole system the current package is a part of.</p>
+<p>This package provides a class whose instances are Packrat parsers
+configurable with a parsing expression grammar. The grammar is
+executed directly, i.e. interpreted, with the underlying runtime
+provided by the package <b class="package"><a href="pt_rdengine.html">pt::rde</a></b>, basing everything on the
+PARAM.</p>
+<p>Like the supporting runtime this package resides in the Execution
+section of the Core Layer of Parser Tools.</p>
+<p><img alt="arch_core_transform" src="../../../../image/arch_core_transform.png"></p>
+<p>The interpreted grammar is copied from an instance of <b class="package"><a href="pt_peg_container.html">pt::peg::container</a></b>, or anything providing the same API, like the
+container classes created by <b class="package"><a href="pt_peg_to_container.html">pt::peg::to::container</a></b> or the
+associated export plugin <b class="package"><a href="pt_peg_export_container.html">pt::peg::export::container</a></b>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Class API</a></h3>
+<p>The package exports the API described here.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pt::peg::interp</b> <i class="arg">objectName</i> <i class="arg">grammar</i></a></dt>
+<dd><p>The command creates a new parser object and returns the fully
+qualified name of the object command as its result. The API of this
+object command is described in the section <span class="sectref"><a href="#subsection2">Object API</a></span>. It
+may be used to invoke various operations on the object.</p>
+<p>This new parser is configured for the execution of an empty PEG. To
+configure the object for any other PEG use the method <b class="method">use</b> of
+the <span class="sectref"><a href="#subsection2">Object API</a></span>.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Object API</a></h3>
+<p>All objects created by this package provide the following methods.</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><i class="arg">objectName</i> <b class="method">use</b> <i class="arg">grammar</i></a></dt>
+<dd><p>This method configures the grammar interpreter / parser for the
+execution of the PEG stored in <i class="arg">grammar</i>, an object which is
+API-compatible to instances of <b class="package"><a href="pt_peg_container.html">pt::peg::container</a></b>. The
+parser copies the relevant information of the grammar, and does
+<em>not</em> take ownership of the object.</p>
+<p>The information of any previously used grammar is overwritten.</p>
+<p>The result of the method the empty string.</p></dd>
+<dt><a name="3"><i class="arg">objectName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method destroys the parser instance, releasing all claimed memory
+and other resources, and deleting the instance command.</p>
+<p>The result of the command is the empty string.</p></dd>
+<dt><a name="4"><i class="arg">objectName</i> <b class="method">parse</b> <i class="arg">chan</i></a></dt>
+<dd><p>This method runs the parser using the contents of <i class="arg">chan</i> as input
+(starting at the current location in the channel), until parsing is
+not possible anymore, either because parsing has completed, or run
+into a syntax error.</p>
+<p>Note here that the Parser Tools are based on Tcl 8.5+. In other words,
+the channel argument is not restricted to files, sockets, etc. We have
+the full power of <i class="term">reflected channels</i> available.</p>
+<p>It should also be noted that the parser pulls the characters from the
+input stream as it needs them. If a parser created by this package has
+to be operated in a push aka event-driven manner it will be necessary
+to go to Tcl 8.6+ and use the <b class="package"><a href="../coroutine/coro_auto.html">coroutine::auto</a></b> to wrap it
+into a coroutine where <b class="cmd"><a href="../../../../index.html#key410">read</a></b> is properly changed for
+push-operation.</p>
+<p>Upon successful completion the command returns an abstract syntax tree
+as its result.
+This AST is in the form specified in section
+<span class="sectref"><a href="#section2">AST serialization format</a></span>.
+As a plain nested Tcl-list it can then be processed with any Tcl
+commands the user likes, doing transformations, semantic checks, etc.
+To help in this the package <b class="package"><a href="pt_astree.html">pt::ast</a></b> provides a set of
+convenience commands for validation of the tree's basic structure,
+printing it for debugging, and walking it either from the bottom up,
+or top down.</p>
+<p>When encountering a syntax error the command will throw an error instead.
+This error will be a 4-element Tcl-list, containing, in the order
+listed below:</p>
+<ol class="doctools_enumerated">
+<li><p>The string <b class="const">pt::rde</b> identifying it as parser runtime error.</p></li>
+<li><p>The location of the parse error, as character offset from the
+beginning of the parsed input.</p></li>
+<li><p>The location of parse error, now as a 2-element list containing
+line-number and column in the line.</p></li>
+<li><p>A set of atomic parsing expressions indicating encoding the characters
+and/or nonterminal symbols the parser expected to see at the location
+of the parse error, but did not get.
+ For the specification of atomic parsing expressions please see the
+section <span class="sectref"><a href="#section3">PE serialization format</a></span>.</p></li>
+</ol></dd>
+<dt><a name="5"><i class="arg">objectName</i> <b class="method">parset</b> <i class="arg">text</i></a></dt>
+<dd><p>This method runs the parser using the string in <i class="arg">text</i> as input.
+In all other ways it behaves like the method <b class="method">parse</b>, shown
+above.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">AST serialization format</a></h2>
+<p>Here we specify the format used by the Parser Tools to serialize
+Abstract Syntax Trees (ASTs) as immutable values for transport,
+comparison, etc.</p>
+<p>Each node in an AST represents a nonterminal symbol of a grammar, and
+the range of tokens/characters in the input covered by it. ASTs do not
+contain terminal symbols, i.e. tokens/characters. These can be
+recovered from the input given a symbol's location.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a tree may have more than one regular serialization only exactly
+one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>Regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any AST is the serialization of its root node.</p></li>
+<li><p>The serialization of any node is a Tcl list containing at least three
+elements.</p>
+<ol class="doctools_enumerated">
+<li><p>The first element is the name of the nonterminal symbol stored in the
+node.</p></li>
+<li><p>The second and third element are the locations of the first and last
+token in the token stream the node represents (covers).</p>
+<ol class="doctools_enumerated">
+<li><p>Locations are provided as non-negative integer offsets from the
+beginning of the token stream, with the first token found in the
+stream located at offset 0 (zero).</p></li>
+<li><p>The end location has to be equal to or larger than the start location.</p></li>
+</ol>
+</li>
+<li><p>All elements after the first three represent the children of the node,
+which are themselves nodes. This means that the serializations of
+nodes without children, i.e. leaf nodes, have exactly three elements.
+The children are stored in the list with the leftmost child first, and
+the rightmost child last.</p></li>
+</ol>
+</li>
+</ol></dd>
+<dt>Canonical serialization</dt>
+<dd><p>The canonical serialization of an abstract syntax tree has the format
+as specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this tree.</p>
+<ol class="doctools_enumerated">
+<li><p>The string representation of the value is the canonical representation
+of a pure Tcl list. I.e. it does not contain superfluous whitespace.</p></li>
+</ol></dd>
+</dl>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Example</a></h3>
+<p>Assuming the parsing expression grammar below</p>
+<pre class="doctools_example">
+PEG calculator (Expression)
+    Digit      &lt;- '0'/'1'/'2'/'3'/'4'/'5'/'6'/'7'/'8'/'9'       ;
+    Sign       &lt;- '-' / '+'                                     ;
+    Number     &lt;- Sign? Digit+                                  ;
+    Expression &lt;- Term (AddOp Term)*                            ;
+    MulOp      &lt;- '*' / '/'                                     ;
+    Term       &lt;- Factor (MulOp Factor)*                        ;
+    AddOp      &lt;- '+'/'-'                                       ;
+    Factor     &lt;- '(' Expression ')' / Number                   ;
+END;
+</pre>
+<p>and the input string</p>
+<pre class="doctools_example"> 120+5 </pre>
+<p>then a parser should deliver the abstract syntax tree below (except for whitespace)</p>
+<pre class="doctools_example">
+set ast {Expression 0 4
+    {Factor 0 4
+        {Term 0 2
+            {Number 0 2
+                {Digit 0 0}
+                {Digit 1 1}
+                {Digit 2 2}
+            }
+        }
+        {AddOp 3 3}
+        {Term 4 4
+            {Number 4 4
+                {Digit 4 4}
+            }
+        }
+    }
+}
+</pre>
+<p>Or, more graphical</p>
+<p><img alt="expr_ast" src="../../../../image/expr_ast.png"></p>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PE serialization format</a></h2>
+<p>Here we specify the format used by the Parser Tools to serialize
+Parsing Expressions as immutable values for transport, comparison,
+etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a parsing expression may have more than one regular
+serialization only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>Regular serialization</dt>
+<dd><dl class="doctools_definitions">
+<dt><b class="const">Atomic Parsing Expressions</b></dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The string <b class="const">epsilon</b> is an atomic parsing expression. It matches
+the empty string.</p></li>
+<li><p>The string <b class="const">dot</b> is an atomic parsing expression. It matches
+any character.</p></li>
+<li><p>The string <b class="const">alnum</b> is an atomic parsing expression. It matches
+any Unicode alphabet or digit character. This is a custom extension of
+PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">alpha</b> is an atomic parsing expression. It matches
+any Unicode alphabet character. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">ascii</b> is an atomic parsing expression. It matches
+any Unicode character below U0080. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">control</b> is an atomic parsing expression. It matches
+any Unicode control character. This is a custom extension of PEs based
+on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">digit</b> is an atomic parsing expression. It matches
+any Unicode digit character. Note that this includes characters
+outside of the [0..9] range. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">graph</b> is an atomic parsing expression. It matches
+any Unicode printing character, except for space. This is a custom
+extension of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">lower</b> is an atomic parsing expression. It matches
+any Unicode lower-case alphabet character. This is a custom extension
+of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">print</b> is an atomic parsing expression. It matches
+any Unicode printing character, including space. This is a custom
+extension of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">punct</b> is an atomic parsing expression. It matches
+any Unicode punctuation character. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">space</b> is an atomic parsing expression. It matches
+any Unicode space character. This is a custom extension of PEs based
+on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">upper</b> is an atomic parsing expression. It matches
+any Unicode upper-case alphabet character. This is a custom extension
+of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">wordchar</b> is an atomic parsing expression. It
+matches any Unicode word character. This is any alphanumeric character
+(see alnum), and any connector punctuation characters (e.g.
+underscore). This is a custom extension of PEs based on Tcl's builtin
+command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">xdigit</b> is an atomic parsing expression. It matches
+any hexadecimal digit character. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">ddigit</b> is an atomic parsing expression. It matches
+any decimal digit character. This is a custom extension of PEs based
+on Tcl's builtin command <b class="cmd">regexp</b>.</p></li>
+<li><p>The expression
+    [list t <b class="variable">x</b>]
+is an atomic parsing expression. It matches the terminal string <b class="variable">x</b>.</p></li>
+<li><p>The expression
+    [list n <b class="variable">A</b>]
+is an atomic parsing expression. It matches the nonterminal <b class="variable">A</b>.</p></li>
+</ol></dd>
+<dt><b class="const">Combined Parsing Expressions</b></dt>
+<dd><ol class="doctools_enumerated">
+<li><p>For parsing expressions <b class="variable">e1</b>, <b class="variable">e2</b>, ... the result of
+    [list / <b class="variable">e1</b> <b class="variable">e2</b> ... ]
+is a parsing expression as well.
+This is the <i class="term">ordered choice</i>, aka <i class="term">prioritized choice</i>.</p></li>
+<li><p>For parsing expressions <b class="variable">e1</b>, <b class="variable">e2</b>, ... the result of
+    [list x <b class="variable">e1</b> <b class="variable">e2</b> ... ]
+is a parsing expression as well.
+This is the <i class="term">sequence</i>.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list * <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">kleene closure</i>, describing zero or more
+repetitions.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list + <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">positive kleene closure</i>, describing one or more
+repetitions.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list &amp; <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">and lookahead predicate</i>.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list ! <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">not lookahead predicate</i>.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list ? <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">optional input</i>.</p></li>
+</ol></dd>
+</dl></dd>
+<dt>Canonical serialization</dt>
+<dd><p>The canonical serialization of a parsing expression has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this parsing expression.</p>
+<ol class="doctools_enumerated">
+<li><p>The string representation of the value is the canonical representation
+of a pure Tcl list. I.e. it does not contain superfluous whitespace.</p></li>
+<li><p>Terminals are <em>not</em> encoded as ranges (where start and end of the
+range are identical).</p></li>
+</ol></dd>
+</dl>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Example</a></h3>
+<p>Assuming the parsing expression shown on the right-hand side of the
+rule</p>
+<pre class="doctools_example">
+    Expression &lt;- Term (AddOp Term)*
+</pre>
+<p>then its canonical serialization (except for whitespace) is</p>
+<pre class="doctools_example">
+    {x {n Term} {* {x {n AddOp} {n Term}}}}
+</pre>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pt</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key3">EBNF</a>, <a href="../../../../index.html#key15">LL(k)</a>, <a href="../../../../index.html#key6">PEG</a>, <a href="../../../../index.html#key7">TDPL</a>, <a href="../../../../index.html#key4">context-free languages</a>, <a href="../../../../index.html#key0">expression</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key8">parsing expression</a>, <a href="../../../../index.html#key14">parsing expression grammar</a>, <a href="../../../../index.html#key1">push down automaton</a>, <a href="../../../../index.html#key10">recursive descent</a>, <a href="../../../../index.html#key2">state</a>, <a href="../../../../index.html#key13">top-down parsing languages</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Parsing and Grammars</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

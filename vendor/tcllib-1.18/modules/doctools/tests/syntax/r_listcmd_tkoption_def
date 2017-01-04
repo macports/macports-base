@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[tkoption_def .option. .dbname....]
+--> (FmtError) Manpage error (listcmd), "tkoption_def .option. .dbname. .dbclass." : Command not allowed outside of a list.

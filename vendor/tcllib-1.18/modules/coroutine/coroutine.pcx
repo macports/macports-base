@@ -1,0 +1,54 @@
+# -*- tcl -*- aes.pcx
+# Syntax of the commands provided by package coroutine.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register coroutine
+pcx::tcldep   1 needs tcl 8.6
+
+namespace eval ::coroutine {}
+
+pcx::check 1 std ::coroutine::util::create \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+pcx::check 1 std ::coroutine::util::global \
+    {checkSimpleArgs 0 -1 {
+	checkVarDecl
+    }}
+pcx::check 1 std ::coroutine::util::after \
+    {checkSimpleArgs 1 1 {
+	checkInt
+    }}
+pcx::check 1 std ::coroutine::util::exit \
+    {checkSimpleArgs 0 1 {
+	checkInt
+    }}
+pcx::check 1 std ::coroutine::util::vwait \
+    {checkSimpleArgs 1 1 {
+	checkVarName
+    }}
+pcx::check 1 std ::coroutine::util::await \
+    {checkSimpleArgs 0 -1 {
+	checkVarName
+    }}
+pcx::check 1 std ::coroutine::util::update \
+    {checkSimpleArgs 0 1 {
+	{checkKeyword 0 {idletasks}}
+    }}
+pcx::check 1 std ::coroutine::util::gets \
+    {checkSimpleArgs 1 2 {
+	checkChannelID
+	checkVarNameWrite
+    }}
+pcx::check 1 std ::coroutine::util::read \
+    {coreTcl::checkReadCmd 0}
+
+# Initialization via pcx::init.
+# Use a ::coroutine::init procedure for non-standard initialization.
+pcx::complete

@@ -1,0 +1,91 @@
+# -*- tcl -*-
+# peg_import_peg.test:  tests for the pt::peg::import::peg package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_import_peg.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+support {
+    useAccel [useTcllibC] struct/stack.tcl struct::stack ; # User: pt::rde
+    TestAccelInit                          struct::stack ; #
+
+    use      snit/snit.tcl          snit
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+
+    useLocal pt_astree.tcl             pt::ast
+    useLocal pt_pexpression.tcl        pt::pe
+    useLocal pt_pexpr_op.tcl           pt::pe::op
+    useLocal pt_pegrammar.tcl          pt::peg
+    useLocal pt_peg_container.tcl      pt::peg::container
+
+    useAccel [useTcllibC] pt/pt_rdengine.tcl  pt::rde ; # User: pt::parse::peg
+    TestAccelInit                             pt::rde ; # or:   pt:peg::interp
+
+    # Get the parser used by the converter, either the grammar
+    # interpreter, or snit-based and spcialized to PEG.
+    #useLocal pt_peg_container_peg.tcl  pt::peg::container::peg
+    #useLocal pt_peg_interp.tcl         pt::peg::interp
+
+    useAccel [useTcllibC] pt/pt_parse_peg.tcl pt::parse::peg ; # User: pt::peg::from::peg
+    TestAccelInit                             pt::parse::peg
+
+    useLocal pt_peg_from_peg.tcl       pt::peg::from::peg
+
+    source [localPath tests/common]
+}
+testing {
+    package provide pt::peg::import::plugin 1
+    # The above fakes the import plugin environment.
+
+    useLocal pt_peg_import_peg.tcl pt::peg::import::peg
+}
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+# Note: When using pt::rde's C implementation struct::stack is not
+#       used, and its implementation of no relevance.
+#
+#       Similarly, when pt::parse::peg's C implementation is used
+#       neither pt::rde's, nor struct::stack's implementations are of
+#       relevance.
+
+TestAccelDo pt::parse::peg parseimpl {
+    if {$parseimpl eq "critcl"} {
+	set rdeimpl   n/a
+	set stackimpl n/a
+	pt::rde::SwitchTo {}
+	struct::stack::SwitchTo {}
+	source [localPath tests/pt_peg_import_peg.tests]
+    } else {
+	TestAccelDo pt::rde rdeimpl {
+	    if {$rdeimpl eq "critcl"} {
+		set stackimpl n/a
+		struct::stack::SwitchTo {}
+		source [localPath tests/pt_peg_import_peg.tests]
+	    } else {
+		TestAccelDo struct::stack stackimpl {
+		    source [localPath tests/pt_peg_import_peg.tests]
+		}
+	    }
+	}
+    }
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit pt::parse::peg
+TestAccelExit pt::rde
+TestAccelExit struct::stack
+testsuiteCleanup
+return

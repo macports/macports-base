@@ -1,0 +1,154 @@
+2013-03-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rfc977.txt: Removed copies of RFC documents. Keep only links.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* nntp.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* nntp.man:
+	* nntp.tcl:
+	* pkgIndex.tcl:  Set version of the package to to 0.2.1
+
+2003-02-24  David N. Welton  <davidw@dedasys.com>
+
+	* nntp.tcl (::nntp::squirt): Use if, string match instead of
+	regsub.
+
+2003-02-06  David N. Welton  <davidw@dedasys.com>
+
+	* nntp.tcl (::nntp::fetch): Use 'string match' instead of regexp.
+	  Use if string match ... string range instead of regsub (it's
+	  about twice as fast in a small test I ran).
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* nntp.man: More semantic markup, less visual one.
+
+2002-08-19  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* nntp.man: Added example, updated reference from rfc 850 to rfc
+	  1036. See Tcllib SF #597102, by Jussi Kuosa
+	  <Jussi.Kuosa@tellabs.com>.
+	* nntp.n: Out of date. Deprecated.
+
+2002-03-25  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* nntp.man: New file, doctools manpage.
+
+2002-01-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 0.2
+
+2002-01-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* nntp.tcl: Fixed bug #502250 reported by Andreas Otto
+	  <aotto@t-online.de> which caused the package to wrap each
+	  message into braces, causing nntp servers to reject the data.
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* nntp.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* nntp.tcl: Fixed dubious code reported by frink.
+
+2000-06-20  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * Code cleanup and bug fixes
+
+2000-06-18  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * Fixed documentation bug in man page for xpat
+
+2000-06-16  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * rfc977.txt: RFC for NNTP
+
+        * pkgIndex.tcl 
+        * nntp.tcl: Initial implementation of a nntp client package.
+
+        * nntp.n: Initial documentation for the package.
+

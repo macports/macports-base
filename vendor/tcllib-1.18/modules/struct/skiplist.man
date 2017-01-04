@@ -1,0 +1,86 @@
+[comment {-*- tcl -*-}]
+[manpage_begin struct::skiplist n 1.3]
+[keywords skiplist]
+[copyright {2000 Keith Vetter}]
+[comment {
+    This software is licensed under a BSD license as described in tcl/tk
+    license.txt file but with the copyright held by Keith Vetter.
+}]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Create and manipulate skiplists}]
+[category  {Data structures}]
+[require Tcl 8.2]
+[require struct::skiplist [opt 1.3]]
+[description]
+[para]
+
+The [cmd ::struct::skiplist] command creates a new skiplist object
+with an associated global Tcl command whose name is
+[arg skiplistName]. This command may be used to invoke various
+operations on the skiplist. It has the following general form:
+
+[list_begin definitions]
+[call [cmd skiplistName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+
+[para]
+
+Skip lists are an alternative data structure to binary trees. They can
+be used to maintain ordered lists over any sequence of insertions and
+deletions. Skip lists use randomness to achieve probabilistic
+balancing, and as a result the algorithms for insertion and deletion
+in skip lists are much simpler and faster than those for binary trees.
+
+[para]
+
+To read more about skip lists see Pugh, William.
+[emph {Skip lists: a probabilistic alternative to balanced trees}]
+In: Communications of the ACM, June 1990, 33(6) 668-676.
+
+[para]
+
+Currently, the key can be either a number or a string, and comparisons
+are performed with the built in greater than operator.
+
+The following commands are possible for skiplist objects:
+
+[list_begin definitions]
+[call [arg skiplistName] [method delete] [arg node] [opt [arg node]...]]
+
+Remove the specified nodes from the skiplist.
+
+[call [arg skiplistName] [method destroy]]
+
+Destroy the skiplist, including its storage space and associated command.
+
+[call [arg skiplistName] [method insert] [arg {key value}]]
+
+Insert a node with the given [arg key] and [arg value] into the
+skiplist. If a node with that key already exists, then the that node's
+value is updated and its node level is returned. Otherwise a new node
+is created and 0 is returned.
+
+[call [arg skiplistName] [method search] [arg node] [opt "[const -key] [arg key]"]]
+
+Search for a given key in a skiplist. If not found then 0 is returned.
+If found, then a two element list of 1 followed by the node's value is retuned.
+
+[call [arg skiplistName] [method size]]
+
+Return a count of the number of nodes in the skiplist.
+
+[call [arg skiplistName] [method walk] [arg cmd]]
+
+Walk the skiplist from the first node to the last. At each node, the
+command [arg cmd] will be evaluated with the key and value of the
+current node appended.
+
+[list_end]
+
+[vset CATEGORY {struct :: skiplist}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

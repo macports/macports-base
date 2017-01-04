@@ -1,0 +1,14 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+PEG TEMPLATE (Expression)
+
+ Expression <- Function ;
+ Function   <- Sinus ;
+ Sinus      <- 'sin(' Expression ')' ;
+
+END;
+
+#
+#

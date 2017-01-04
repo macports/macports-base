@@ -1,0 +1,242 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt n 1]
+[include ../modules/pt/include/module.inc]
+[titledesc {Parser Tools Application}]
+[description]
+[include ../modules/pt/include/ref_intro.inc]
+
+This document describes [cmd pt], the main application of the module,
+a [term {parser generator}]. Its intended audience are people who wish
+to create a parser for some language of theirs. Should you wish to
+modify the application instead, please see the section about the
+application's [sectref {Internals}] for the basic references.
+
+[para]
+
+It resides in the User Application Layer of Parser Tools.
+[para][image arch_user_app][para]
+
+[section {Command Line}]
+
+[list_begin definitions]
+
+[call [cmd pt] [method generate] \
+      [arg resultformat] [opt [arg options...]] [arg resultfile] \
+      [arg inputformat] [arg inputfile]]
+
+This sub-command of the application reads the parsing expression
+grammar stored in the [arg inputfile] in the format [arg inputformat],
+converts it to the [arg resultformat] under the direction of the
+(format-specific) set of options specified by the user and stores the
+result in the [arg resultfile].
+
+[para]
+
+The [arg inputfile] has to exist, while the [arg resultfile] may be
+created, overwriting any pre-existing content of the file. Any missing
+directory in the path to the [arg resultfile] will be created as well.
+
+[para]
+
+The exact form of the result for, and the set of options supported by
+the known result-formats, are explained in the upcoming sections of
+this document, with the list below providing an index mapping between
+format name and its associated section. In alphabetical order:
+
+[para]
+[list_begin definitions]
+[def [const c]]         A [term resultformat]. See section [sectref {C Parser}].
+[def [const container]] A [term resultformat]. See section [sectref {Grammar Container}].
+[def [const critcl]]    A [term resultformat]. See section [sectref {C Parser Embedded In Tcl}].
+[def [const json]]      A [term input]- and [term resultformat]. See section [sectref {JSON Grammar Exchange}].
+[def [const oo]]        A [term resultformat]. See section [sectref {TclOO Parser}].
+[def [const peg]]       A [term input]- and [term resultformat]. See section [sectref {PEG Specification Language}].
+[def [const snit]]      A [term resultformat]. See section [sectref {Snit Parser}].
+[list_end]
+[list_end]
+
+Of the seven possible results four are parsers outright ([const c],
+[const critcl], [const oo], and [const snit]), one ([const container])
+provides code which can be used in conjunction with a generic parser
+(also known as a grammar interpreter), and the last two ([const json]
+and [const peg]) are doing double-duty as input formats, allowing the
+transformation of grammars for exchange, reformatting, and the like.
+
+[para]
+
+The created parsers fall into three categories:
+[include ../modules/pt/include/gen_options.inc]
+
+[list_begin definitions]
+
+[def [const {Specialized parsers implemented in C}]]
+
+The fastest parsers are created when using the result formats
+[const c] and [const critcl]. The first returns the raw C code for the
+parser, while the latter wraps it into a Tcl package using
+[term CriTcl].
+
+[para]
+
+This makes the latter much easier to use than the former. On the other
+hand, the former can be adapted to the users' requirements through a
+multitude of options, allowing for things like usage of the parser
+outside of a Tcl environment, something the [const critcl] format
+doesn't support. As such the [const c] format is meant for more
+advanced users, or users with special needs.
+
+[para]
+
+A disadvantage of all the parsers in this section is the need to run
+them through a C compiler to make them actually executable. This is
+not something everyone has the necessary tools for. The parsers in the
+next section are for people under such restrictions.
+
+[def [const {Specialized parsers implemented in Tcl}]]
+
+As the parsers in this section are implemented in Tcl they are quite a
+bit slower than anything from the previous section. On the other hand
+this allows them to be used in pure-Tcl environments, or in
+environments which allow only a limited set of binary packages. In the
+latter case it will be advantageous to lobby for the inclusion of the
+C-based runtime support (notes below) into the environment to reduce
+the impact of Tcl's on the speed of these parsers.
+
+[para]
+
+The relevant formats are [const snit] and [const oo]. Both place their
+result into a Tcl package containing a [cmd snit::type], or TclOO
+[cmd class] respectively.
+
+[para]
+
+Of the supporting runtime, which is the package [package pt::rde], the
+user has to know nothing but that it does exist and that the parsers
+are dependent on it. Knowledge of the API exported by the runtime for
+the parsers' consumption is [emph not] required by the parsers' users.
+
+[def [const {Interpreted parsing implemented in Tcl}]]
+
+The last category, grammar interpretation. This means that an
+interpreter for parsing expression grammars takes the description of
+the grammar to parse input for, and uses it guide the parsing process.
+
+This is the slowest of the available options, as the interpreter has
+to continually run through the configured grammar, whereas the
+specialized parsers of the previous sections have the relevant
+knowledge about the grammar baked into them.
+
+[para]
+
+The only places where using interpretation make sense is where the
+grammar for some input may be changed interactively by the user, as
+the interpretation allows for quick turnaround after each change,
+whereas the previous methods require the generation of a whole new
+parser, which is not as fast.
+
+On the other hand, wherever the grammar to use is fixed, the previous
+methods are much more advantageous as the time to generate the parser
+is minuscule compared to the time the parser code is in use.
+
+[para]
+
+The relevant result format is [const container].
+
+It (quickly) generates grammar descriptions (instead of a full parser)
+which match the API expected by ParserTools' grammar interpreter.
+
+The latter is provided by the package [package pt::peg::interp].
+
+[list_end]
+
+All the parsers generated by [const critcl], [const snit], and
+[const oo], and the grammar interpreter share a common API for access
+to the actual parsing functionality, making them all
+plug-compatible.
+
+It is described in the [manpage {Parser API}] specification document.
+
+[section {PEG Specification Language}]
+[include ../modules/pt/include/format/whatis_peg.inc]
+[para]
+
+For either an introduction to or the formal specification of the
+language, please go and read the [manpage {PEG Language Tutorial}].
+
+[para]
+
+When used as a result-format this format supports the following
+options:
+
+[include ../modules/pt/include/format/options_peg.inc]
+
+[section {JSON Grammar Exchange}]
+[include ../modules/pt/include/format/whatis_json.inc]
+[para]
+
+For the formal specification of the JSON grammar exchange format,
+please go and read [manpage {The JSON Grammar Exchange Format}].
+
+[para]
+
+When used as a result-format this format supports the following
+options:
+
+[include ../modules/pt/include/format/options_json.inc]
+
+[section {C Parser Embedded In Tcl}]
+[include ../modules/pt/include/format/whatis_cparam_critcl.inc]
+[para]
+
+This result-format supports the following options:
+
+[include ../modules/pt/include/format/options_cparam_critcl.inc]
+
+[section {C Parser}]
+[include ../modules/pt/include/format/whatis_cparam_rawc.inc]
+[para]
+
+This result-format supports the following options:
+
+[include ../modules/pt/include/format/options_cparam_rawc.inc]
+
+[section {Snit Parser}]
+[include ../modules/pt/include/format/whatis_tclparam_snit.inc]
+[para]
+
+This result-format supports the following options:
+
+[include ../modules/pt/include/format/options_tclparam_snit.inc]
+
+[section {TclOO Parser}]
+[include ../modules/pt/include/format/whatis_tclparam_oo.inc]
+[para]
+
+This result-format supports the following options:
+
+[include ../modules/pt/include/format/options_tclparam_oo.inc]
+
+[section {Grammar Container}]
+[include ../modules/pt/include/format/whatis_container.inc]
+[para]
+
+This result-format supports the following options:
+
+[include ../modules/pt/include/format/options_container.inc]
+
+[section Example]
+[vset MODE app][include ../modules/pt/include/example/full.inc]
+
+[section Internals]
+
+This section is intended for users of the application which wish to
+modify or extend it. Users only interested in the generation of
+parsers can ignore it.
+
+[para]
+
+The main functionality of the application is encapsulated in the
+package [package pt::pgen]. Please read it for more information.
+
+[include ../modules/pt/include/feedback.inc]
+[manpage_end]

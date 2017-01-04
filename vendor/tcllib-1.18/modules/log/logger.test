@@ -1,0 +1,1307 @@
+# -*- tcl -*-
+# Tests for the logger facility.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2002 by David N. Welton <davidw@dedasys.com>.
+# Copyright (c) 2004,2005 by Michael Schlenker <mic42@users.sourceforge.net>.
+#
+# $Id: logger.test,v 1.33 2011/12/21 21:28:50 mic42 Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal logger.tcl logger
+}
+
+# -------------------------------------------------------------------------
+
+test logger-1.0 {init basic} {
+    set log [logger::init global]
+    ${log}::delete
+    set log
+} {::logger::tree::global}
+
+test logger-1.1 {init sub-system} {
+    set log [logger::init global::subsystem]
+    ${log}::delete
+    # cleanup the leftover global log
+    ::logger::tree::global::delete
+    set log
+} {::logger::tree::global::subsystem}
+
+test logger-1.2 {instantiate main logger and child} {
+    set log1 [logger::init global]
+    set log2 [logger::init global::subsystem]
+    ${log2}::delete
+    ${log1}::delete
+    list $log1 $log2
+} {::logger::tree::global ::logger::tree::global::subsystem}
+
+test logger-1.3 {instantiate logger with problematic name} {
+    set log [logger::init foo::logger::tree::bar]    
+    set services [logger::services]
+    # direct cleanup of logger namespace
+    foreach srv $services {
+        ::logger::tree::${srv}::delete
+    }
+    set services_post [logger::services]
+    list $log [lsort $services] $services_post
+} {::logger::tree::foo::logger::tree::bar {foo foo::logger foo::logger::tree foo::logger::tree::bar} {}}
+
+test logger-1.4 {check default loglevel} {
+    set log [logger::init foo]
+    set lvl [${log}::currentloglevel]
+    ${log}::delete 
+    set lvl
+} {debug}
+
+test logger-1.5 {init with empty name} {
+    catch { logger::init {} } err
+    set err
+} {Service name invalid. May not consist only of : or be empty}
+
+test logger-1.6 {init with empty name} {
+    catch { logger::init : } err
+    set err
+} {Service name invalid. May not consist only of : or be empty}
+
+test logger-1.7 {init with empty name} {
+    catch { logger::init ::: } err
+    set err
+} {Service name invalid. May not consist only of : or be empty}
+
+test logger-2.0 {delete} {
+    set log [logger::init global]
+    ${log}::delete
+    catch {set ${log}::enabled} err
+    set err
+} {can't read "::logger::tree::global::enabled": no such variable}
+
+proc dellog {ns args} {
+    lappend ::results "$ns $args"
+}
+
+test logger-2.1 {delete + callback} {
+    set ::results {}
+    set log1 [logger::init global]
+    set log2 [logger::init global::subsystem]
+    ${log1}::delproc [list dellog $log1]
+    ${log2}::delproc [list dellog $log2]
+    ${log1}::delete
+    set ::results
+} {{::logger::tree::global::subsystem } {::logger::tree::global }}
+
+test logger-2.2 {delete + complex callback} {
+    set ::results {}
+    set log1 [logger::init global]
+    set log2 [logger::init global::subsystem]
+    ${log1}::delproc [list dellog $log1 sock1]
+    ${log2}::delproc [list dellog $log2 sock2]
+    ${log1}::delete
+    set ::results
+} {{::logger::tree::global::subsystem sock2} {::logger::tree::global sock1}}
+
+test logger-2.3 {delproc introspection} {
+    set log [logger::init global]
+    ${log}::delproc [list dellog $log sock1]
+    set cmd [${log}::delproc]
+    ${log}::delete
+    set cmd
+} {dellog ::logger::tree::global sock1}
+
+test logger-2.4 {delproc with nonexisting proc} {
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::delproc ""} msg]
+    ${l}::delete
+    list $code $msg
+
+} {1 {Invalid cmd '' - does not exist}}
+
+# The tests 3.0 and 3.1 are a bit weak..
+test logger-3.0 {log} {
+    set log [logger::init global]
+    ${log}::logproc error txt {set ::INFO $txt}
+    ${log}::error "Danger Will Robinson!"
+    ${log}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-3.1 {log} {
+    set log [logger::init global]
+    ${log}::logproc warn txt {set ::INFO $txt}
+    ${log}::warn "Danger Will Robinson!"
+    ${log}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-3.2 {log} {
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "Danger Will Robinson!"
+    }
+    ${log}::info "Alert"
+    ${log}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-3.3 {log} {
+    set log [logger::init global]
+    ${log}::logproc warn txt {set ::INFO $txt}
+    ${log}::warn Danger Will Robinson!
+    ${log}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-3.4 {log} {
+    set log1 [logger::init global]
+    ${log1}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    set log2 [logger::init global::subsystem]
+    ${log1}::info boo
+    lappend retval [set ::INFO]
+    ${log2}::info BOO
+    lappend retval [set ::INFO]
+    ${log2}::delete
+    ${log1}::delete
+    set retval
+} {{LOGGED: boo} {LOGGED: BOO}}
+
+test logger-4.0 {disable} {
+    set ::INFO {no change}
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "Danger Will Robinson!"
+    }
+    ${log}::disable warn
+    ${log}::info "Alert"
+    ${log}::delete
+    set ::INFO
+} {no change}
+
+test logger-4.1 {disable + enable} {
+    set ::INFO {no change}
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "Danger Will Robinson!"
+    }
+    ${log}::disable warn
+    ${log}::enable info
+    ${log}::info "Alert"
+    ${log}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-4.2 {disable all} {
+    set ::INFO {no change}
+    set log [logger::init global]
+    ${log}::logproc critical txt {
+    set ::INFO "Danger Will Robinson!"
+    }
+    ${log}::disable critical
+    ${log}::critical "Alert"
+    ${log}::delete
+    set ::INFO
+} {no change}
+
+test logger-4.3 {enable all} {
+    set ::INFO {no change}
+    set log [logger::init global]
+    ${log}::logproc debug txt {
+    set ::INFO "Danger Will Robinson!"
+    }
+    ${log}::enable debug
+    ${log}::debug "Alert"
+    ${log}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-4.4 {enable bad args} {
+    set log [logger::init global]
+    catch { ${log}::enable badargs } err
+    ${log}::delete
+    set err
+} {Invalid level 'badargs' - levels are debug info notice warn error critical alert emergency}
+
+test logger-4.5 {test method inheritance} {
+    set log1 [logger::init global]
+    set log2 [logger::init global::child]
+    ${log1}::logproc notice txt {
+    set ::INFO "Danger Will Robinson!"
+    }
+    ${log2}::notice "alert"
+    ${log2}::delete
+    ${log1}::delete
+    set ::INFO
+} {Danger Will Robinson!}
+
+test logger-4.6 {disable bad args} {
+    set log [logger::init global]
+    catch { ${log}::disable badargs } err
+    ${log}::delete
+    set err
+} {Invalid level 'badargs' - levels are debug info notice warn error critical alert emergency}
+
+test logger-5.0 {setlevel command} {
+    set ::INFO ""
+    set log1 [logger::init global]
+    ${log1}::setlevel warn
+    ${log1}::logproc error txt {
+    lappend ::INFO "Error Message"
+    }
+    ${log1}::logproc warn txt {
+    lappend ::INFO "Warning Message"
+    }
+    ${log1}::logproc notice txt {
+    lappend ::INFO "Notice Message"
+    }
+    ${log1}::error "error"
+    ${log1}::warn "warn"
+    ${log1}::notice "notice"
+    ${log1}::delete
+    set ::INFO
+} {{Error Message} {Warning Message}}
+
+test logger-5.1 {setlevel, invalid level} {
+    set log [logger::init global]
+    set code [catch {${log}::setlevel badargs} msg]
+    ${log}::delete
+    list $code $msg
+} {1 {Invalid level 'badargs' - levels are debug info notice warn error critical alert emergency}}
+
+test logger-5.2 {setlevel, with children} {
+    set log1 [logger::init global]
+    ${log1}::setlevel notice
+    set log2 [logger::init global::child]
+    set ::DEBUGINFO ""
+    set ::WARNINFO ""
+    ${log1}::logproc debug txt {
+    lappend ::DEBUGINFO $txt
+    }
+    ${log1}::logproc warn txt {
+    lappend ::WARNINFO $txt
+    }
+    ${log1}::debug Parent
+    ${log1}::warn Parent
+    ${log2}::debug Child
+    ${log2}::warn Child
+    ${log1}::delete
+    list $::DEBUGINFO $::WARNINFO
+} {{} {Parent Child}}
+
+test logger-5.3 {global setlevel before logger::init} {
+    logger::setlevel error
+    set log1 [logger::init global]
+    set level [${log1}::currentloglevel]
+    ${log1}::delete
+    logger::setlevel debug
+    set level
+} {error}
+
+test logger-5.4 {global setlevel after logger::init} {
+    logger::setlevel error
+    set log1 [logger::init global]
+    set level [${log1}::currentloglevel]
+    ${log1}::delete
+    logger::setlevel debug
+    set level
+} {error}
+
+test logger-5.5 {global setlevel with wrong level} {
+    catch {logger::setlevel badargs} msg
+    set msg
+} {Invalid level 'badargs' - levels are debug info notice warn error critical alert emergency}
+
+test logger-5.6 {global setlevel before logger::init, see log} {
+    logger::setlevel error
+    set log1 [logger::init global]
+    set ::called 0
+    proc logp {txt} {
+         set ::called 1
+    }
+    ${log1}::logproc warn logp
+    set pname [${log1}::logproc warn]
+    ${log1}::warn $pname
+    ${log1}::delete
+    logger::setlevel debug
+    set result $::called
+    unset -nocomplain ::called
+    set result
+} {0}
+
+test logger-6.0 {levels command} {
+    logger::levels 
+} {debug info notice warn error critical alert emergency}
+
+test logger-7.0 {currentloglevel} {
+    set result [list]
+    set log [logger::init global]
+    foreach lvl [logger::levels] {
+        ${log}::setlevel $lvl
+        lappend result [${log}::currentloglevel]
+    }
+    ${log}::delete
+    set result
+} {debug info notice warn error critical alert emergency}
+
+test logger-7.1 {currentloglevel, disable all} {
+    set log [logger::init global]
+    ${log}::disable emergency
+    set result [${log}::currentloglevel]
+    ${log}::delete
+    set result
+} {none}
+
+test logger-7.2 {currentloglevel, enable incremental} {
+    set results ""
+    set log [logger::init global]
+    ${log}::disable critical
+    ${log}::enable critical
+    lappend results [${log}::currentloglevel]
+    ${log}::enable debug
+    lappend results [${log}::currentloglevel]
+    ${log}::delete
+    set results
+} {critical debug}
+
+test logger-7.3 {currentloglevel, enable incremental} {
+    set results ""
+    set log [logger::init global]
+    ${log}::disable critical
+    ${log}::enable debug
+    lappend results [${log}::currentloglevel]
+    ${log}::enable critical
+    lappend results [${log}::currentloglevel]
+    ${log}::delete
+    set results
+} {debug debug}
+
+test logger-7.4 {currentloglevel, disable incremental} {
+    set results ""
+    set log [logger::init global]
+    ${log}::enable debug
+    lappend results [${log}::currentloglevel]
+    ${log}::disable emergency
+    lappend results [${log}::currentloglevel]
+    ${log}::disable debug
+    lappend results [${log}::currentloglevel]
+    ${log}::delete
+    set results
+} {debug none none}
+
+test logger-7.5 {currentloglevel, disable incremental} {
+    set results ""
+    set log [logger::init global]
+    ${log}::enable debug
+    lappend results [${log}::currentloglevel]
+    ${log}::disable debug
+    lappend results [${log}::currentloglevel]
+    ${log}::disable emergency
+    lappend results [${log}::currentloglevel]
+    ${log}::delete
+    set results
+} {debug info none}
+
+test logger-8.0 {logproc with existing proc, non existing proc} {
+    set log [logger::init global]
+    catch { ${log}::logproc warn NoSuchProc } msg
+    ${log}::delete
+    set msg
+} {Invalid cmd 'NoSuchProc' - does not exist}
+
+test logger-8.1 {logproc with existing proc, introspection} {
+    set log [logger::init global]
+    catch { ${log}::logproc warn } msg
+    ${log}::delete
+    set msg
+} {::logger::tree::global::warncmd}
+
+test logger-8.2 {logproc with existing proc} {
+    set ::INFO ""
+    set log [logger::init global]
+    proc errorlogproc {txt} {
+        lappend ::INFO "Error Message: $txt"
+    }
+    set msg [info commands errorlogproc]
+    ${log}::logproc error errorlogproc 
+    ${log}::error "error"
+    ${log}::error "second error"
+    ${log}::delete 
+    rename errorlogproc ""
+    list $msg $::INFO
+} {errorlogproc {{Error Message: error} {Error Message: second error}}}
+
+test logger-8.3 {logproc with args and body} {
+    set ::INFO ""
+    set log [logger::init global]
+    ${log}::logproc error txt {lappend ::INFO "Error Message: $txt"}
+    ${log}::error "error"
+    ${log}::error "second error"
+    ${log}::delete
+    set ::INFO
+} {{Error Message: error} {Error Message: second error}}
+
+test logger-8.4 {logproc with existing proc, survive level switching} {
+    set ::INFO ""
+    set log [logger::init global]
+    proc errorlogproc {txt} {
+        lappend ::INFO "Error Message: $txt"
+    }
+    ${log}::logproc error errorlogproc 
+    ${log}::error "error"
+    ${log}::setlevel critical
+    ${log}::error "this should not be in the logfile"
+    ${log}::setlevel notice
+    ${log}::error "second error"
+    ${log}::delete 
+    rename errorlogproc ""
+    set ::INFO
+} {{Error Message: error} {Error Message: second error}}
+
+test logger-8.5 {logproc with existing proc, introspection} {
+    set ::INFO ""
+    set log [logger::init global]
+    proc errorlogproc {txt} {
+        lappend ::INFO "Error Message: $txt"
+    }
+    set msg [info commands errorlogproc]
+    ${log}::logproc error errorlogproc 
+    set cmd [${log}::logproc error]
+    ${log}::delete 
+    rename errorlogproc ""
+    list $msg $cmd
+} {errorlogproc errorlogproc}
+
+test logger-8.6 {logproc with args and body, introspection} {
+    set ::INFO ""
+    set log [logger::init global]
+    ${log}::logproc error txt {lappend ::INFO "Error Message: $txt"}
+    set cmd [${log}::logproc error]
+    ${log}::delete
+    set cmd
+} {::logger::tree::global::errorcustomcmd}
+
+test logger-8.7 {logproc with too many args} {
+    set log [logger::init global]
+    set code [catch {${log}::logproc error too many args]} msg]
+    ${log}::delete
+    list $code $msg
+} [list 1 [subst -novariable -nocommands \
+     "Usage: \${log}::logproc level ?cmd?\nor \${log}::logproc level argname body"]]
+
+test logger-9.0 {services subcommand} {
+    set log [logger::init global]
+    set result [logger::services]
+    ${log}::delete
+    set result
+} {global}
+
+test logger-9.1 {services subcommand, no child services} {
+    set log [logger::init global]
+    set services [${log}::services]
+    ${log}::delete
+    set services
+} {}
+
+test logger-9.2 {services subcommand, children services} {
+    set log [logger::init global]
+    set child [logger::init global::child]
+    set result [list [logger::services] [${log}::services] [${child}::services]]
+    ${log}::delete
+    set result
+} [list [list global global::child] global::child {}] 
+
+test logger-10.0 {servicecmd test} {
+    set log [logger::init global]
+    set cmd [logger::servicecmd global]
+    ${log}::delete
+    list $log $cmd
+} {::logger::tree::global ::logger::tree::global}
+
+test logger-10.1 {servicecmd, nonexistent service} {
+    set code [catch {logger::servicecmd nonexistant} msg]
+    list $code $msg
+} {1 {Service "nonexistant" does not exist.}}
+
+test logger-11.0 {servicename subcommand} {
+    set log [logger::init global]
+    set name [${log}::servicename]
+    ${log}::delete
+    set name
+} {global}
+
+test logger-12.0 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::foo {
+        logger::import global
+        info "In"
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    ${log}::delete
+    set retval
+
+} {{LOGGED: Out} {LOGGED: In} {LOGGED: Out}}
+
+test logger-12.1 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::foo {
+        logger::import -prefix log_ global
+        log_info "In"
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    ${log}::delete
+    set retval
+} {{LOGGED: Out} {LOGGED: In} {LOGGED: Out}}
+
+test logger-12.2 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::bar { }
+    namespace eval ::foo {
+        logger::import -namespace ::bar global
+        ::bar::info "In"
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    namespace delete ::bar
+    ${log}::delete
+    set retval
+} {{LOGGED: Out} {LOGGED: In} {LOGGED: Out}}
+
+test logger-12.3 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::bar { }
+    namespace eval ::foo {
+        logger::import -prefix log_ -namespace ::bar global
+        ::bar::log_info "In"
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    namespace delete ::bar
+    ${log}::delete
+    set retval
+} {{LOGGED: Out} {LOGGED: In} {LOGGED: Out}}
+
+test logger-12.4 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::foo {
+        logger::import -all global
+        info "In"
+        set ::cmds [lsort [::info commands ::foo::*]]
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    ${log}::delete
+    list $retval $::cmds
+    
+} {{{LOGGED: Out} {LOGGED: In} {LOGGED: Out}} {::foo::alert ::foo::critical\
+     ::foo::currentloglevel ::foo::debug ::foo::delete ::foo::delproc\
+     ::foo::disable ::foo::emergency ::foo::enable ::foo::error ::foo::info\
+     ::foo::logproc ::foo::notice ::foo::servicename ::foo::services\
+     ::foo::setlevel ::foo::trace ::foo::warn}}
+
+test logger-12.5 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::bar { }
+    namespace eval ::foo {
+        logger::import -all -namespace ::bar global
+        ::bar::info "In"
+        set ::cmds [lsort [::info commands ::bar::*]]
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    namespace delete ::bar
+    ${log}::delete
+    
+    list $retval $::cmds
+    
+} {{{LOGGED: Out} {LOGGED: In} {LOGGED: Out}} {::bar::alert ::bar::critical\
+     ::bar::currentloglevel ::bar::debug ::bar::delete ::bar::delproc\
+     ::bar::disable ::bar::emergency ::bar::enable ::bar::error ::bar::info\
+     ::bar::logproc ::bar::notice ::bar::servicename ::bar::services\
+     ::bar::setlevel ::bar::trace ::bar::warn}}
+
+test logger-12.6 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::bar { 
+        proc services {} {}
+    }
+    namespace eval ::foo {
+        set ::code [catch {logger::import -all -namespace ::bar global} ::msg]
+    }
+    namespace delete ::foo
+    namespace delete ::bar
+    ${log}::delete
+
+    list $::code $::msg
+        
+} [list 1 "can't import command \"::bar::services\": already exists" ]
+
+test logger-12.7 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::bar { 
+        proc services {} {}
+    }
+    namespace eval ::foo {
+        set ::code [catch {logger::import -all -force -namespace ::bar global} ::msg]
+    }
+    namespace delete ::foo
+    namespace delete ::bar
+    ${log}::delete
+
+    list $::code $::msg
+        
+} [list 0 "" ]
+
+test logger-12.8 {import subcommand} {
+    set retval ""
+    set log [logger::init global]
+    ${log}::logproc info txt {
+    set ::INFO "LOGGED: $txt"
+    }
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace eval ::bar { }
+    namespace eval ::foo {
+        logger::import -all -namespace bar global
+        ::foo::bar::info "In"
+        set ::cmds [lsort [::info commands ::foo::bar::*]]
+    }
+    lappend retval $::INFO
+    ${log}::info "Out"
+    lappend retval $::INFO
+    namespace delete ::foo
+    namespace delete ::bar
+    ${log}::delete
+    
+    list $retval $::cmds
+    
+} {{{LOGGED: Out} {LOGGED: In} {LOGGED: Out}} {::foo::bar::alert\
+     ::foo::bar::critical ::foo::bar::currentloglevel ::foo::bar::debug\
+     ::foo::bar::delete ::foo::bar::delproc ::foo::bar::disable\
+     ::foo::bar::emergency ::foo::bar::enable ::foo::bar::error\
+     ::foo::bar::info ::foo::bar::logproc ::foo::bar::notice\
+     ::foo::bar::servicename ::foo::bar::services\
+     ::foo::bar::setlevel ::foo::bar::trace ::foo::bar::warn}}
+
+test logger-12.9 {import subcommand, errors} {
+    set code [catch {
+        logger::import
+    } msg]
+    list $code $msg
+} {1 {Wrong # of arguments: "logger::import ?-all? ?-force? ?-prefix prefix? ?-namespace namespace? service"}}
+
+test logger-12.10 {import subcommand, errors} {
+    set code [catch {
+        logger::import 1 2 3 4 5 6 7 8 
+    } msg]
+    list $code $msg
+} {1 {Wrong # of arguments: "logger::import ?-all? ?-force? ?-prefix prefix? ?-namespace namespace? service"}}
+
+test logger-12.11 {import subcommand, errors} {
+    set code [catch {
+        logger::import -foo 1 
+    } msg]
+    list $code $msg
+} {1 {Unknown argument: "-foo" :
+Usage: "logger::import ?-all? ?-force? ?-prefix prefix? ?-namespace namespace? service"}}
+
+test logger-12.12 {import subcommand, errors} {
+    set code [catch {
+        logger::import foo 
+    } msg]
+    list $code $msg
+} {1 {Service "foo" does not exist.}}
+
+test logger-12.13 {import subcommand, errors} {
+    set l [logger::init global]
+    namespace eval ::foo {
+        proc debug {args} { }
+    }
+    set code [catch {
+        logger::import -namespace ::foo global 
+    } msg]
+    list $code $msg
+} {1 {can't import command "::foo::debug": already exists}}
+
+test logger-13.0 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }
+    ${l1}::info global
+    ${l2}::info global::child
+    ${l3}::info global::child::child
+    ${l1}::delete
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.1 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set ::INFO2 ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    ${l2}::logproc info txt { 
+         variable service
+         lappend ::INFO2 $service $txt
+    }
+    ${l1}::info global
+    ${l2}::info global::child
+    ${l3}::info global::child::child
+    ${l1}::delete
+    list $::INFO $::INFO2
+} [list [list global global] [list global::child global::child global::child::child global::child::child] ]
+
+test logger-13.2 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    namespace eval ::foo {
+        logger::import -force -all -namespace log global::child::child
+    }
+
+    ${l1}::info global
+    ${l2}::info global::child
+    foo::log::info global::child::child
+    ${l1}::delete
+    namespace delete ::foo
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.3 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    namespace eval ::foo {
+        logger::import -force -namespace log global::child::child
+    }
+
+    ${l1}::info global
+    ${l2}::info global::child
+    foo::log::info global::child::child
+    ${l1}::delete
+    namespace delete ::foo
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.4 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    namespace eval ::foo {
+        logger::import -force -all -prefix log_ -namespace log global::child::child
+    }
+
+    ${l1}::info global
+    ${l2}::info global::child
+    foo::log::log_info global::child::child
+    ${l1}::delete
+    namespace delete ::foo
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.5 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    namespace eval ::foo {
+        logger::import -force -prefix log_ -namespace log global::child::child
+    }
+
+    ${l1}::info global
+    ${l2}::info global::child
+    foo::log::log_info global::child::child
+    ${l1}::delete
+    namespace delete ::foo
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.6 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    namespace eval ::foo {
+        logger::import -force -prefix log_ global::child::child
+    }
+
+    ${l1}::info global
+    ${l2}::info global::child
+    foo::log_info global::child::child
+    ${l1}::delete
+    namespace delete ::foo
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.7 {test for correct servicename, Bug 1102131} {
+    set ::INFO ""
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    ${l1}::logproc info txt { 
+         variable service
+         lappend ::INFO $service $txt
+    }    
+    namespace eval ::foo {
+        logger::import -force -all -prefix log_ global::child::child
+    }
+
+    ${l1}::info global
+    ${l2}::info global::child
+    foo::log_info global::child::child
+    ${l1}::delete
+    namespace delete ::foo
+    set ::INFO
+} [list global global global::child global::child global::child::child global::child::child] 
+
+test logger-13.8 {test for logproc interations with childs} {
+    set l1 [logger::init global]
+    set l2 [logger::init global::child]
+    set l3 [logger::init global::child::child]
+    
+    namespace eval ::logtest {
+        proc mylogproc {args} {
+            variable len
+            lappend len [llength $args]
+        }
+    }
+    ${l1}::logproc info ::logtest::mylogproc
+    ${l1}::info global
+    ${l2}::info global::child
+    ${l3}::info global::child::child
+    ${l1}::delete
+    set len $::logtest::len
+    namespace delete ::logtest
+    set len
+} [list 1 1 1] 
+
+
+
+test logger-14.1 {test for a clean call stack for logprocs} {
+    namespace eval ::logtest {
+       proc mylog {txt} { set ::logtest::stack [info level]}
+       proc dolog {logger} {
+            ${logger}::info foo
+       }
+    }
+    set l1 [logger::init global]
+    ${l1}::logproc info ::logtest::mylog
+    ::logtest::dolog $l1
+    set val $::logtest::stack
+    namespace delete ::logtest
+    ${l1}::delete
+    set val
+} 2
+
+test logger-14.2 {test for a clean call stack for logprocs} {
+    namespace eval ::logtest {
+       proc mylog {txt} { set ::logtest::stack [list [info level 1] [info level 2]]}
+       proc dolog {logger} {
+            ${logger}::info foo
+       }
+    }
+    set l1 [logger::init global]
+    ${l1}::logproc info ::logtest::mylog
+    ::logtest::dolog $l1
+    set val $::logtest::stack
+    namespace delete ::logtest
+    ${l1}::delete
+    set val
+} {{::logtest::dolog ::logger::tree::global} {::logtest::mylog foo}}
+
+test logger-14.3 {test for a clean call stack for logprocs} {
+    namespace eval ::logtest {
+       proc mylog {txt} { set ::logtest::stack [list [info level 1] [info level 2]]}
+    }
+    set l1 [logger::init global]
+    ${l1}::logproc info ::logtest::mylog
+    namespace eval ::foo {
+        logger::import -force -all -prefix log_ global
+        proc dolog {logger} {
+            log_info foo
+        }        
+    }
+    ::foo::dolog $l1
+    set val $::logtest::stack
+    namespace delete ::logtest
+    namespace delete ::foo
+    ${l1}::delete
+    set val
+} {{::foo::dolog ::logger::tree::global} {::logtest::mylog foo}}
+
+test logger-14.4 {test for a clean call stack for logprocs} {
+    namespace eval ::logtest {
+       proc mylog {txt} { set ::logtest::stack [list [info level 1] [info level 2]]
+                          set ::logtest::info [uplevel 1 set someinfo]                 
+       }
+       proc dolog {logger} {
+            set someinfo bar
+            ${logger}::info foo
+       }
+    }
+    set l1 [logger::init global]
+    ${l1}::logproc info ::logtest::mylog
+    ::logtest::dolog $l1
+    set val [list $::logtest::stack $::logtest::info]
+    namespace delete ::logtest
+    ${l1}::delete
+    set val
+} {{{::logtest::dolog ::logger::tree::global} {::logtest::mylog foo}} bar}
+
+
+test logger-15.0 {test for logger levelchange callbacks} {
+    namespace eval ::logtest {
+        proc lvlchange {old new} {
+            variable changes 
+            lappend changes [list $old $new]
+            return
+        }
+    }
+    set l [logger::init global]
+    set default [list [${l}::lvlchangeproc]]
+    ${l}::lvlchangeproc ::logtest::lvlchange
+    lappend default [${l}::lvlchangeproc]
+    ${l}::delete
+    namespace delete ::logtest
+    set default
+} {::logger::tree::global::no-op ::logtest::lvlchange}
+
+test logger-15.1 {test for logger levelchange callbacks} {
+    set l [logger::init global]
+    set ok [catch {${l}::lvlchangeproc a b} msg]
+    ${l}::delete
+    list $ok $msg
+} [list 1 {Wrong # of arguments. Usage: ${log}::lvlchangeproc ?cmd?} ]
+
+test logger-15.2 {test for logger levelchange callbacks} {
+    namespace eval ::logtest {
+        proc lvlchange {old new} {
+            variable changes 
+            lappend changes [list $old $new]
+            return
+        }
+    }
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    ${l}::lvlchangeproc ::logtest::lvlchange
+    set rlvl [list]
+    foreach {lvl} [logger::levels] {
+        ${l}::setlevel $lvl
+        set rlvl [linsert $rlvl 0 $lvl] 
+    } 
+    foreach {lvl} $rlvl {
+        ${l}::setlevel $lvl
+    }
+    set changes $::logtest::changes
+    ${l}::delete
+    namespace delete ::logtest
+    set changes
+} [list {debug info} {info notice} {notice warn} {warn error} {error critical} \
+        {critical alert} {alert emergency} {emergency alert} {alert critical}  \
+        {critical error} {error warn} {warn notice} {notice info} {info debug}]
+
+test logger-15.3 {test for logger levelchange callbacks} {
+    namespace eval ::logtest {
+        proc lvlchange {old new} {
+            variable changes 
+            lappend changes [list $old $new]
+            return
+        }
+    }
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set lc [logger::init global::child]
+    ${lc}::lvlchangeproc ::logtest::lvlchange
+    set rlvl [list]
+    foreach {lvl} [logger::levels] {
+        ${l}::setlevel $lvl
+        set rlvl [linsert $rlvl 0 $lvl] 
+    } 
+    foreach {lvl} $rlvl {
+        ${l}::setlevel $lvl
+    }
+    set changes $::logtest::changes
+    ${l}::delete
+    namespace delete ::logtest
+    set changes
+} [list {debug info} {info notice} {notice warn} {warn error} {error critical} \
+        {critical alert} {alert emergency} {emergency alert} {alert critical}  \
+        {critical error} {error warn} {warn notice} {notice info} {info debug}]
+
+test logger-15.4 {test for logger with empty levelchange callback} {
+    set ::gotcalled 0
+    proc ::debug {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc ""} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    rename ::debug ""
+    list $::gotcalled $code $msg
+} {0 1 {Invalid cmd '' - does not exist}}
+
+test logger-15.5 {test for strange callback names, glob pattern ::*} {
+    set ::gotcalled 0
+    proc ::* {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc ::*} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    rename ::* ""
+    list $::gotcalled $code $msg
+} {1 0 ::*}
+
+test logger-15.6 {test for other [] glob pattern} {
+    set ::gotcalled 0
+    proc ::\[info\] {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::[info]}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    rename {::[info]} ""
+    list $::gotcalled $code $msg
+} {1 0 {::[info]}}
+
+test logger-15.7 {test for spaces in commands support} {
+    set ::gotcalled 0
+    proc what\ a\ stupid\ proc {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc [list {what a stupid proc}]} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    rename {what a stupid proc} ""
+    list $::gotcalled $code $msg
+} {1 0 {{what a stupid proc}}}
+
+test logger-15.8 {test for other []* glob pattern} {
+    set ::gotcalled 0
+    proc ::\[info\]* {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::[info]*}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    rename {::[info]*} ""
+    list $::gotcalled $code $msg
+} {1 0 {::[info]*}}
+
+test logger-15.9 {test for other []* glob pattern} {
+    set ::gotcalled 0
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::[info]*}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    list $::gotcalled $code $msg
+} {0 1 {Invalid cmd '::[info]*' - does not exist}}
+
+test logger-15.10 {test for non normalized namespace names} {
+    set ::gotcalled 0
+    namespace eval ::logtest {}
+    proc ::logtest::test {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::::logtest:::test}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    namespace delete ::logtest
+    list $::gotcalled $code $msg
+} {1 0 ::::logtest:::test}
+
+test logger-15.11 {test for non normalized namespace names} {
+    set ::gotcalled 0
+    namespace eval ::logtest {}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::::logtest:::test}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    namespace delete ::logtest
+    list $::gotcalled $code $msg
+} {0 1 {Invalid cmd '::::logtest:::test' - does not exist}}
+
+test logger-15.12 {test for namespace with glob pattern} {
+    set ::gotcalled 0
+    namespace eval ::logtest {}
+    namespace eval ::logtest::* {}
+    proc ::logtest::*::test {args} {set ::gotcalled 1}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::logtest::*::test}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    namespace delete ::logtest
+    list $::gotcalled $code $msg
+} {1 0 ::logtest::*::test}
+
+test logger-15.13 {test for namespace with glob pattern} {
+    set ::gotcalled 0
+    namespace eval ::logtest {}
+    namespace eval ::logtest::* {}
+    set l [logger::init global]
+    ${l}::setlevel [lindex [logger::levels] 0]
+    set code [catch {${l}::lvlchangeproc {::logtest::*::test}} msg]
+    ${l}::setlevel warn
+    ${l}::delete
+    namespace delete ::logtest
+    list $::gotcalled $code $msg
+} {0 1 {Invalid cmd '::logtest::*::test' - does not exist}}
+
+# # ## ### ##### ######## ############# #####################
+## Ticket cf775f72ef - initNamespace, level inheritance.
+
+test logger-17.0 {initNamespace, wrong args, not enough} {
+    catch {
+	logger::initNamespace
+    } msg
+    set msg
+} {wrong # args: should be "logger::initNamespace ns ?level?"}
+
+test logger-17.1 {initNamespace, wrong args, too many} {
+    catch {
+	logger::initNamespace ::foo error X
+    } msg
+    set msg
+} {wrong # args: should be "logger::initNamespace ns ?level?"}
+
+test logger-17.2 {initNamespace, explicit level} {
+    namespace eval ::foo {}
+    logger::initNamespace ::foo error
+    set lvl [::foo::log::currentloglevel]
+    ::foo::log::delete
+    namespace delete ::foo
+    set lvl
+} error
+
+test logger-17.3 {initNamespace, no parent, default log level} {
+    namespace eval ::foo {}
+    logger::initNamespace ::foo
+    set lvl [::foo::log::currentloglevel]
+    ::foo::log::delete
+    namespace delete ::foo
+    set lvl
+} warn
+
+test logger-17.4 {initNamespace, parent, inherit log level} {
+    namespace eval ::foo {}
+    namespace eval ::foo::bar {}
+    logger::initNamespace ::foo      error
+    logger::initNamespace ::foo::bar
+    set lvl [::foo::bar::log::currentloglevel]
+    ::foo::bar::log::delete
+    ::foo::log::delete
+    namespace delete ::foo
+    set lvl
+} error
+
+# # ## ### ##### ######## ############# #####################
+
+testsuiteCleanup
+return

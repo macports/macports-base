@@ -1,0 +1,83 @@
+# -*- tcl -*- tar.pcx
+# Syntax of the commands provided by package tar.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register tar
+pcx::tcldep   0.4 needs tcl 8.2
+pcx::tcldep   0.5 needs tcl 8.2
+pcx::tcldep   0.6 needs tcl 8.2
+
+namespace eval ::tar {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.4 std ::tar::add \
+    {checkSimpleArgs 2 -1 {
+	checkFileName
+	{checkListValues 1 -1 checkFileName}
+	{checkSwitches 1 {
+	    {-dereference checkBoolean}
+	} {}}
+    }}
+pcx::check 0.6 std ::tar::add \
+    {checkSimpleArgs 2 -1 {
+	checkFileName
+	{checkListValues 1 -1 checkFileName}
+	{checkSwitches 1 {
+	    {-dereference checkBoolean}
+	    {-quick checkBoolean}
+	    {-prefix checkWord}
+	} {}}
+    }}
+pcx::check 0.4 std ::tar::contents \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.4 std ::tar::create \
+    {checkSimpleArgs 2 -1 {
+	checkFileName
+	{checkListValues 1 -1 checkFileName}
+	{checkSwitches 1 {
+	    {-chan        checkChannelID}
+	    {-dereference checkBoolean}
+	} {}}
+    }}
+pcx::check 0.4 std ::tar::get \
+    {checkSimpleArgs 2 2 {
+	checkFileName
+	checkFileName
+    }}
+pcx::check 0.4 std ::tar::remove \
+    {checkSimpleArgs 2 2 {
+	checkFileName
+	{checkListValues 1 -1 checkFileName}
+    }}
+pcx::check 0.4 std ::tar::stat \
+    {checkSimpleArgs 1 2 {
+	checkFileName
+	checkFileName
+    }}
+pcx::check 0.4 std ::tar::untar \
+    {checkSimpleArgs 1 -1 {
+	checkFileName
+	{checkSwitches 1 {
+	    {-chan        checkChannelID}
+	    {-dir         checkFileName}
+	    {-file        checkFileName}
+	    {-glob        checkPattern}
+	    {-nomtime     checkBoolean}
+	    {-nooverwrite checkBoolean}
+	    {-noperms     checkBoolean}
+	} {}}
+    }}
+
+# Initialization via pcx::init.
+# Use a ::tar::init procedure for non-standard initialization.
+pcx::complete

@@ -1,0 +1,12 @@
+{
+    "doctools::idx" : {
+        "label"      : "KWIC",
+        "keywords"   : {
+            "a" : ["b"]
+        },
+        "references" : {
+            "b" : ["url"]
+        },
+        "title"      : "INDEX"
+    }
+}

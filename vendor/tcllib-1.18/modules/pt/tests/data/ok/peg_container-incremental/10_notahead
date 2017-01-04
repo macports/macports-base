@@ -1,0 +1,15 @@
+snit::type a_pe_grammar {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {n TEST}
+
+        $myg add   TEST
+        $myg mode  TEST value
+        $myg rule  TEST {x {! {t a}} {n IDENTIFIER}}
+
+        return
+    }
+
+    component myg
+    delegate method * to myg
+}

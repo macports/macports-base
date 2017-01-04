@@ -1,0 +1,74 @@
+# -*- tcl -*-
+# Graph tests - arc getunweighted
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: getunweighted.test,v 1.1 2008/10/11 23:23:48 andreas_kupries Exp $
+
+# Syntax: graph arc getunweighted
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-getunweighted-1.0 {arc getunweighted, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc getunweighted a} res
+    mygraph destroy
+    set res
+} [tmTooMany {arc getunweighted} {}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-getunweighted-3.0 {arc getunweighted, no arcs} {
+    SETUP
+    set res [mygraph arc getunweighted]
+    mygraph destroy
+    set res
+} {}
+
+test graph-${impl}-${setimpl}-arc-getunweighted-3.1 {arc getunweighted, all arcs, one} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    set res [mygraph arc getunweighted]
+    mygraph destroy
+    set res
+} {a}
+
+test graph-${impl}-${setimpl}-arc-getunweighted-3.2 {arc getunweighted, all arcs, more} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph node insert 1
+    mygraph arc  insert 1 0 b
+    set res [lsort -dict [mygraph arc getunweighted]]
+    mygraph destroy
+    set res
+} {a b}
+
+test graph-${impl}-${setimpl}-arc-getunweighted-3.3 {arc getunweighted, none} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph arc setweight a 1
+    set res [mygraph arc getunweighted]
+    mygraph destroy
+    set res
+} {}
+
+test graph-${impl}-${setimpl}-arc-getunweighted-3.4 {arc getunweighted, some} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph node insert 1
+    mygraph arc  insert 1 0 b
+    mygraph arc setweight a 1
+    set res [mygraph arc getunweighted]
+    mygraph destroy
+    set res
+} b
+
+# -------------------------------------------------------------------------

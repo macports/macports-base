@@ -1,0 +1,674 @@
+
+<div class='fossil-doc' data-title='docstrip_util - Literate programming tool'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">docstrip_util(n) 1.3.1 tcllib &quot;Literate programming tool&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>docstrip_util - Docstrip-related utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Package indexing commands</a></li>
+<li class="doctools_section"><a href="#section3">Source processing commands</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">docstrip <span class="opt">?1.2?</span></b></li>
+<li>package require <b class="pkgname">docstrip::util <span class="opt">?1.3.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">pkgProvide</b> <i class="arg">name</i> <i class="arg">version</i> <i class="arg">terminals</i></a></li>
+<li><a href="#2"><b class="cmd">pkgIndex</b> <span class="opt">?<i class="arg">terminal</i> ...?</span></a></li>
+<li><a href="#3"><b class="cmd">fileoptions</b> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#4"><b class="cmd">docstrip::util::index_from_catalogue</b> <i class="arg">dir</i> <i class="arg">pattern</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#5"><b class="cmd">docstrip::util::modules_from_catalogue</b> <i class="arg">target</i> <i class="arg">source</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#6"><b class="cmd">docstrip::util::classical_preamble</b> <i class="arg">metaprefix</i> <i class="arg">message</i> <i class="arg">target</i> <span class="opt">?<i class="arg">source</i> <i class="arg">terminals</i> ...?</span></a></li>
+<li><a href="#7"><b class="cmd">docstrip::util::classical_postamble</b> <i class="arg">metaprefix</i> <i class="arg">message</i> <i class="arg">target</i> <span class="opt">?<i class="arg">source</i> <i class="arg">terminals</i> ...?</span></a></li>
+<li><a href="#8"><b class="cmd">docstrip::util::packages_provided</b> <i class="arg">text</i> <span class="opt">?<i class="arg">setup-script</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">docstrip::util::ddt2man</b> <i class="arg">text</i></a></li>
+<li><a href="#10"><b class="cmd">docstrip::util::guards</b> <i class="arg">subcmd</i> <i class="arg">text</i></a></li>
+<li><a href="#11"><b class="cmd">docstrip::util::patch</b> <i class="arg">source-var</i> <i class="arg">terminals</i> <i class="arg">fromtext</i> <i class="arg">diff</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#12"><b class="cmd">docstrip::util::thefile</b> <i class="arg">filename</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#13"><b class="cmd">docstrip::util::import_unidiff</b> <i class="arg">diff-text</i> <span class="opt">?<i class="arg">warning-var</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">docstrip::util</b> package is meant for collecting various
+utility procedures that are mainly useful at installation or
+development time. It is separate from the base package to avoid
+overhead when the latter is used to <b class="cmd"><a href="../../../../index.html#key435">source</a></b> code.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Package indexing commands</a></h2>
+<p>Like raw &quot;<b class="file">.tcl</b>&quot; files, code lines in docstrip source files can
+be searched for package declarations and corresponding indices
+constructed. A complication is however that one cannot tell from the
+code blocks themselves which will fit together to make a working
+package; normally that information would be found in an accompanying
+&quot;<b class="file">.ins</b>&quot; file, but parsing one of those is not an easy task.
+Therefore <b class="package">docstrip::util</b> introduces an alternative encoding
+of such information, in the form of a declarative Tcl script: the
+<i class="term"><a href="../../../../index.html#key664">catalogue</a></i> (of the contents in a source file).</p>
+<p>The special commands which are available inside a catalogue are:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">pkgProvide</b> <i class="arg">name</i> <i class="arg">version</i> <i class="arg">terminals</i></a></dt>
+<dd><p>Declares that the code for a package with name <i class="arg">name</i> and
+  version <i class="arg">version</i> is made up from those modules in the source
+  file which are selected by the <i class="arg">terminals</i> list of guard
+  expression terminals. This code should preferably not contain a
+  <b class="cmd"><a href="../../../../index.html#key48">package</a></b> <b class="method">provide</b> command for the package, as one
+  will be provided by the package loading mechanisms.</p></dd>
+<dt><a name="2"><b class="cmd">pkgIndex</b> <span class="opt">?<i class="arg">terminal</i> ...?</span></a></dt>
+<dd><p>Declares that the code for a package is made up from those modules
+  in the source file which are selected by the listed guard
+  expression <i class="arg">terminal</i>s. The name and version of this package is
+  determined from <b class="cmd"><a href="../../../../index.html#key48">package</a></b> <b class="method">provide</b> command(s) found
+  in that code (hence there must be such a command in there).</p></dd>
+<dt><a name="3"><b class="cmd">fileoptions</b> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>Declares the <b class="cmd">fconfigure</b> options that should be in force when
+  reading the source; this can usually be ignored for pure ASCII
+  files, but if the file needs to be interpreted according to some
+  other <b class="option">-encoding</b> then this is how to specify it. The
+  command should normally appear first in the catalogue, as it takes
+  effect only for commands following it.</p></dd>
+</dl>
+<p>Other Tcl commands are supported too — a catalogue is
+parsed by being evaluated in a safe interpreter — but they
+are rarely needed. To allow for future extensions, unknown commands
+in the catalogue are silently ignored.</p>
+<p>To simplify distribution of catalogues together with their source
+files, the catalogue is stored <em>in the source file itself</em> as
+a module selected by the terminal '<b class="const">docstrip.tcl::catalogue</b>'.
+This supports both the style of collecting all catalogue lines in one
+place and the style of putting each catalogue line in close proximity
+of the code that it declares.</p>
+<p>Putting catalogue entries next to the code they declare may look as
+follows</p>
+<pre class="doctools_example">
+%    First there's the catalogue entry
+%    \begin{tcl}
+%&lt;docstrip.tcl::catalogue&gt;pkgProvide foo::bar 1.0 {foobar load}
+%    \end{tcl}
+%    second a metacomment used to include a copyright message
+%    \begin{macrocode}
+%&lt;*foobar&gt;
+%% This file is placed in the public domain.
+%    \end{macrocode}
+%    third the package implementation
+%    \begin{tcl}
+namespace eval foo::bar {
+   # ... some clever piece of Tcl code elided ...
+%    \end{tcl}
+%    which at some point may have variant code to make use of a
+%    |load|able extension
+%    \begin{tcl}
+%&lt;*load&gt;
+   load [file rootname [info script]][info sharedlibextension]
+%&lt;/load&gt;
+%&lt;*!load&gt;
+   # ... even more clever scripted counterpart of the extension
+   # also elided ...
+%&lt;/!load&gt;
+}
+%&lt;/foobar&gt;
+%    \end{tcl}
+%    and that's it!
+</pre>
+<p>The corresponding set-up with <b class="cmd">pkgIndex</b> would be</p>
+<pre class="doctools_example">
+%    First there's the catalogue entry
+%    \begin{tcl}
+%&lt;docstrip.tcl::catalogue&gt;pkgIndex foobar load
+%    \end{tcl}
+%    second a metacomment used to include a copyright message
+%    \begin{tcl}
+%&lt;*foobar&gt;
+%% This file is placed in the public domain.
+%    \end{tcl}
+%    third the package implementation
+%    \begin{tcl}
+package provide foo::bar 1.0
+namespace eval foo::bar {
+   # ... some clever piece of Tcl code elided ...
+%    \end{tcl}
+%    which at some point may have variant code to make use of a
+%    |load|able extension
+%    \begin{tcl}
+%&lt;*load&gt;
+   load [file rootname [info script]][info sharedlibextension]
+%&lt;/load&gt;
+%&lt;*!load&gt;
+   # ... even more clever scripted counterpart of the extension
+   # also elided ...
+%&lt;/!load&gt;
+}
+%&lt;/foobar&gt;
+%    \end{tcl}
+%    and that's it!
+</pre>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">docstrip::util::index_from_catalogue</b> <i class="arg">dir</i> <i class="arg">pattern</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>This command is a sibling of the standard <b class="cmd">pkg_mkIndex</b>
+  command, in that it adds package entries to &quot;<b class="file">pkgIndex.tcl</b>&quot;
+  files. The difference is that it indexes <b class="syscmd"><a href="docstrip.html">docstrip</a></b>-style
+  source files rather than raw &quot;<b class="file">.tcl</b>&quot; or loadable library files.
+  Only packages listed in the catalogue of a file are considered.</p>
+<p>The <i class="arg">dir</i> argument is the directory in which to look for files
+  (and whose &quot;<b class="file">pkgIndex.tcl</b>&quot; file should be amended).
+  The <i class="arg">pattern</i> argument is a <b class="cmd">glob</b> pattern of files to look
+  into; a typical value would be <b class="const">*.dtx</b> or
+  <b class="const">*.{dtx,ddt}</b>. Remaining arguments are option-value pairs,
+  where the supported options are:</p>
+<dl class="doctools_options">
+  
+<dt><b class="option">-recursein</b> <i class="arg">dirpattern</i></dt>
+<dd><p>If this option is given, then the <b class="cmd">index_from_catalogue</b>
+    operation will be repeated in each subdirectory whose name
+    matches the <i class="arg">dirpattern</i>. <b class="option">-recursein</b> <b class="const">*</b> will
+    cause the entire subtree rooted at <i class="arg">dir</i> to be indexed.</p></dd>
+<dt><b class="option">-sourceconf</b> <i class="arg">dictionary</i></dt>
+<dd><p>Specify <b class="cmd">fileoptions</b> to use when reading the catalogues of
+    files (and also for reading the packages if the catalogue does
+    not contain a <b class="cmd">fileoptions</b> command). Defaults to being
+    empty. Primarily useful if your system encoding is very different
+    from that of the source file (e.g., one is a two-byte encoding
+    and the other is a one-byte encoding). <b class="const">ascii</b> and
+    <b class="const">utf-8</b> are not very different in that sense.</p></dd>
+<dt><b class="option">-options</b> <i class="arg">terminals</i></dt>
+<dd><p>The <i class="arg">terminals</i> is a list of terminals in addition to
+    <b class="const">docstrip.tcl::catalogue</b> that should be held as true when
+    extracting the catalogue. Defaults to being empty. This makes it
+    possible to make use of &quot;variant sections&quot; in the catalogue
+    itself, e.g. gaurd some entries with an extra &quot;experimental&quot; and
+    thus prevent them from appearing in the index unless that is
+    generated with &quot;experimental&quot; among the <b class="option">-options</b>.</p></dd>
+<dt><b class="option">-report</b> <i class="arg">boolean</i></dt>
+<dd><p>If the <i class="arg">boolean</i> is true then the return value will be a
+    textual, probably multiline, report on what was done. Defaults
+    to false, in which case there is no particular return value.</p></dd>
+<dt><b class="option">-reportcmd</b> <i class="arg">commandPrefix</i></dt>
+<dd><p>Every item in the report is handed as an extra argument to the
+    command prefix. Since <b class="cmd">index_from_catalogue</b> would typically
+    be used at a rather high level in installation scripts and the
+    like, the <i class="arg">commandPrefix</i> defaults to
+    &quot;<b class="cmd">puts</b> <b class="const">stdout</b>&quot;.
+    Use <b class="cmd"><a href="../../../../index.html#key302">list</a></b> to effectively disable this feature. The return
+    values from the prefix are ignored.</p></dd>
+</dl>
+<p>The <b class="cmd">package ifneeded</b> scripts that are generated contain
+  one <b class="cmd">package require docstrip</b> command and one
+  <b class="cmd">docstrip::sourcefrom</b> command. If the catalogue entry was
+  of the <b class="cmd">pkgProvide</b> kind then the <b class="cmd">package ifneeded</b>
+  script also contains the <b class="cmd">package provide</b> command.</p>
+<p>Note that <b class="cmd">index_from_catalogue</b> never removes anything from an
+  existing &quot;<b class="file">pkgIndex.tcl</b>&quot; file. Hence you may need to delete it
+  (or have <b class="cmd">pkg_mkIndex</b> recreate it from scratch) before running
+  <b class="cmd">index_from_catalogue</b> to update some piece of information, such
+  as a package version number.</p></dd>
+<dt><a name="5"><b class="cmd">docstrip::util::modules_from_catalogue</b> <i class="arg">target</i> <i class="arg">source</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>This command is an alternative to <b class="cmd">index_from_catalogue</b> which
+  creates Tcl Module (&quot;<b class="file">.tm</b>&quot;) files rather than
+  &quot;<b class="file">pkgIndex.tcl</b>&quot; entries. Since this action is more similar to
+  what <b class="syscmd"><a href="docstrip.html">docstrip</a></b> classically does, it has features for
+  putting pre- and postambles on the generated files.</p>
+<p>The <i class="arg">source</i> argument is the name of the source file to
+  generate &quot;<b class="file">.tm</b>&quot; files from. The <i class="arg">target</i> argument is the
+  directory which should count as a module path, i.e., this is what
+  the relative paths derived from package names are joined to. The
+  supported options are:</p>
+<dl class="doctools_options">
+  
+<dt><b class="option">-preamble</b> <i class="arg">message</i></dt>
+<dd><p>A message to put in the preamble (initial block of comments) of
+    generated files. Defaults to a space. May be several lines, which
+    are then separated by newlines. Traditionally used for copyright
+    notices or the like, but metacomment lines provide an alternative
+    to that.</p></dd>
+<dt><b class="option">-postamble</b> <i class="arg">message</i></dt>
+<dd><p>Like <b class="option">-preamble</b>, but the message is put at the end of the
+    file instead of the beginning. Defaults to being empty.</p></dd>
+<dt><b class="option">-sourceconf</b> <i class="arg">dictionary</i></dt>
+<dd><p>Specify <b class="cmd">fileoptions</b> to use when reading the catalogue of
+    the <i class="arg">source</i> (and also for reading the packages if the
+    catalogue does not contain a <b class="cmd">fileoptions</b> command). Defaults
+    to being empty. Primarily useful if your system encoding is very
+    different from that of the source file (e.g., one is a two-byte
+    encoding and the other is a one-byte encoding). <b class="const">ascii</b> and
+    <b class="const">utf-8</b> are not very different in that sense.</p></dd>
+<dt><b class="option">-options</b> <i class="arg">terminals</i></dt>
+<dd><p>The <i class="arg">terminals</i> is a list of terminals in addition to
+    <b class="const">docstrip.tcl::catalogue</b> that should be held as true when
+    extracting the catalogue. Defaults to being empty. This makes it
+    possible to make use of &quot;variant sections&quot; in the catalogue
+    itself, e.g. gaurd some entries with an extra &quot;experimental&quot; guard
+    and thus prevent them from contributing packages unless those are
+    generated with &quot;experimental&quot; among the <b class="option">-options</b>.</p></dd>
+<dt><b class="option">-formatpreamble</b> <i class="arg">commandPrefix</i></dt>
+<dd><p>Command prefix used to actually format the preamble. Takes four
+    additional arguments <i class="arg">message</i>, <i class="arg">targetFilename</i>,
+    <i class="arg">sourceFilename</i>, and <i class="arg">terminalList</i> and returns a fully
+    formatted preamble. Defaults to using <b class="cmd">classical_preamble</b>
+    with a <i class="arg">metaprefix</i> of '##'.</p></dd>
+<dt><b class="option">-formatpostamble</b> <i class="arg">commandPrefix</i></dt>
+<dd><p>Command prefix used to actually format the postamble. Takes four
+    additional arguments <i class="arg">message</i>, <i class="arg">targetFilename</i>,
+    <i class="arg">sourceFilename</i>, and <i class="arg">terminalList</i> and returns a fully
+    formatted postamble. Defaults to using <b class="cmd">classical_postamble</b>
+    with a <i class="arg">metaprefix</i> of '##'.</p></dd>
+<dt><b class="option">-report</b> <i class="arg">boolean</i></dt>
+<dd><p>If the <i class="arg">boolean</i> is true (which is the default) then the return
+    value will be a textual, probably multiline, report on what was
+    done. If it is false then there is no particular return value.</p></dd>
+<dt><b class="option">-reportcmd</b> <i class="arg">commandPrefix</i></dt>
+<dd><p>Every item in the report is handed as an extra argument to this
+    command prefix. Defaults to <b class="cmd"><a href="../../../../index.html#key302">list</a></b>, which effectively disables
+    this feature. The return values from the prefix are ignored. Use
+    for example &quot;<b class="cmd">puts</b> <b class="const">stdout</b>&quot; to get report items
+    written immediately to the terminal.</p></dd>
+</dl>
+<p>An existing file of the same name as one to be created will be
+  overwritten.</p></dd>
+<dt><a name="6"><b class="cmd">docstrip::util::classical_preamble</b> <i class="arg">metaprefix</i> <i class="arg">message</i> <i class="arg">target</i> <span class="opt">?<i class="arg">source</i> <i class="arg">terminals</i> ...?</span></a></dt>
+<dd><p>This command returns a preamble in the classical
+  <b class="syscmd"><a href="docstrip.html">docstrip</a></b> style</p>
+<pre class="doctools_example">
+##
+## This is `TARGET',
+## generated by the docstrip::util package.
+##
+## The original source files were:
+##
+## SOURCE (with options: `foo,bar')
+##
+## Some message line 1
+## line2
+## line3
+</pre>
+<p>if called as</p>
+<pre class="doctools_example">
+docstrip::util::classical_preamble {##}\
+  &quot;\nSome message line 1\nline2\nline3&quot; TARGET SOURCE {foo bar}
+</pre>
+<p>The command supports preambles for files generated from multiple
+  sources, even though <b class="cmd">modules_from_catalogue</b> at present does
+  not need that.</p></dd>
+<dt><a name="7"><b class="cmd">docstrip::util::classical_postamble</b> <i class="arg">metaprefix</i> <i class="arg">message</i> <i class="arg">target</i> <span class="opt">?<i class="arg">source</i> <i class="arg">terminals</i> ...?</span></a></dt>
+<dd><p>This command returns a postamble in the classical
+  <b class="syscmd"><a href="docstrip.html">docstrip</a></b> style</p>
+<pre class="doctools_example">
+## Some message line 1
+## line2
+## line3
+##
+## End of file `TARGET'.
+</pre>
+<p>if called as</p>
+<pre class="doctools_example">
+docstrip::util::classical_postamble {##}\
+  &quot;Some message line 1\nline2\nline3&quot; TARGET SOURCE {foo bar}
+</pre>
+<p>In other words, the <i class="arg">source</i> and <i class="arg">terminals</i> arguments are
+  ignored, but supported for symmetry with <b class="cmd">classical_preamble</b>.</p></dd>
+<dt><a name="8"><b class="cmd">docstrip::util::packages_provided</b> <i class="arg">text</i> <span class="opt">?<i class="arg">setup-script</i>?</span></a></dt>
+<dd><p>This command returns a list where every even index element is the
+  name of a package <b class="cmd">provide</b>d by <i class="arg">text</i> when that is
+  evaluated as a Tcl script, and the following odd index element is
+  the corresponding version. It is used to do package indexing of
+  extracted pieces of code, in the manner of <b class="cmd">pkg_mkIndex</b>.</p>
+<p>One difference to <b class="cmd">pkg_mkIndex</b> is that the <i class="arg">text</i> gets
+  evaluated in a safe interpreter. <b class="cmd">package require</b> commands
+  are silently ignored, as are unknown commands (which includes
+  <b class="cmd"><a href="../../../../index.html#key435">source</a></b> and <b class="cmd">load</b>). Other errors cause
+  processing of the <i class="arg">text</i> to stop, in which case only those
+  package declarations that had been encountered before the error
+  will be included in the return value.</p>
+<p>The <i class="arg">setup-script</i> argument can be used to customise the
+  evaluation environment, if the code in <i class="arg">text</i> has some very
+  special needs. The <i class="arg">setup-script</i> is evaluated in the local
+  context of the <b class="cmd">packages_provided</b> procedure just before the
+  <i class="arg">text</i> is processed. At that time, the name of the slave
+  command for the safe interpreter that will do this processing is
+  kept in the local variable <b class="variable">c</b>. To for example copy the
+  contents of the <b class="variable">::env</b> array to the safe interpreter, one
+  might use a <i class="arg">setup-script</i> of</p>
+<pre class="doctools_example">  $c eval [list array set env [array get ::env]]</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Source processing commands</a></h2>
+<p>Unlike the previous group of commands, which would use
+<b class="cmd">docstrip::extract</b> to extract some code lines and then process
+those further, the following commands operate on text consisting of
+all types of lines.</p>
+<dl class="doctools_definitions">
+<dt><a name="9"><b class="cmd">docstrip::util::ddt2man</b> <i class="arg">text</i></a></dt>
+<dd><p>The <b class="cmd">ddt2man</b> command reformats <i class="arg">text</i> from the general
+  <b class="syscmd"><a href="docstrip.html">docstrip</a></b> format to <b class="package"><a href="../doctools/doctools.html">doctools</a></b> &quot;<b class="file">.man</b>&quot; format
+  (Tcl Markup Language for Manpages). The different line types are
+  treated as follows:</p>
+<dl class="doctools_definitions">
+  
+<dt>comment and metacomment lines</dt>
+<dd><p>The '%' and '%%' prefixes are removed, the rest of the text is
+    kept as it is.</p></dd>
+<dt>empty lines</dt>
+<dd><p>These are kept as they are. (Effectively this means that they will
+    count as comment lines after a comment line and as code lines
+    after a code line.)</p></dd>
+<dt>code lines</dt>
+<dd><p><b class="cmd">example_begin</b> and <b class="cmd">example_end</b> commands are placed
+    at the beginning and end of every block of consecutive code
+    lines. Brackets in a code line are converted to <b class="cmd">lb</b> and
+    <b class="cmd">rb</b> commands.</p></dd>
+<dt>verbatim guards</dt>
+<dd><p>These are processed as usual, so they do not show up in the
+    result but every line in a verbatim block is treated as a code
+    line.</p></dd>
+<dt>other guards</dt>
+<dd><p>These are treated as code lines, except that the actual guard is
+    <b class="cmd">emph</b>asised.</p></dd>
+</dl>
+<p>At the time of writing, no project has employed <b class="package"><a href="../doctools/doctools.html">doctools</a></b>
+  markup in master source files, so experience of what works well is
+  not available. A source file could however look as follows</p>
+<pre class="doctools_example">
+% [manpage_begin gcd n 1.0]
+% [keywords divisor]
+% [keywords math]
+% [moddesc {Greatest Common Divisor}]
+% [require gcd [opt 1.0]]
+% [description]
+%
+% [list_begin definitions]
+% [call [cmd gcd] [arg a] [arg b]]
+%   The [cmd gcd] procedure takes two arguments [arg a] and [arg b] which
+%   must be integers and returns their greatest common divisor.
+proc gcd {a b} {
+%   The first step is to take the absolute values of the arguments.
+%   This relieves us of having to worry about how signs will be treated
+%   by the remainder operation.
+   set a [expr {abs($a)}]
+   set b [expr {abs($b)}]
+%   The next line does all of Euclid's algorithm! We can make do
+%   without a temporary variable, since $a is substituted before the
+%   [lb]set a $b[rb] and thus continues to hold a reference to the
+%   &quot;old&quot; value of [var a].
+   while {$b&gt;0} { set b [expr { $a % [set a $b] }] }
+%   In Tcl 8.3 we might want to use [cmd set] instead of [cmd return]
+%   to get the slight advantage of byte-compilation.
+%&lt;tcl83&gt;  set a
+%&lt;!tcl83&gt;   return $a
+}
+% [list_end]
+%
+% [manpage_end]
+</pre>
+<p>If the above text is fed through <b class="cmd">docstrip::util::ddt2man</b> then
+  the result will be a syntactically correct <b class="package"><a href="../doctools/doctools.html">doctools</a></b>
+  manpage, even though its purpose is a bit different.</p>
+<p>It is suggested that master source code files with <b class="package"><a href="../doctools/doctools.html">doctools</a></b>
+  markup are given the suffix &quot;<b class="file">.ddt</b>&quot;, hence the &quot;ddt&quot; in
+  <b class="cmd">ddt2man</b>.</p></dd>
+<dt><a name="10"><b class="cmd">docstrip::util::guards</b> <i class="arg">subcmd</i> <i class="arg">text</i></a></dt>
+<dd><p>The <b class="cmd">guards</b> command returns information (mostly of a
+  statistical nature) about the ordinary docstrip guards that occur
+  in the <i class="arg">text</i>. The <i class="arg">subcmd</i> selects what is returned.</p>
+<dl class="doctools_definitions">
+  
+<dt><b class="method">counts</b></dt>
+<dd><p>List the guard expression terminals with counts. The format of
+    the return value is a dictionary which maps the terminal name to
+    the number of occurencies of it in the file.</p></dd>
+<dt><b class="method">exprcount</b></dt>
+<dd><p>List the guard expressions with counts. The format of the return
+    value is a dictionary which maps the expression to the number of
+    occurencies of it in the file.</p></dd>
+<dt><b class="method">exprerr</b></dt>
+<dd><p>List the syntactically incorrect guard expressions (e.g.
+    parentheses do not match, or a terminal is missing). The return
+    value is a list, with the elements in no particular order.</p></dd>
+<dt><b class="method">expressions</b></dt>
+<dd><p>List the guard expressions. The return value is a list, with the
+    elements in no particular order.</p></dd>
+<dt><b class="method">exprmods</b></dt>
+<dd><p>List the guard expressions with modifiers. The format of the return
+    value is a dictionary where each index is a guard expression and
+    each entry is a string with one character for every guard line that
+    has this expression. The characters in the entry specify what
+    modifier was used in that line: +, -, *, /, or (for guard without
+    modifier:) space. This is the most primitive form of the
+    information gathered by <b class="cmd">guards</b>.</p></dd>
+<dt><b class="method">names</b></dt>
+<dd><p>List the guard expression terminals. The return value is a list,
+    with the elements in no particular order.</p></dd>
+<dt><b class="method">rotten</b></dt>
+<dd><p>List the malformed guard lines (this does not include lines where
+    only the expression is malformed, though). The format of the return
+    value is a dictionary which maps line numbers to their contents.</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">docstrip::util::patch</b> <i class="arg">source-var</i> <i class="arg">terminals</i> <i class="arg">fromtext</i> <i class="arg">diff</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>This command tries to apply a <b class="syscmd"><a href="../../../../index.html#key562">diff</a></b> file (for example a
+  contributed patch) that was computed for a generated file to the
+  <b class="syscmd"><a href="docstrip.html">docstrip</a></b> source. This can be useful if someone has
+  edited a generated file, thus mistaking it for being the source.
+  This command makes no presumptions which are specific for the case
+  that the generated file is a Tcl script.</p>
+<p><b class="cmd"><a href="../../../../index.html#key661">patch</a></b> requires that the source file to patch is kept as a
+  list of lines in a variable, and the name of that variable in the
+  calling context is what goes into the <i class="arg">source-var</i> argument.
+  The <i class="arg">terminals</i> is the list of terminals used to extract the
+  file that has been patched. The <i class="arg">diff</i> is the actual diff to
+  apply (in a format as explained below) and the <i class="arg">fromtext</i> is
+  the contents of the file which served as &quot;from&quot; when the diff was
+  computed. Options can be used to further control the process.</p>
+<p>The process works by &quot;lifting&quot; the hunks in the <i class="arg">diff</i> from
+  generated to source file, and then applying them to the elements of
+  the <i class="arg">source-var</i>. In order to do this lifting, it is necessary
+  to determine how lines in the <i class="arg">fromtext</i> correspond to elements
+  of the <i class="arg">source-var</i>, and that is where the <i class="arg">terminals</i> come
+  in; the source is first <b class="cmd">extract</b>ed under the given
+  <i class="arg">terminals</i>, and the result of that is then matched against
+  the <i class="arg">fromtext</i>. This produces a map which translates line
+  numbers stated in the <i class="arg">diff</i> to element numbers in
+  <i class="arg">source-var</i>, which is what is needed to lift the hunks.</p>
+<p>The reason that both the <i class="arg">terminals</i> and the <i class="arg">fromtext</i>
+  must be given is twofold. First, it is very difficult to keep track
+  of how many lines of preamble are supplied some other way than by
+  copying lines from source files. Second, a generated file might
+  contain material from several source files. Both make it impossible
+  to predict what line number an extracted file would have in the
+  generated file, so instead the algorithm for computing the line
+  number map looks for a block of lines in the <i class="arg">fromtext</i> which
+  matches what can be extracted from the source. This matching is
+  affected by the following options:</p>
+<dl class="doctools_options">
+  
+<dt><b class="option">-matching</b> <i class="arg">mode</i></dt>
+<dd><p>How equal must two lines be in order to match? The supported
+    <i class="arg">mode</i>s are:</p>
+<dl class="doctools_definitions">
+    
+<dt><b class="const">exact</b></dt>
+<dd><p>Lines must be equal as strings. This is the default.</p></dd>
+<dt><b class="const">anyspace</b></dt>
+<dd><p>All sequences of whitespace characters are converted to single
+      spaces before comparing.</p></dd>
+<dt><b class="const">nonspace</b></dt>
+<dd><p>Only non-whitespace characters are considered when comparing.</p></dd>
+<dt><b class="const">none</b></dt>
+<dd><p>Any two lines are considered to be equal.</p></dd>
+</dl></dd>
+<dt><b class="option">-metaprefix</b> <i class="arg">string</i></dt>
+<dd><p>The <b class="option">-metaprefix</b> value to use when extracting. Defaults
+    to &quot;%%&quot;, but for Tcl code it is more likely that &quot;#&quot; or &quot;##&quot; had
+    been used for the generated file.</p></dd>
+<dt><b class="option">-trimlines</b> <i class="arg">boolean</i></dt>
+<dd><p>The <b class="option">-trimlines</b> value to use when extracting. Defaults to
+    true.</p></dd>
+</dl>
+<p>The return value is in the form of a unified diff, containing only
+  those hunks which were not applied or were only partially applied;
+  a comment in the header of each hunk specifies which case is at
+  hand. It is normally necessary to manually review both the return
+  value from <b class="cmd"><a href="../../../../index.html#key661">patch</a></b> and the patched text itself, as this command
+  cannot adjust comment lines to match new content.</p>
+<p>An example use would look like</p>
+<pre class="doctools_example">
+set sourceL [split [docstrip::util::thefile from.dtx] \n]
+set terminals {foo bar baz}
+set fromtext [docstrip::util::thefile from.tcl]
+set difftext [exec diff --unified from.tcl to.tcl]
+set leftover [docstrip::util::patch sourceL $terminals $fromtext\
+  [docstrip::util::import_unidiff $difftext] -metaprefix {#}]
+set F [open to.dtx w]; puts $F [join $sourceL \n]; close $F
+return $leftover
+</pre>
+<p>Here, &quot;<b class="file">from.dtx</b>&quot; was used as source for &quot;<b class="file">from.tcl</b>&quot;, which
+  someone modified into &quot;<b class="file">to.tcl</b>&quot;. We're trying to construct a
+  &quot;<b class="file">to.dtx</b>&quot; which can be used as source for &quot;<b class="file">to.tcl</b>&quot;.</p></dd>
+<dt><a name="12"><b class="cmd">docstrip::util::thefile</b> <i class="arg">filename</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>The <b class="cmd">thefile</b> command opens the file <i class="arg">filename</i>, reads it to
+  end, closes it, and returns the contents (dropping a final newline
+  if there is one). The option-value pairs are
+  passed on to <b class="cmd">fconfigure</b> to configure the open file channel
+  before anything is read from it.</p></dd>
+<dt><a name="13"><b class="cmd">docstrip::util::import_unidiff</b> <i class="arg">diff-text</i> <span class="opt">?<i class="arg">warning-var</i>?</span></a></dt>
+<dd><p>This command parses a unified (<b class="syscmd"><a href="../../../../index.html#key562">diff</a></b> flags <b class="option">-U</b> and
+  <b class="option">--unified</b>) format diff into the list-of-hunks format
+  expected by <b class="cmd">docstrip::util::patch</b>. The <i class="arg">diff-text</i>
+  argument is the text to parse and the <i class="arg">warning-var</i> is, if
+  specified, the name in the calling context of a variable to which
+  any warnings about parsing problems will be <b class="cmd">append</b>ed.</p>
+<p>The return value is a list of <i class="term">hunks</i>. Each hunk is a list of
+  five elements &quot;<i class="arg">start1</i> <i class="arg">end1</i> <i class="arg">start2</i> <i class="arg">end2</i>
+  <i class="arg">lines</i>&quot;. <i class="arg">start1</i> and <i class="arg">end1</i> are line numbers in the
+  &quot;from&quot; file of the first and last respectively lines of the hunk.
+  <i class="arg">start2</i> and <i class="arg">end2</i> are the corresponding line numbers in
+  the &quot;to&quot; file. Line numbers start at 1. The <i class="arg">lines</i> is a list
+  with two elements for each line in the hunk; the first specifies the
+  type of a line and the second is the actual line contents. The type
+  is <b class="const">-</b> for lines only in the &quot;from&quot; file, <b class="const">+</b> for lines
+  that are only in the &quot;to&quot; file, and <b class="const">0</b> for lines that are
+  in both.</p></dd>
+</dl>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="docstrip.html">docstrip</a>, <a href="../doctools/doctools.html">doctools</a>, doctools_fmt</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key665">.ddt</a>, <a href="../../../../index.html#key438">.dtx</a>, <a href="../../../../index.html#key437">LaTeX</a>, <a href="../../../../index.html#key662">Tcl module</a>, <a href="../../../../index.html#key664">catalogue</a>, <a href="../../../../index.html#key562">diff</a>, <a href="../../../../index.html#key434">docstrip</a>, <a href="../../../../index.html#key179">doctools</a>, <a href="../../../../index.html#key185">documentation</a>, <a href="../../../../index.html#key436">literate programming</a>, <a href="../../../../index.html#key666">module</a>, <a href="../../../../index.html#key663">package indexing</a>, <a href="../../../../index.html#key661">patch</a>, <a href="../../../../index.html#key435">source</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2003–2010 Lars Hellstr&ouml;m &lt;Lars dot Hellstrom at residenset dot net&gt;</p>
+</div>
+</div>

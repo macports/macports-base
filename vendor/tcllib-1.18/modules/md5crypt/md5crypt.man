@@ -1,0 +1,85 @@
+[manpage_begin md5crypt n 1.1.0]
+[see_also md5]
+[keywords hashing]
+[keywords md5]
+[keywords md5crypt]
+[keywords message-digest]
+[keywords security]
+[moddesc   {MD5-based password encryption}]
+[copyright {2003, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[titledesc {MD5-based password encryption}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require md5 2.0]
+[require md5crypt [opt 1.1.0]]
+[description]
+[para]
+
+This package provides an implementation of the MD5-crypt password
+encryption algorithm as pioneered by FreeBSD and currently in use as a
+replacement for the unix crypt(3) function in many modern
+systems. An implementation of the closely related Apache MD5-crypt is
+also available.
+
+The output of these commands are compatible with the BSD and OpenSSL
+implementation of md5crypt and the Apache 2 htpasswd program.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::md5crypt::md5crypt"] \
+        [arg "password"] \
+        [arg "salt"]]
+
+Generate a BSD compatible md5-encoded password hash from the plaintext
+password and a random salt (see SALT).
+
+[call [cmd "::md5crypt::aprcrypt"] \
+        [arg "password"] \
+        [arg "salt"]]
+
+Generate an Apache compatible md5-encoded password hash from the plaintext
+password and a random salt (see SALT).
+
+[call [cmd "::md5crypt::salt"] [opt [arg "length"]]]
+
+Generate a random salt string suitable for use with the [cmd md5crypt] and
+[cmd aprcrypt] commands.
+
+[list_end]
+
+[section {SALT}]
+
+The salt passed to either of the encryption schemes implemented here
+is checked to see if it begins with the encryption scheme magic string
+(either "$1$" for MD5-crypt or "$apr1$" for Apache crypt). If so, this
+is removed. The remaining characters up to the next $ and up to a
+maximum of 8 characters are then used as the salt. The salt text
+should probably be restricted the set of ASCII alphanumeric characters
+plus "./" (dot and forward-slash) - this is to preserve maximum
+compatability with the unix password file format.
+[para]
+If a password is being generated rather than checked from a password
+file then the [cmd salt] command may be used to generate a random salt.
+
+[section {EXAMPLES}]
+
+[example {
+% md5crypt::md5crypt password 01234567
+$1$01234567$b5lh2mHyD2PdJjFfALlEz1
+}]
+
+[example {
+% md5crypt::aprcrypt password 01234567
+$apr1$01234567$IXBaQywhAhc0d75ZbaSDp/
+}]
+
+[example {
+% md5crypt::md5crypt password [md5crypt::salt]
+$1$dFmvyRmO$T.V3OmzqeEf3hqJp2WFcb.
+}]
+
+[vset CATEGORY md5crypt]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

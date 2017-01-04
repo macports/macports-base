@@ -1,0 +1,65 @@
+pt::grammar::peg {
+    rules {
+	ALNUM          {mode leaf     is {x {t <} {t a} {t l} {t n} {t u} {t m} {t >} {n WHITESPACE}}}
+	ALPHA          {mode leaf     is {x {t <} {t a} {t l} {t p} {t h} {t a} {t >} {n WHITESPACE}}}
+	AND            {mode leaf     is {x {t &} {n WHITESPACE}}}
+	APOSTROPH      {mode void     is {t '}}
+	ASCII          {mode leaf     is {x {t <} {t a} {t s} {t c} {t i} {t i} {t >} {n WHITESPACE}}}
+	Attribute      {mode value    is {x {/ {n VOID} {n LEAF}} {n COLON}}}
+	CLOSE          {mode void     is {x {t \51} {n WHITESPACE}}}
+	CLOSEB         {mode void     is {t \135}}
+	COLON          {mode void     is {x {t :} {n WHITESPACE}}}
+	COMMENT        {mode void     is {x {t #} {* {x {! {n EOL}} dot}} {n EOL}}}
+	CONTROL        {mode leaf     is {x {t <} {t c} {t o} {t n} {t t} {t r} {t o} {t l} {t >} {n WHITESPACE}}}
+	Char           {mode value    is {/ {n CharSpecial} {n CharOctalFull} {n CharOctalPart} {n CharUnicode} {n CharUnescaped}}}
+	CharOctalFull  {mode leaf     is {x {t \134} {.. 0 2} {.. 0 7} {.. 0 7}}}
+	CharOctalPart  {mode leaf     is {x {t \134} {.. 0 7} {? {.. 0 7}}}}
+	CharSpecial    {mode leaf     is {x {t \134} {/ {t n} {t r} {t t} {t '} {t \42} {t \133} {t \135} {t \134}}}}
+	CharUnescaped  {mode leaf     is {x {! {t \134}} dot}}
+	CharUnicode    {mode leaf     is {x {t \134} {t u} xdigit {? {x xdigit {? {x xdigit {? xdigit}}}}}}}
+	Class          {mode value    is {x {n OPENB} {* {x {! {n CLOSEB}} {n Range}}} {n CLOSEB} {n WHITESPACE}}}
+	DAPOSTROPH     {mode void     is {t \42}}
+	DDIGIT         {mode leaf     is {x {t <} {t d} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}}}
+	DIGIT          {mode leaf     is {x {t <} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}}}
+	DOT            {mode leaf     is {x {t .} {n WHITESPACE}}}
+	Definition     {mode value    is {x {? {n Attribute}} {n Identifier} {n IS} {n Expression} {n SEMICOLON}}}
+	EOF            {mode void     is {! dot}}
+	EOL            {mode void     is {/ {t \n} {t \r}}}
+	Expression     {mode value    is {x {n Sequence} {* {x {n SLASH} {n Sequence}}}}}
+	Final          {mode void     is {x {t E} {t N} {t D} {n WHITESPACE} {n SEMICOLON} {n WHITESPACE}}}
+	GRAPH          {mode leaf     is {x {t <} {t g} {t r} {t a} {t p} {t h} {t >} {n WHITESPACE}}}
+	Grammar        {mode value    is {x {n WHITESPACE} {n Header} {* {n Definition}} {n Final} {n EOF}}}
+	Header         {mode value    is {x {n PEG} {n Identifier} {n StartExpr}}}
+	IS             {mode void     is {x {t <} {t -} {n WHITESPACE}}}
+	Ident          {mode leaf     is {x {/ {t _} {t :} alpha} {* {/ {t _} {t :} alnum}}}}
+	Identifier     {mode value    is {x {n Ident} {n WHITESPACE}}}
+	LEAF           {mode leaf     is {x {t l} {t e} {t a} {t f} {n WHITESPACE}}}
+	LOWER          {mode leaf     is {x {t <} {t l} {t o} {t w} {t e} {t r} {t >} {n WHITESPACE}}}
+	Literal        {mode value    is {/ {x {n APOSTROPH} {* {x {! {n APOSTROPH}} {n Char}}} {n APOSTROPH} {n WHITESPACE}} {x {n DAPOSTROPH} {* {x {! {n DAPOSTROPH}} {n Char}}} {n DAPOSTROPH} {n WHITESPACE}}}}
+	NOT            {mode leaf     is {x {t !} {n WHITESPACE}}}
+	OPEN           {mode void     is {x {t \50} {n WHITESPACE}}}
+	OPENB          {mode void     is {t \133}}
+	PEG            {mode void     is {x {t P} {t E} {t G} {! {/ {t _} {t :} alnum}} {n WHITESPACE}}}
+	PLUS           {mode leaf     is {x {t +} {n WHITESPACE}}}
+	PRINTABLE      {mode leaf     is {x {t <} {t p} {t r} {t i} {t n} {t t} {t >} {n WHITESPACE}}}
+	PUNCT          {mode leaf     is {x {t <} {t p} {t u} {t n} {t c} {t t} {t >} {n WHITESPACE}}}
+	Prefix         {mode value    is {x {? {/ {n AND} {n NOT}}} {n Suffix}}}
+	Primary        {mode value    is {/ {n ALNUM} {n ALPHA} {n ASCII} {n CONTROL} {n DDIGIT} {n DIGIT} {n GRAPH} {n LOWER} {n PRINTABLE} {n PUNCT} {n SPACE} {n UPPER} {n WORDCHAR} {n XDIGIT} {n Identifier} {x {n OPEN} {n Expression} {n CLOSE}} {n Literal} {n Class} {n DOT}}}
+	QUESTION       {mode leaf     is {x {t ?} {n WHITESPACE}}}
+	Range          {mode value    is {/ {x {n Char} {n TO} {n Char}} {n Char}}}
+	SEMICOLON      {mode void     is {x {t \73} {n WHITESPACE}}}
+	SLASH          {mode void     is {x {t /} {n WHITESPACE}}}
+	SPACE          {mode leaf     is {x {t <} {t s} {t p} {t a} {t c} {t e} {t >} {n WHITESPACE}}}
+	STAR           {mode leaf     is {x {t *} {n WHITESPACE}}}
+	Sequence       {mode value    is {+ {n Prefix}}}
+	StartExpr      {mode value    is {x {n OPEN} {n Expression} {n CLOSE}}}
+	Suffix         {mode value    is {x {n Primary} {? {/ {n QUESTION} {n STAR} {n PLUS}}}}}
+	TO             {mode void     is {t -}}
+	UPPER          {mode leaf     is {x {t <} {t u} {t p} {t p} {t e} {t r} {t >} {n WHITESPACE}}}
+	VOID           {mode leaf     is {x {t v} {t o} {t i} {t d} {n WHITESPACE}}}
+	WHITESPACE     {mode void     is {* {/ space {n COMMENT}}}}
+	WORDCHAR       {mode leaf     is {x {t <} {t w} {t o} {t r} {t d} {t c} {t h} {t a} {t r} {t >} {n WHITESPACE}}}
+	XDIGIT         {mode leaf     is {x {t <} {t x} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}}}
+    }
+    start {n Grammar}
+}

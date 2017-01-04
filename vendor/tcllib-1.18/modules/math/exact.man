@@ -1,0 +1,218 @@
+[manpage_begin math::exact n 1.0]
+[copyright "2015 Kevin B. Kenny <kennykb@acm.org>
+Redistribution permitted under the terms of the Open\
+Publication License <http://www.opencontent.org/openpub/>"]
+[moddesc {Tcl Math Library}]
+[titledesc {Exact Real Arithmetic}]
+[category Mathematics]
+[require Tcl 8.6]
+[require grammar::aycock 1.0]
+[require math::exact 1.0]
+[description]
+[para]
+The [cmd exactexpr] command in the [cmd math::exact] package
+allows for exact computations over the computable real numbers.
+These are not arbitrary-precision calculations; rather they are
+exact, with numbers represented by algorithms that produce successive
+approximations. At the end of a calculation, the caller can
+request a given precision for the end result, and intermediate results are
+computed to whatever precision is necessary to satisfy the request.
+[section "Procedures"]
+The following procedure is the primary entry into the [cmd math::exact]
+package.
+[list_begin definitions]
+[call [cmd ::math::exact::exactexpr] [arg expr]]
+
+Accepts a mathematical expression in Tcl syntax, and returns an object
+that represents the program to calculate successive approximations to
+the expression's value. The result will be referred to as an
+exact real number.
+
+[call [arg number] [cmd ref]]
+
+Increases the reference count of a given exact real number.
+
+[call [arg number] [cmd unref]]
+
+Decreases the reference count of a given exact real number, and destroys
+the number if the reference count is zero.
+
+[call [arg number] [cmd asPrint] [arg precision]]
+
+Formats the given [arg number] for printing, with the specified [arg precision].
+(See below for how [arg precision] is interpreted). Numbers that are known to
+be rational are formatted as fractions.
+
+[call [arg number] [cmd asFloat] [arg precision]]
+
+Formats the given [arg number] for printing, with the specified [arg precision].
+(See below for how [arg precision] is interpreted). All numbers are formatted
+in floating-point E format.
+
+[list_end]
+
+[section Parameters]
+
+[list_begin definitions]
+
+[def [arg expr]]
+
+Expression to evaluate. The syntax for expressions is the same as it is in Tcl,
+but the set of operations is smaller. See [sectref Expressions] below
+for details.
+
+[def [arg number]]
+
+The object returned by an earlier invocation of [cmd math::exact::exactexpr]
+
+[def [arg precision]]
+
+The requested 'precision' of the result. The precision is (approximately)
+the absolute value of the binary exponent plus the number of bits of the
+binary significand. For instance, to return results to IEEE-754 double
+precision, 56 bits plus the exponent are required. Numbers between 1/2 and 2
+will require a precision of 57; numbers between 1/4 and 1/2 or between 2 and 4
+will require 58; numbers between 1/8 and 1/4 or between 4 and 8 will require
+59; and so on.
+
+[list_end]
+
+[section Expressions]
+
+The [cmd math::exact::exactexpr] command accepts expressions in a subset
+of Tcl's syntax. The following components may be used in an expression.
+
+[list_begin itemized]
+
+[item]Decimal integers.
+[item]Variable references with the dollar sign ([const \$]).
+The value of the variable must be the result of another call to
+[cmd math::exact::exactexpr]. The reference count of the value
+will be increased by one for each position at which it appears
+in the expression.
+[item]The exponentiation operator ([const **]).
+[item]Unary plus ([const +]) and minus ([const -]) operators.
+[item]Multiplication ([const *]) and division ([const /]) operators.
+[item]Parentheses used for grouping.
+[item]Functions. See [sectref Functions] below for the functions that are
+available.
+
+[list_end]
+
+[section Functions]
+
+The following functions are available for use within exact real expressions.
+
+[list_begin definitions]
+
+
+[def [const acos(][arg x][const )]]
+The inverse cosine of [arg x]. The result is expressed in radians. 
+The absolute value of [arg x] must be less than 1.
+
+[def [const acosh(][arg x][const )]]
+The inverse hyperbolic cosine of [arg x]. 
+[arg x] must be greater than 1.
+
+[def [const asin(][arg x][const )]]
+The inverse sine of [arg x]. The result is expressed in radians. 
+The absolute value of [arg x] must be less than 1.
+
+[def [const asinh(][arg x][const )]]
+The inverse hyperbolic sine of [arg x].
+
+[def [const atan(][arg x][const )]]
+The inverse tangent of [arg x]. The result is expressed in radians.
+
+[def [const atanh(][arg x][const )]]
+The inverse hyperbolic tangent of [arg x].
+The absolute value of [arg x] must be less than 1.
+
+[def [const cos(][arg x][const )]]
+The cosine of [arg x]. [arg x] is expressed in radians.
+
+[def [const cosh(][arg x][const )]]
+The hyperbolic cosine of [arg x].
+
+[def [const e()]]
+The base of the natural logarithms = [const 2.71828...]
+
+[def [const exp(][arg x][const )]]
+The exponential function of [arg x].
+
+[def [const log(][arg x][const )]]
+The natural logarithm of [arg x]. [arg x] must be positive.
+
+[def [const pi()]]
+The value of pi = [const 3.15159...]
+
+[def [const sin(][arg x][const )]]
+The sine of [arg x]. [arg x] is expressed in radians.
+
+[def [const sinh(][arg x][const )]]
+The hyperbolic sine of [arg x].
+
+[def [const sqrt(][arg x][const )]]
+The square root of [arg x]. [arg x] must be positive.
+
+[def [const tan(][arg x][const )]]
+The tangent of [arg x]. [arg x] is expressed in radians.
+
+[def [const tanh(][arg x][const )]]
+The hyperbolic tangent of [arg x].
+
+[list_end]
+
+[section Summary]
+
+The [cmd math::exact::exactexpr] command provides a system that
+performs exact arithmetic over computable real numbers, representing
+the numbers as algorithms for successive approximation.
+
+An example, which implements the high-school quadratic formula,
+is shown below.
+
+[example {
+namespace import math::exact::exactexpr
+proc exactquad {a b c} {
+    set d [[exactexpr {sqrt($b*$b - 4*$a*$c)}] ref]
+    set r0 [[exactexpr {(-$b - $d) / (2 * $a)}] ref]
+    set r1 [[exactexpr {(-$b + $d) / (2 * $a)}] ref]
+    $d unref
+    return [list $r0 $r1]
+}
+
+set a [[exactexpr 1] ref]
+set b [[exactexpr 200] ref]
+set c [[exactexpr {(-3/2) * 10**-12}] ref]
+lassign [exactquad $a $b $c] r0 r1
+$a unref; $b unref; $c unref
+puts [list [$r0 asFloat 70] [$r1 asFloat 110]]
+$r0 unref; $r1 unref
+}]
+
+The program prints the result:
+[example {
+-2.000000000000000075e2 7.499999999999999719e-15
+}]
+
+Note that if IEEE-754 floating point had been used, a catastrophic
+roundoff error would yield a smaller root that is a factor of two
+too high:
+
+[example {
+-200.0 1.4210854715202004e-14
+}]
+
+The invocations of [cmd exactexpr] should be fairly self-explanatory.
+The other commands of note are [cmd ref] and [cmd unref]. It is necessary
+for the caller to keep track of references to exact expressions - to call
+[cmd ref] every time an exact expression is stored in a variable and
+[cmd unref] every time the variable goes out of scope or is overwritten.
+
+The [cmd asFloat] method emits decimal digits as long as the requested
+precision supports them. It terminates when the requested precision
+yields an uncertainty of more than one unit in the least significant digit.
+
+[vset CATEGORY mathematics]
+[manpage_end]

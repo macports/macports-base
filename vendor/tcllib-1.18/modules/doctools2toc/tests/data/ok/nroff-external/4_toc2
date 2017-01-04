@@ -1,0 +1,19 @@
+.so man.macros
+.TH "TABLE OF CONTENTS"
+.SH "TABLE OF CONTENTS"
+TOC
+.RS
+.TP
+\fBdoctools::toc::introduction\fR
+DocTools - Tables of Contents
+.TP
+\fBProcessing\fR
+.RS
+.TP
+\fBdoctools::toc::parse\fR
+Parsing text in doctoc format
+.RE
+.TP
+\fBdoctools::toc::structure\fR
+doctoc serialization utilities
+.RE

@@ -1,0 +1,28 @@
+2013-02-27  Andreas Kupries  <andreask@activestate.com>
+
+	* ooutil.tcl (::oo::Helpers::link): New helper command.
+	* ooutil.man: Makes instance methods available without
+	* pkgIndex.tcl: 'my'. Bumped version to 1.2.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-30  Andreas Kupries  <andreask@activestate.com>
+
+	* ooutil.man: Added more utilities to support class variables,
+	* ooutil.tcl: class methods, and singleton classes. Packed version
+	* pkgIndex.tcl: bumped to 1.1 for all these new features.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-05-31  Andreas Kupries  <andreask@activestate.com>
+
+	* New module and package: oo::util. Right now only easy
+	  referencing of instance methods for callbacks.

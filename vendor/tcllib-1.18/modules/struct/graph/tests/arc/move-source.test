@@ -1,0 +1,76 @@
+# -*- tcl -*-
+# Graph tests - arc move-source
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: move-source.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc move-source ARC NEW-SOURCE
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-move-source-1.0 {arc move-source, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc move-source} res
+    mygraph destroy
+    set res
+} [tmWrong {arc move-source} {arc newsource} 0]
+
+test graph-${impl}-${setimpl}-arc-move-source-1.1 {arc move-source, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc move-source a} res
+    mygraph destroy
+    set res
+} [tmWrong {arc move-source} {arc newsource} 1]
+
+test graph-${impl}-${setimpl}-arc-move-source-1.2 {arc move-source, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc move-source a b c} res
+    mygraph destroy
+    set res
+} [tmTooMany {arc move-source} {arc newsource}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-move-source-1.3 {arc move-source, missing arc} {
+    SETUP
+    mygraph node insert 0
+    catch {mygraph arc move-source a 0} res
+    mygraph destroy
+    set res
+} [MissingArc $MY a]
+
+test graph-${impl}-${setimpl}-arc-move-source-1.4 {arc move-source, missing node} {
+    SETUP
+    mygraph node insert 0 1
+    mygraph arc  insert 0 1 a
+    catch {mygraph arc move-source a 2} res
+    mygraph destroy
+    set res
+} [MissingNode $MY 2]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-move-source-1.5 {arc move-source, changed source} {
+    SETUP
+    mygraph node insert 0 1 2
+    mygraph arc  insert 0 1 a
+    mygraph arc  move-source a 2
+    set res [mygraph arc source a]
+    mygraph destroy
+    set res
+} 2
+
+test graph-${impl}-${setimpl}-arc-move-source-1.6 {arc move-source, unchanged source} {
+    SETUP
+    mygraph node insert 0 1
+    mygraph arc  insert 0 1 a
+    mygraph arc  move-source a 0
+    set res [mygraph arc source a]
+    mygraph destroy
+    set res
+} 0
+
+# ---------------------------------------------------  

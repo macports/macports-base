@@ -1,0 +1,260 @@
+# -*- tcl -*-
+# polynomials.test --
+#    Test cases for the ::math::polynomials package
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal polynomials.tcl math::polynomials
+}
+
+# -------------------------------------------------------------------------
+
+proc matchNumbers {expected actual} {
+   set match 1
+   foreach a $actual e $expected {
+      if {abs($a-$e) > 0.1e-6} {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+test "Polynomial-1.0" "Create polynomial (degree 3)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3 4}]
+   set result [lindex $f1 1]
+} -result {4 3 2 1}
+
+test "Polynomials-1.1" "Create polynomial (degree 3, leading zeros)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3 4 0 0 0}]
+   set result [lindex $f1 1]
+} -result {4 3 2 1}
+
+test "Polynomials-1.2" "Create polynomial (invalid coefficients)" \
+   -match glob -body {
+   set f1 [::math::polynomials::polynomial {A B C}]
+} -result "Coefficients *" -returnCodes 1
+
+test "Polynomials-1.3" "Create polynomial command" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynCmd {1 2 3 4 0 0 0}]
+   set result {}
+   foreach x {0 1 2 3} {
+      lappend result [$f1 $x]
+   }
+   set result
+} -result {1 10 49 142}
+
+test "Polynomials-1.4" "Evaluate polynomial" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3 4 0 0 0}]
+   set result {}
+   foreach x {0 1 2 3} {
+      lappend result [::math::polynomials::evalPolyn $f1 $x]
+   }
+   set result
+} -result {1 10 49 142}
+
+test "Polynomials-1.5" "Evaluate null polynomial" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {0 0 0}]
+   set result {}
+   foreach x {0 1 2 3} {
+      lappend result [::math::polynomials::evalPolyn $f1 $x]
+   }
+   set result
+} -result {0 0 0 0}
+
+test "Polynomials-2.1" "Query polynomial properties - degree" \
+   -match exact -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set result [::math::polynomials::degreePolyn $f1]
+} -result 2
+
+test "Polynomials-2.2" "Query polynomial properties - degree (2 again)" \
+   -match exact -body {
+   set f1 [::math::polynomials::polynomial {1 2 3 0 0 0}]
+   set result [::math::polynomials::degreePolyn $f1]
+} -result 2
+
+test "Polynomials-2.3" "Query polynomial properties - degree (null)" \
+   -match exact -body {
+   set f1 [::math::polynomials::polynomial {0 0 0}]
+   set result [::math::polynomials::degreePolyn $f1]
+} -result -1
+
+test "Polynomials-2.4" "Query polynomial properties - leading coeff" \
+   -match exact -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set idx [::math::polynomials::degreePolyn $f1]
+   set coeff [::math::polynomials::coeffPolyn $f1 $idx]
+} -result 3
+
+test "Polynomials-2.5" "Query polynomial properties - all coeffs" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f1]
+} -result {1 2 3}
+
+test "Polynomials-3.1" "Derivatives and primitives - derivative" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::derivPolyn $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f2]
+} -result {2 6}
+
+test "Polynomials-3.2" "Derivatives and primitives - primitive" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 4 9}]
+   set f2 [::math::polynomials::primitivePolyn $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f2]
+} -result {0 1 2 3}
+
+test "Polynomials-4.1" "Arithmetical operations - add (1)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {1 2}]
+   set f3 [::math::polynomials::addPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {2 4 3}
+
+test "Polynomials-4.2" "Arithmetical operations - add (2)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {1 2}]
+   set f3 [::math::polynomials::addPolyn $f2 $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {2 4 3}
+
+test "Polynomials-4.3" "Arithmetical operations - subtract (1)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {1 2}]
+   set f3 [::math::polynomials::subPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {0 0 3}
+
+test "Polynomials-4.4" "Arithmetical operations - subtract (2)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {1 2}]
+   set f3 [::math::polynomials::subPolyn $f2 $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {0 0 -3}
+
+test "Polynomials-4.5" "Arithmetical operations - multiply (1)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {1 2}]
+   set f3 [::math::polynomials::multPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {1 4 7 6}
+
+test "Polynomials-4.6" "Arithmetical operations - multiply (2)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {1 2}]
+   set f3 [::math::polynomials::multPolyn $f2 $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {1 4 7 6}
+
+test "Polynomials-4.7" "Arithmetical operations - multiply (3)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f3 [::math::polynomials::multPolyn $f1 2.0]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {2 4 6}
+
+test "Polynomials-4.8" "Arithmetical operations - multiply (4)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f3 [::math::polynomials::multPolyn 2.0 $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {2 4 6}
+
+test "Polynomials-4.9" "Arithmetical operations - divide (1)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {0 1}]
+   set f3 [::math::polynomials::divPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {2 3}
+
+test "Polynomials-4.10" "Arithmetical operations - divide (2)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f3 [::math::polynomials::divPolyn $f1 2.0]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {0.5 1 1.5}
+
+test "Polynomials-4.11" "Arithmetical operations - divide (3)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {0 1}]
+   set f3 [::math::polynomials::divPolyn $f2 $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {}
+
+test "Polynomials-4.12" "Arithmetical operations - divide (4)" \
+   -match glob -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {0}]
+   set f3 [::math::polynomials::divPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result "Denominator*" -returnCodes 1
+
+test "Polynomials-4.13" "Arithmetical operations - remainder (1)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {0 1}]
+   set f3 [::math::polynomials::remainderPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {1}
+
+test "Polynomials-4.14" "Arithmetical operations - remainder (2)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f3 [::math::polynomials::remainderPolyn $f1 2.0]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {}
+
+test "Polynomials-4.15" "Arithmetical operations - remainder (3)" \
+   -match numbers -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {0 1}]
+   set f3 [::math::polynomials::remainderPolyn $f2 $f1]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result {0 1}
+
+test "Polynomials-4.16" "Arithmetical operations - remainder (4)" \
+   -match glob -body {
+   set f1 [::math::polynomials::polynomial {1 2 3}]
+   set f2 [::math::polynomials::polynomial {0}]
+   set f3 [::math::polynomials::remainderPolyn $f1 $f2]
+   set coeffs [::math::polynomials::allCoeffsPolyn $f3]
+} -result "Denominator*" -returnCodes 1
+
+
+
+
+
+# End of test cases
+testsuiteCleanup

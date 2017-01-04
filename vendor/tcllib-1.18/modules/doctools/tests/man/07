@@ -1,0 +1,23 @@
+[manpage_begin TEST z 3.14.15.926]
+[description]
+[comment {
+    nested list 2, put text before and after the embedded list.
+}]
+[list_begin itemized]
+[item] 1
+[item] 2
+[list_begin enumerated]
+[enum] a
+[enum] b
+[list_begin definitions]
+[def foo] snafu
+[def bar] barf
+[def roo] gork
+[list_end]
+bb
+[enum] a
+[list_end]
+22
+[item] 3
+[list_end]
+[manpage_end]

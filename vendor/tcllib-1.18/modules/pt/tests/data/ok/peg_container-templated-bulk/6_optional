@@ -1,0 +1,20 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+package require Tcl 8.5
+package require snit
+package require pt::peg::container
+
+snit::type TEMPLATE {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {? {t a}}
+    }
+
+    component myg
+    delegate method * to myg
+}
+
+package provide TEMPLATE
+return

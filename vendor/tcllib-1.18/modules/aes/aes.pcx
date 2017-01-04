@@ -1,0 +1,99 @@
+# -*- tcl -*- aes.pcx
+# Syntax of the commands provided by package aes.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register aes
+pcx::tcldep   1.0.0 needs tcl 8.2
+
+namespace eval ::aes {}
+
+# Using the indirections below looks to be quite pointless, given that
+# they simply substitute the commands for others. I am doing this for
+# two reasons.
+
+# First, the rules coming after become self-commenting, i.e. a
+# maintainer can immediately see what an argument is supposed to be,
+# instead of having to search elsewhere (like the documentation and
+# implementation). In this manner our definitions here are a type of
+# semantic markup.
+
+# The second reason is alluded to as well in the comments to the first
+# three definitions. While we have no special checks now we cannot be
+# sure if such will (have to) be added in the future. With all
+# checking routed through our definitions we now already have the
+# basic infrastructure (i.e. hooks) in place in which we can easily
+# add any new checks by simply redefining the relevant command, and
+# all the rules update on their own. Mostly. This should cover 90% of
+# the cases. Sometimes new checks will require to create deeper
+# distinctions between different calls of the same thing. For such we
+# may have to update the rules as well, to provide the necessary
+# information to the checker.
+
+interp alias {} aes::checkAesKey    {} checkWord ; # Consider redefinition to check literals
+interp alias {} aes::checkAesData   {} checkWord ; # for the proper size.
+interp alias {} aes::checkAesIV     {} checkWord ; #
+interp alias {} aes::checkAesMode   {} checkKeyword 1 {ecb cbc}
+interp alias {} aes::checkAesAction {} checkKeyword 1 {encrypt decrypt}
+
+#pcx::message FOO {... text ...} type
+pcx::message needKey {Required -key is missing} err
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.0.0 std ::aes::Decrypt \
+    {checkSimpleArgs 2 2 {
+	aes::checkAesKey
+	aes::checkAesData
+    }}
+pcx::check 1.0.0 std ::aes::Encrypt \
+    {checkSimpleArgs 2 2 {
+	aes::checkAesKey
+	aes::checkAesData
+    }}
+pcx::check 1.0.0 std ::aes::Final \
+    {checkSimpleArgs 1 1 {
+	aes::checkAesKey
+    }}
+pcx::check 1.0.0 std ::aes::Init \
+    {checkSimpleArgs 3 3 {
+	aes::checkAesMode
+	aes::checkAesKey
+	aes::checkAesIV
+    }}
+pcx::check 1.0.0 std ::aes::Reset \
+    {checkSimpleArgs 2 2 {
+	aes::checkAesKey
+	aes::checkAesIV
+    }}
+pcx::check 1.0.0 std ::aes::aes \
+    {checkConstrained {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    {-mode      aes::checkAesMode}
+	    {-dir       aes::checkAesAction}
+	    {-key       {checkSetConstraint haskey aes::checkAesKey}}
+	    {-iv        aes::checkAesIV}
+	    {-hex}
+	    {-out       checkChannelID}
+	    {-chunksize checkWholeNum}
+	    {-in        {checkSetConstraint hasin checkChannelID}}
+	} {checkConstraint {
+	    {{!haskey && hasin} {warn aes::needKey {} {
+		checkAtEnd
+	    }}}
+	    {hasin checkAtEnd}
+	    {{!haskey} {warn aes::needKey {} {checkSimpleArgs 1 1 {
+		aes::checkAesData
+	    }}}}
+	} {checkSimpleArgs 1 1 {
+	    aes::checkAesData
+	}}}}
+    }}}
+
+# Initialization via pcx::init.
+# Use a ::aes::init procedure for non-standard initialization.
+pcx::complete

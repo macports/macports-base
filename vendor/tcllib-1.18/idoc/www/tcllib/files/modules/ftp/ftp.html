@@ -1,0 +1,447 @@
+
+<html><head>
+<title>ftp - ftp client</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'ftp.man' by tcllib/doctools with format 'html'
+   -->
+<! -- ftp.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">ftp(n) 2.4.13 tcllib &quot;ftp client&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>ftp - Client-side tcl implementation of the ftp protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">BUGS</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">ftp <span class="opt">?2.4.13?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::ftp::Open</b> <i class="arg">server</i> <i class="arg">user</i> <i class="arg">passwd</i> <span class="opt">?<i class="arg">options</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::ftp::Close</b> <i class="arg">handle</i></a></li>
+<li><a href="#3"><b class="cmd">::ftp::Cd</b> <i class="arg">handle</i> <i class="arg">directory</i></a></li>
+<li><a href="#4"><b class="cmd">::ftp::Pwd</b> <i class="arg">handle</i></a></li>
+<li><a href="#5"><b class="cmd">::ftp::Type</b> <i class="arg">handle</i> <span class="opt">?<b class="const">ascii|binary|tenex</b>?</span></a></li>
+<li><a href="#6"><b class="cmd">::ftp::List</b> <i class="arg">handle</i> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::ftp::NList</b> <i class="arg">handle</i> <span class="opt">?<i class="arg">directory</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::ftp::FileSize</b> <i class="arg">handle</i> <i class="arg">file</i></a></li>
+<li><a href="#9"><b class="cmd">::ftp::ModTime</b> <i class="arg">handle</i> <i class="arg">file</i></a></li>
+<li><a href="#10"><b class="cmd">::ftp::Delete</b> <i class="arg">handle</i> <i class="arg">file</i></a></li>
+<li><a href="#11"><b class="cmd">::ftp::Rename</b> <i class="arg">handle</i> <i class="arg">from</i> <i class="arg">to</i></a></li>
+<li><a href="#12"><b class="cmd">::ftp::Put</b> <i class="arg">handle</i> (<i class="arg">local</i> | -data <i class="arg">data</i> | -channel <i class="arg">chan</i>) <span class="opt">?<i class="arg">remote</i>?</span></a></li>
+<li><a href="#13"><b class="cmd">::ftp::Append</b> <i class="arg">handle</i> (<i class="arg">local</i> | -data <i class="arg">data</i> | -channel <i class="arg">chan</i>) <span class="opt">?<i class="arg">remote</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">::ftp::Get</b> <i class="arg">handle</i> <i class="arg">remote</i> <span class="opt">?(<i class="arg">local</i> | -variable <i class="arg">varname</i> | -channel <i class="arg">chan</i>)?</span></a></li>
+<li><a href="#15"><b class="cmd">::ftp::Reget</b> <i class="arg">handle</i> <i class="arg">remote</i> <span class="opt">?<i class="arg">local</i>?</span> <span class="opt">?<i class="arg">from</i>?</span> <span class="opt">?<i class="arg">to</i>?</span></a></li>
+<li><a href="#16"><b class="cmd">::ftp::Newer</b> <i class="arg">handle</i> <i class="arg">remote</i> <span class="opt">?<i class="arg">local</i>?</span></a></li>
+<li><a href="#17"><b class="cmd">::ftp::MkDir</b> <i class="arg">handle</i> <i class="arg">directory</i></a></li>
+<li><a href="#18"><b class="cmd">::ftp::RmDir</b> <i class="arg">handle</i> <i class="arg">directory</i></a></li>
+<li><a href="#19"><b class="cmd">::ftp::Quote</b> <i class="arg">handle</i> <i class="arg">arg1</i> <i class="arg">arg2</i> <i class="arg">...</i></a></li>
+<li><a href="#20"><b class="cmd">::ftp::DisplayMsg</b> <i class="arg">handle</i> <i class="arg">msg</i> <span class="opt">?<i class="arg">state</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The ftp package provides the client side of the ftp protocol as
+specified in RFC 959 (<a href="http://www.rfc-editor.org/rfc/rfc959.txt">http://www.rfc-editor.org/rfc/rfc959.txt</a>).
+The package implements both active (default) and passive ftp sessions.</p>
+<p>A new ftp session is started with the <b class="cmd">::ftp::Open</b> command. To
+shutdown an existing ftp session use <b class="cmd">::ftp::Close</b>. All other
+commands are restricted to usage in an an open ftp session. They will
+generate errors if they are used out of context.  The ftp package
+includes file and directory manipulating commands for remote sites. To
+perform the same operations on the local site use commands built into
+the core, like <b class="cmd">cd</b> or <b class="cmd"><a href="../../../../index.html#key31">file</a></b>.</p>
+<p>The output of the package is controlled by two state variables,
+<b class="variable">::ftp::VERBOSE</b> and <b class="variable">::ftp::DEBUG</b>. Setting
+<b class="variable">::ftp::VERBOSE</b> to &quot;1&quot; forces the package to show all responses
+from a remote server. The default value is &quot;0&quot;. Setting
+<b class="variable">::ftp::DEBUG</b> to &quot;1&quot; enables debugging and forces the package to
+show all return codes, states, state changes and &quot;real&quot; ftp
+commands. The default value is &quot;0&quot;.</p>
+<p>The command <b class="cmd">::ftp::DisplayMsg</b> is used to show the different
+messages from the ftp session. The setting of <b class="variable">::ftp::VERBOSE</b>
+determines if this command is called or not. The current
+implementation of the command uses the <b class="package"><a href="../log/log.html">log</a></b> package of tcllib
+to write the messages to their final destination. This means that the
+behaviour of <b class="cmd">::ftp::DisplayMsg</b> can be customized without
+changing its implementation. For more radical changes overwriting its
+implementation by the application is of course still possible. Note
+that the default implementation honors the option <b class="option">-output</b> to
+<b class="cmd">::ftp::Open</b> for a session specific log command.</p>
+<p><em>Caution</em>: The default implementation logs error messages like
+all other messages. If this behaviour is changed to throwing an error
+instead all commands in the API will change their behaviour too. In
+such a case they will not return a failure code as described below but
+pass the thrown error to their caller.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::ftp::Open</b> <i class="arg">server</i> <i class="arg">user</i> <i class="arg">passwd</i> <span class="opt">?<i class="arg">options</i>?</span></a></dt>
+<dd><p>This command is used to start a FTP session by establishing a control
+connection to the FTP server. The defaults are used for any option not
+specified by the caller.</p>
+<p>The command takes a host name <i class="arg">server</i>, a user name <i class="arg">user</i> and
+a password <i class="arg">password</i> as its parameters and returns a session
+handle that is an integer number greater than or equal to &quot;0&quot;, if the
+connection is successfully established. Otherwise it returns &quot;-1&quot;.
+The <i class="arg">server</i> parameter must be the name or internet address (in
+dotted decimal notation) of the ftp server to connect to. The
+<i class="arg">user</i> and <i class="arg">passwd</i> parameters must contain a valid user name
+and password to complete the login process.</p>
+<p>The options overwrite some default values or set special abilities:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-blocksize</b> <i class="arg">size</i></dt>
+<dd><p>The blocksize is used during data transfer. At most <i class="arg">size</i> bytes
+are transfered at once. The default value for this option is 4096.
+The package will evaluate the <b class="cmd">-progress callback</b> for the
+session after the transfer of each block.</p></dd>
+<dt><b class="option">-timeout</b> <i class="arg">seconds</i></dt>
+<dd><p>If <i class="arg">seconds</i> is non-zero, then <b class="cmd">::ftp::Open</b> sets up a timeout
+which will occur after the specified number of seconds. The default
+value is 600.</p></dd>
+<dt><b class="option">-port</b> <i class="arg">number</i></dt>
+<dd><p>The port <i class="arg">number</i> specifies an alternative remote port on the ftp
+server on which the ftp service resides. Most ftp services listen for
+connection requests on the default port 21. Sometimes, usually for
+security reasons, port numbers other than 21 are used for ftp
+connections.</p></dd>
+<dt><b class="option">-mode</b> <i class="arg">mode</i></dt>
+<dd><p>The transfer <i class="arg">mode</i> option determines if a file transfer occurs in
+<b class="const">active</b> or <b class="const">passive</b> mode. In passive mode the client
+will ask the ftp server to listen on a data port and wait for the
+connection rather than to initiate the process by itself when a data
+transfer request comes in. Passive mode is normally a requirement when
+accessing sites via a firewall. The default mode is <b class="const">active</b>.</p></dd>
+<dt><b class="option">-progress</b> <i class="arg">callback</i></dt>
+<dd><p>This <i class="arg">callback</i> is evaluated whenever a block of data was
+transfered. See the option <b class="option">-blocksize</b> for how to specify the
+size of the transfered blocks.</p>
+<p>When evaluating the <i class="arg">callback</i> one argument is appended to the
+callback script, the current accumulated number of bytes transferred
+so far.</p></dd>
+<dt><b class="option">-command</b> <i class="arg">callback</i></dt>
+<dd><p>Specifying this option places the connection into asynchronous
+mode. The <i class="arg">callback</i> is evaluated after the completion of any
+operation. When an operation is running no further operations must be
+started until a callback has been received for the currently executing
+operation.</p>
+<p>When evaluating the <i class="arg">callback</i> several arguments are appended to
+the callback script, namely the keyword of the operation that has
+completed and any additional arguments specific to the operation.  If
+an error occurred during the execution of the operation the callback is
+given the keyword <b class="const">error</b>.</p></dd>
+<dt><b class="option">-output</b> <i class="arg">callback</i></dt>
+<dd><p>This option has no default. If it is set the default implementation of
+<b class="cmd">::ftp::DisplayMsg</b> will use its value as command prefix to log
+all internal messages. The callback will have three arguments appended
+to it before evaluation, the id of the session, the message itself,
+and the connection state, in this order.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::ftp::Close</b> <i class="arg">handle</i></a></dt>
+<dd><p>This command terminates the specified ftp session. If no file transfer
+is in progress, the server will close the control connection
+immediately. If a file transfer is in progress however, the control
+connection will remain open until the transfers completes. When that
+happens the server will write the result response for the transfer to
+it and close the connection afterward.</p></dd>
+<dt><a name="3"><b class="cmd">::ftp::Cd</b> <i class="arg">handle</i> <i class="arg">directory</i></a></dt>
+<dd><p>This command changes the current working directory on the ftp server
+to a specified target <i class="arg">directory</i>.  The command returns 1 if the
+current working directory was successfully changed to the specified
+directory or 0 if it fails.  The target directory can be</p>
+<ul class="doctools_itemized">
+<li><p>a subdirectory of the current directory,</p></li>
+<li><p>Two dots, <b class="const">..</b>  (as an indicator for the parent directory of
+the current directory)</p></li>
+<li><p>or a fully qualified path to a new working directory.</p></li>
+</ul></dd>
+<dt><a name="4"><b class="cmd">::ftp::Pwd</b> <i class="arg">handle</i></a></dt>
+<dd><p>This command returns the complete path of the current working
+directory on the ftp server, or an empty string in case of an error.</p></dd>
+<dt><a name="5"><b class="cmd">::ftp::Type</b> <i class="arg">handle</i> <span class="opt">?<b class="const">ascii|binary|tenex</b>?</span></a></dt>
+<dd><p>This command sets the ftp file transfer type to either <b class="const">ascii</b>,
+<b class="const">binary</b>, or <b class="const">tenex</b>. The command always returns the
+currently set type. If called without type no change is made.</p>
+<p>Currently only <b class="const">ascii</b> and <b class="const">binary</b> types are
+supported. There is some early (alpha) support for Tenex mode. The
+type <b class="const">ascii</b> is normally used to convert text files into a
+format suitable for text editors on the platform of the destination
+machine. This mainly affects end-of-line markers. The type
+<b class="const">binary</b> on the other hand allows the undisturbed transfer of
+non-text files, such as compressed files, images and executables.</p></dd>
+<dt><a name="6"><b class="cmd">::ftp::List</b> <i class="arg">handle</i> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>This command returns a human-readable list of files.  Wildcard
+expressions such as &quot;<b class="file">*.tcl</b>&quot; are allowed.  If <i class="arg">pattern</i>
+refers to a specific directory, then the contents of that directory
+are returned.  If the <i class="arg">pattern</i> is not a fully-qualified path
+name, the command lists entries relative to the current remote
+directory.  If no <i class="arg">pattern</i> is specified, the contents of the
+current remote directory is returned.</p>
+<p>The listing includes any system-dependent information that the server
+chooses to include. For example most UNIX systems produce output from
+the command <b class="syscmd">ls -l</b>. The command returns the retrieved
+information as a tcl list with one item per entry. Empty lines and
+UNIX's &quot;total&quot; lines are ignored and not included in the result as
+reported by this command.</p>
+<p>If the command fails an empty list is returned.</p></dd>
+<dt><a name="7"><b class="cmd">::ftp::NList</b> <i class="arg">handle</i> <span class="opt">?<i class="arg">directory</i>?</span></a></dt>
+<dd><p>This command has the same behavior as the <b class="cmd">::ftp::List</b> command,
+except that it only retrieves an abbreviated listing. This means only
+file names are returned in a sorted list.</p></dd>
+<dt><a name="8"><b class="cmd">::ftp::FileSize</b> <i class="arg">handle</i> <i class="arg">file</i></a></dt>
+<dd><p>This command returns the size of the specified <i class="arg">file</i> on the ftp
+server. If the command fails an empty string is returned.</p>
+<p><em>ATTENTION!</em> It will not work properly when in ascii mode and
+is not supported by all ftp server implementations.</p></dd>
+<dt><a name="9"><b class="cmd">::ftp::ModTime</b> <i class="arg">handle</i> <i class="arg">file</i></a></dt>
+<dd><p>This command retrieves the time of the last modification of the
+<i class="arg">file</i> on the ftp server as a system dependent integer value in
+seconds or an empty string if an error occurred. Use the built-in
+command <b class="cmd">clock</b> to convert the retrieves value into other formats.</p></dd>
+<dt><a name="10"><b class="cmd">::ftp::Delete</b> <i class="arg">handle</i> <i class="arg">file</i></a></dt>
+<dd><p>This command deletes the specified <i class="arg">file</i> on the ftp server. The
+command returns 1 if the specified file was successfully deleted or 0
+if it failed.</p></dd>
+<dt><a name="11"><b class="cmd">::ftp::Rename</b> <i class="arg">handle</i> <i class="arg">from</i> <i class="arg">to</i></a></dt>
+<dd><p>This command renames the file <i class="arg">from</i> in the current directory of
+the ftp server to the specified new file name <i class="arg">to</i>. This new file
+name must not be the same as any existing subdirectory or file name.
+The command returns 1 if the specified file was successfully renamed
+or 0 if it failed.</p></dd>
+<dt><a name="12"><b class="cmd">::ftp::Put</b> <i class="arg">handle</i> (<i class="arg">local</i> | -data <i class="arg">data</i> | -channel <i class="arg">chan</i>) <span class="opt">?<i class="arg">remote</i>?</span></a></dt>
+<dd><p>This command transfers a local file <i class="arg">local</i> to a remote file
+<i class="arg">remote</i> on the ftp server. If the file parameters passed to the
+command do not fully qualified path names the command will use the
+current directory on local and remote host. If the remote file name is
+unspecified, the server will use the name of the local file as the
+name of the remote file. The command returns 1 to indicate a successful
+transfer and 0 in the case of a failure.</p>
+<p>If <b class="option">-data</b> <i class="arg">data</i> is specified instead of a local file, the
+system will not transfer a file, but the <i class="arg">data</i> passed into it. In
+this case the name of the remote file has to be specified.</p>
+<p>If <b class="option">-channel</b> <i class="arg">chan</i> is specified instead of a local file,
+the system will not transfer a file, but read the contents of the
+channel <i class="arg">chan</i> and write this to the remote file. In this case the
+name of the remote file has to be specified. After the transfer
+<i class="arg">chan</i> will be closed.</p></dd>
+<dt><a name="13"><b class="cmd">::ftp::Append</b> <i class="arg">handle</i> (<i class="arg">local</i> | -data <i class="arg">data</i> | -channel <i class="arg">chan</i>) <span class="opt">?<i class="arg">remote</i>?</span></a></dt>
+<dd><p>This command behaves like <b class="cmd">::ftp::Puts</b>, but appends the
+transfered information to the remote file. If the file did not exist
+on the server it will be created.</p></dd>
+<dt><a name="14"><b class="cmd">::ftp::Get</b> <i class="arg">handle</i> <i class="arg">remote</i> <span class="opt">?(<i class="arg">local</i> | -variable <i class="arg">varname</i> | -channel <i class="arg">chan</i>)?</span></a></dt>
+<dd><p>This command retrieves a remote file <i class="arg">remote</i> on the ftp server
+and stores its contents into the local file <i class="arg">local</i>. If the file
+parameters passed to the command are not fully qualified path names
+the command will use the current directory on local and remote
+host. If the local file name is unspecified, the server will use the
+name of the remote file as the name of the local file. The command
+returns 1 to indicate a successful transfer and 0 in the case of a
+failure. The command will throw an error if the directory the file
+<i class="arg">local</i> is to be placed in does not exist.</p>
+<p>If <b class="option">-variable</b> <i class="arg">varname</i> is specified, the system will
+store the retrieved data into the variable <i class="arg">varname</i> instead of a
+file.</p>
+<p>If <b class="option">-channel</b> <i class="arg">chan</i> is specified, the system will write
+the retrieved data into the channel <i class="arg">chan</i> instead of a file. The
+system will <em>not</em> close <i class="arg">chan</i> after the transfer, this is
+the responsibility of the caller to <b class="cmd">::ftp::Get</b>.</p></dd>
+<dt><a name="15"><b class="cmd">::ftp::Reget</b> <i class="arg">handle</i> <i class="arg">remote</i> <span class="opt">?<i class="arg">local</i>?</span> <span class="opt">?<i class="arg">from</i>?</span> <span class="opt">?<i class="arg">to</i>?</span></a></dt>
+<dd><p>This command behaves like <b class="cmd">::ftp::Get</b>, except that if local file
+<i class="arg">local</i> exists and is smaller than remote file <i class="arg">remote</i>, the
+local file is presumed to be a partially transferred copy of the
+remote file and the transfer is continued from the apparent point of
+failure.  The command will throw an error if the directory the file
+<i class="arg">local</i> is to be placed in does not exist. This command is useful
+when transferring very large files over networks that tend to drop
+connections.</p>
+<p>Specifying the additional byte offsets <i class="arg">from</i> and <i class="arg">to</i> will
+cause the command to change its behaviour and to download exactly the
+specified slice of the remote file. This mode is possible only if a
+local destination is explicitly provided. Omission of <i class="arg">to</i> leads
+to downloading till the end of the file.</p></dd>
+<dt><a name="16"><b class="cmd">::ftp::Newer</b> <i class="arg">handle</i> <i class="arg">remote</i> <span class="opt">?<i class="arg">local</i>?</span></a></dt>
+<dd><p>This command behaves like <b class="cmd">::ftp::Get</b>, except that it retrieves
+the remote file only if the modification time of the remote file is
+more recent than the file on the local system. If the file does not
+exist on the local system, the remote file is considered newer. The
+command will throw an error if the directory the file <i class="arg">local</i> is
+to be placed in does not exist.</p></dd>
+<dt><a name="17"><b class="cmd">::ftp::MkDir</b> <i class="arg">handle</i> <i class="arg">directory</i></a></dt>
+<dd><p>This command creates the specified <i class="arg">directory</i> on the ftp
+server. If the specified path is relative the new directory will be
+created as a subdirectory of the current working directory. Else the
+created directory will have the specified path name. The command
+returns 1 to indicate a successful creation of the directory and 0 in
+the case of a failure.</p></dd>
+<dt><a name="18"><b class="cmd">::ftp::RmDir</b> <i class="arg">handle</i> <i class="arg">directory</i></a></dt>
+<dd><p>This command removes the specified directory on the ftp server. The
+remote directory has to be empty or the command will fail. The command
+returns 1 to indicate a successful removal of the directory and 0 in
+the case of a failure.</p></dd>
+<dt><a name="19"><b class="cmd">::ftp::Quote</b> <i class="arg">handle</i> <i class="arg">arg1</i> <i class="arg">arg2</i> <i class="arg">...</i></a></dt>
+<dd><p>This command is used to send an arbitrary ftp command to the
+server. It cannot be used to obtain a directory listing or for
+transferring files. It is included to allow an application to execute
+commands on the ftp server which are not provided by this package.
+The arguments are sent verbatim, i.e. as is, with no changes.</p>
+<p>In contrast to the other commands in this package this command will
+not parse the response it got from the ftp server but return it
+verbatim to the caller.</p></dd>
+<dt><a name="20"><b class="cmd">::ftp::DisplayMsg</b> <i class="arg">handle</i> <i class="arg">msg</i> <span class="opt">?<i class="arg">state</i>?</span></a></dt>
+<dd><p>This command is used by the package itself to show the different
+messages from the ftp sessions. The package itself declares this
+command very simple, writing the messages to <b class="const">stdout</b> (if
+<b class="variable">::ftp::VERBOSE</b> was set, see below) and throwing tcl errors for
+error messages. It is the responsibility of the application to
+overwrite it as needed. A state variable for different states assigned
+to different colors is recommended by the author. The package
+<b class="package"><a href="../log/log.html">log</a></b> is useful for this.</p></dd>
+<dt><b class="variable">::ftp::VERBOSE</b></dt>
+<dd><p>A state variable controlling the output of the package. Setting
+<b class="variable">::ftp::VERBOSE</b> to &quot;1&quot; forces the package to show all responses
+from a remote server. The default value is &quot;0&quot;.</p></dd>
+<dt><b class="variable">::ftp::DEBUG</b></dt>
+<dd><p>A state variable controlling the output of ftp. Setting
+<b class="variable">::ftp::DEBUG</b> to &quot;1&quot; enables debugging and forces the package to
+show all return codes, states, state changes and &quot;real&quot; ftp
+commands. The default value is &quot;0&quot;.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">BUGS</a></h2>
+<p>The correct execution of many commands depends upon the proper
+behavior by the remote server, network and router configuration.</p>
+<p>An update command placed in the procedure <b class="cmd">::ftp::DisplayMsg</b> may
+run into persistent errors or infinite loops. The solution to this
+problem is to use <b class="cmd">update idletasks</b> instead of <b class="cmd"><a href="../../../../index.html#key416">update</a></b>.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>ftp</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../ftpd/ftpd.html">ftpd</a>, <a href="../mime/mime.html">mime</a>, <a href="../pop3/pop3.html">pop3</a>, <a href="../mime/smtp.html">smtp</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key294">ftp</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key295">net</a>, <a href="../../../../index.html#key293">rfc 959</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div></body></html>

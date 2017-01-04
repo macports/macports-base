@@ -1,0 +1,87 @@
+# documentation: http://code.google.com/apis/documents/docs/3.0/developers_guide_protocol.html
+
+package require rest
+
+package require tls
+::http::register https 443 [list ::tls::socket]
+
+set gdocs(auth) {
+    url https://www.google.com/accounts/ClientLogin
+    method post
+    req_args { Email: Passwd: }
+    opt_args { source:tclrest }
+    static_args { service writely }
+    post_transform {
+        regexp {Auth=(.*)\n} $result -> result
+        return $result
+    }
+}
+
+set gdocs(doclist) {
+    url http://docs.google.com/feeds/default/private/full
+    headers {
+        GData-Version 3.0
+        Authorization {GoogleLogin auth=%token%}
+    }
+    format tdom
+    post_transform {
+        return [list $result [$result getElementsByTagName entry]]
+    }
+}
+
+set gdocs(upload) {
+    url http://docs.google.com/feeds/default/private/full
+    method post
+    body mime_multipart
+    headers {
+        GData-Version 3.0
+        Authorization {GoogleLogin auth=%token%}
+    }
+    opt_args { ocr: }
+}
+
+set gdocs(export) {
+    url http://docs.google.com/feeds/download/documents/Export
+    headers {
+        GData-Version 3.0
+        Authorization {GoogleLogin auth=%token%}
+    }
+    body { arg docID }
+    opt_args { exportFormat: }
+    format raw
+}
+
+rest::create_interface gdocs
+
+proc ::gdocs::create_doc_metadata {args} {
+    set defaults [dict create \
+        text ""
+    ]
+    set args [lindex [::rest::parse_opts {} {title:} {} $args] 0]
+    set args [dict merge $defaults $args]
+
+    set xml {}
+    lappend xml "<?xml version='1.0' encoding='UTF-8'?>"
+    lappend xml "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gd='http://schemas.google.com/g/2007'>"
+    lappend xml "<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2005#event'/>"
+    lappend xml "<title>[dict get $args title]</title>"
+    lappend xml "</entry>"
+    return [join $xml \n]
+}
+
+
+# Example usage
+#source gdocs
+#set auth [gdocs::auth -Email me@gmail.com -Passwd passwd]
+#gdocs::set_static_args -token $auth
+#
+#set file IMG_0848.jpg
+#set meta [gdocs::create_doc_metadata -title [file rootname $file]]
+#
+#set fh [open $file]
+#fconfigure $fh -encoding binary -translation lf
+#set filedata [read $fh]
+#close $fh
+#
+#gdocs::upload -ocr true -- [list {Content-Type application/atom+xml} $meta] [list {Content-Type image/jpeg} $filedata]
+

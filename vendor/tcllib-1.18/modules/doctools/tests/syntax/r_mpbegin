@@ -1,0 +1,3 @@
+Doctools Error in macro at line 2, column 0:
+[manpage_begin BOGUS e 2.718281...]
+--> (FmtError) Manpage error (mpbegin), "manpage_begin BOGUS e 2.71828182845904523536" : Command must be first of manpage.

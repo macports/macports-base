@@ -1,0 +1,67 @@
+# -*- tcl -*-
+# Graph tests - node insertion
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: insert.test,v 1.2 2007/04/12 03:01:56 andreas_kupries Exp $
+
+# Syntax: graph node insert ?NODE...?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+# Impossible to have to have missing or too many arguments.
+# Any number of new nodes is acceptable.
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-node-insert-2.0 {node insert, duplicate node} {
+    SETUP
+    mygraph node insert node0
+    catch {mygraph node insert node0} msg
+    mygraph destroy
+    set msg
+} [ExistingNode $MY node0]
+
+# -------------------------------------------------------------------------
+# Ok arguments. None, single, multiple, defaults
+
+test graph-${impl}-${setimpl}-node-insert-3.0 {node insert, defaults} {
+    SETUP
+    mygraph node insert node0
+    set     result {}
+    lappend result [mygraph node exists node0]
+    lappend result [mygraph node getall node0]
+    lappend result [mygraph nodes -out  node0]
+    lappend result [mygraph nodes -in   node0]
+    mygraph destroy
+    set result
+} {1 {} {} {}}
+
+test graph-${impl}-${setimpl}-node-insert-3.1 {node insert, auto-generation of name} {
+    SETUP
+
+    # Note: The use of 'node3' for the explicit name tests that the
+    # name-generator will skip over existing names when it tries to
+    # come up with a new one.
+
+    set result {}
+    lappend result [mygraph node insert]
+    lappend result [mygraph node insert]
+    mygraph                 node insert node3
+    lappend result [mygraph node insert]
+    mygraph destroy
+    set result
+} {node1 node2 node4}
+
+test graph-${impl}-${setimpl}-node-insert-3.2 {node insert, multiple} {
+    SETUP
+    mygraph node insert node0 node1
+    set     result {}
+    lappend result [mygraph node exists node0]
+    lappend result [mygraph node exists node1]
+    mygraph destroy
+    set result
+} {1 1}
+
+# ---------------------------------------------------

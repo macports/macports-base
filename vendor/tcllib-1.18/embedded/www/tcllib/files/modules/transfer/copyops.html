@@ -1,0 +1,248 @@
+
+<div class='fossil-doc' data-title='transfer::copy - Data transfer facilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">transfer::copy(n) 0.2 tcllib &quot;Data transfer facilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>transfer::copy - Data transfer foundation</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">transfer::copy <span class="opt">?0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">transfer::copy::do</b> <b class="const">chan</b>|<b class="const">string</b> <i class="arg">data</i> <i class="arg">outchannel</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#2"><b class="cmd">transfer::copy::chan</b> <i class="arg">channel</i> <i class="arg">outchannel</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#3"><b class="cmd">transfer::copy::string</b> <i class="arg">string</i> <i class="arg">outchannel</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#4"><b class="cmd">transfer::copy::doChan</b> <i class="arg">channel</i> <i class="arg">outchannel</i> <i class="arg">optvar</i></a></li>
+<li><a href="#5"><b class="cmd">transfer::copy::doString</b> <i class="arg">string</i> <i class="arg">outchannel</i> <i class="arg">optvar</i></a></li>
+<li><a href="#6"><b class="cmd">transfer::copy::options</b> <i class="arg">outchannel</i> <i class="arg">optionlist</i> <i class="arg">optvar</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a number of commands for the asynchronous of
+information contained in either a string or channel. The main point of
+this package is that the commands here provide a nicer callback API
+than the builtin command <b class="cmd">fcopy</b>, making the use of these
+facilities simpler than the builtin.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">transfer::copy::do</b> <b class="const">chan</b>|<b class="const">string</b> <i class="arg">data</i> <i class="arg">outchannel</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command transfers the information in <i class="arg">data</i> to the
+<i class="arg">outchannel</i>, according to the <i class="arg">options</i>. The type of the
+information in <i class="arg">data</i> is determined by the first argument.</p>
+<p>The options available to this command are the same as are available to
+the command <b class="cmd">transfer::copy::options</b>, and explained there.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">chan</b></dt>
+<dd><p>The argument <i class="arg">data</i> contains the handle of a channel and the
+actual infomration to transfer is read from that channel.</p></dd>
+<dt><b class="const">string</b></dt>
+<dd><p>The argument <i class="arg">data</i> contains a string and this is the information
+to be transfered.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">transfer::copy::chan</b> <i class="arg">channel</i> <i class="arg">outchannel</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command is a shorter and more direct form for the command
+<b class="cmd">transfer::copy::do chan</b>.</p></dd>
+<dt><a name="3"><b class="cmd">transfer::copy::string</b> <i class="arg">string</i> <i class="arg">outchannel</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command is a shorter and more direct form for the command
+<b class="cmd">transfer::copy::do string</b>.</p></dd>
+<dt><a name="4"><b class="cmd">transfer::copy::doChan</b> <i class="arg">channel</i> <i class="arg">outchannel</i> <i class="arg">optvar</i></a></dt>
+<dd><p>This command is an alternate form of <b class="cmd">transfer::copy::chan</b> which
+reads its options out of the array variable named by <i class="arg">optvar</i>
+instead of from a variable length argument list.</p></dd>
+<dt><a name="5"><b class="cmd">transfer::copy::doString</b> <i class="arg">string</i> <i class="arg">outchannel</i> <i class="arg">optvar</i></a></dt>
+<dd><p>This command is an alternate form of <b class="cmd">transfer::copy::string</b> which
+reads its options out of the array variable named by <i class="arg">optvar</i>
+instead of from a variable length argument list.</p></dd>
+<dt><a name="6"><b class="cmd">transfer::copy::options</b> <i class="arg">outchannel</i> <i class="arg">optionlist</i> <i class="arg">optvar</i></a></dt>
+<dd><p>This command is the option processor used by all the commands above
+which read their options from a variable length argument list. It
+first reads default settings from the channel handle <i class="arg">outchannel</i>,
+then processes the list of options in <i class="arg">optionlist</i>, at last stores
+the results in the array variable named by <i class="arg">optvar</i>. The contents
+of that variable are in a format which is directly understood by all
+the commands above which read their options out of an array variable.</p>
+<p>The recognized options are:</p>
+<dl class="doctools_options">
+<dt><b class="option">-blocksize</b> <i class="arg">int</i></dt>
+<dd><p>This option specifies the size of the chunks to transfer in one
+operation. It is optional and defaults to the value of
+<b class="option">-buffersize</b> as configured for the output channel.</p>
+<p>If specified its value has to be an integer number greater than zero.</p></dd>
+<dt><b class="option">-command</b> <i class="arg">commandprefix</i></dt>
+<dd><p>This option specifies the completion callback of the operation. This
+option has to be specified. An error will be thrown if it is not, or
+if the empty list was specified as argument to it.</p>
+<p>Its value has to be a command prefix, i.e. a list whose first word is
+the command to execute, followed by words containing fixed
+arguments. When the callback is invoked one or two additional
+arguments are appended to the prefix. The first argument is the number
+of bytes which were transfered. The optional second argument is an
+error message and added if and only if an error occured during the the
+transfer.</p></dd>
+<dt><b class="option">-progress</b> <i class="arg">commandprefix</i></dt>
+<dd><p>This option specifies the progress callback of the operation. It is
+optional and defaults to the empty list. This last possibility signals
+that no feedback was asked for and disabled it.</p>
+<p>Its value has to be a command prefix, see above, <b class="option">-command</b> for
+a more detailed explanation. When the callback is invoked a single
+additional arguments is appended to the prefix. This argument is the
+number of bytes which were transfered so far.</p></dd>
+<dt><b class="option">-size</b> <i class="arg">int</i></dt>
+<dd><p>This option specifies the number of bytes to read from the input data
+and transfer. It is optional and defaults to &quot;Transfer everything&quot;.
+Its value has to be an integer number and any value less than zero has
+the same meaning, i.e. to transfer all available data. Any other value
+is the amount of bytes to transfer.</p>
+<p>All transfer commands will throw error an when their user tries to
+transfer more data than is available in the input. This happens
+immediately, before the transfer is actually started, should the input
+be a string. Otherwise the, i.e. for a channel as input, the error is
+thrown the moment the underflow condition is actually detected.</p></dd>
+<dt><b class="option">-encoding</b> <i class="arg">encodingname</i></dt>
+<dd></dd>
+<dt><b class="option">-eofchar</b> <i class="arg">eofspec</i></dt>
+<dd></dd>
+<dt><b class="option">-translation</b> <i class="arg">transspec</i></dt>
+<dd><p>These options are the same as are recognized by the builtin command
+<b class="cmd">fconfigure</b> and provide the settings for the output channel which
+are to be active during the transfer, and only then. I.e. the settings
+of the output channel before the transfer are saved, and restored at
+the end of a transfer, regardless of its success or failure. None of
+these options are required, and they default to the settings of the
+output channel if not specified.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>transfer</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key63">channel</a>, <a href="../../../../index.html#key64">copy</a>, <a href="../../../../index.html#key62">transfer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Transfer module</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006-2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

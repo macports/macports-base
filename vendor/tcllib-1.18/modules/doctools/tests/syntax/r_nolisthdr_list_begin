@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[list_begin definitions]
+--> (FmtError) Manpage error (nolisthdr), "list_begin definitions" : Command not allowed between beginning of a list and its first item.

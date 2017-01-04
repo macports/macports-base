@@ -1,0 +1,212 @@
+# -*- tcl -*-
+# doctoc_structure.test:  tests for the doctools::toc::structure package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: structure.test,v 1.1 2009/04/18 21:14:19 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use fileutil/fileutil.tcl  fileutil ; # For tests/common
+    use snit/snit.tcl          snit
+}
+testing {
+    useLocal structure.tcl doctools::toc::structure
+}
+
+# -------------------------------------------------------------------------
+
+source [tcllibPath doctools2base/tests/common]
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-structure-1.0 {structure verify, wrong#args} -body {
+    doctools::toc::structure verify
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodverify type serial ?canonvar?"}
+
+test doctools-toc-structure-1.1 {structure verify, wrong#args} -body {
+    doctools::toc::structure verify S V XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodverify type serial ?canonvar?"}
+
+test doctools-toc-structure-2.0 {structure verify, wrong#args} -body {
+    doctools::toc::structure verify-as-canonical
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodverify-as-canonical type serial"}
+
+test doctools-toc-structure-2.1 {structure verify, wrong#args} -body {
+    doctools::toc::structure verify-as-canonical S XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodverify-as-canonical type serial"}
+
+test doctools-toc-structure-3.0 {structure print, wrong#args} -body {
+    doctools::toc::structure print
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodprint type serial"}
+
+test doctools-toc-structure-3.1 {structure print, wrong#args} -body {
+    doctools::toc::structure print S XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodprint type serial"}
+
+test doctools-toc-structure-4.0 {structure merge, wrong#args} -body {
+    doctools::toc::structure merge
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodmerge type seriala serialb"}
+
+test doctools-toc-structure-4.1 {structure merge, wrong#args} -body {
+    doctools::toc::structure merge SA
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodmerge type seriala serialb"}
+
+test doctools-toc-structure-4.2 {structure merge, wrong#args} -body {
+    doctools::toc::structure merge SA SB XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::structure::Snit_typemethodmerge type seriala serialb"}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok serial text -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test doctools-toc-structure-5.$n "doctools::toc::structure verify, $label, ok" -body {
+	doctools::toc::structure verify $data
+    } -result {}
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n badserial expected} {
+    0 {}
+    {error in serialization: dictionary too short, expected exactly one key}
+    1 {FOO {}}
+    {error in serialization: bad type tag "FOO"}
+    2 {doctools::toc {}}
+    {error in serialization: dictionary too short, expected exactly three keys}
+    3 {doctools::toc {a . b . c .}}
+    {error in serialization: missing expected key "label"}
+    4 {doctools::toc {label . b . c .}}
+    {error in serialization: missing expected key "title"}
+    5 {doctools::toc {label . title . c .}}
+    {error in serialization: missing expected key "items"}
+    6 {doctools::toc {label . title . items {}}}
+    {error in serialization: duplicate and/or unsorted keywords}
+    7 {doctools::toc {items {{}} label . title .}}
+    {error in serialization: element list wrong, need exactly 2}
+    8 {doctools::toc {items {{FOO {}}} label . title .}}
+    {error in serialization: bad element tag "FOO"}
+    9 {doctools::toc {items {{reference {}}} label . title .}}
+    {error in serialization: dictionary too short, expected exactly three keys}
+    10 {doctools::toc {items {
+	{reference {a . b . c .}}} label . title .}}
+    {error in serialization: missing expected key "id"}
+    11 {doctools::toc {items {
+	{reference {id . b . c .}}} label . title .}}
+    {error in serialization: missing expected key "label"}
+    12 {doctools::toc {items {
+	{reference {id . label . c .}}} label . title .}}
+    {error in serialization: missing expected key "desc"}
+    13 {doctools::toc {items {
+	{reference {id . label . desc .}}} label . title .}}
+    {error in serialization: duplicate and/or unsorted keywords}
+    14 {doctools::toc {items {
+	{division {}}} label . title .}}
+    {error in serialization: dictionary too short, expected two or three keys}
+    15 {doctools::toc {items {
+	{division {a . b .}}} label . title .}}
+    {error in serialization: missing expected key "label"}
+    16 {doctools::toc {items {
+	{division {label . b .}}} label . title .}}
+    {error in serialization: missing expected key "items"}
+    17 {doctools::toc {items {
+	{division {label . items {}}}} label . title .}}
+    {error in serialization: duplicate and/or unsorted keywords}
+    18 {doctools::toc {items {
+	{division {items {} label . id .}}} label . title .}}
+    {error in serialization: duplicate and/or unsorted keywords}
+    19 {doctools::toc {items {
+	{reference {desc . id . label .}}
+	{reference {desc . id . label .}}} label . title .}}
+    {error in serialization: duplicate labels}
+    20 {doctools::toc {items {
+	{division {id . items {} label .}}
+	{division {id . items {} label .}}} label . title .}}
+    {error in serialization: duplicate labels}
+    21 {doctools::toc {items {
+	{division {id . items {} label .}}
+        {reference {desc . id . label .}}} label . title .}}
+    {error in serialization: duplicate labels}
+} {
+    test doctools-toc-structure-6.$n "doctools::toc::structure verify-as-canonical, error" -body {
+	doctools::toc::structure verify-as-canonical $badserial
+    } -returnCodes error -result $expected
+}
+
+#----------------------------------------------------------------------
+
+foreach {n badserial expected} {
+    0 {}
+    {error in serialization: dictionary too short, expected exactly one key}
+    1 {FOO {}}
+    {error in serialization: bad type tag "FOO"}
+    2 {doctools::toc {}}
+    {error in serialization: dictionary too short, expected exactly three keys}
+    3 {doctools::toc {a . b . c .}}
+    {error in serialization: missing expected key "label"}
+    4 {doctools::toc {label . b . c .}}
+    {error in serialization: missing expected key "title"}
+    5 {doctools::toc {label . title . c .}}
+    {error in serialization: missing expected key "items"}
+    7 {doctools::toc {items {{}} label . title .}}
+    {error in serialization: element list wrong, need exactly 2}
+    8 {doctools::toc {items {{FOO {}}} label . title .}}
+    {error in serialization: bad element tag "FOO"}
+    9 {doctools::toc {items {{reference {}}} label . title .}}
+    {error in serialization: dictionary too short, expected exactly three keys}
+    10 {doctools::toc {items {
+	{reference {a . b . c .}}} label . title .}}
+    {error in serialization: missing expected key "id"}
+    11 {doctools::toc {items {
+	{reference {id . b . c .}}} label . title .}}
+    {error in serialization: missing expected key "label"}
+    12 {doctools::toc {items {
+	{reference {id . label . c .}}} label . title .}}
+    {error in serialization: missing expected key "desc"}
+    14 {doctools::toc {items {
+	{division {}}} label . title .}}
+    {error in serialization: dictionary too short, expected two or three keys}
+    15 {doctools::toc {items {
+	{division {a . b .}}} label . title .}}
+    {error in serialization: missing expected key "label"}
+    16 {doctools::toc {items {
+	{division {label . b .}}} label . title .}}
+    {error in serialization: missing expected key "items"}
+    19 {doctools::toc {items {
+	{reference {desc . id . label .}}
+	{reference {desc . id . label .}}} label . title .}}
+    {error in serialization: duplicate labels}
+    20 {doctools::toc {items {
+	{division {id . items {} label .}}
+	{division {id . items {} label .}}} label . title .}}
+    {error in serialization: duplicate labels}
+    21 {doctools::toc {items {
+	{division {id . items {} label .}}
+        {reference {desc . id . label .}}} label . title .}}
+    {error in serialization: duplicate labels}
+} {
+    test doctools-toc-structure-7.$n "doctools::toc::structure verify, error" -body {
+	doctools::toc::structure verify $badserial
+    } -returnCodes error -result $expected
+}
+
+#----------------------------------------------------------------------
+
+# TODO merge ... also test cases for doctools::toc
+
+#----------------------------------------------------------------------
+
+unset mytestdir n badserial expected label input data
+testsuiteCleanup
+return

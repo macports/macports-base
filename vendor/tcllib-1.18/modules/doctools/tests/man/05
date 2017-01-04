@@ -1,0 +1,58 @@
+[comment {LISTS, BASIC}]
+[manpage_begin BASIC a 5]
+[description]
+OK
+[para]
+[list_begin arguments]
+[arg_def integer argument-1]
+verification
+[arg_def string argument-2 out] mogrification
+[list_end]
+[para]
+[list_begin commands]
+[cmd_def command-a] explanation
+[cmd_def command-b]
+elucidation
+[list_end]
+[para]
+[list_begin definitions]
+[def term] definition
+[call a-command]
+semantic
+[list_end]
+[para]
+[list_begin enumerated]
+[enum]
+A
+[enum] B
+[para]
+C
+[para]
+D
+[list_end]
+[para]
+[list_begin itemized]
+[item]
+1
+[item] 2
+[para]
+2a
+[para]
+2b
+[list_end]
+[para]
+[list_begin options]
+[opt_def option-1] meaning
+[opt_def option-2 value]
+elaboration
+[list_end]
+[para]
+[list_begin tkoptions]
+[tkoption_def background Background Color] candy
+[tkoption_def foreground Foreground Color]
+caramel
+[list_end]
+[para]
+KO
+[comment DONE]
+[manpage_end]

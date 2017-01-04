@@ -1,0 +1,50 @@
+<!- Guide for Tcllib developers -->
+
+<h1>Guide for Tcllib developers.
+</h1>
+<hr>
+
+<h2>CVS Repository
+</h2>
+<table><tr><td valign=top>
+      <!-- The local source of this image is
+		tcllib/devel/cvs.branches.*
+	-->
+      <img src="http://sourceforge.net/dbimage.php?id=2221">
+</td><td valign=top><p>
+
+The CVS repository for Tcllib contains two main branches, the HEAD for
+development, and RELEASES as the staging area for official
+releases. At RELEASES the minor branches containing the various
+official releases are anchored at.
+</p></td></tr></table>
+
+<p>All the branches are of interest to the developers for
+      Tcllib. Ongoing development happens in HEAD, which can be
+      unstable or may not work at all. Whenever a developer considers
+      a piece of code, or module, he is responsible for as
+      sufficiently stable she has to perform an internal release which
+      merges this part from HEAD into RELEASES. Tools to help with
+      this will be provided.
+</p>
+
+<p>The branches for the official releases of tcllib are of interest to
+      a developer because it is expected that fixes for important bugs
+      not only go into the HEAD branch but also into the release
+      branches for the release they were found in and all releases
+      following that one. This is to allow the release manager to
+      create patch releases of existing releases distributing important
+      bugfixes as well.
+</p>
+
+<p>Version numbers for modules are handled as described below. This
+      way of handling them was chosen so that the modules in the
+      development branch always uses version numbers different from
+      the version numbers in the official releases made so far.
+</p>
+<ul>
+<li>Whenever an internal release of a module FOO is done, the
+	developer performing this internal release has to increment
+	the version number of the module <b>after</b> the release was
+	executed.
+</ul>

@@ -1,0 +1,58 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-to-tclparam-1.0 {convert, wrong#args} -body {
+    pt::peg::to::tclparam convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::tclparam convert serial"}
+
+test pt-peg-to-tclparam-1.1 {convert, wrong#args} -body {
+    pt::peg::to::tclparam convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::tclparam convert serial"}
+
+test pt-peg-to-tclparam-2.0 {reset, wrong#args} -body {
+    pt::peg::to::tclparam reset XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::tclparam reset"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of peg output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+TestFilesProcess $mytestdir ok peg_serial-canonical peg_tclparam -> n label input data expected {
+    test pt-peg-to-tclparam-3.$n "pt::peg::to::tclparam, $label, ok :- $input" -setup {
+
+	text::write reset
+	text::write field   # -*- tcl -*-                               ; text::write /line
+	text::write field   # Parsing Expression Grammar '@name@'.      ; text::write /line
+	text::write field   # Generated for @user@, from file '@file@'  ; text::write /line
+	text::write /line
+	text::write field   @code@                                      ; text::write /line
+	text::write field   #                                           ; text::write /line
+	text::write field   #                                           ; text::write /line
+
+	pt::peg::to::tclparam reset
+	pt::peg::to::tclparam configure -name     TEMPLATE
+	pt::peg::to::tclparam configure -file     TEST
+	pt::peg::to::tclparam configure -template [text::write get]
+
+	pt::peg::to::tclparam configure -runtime-command <<runtime>>
+	pt::peg::to::tclparam configure -self-command    <<self>>
+	pt::peg::to::tclparam configure -proc-command    <<def>>
+	pt::peg::to::tclparam configure -namespace       <<ns>>
+	pt::peg::to::tclparam configure -main            <<main>>
+
+	text::write reset
+    } -body {
+	pt::peg::to::tclparam convert $data
+    } -cleanup {
+	pt::peg::to::tclparam reset
+    } -result $expected
+}
+
+
+#----------------------------------------------------------------------
+unset n label input data expected

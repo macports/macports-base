@@ -1,0 +1,3 @@
+Doctools Error in macro at line 2, column 0:
+[list_end]
+--> (FmtError) Manpage error (bodycmd), "list_end" : Command not allowed outside of the body of the manpage.

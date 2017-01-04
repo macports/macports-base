@@ -1,0 +1,213 @@
+
+<div class='fossil-doc' data-title='coroutine - Coroutine utilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">coroutine(n) 1.1.3 tcllib &quot;Coroutine utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>coroutine - Coroutine based event and IO handling</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">coroutine 1.1.3</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">coroutine::util after</b> <i class="arg">delay</i></a></li>
+<li><a href="#2"><b class="cmd">coroutine::util await</b> <i class="arg">varname</i>...</a></li>
+<li><a href="#3"><b class="cmd">coroutine::util create</b> <i class="arg">arg</i>...</a></li>
+<li><a href="#4"><b class="cmd">coroutine::util exit</b> <span class="opt">?<i class="arg">status</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">coroutine::util gets</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">varname</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">coroutine::util global</b> <i class="arg">varname</i>...</a></li>
+<li><a href="#7"><b class="cmd">coroutine::util read</b> <b class="option">-nonewline</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">n</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">coroutine::util update</b> <span class="opt">?<b class="const">idletasks</b>?</span></a></li>
+<li><a href="#9"><b class="cmd">coroutine::util vwait</b> <i class="arg">varname</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">coroutine</b> package provides coroutine-aware
+implementations of various event- and channel related commands. It can
+be in multiple modes:</p>
+<ol class="doctools_enumerated">
+<li><p>Call the commands through their ensemble, in code which is
+explicitly written for use within coroutines.</p></li>
+<li><p>Import the commands into a namespace, either directly, or
+through <b class="cmd">namespace path</b>. This allows the use from within code
+which is not coroutine-aware per se and restricted to specific
+namespaces.</p></li>
+</ol>
+<p>A more agressive form of making code coroutine-oblivious than point 2
+above is available through the package <b class="package"><a href="coro_auto.html">coroutine::auto</a></b>,
+which intercepts the relevant builtin commands and changes their
+implementation dependending on the context they are run in, i.e.
+inside or outside of a coroutine.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>All the commands listed below are synchronous with respect to the
+coroutine invoking them, i.e. this coroutine blocks until the result
+is available. The overall eventloop is not blocked however.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">coroutine::util after</b> <i class="arg">delay</i></a></dt>
+<dd><p>This command delays the coroutine invoking it by <i class="arg">delay</i>
+milliseconds.</p></dd>
+<dt><a name="2"><b class="cmd">coroutine::util await</b> <i class="arg">varname</i>...</a></dt>
+<dd><p>This command is an extension form of the <b class="cmd">coroutine::util vwait</b>
+command (see below) which waits on a write to one of many named
+namespace variables.</p></dd>
+<dt><a name="3"><b class="cmd">coroutine::util create</b> <i class="arg">arg</i>...</a></dt>
+<dd><p>This command creates a new coroutine with an automatically assigned
+name and causes it to run the code specified by the arguments.</p></dd>
+<dt><a name="4"><b class="cmd">coroutine::util exit</b> <span class="opt">?<i class="arg">status</i>?</span></a></dt>
+<dd><p>This command exits the current coroutine, causing it to return
+<i class="arg">status</i>. If no status was specified the default <i class="arg">0</i> is
+returned.</p></dd>
+<dt><a name="5"><b class="cmd">coroutine::util gets</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">varname</i>?</span></a></dt>
+<dd><p>This command reads a line from the channel <i class="arg">chan</i> and returns it
+either as its result, or, if a <i class="arg">varname</i> was specified, writes it
+to the named variable and returns the number of characters read.</p></dd>
+<dt><a name="6"><b class="cmd">coroutine::util global</b> <i class="arg">varname</i>...</a></dt>
+<dd><p>This command imports the named global variables of the coroutine into
+the current scope. From the technical point of view these variables
+reside in level <b class="const">#1</b> of the Tcl stack. I.e. these are not the
+regular global variable in to the global namespace, and each coroutine
+can have their own set, independent of all others.</p></dd>
+<dt><a name="7"><b class="cmd">coroutine::util read</b> <b class="option">-nonewline</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">n</i>?</span></a></dt>
+<dd><p>This command reads <i class="arg">n</i> characters from the channel <i class="arg">chan</i> and
+returns them as its result. If <i class="arg">n</i> is not specified the command
+will read the channel until EOF is reached.</p></dd>
+<dt><a name="8"><b class="cmd">coroutine::util update</b> <span class="opt">?<b class="const">idletasks</b>?</span></a></dt>
+<dd><p>This command causes the coroutine invoking it to run pending events or
+idle handlers before proceeding.</p></dd>
+<dt><a name="9"><b class="cmd">coroutine::util vwait</b> <i class="arg">varname</i></a></dt>
+<dd><p>This command causes the coroutine calling it to wait for a write to
+the named namespace variable <i class="arg">varname</i>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>coroutine</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key413">after</a>, <a href="../../../../index.html#key63">channel</a>, <a href="../../../../index.html#key219">coroutine</a>, <a href="../../../../index.html#key411">events</a>, <a href="../../../../index.html#key414">exit</a>, <a href="../../../../index.html#key415">gets</a>, <a href="../../../../index.html#key412">global</a>, <a href="../../../../index.html#key418">green threads</a>, <a href="../../../../index.html#key410">read</a>, <a href="../../../../index.html#key409">threads</a>, <a href="../../../../index.html#key416">update</a>, <a href="../../../../index.html#key417">vwait</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Coroutine</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2010-2015 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

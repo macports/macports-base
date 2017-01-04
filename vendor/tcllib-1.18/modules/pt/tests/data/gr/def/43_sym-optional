@@ -1,0 +1,3 @@
+PEG a_pe_grammar (N)
+  N <- "have"? "not";
+END;

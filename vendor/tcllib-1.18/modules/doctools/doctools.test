@@ -1,0 +1,443 @@
+# -*- tcl -*-
+# doctools.test:  tests for the doctools package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2003-2010 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: doctools.test,v 1.28 2011/01/13 02:41:44 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    use textutil/expander.tcl textutil::expander
+    use fileutil/fileutil.tcl fileutil
+}
+testing {
+    useLocal doctools.tcl doctools
+}
+
+# -------------------------------------------------------------------------
+
+array_unset env LANG*
+array_unset env LC_*
+set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+# -------------------------------------------------------------------------
+
+namespace import ::doctools::new
+
+# ---------------------------------------------------
+
+# search paths .............................................................
+
+test doctools-1.0 {default search paths} {
+    llength $::doctools::paths
+} 1
+
+test doctools-1.1 {extend package search paths} {
+    ::doctools::search [file dirname [info script]]
+    set     res [list]
+    lappend res [llength $::doctools::paths]
+    lappend res [lindex  $::doctools::paths 0]
+    set     res
+} [list 2 [file dirname [info script]]]
+
+test doctools-1.2 {extend package search paths, error} {
+    catch {::doctools::search foo} result
+    set     result
+} {doctools::search: path does not exist}
+
+# format help .............................................................
+
+test doctools-2.0 {format help} {
+    string length [doctools::help]
+} 2213
+
+# doctools .............................................................
+
+test doctools-3.0 {doctools errors} {
+    catch {new} msg
+    set msg
+} [tcltest::wrongNumArgs "new" "name args" 0]
+
+test doctools-3.1 {doctools errors} {
+    catch {new set} msg
+    set msg
+} "command \"set\" already exists, unable to create doctools object"
+
+test doctools-3.2 {doctools errors} {
+    new mydoctools
+    catch {new mydoctools} msg
+    mydoctools destroy
+    set msg
+} "command \"mydoctools\" already exists, unable to create doctools object"
+
+test doctools-3.3 {doctools errors} {
+    catch {new mydoctools -foo} msg
+    set msg
+} {wrong # args: doctools::new name ?opt val...??}
+
+# doctools methods ......................................................
+
+test doctools-4.0 {doctools method errors} {
+    new mydoctools
+    catch {mydoctools} msg
+    mydoctools destroy
+    set msg
+} "wrong # args: should be \"mydoctools option ?arg arg ...?\""
+
+test doctools-4.1 {doctools errors} {
+    new mydoctools
+    catch {mydoctools foo} msg
+    mydoctools destroy
+    set msg
+} "bad option \"foo\": must be cget, configure, destroy, format, map, search, warnings, parameters, or setparam"
+
+# cget ..................................................................
+
+test doctools-5.0 {cget errors} {
+    new mydoctools
+    catch {mydoctools cget} result
+    mydoctools destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::_cget" "name option" 1]
+
+test doctools-5.1 {cget errors} {
+    new mydoctools
+    catch {mydoctools cget foo bar} result
+    mydoctools destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::_cget" "name option"]
+
+test doctools-5.2 {cget errors} {
+    new mydoctools
+    catch {mydoctools cget -foo} result
+    mydoctools destroy
+    set result
+} {doctools::_configure: Unknown option "-foo", expected -copyright, -file, -ibase, -module, -format, or -deprecated}
+
+foreach {na nb option default newvalue} {
+    3  4 -deprecated 0 1
+    5  6 -file       {} foo
+    7  8 -module     {} bar
+    9 10 -format     {} latex
+   11 12 -copyright  {} {Andreas Kupries}
+} {
+    test doctools-5.$na {cget query} {
+	new mydoctools
+	set res [mydoctools cget $option]
+	mydoctools destroy
+	set res
+    } $default ; # {}
+
+    test doctools-5.$nb {cget set & query} {
+	new mydoctools
+	mydoctools configure $option $newvalue
+	set res [mydoctools cget $option]
+	mydoctools destroy
+	set res
+    } $newvalue ; # {}
+}
+
+# configure ..................................................................
+
+test doctools-6.0 {configure errors} {
+    new mydoctools
+    catch {mydoctools configure -foo bar -glub} result
+    mydoctools destroy
+    set result
+} {wrong # args: doctools::_configure name ?opt val...??}
+# [tcltest::wrongNumArgs "::doctools::_configure" "name ?option?|?option value...?" 1]
+
+test doctools-6.1 {configure errors} {
+    new mydoctools
+    catch {mydoctools configure -foo} result
+    mydoctools destroy
+    set result
+} {doctools::_configure: Unknown option "-foo", expected -copyright, -file, -ibase, -module, -format, or -deprecated}
+
+test doctools-6.2 {configure retrieval} {
+    new mydoctools
+    catch {mydoctools configure} result
+    mydoctools destroy
+    set result
+} {-file {} -ibase {} -module {} -format {} -copyright {} -deprecated 0}
+
+foreach {n option illegalvalue result} {
+    3 -deprecated foo  {doctools::_configure: -deprecated expected a boolean, got "foo"}
+    4 -format     barf {doctools::_configure: -format: Unknown format "barf"}
+} {
+    test doctools-6.$n {configure illegal value} {
+	new mydoctools
+	catch {mydoctools configure $option $illegalvalue} result
+	mydoctools destroy
+	set result
+    } $result
+}
+
+foreach {na nb option default newvalue} {
+    5  6 -deprecated 0 1
+    7  8 -file       {} foo
+    9 10 -module     {} bar
+   11 12 -format     {} latex
+   13 14 -copyright  {} {Andreas Kupries}
+} {
+    test doctools-6.$na {configure query} {
+	new mydoctools
+	set res [mydoctools configure $option]
+	mydoctools destroy
+	set res
+    } $default ; # {}
+
+    test doctools-6.$nb {configure set & query} {
+	new mydoctools
+	mydoctools configure $option $newvalue
+	set res [mydoctools configure $option]
+	mydoctools destroy
+	set res
+    } $newvalue ; # {}
+}
+
+test doctools-6.15 {configure full retrieval} {
+    new mydoctools -file foo -module bar -format latex -deprecated 1 -copyright gnarf
+    catch {mydoctools configure} result
+    mydoctools destroy
+    set result
+} {-file foo -ibase {} -module bar -format latex -copyright gnarf -deprecated 1}
+
+# search ..................................................................
+
+test doctools-7.0 {search errors} {
+    new mydoctools
+    catch {mydoctools search} result
+    mydoctools destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::_search" "name path" 1]
+
+test doctools-7.1 {search errors} {
+    new mydoctools
+    catch {mydoctools search foo bar} result
+    mydoctools destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::_search" "name path"]
+
+test doctools-7.2 {search errors} {
+    new mydoctools
+    catch {mydoctools search foo} result
+    mydoctools destroy
+    set result
+} {mydoctools search: path does not exist}
+
+test doctools-7.3 {search, initial} {
+    new mydoctools
+    set res [llength $::doctools::doctoolsmydoctools::paths]
+    mydoctools destroy
+    set res
+} 0
+
+test doctools-7.4 {extend object search paths} {
+    new mydoctools
+    mydoctools search [file dirname [info script]]
+    set     res [list]
+    lappend res [llength $::doctools::doctoolsmydoctools::paths]
+    lappend res [lindex  $::doctools::doctoolsmydoctools::paths 0]
+    mydoctools destroy
+    set     res
+} [list 1 [file dirname [info script]]]
+
+# format & warnings .......................................................
+
+test doctools-8.0 {format errors} {
+    new mydoctools
+    catch {mydoctools format} result
+    mydoctools destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::_format" "name text" 1]
+
+test doctools-8.1 {format errors} {
+    new mydoctools
+    catch {mydoctools format foo bar} result
+    mydoctools destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::_format" "name text"]
+
+test doctools-8.2 {format errors} {
+    new mydoctools
+    catch {mydoctools format foo} result
+    mydoctools destroy
+    set result
+} {mydoctools: No format was specified}
+
+
+test doctools-8.3 {format} {
+    new mydoctools -format list
+    set res [mydoctools format {[manpage_begin foo n 1.0][description][strong foo][manpage_end]}]
+    set res [list [lindex $res 0] [dictsort [lindex $res 1]]]
+    lappend res [mydoctools warnings]
+    mydoctools destroy
+    set res
+} {manpage {category {} desc {} fid {} file {} keywords {} module {} section n seealso {} shortdesc {} title foo version 1.0} {}}
+
+test doctools-8.4 {format} {
+    new mydoctools -format list -deprecated on
+    set res [mydoctools format {[manpage_begin foo n 1.0][description][strong foo][manpage_end]}]
+    set res [list [lindex $res 0] [dictsort [lindex $res 1]]]
+    lappend res [mydoctools warnings]
+    mydoctools destroy
+    set res
+} {manpage {category {} desc {} fid {} file {} keywords {} module {} section n seealso {} shortdesc {} title foo version 1.0} {{DocTools Warning (depr_strong): In macro at line 1, column 38 of file :
+DocTools Warning (depr_strong): Deprecated command "[strong]".
+DocTools Warning (depr_strong): 	Please consider appropriate semantic markup or [emph] instead.}}}
+
+
+
+# doctools manpage syntax .......................................................
+
+test doctools-9.0 {manpage syntax} {
+    new mydoctools -format null
+    catch {mydoctools format foo} result
+    mydoctools destroy
+    set result
+} {Doctools Error in plain text at line 1, column 0:
+[plain_text foo]
+--> (FmtError) Manpage error (body), "plain_text foo" : Plain text not allowed outside of the body of the manpage.}
+
+# -------------------------------------------------------------------------
+## Series of tests for all available backends, check their formatting.
+
+set k 11
+foreach format {
+    html  tmml
+    nroff latex
+    text  wiki
+    desc  list null
+} {
+    set n 0
+    foreach src [TestFilesGlob tests/man/*] {
+	if {[file tail $src] == "CVS"} continue
+
+	# Get the expected result
+	set dst [localPath [file join tests $format [file tail $src]]]
+	set map @ID@   ; lappend map \$Id\$ ; lappend map @USR@ $tcl_platform(user)
+	set rem \$Id\$ ; lappend rem @ID@   ; lappend $tcl_platform(user) @USR@
+	if {$format eq "nroff"} {
+		lappend map ".so man.macros\n" [fileutil::cat [localPath mpformats/man.macros]]
+	}
+	if {[catch {
+	    set expected [string map $map [fileutil::cat $dst]]
+	}]} { set expected **missing** }
+
+	test doctools-${format}-${k}.$n "doctools backends, $format/[file tail $src]" {
+	    new mydoctools
+	    mydoctools configure \
+		-format    $format \
+		-module    .MODULE. \
+		-file      .FILE. \
+		-copyright .COPYRIGHT.
+	    if {[catch {
+		set res [mydoctools format [fileutil::cat $src]]
+	    }]} {
+		set res $::errorInfo
+	    }
+	    mydoctools destroy
+	    #fileutil::writeFile ${dst}.actual [string map $rem $res]
+	    set res
+	} $expected
+
+	#fileutil::writeFile ${dst}.expected $expected
+	incr n
+    }
+    incr k
+}
+
+
+# -------------------------------------------------------------------------
+## Test of special 'raw' mode available to the HTML backend.
+
+set n 0
+foreach src [TestFilesGlob tests/man/*] {
+    if {[file tail $src] == "CVS"} continue
+
+    # Get the expected result
+    set dst [localPath [file join tests html [file tail $src]]]
+    set map @ID@   ; lappend map \$Id\$ ; lappend map @USR@ $tcl_platform(user)
+    set rem \$Id\$ ; lappend rem @ID@   ; lappend $tcl_platform(user) @USR@
+
+    if {[catch {
+	set expected [string map $map [fileutil::cat $dst]]
+    }]} { set expected **missing** }
+
+    # Transform regular output to contents of body/, i.e. raw output.
+    regsub {</body>.*} $expected {} expected
+    regsub {.*<body>}  $expected {} expected
+    append expected \n
+    if {$n == 5 || $n == 8} { set expected \n$expected }
+
+    # Run the test ...
+    test doctools-html-raw-11.$n "doctools backends, html-raw/[file tail $src]" {
+	new mydoctools
+	mydoctools configure \
+	    -format    html \
+	    -module    .MODULE. \
+	    -file      .FILE. \
+	    -copyright .COPYRIGHT.
+	mydoctools setparam raw 1
+	if {[catch {
+	    set res [mydoctools format [fileutil::cat $src]]
+	}]} {
+	    set res $::errorInfo
+	}
+	mydoctools destroy
+	#fileutil::writeFile ${dst}.actual [string map $rem $res]
+	set res
+    } $expected
+
+    #fileutil::writeFile ${dst}.expected $expected
+    incr n
+}
+
+# -------------------------------------------------------------------------
+## Series of tests for the frontend, cover all possible syntax errors.
+
+set n 0
+foreach src [TestFilesGlob tests/syntax/e_*] {
+    set dst      [file join [file dirname $src] r_[string range [file tail ${src}] 2 end]]
+    set expected [string trim [fileutil::cat $dst]]
+
+    test doctools-syntax-error-10.$n "doctools frontend, syntax error, [file tail $src]" {
+	new mydoctools
+	mydoctools configure    \
+	    -format    null     \
+	    -module    .MODULE. \
+	    -file      .FILE.   \
+	    -copyright .COPYRIGHT.
+
+	catch {
+	    mydoctools format [fileutil::cat $src]
+	} res
+	mydoctools destroy
+	#fileutil::writeFile ${src}.actual $msg
+	set res
+    } $expected
+
+    #fileutil::writeFile ${dst}.expected $expected
+    incr n
+}
+
+# -------------------------------------------------------------------------
+
+namespace forget ::doctools::new
+
+testsuiteCleanup
+return

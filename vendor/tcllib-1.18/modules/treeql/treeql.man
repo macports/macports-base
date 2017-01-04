@@ -1,0 +1,819 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment ===========================================]
+[manpage_begin treeql n 1.3.1]
+[keywords Cost]
+[keywords DOM]
+[keywords {structured queries}]
+[keywords tree]
+[keywords {tree query language}]
+[keywords TreeQL]
+[keywords XPath]
+[keywords XSLT]
+[copyright {2004 Colin McCormack <coldstore@users.sourceforge.net>}]
+[copyright {2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Tree Query Language}]
+[titledesc {Query tree objects}]
+[category  {Data structures}]
+[require Tcl 8.2]
+[require snit]
+[require struct::list]
+[require struct::set]
+[require treeql [opt 1.3.1]]
+[description]
+[para]
+
+This package provides objects which can be used to query and transform
+tree objects following the API of tree objects created by the package
+[package struct::tree].
+
+[para]
+
+The tree query and manipulation language used here, TreeQL, is
+inspired by Cost (See section [sectref References] for more
+information).
+
+[para]
+
+[package treeql], the package, is a fairly thin query facility over
+tree-structured data types.  It implements an ordered set of nodes
+(really a list) which are generated and filtered through the
+application of TreeQL operators to each node in turn.
+
+[comment ===========================================]
+[section API]
+
+[subsection {TreeQL CLASS API}]
+
+The command [cmd treeql] is a [package snit]::type which implements
+the Treeql Query Language. This means that it follows the API for
+class commands as specified by the package [package snit].
+
+Its general syntax is
+
+[list_begin definitions]
+
+[call [cmd treeql] [arg objectname] [option -tree] [arg tree] \
+	[opt "[option -query] [arg query]"] \
+	[opt "[option -nodes] [arg nodes]"] \
+	[opt [arg args]...]]
+
+The command creates a new tree query object and returns the fully
+qualified name of the object command as its result.
+
+The API the returned command is following is described in the section
+[sectref {TreeQL OBJECT API}]
+
+[para]
+
+Each query object is associated with a single [arg tree] object. This
+is the object all queries will be run against.
+
+[para]
+
+If the option [option -nodes] was specified then its argument is
+treated as a list of nodes. This list is used to initialize the node
+set. It defaults to the empty list.
+
+[para]
+
+If the option [option -query] was specified then its argument will be
+interpreted as an object, the [term {parent query}] of this query. It
+defaults to the object itself. All queries will be interpreted in the
+environment of this object.
+
+[para]
+
+Any arguments coming after the options are treated as a query and run
+immediately, after the [term {node set}] has been initialized. This
+uses the same syntax for the query as the method [method query].
+
+[para]
+
+The operations of the TreeQL available for this are explained in the
+section about [sectref {The Tree Query Language}]. This section also
+explains the term [term {node set}] used above.
+
+[list_end]
+
+[subsection {TreeQL OBJECT API}]
+
+As [package treeql] has been implemented in [package snit] all the
+standard methods of [package snit]-based classes are available to the
+user and therefore not listed here. Please read the documentation for
+[package snit] for what they are and what functionality they provide
+
+[para]
+
+The methods provided by the package [package treeql] itself are listed
+and explained below.
+
+[list_begin definitions]
+
+[call [arg qo] [method query] [arg args]...]
+
+This method interprets its arguments as a series of TreeQL operators
+and interpretes them from the left to right (i.e. first to last).
+
+Note that the first operator uses the [term {node set}] currently
+known to the object to perform its actions.
+
+In other words, the [term {node set}] is [emph not] cleared, or
+modified in other ways, before the query is run. This allows the user
+to run several queries one after the other and have each use the
+results of the last. Any initialization has to be done by any query
+itself, using TreeQL operators.
+
+The result of the method is the [term {node set}] after the last
+operator of the query has been executed.
+
+[para]
+
+[emph Note] that uncaught errors will leave the [term {node set}] of
+the object in an intermediate state, per the TreeQL operators which
+were executed successfully before the error occurred.
+
+[para]
+
+The above means in detail that:
+
+[list_begin enumerated]
+[enum]
+
+The first argument is interpreted as the name of a query operator, the
+number of arguments required by that operator is then determined, and
+taken from the immediately following arguments.
+
+[para]
+
+Because of this operators cannot have optional arguments, all
+arguments have to be present as defined.  Failure to do this will, at
+least, confuse the query interpreter, but more likely cause errors.
+
+[enum]
+
+The operator is applied to the current node set, yielding a new node
+set, and/or manipulating the tree object the query object is connected
+to.
+
+[enum]
+
+The arguments used (i.e. operator name and arguments) are removed from
+the list of method arguments, and then the whole process is repeated
+from step [lb]1[rb], until the list of arguments is empty or an error
+occurred.
+
+[list_end]
+
+[para]
+[example {
+    # q is the query object.
+
+    q query root children get data
+
+    # The above query
+    # - Resets the node set to the root node - root
+    # - Adds the children of root to the set - children
+    # - Replaces the node set with the       - get data
+    #   values for the attribute 'data',
+    #   for all nodes in the set which
+    #   have such an attribute.
+    # - And returns this information.
+
+    # Below we can see the same query, but rewritten
+    # to show the structure as it is seen by the query
+    # interpreter.
+
+    q query \\
+	    root \\
+	    children \\
+	    get data
+}]
+[para]
+
+The operators of the TreeQL language available for this are explained
+in the section about [sectref {The Tree Query Language}]. This section
+also explains the term [term {node set}] used above.
+
+[call [arg qo] [method result]]
+
+This method returns a list containing the current node set.
+
+[call [arg qo] [method discard]]
+
+This method returns the current node set (like method
+[method result]), but also destroys the query object ([arg qo]).
+
+This is useful when constructing and using sub-queries (%AUTO% objects
+immediately destroyed after use).
+
+[list_end]
+
+[comment ===========================================]
+[section {The Tree Query Language}]
+
+This and the following sections specify the Tree Query Language used
+by the query objects of this package in detail.
+
+[para]
+
+First we explain the general concepts underneath the language which
+are required to comprehend it. This is followed by the specifications
+for all the available query operators. They fall into eight
+categories, and each category has its own section.
+
+[para]
+[comment {
+    Local table of contents just for this section.
+}]
+[list_begin enumerated]
+[enum]
+[sectref {TreeQL Concepts}]
+[enum]
+[sectref {Structural generators}]
+[enum]
+[sectref {Attribute Filters}]
+[enum]
+[sectref {Attribute Mutators}]
+[enum]
+[sectref {Attribute String Accessors}]
+[enum]
+[sectref Sub-queries]
+[enum]
+[sectref {Node Set Operators}]
+[enum]
+[sectref {Node Set Iterators}]
+[enum]
+[sectref {Typed node support}]
+[list_end]
+[para]
+
+[comment ===========================================]
+[subsection {TreeQL Concepts}]
+
+The main concept which has to be understood is that of the
+[term {node set}].
+
+Each query object maintains exactly one such [term {node set}], and
+essentially all operators use it and input argument and for their
+result.
+
+This structure simply contains the handles of all nodes which are
+currently of interest to the query object.
+
+To name it a [term set] is a bit of a misnomer, because
+
+[list_begin enumerated]
+[enum]
+A node (handle) can occur in the structure more than once, and
+
+[enum]
+the order of nodes in the structure is important as well.
+
+Whenever an operator processes all nodes in the node set it will do so
+in the order they occur in the structure.
+
+[list_end]
+[para]
+
+Regarding the possible multiple occurrence of a node, consider a node
+set containing two nodes A and B, both having node P as their
+immediate parent. Application of the TreeQL operator "parent" will
+then add P to the new node set twice, once per node it was parent
+of. I.e. the new node set will then be {P P}.
+
+[comment ===========================================]
+[subsection {Structural generators}]
+
+All tree-structural operators locate nodes in the tree based on a
+structural relation ship to the nodes currently in the set and then
+replace the current node set with the set of nodes found
+
+Nodes which fulfill such a relationship multiple times are added to
+the result as often as they fulfill the relationship.
+
+[para]
+
+It is important to note that the found nodes are collected in a
+separate storage area while processing the node set, and are added to
+(or replacing) the current node set only after the current node set
+has been processed completely.
+
+In other words, the new nodes are [emph not] processed by the operator
+as well and do not affect the iteration.
+
+[para]
+
+When describing an operator the variable [var N] will be used to refer
+to any node in the node set.
+
+[list_begin definitions]
+[def [method ancestors]]
+
+Replaces the current node set with the ancestors for all nodes [var N]
+in the node set, should [var N] have a parent. In other words, nodes
+without a parent do not contribute to the new node set. In other
+words, uses all nodes on the path from node [var N] to root, in this
+order (root last), for all nodes [var N] in the node set. This
+includes the root, but not the node itself.
+
+[def [method rootpath]]
+
+Replaces the current node set with the ancestors for all nodes [var N]
+in the node set, should [var N] have a parent. In other words, nodes
+without a parent do not contribute to the new node set.
+
+In contrast to the operator [method ancestors] the nodes are added in
+reverse order however, i.e. the root node first.
+
+[def [method parent]]
+
+Replaces the current node set with the parent of node [var N], for all
+nodes [var N] in the node set, should [var N] have a parent. In other
+words, nodes without a parent do not contribute to the new node set.
+
+[def [method children]]
+
+Replaces the current node set with the immediate children of node
+[var N], for all nodes [var N] in the node set, should [var N] have
+children. In other words, nodes without children do not contribute to
+the new node set.
+
+[def [method left]]
+
+Replaces the current node set with the previous/left sibling for all
+nodes [var N] in the node set, should [var N] have siblings to the
+left. In other words, nodes without left siblings do not contribute to
+the new node set.
+
+[def [method right]]
+
+Replaces the current node set with the next/right sibling for all
+nodes [var N] in the node set, should [var N] have siblings to the
+right. In other words, nodes without right siblings do not contribute
+to the new node set.
+
+[def [method prev]]
+
+Replaces the current node set with all previous/left siblings of node
+[var N], for all nodes [var N] in the node set, should [var N] have
+siblings to the left. In other words, nodes without left siblings are
+ignored. The left sibling adjacent to the node is added first, and the
+leftmost sibling last (reverse tree order).
+
+[def [method esib]]
+
+Replaces the current node set with all previous/left siblings of node
+[var N], for all nodes [var N] in the node set, should [var N] have
+siblings to the left. In other words, nodes without left siblings are
+ignored. The leftmost sibling is added first, and the left sibling
+adjacent to the node last (tree order).
+
+[para]
+
+The method name is a shorthand for [term {Earlier SIBling}].
+
+[def [method next]]
+
+Replaces the current node set with all next/right siblings of node
+[var N], for all nodes [var N] in the node set, should [var N] have
+siblings to the right. In other words, nodes without right siblings do
+not contribute to the new node set. The right sibling adjacent to the
+node is added first, and the rightmost sibling last (tree order).
+
+[def [method root]]
+
+Replaces the current node set with a node set containing a single
+node, the root of the tree.
+
+[def [method tree]]
+
+Replaces the current node set with a node set containing all nodes
+found in the tree. The nodes are added in pre-order (parent first,
+then children, the latter from left to right, first to last).
+
+[def [method descendants]]
+
+Replaces the current node set with the nodes in all subtrees rooted at
+node [var N], for all nodes [var N] in the node set, should [var N]
+have children. In other words, nodes without children do not
+contribute to the new node set.
+
+[para]
+
+This is like the operator [method children], but covers the children
+of children as well, i.e. all the [term {proper descendants}]. "Rooted
+at [var N]" means that [var N] itself is not added to the new set,
+which is also implied by [term {proper descendants}].
+
+[def [method subtree]]
+
+Like operator [method descendants], but includes the node [var N]. In
+other words:
+
+[para]
+
+Replaces the current node set with the nodes of the subtree of node
+[var N], for all nodes [var N] in the node set, should [var N] have
+children. In other words, nodes without children do not contribute to
+the new node set. I.e this is like the operator [method children], but
+covers the children of children, etc. as well. "Of [var N]" means that
+[var N] itself is added to the new set.
+
+[def [method forward]]
+
+Replaces the current node set with the nodes in the subtrees rooted at
+the right siblings of node [var N], for all nodes [var N] in the node
+set, should [var N] have right siblings, and they children. In other
+words, nodes without right siblings, and them without children are
+ignored.
+
+[para]
+This is equivalent to the operator sequence
+
+[example {next descendants}]
+
+[def [method later]]
+
+This is an alias for the operator [method forward].
+
+[def [method backward]]
+
+Replaces the current node set with the nodes in the flattened previous
+subtrees, in reverse tree order.
+
+[para]
+This is nearly equivalent to the operator sequence
+
+[example {prev descendants}]
+
+The only difference is that this uses the nodes in reverse order.
+
+[def [method earlier]]
+
+Replaces the current node set with the nodes in the flattened previous
+subtrees, in tree order.
+
+[para]
+This is equivalent to the operator sequence
+
+[example {prev subtree}]
+
+[list_end]
+
+[comment ===========================================]
+[subsection {Attribute Filters}]
+
+These operators filter the node set by reference to attributes of
+nodes and their properties. Filter means that all nodes not fulfilling
+the criteria are removed from the node set. In other words, the node
+set is replaced by the set of nodes fulfilling the filter criteria.
+
+[list_begin definitions]
+
+[def "[method hasatt] [arg attr]"]
+
+Reduces the node set to nodes which have an attribute named
+[arg attr].
+
+[def "[method withatt] [arg attr] [arg value]"]
+
+Reduces the node set to nodes which have an attribute named
+[arg attr], and where the value of that attribute is equal to
+[arg value] (The "==" operator is [cmd {string equal -nocase}]).
+
+[def "[method withatt!] [arg attr] [arg val]"]
+
+This is the same as [method withatt], but all nodes in the node set
+have to have the attribute, and the "==" operator is
+[cmd {string equal}], i.e. no [option -nocase].
+
+The operator will fail with an error if they don't have the attribute.
+
+[def "[method attof] [arg attr] [arg vals]"]
+
+Reduces the node set to nodes which which have an attribute named
+[arg attr] and where the value of that attribute is contained in the
+list [arg vals] of legal values. The contained-in operator used here
+does glob matching (using the attribute value as pattern) and ignores
+the case of the attribute value, [emph {but not}] for the elements of
+[arg vals].
+
+[def "[method attmatch] [arg attr] [arg match]"]
+
+Same as [method withatt], but [cmd {string match}] is used as the "=="
+operator, and [arg match] is the pattern checked for.
+
+[para]
+
+[emph Note] that [arg match] is a interpreted as a partial argument
+[emph list] for [cmd {string match}]. This means that it is
+interpreted as a list containing the pattern, and the pattern element
+can be preceded by options understand by [cmd {string match}], like
+[option -nocase].
+
+This is especially important should the pattern contain spaces. It has
+to be wrapped into a list for correct interpretation by this operator
+
+[list_end]
+
+[comment ===========================================]
+[subsection {Attribute Mutators}]
+
+These operators change node attributes within the underlying tree. In
+other words, all these operators have [term {side effects}].
+
+[list_begin definitions]
+
+[def "[method set] [arg attr] [arg val]"]
+
+Sets the attribute [arg attr] to the value [arg val], for all nodes
+[var N] in the node set.
+
+The operator will fail if a node does not have an attribute named
+[arg attr]. The tree will be left in a partially modified state.
+
+[def "[method unset] [arg attr]"]
+
+Unsets the attribute [arg attr], for all nodes [var N] in the node
+set.
+
+The operator will fail if a node does not have an attribute named
+[arg attr]. The tree will be left in a partially modified state.
+
+[list_end]
+
+[comment ===========================================]
+[subsection {Attribute String Accessors}]
+
+These operators retrieve the values of node attributes from the
+underlying tree. The collected results are stored in the node set, but
+are not actually nodes.
+
+[para]
+
+In other words, they redefine the semantics of the node set stored by
+the query object to contain non-node data after their completion.
+
+[para]
+
+The query interpreter will terminate after it has finished processing
+one of these operators, silently discarding any later query elements.
+It also means that our talk about maintenance of a node set is not
+quite true. It is a node set while the interpreter is processing
+commands, but can be left as an attribute value set at the end of
+query processing.
+
+[list_begin definitions]
+
+[def "[method string] [arg op] [arg attr]"]
+
+Applies the string operator [arg op] to the attribute named
+[arg attr], for all nodes [var N] in the node set, collects the
+results of that application and places them into the node set.
+
+[para]
+
+The operator will fail if a node does not have an attribute named
+[arg attr].
+
+[para]
+
+The argument [arg op] is interpreted as partial argument list for the
+builtin command [cmd string].  Its first word has to be any of the
+sub-commands understood by [cmd string].  This has to be followed by
+all arguments required for the subcommand, except the last.  that last
+argument is supplied by the attribute value.
+
+[def "[method get] [arg pattern]"]
+
+For all nodes [var N] in the node set it determines all their
+attributes with names matching the glob [arg pattern], then the values
+of these attributes, at last it replaces the node set with the list of
+these attribute values.
+
+[def [method attlist]]
+
+This is a convenience definition for the operator
+[method {getvals *}]. In other words, it replaces the node set with a
+list of the attribute values for all attributes for all nodes [var N]
+in the node set.
+
+[def "[method attrs] [arg glob]"]
+
+Replaces the current node set with a list of attribute lists, one
+attribute list per for all nodes [var N] in the node set.
+
+[def "[method attval] [arg attname]"]
+
+Reduces the current node set with the operator [method hasatt], and
+then replaces it with a list containing the values of the attribute
+named [arg attname] for all nodes [var N] in the node set.
+
+[list_end]
+
+[comment ===========================================]
+[subsection Sub-queries]
+
+Sub-queries yield node sets which are then used to augment, reduce or
+replace the current node set.
+
+[list_begin definitions]
+
+[def "[method andq] [arg query]"]
+
+Replaces the node set with the set-intersection of the node set
+generated by the sub-query [arg query] and itself.
+
+[para]
+
+The execution of the sub-query uses the current node set as its own
+initial node set.
+
+[def "[method orq] [arg query]"]
+
+Replaces the node set with the set-union of the node set generated by
+the sub-query [arg query] and itself. Duplicate nodes are removed.
+
+[para]
+
+The execution of the sub-query uses the current node set as its own
+initial node set.
+
+[def "[method notq] [arg query]"]
+
+Replaces the node set with the set of nodes generated by the sub-query
+[arg query] which are also not in the current node set. In other word
+the set difference of itself and the node set generated by the
+sub-query.
+
+[para]
+
+The execution of the sub-query uses the current node set as its own
+initial node set.
+
+[list_end]
+
+[comment ===========================================]
+[subsection {Node Set Operators}]
+
+These operators change the node set directly, without referring to the
+tree.
+
+[comment {
+    Should have a 'reverse' as well.
+}]
+
+[list_begin definitions]
+
+[def [method unique]]
+
+Removes duplicate nodes from the node set, preserving order. In other
+words, the earliest occurrence of a node handle is preserved, every
+other occurrence is removed.
+
+[def [method select]]
+
+Replaces the current node set with a node set containing only the
+first node from the current node set
+
+[def "[method transform] [arg query] [arg var] [arg body]"]
+
+First it interprets the sub-query [arg query], using the current node
+set as its initial node set.
+
+Then it iterates over the result of that query, binding the handle of
+each node to the variable named in [arg var], and executing the script
+[arg body].
+
+The collected results of these executions is made the new node set,
+replacing the current one.
+
+[para]
+
+The script [arg body] is executed in the context of the caller.
+
+[def "[method map] [arg var] [arg body]"]
+
+Iterates over the current node set, binding the handle of each node to
+the variable named in [arg var], and executing the script [arg body].
+
+The collected results of these executions is made the new node set,
+replacing the current one.
+
+[para]
+
+The script [arg body] is executed in the context of the caller.
+
+[def "[method quote] [arg val]"]
+
+Appends the literal value [arg val] to the current node set.
+
+[def "[method replace] [arg val]"]
+
+Replaces the current node set with the literal list value [arg val].
+
+[list_end]
+
+[comment ===========================================]
+[subsection {Node Set Iterators}]
+
+[list_begin definitions]
+
+[def "[method foreach] [arg query] [arg var] [arg body]"]
+
+Interprets the sub-query [arg query], then performs the equivalent of
+operator [method over] on the nodes in the node set created by that
+query. The current node set is not changed, except through side
+effects from the script [arg body].
+
+[para]
+
+The script [arg body] is executed in the context of the caller.
+
+[def "[method with] [arg query] [arg body]"]
+
+Interprets the [arg query], then runs the script [arg body] on the
+node set generated by the query. At last it restores the current node
+set as it was before the execution of the query.
+
+[para]
+
+The script [arg body] is executed in the context of the caller.
+
+[def "[method over] [arg var] [arg body]"]
+
+Executes the script [arg body] for each node in the node set, with the
+variable named by [arg var] bound to the name of the current node.
+
+The script [arg body] is executed in the context of the caller.
+
+[para]
+
+This is like the builtin [cmd foreach], with the node set as the
+source of the list to iterate over.
+
+[para]
+
+The results of executing the [arg body] are ignored.
+
+[def [method delete]]
+
+Deletes all the nodes contained in the current node set from the tree.
+
+[list_end]
+
+[comment ===========================================]
+[subsection {Typed node support}]
+
+These filters and accessors assume the existence of an attribute
+called [const @type], and are short-hand forms useful for cost-like
+tree query, html tree editing, and so on.
+
+[list_begin definitions]
+
+[def [method nodetype]]
+
+Returns the node type of nodes.
+
+Attribute string accessor. This is equivalent to
+
+[example {get @type}]
+
+[def "[method oftype] [arg t]"]
+
+Reduces the node set to nodes whose type is equal to [arg t], with
+letter case ignored.
+
+[def "[method nottype] [arg t]"]
+
+Reduces the node set to nodes whose type is not equal to [arg t], with
+letter case ignored.
+
+[def "[method oftypes] [arg attrs]"]
+
+Reduces set to nodes whose @type is an element in the list [arg attrs]
+of types. The value of @type is used as a glob pattern, and letter
+case is relevant.
+
+[list_end]
+
+[section Examples]
+
+... TODO ...
+
+[section References]
+
+[list_begin enumerated]
+[enum]
+[uri http://wiki.tcl.tk/COST COST] on the Tcler's Wiki.
+
+[enum]
+
+[uri http://wiki.tcl.tk/treeql TreeQL] on the Tcler's Wiki. Discuss
+this package there.
+
+[list_end]
+
+[vset CATEGORY treeql]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

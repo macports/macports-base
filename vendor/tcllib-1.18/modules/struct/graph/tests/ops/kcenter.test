@@ -1,0 +1,179 @@
+# -*- tcl -*-
+#Metric K-Center - Tests
+#
+#Set of tests includes also tests for subprocedures used by Unweighted Metric K-Center Algorithm:
+#- Max Independent Set
+#- Two Squared graph - create and extend.
+
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+#Test 1.0 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.0 { Independent Set, 24 nodes graph } {
+    SETUP_INDEPENDENTSET_1
+    set result [ismaxindependentset mygraph \
+		    [struct::graph::op::GreedyMaxIndependentSet mygraph]]
+    mygraph destroy
+    set result
+} 1
+#{node5 node7 node9 node11 node13 node14 node15 node16}
+
+#Test 1.1
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.1 { Independent Set, complete K4 } {
+    SETUP_UNWEIGHTED_K4
+    set result [ismaxindependentset mygraph \
+		    [struct::graph::op::GreedyMaxIndependentSet mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+#Test 1.2
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.2 { Independent Set, C5 } {
+    SETUP_C5
+    set result [ismaxindependentset mygraph \
+		    [struct::graph::op::GreedyMaxIndependentSet mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+#Test 1.3 - Tight Example for K-Center, it chooses external node (with biggest adjacent edge weight = 2)
+#when it's possible to choose central node ( with each adjacent edge weight = 1)
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.3 { KCenter, Tight Example } {
+    # Note: Applied to non-complete graph, violating algorithm pre-conditions.
+    SETUP_KCENTER_1
+    set result [lsort -dict [struct::graph::op::UnweightedKCenter mygraph 1]]
+    mygraph destroy
+    set result
+} [tmE {node2} {node1}]
+
+#Test 1.4 - different k value
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.4 { KCenter, Tight Example } {
+    # Note: Applied to non-complete graph, violating algorithm pre-conditions.
+    SETUP_KCENTER_1
+    set result [lsort -dict [struct::graph::op::UnweightedKCenter mygraph 2]]
+    mygraph destroy
+    set result
+} [tmE {node2 node6} {node1 node2}]
+
+#Test 1.5 - case with max logical k value for that graph
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.5 { KCenter, Tight Example } {
+    # Note: Applied to non-complete graph, violating algorithm pre-conditions.
+    SETUP_KCENTER_1
+    set result [lsort -dict [struct::graph::op::UnweightedKCenter mygraph 6]]
+    mygraph destroy
+    set result
+} [tmE \
+       {node2 node3 node4 node5 node6 node7} \
+       {node1 node2 node3 node4 node5 node6}]
+
+#Test 1.6 - case when k is inexplicably big
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.6 { KCenter, Tight Example } {
+    # Note: Applied to non-complete graph, violating algorithm pre-conditions.
+    SETUP_KCENTER_1
+    set result [lsort -dict [struct::graph::op::UnweightedKCenter mygraph 60]]
+    mygraph destroy
+    set result
+} [tmE \
+       {node2 node3 node4 node5 node6 node7} \
+       {node1 node2 node3 node4 node5 node6}]
+
+#Test 1.7 - another graph test
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.7 { KCenter, graph simulation } {
+    SETUP_KCENTER_2
+    set result [lsort -dict [struct::graph::op::UnweightedKCenter mygraph 2]]
+    mygraph destroy
+    set result
+} [tmE {node2 node7} {node1 node8}]
+
+#Tests 1.8 - 1.12 - test cases for creating squared graphs operations
+#Test 1.8
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.8 { KCenter, graph simulation } {
+    SETUP_TWOSQUARED_1
+    set solution [struct::graph::op::createSquaredGraph mygraph]
+    set result [lsort -dict [undirected [$solution arcs]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} {{node1 node2} {node1 node3} {node1 node4} {node2 node3} {node2 node4} {node2 node5} {node3 node4} {node3 node5} {node3 node6} {node3 node7} {node4 node5} {node5 node6} {node5 node7} {node5 node8} {node6 node7} {node7 node8}}
+
+#Test 1.9
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.9 { KCenter, graph simulation } {
+    SETUP_TWOSQUARED_2
+    set solution [struct::graph::op::createSquaredGraph mygraph]
+    set result [lsort -dict [undirected [$solution arcs]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} {{node1 node2} {node1 node3} {node2 node3} {node2 node4} {node3 node4} {node3 node5} {node4 node5}}
+
+#Test 1.10
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.10 { KCenter, graph simulation } {
+    SETUP_TWOSQUARED_2
+    SETUP_TWOSQUARED_3
+    set solution [struct::graph::op::extendTwoSquaredGraph mygraph2 mygraph node4 node5]
+    set result [lsort -dict [undirected [$solution arcs]]]
+    mygraph destroy
+    mygraph2 destroy
+    set result
+} {{node1 node2} {node1 node3} {node2 node3} {node2 node4} {node3 node4} {node3 node5} {node4 node5}}
+
+#Test 1.11
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.11 { KCenter, graph simulation } {
+    SETUP_TWOSQUARED_1
+    mygraph arc delete "node3 node5"
+    SETUP_TWOSQUARED_4
+    set solution [struct::graph::op::extendTwoSquaredGraph mygraph2 mygraph node3 node4]
+    set result [lsort -dict [undirected [$solution arcs]]]
+    mygraph destroy
+    mygraph2 destroy
+    set result
+} {{node1 node2} {node1 node3} {node1 node4} {node2 node3} {node2 node4} {node3 node4} {node5 node6} {node5 node7} {node5 node8} {node6 node7} {node7 node8}}
+
+#Test 1.12
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-1.12 { KCenter, graph simulation } {
+    SETUP_TWOSQUARED_1
+    SETUP_TWOSQUARED_4
+    set solution [struct::graph::op::extendTwoSquaredGraph mygraph2 mygraph node3 node5]
+    set result [lsort -dict [undirected [$solution arcs]]]
+    mygraph destroy
+    mygraph2 destroy
+    set result
+} {{node1 node2} {node1 node3} {node1 node4} {node2 node3} {node2 node4} {node2 node5} {node3 node4} {node3 node5} {node3 node6} {node3 node7} {node4 node5} {node5 node6} {node5 node7} {node5 node8} {node6 node7} {node7 node8}}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-2.0 { KCenter, wrong args, missing } {
+    catch {struct::graph::op::UnweightedKCenter} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::UnweightedKCenter {G k} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-2.1 { KCenter, wrong args, missing } {
+    catch {struct::graph::op::UnweightedKCenter G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::UnweightedKCenter {G k} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-2.2 { KCenter, wrong args, too many} {
+    catch {struct::graph::op::UnweightedKCenter G y x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::UnweightedKCenter {G k}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+
+#Test 3.1 - case when k is too low
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-3.0 { KCenter, wrong input } {
+    SETUP_KCENTER_1
+    catch { struct::graph::op::UnweightedKCenter mygraph 0 } result
+    mygraph destroy
+    set result
+} [WrongValueAtInput {k}]
+
+#Test 3.0 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-KCenter-3.1 {KCenter, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::UnweightedKCenter mygraph k} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]

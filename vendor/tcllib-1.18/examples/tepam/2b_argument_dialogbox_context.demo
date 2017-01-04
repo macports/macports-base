@@ -1,0 +1,80 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 2b_argument_dialogbox_context.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 2b_argument_dialogbox_context.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization and Description ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+   package require Tk
+   package require tepam
+
+# This demo explains the usage of the argument dialog box's context option.
+
+# The dialog box's state, e.g. the entered data as well as the window size and position, is 
+# saved and restored the next time the argument dialog box is called if a context is 
+# defined. The assignment of a context allows saving the dialog box' state in its context 
+# to distinguish between different usages of the argument dialog box.
+
+# The following two sections contain calls of the argument dialog box using different 
+# contextes. Please execute both sections several times interleaved and change the argument
+# dialog boxes' contents and geometrical position and size. You will see that TEPAM 
+# remembers correctly the entered data as well as the windows sizes and positions of both
+# argument dialog box calls.
+
+#### Context 1 ####
+
+DemoControl(IsExecutable) {1}
+
+# Execute this section several times interleaved with the next section.
+
+catch {unset Font Fg Bg}
+
+if {[tepam::argument_dialogbox \
+        -title "Formula text style" \
+        -context "FormulaStyle" \
+        -font {-label Font -variable Font -default "Courier 10"} \
+        -color {-label "Text (foreground) color" -variable Fg -default red4} \
+        -color {-label "Background color" -variable Bg -default white}]=="ok"} {
+   puts "Font: $Font, fg: $Fg, bg: $Bg"
+} else {
+   puts "(Cancel)"
+}
+
+#### Context 2 ####
+
+DemoControl(IsExecutable) {1}
+
+# Execute this section several times interleaved with the previous section.
+
+catch {unset Font Fg Bg}
+
+if {[tepam::argument_dialogbox \
+        -title "Comment text style" \
+        -context "CommentStyle" \
+        -font {-label Font -variable Font -default "Ariel 10 italic"} \
+        -color {-label "Text (foreground) color" -variable Fg -default blue4} \
+        -color {-label "Background color" -variable Bg -default lightblue1}]=="ok"} {
+   puts "Font: $Font, fg: $Fg, bg: $Bg"
+} else {
+   puts "(Cancel)"
+}
+
+##########################################################################
+# Id: 2b_argument_dialogbox_context.demo
+# Modifications:
+#
+# Revision 1.1  2010/02/11 21:54:38  droll
+# * TEPAM module checkin
+##########################################################################

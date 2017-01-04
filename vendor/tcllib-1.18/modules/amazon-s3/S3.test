@@ -1,0 +1,1766 @@
+# -*- tcl -*-
+# S3.test:  tests for the S3 access package.
+
+# This file contains a collection of tests for the S3
+# package. Sourcing this file into Tcl runs the tests and generates
+# output for errors.  No output means no errors were found.
+
+# Copyright (c) 2006,2008 Darren New. All Rights Reserved.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#               (Boilerplate stuff (header, footer))
+# All rights reserved.
+#
+# RCS: @(#) $Id: S3.test,v 1.3 2008/09/04 02:11:12 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+if {[catch {package require xml}]} {
+    puts "    Aborting the tests found in \"[file tail [info script]]\""
+    puts "    Requiring xml package, not found."
+    return
+}
+
+support {
+    # Requires xml (TclXML)
+    useLocal xsxp.tcl xsxp
+}
+testing {
+    useLocal S3.tcl S3
+}
+
+# -------------------------------------------------------------------------
+
+# I normally leave BucketDeletion false, because Amazon gets cranky
+# if you delete a bucket and then try to recreate it any time soon.
+
+# This may clobber files starting with the characers "S3T". Don't
+# run it in a directory with such files you want.
+
+# Put your own keys in S3-test.config.
+
+tcltest::customMatch S3err S3ErrorMatch
+
+tcltest::testConstraint BucketDeletion false
+tcltest::testConstraint REST true
+tcltest::testConstraint BucketIO true
+tcltest::testConstraint ItemIO true
+tcltest::testConstraint Put true
+tcltest::testConstraint Get true
+tcltest::testConstraint Acl true
+tcltest::testConstraint Head true
+tcltest::testConstraint Directory true
+tcltest::testConstraint Delete true
+
+tcltest::configure -verbose {body error pass skip start}
+tcltest::configure -debug 1
+
+# Allow easy testing of S3-style errorCode returns.
+
+proc S3expectErr {code} {
+    global errorCode
+    set errorCode {}
+    set x [catch $code result]
+    return [concat $x $errorCode]
+}
+
+proc S3ErrorMatch {expected actual} {
+    if {$expected eq [lrange $actual 0 [expr {[llength $expected]-1}]]} {
+	return true
+    } else {
+	return false
+    }
+}
+
+# Allow easy testing of background tasks.
+
+proc S3expectBackgroundREST {req} {
+    # Might be done better, tho...
+    set ::S3::afterResult {}
+    set ::S3::afterRan 0
+    set y [after 1 {set ::S3::afterRan 1}]
+    S3::REST $req
+    vwait [dict get $req resultvar]
+    set x [set [dict get $req resultvar]]
+    after cancel $y
+    #if {$::S3::afterResult eq "AFTER-FAILURE"} {
+	#error "Background task never returned value" "" [after info $x]
+    #}
+    if {[string match "BGERROR*" $::S3::afterResult]} {
+	error "BGError triggered: $::S3::afterResult" "" $::S3::afterResult
+    }
+    if {0 == $::S3::afterRan} {
+	error "Concurrent events did not run" "" "S3 test afterRan"
+    }
+    return $x
+}
+
+proc S3expectBackground {code} {
+    # Might be done better, tho...
+    set ::S3::afterResult {}
+    set ::S3::afterRan 0
+    set y [after 1 {set ::S3::afterRan 1}]
+    set x [eval $code]
+    after cancel $y
+    #if {$::S3::afterResult eq "AFTER-FAILURE"} {
+	#error "Background task never returned value" "" [after info $x]
+    #}
+    if {[string match "BGERROR*" $::S3::afterResult]} {
+	error "BGError triggered: $::S3::afterResult" "" $::S3::afterResult
+    }
+    if {0 == $::S3::afterRan} {
+	error "Concurrent events did not run" "" "S3 test afterRan"
+    }
+    return $x
+}
+
+proc bgerror {args} {set ::S3::afterResult [list "BGERROR" $args $::errorInfo]}
+
+# Allow easy incorporation of user's AccessID and SecretKey
+
+proc S3loadKeys {} {
+    source test-S3.config
+}
+
+namespace import ::tcltest::test
+
+proc CleanUpBuckets {{buckets 0}} {
+    S3loadKeys
+    set bucket [S3::SuggestBucket TclTestS3b]
+    for {set i 0} {$i < 25} {incr i} {
+	puts "Deleting $i of 25"
+	for {set j 0} {$j < 10} {incr j} {
+	    set q [format %02d $i]
+	    set d [S3::REST \
+		[dict create verb DELETE resource /$bucket/thing/$q/$j]]
+	    S3::throwhttp $d
+	}
+    }
+    S3::REST [dict create verb DELETE resource /$bucket/fred ]
+    S3::REST [dict create verb DELETE resource /$bucket/barney ]
+    S3::REST [dict create verb DELETE resource /$bucket/wilma ]
+    S3::REST [dict create verb DELETE resource /$bucket/betty ]
+    S3::REST [dict create verb DELETE resource /$bucket/cartman ]
+    S3::REST [dict create verb DELETE resource /$bucket/cartoon/tweety ]
+    S3::REST [dict create verb DELETE resource /$bucket/cartoon/sylvester ]
+    S3::REST [dict create verb DELETE resource "/$bucket/cartoon/road runner" ]
+    S3::REST [dict create verb DELETE \
+	resource "/$bucket/cartoon/wile e. coyote" ]
+    if {$buckets} {S3::REST [dict create verb DELETE resource /$bucket]}
+}
+
+# CleanUpBuckets 0 ; exit
+
+# Test URL encoding
+
+test S3-1.10 {URL encoding no parameters} -body {
+    S3::to_url /quotes/nelson {}
+} -result {/quotes/nelson}
+
+test S3-1.20 {URL encoding with parameters} -body {
+    S3::to_url /quotes/nelson {alpha one beta two}
+} -result {/quotes/nelson?alpha=one&beta=two}
+
+test S3-1.30 {URL encoding with parameters and query} -body {
+    S3::to_url /quotes/nelson?acl {alpha one beta two}
+} -result {/quotes/nelson?acl&alpha=one&beta=two}
+
+test S3-1.40 {URL with non-ASCII characters} -body {
+    set funky "/xyzzy/zz+fun\(\)good?junk space"
+    append funky "&and_utf-8\u2211Sigma\u5927Da"
+    S3::encode_url $funky
+} -result {/xyzzy/zz%2bfun%28%29good%3fjunk%20space%26and_utf-8%e2%88%91Sigma%e5%a4%a7Da}
+
+test S3-1.50 {Check out content types A} -setup {
+    tcltest::makeFile "This is just text" "S3junk.txt"
+} -body {
+    S3::contenttype S3junk.txt
+} -cleanup {
+    tcltest::removeFile "S3junk.txt"
+} -result "text/plain"
+
+test S3-1.60 {Check out content types A} -body {
+    # May be unhappy under UNIX?
+    S3::contenttype origT1.jpg
+} -result "image/jpeg"
+
+test S3-2.10 {Config no args} -body {
+    array set x [S3::Configure]
+    foreach key [lsort [array names x]] {
+	puts $key ; puts $x($key)
+    }
+} -cleanup {unset x} -output "-accesskeyid\n\n-bucket-prefix\nTclS3\n-default-acl\n\n-default-bucket\n\n-default-compare\nalways\n-default-separator\n/\n-reset\nfalse\n-retries\n3\n-secretaccesskey\n\n-service-access-point\ns3.amazonaws.com\n-slop-seconds\n3\n-use-tls\nfalse\n"
+ 
+test S3-2.20 {Config, one arg} -body {
+    S3::Configure -bucket-prefix
+} -result {TclS3}
+
+test S3-2.30 {Config, set bucket prefix} -body {
+    S3::Configure -bucket-prefix TclTestS3
+    S3::Configure -bucket-prefix
+} -result {TclTestS3}
+
+test S3-2.40 {Config, bad first argument} -body {
+    S3expectErr {S3::Configure -xyzzy}
+} -result "1 S3 usage -xyzzy" -match S3err
+
+test S3-2.50 {Config, wrong number of pairs} -body {
+    set ::errorCode {}
+    S3::Configure -bucket-prefix TclTestS3
+    set x [catch {S3::Configure -bucket-prefix 1234 -use-tls}]
+    set y [S3::Configure -bucket-prefix]
+    return [concat $x [lrange $::errorCode 0 1] $y]
+} -result {1 S3 usage TclTestS3} -cleanup {unset x ; unset y}
+
+test S3-2.60 {Config, test reset} -body {
+    S3::Configure -bucket-prefix XYZZY -reset true
+    return [S3::Configure -bucket-prefix]
+} -result TclS3
+
+test S3-2.70 {Suggest bucket name} -body {
+    S3::Configure -accesskeyid 44CF9590006BF252F707 \
+	-secretaccesskey OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV
+    set x [S3::SuggestBucket Bloop]
+    return [concat [string match *Bloop* $x] \
+	[string match *44CF9590006BF252F707* $x] \
+	[string match *OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV* $x]]
+} -result {1 1 0}
+
+# Now test the stuff from the manual
+
+test S3-3.10 {First documentation example of AUTH} -body {
+    S3::Configure -accesskeyid 44CF9590006BF252F707 \
+	-secretaccesskey OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV
+    set verb put
+    set resource /quotes/nelson
+    set content-type text/html
+    set headers {
+	date "Thu, 17 Nov 2005 18:49:58 GMT"
+	content-md5 c8fdb181845a4ca6b8fec737b3581d76
+	x-amz-meta-author foo@bar.com
+	x-amz-magic abracadabra
+    }
+    set res [S3::authREST $verb $resource ${content-type} $headers]
+    dict get $res authorization
+} -result {AWS 44CF9590006BF252F707:jZNOcbfWmD/A/f3hSvVzXZjM2HU=}
+
+test S3-3.20 {Second documentation example of AUTH} -body {
+    S3::Configure -accesskeyid 44CF9590006BF252F707 \
+	-secretaccesskey OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV
+    set verb GET
+    set resource /quotes/nelson
+    set headers {
+	date XXXXXXX
+	x-amz-magic abracadabra
+	x-amz-date "Thu, 17 Nov 2005 18:49:58 GMT"
+    }
+    set res [S3::authREST $verb $resource "" $headers]
+    dict get $res authorization
+} -result {AWS 44CF9590006BF252F707:5m+HAmc5JsrgyDelh9+a2dNrzN8=}
+
+test S3-4.10 {REST Blocking list of buckets} -constraints "BucketIO REST" \
+	-setup S3loadKeys -body {
+    set req [dict create verb GET resource /]
+    set res [S3::REST $req]
+    return [list [lsort [dict keys $res]] [dict get $res httpstatus] \
+	[expr {0<[string length [dict get $res outbody]]}]]
+} -result {{httpmessage httpstatus outbody outheaders resource verb} 200 1}
+
+test S3-4.20 {REST Nonblocking list of buckets} -constraints "BucketIO REST" \
+	-setup S3loadKeys -body {
+    set req [dict create verb GET resource / resultvar ::S3RES]
+    set res [S3expectBackgroundREST $req]
+    return [list [lsort [dict keys $res]] [dict get $res httpstatus] \
+	[expr {0<[string length [dict get $res outbody]]}]]
+} -result {{httpmessage httpstatus outbody outheaders resource resultvar verb} 200 1}
+
+test S3-4.30 {REST blocking create bucket} -constraints "BucketIO REST" \
+	-setup S3loadKeys -body {
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b headers {x-amz-acl public-read}]
+    set res [S3::REST $req]
+    return [dict get $res httpstatus]
+} -result 200
+
+test S3-4.40 {REST get bucket acl} -constraints "BucketIO REST" \
+	-setup S3loadKeys -body {
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb GET resource /$b rtype acl]
+    set res [S3::REST $req]
+    set lookfor {<URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission>}
+    set found [expr {-1 != [string first $lookfor $res]}]
+    return [list $found [dict get $res httpstatus]]
+} -result "1 200"
+
+test S3-4.50 {REST blocking put,get,compare contents} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "This is a test. This is only a test.\nHad this been a real emergency, you would be dead.\n"
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t1.txt inbody $body \
+	headers {x-amz-acl public-read}]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb GET resource /$b/t1.txt rtype acl]
+    set res [S3::REST $req]
+    set lookfor {<URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission>}
+    set r2 [expr {-1 != [string first $lookfor $res]}]
+    set req [dict create verb GET resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r3 [string compare $body [dict get $res outbody]]
+    return [list $r1 $r2 $r3]
+} -result "200 1 0"
+
+test S3-4.60 {REST nonblocking put,get,compare contents} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "This is a test. This is only a test.\nHad this been a real emergency, you would be dead.\n"
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t1.txt inbody $body \
+	headers {x-amz-acl public-read} resultvar ::S3REST]
+    set res [S3expectBackgroundREST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb GET resource /$b/t1.txt rtype acl resultvar ::S3REST]
+    set res [S3expectBackgroundREST $req]
+    set lookfor {<URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission>}
+    set r2 [expr {-1 != [string first $lookfor $res]}]
+    set req [dict create verb GET resource /$b/t1.txt resultvar ::S3REST]
+    set res [S3expectBackgroundREST $req]
+    set r3 [string compare $body [dict get $res outbody]]
+    return [list $r1 $r2 $r3]
+} -result "200 1 0"
+
+test S3-4.70 {REST blocking put,delete} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "This is a test. This is only a test.\nHad this been a real emergency, you would be dead.\n"
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t1.txt inbody $body] 
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb DELETE resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    return [list $r1 $r2]
+} -result "200 204" ; # Delete returns "no content"
+
+test S3-4.80 {REST nonblocking put,delete} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "This is a test. This is only a test.\nHad this been a real emergency, you would be dead.\n"
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t1.txt inbody $body \
+	resultvar ::S3RES] 
+    set res [S3expectBackgroundREST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb DELETE resource /$b/t1.txt resultvar ::S3RES]
+    set res [S3expectBackgroundREST $req]
+    set r2 [dict get $res httpstatus]
+    return [list $r1 $r2]
+} -result "200 204" ; # Delete returns "no content"
+
+test S3-4.90 {REST blocking put,head,delete} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "This is a test. This is only a test.\nHad this been a real emergency, you would be dead.\n"
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t1.txt inbody $body]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    set r3 [string length [dict get $res outbody]]
+    set req [dict create verb DELETE resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r4 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5]
+} -result "200 200 0 204 404" 
+
+test S3-4.100 {REST blocking put,head,delete from big body} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set body [string repeat $body 50000] ; # Make body 500,000 bytes.
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t1.txt inbody $body]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    set r3 [string length [dict get $res outbody]]
+    set r4 [dict get $res outheaders content-length]
+    set req [dict create verb DELETE resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t1.txt]
+    set res [S3::REST $req]
+    set r6 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5 $r6]
+} -result "200 200 0 500000 204 404" 
+
+test S3-4.110 {REST nonblocking put,head,delete from big body} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set body [string repeat $body 50000] ; # Make body 500,000 bytes.
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t2.txt inbody $body resultvar ::S3RES]
+    set res [S3expectBackgroundREST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t2.txt]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    set r3 [string length [dict get $res outbody]]
+    set r4 [dict get $res outheaders content-length]
+    set req [dict create verb DELETE resource /$b/t2.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t2.txt]
+    set res [S3::REST $req]
+    set r6 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5 $r6]
+} -result "200 200 0 500000 204 404" 
+
+test S3-4.120 {REST nonblocking put,head,delete from big file} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set body [string repeat $body 50000] ; # Make body 500,000 bytes.
+    tcltest::makeFile "XXX" S3Tone.txt
+    set x [open S3Tone.txt w] ; puts -nonewline $x $body ; close $x
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t3.txt infile S3Tone.txt resultvar ::S3RES]
+    set res [S3expectBackgroundREST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    set r3 [string length [dict get $res outbody]]
+    set r4 [dict get $res outheaders content-length]
+    set req [dict create verb DELETE resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r6 [dict get $res httpstatus]
+    tcltest::removeFile S3Tone.txt
+    return [list $r1 $r2 $r3 $r4 $r5 $r6]
+} -result "200 200 0 500000 204 404" 
+
+test S3-4.130 {REST blocking put,head,delete from big file} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set body [string repeat $body 50000] ; # Make body 500,000 bytes.
+    tcltest::makeFile "XXX" S3Tone.txt
+    set x [open S3Tone.txt w] ; puts -nonewline $x $body ; close $x
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t3.txt infile S3Tone.txt]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    set r3 [string length [dict get $res outbody]]
+    set r4 [dict get $res outheaders content-length]
+    set req [dict create verb DELETE resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r6 [dict get $res httpstatus]
+    tcltest::removeFile S3Tone.txt
+    return [list $r1 $r2 $r3 $r4 $r5 $r6]
+} -result "200 200 0 500000 204 404" 
+
+test S3-4.140 {REST nonblocking put,get,delete into file} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set body [string repeat $body 50000] ; # Make body 500,000 bytes.
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t5.txt inbody $body resultvar ::S3RES]
+    set res [S3expectBackgroundREST $req]
+    set r1 [dict get $res httpstatus]
+    tcltest::makeFile "blah" S3Ttwo.txt
+    set x [open S3Ttwo.txt w] ; fconfigure $x -translation binary -encoding binary
+    set req [dict create verb GET resource /$b/t5.txt outchan $x]
+    set res [S3::REST $req]
+    close $x
+    set r2 [dict get $res httpstatus]
+    set r3 [file size S3Ttwo.txt]
+    tcltest::removeFile S3Ttwo.txt
+    set req [dict create verb DELETE resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r4 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t3.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5]
+} -result "200 200 500000 204 404" 
+
+test S3-4.150 {REST blocking put,get,delete into file} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set body [string repeat $body 50000] ; # Make body 500,000 bytes.
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b/t5.txt inbody $body]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    tcltest::makeFile "blah" S3Ttwo.txt
+    set x [open S3Ttwo.txt w] ; fconfigure $x -translation binary -encoding binary
+    set req [dict create verb GET resource /$b/t5.txt outchan $x]
+    set res [S3::REST $req]
+    close $x
+    set r2 [dict get $res httpstatus]
+    set r3 [file size S3Ttwo.txt]
+    tcltest::removeFile S3Ttwo.txt
+    set req [dict create verb DELETE resource /$b/t5.txt]
+    set res [S3::REST $req]
+    set r4 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource /$b/t5.txt]
+    set res [S3::REST $req]
+    set r5 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5]
+} -result "200 200 500000 204 404" 
+
+test S3-4.160 {REST blocking put,get,delete of file with encoded name} \
+	-constraints "ItemIO REST" \
+	-setup S3loadKeys -body {
+    set body "0123456789"
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set funky "/$b/zz+fun\(\)good?junk space"
+    append funky "&and_utf-8\u2211Sigma\u5927Da"
+    set req [dict create verb PUT resource $funky inbody $body]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    set req [dict create verb GET resource $funky]
+    set res [S3::REST $req]
+    set r2 [dict get $res httpstatus]
+    set req [dict create verb DELETE resource $funky]
+    set res [S3::REST $req]
+    set r3 [dict get $res httpstatus]
+    set req [dict create verb HEAD resource $funky]
+    set res [S3::REST $req]
+    set r4 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4]
+} -result "200 200 204 404" 
+
+test S3-4.170 {REST delete bucket} \
+	-constraints "BucketDeletion REST" \
+	-setup S3loadKeys -body {
+    # Bucket ought to be empty by now. 
+    # Of course, if a delete fails for some reason...
+    set b "TclTestS3.REST.[S3::Configure -accesskeyid]"
+    set req [dict create verb PUT resource /$b headers {x-amz-acl public-read}]
+    set res [S3::REST $req]
+    set r1 [dict get $res httpstatus]
+    after 5000 ; # Give AWS a chance to remember it.
+    set req [dict create verb DELETE resource /$b]
+    set res [S3::REST $req]
+    after 5000 ; # Give AWS a chance to remember it.
+    set r2 [dict get $res httpstatus]
+    set req [dict create verb GET resource /$b]
+    set res [S3::REST $req]
+    set r3 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3]
+} -result "200 204 404"
+
+test S3-10.10 {ListAllMyBuckets auth failure} -constraints BucketIO \
+	-body {
+    S3expectErr {
+	S3::Configure -accesskeyid 44CF9590006BF252F707 \
+	    -secretaccesskey OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV
+	S3::ListAllMyBuckets
+    }
+} -result "1 S3 remote 403" -match S3err
+
+test S3-10.20 {ListAllMyBuckets usage params} -body {
+    S3expectErr {
+	S3::ListAllMyBuckets -blocking false -parse-xml {} -result-type REST
+    }
+} -result "1 S3 usage -parse-xml" -match S3err
+
+test S3-10.30 {ListAllMyBuckets bad params two} -body {
+    S3expectErr {S3::ListAllMyBuckets -xyz hello}
+} -result "1 S3 usage -xyz" -match S3err
+
+test S3-10.40 {ListAllMyBuckets bad params three} -body {
+    S3expectErr {S3::ListAllMyBuckets -blocking false -parse-xml}
+} -result "1 S3 usage -parse-xml" -match S3err
+
+set testLAMB {<?xml version="1.0" encoding="UTF-8"?>
+<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Owner><Buckets><Bucket><Name>darren</Name><CreationDate>2006-10-29T07:04:48.000Z</CreationDate></Bucket><Bucket><Name>darren-test</Name><CreationDate>2006-10-29T07:04:48.000Z</CreationDate></Bucket><Bucket><Name>darren3</Name><CreationDate>2006-10-30T22:45:34.000Z</CreationDate></Bucket></Buckets></ListAllMyBucketsResult>}
+
+test S3-10.50 {ListAllMyBuckets result parsing RAW} -body {
+    S3::ListAllMyBuckets -parse-xml $testLAMB -result-type xml
+} -result $testLAMB
+
+test S3-10.60 {ListAllMyBuckets result parsing REST} -constraints BucketIO -body {
+    set dict [S3::ListAllMyBuckets -result-type REST]
+    dict get $dict httpstatus
+} -result "403"
+
+test S3-10.70 {ListAllMyBuckets result parsing PXML} -body {
+    set pxml [S3::ListAllMyBuckets -result-type pxml -parse-xml $testLAMB]
+    concat [lindex $pxml 0] [llength $pxml]
+} -result "ListAllMyBucketsResult 4"
+
+test S3-10.80 {ListAllMyBuckets result parsing NAMES} -body {
+    # Note these are defined to be alphabetical, so no sorting needed
+    S3::ListAllMyBuckets -result-type names -parse-xml $testLAMB
+} -result "darren darren-test darren3"
+
+test S3-10.90 {ListAllMyBuckets result parsing DICT} -body {
+    set dict [S3::ListAllMyBuckets -result-type dict -parse-xml $testLAMB]
+    puts [llength $dict]
+    puts [dict get $dict Owner/ID]
+    puts [dict get $dict Owner/DisplayName]
+    puts [dict get $dict Bucket/Name]
+    puts [dict get $dict Bucket/Date]
+} -output {8
+9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd
+dnew@san.rr.com
+darren darren-test darren3
+2006-10-29T07:04:48.000Z 2006-10-29T07:04:48.000Z 2006-10-30T22:45:34.000Z
+}
+
+test S3-10.100 {ListAllMyBuckets result parsing OWNER} -body {
+    S3::ListAllMyBuckets -result-type owner -parse-xml $testLAMB
+} -result {9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd dnew@san.rr.com}
+
+test S3-10.110 {ListAllMyBuckets result parsing error} -body {
+    S3expectErr [list S3::ListAllMyBuckets -result-type xyzzy \
+	-parse-xml $testLAMB]
+} -result "1 S3 usage -result-type" -match S3err
+
+test S3-10.120 {ListAllMyBuckets result parsing error} -body {
+    S3expectErr {S3::ListAllMyBuckets -result-type xyzzy -parse-xml "<Hello"}
+} -result "1 S3 usage xml" -match S3err
+
+test S3-10.130 {ListAllMyBuckets background good} -constraints BucketIO -body {
+    S3loadKeys
+    set x [S3expectBackground {S3::ListAllMyBuckets -result-type REST -blocking false}]
+    dict get $x httpstatus
+} -result "200" 
+
+test S3-10.140 {ListAllMyBuckets background bad} -constraints BucketIO -body {
+    S3loadKeys
+    S3expectErr {
+	S3expectBackground {
+	    S3::ListAllMyBuckets -result-type REST -blocking true
+	}
+    }
+} -result "1 S3 test afterRan"  -match S3err
+
+test S3-20.10 {PutBucket your own bucket} -constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3::PutBucket -bucket $b
+}
+
+test S3-20.20 {PutBucket someone else's bucket} -constraints BucketIO -body {
+    S3loadKeys
+    S3expectErr {S3::PutBucket -bucket /test/}
+} -result "1 S3 remote 409" -match S3err
+
+test S3-20.30 {PutBucket background failure} -constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3expectErr [list S3expectBackground [list S3::PutBucket -bucket $b]]
+} -result "1 S3 test afterRan" -match S3err
+
+test S3-20.40 {PutBucket background success} -constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3expectBackground [list S3::PutBucket -bucket $b -blocking false]
+}
+
+test S3-20.50 {PutBucket test no acl} -constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3::PutBucket -bucket $b 
+    set d1 [dict create verb GET resource /$b rtype acl]
+    set d2 [S3::REST $d1]
+    set d3 [string first "READ" $d2]
+    return [expr -1 == $d3]
+} -result 1
+
+test S3-20.60 {PutBucket test pubread acl} -constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3::PutBucket -bucket $b -acl public-read
+    set d1 [dict create verb GET resource /$b rtype acl]
+    set d2 [S3::REST $d1]
+    set d3 [string first "AllUsers" $d2]
+    set d4 [string first "READ" $d2]
+    return [expr 0 < $d3 && $d3 < $d4]
+} -result 1
+
+test S3-20.70 {PutBucket test given overrides default acl} \
+	-constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3::Configure -default-acl public-read-write
+    S3::PutBucket -bucket $b -acl public-read
+    S3::Configure -reset true
+    S3loadKeys
+    set d1 [dict create verb GET resource /$b rtype acl]
+    set d2 [S3::REST $d1]
+    set d3 [string first "AllUsers" $d2]
+    set d4 [string first "READ" $d2]
+    set d5 [string first "WRITE" $d2]
+    return [expr 0 < $d3 && $d3 < $d4 && $d5 == -1]
+} -result 1
+
+test S3-20.80 {PutBucket test default acl} -constraints BucketIO -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    S3::Configure -default-acl public-read-write
+    S3::PutBucket -bucket $b 
+    S3::Configure -reset true
+    S3loadKeys
+    set d1 [dict create verb GET resource /$b rtype acl]
+    set d2 [S3::REST $d1]
+    set d3 [string first "AllUsers" $d2]
+    set d4 [string first "READ" $d2]
+    set d5 [string first "WRITE" $d2]
+    return [expr 0 < $d3 && $d3 < $d4 && $d3 < $d5]
+} -result 1
+
+test S3-30.10 {DeleteBucket error} \
+	-constraints "BucketIO BucketDeletion" -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    after 10000 ; # Wait for amazon to catch up
+    S3expectErr {S3::DeleteBucket}
+} -result "1 S3 usage -bucket" -match S3err
+
+test S3-30.20 {DeleteBucket good} \
+	-constraints "BucketIO BucketDeletion" -body {
+    S3loadKeys
+    set b [S3::SuggestBucket TclTestS3]
+    after 10000 ; # Wait for amazon to catch up
+    set x [S3::DeleteBucket -bucket $b]
+    after 10000 ; # Wait for amazon to catch up
+    return $x
+}
+
+test S3-30.30 {DeleteBucket fails on someone else's bucket} \
+	-constraints "BucketIO BucketDeletion" -body {
+    S3loadKeys
+    set b "test"
+    after 10000 ; # Wait for amazon to catch up
+    S3expectErr [list S3::DeleteBucket -bucket $b]
+} -result "1 S3 remote 403" -match S3err
+
+# Since bucket create/delete is high overhead for Amazon,
+# and it's flakey as well, don't test the background version,
+# since it uses the same code.
+
+# OK, since we need a bucket to test stuff, let's continue on.
+S3loadKeys
+set bucket [S3::SuggestBucket TclTestS3b]
+set req [dict create verb HEAD resource /$bucket]
+set res [S3::REST $req]
+set r1 [dict get $res httpstatus]
+set req [dict create verb HEAD resource /$bucket/fred]
+set res [S3::REST $req]
+set r2 [dict get $res httpstatus]
+if {200 != $r1 || 200 != $r2} {
+    S3::PutBucket -bucket $bucket
+    if {[tcltest::testConstraint Directory]} {
+	for {set i 0} {$i < 25} {incr i} {
+	    puts "Creating $i of 25"
+	    for {set j 0} {$j < 10} {incr j} {
+		set q [format %02d $i]
+		set d [S3::REST \
+		    [dict create verb PUT resource /$bucket/thing/$q/$j \
+			inbody "This is $j inside $i"]]
+		S3::throwhttp $d
+	    }
+	}
+    }
+    S3::REST [dict create verb PUT resource /$bucket/fred inbody "Fred"]
+    S3::REST [dict create verb PUT resource /$bucket/barney inbody "Barney"]
+    S3::REST [dict create verb PUT resource /$bucket/wilma inbody "Wilma"]
+    S3::REST [dict create verb PUT resource /$bucket/betty inbody "Betty"]
+    S3::REST [dict create verb PUT resource /$bucket/cartman inbody "Cartman" ]
+    S3::REST [dict create verb PUT resource /$bucket/cartoon/tweety \
+	inbody "Tweety"]
+    S3::REST [dict create verb PUT resource /$bucket/cartoon/sylvester \
+	inbody "Sylvester"]
+    S3::REST [dict create verb PUT resource "/$bucket/cartoon/road runner" \
+	inbody "RoadRunner"]
+    S3::REST [dict create verb PUT resource "/$bucket/cartoon/wile e. coyote" \
+	inbody "Coyote"]
+}
+
+# Note that -result-type REST or xml or pxml without a maxcount all
+# return lists of results of that type, since they don't really merge well.
+test S3-40.10 {GetBucket basic call} -constraints BucketIO -body {
+    set res [S3::GetBucket -bucket $bucket -result-type REST]
+    set x1 [llength $res]
+    set x2 [dict get [lindex $res 0] httpstatus]
+    return "$x1 $x2"
+} -result "1 200"
+
+test S3-40.20 {GetBucket get xml} -constraints BucketIO -body {
+    set res [S3::GetBucket -bucket $bucket -result-type xml]
+    set x1 [llength $res]
+    set x2 [lindex $res 0]
+    set x3 [lindex [::xsxp::parse $x2] 0]
+    return "$x1 $x3"
+} -result "1 ListBucketResult"
+
+test S3-40.30 {GetBucket get pxml} -constraints BucketIO -body {
+    set res [S3::GetBucket -bucket $bucket -result-type pxml]
+    set x1 [llength $res]
+    set x2 [lindex $res 0]
+    set x3 [lindex $x2 0]
+    return "$x1 $x3"
+} -result "1 ListBucketResult"
+
+test S3-40.40 {GetBucket names} -constraints BucketIO -body {
+    set r1 [S3::GetBucket -bucket $bucket -result-type names]
+    set r2 [lsort $r1]
+    set r3 [lsort -unique $r1]
+    return [list [llength $r1] [expr {$r1 eq $r2}] [expr {$r2 eq $r3}]]
+} -result "259 1 1"
+
+test S3-40.50 {GetBucket simple looping} -constraints BucketIO -body {
+    set res [S3::GetBucket -bucket $bucket -result-type REST -TEST 50]
+    return [llength $res]
+} -result "6" ; # 259, 50 at a time.
+
+test S3-40.60 {GetBucket looping, return names} -constraints BucketIO -body {
+    set r1 [S3::GetBucket -bucket $bucket -result-type names -TEST 50]
+    set r2 [lsort $r1]
+    set r3 [lsort -unique $r1]
+    return [list [llength $r1] [expr {$r1 eq $r2}] [expr {$r2 eq $r3}]]
+    return [llength $res]
+} -result "259 1 1"; # Shouldn't see the inners here.
+
+test S3-40.70 {GetBucket looping, return dict} -constraints BucketIO -body {
+    set res [S3::GetBucket -bucket $bucket -result-type dict -TEST 50]
+    set r1 [llength [dict get $res Key]]
+    set r2 [string compare [dict get $res Key] [lsort [dict get $res Key]]]
+    set r3 [llength [dict get $res LastModified]]
+    set r4 [llength [dict get $res ETag]]
+    set r5 [llength [dict get $res Size]]
+    set r6 [llength [dict get $res Owner/ID]]
+    set r7 [llength [dict get $res Owner/DisplayName]]
+    set r8 [llength [dict get $res CommonPrefixes/Prefix]]
+    return "$r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8"
+} -result "259 0 259 259 259 259 259 0"
+
+test S3-40.80 {GetBucket non-looping, return dict} -constraints BucketIO -body {
+    set res [S3::GetBucket -bucket $bucket -result-type dict]
+    set r1 [llength [dict get $res Key]]
+    set r2 [string compare [dict get $res Key] [lsort [dict get $res Key]]]
+    set r3 [llength [dict get $res LastModified]]
+    set r4 [llength [dict get $res ETag]]
+    set r5 [llength [dict get $res Size]]
+    set r6 [llength [dict get $res Owner/ID]]
+    set r7 [llength [dict get $res Owner/DisplayName]]
+    set r8 [llength [dict get $res CommonPrefixes/Prefix]]
+    return "$r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8"
+} -result "259 0 259 259 259 259 259 0"
+
+test S3-40.90 {GetBucket looping, prefix} -constraints BucketIO -body {
+    set r [S3::GetBucket -bucket $bucket \
+	-result-type names -TEST 50 -prefix "car"]
+    join $r \n
+} -result {cartman
+cartoon/road runner
+cartoon/sylvester
+cartoon/tweety
+cartoon/wile e. coyote}
+
+test S3-40.100 {GetBucket delimiter, prefix} -constraints BucketIO -body {
+    S3::GetBucket -bucket $bucket -result-type names -TEST 50 \
+	-prefix /thing/ -delimiter /
+} -result {thing/00/ thing/01/ thing/02/ thing/03/ thing/04/ thing/05/ thing/06/ thing/07/ thing/08/ thing/09/ thing/10/ thing/11/ thing/12/ thing/13/ thing/14/ thing/15/ thing/16/ thing/17/ thing/18/ thing/19/ thing/20/ thing/21/ thing/22/ thing/23/ thing/24/}
+
+test S3-40.110 {GetBucket delimiter, prefix again} -constraints BucketIO -body {
+    S3::GetBucket -bucket $bucket -result-type names -TEST 50 \
+	-prefix thing -delimiter /
+} -result {thing/}
+
+test S3-40.120 {GetBucket delimiter, no prefix} -constraints BucketIO -body {
+    S3::GetBucket -bucket $bucket -result-type names -TEST 50 -delimiter /
+} -result {barney betty cartman cartoon/ fred thing/ wilma}
+
+test S3-40.130 {GetBucket no default bucket} -constraints BucketIO -body {
+    S3expectErr {
+	S3::GetBucket -result-type names -TEST 50 -delimiter /
+    }
+} -result "1 S3 usage -bucket" -match S3err
+
+test S3-40.140 {GetBucket with default bucket} -constraints BucketIO -body {
+    S3::Configure -default-bucket $bucket
+    set res [S3::GetBucket -result-type names -TEST 50 -delimiter /]
+    S3::Configure -default-bucket ""
+    return $res
+} -result {barney betty cartman cartoon/ fred thing/ wilma}
+
+set bucket [S3::SuggestBucket TclTestS3] ; # Maybe delete later.
+
+proc getbody {resource} {
+    set req [dict create verb GET resource $resource]
+    set res [S3::REST $req]
+    S3::throwhttp $res
+    set body [dict get $res outbody]
+    return $body
+}
+
+proc delbody {resource} {
+    set req [dict create verb DELETE resource $resource]
+    set res [S3::REST $req]
+    S3::throwhttp $res
+}
+
+proc existsbody {resource} {
+    set req [dict create verb HEAD resource $resource]
+    set res [S3::REST $req]
+    return [expr {[dict get $res httpstatus] eq "200"}]
+}
+
+# Make a setup/cleanup pair for checking constraints on PUT and GET
+set pgsu {
+    # Create an old file, and a new file, with different contents
+    tcltest::makeFile "FILEONE" S3Tone.txt
+    tcltest::makeFile "FILETWO" S3Ttwo.txt
+    tcltest::makeFile "FILETHREE" S3Tthree.txt
+    tcltest::makeFile "This is some random content" S3Talpha.txt
+    tcltest::makeFile "This is some random content" S3Tbeta.txt
+    tcltest::makeFile "This is some random content" S3Tgamma.txt
+    tcltest::makeFile "Junk contents" S3junk.txt
+    set now [clock seconds]
+    file mtime S3Tone.txt [expr $now-300]
+    file mtime S3Ttwo.txt [expr $now+300]
+    file mtime S3Tbeta.txt [expr $now+300]
+    S3::REST [dict create verb PUT resource /$bucket/ABC inbody "ABC HERE" \
+	headers {x-amz-meta-thing stuff} content-type application/tcltest]
+    if {[file exists S3junk.txt]} {file delete S3junk.txt}
+}
+
+set pgcu {
+    tcltest::removeFile S3Tone.txt
+    tcltest::removeFile S3Ttwo.txt
+    tcltest::removeFile S3Tthree.txt
+    tcltest::removeFile S3Talpha.txt
+    tcltest::removeFile S3Tbeta.txt
+    tcltest::removeFile S3Tgamma.txt
+    if {[file exists S3junk.txt]} {file delete S3junk.txt}
+    if {[existsbody /$bucket/XYZ]} {delbody /$bucket/XYZ}
+    if {[existsbody /$bucket/PDQ]} {delbody /$bucket/PDQ}
+    if {[existsbody /$bucket/ABC]} {delbody /$bucket/ABC}
+}
+
+
+test S3-50.10 {Put, basic content} -constraints "Put ItemIO" -body {
+    set c "This is a test\n"
+    set x [S3::Put -bucket $bucket -content $c -resource "XYZ"]
+    set y [getbody /$bucket/XYZ]
+    set z [expr {$y eq $c}]
+    return "$x $z"
+} -cleanup {
+    delbody /$bucket/XYZ
+} -result "1 1"
+
+test S3-50.20 {Put, with a file} -constraints "Put ItemIO" -setup {
+    set c "This is the second test.\nIt is still a test.\n"
+    tcltest::makeFile $c "S3junk.txt" 
+} -body {
+    set x [S3::Put -bucket $bucket -file "S3junk.txt" -resource "XYZ"]
+    set y [getbody /$bucket/XYZ]
+    set z [expr {$y eq $c}]
+    return "$x $z"
+} -cleanup {
+    delbody /$bucket/XYZ
+    tcltest::removeFile "S3junk.txt"
+} -result "1 1"
+
+test S3-50.30 {Put with ACL, content-type, meta} \
+	-constraints "Put ItemIO" -setup {
+    set c "This is the third test.\nIt is still a test.\n"
+    tcltest::makeFile $c "S3junk.txt" 
+} -body {
+    set x [S3::Put -bucket $bucket -file "S3junk.txt" -resource "XYZ" \
+	-content-type "application/frobulate" -acl "public-read" \
+        -x-amz-meta-one ONE -x-amz-meta-two TWO]
+    set y {} ; set z {} 
+    set req [dict create verb GET resource /$bucket/XYZ]
+    set res [S3::REST $req]
+    S3::throwhttp $res
+    set headers [dict get $res outheaders]
+    set y [dict get $headers content-type]
+    set w1 [dict get $headers x-amz-meta-one]
+    set w2 [dict get $headers x-amz-meta-two]
+
+    set d1 [dict create verb GET resource /$bucket/XYZ rtype acl]
+    set d2 [S3::REST $d1]
+    set d3 [string first "AllUsers" $d2]
+    set d4 [string first "READ" $d2]
+    set z [expr 0 < $d3 && $d3 < $d4]
+    return [list $x $y $z $w1 $w2]
+} -cleanup {
+    delbody /$bucket/XYZ
+    tcltest::removeFile "S3junk.txt"
+} -result "1 application/frobulate 1 ONE TWO"
+
+test S3-50.40 {Put -compare never} -constraints "Put ItemIO" -body {
+    set x [S3::Put -file S3junk.txt -bucket $bucket -resource "XYZ" \
+	-compare never]
+    set y [existsbody /$bucket/XYZ]
+    return "$x $y"
+} -cleanup {
+    if {[existsbody /$bucket/XYZ]} {delbody /$bucket/XYZ}
+} -result "0 0"
+
+test S3-50.50 {Put -compare always} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    set x [S3::Put -file S3Talpha.txt -bucket $bucket -resource "XYZ" \
+	-compare always]
+    set y [existsbody /$bucket/XYZ]
+    set z [S3::Put -file S3Talpha.txt -bucket $bucket -resource "XYZ" \
+	-compare always]
+    return "$x $y $z"
+} -result "1 1 1"
+
+test S3-50.60 {Put -compare exists} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    set x1 [S3::Put -file S3Tone.txt -bucket $bucket -resource "XYZ" \
+	-compare exists]
+    set x2 [existsbody /$bucket/XYZ]
+    S3::Put -file S3Tone.txt -bucket $bucket -resource "XYZ" ; # really make it
+    set y1 [S3::Put -file S3Ttwo.txt -bucket $bucket -resource "XYZ" \
+	-compare exists]
+    set y2 [existsbody /$bucket/XYZ]
+    set y3 [string trim [getbody /$bucket/XYZ]]
+    return [list $x1 $x2 $y1 $y2 $y3]
+} -result "0 0 1 1 FILETWO"
+
+test S3-50.70 {Put -compare missing} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    set x1 [S3::Put -file S3Tone.txt -bucket $bucket -resource "XYZ" \
+	-compare missing]
+    set x2 [existsbody /$bucket/XYZ]
+    set y1 [S3::Put -file S3Ttwo.txt -bucket $bucket -resource "XYZ" \
+	-compare missing]
+    set y2 [existsbody /$bucket/XYZ]
+    set y3 [string trim [getbody /$bucket/XYZ]]
+    return [list $x1 $x2 $y1 $y2 $y3]
+} -result "1 1 0 1 FILEONE"
+
+test S3-50.80 {Put -compare newer} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    # Create the file with the current date
+    S3::Put -file S3Tthree.txt -bucket $bucket -resource "XYZ"
+    # Make sure ONE (old) doesn't overwrite it.
+    set x1 [S3::Put -file S3Tone.txt -bucket $bucket -resource "XYZ" \
+	-compare newer]
+    set x2 [string trim [getbody /$bucket/XYZ]]
+    set y1 [S3::Put -file S3Ttwo.txt -bucket $bucket -resource "XYZ" \
+	-compare newer]
+    set y2 [string trim [getbody /$bucket/XYZ]]
+    return [list $x1 $x2 $y1 $y2]
+} -result "0 FILETHREE 1 FILETWO"
+
+test S3-50.90 {Put -compare date} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    S3::Configure -slop-seconds 60
+    S3::Put -file S3Tthree.txt -bucket $bucket -resource "XYZ"
+    set x1 [S3::Put -file S3Tone.txt -bucket $bucket -resource "XYZ" \
+	-compare date]
+    set x2 [string trim [getbody /$bucket/XYZ]]
+    set y1 [S3::Put -file S3Tthree.txt -bucket $bucket -resource "XYZ" \
+	-compare date]
+    set y2 [string trim [getbody /$bucket/XYZ]]
+    set z1 [S3::Put -file S3Tthree.txt -bucket $bucket -resource "PDQ" \
+	-compare date]
+    set z2 [string trim [getbody /$bucket/PDQ]]
+    return [list $x1 $x2 $y1 $y2 $z1 $z2]
+} -result "1 FILEONE 0 FILEONE 1 FILETHREE"
+
+test S3-50.100 {Put -compare checksum} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    S3::Put -file S3Talpha.txt -bucket $bucket -resource "XYZ"
+    set x1 [S3::Put -file S3Tbeta.txt -bucket $bucket -resource "XYZ" \
+	-compare checksum]
+    set x2 [S3::Put -file S3Tbeta.txt -bucket $bucket -resource "PDQ" \
+	-compare checksum]
+    set x3 [S3::Put -content "This is some random content\n" \
+	-bucket $bucket -resource "XYZ" \
+	-compare checksum]
+    set funky  "One\u2211Sigma\u5927Da"
+    S3::Put -content $funky -bucket $bucket -resource "XYZ"
+    set x4 [S3::Put -content $funky -bucket $bucket -resource "XYZ" \
+	-compare checksum]
+    return [list $x1 $x2 $x3 $x4]
+} -result "0 1 0 0"
+
+test S3-50.110 {Put -compare different} \
+	-setup $pgsu -cleanup $pgcu -constraints "Put ItemIO" -body {
+    S3::Configure -slop-seconds 60
+    S3::Put -file S3Talpha.txt -bucket $bucket -resource "XYZ"
+    set x1 [S3::Put -file S3Tbeta.txt -bucket $bucket -resource "XYZ" \
+	-compare different]
+    set x2 [S3::Put -file S3Tgamma.txt -bucket $bucket -resource "XYZ" \
+	-compare different]
+    set x3 [S3::Put -file S3Tthree.txt -bucket $bucket -resource "XYZ" \
+	-compare different]
+    set x4 [string trim [getbody /$bucket/XYZ]]
+    set x5 [S3::Put -content "FILETHREE\n" -bucket $bucket -resource "XYZ" \
+	-compare different]
+    return [list $x1 $x2 $x3 $x4 $x5]
+} -result "1 0 1 FILETHREE 0"
+
+test S3-50.120 {Put -compare error} -constraints "Put ItemIO" -body {
+    S3expectErr [list S3::Put -content "STUFF" \
+	-bucket $bucket -resource "XYZ" \
+	-compare other]
+} -result "1 S3 usage -compare" -match S3err
+
+test S3-50.130 {Put -file nonexistant} -constraints "Put ItemIO" -body {
+    S3expectErr [list S3::Put -file nonexistant.txt \
+	-bucket $bucket -resource "XYZ"]
+} -result "1 S3 usage -file" -match S3err
+
+
+test S3-60.10 {Get, basic content} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x [S3::Get -bucket $bucket -content abc -resource "ABC"]
+    set y [getbody /$bucket/ABC]
+    set z [expr {$y eq $abc}]
+    return "$x $z"
+} -result "1 1"
+
+test S3-60.20 {Get, with a file} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x [S3::Get -bucket $bucket -file "S3junk.txt" -resource "ABC"]
+    set y [tcltest::viewFile S3junk.txt]
+    set z [expr {$y eq "ABC HERE"}]
+    return "$x $z"
+} -result "1 1"
+
+test S3-60.30 {Get with meta} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x [S3::Get -bucket $bucket -file "S3junk.txt" -resource "ABC" \
+	-headers thishead] 
+    set y [dict get $thishead content-type]
+    set z [dict get $thishead x-amz-meta-thing]
+    return [list $x $y $z]
+} -result "1 application/tcltest stuff"
+
+test S3-60.40 {Get -compare never} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x [S3::Get -file S3junk.txt -bucket $bucket -resource "ABC" \
+	-compare never]
+    set y [file exists S3junk.txt]
+    return "$x $y"
+} -result "0 0"
+
+test S3-60.50 {Get -compare always} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x [S3::Get -file S3junk.txt -bucket $bucket -resource "ABC" \
+	-compare always]
+    set y [file exists S3junk.txt]
+    set z [S3::Get -file S3junk.txt -bucket $bucket -resource "ABC" \
+	-compare always]
+    set q [S3::Get -content plover -bucket $bucket -resource "ABC" \
+	-compare always]
+    return "$x $y $z $q $plover"
+} -result "1 1 1 1 ABC HERE"
+
+test S3-60.60 {Get -compare exists} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+set x0 [file exists S3junk.txt]
+    set x1 [S3::Get -file S3junk.txt -bucket $bucket -resource "ABC" \
+	-compare exists]
+    set x2 [file exists S3junk.txt]
+    set y1 [S3::Get -file S3Tone.txt -bucket $bucket -resource "ABC" \
+	-compare exists]
+    set y2 [file exists S3Tone.txt]
+    set y3 [tcltest::viewFile S3Tone.txt]
+    return [list $x0 $x1 $x2 $y1 $y2 $y3]
+} -result "0 0 0 1 1 {ABC HERE}"
+
+test S3-60.70 {Get -compare missing} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x1 [S3::Get -file S3Tone.txt -bucket $bucket -resource "ABC" \
+	-compare missing]
+    set x2 [file exists S3Tone.txt]
+    set y1 [S3::Get -file S3junk.txt -bucket $bucket -resource "ABC" \
+	-compare missing]
+    set y2 [file exists S3junk.txt]
+    set y3 [tcltest::viewFile S3junk.txt]
+    return [list $x1 $x2 $y1 $y2 $y3]
+} -result "0 1 1 1 {ABC HERE}"
+
+test S3-60.80 {Get -compare newer} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    set x1 [S3::Get -file S3Tone.txt -bucket $bucket -resource "ABC" \
+	-compare newer]
+    set x2 [tcltest::viewFile S3Tone.txt]
+    set y1 [S3::Get -file S3Ttwo.txt -bucket $bucket -resource "ABC" \
+	-compare newer]
+    set y2 [tcltest::viewFile S3Ttwo.txt]
+    set z1 [S3::Get -file S3junk.txt -bucket $bucket -resource "ABC" \
+	-compare newer]
+    set z2 [tcltest::viewFile S3junk.txt]
+    set w1 [S3::Get -content w2 -bucket $bucket -resource "ABC" \
+	-compare newer]
+
+    return [list $x1 $x2 $y1 $y2 $z1 $z2 $w1 $w2]
+} -result "1 {ABC HERE} 0 FILETWO 1 {ABC HERE} 1 {ABC HERE}"
+
+test S3-60.90 {Get -compare date} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    S3::Configure -slop-seconds 60
+    set x1 [S3::Get -file S3Tone.txt -bucket $bucket -resource "ABC" \
+	-compare date]
+    set x2 [tcltest::viewFile S3Tone.txt]
+    set y1 [S3::Get -file S3Ttwo.txt -bucket $bucket -resource "ABC" \
+	-compare date]
+    set y2 [tcltest::viewFile S3Ttwo.txt]
+    set z1 [S3::Get -file S3Tthree.txt -bucket $bucket -resource "ABC" \
+	-compare date]
+    set z2 [tcltest::viewFile S3Tthree.txt]
+    set w1 [S3::Get -content w2 -bucket $bucket -resource "ABC" \
+	-compare date]
+    return [list $x1 $x2 $y1 $y2 $z1 $z2 $w1 $w2]
+} -result "1 {ABC HERE} 1 {ABC HERE} 0 FILETHREE 1 {ABC HERE}"
+
+test S3-60.100 {Get -compare checksum} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    S3::Put -file S3Talpha.txt -bucket $bucket -resource "XYZ"
+    set x1 [S3::Get -file S3Tbeta.txt -bucket $bucket -resource "XYZ" \
+	-compare checksum]
+    set x2 [S3::Get -file S3Tbeta.txt -bucket $bucket -resource "ABC" \
+	-compare checksum]
+    set x3 [tcltest::viewFile S3Tbeta.txt]
+    set x4 [S3::Get -content x5 -bucket $bucket -resource "ABC" \
+	-compare checksum]
+    return [list $x1 $x2 $x3 $x4 $x5]
+} -result "0 1 {ABC HERE} 1 {ABC HERE}"
+
+test S3-60.110 {Get -compare different} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    S3::Configure -slop-seconds 60
+    S3::Put -file S3Talpha.txt -bucket $bucket -resource "XYZ"
+    set x0 [S3::Get -file S3junk.txt -bucket $bucket -resource "XYZ" \
+	-compare different] ; # Yes, file nonexistant
+    set x1 [S3::Get -file S3Talpha.txt -bucket $bucket -resource "XYZ" \
+	-compare different] ; # no, same date, same contents
+    set x2 [S3::Get -file S3Tbeta.txt -bucket $bucket -resource "XYZ" \
+	-compare different] ; # Yes, diff date, same contents.
+    set x3 [S3::Get -file S3Tbeta.txt -bucket $bucket -resource "ABC" \
+	-compare different] ; # Yes, diff contents, same date
+    set x4 [S3::Get -content x5 -bucket $bucket -resource "ABC" \
+	-compare different] ; # Yes, variable
+    set x6 [tcltest::viewFile S3Tbeta.txt]
+    return [list $x0 $x1 $x2 $x3 $x4 $x5 $x6]
+} -result "1 0 1 1 1 {ABC HERE} {ABC HERE}"
+
+test S3-60.120 {Get -compare error} -constraints "Get ItemIO" -body {
+    S3expectErr [list S3::Get -file S3Tone.txt \
+	-bucket $bucket -resource "XYZ" \
+	-compare other]
+} -result "1 S3 usage -compare" -match S3err
+
+test S3-60.130 {Get resource nonexistant, file nonexistant A} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    S3expectErr [list S3::Get -file nonexistant.txt \
+	-bucket $bucket -resource "XYZ"]
+} -result "1 S3 remote 404" -match S3err
+
+test S3-60.131 {Get resource nonexistant, file nonexistant B} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    catch {S3::Get -file nonexistant.txt -bucket $bucket -resource "XYZ"}
+    file exists nonexistant.txt
+} -result "0" 
+
+test S3-60.132 {Get resource nonexistant, file existant B} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    S3expectErr [list S3::Get -file S3Talpha.txt \
+	-bucket $bucket -resource "XYZ"]
+} -result "1 S3 remote 404" -match S3err
+
+test S3-60.133 {Get resource nonexistant, file existant A} \
+	-setup $pgsu -cleanup $pgcu -constraints "Get ItemIO" -body {
+    catch {S3::Get -file S3Talpha.txt -bucket $bucket -resource "XYZ"}
+    file exists S3Talpha.txt
+} -result "1" 
+
+test S3-60.140 {Get with -timestamp options} \
+	-constraints "Get ItemIO" -body {
+    # This test assumes your clock and amazon's clock are within 10 seconds
+    tcltest::makeFile "RandomJunk" ts1.txt
+    tcltest::makeFile "RandomJunk" ts2.txt
+    after 10000
+    S3::Put -content "More random junk" -bucket $bucket -resource "TIMESTAMP"
+    after 5000
+    set tick [clock seconds]
+    after 5000
+    S3::Get -file ts1.txt -timestamp aws -bucket $bucket -resource "TIMESTAMP"
+    S3::Get -file ts2.txt -timestamp now -bucket $bucket -resource "TIMESTAMP"
+    set x1 [file mtime ts1.txt]
+    set x2 [file mtime ts2.txt]
+    return [list [expr $x1 < $tick] [expr $x2 < $tick]]
+} -cleanup {
+    tcltest::removeFile ts1.txt
+    tcltest::removeFile ts2.txt
+    if {[existsbody /$bucket/TIMESTAMP]} {delbody /$bucket/TIMESTAMP}
+} -result "1 0"
+
+test S3-70.10 {Head, resource exists} \
+	-setup $pgsu -cleanup $pgcu -constraints "Head ItemIO" -body {
+    set x1 [S3::Head -bucket $bucket -resource "ABC" -dict dict \
+	-headers headers -status status]
+    return [list $x1 [dict get $dict httpmessage] [dict exists $headers last-modified] $status] 
+} -result "1 OK 1 {200 OK}"
+
+test S3-70.20 {Head, resource does not exist} \
+	-setup $pgsu -cleanup $pgcu -constraints "Head ItemIO" -body {
+    set x1 [S3::Head -bucket $bucket -resource "XYZ" -dict dict \
+	-headers headers -status status]
+    return [list $x1 $status]
+} -result "0 {404 {Not Found}}"
+
+test S3-80.10 {Delete, resource exists} \
+	-setup $pgsu -cleanup $pgcu -constraints "Delete ItemIO" -body {
+    set x1 [S3::Delete -bucket $bucket -resource "ABC" -status status]
+    return [list $x1 $status]
+} -result "1 {204 {No Content}}"
+
+test S3-80.20 {Delete, resource nonexistant} \
+	-setup $pgsu -cleanup $pgcu -constraints "Delete ItemIO" -body {
+    set x1 [S3::Delete -bucket $bucket -resource "XYZ" -status status]
+    return [list $x1 $status]
+} -result "1 {204 {No Content}}"
+
+test S3-80.30 {Delete, resource not mine} \
+	-setup $pgsu -cleanup $pgcu -constraints "Delete ItemIO" -body {
+    # Note that ami.prizecapital.net is also mine, but owned by a client.
+    set x1 [S3::Delete -bucket "ami.prizecapital.net" \
+	-resource "README.txt" -status status]
+    return [list $x1 $status]
+} -result "0 {403 Forbidden}"
+
+test S3-90.10 {GetAcl REST} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+#set x1 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type xml]
+#puts "\n\n$x1\n\n"
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type REST]
+    return [list [dict get $x2 httpstatus] [string index [dict get $x2 outbody] 0]]
+} -result "200 <"
+
+#test S3-90.11 {GetAcl XML} \
+	#-setup $pgsu -constraints "Zap" -body {
+    #set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type xml]
+    #set x3 [open xyzzy.xml w] 
+    #fconfigure $x3 -translation binary -encoding binary 
+    #puts $x3 $x2
+    #close $x3
+    #exit
+    #set x2 [S3::PutAcl -bucket $bucket -resource "ABC" -acl \
+	#[string trim [read [open xyzzy.xml]]]]
+    #puts $x2 ; exit
+#} -result 1
+
+test S3-90.20 {GetAcl pxml} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type pxml]
+    return [list [lindex $x2 0] [lindex $x2 2 0]]
+} -result "AccessControlPolicy Owner"
+
+test S3-90.30 {GetAcl dict} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set owner [dict get $x2 owner]
+    set acl [dict get $x2 acl]
+    set z1 [dict get $acl FULL_CONTROL]
+    set z2 [expr {$owner == $z1}]
+    return $z2
+} -result "1"
+
+test S3-90.40 {GetAcl -parse-xml} \
+	-constraints "Acl" -body {
+    set xml {<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Owner><AccessControlList><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group"><URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>FULL_CONTROL</Permission></Grant><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd</ID><DisplayName>dnew@san.rr.com</DisplayName></Grantee><Permission>FULL_CONTROL</Permission></Grant><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>a5ee16f393707820a7f2d58631351fe839972d25865f8fc423a754d77523e6d4</ID><DisplayName>darren</DisplayName></Grantee><Permission>READ</Permission></Grant><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>a1bf9e3c79a243e04e31bf3d1f532aca94646ab917c188831241bf5d575fee92</ID><DisplayName>Darren</DisplayName></Grantee><Permission>WRITE</Permission></Grant></AccessControlList></AccessControlPolicy>}
+    set x2 [S3::GetAcl -parse-xml $xml -result-type dict]
+    return $x2
+} -result "owner 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd acl {READ a5ee16f393707820a7f2d58631351fe839972d25865f8fc423a754d77523e6d4 WRITE a1bf9e3c79a243e04e31bf3d1f532aca94646ab917c188831241bf5d575fee92 FULL_CONTROL {http://acs.amazonaws.com/groups/global/AllUsers 9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd}}"
+
+test S3-90.50 {PutAcl private} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl private]
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    return [list [string range $x1 0 19] $x4 [lindex $x3 0]]
+} -result "<AccessControlPolicy 2 FULL_CONTROL"
+
+test S3-90.60 {PutAcl nonexistant get} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    S3expectErr [list S3::PutAcl -bucket $bucket -resource XYZ -acl private]
+} -result "1 S3 remote 404" -match S3err
+
+test S3-90.70 {PutAcl nonexistant put} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set owner [dict get $x2 owner]
+    S3expectErr [list S3::PutAcl -owner $owner \
+	-bucket $bucket -resource XYZ -acl private]
+} -result "1 S3 remote 404" -match S3err
+
+test S3-90.80 {PutAcl from xml} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x0 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type xml]
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl $x0]
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    if {"<?xml" == [string range $x1 0 4]} {
+	set x1 [string range $x1 [expr 1+[string first "\n" $x1]] end]
+    }
+    return [list [string range $x1 0 19] $x4 [lindex $x3 0]]
+} -result "<AccessControlPolicy 2 FULL_CONTROL"
+
+test S3-90.90 {PutAcl public} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    S3expectErr [list S3::PutAcl -bucket $bucket -resource "ABC" -acl public]
+} -result "1 S3 usage -acl public" -match S3err
+
+test S3-90.100 {PutAcl public-read} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl public-read]
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    set x5 [lsort [dict keys $x3]]
+    return [list [string range $x1 0 19] $x4 $x5]
+} -result "<AccessControlPolicy 4 {FULL_CONTROL READ}"
+
+test S3-90.110 {PutAcl public-read-write} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl public-read-write]
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    set x5 [lsort [dict keys $x3]]
+    return [list [string range $x1 0 19] $x4 $x5]
+} -result "<AccessControlPolicy 6 {FULL_CONTROL READ WRITE}"
+
+test S3-90.120 {PutAcl authenticated-read} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl authenticated-read]
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    set x5 [lsort [dict keys $x3]]
+    return [list [string range $x1 0 19] $x4 $x5]
+} -result "<AccessControlPolicy 4 {FULL_CONTROL READ}"
+
+test S3-90.130 {PutAcl complex} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set dict [dict create \
+	FULL_CONTROL {9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd AuthenticatedUsers} \
+	WRITE darren@prizecapital.net \
+	READ http://acs.amazonaws.com/groups/global/AllUsers ]
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl $dict]
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    return [list [string range $x1 0 19] [lsort [dict keys $x3]]]
+} -result "<AccessControlPolicy {FULL_CONTROL READ WRITE}"
+
+test S3-90.140 {Put with keep on existing object} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    set dict [dict create \
+	FULL_CONTROL {9fb13c24488e3d7556693247d5a463c1837c3c8ede28f4094228e6c4eb5d70bd AuthenticatedUsers} \
+	WRITE darren@prizecapital.net \
+	READ http://acs.amazonaws.com/groups/global/AllUsers ]
+    set x1 [S3::PutAcl -bucket $bucket -resource "ABC" -acl $dict]
+    S3::Put -bucket $bucket -resource "ABC" -file "S3Tone.txt" -acl keep
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    return [list [string range $x1 0 19] [lsort [dict keys $x3]]]
+} -result "<AccessControlPolicy {FULL_CONTROL READ WRITE}"
+
+test S3-90.150 {Put with keep on new object} \
+	-setup $pgsu -cleanup $pgcu -constraints "Acl" -body {
+    S3::Put -bucket $bucket -resource "XYZ" -file "S3Tone.txt" -acl keep
+    set x2 [S3::GetAcl -bucket $bucket -resource "ABC" -result-type dict]
+    set x3 [dict get $x2 acl]
+    set x4 [llength $x3]
+    return [list [string range $x1 0 19] [lsort [dict keys $x3]]]
+} -result "<AccessControlPolicy FULL_CONTROL"
+
+
+test S3-100.10 {Pull} \
+	-setup S3loadKeys -constraints "Directory ItemIO" -body {
+    # I actually tested this manually much more extensively,
+    # but some of the tests are difficult, due to needing to
+    # set up a bunch of directories with different permissions, etc.
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set dir S3Tdir
+    catch {file delete -force -- $dir}
+    file mkdir $dir
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare always -delete true]
+    set r1 [dict get $res {} filescopied]
+    set r2 [dict get $res {} errorskipped]
+    set r3 [dict get $res {} filesdeleted]
+    set r4 [file exists [file join $dir 00/6]]
+    return [list $r1 $r2 $r3 $r4]
+} -cleanup {
+    file delete -force -- $dir
+} -result {250 0 0 1}
+
+test S3-100.20 {Push} \
+	-setup S3loadKeys -constraints "Directory ItemIO" -body {
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set dir S3Tdir
+    catch {file delete -force -- $dir}
+    file mkdir $dir
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare always -delete true]
+    set r1 [dict get $res {} filescopied]
+    set r2 [dict get $res {} errorskipped]
+    set r3 [dict get $res {} filesdeleted]
+    set r4 [file exists [file join $dir 00/6]]
+    # Now the rest of the test... :-)
+    set bucket [S3::SuggestBucket TclTestS3] ; # different bucket
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare always -delete true]
+    set r5 [dict get $res {} filescopied]
+    set r6 [dict get $res {} errorskipped]
+    set r7 [dict get $res {} filesdeleted]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/00/6]]
+    set r8 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8]
+} -cleanup {
+    file delete -force -- $dir
+    set bucket [S3::SuggestBucket TclTestS3]
+    set names [S3::GetBucket -bucket $bucket -prefix hither/yon \
+	-result-type names]
+    foreach name $names {
+	S3::Delete -bucket $bucket -resource $name
+    }
+} -result {250 0 0 1 250 0 0 200}
+
+test S3-100.30 {Push with deletes and stuff} \
+	-setup S3loadKeys -constraints "Directory ItemIO" -body {
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set dir S3Tdir
+    catch {file delete -force -- $dir}
+    file mkdir $dir
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare always -delete true]
+    set r1 [dict get $res {} filescopied]
+    set r2 [dict get $res {} errorskipped]
+    set r3 [dict get $res {} filesdeleted]
+    set r4 [file exists [file join $dir 00/6]]
+    set bucket [S3::SuggestBucket TclTestS3] ; # different bucket
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare always -delete true]
+    set r5 [dict get $res {} filescopied]
+    set r6 [dict get $res {} errorskipped]
+    set r7 [dict get $res {} filesdeleted]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/00/6]]
+    set r8 [dict get $res httpstatus]
+    # Now the rest of the test... :-)
+    file delete -force [file join $dir 03]
+    tcltest::makeFile "xxx" [file join $dir "j1.txt"]
+    tcltest::makeFile "xxx" [file join $dir "j2.txt"]
+    # Sadly, makefile insists on adding newlines
+    set x [open [file join $dir j1.txt] w];puts -nonewline $x "123456";close $x
+    set x [open [file join $dir j2.txt] w];puts -nonewline $x "678901";close $x
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare missing -delete true]
+    set r9 [dict get $res {} filescopied]
+    set r10 [dict get $res {} errorskipped]
+    set r11 [dict get $res {} filesdeleted]
+    set r12 [dict get $res {} bytescopied]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/08/7]]
+    set r13 [dict get $res httpstatus]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/j1.txt]]
+    set r14 [dict get $res httpstatus]
+    return [list $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8 $r9 $r10 $r11 $r12 $r13 $r14]
+} -cleanup {
+    file delete -force -- $dir
+    set bucket [S3::SuggestBucket TclTestS3]
+    set names [S3::GetBucket -bucket $bucket -prefix hither/yon \
+	-result-type names]
+    foreach name $names {
+	S3::Delete -bucket $bucket -resource $name
+    }
+} -result {250 0 0 1 250 0 0 200 2 0 10 12 200 200}
+
+test S3-100.40 {Pull with deletes and stuff} \
+	-setup S3loadKeys -constraints "Directory ItemIO" -body {
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set dir S3Tdir
+    catch {file delete -force -- $dir}
+    file mkdir $dir
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare always -delete true]
+    set r1 [dict get $res {} filescopied]
+    set r2 [dict get $res {} errorskipped]
+    set r3 [dict get $res {} filesdeleted]
+    set r4 [file exists [file join $dir 00/6]]
+    set bucket [S3::SuggestBucket TclTestS3] ; # different bucket
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare always -delete true]
+    set r5 [dict get $res {} filescopied]
+    set r6 [dict get $res {} errorskipped]
+    set r7 [dict get $res {} filesdeleted]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/00/6]]
+    set r8 [dict get $res httpstatus]
+    file delete -force [file join $dir 03]
+    tcltest::makeFile "xxx" [file join $dir "j1.txt"]
+    tcltest::makeFile "xxx" [file join $dir "j2.txt"]
+    # Sadly, makefile insists on adding newlines
+    set x [open [file join $dir j1.txt] w];puts -nonewline $x "123456";close $x
+    set x [open [file join $dir j2.txt] w];puts -nonewline $x "678901";close $x
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare missing -delete true]
+    set r9 [dict get $res {} filescopied]
+    set r10 [dict get $res {} errorskipped]
+    set r11 [dict get $res {} filesdeleted]
+    set r12 [dict get $res {} bytescopied]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/08/7]]
+    set r13 [dict get $res httpstatus]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/j1.txt]]
+    set r14 [dict get $res httpstatus]
+    # Now the rest of the test... :-)
+    file mkdir [file join $dir ToDelete]
+    set x [open [file join $dir ToDelete T1.txt] w];puts $x "Hello";close $x
+    set x [open [file join $dir ToDelete T2.txt] w];puts $x "World";close $x
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare missing -delete true]
+    set r15 [dict get $res {} filescopied] ; # The 03 directory
+    set r16 [dict get $res {} compareskipped] ; # The rest.
+    set r17 [dict get $res {} filesdeleted] ; # j1, j2, T1, T2, ToDelete
+    return [list $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8 $r9 $r10 $r11 $r12 $r13 $r14 $r15 $r16 $r17]
+} -cleanup {
+    file delete -force -- $dir
+    set bucket [S3::SuggestBucket TclTestS3]
+    set names [S3::GetBucket -bucket $bucket -prefix hither/yon \
+	-result-type names]
+    foreach name $names {
+	S3::Delete -bucket $bucket -resource $name
+    }
+} -result {250 0 0 1 250 0 0 200 2 0 10 12 200 200 10 240 5}
+
+test S3-100.50 {Push and Pull with -compare never -delete true} \
+	-setup S3loadKeys -constraints "Directory ItemIO" -body {
+    # This test creates 00 thru 09 in a bucket and a local dir.
+    # It then deletes 07 from the bucket and 03 locally.
+    # It then pushes and pulls with -compare never -delete true.
+    # It expects 0 files copied and 10/11 deleted.
+    # It then checks the deletes happened.
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set dir S3Tdir
+    catch {file delete -force -- $dir}
+    file mkdir $dir
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare always -delete true]
+    set bucket [S3::SuggestBucket TclTestS3] ; # different bucket
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare always -delete true]
+    for {set i 0} {$i <= 9} {incr i} {
+	S3::Delete -bucket $bucket -resource hither/yon/07/$i
+    }
+    file delete -force [file join $dir 03]
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare never -delete true]
+    set r1 [dict get $res {} filescopied]
+    set r2 [dict get $res {} errorskipped]
+    set r3 [dict get $res {} filesdeleted]
+    set res [S3::REST [dict create verb HEAD resource /$bucket/hither/yon/03/7]]
+    set r4 [dict get $res httpstatus]
+    set res [S3::Pull -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare never -delete true]
+    set r5 [dict get $res {} filescopied]
+    set r6 [dict get $res {} errorskipped]
+    set r7 [dict get $res {} filesdeleted]
+    set r8 [file exists [file join $dir 07 4]]
+    set r9 [file exists [file join $dir 07]]
+    return [list $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8 $r9]
+} -cleanup {
+    file delete -force -- $dir
+    set bucket [S3::SuggestBucket TclTestS3]
+    set names [S3::GetBucket -bucket $bucket -prefix hither/yon \
+	-result-type names]
+    foreach name $names {
+	S3::Delete -bucket $bucket -resource $name
+    }
+} -result {0 0 10 404 0 0 11 0 0}
+
+test S3-100.60 {Toss} \
+	-setup S3loadKeys -constraints "Directory ItemIO" -body {
+    set bucket [S3::SuggestBucket TclTestS3b]
+    set dir S3Tdir
+    catch {file delete -force -- $dir}
+    file mkdir $dir
+    set res [S3::Pull -bucket $bucket -prefix thing \
+	-directory $dir -compare missing -delete true]
+    set bucket [S3::SuggestBucket TclTestS3] ; # different bucket
+    set res [S3::Push -bucket $bucket -prefix hither/yon \
+	-directory $dir -compare missing -delete true]
+    set res [S3::Toss -bucket $bucket -prefix /hither]
+    set r1 [dict get $res {} filesdeleted]
+    set r2 [dict get $res {} filesnotdeleted]
+    return [list $r1 $r2]
+} -cleanup {
+    file delete -force -- $dir
+    set bucket [S3::SuggestBucket TclTestS3]
+    set names [S3::GetBucket -bucket $bucket -prefix hither/yon \
+	-result-type names]
+    foreach name $names {
+	S3::Delete -bucket $bucket -resource $name
+    }
+} -result {250 0}
+
+# set res [S3::REST {resource /darren/xyzzyplover verb HEAD}]
+# puts $res\n\n\n ; after 3000
+# set res [S3::REST [list resource /$bucket/fred verb HEAD]]
+# puts $res\n\n\n ; after 3000
+# set res [dict get $res outheaders]
+# set remote_length [dict get $res content-length]
+# set remote_etag [string trim [dict get $res etag] \"]
+# set remote_date [clock scan [dict get $res last-modified]]
+# puts "remote_length=$remote_length"
+# puts "remote_etag=$remote_etag"
+# puts "remote_date=$remote_date"
+# puts "\n\n"
+# set body "ABC\u2211S\u5927D"
+# set res [S3::REST [list resource /darren/plover verb PUT inbody $body]]
+# set res [S3::REST [list resource /darren/plover verb HEAD]]
+# puts $res\n\n\n ; after 3000
+
+CleanUpBuckets [tcltest::testConstraint BucketDeletion]
+
+#----------------------------------------------------------------------
+
+testsuiteCleanup
+puts "(If anything failed, check all test buckets got cleaned up!)"
+puts "Done!" ; after 5000

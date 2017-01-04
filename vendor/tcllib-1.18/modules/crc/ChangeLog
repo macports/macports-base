@@ -1,0 +1,321 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-01-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc16: bug #3477684: handle data with leading hyphen.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-05-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sum.tcl: Fixed poor idiom setting interp result.
+
+2009-05-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: Remove unecessary read-type from Trf implementation
+	and tidied the critcl code a little. Bump to 1.3.1.
+
+2009-04-21  Andreas Kupries  <andreask@activestate.com>
+
+	* cksum.tcl (::crc::CksumFinal): Added the missing 'unset state'
+	* cksum.man: command which caused the memory leak reported by Phil
+	* pkgIndex.tcl: Dietz <pedietz@users.sourceforge.net> as
+	  [Bug 2686560]. Bumped version to 1.1.3.
+
+2009-03-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.man:  Add note on feeding crc32 values in as -seed.
+	* crc32.test: Tests to ensure -seed usage is as expected.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cksum.pcx: New files. Syntax definitions for the public
+	* crc16.pcx: commands of the various crc packages.
+	* crc32.pcx:
+	* sum.pcx:
+
+2008-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* crc16.man: Marked name of crc32 up as package.
+
+2008-04-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc16.man: document the xmodem command (bug #1895277)
+
+2008-03-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cksum.tcl (::crc::cksum): Fixed handling of options -chunksize
+	* cksum.man: and -channel. Bumped version of cksum to 1.1.2.
+	* pkgIndex.tcl
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sum.man: Fixed all warnings due to use of now deprecated
+	* cksum.man: commands. Added a section about how to give feedback.
+	* crc16.man:
+	* crc32.man:
+
+2006-11-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crcc.tcl: Silence critcl warning.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* cksum.tcl: Bumped version to 1.1.1
+	* cksum.man:
+	* pkgIndex.tcl:
+
+2006-06-29  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* cksum.tcl: fixed typo koin->join
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cksum.test:  More boilerplate simplified via use of test support.
+	* crc16.test:
+	* crc32.test:
+	* crc32bugs.test:
+	* sum.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cksum.test: Hooked into the new common test support code.
+	* crc16.test:
+	* crc32.test:
+	* crc32bugs.test:
+	* sum.test:
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* cksum.bench: New files. Basic benchmark tests
+	* crc16.bench: of the crc and derived commands.
+	* crc32.bench: 
+	* sum.bench: 
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-08-26  Andreas Kupries <andreask@activestate.com>
+
+	* crc16.tcl: Accepted Don Porter's patch attached to [Tcllib SF
+	* crc32.tcl: Bug 1274120], fixing the creative-writing problem for
+	  variable v and restricting the value to 32bit ints. Additionally
+	  added an [unset v] after the initialization, as the variable is
+	  not needed beyond that part of the code.
+
+2005-08-25  Andreas Kupries <andreask@activestate.com>
+
+	* crc32.tcl (::crc::Crc32Final): Restrict result of Trf to 32bit
+	  range, or the [format] at the end of crc32 will blow this up
+	  into a 64bit number. This is an additional fix for [Tcllib SF
+	  Bug 1042420].
+
+2005-03-12  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* cksum.tcl:      Refactored to use a context for better support of
+	* cksum.man:      summing data in chunks. Updated man page and
+	* cksum.test:     tests. Set version to 1.1.0
+	
+	* crc32.tcl:      Refactored the package to use a context structure
+	* crc32.man:      as done for the hash modules. This makes it easier
+	* crc32.test:     to work which chunks and event systems. We now
+	* crc32bugs.test: can support Trf for chunking too and have properly
+	                  hooked up the critcl code. Tests now test all
+			  available implementations.
+	
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* crc32.tcl: Updated version number to sync with 1.6.1
+	* crc32.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* crc32.tcl: Rel. engineering. Updated version number 
+	* crc32.man: of crc32 to reflect its changes, to 1.1.1.
+	* pkgIndex.tcl:
+
+2004-04-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: Cope with data begining with hyphen when using
+	  Trf (SF bug #914278)
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-27  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc16.tcl: Added XMODEM CRC algorithm - as used in the
+	XMODEM-CRC protocol. (Simple XMODEM uses a SysV type checksum).
+	Also added a -channel option to the crc command.
+
+2003-05-09  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crcc.tcl: Added placeholder to get a module library for all the
+	critcl code segments from the crc module
+	* crc32.tcl: Added -channel option
+	* crc32.test:      
+	* crc32bugs.test:  Tidied up the tests
+	* sum.tcl: Refactored the code to permit chunking and reading from
+	a channel. Added critcl-dependent C code implementations.
+	* sum.test: Added new tests and generally tidied up.
+	* sum.man: Added new items to the documentation.
+	
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.test: Fix for bug #709375 - test failures for bigEndian
+	systems when using Trf crc-zlib.
+	* crc32bugs.test: Additional test file used to isolate byte
+	ordering problems.
+
+2003-02-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.man, cksum.man, crc16.man, crc32.man: Added the new
+	copyright markup to the doctools pages.
+	* crc32.tcl: Enforce 32 bit calculations.
+
+2003-02-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc16.tcl: Fixed a bug in the option handling error info.
+
+2003-01-25  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: 
+	* cksum.tcl:
+	* crc16.tcl:
+	* sum.tcl: Added tcl package requirement for 8.2+ and hiked
+	versions to 1.0.1
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* crc32.man: More semantic markup, less visual one.
+	* cksum.man:
+	* sum.man:
+
+2003-01-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.test: Fixed another 8.3 - 8.4 wide integer problem.
+
+2003-01-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc16.tcl: Fix for bug #620612: the crc16 CRC calculation failed
+	for 32 bit CRC widths for tcl < 8.4. Masked off high bits after shift
+
+2003-01-03  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* cksum.tcl: Enabled processing in chunks to reduce memory
+	consumption.
+
+2002-09-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: Fix to SF bug #579026: implementing file processing
+	in small chunks to reduce memory usage.
+
+2002-01-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc16.tcl, crc16.test, crc16.man: Added CRC16 package
+
+2002-01-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.test, sum.test, cksum.test: Fixed SF bug #507242: failing
+	tests when running 'make test'
+
+2002-01-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.n: formatting fixes
+	* sum.n: added new manual page for package sum
+
+2002-01-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: added -seed and -implementation options.
+	* crc32.n: updated for the -seed and -impl options
+	* crc32.test: added tests for the -seed and -impl options.
+
+2002-01-15  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sum.tcl: initial version of crc::sum command
+	* sum.test: initial version of crc::sum command tests
+	* cksum.tcl: intial version of crc::cksum command
+	* cksum.n: initial version of crc::cksum manual page
+	* cksum.test: initial version of crc::cksum command tests
+	* crc32.tcl: compatability with sum and cksum commands
+	* crc32.test: compatability with sum and cksum tests
+	* crc32.n: compatability with sum and cksum manuals
+
+2002-01-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: implemented usage of Trf crc-zlib if available.
+
+2002-01-09  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc32.tcl: initial version modified from the Wiki source.
+	* crc32.n: initial version of man page
+	* crc32.test: initial version of crc32 tests.

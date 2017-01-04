@@ -1,0 +1,7 @@
+[comment {-*- tcl -*- --- doctools ---}]
+[vset PACKAGE html]
+[vset NAME    HTML]
+[vset REQUIRE html]
+[vset CONFIG  html]
+[vset VERSION 0.1]
+[include include/export/plugin.inc]

@@ -1,0 +1,108 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::combinatorics n 1.2.3]
+[moddesc   {Tcl Math Library}]
+[titledesc {Combinatorial functions in the Tcl Math Library}]
+[category  Mathematics]
+[require Tcl 8.2]
+[require math [opt 1.2.3]]
+[description]
+[para]
+
+The [package math] package contains implementations of several
+functions useful in combinatorial problems.
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd ::math::ln_Gamma] [arg z]]
+
+Returns the natural logarithm of the Gamma function for the argument
+[arg z].
+
+[para]
+
+The Gamma function is defined as the improper integral from zero to
+positive infinity of
+
+[example {
+  t**(x-1)*exp(-t) dt
+}]
+
+[para]
+
+The approximation used in the Tcl Math Library is from Lanczos,
+[emph {ISIAM J. Numerical Analysis, series B,}] volume 1, p. 86.
+For "[var x] > 1", the absolute error of the result is claimed to be
+smaller than 5.5*10**-10 -- that is, the resulting value of Gamma when
+
+[example {
+  exp( ln_Gamma( x) )
+}]
+
+is computed is expected to be precise to better than nine significant
+figures.
+
+[call [cmd ::math::factorial] [arg x]]
+
+Returns the factorial of the argument [arg x].
+
+[para]
+
+For integer [arg x], 0 <= [arg x] <= 12, an exact integer result is
+returned.
+
+[para]
+
+For integer [arg x], 13 <= [arg x] <= 21, an exact floating-point
+result is returned on machines with IEEE floating point.
+
+[para]
+
+For integer [arg x], 22 <= [arg x] <= 170, the result is exact to 1
+ULP.
+
+[para]
+
+For real [arg x], [arg x] >= 0, the result is approximated by
+computing [term Gamma(x+1)] using the [cmd ::math::ln_Gamma]
+function, and the result is expected to be precise to better than nine
+significant figures.
+
+[para]
+
+It is an error to present [arg x] <= -1 or [arg x] > 170, or a value
+of [arg x] that is not numeric.
+
+[call [cmd ::math::choose] [arg {n k}]]
+
+Returns the binomial coefficient [term {C(n, k)}]
+
+[example {
+   C(n,k) = n! / k! (n-k)!
+}]
+
+If both parameters are integers and the result fits in 32 bits, the
+result is rounded to an integer.
+
+[para]
+
+Integer results are exact up to at least [arg n] = 34.  Floating point
+results are precise to better than nine significant figures.
+
+[call [cmd ::math::Beta] [arg {z w}]]
+
+Returns the Beta function of the parameters [arg z] and [arg w].
+
+[example {
+   Beta(z,w) = Beta(w,z) = Gamma(z) * Gamma(w) / Gamma(z+w)
+}]
+
+Results are returned as a floating point number precise to better than
+nine significant digits provided that [arg w] and [arg z] are both at
+least 1.
+
+[list_end]
+
+[vset CATEGORY math]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,196 @@
+
+<div class='fossil-doc' data-title='base32::hex - Base32 encoding'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">base32::hex(n) 0.1 tcllib &quot;Base32 encoding&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>base32::hex - base32 extended hex encoding</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Code map</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">base32::core <span class="opt">?0.1?</span></b></li>
+<li>package require <b class="pkgname">base32::hex <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::base32::hex::encode</b> <i class="arg">string</i></a></li>
+<li><a href="#2"><b class="cmd">::base32::hex::decode</b> <i class="arg">estring</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands for encoding and decoding of strings
+into and out of the extended hex base32 encoding as specified in the
+RFC 3548bis draft.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::base32::hex::encode</b> <i class="arg">string</i></a></dt>
+<dd><p>This command encodes the given <i class="arg">string</i> in extended hex base32 and
+returns the encoded string as its result. The result may be padded
+with the character <b class="const">=</b> to signal a partial encoding at the end
+of the input string.</p></dd>
+<dt><a name="2"><b class="cmd">::base32::hex::decode</b> <i class="arg">estring</i></a></dt>
+<dd><p>This commands takes the <i class="arg">estring</i> and decodes it under the
+assumption that it is a valid extended hex base32 encoded string. The
+result of the decoding is returned as the result of the command.</p>
+<p>Note that while the encoder will generate only uppercase characters
+this decoder accepts input in lowercase as well.</p>
+<p>The command will always throw an error whenever encountering
+conditions which signal some type of bogus input, namely if</p>
+<ol class="doctools_enumerated">
+<li><p>the input contains characters which are not valid output
+       of a extended hex base32 encoder,</p></li>
+<li><p>the length of the input is not a multiple of eight,</p></li>
+<li><p>padding appears not at the end of input, but in the middle,</p></li>
+<li><p>the padding has not of length six, four, three, or one characters,</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Code map</a></h2>
+<p>The code map used to convert 5-bit sequences is shown below, with the
+numeric id of the bit sequences to the left and the character used to
+encode it to the right. The important feature of the extended hex
+mapping is that the first 16 codes map to the digits and hex
+characters.</p>
+<pre class="doctools_example">
+	0 0    9 9        18 I   27 R
+	1 1   10 A        19 J   28 S
+	2 2   11 B        20 K   29 T
+	3 3   12 C        21 L   30 U
+	4 4   13 D        22 M   31 V
+	5 5   14 E        23 N
+	6 6   15 F        24 O
+	7 7        16 G   25 P
+	8 8        17 H   26 Q
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>base32</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key299">base32</a>, <a href="../../../../index.html#key340">hex</a>, <a href="../../../../index.html#key341">rfc3548</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Public domain</p>
+</div>
+</div>

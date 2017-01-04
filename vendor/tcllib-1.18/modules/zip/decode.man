@@ -1,0 +1,135 @@
+[vset ZIP_DECODE_VERSION 0.6]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin zipfile::decode n [vset ZIP_DECODE_VERSION]]
+[keywords decompression zip]
+[copyright {2008-2014 Andreas Kupries}]
+[moddesc {Zip archive handling}]
+[titledesc {Access to zip archives}]
+[category  File]
+[require Tcl 8.4]
+[require fileutil::magic::mimetype]
+[require fileutil::decode 0.2]
+[require Trf]
+[require zlibtcl]
+[require zipfile::decode [opt [vset ZIP_DECODE_VERSION]]]
+[description]
+[para]
+
+This package provides commands to decompress and access the contents
+of zip archives.
+
+[section API]
+
+[list_begin definitions]
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::archive]]
+
+This command decodes the last opened (and not yet closed) zip archive
+file.
+
+The result of the command is a dictionary describing the contents of
+the archive. The structure of this dictionary is not public. Proper
+access should be made through the provided accessor command of this
+package.
+
+[comment { -- TODO? -- dictionary contents -- }]
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::close]]
+
+This command releases all state associated with the last call of
+[cmd ::zipfile::decode::open].
+
+The result of the command is the empty string.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::comment] [arg adict]]
+
+This command takes a dictionary describing the currently open zip
+archive file, as returned by [cmd ::zipfile::decode::archive], and
+returns the global comment of the archive.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::content] [arg archive]]
+
+This is a convenience command which decodes the specified zip
+[arg archive] file and returns the list of paths found in it as its
+result.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::copyfile] [arg adict] [arg path] [arg dst]]
+
+This command takes a dictionary describing the currently open zip
+archive file, as returned by [cmd ::zipfile::decode::archive], and
+copies the decompressed contents of the file [arg path] in the archive
+to the the file [arg dst].
+
+An error is thrown if the file is not found in the archive.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::files] [arg adict]]
+
+This command takes a dictionary describing the currently open zip
+archive file, as returned by [cmd ::zipfile::decode::archive], and
+returns the list of files found in the archive.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::getfile] [arg zdict] [arg path]]
+
+This command takes a dictionary describing the currently open zip
+archive file, as returned by [cmd ::zipfile::decode::archive], and
+returns the decompressed contents of the file [arg path] in the archive.
+
+An error is thrown if the file is not found in the archive.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::hasfile] [arg adict] [arg path]]
+
+This command takes a dictionary describing the currently open zip
+archive file, as returned by [cmd ::zipfile::decode::archive], and
+check if the specified [arg path] is found in the archive.
+
+The result of the command is a boolean flag, [const true] if the path
+is found, and [const false] otherwise.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::iszip] [arg archive]]
+
+This command takes the path of a presumed zip [arg archive] file and
+returns a boolean flag as the result of the command telling us if it
+actually is a zip archive ([const true]), or not ([const false]).
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::open] [arg archive]]
+
+This command takes the path of a zip [arg archive] file and prepares
+it for decoding.
+
+The result of the command is the empty string.
+
+All important information is stored in global state.  If multiple open
+calls are made one after the other only the state of the last call is
+available to the other commands.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::unzip] [arg adict] [arg dstdir]]
+
+This command takes a dictionary describing the currently open zip
+archive file, as returned by [cmd ::zipfile::decode::archive], and
+unpacks the archive in the given destination directory [arg dstdir].
+
+The result of the command is the empty string.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd ::zipfile::decode::unzipfile] [arg archive] [arg dstdir]]
+
+This is a convenience command which unpacks the specified zip
+[arg archive] file in the given destination directory [arg dstdir].
+
+[para] The result of the command is the empty string.
+
+[list_end]
+
+[vset CATEGORY zipfile]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

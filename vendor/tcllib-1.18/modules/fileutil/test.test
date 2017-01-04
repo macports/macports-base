@@ -1,0 +1,665 @@
+# -*- tcl -*-
+# Tests for fileutil commands. 'test'.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: test.test,v 1.2 2009/10/06 20:07:18 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+# In 8.3+ we can use symbolic permissions, i.e. strings like u+r, or
+# ugo-r when invoking 'file attributes'. This feature is however not
+# available in Tcl 8.2, the lowest revision supported by the
+# package. So we make do without them and use absolute permissions
+# instead.
+
+# 644 = -rw-r--r--
+# 700 = -rwx------
+# 600 = -rw-------
+# 500 = -r-x------
+# 300 = --wx------
+
+# -------------------------------------------------------------------------
+
+set xpath [makeFile {} x] ; removeFile x
+
+# -------------------------------------------------------------------------
+
+proc makewritable {path enable} {
+    global tcl_platform
+    if {[string equal $tcl_platform(platform) windows]} {
+	set ro [expr {!$enable}]
+	file attributes $path -readonly $ro
+    } else {
+	set mode [expr {$enable ? "700" : "500"}]
+	file attributes $path -permissions 00$mode
+    }
+    return
+}
+
+proc makereadable {path enable} {
+    global tcl_platform
+    if {[string equal $tcl_platform(platform) windows]} {
+	return -code error "Can't do that on Windows"
+    } else {
+	set mode [expr {$enable ? "700" : "300"}]
+	file attributes $path -permissions 00$mode
+    }
+    return
+}
+
+proc makeexecutable {path enable} {
+    global tcl_platform
+    if {[string equal $tcl_platform(platform) windows]} {
+	return -code error "Can't do that on Windows"
+    } else {
+	set mode [expr {$enable ? "700" : "600"}]
+	file attributes $path -permissions 00$mode
+    }
+    return
+}
+
+# -------------------------------------------------------------------------
+
+test test-1.0.0 {test read} {unixOnly} {
+    set path [makeFile {} x]
+    makereadable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path read x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-1.0.1 {test read, no variable} {unixOnly} {
+    set path [makeFile {} x]
+    makereadable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path read] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-1.0.2 {test !read} {unixOnly notRoot} {
+    set path [makeFile {} x]
+    makereadable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path read x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Read access is denied"]
+
+test test-1.0.3 {test !read, no variable} {unixOnly notRoot} {
+    set path [makeFile {} x]
+    makereadable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path read] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-1.0.4 {test !read, no label} {unixOnly notRead} {
+    set path [makeFile {} x]
+    makereadable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path read x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Read access is denied"]
+
+test test-2.0.0 {test write} {
+    set path [makeFile {} x]
+    makewritable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path write x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-2.0.1 {test write, no variable} {
+    set path [makeFile {} x]
+    makewritable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path write] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-2.0.2 {test !write} notRoot {
+    set path [makeFile {} x]
+    makewritable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path write x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Write access is denied"]
+
+test test-2.0.3 {test !write, no variable} notRoot {
+    set path [makeFile {} x]
+    makewritable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path write] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-2.0.4 {test !write, no label} notRoot {
+    set path [makeFile {} x]
+    makewritable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path write x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Write access is denied"]
+
+test test-3.0.0 {test exists} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path exists x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-3.0.1 {test exists, no variable} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path exists] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-3.0.2 {test !exists} {
+    set path [makeFile {} x]
+    removeFile x
+
+    set x PRE
+    set res [list [fileutil::test $path exists x TEST] $x]
+    set res
+} [list 0 "TEST \"$xpath\": Does not exist"]
+
+test test-3.0.3 {test !exists, no variable} {
+    set path [makeFile {} x]
+    removeFile x
+
+    set x PRE
+    set res [list [fileutil::test $path exists] $x]
+    set res
+} {0 PRE}
+
+test test-3.0.4 {test !exists, no label} {
+    set path [makeFile {} x]
+    removeFile x
+
+    set x PRE
+    set res [list [fileutil::test $path exists x] $x]
+    set res
+} [list 0 "\"$xpath\": Does not exist"]
+
+test test-4.0.0 {test file} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path file x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-4.0.1 {test file, no variable} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path file] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-4.0.2 {test !file} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path file x TEST] $x]
+    removeDirectory x
+    set res
+} [list 0 "TEST \"$xpath\": Is not a file"]
+
+test test-4.0.3 {test !file, no variable} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path file] $x]
+    removeDirectory x
+    set res
+} {0 PRE}
+
+test test-4.0.4 {test !file, no label} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path file x] $x]
+    removeDirectory x
+    set res
+} [list 0 "\"$xpath\": Is not a file"]
+
+test test-5.0.0 {test dir} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path dir x TEST] $x]
+    removeDirectory x
+    set res
+} {1 PRE}
+
+test test-5.0.1 {test dir, no variable} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path dir] $x]
+    removeDirectory x
+    set res
+} {1 PRE}
+
+test test-5.0.2 {test !dir} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path dir x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Is not a directory"]
+
+test test-5.0.3 {test !dir, no variable} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path dir] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-5.0.4 {test !dir, no label} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path dir x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Is not a directory"]
+
+test test-6.0.0 {test exec} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path exec x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-6.0.1 {test exec, no variable} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path exec] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-6.0.2 {test !exec} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path exec x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Is not executable"]
+
+test test-6.0.3 {test !exec, no variable} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path exec] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-6.0.4 {test !exec, no label} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path exec x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Is not executable"]
+
+
+
+test test-1.1.0 {test read} {unixOnly} {
+    set path [makeFile {} x]
+    makereadable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path r x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-1.1.1 {test read, no variable} {unixOnly} {
+    set path [makeFile {} x]
+    makereadable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path r] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-1.1.2 {test !read} {unixOnly notRoot} {
+    set path [makeFile {} x]
+    makereadable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path r x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Read access is denied"]
+
+test test-1.1.3 {test !read, no variable} {unixOnly notRoot} {
+    set path [makeFile {} x]
+    makereadable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path r] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-1.1.4 {test !read, no label} {unixOnly notRoot} {
+    set path [makeFile {} x]
+    makereadable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path r x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Read access is denied"]
+
+test test-2.1.0 {test write} {
+    set path [makeFile {} x]
+    makewritable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path w x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-2.1.1 {test write, no variable} {
+    set path [makeFile {} x]
+    makewritable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path w] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-2.1.2 {test !write} notRoot {
+    set path [makeFile {} x]
+    makewritable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path w x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Write access is denied"]
+
+test test-2.1.3 {test !write, no variable} notRoot {
+    set path [makeFile {} x]
+    makewritable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path w] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-2.1.4 {test !write, no label} notRoot {
+    set path [makeFile {} x]
+    makewritable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path w x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Write access is denied"]
+
+test test-3.1.0 {test exists} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path e x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-3.1.1 {test exists, no variable} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path e] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-3.1.2 {test !exists} {
+    set path [makeFile {} x]
+    removeFile x
+
+    set x PRE
+    set res [list [fileutil::test $path e x TEST] $x]
+    set res
+} [list 0 "TEST \"$xpath\": Does not exist"]
+
+test test-3.1.3 {test !exists, no variable} {
+    set path [makeFile {} x]
+    removeFile x
+
+    set x PRE
+    set res [list [fileutil::test $path e] $x]
+    set res
+} {0 PRE}
+
+test test-3.1.4 {test !exists, no label} {
+    set path [makeFile {} x]
+    removeFile x
+
+    set x PRE
+    set res [list [fileutil::test $path e x] $x]
+    set res
+} [list 0 "\"$xpath\": Does not exist"]
+
+test test-4.1.0 {test file} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path f x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-4.1.1 {test file, no variable} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path f] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-4.1.2 {test !file} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path f x TEST] $x]
+    removeDirectory x
+    set res
+} [list 0 "TEST \"$xpath\": Is not a file"]
+
+test test-4.1.3 {test !file, no variable} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path f] $x]
+    removeDirectory x
+    set res
+} {0 PRE}
+
+test test-4.1.4 {test !file, no label} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path f x] $x]
+    removeDirectory x
+    set res
+} [list 0 "\"$xpath\": Is not a file"]
+
+test test-5.1.0 {test dir} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path d x TEST] $x]
+    removeDirectory x
+    set res
+} {1 PRE}
+
+test test-5.1.1 {test dir, no variable} {
+    set path [makeDirectory x]
+
+    set x PRE
+    set res [list [fileutil::test $path d] $x]
+    removeDirectory x
+    set res
+} {1 PRE}
+
+test test-5.1.2 {test !dir} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path d x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Is not a directory"]
+
+test test-5.1.3 {test !dir, no variable} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path d] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-5.1.4 {test !dir, no label} {
+    set path [makeFile {} x]
+
+    set x PRE
+    set res [list [fileutil::test $path d x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Is not a directory"]
+
+test test-6.1.0 {test exec} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path x x TEST] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-6.1.1 {test exec, no variable} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 1
+
+    set x PRE
+    set res [list [fileutil::test $path x] $x]
+    removeFile x
+    set res
+} {1 PRE}
+
+test test-6.1.2 {test !exec} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path x x TEST] $x]
+    removeFile x
+    set res
+} [list 0 "TEST \"$xpath\": Is not executable"]
+
+test test-6.1.3 {test !exec, no variable} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path x] $x]
+    removeFile x
+    set res
+} {0 PRE}
+
+test test-6.1.4 {test !exec, no label} {unixOnly} {
+    set path [makeFile {} x]
+    makeexecutable $path 0
+
+    set x PRE
+    set res [list [fileutil::test $path x x] $x]
+    removeFile x
+    set res
+} [list 0 "\"$xpath\": Is not executable"]
+
+# -------------------------------------------------------------------------
+
+rename makewritable   {}
+rename makereadable   {}
+rename makeexecutable {}
+catch {unset xpath}
+catch {unset path}
+catch {unset res}
+catch {unset x}
+
+testsuiteCleanup
+return

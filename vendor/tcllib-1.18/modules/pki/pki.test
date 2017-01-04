@@ -1,0 +1,403 @@
+# rsa.test - Copyright (c) 2010 Roy Keene, Andreas Kupries
+#
+# the test-values are taken from:
+#    ??
+#
+# $Id$
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+support {
+    use asn/asn.tcl       asn
+    use base64/base64.tcl base64
+    use des/des.tcl       des
+    use math/bignum.tcl   math::bignum
+    use md5/md5x.tcl      md5         ;# md5 2.x!
+    use sha1/sha1.tcl     sha1
+    use sha1/sha256.tcl   sha256
+    use aes/aes.tcl       aes
+}
+testing {
+    useLocal pki.tcl pki
+}
+
+# -------------------------------------------------------------------------
+
+test rsa-parse-aeskey-1.0 {parse_key} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test.key.aes] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set password "ARoseIsARoseIsARose"
+} -body {
+    dictsort [::pki::pkcs::parse_key $privkey $password]
+} -cleanup {
+    unset privkey password
+} -result {d 4821708078078814272825737770757352316921506482526873519719051463644222257651923197825994018656421190278177720014932984365118366602027256382375921341192781177112398174373076887129954817822368157304055327895506098881228521168940083073283595671416028753301552269895847121119899618677892849270785450525228277087545852904246091363590456069440574806479467479724488815982259021323617233373449030738298588184972148901173121148634892058648703349014218791530847767762515588159636682267580355756974401553230588009724381821442787415368995149629493809933380894522643851913309510865914033228986295772184835354265231482340110365953 e 65537 l 2048 n 20606474229739240365059039861892702888430699076971875439310562489263214483191006887246310401088091004060054335612563612411917991000786455919906798626524375611634511845705141177165689526939976649836053082770641226108840795034158866930145876068965913035873741839723777813944236146677082729876717709231945588228947001753667862858297850461440476551869914895980840772354759428144421149613554402682425181850295101375623815063198594704730226304723548382258248785251384891817576645955371924194287071569929361029204431671633821160423187871463713776212876252047207985933876036458343140423787003660018607222053134170461225878347 p 151903506703070744388477144011062627922344490485619606525415439019240332914406492743669447033002173681213181316912563402042948038453846038272948559137687751740338183189809253891948725876860938554446847405802064303332011747457634488959045893106143553864597546566768167692662722957924358908573096347694362541259 q 135655026516400219835182288872064651548166413404981613626584975073279765274581289299963783472100901444904090497633607380440126562041149560121122191822729803838692049608052805597752016733559257401832457990520641184379220785155858496800358974243933025297673311305372951490297748845447521569920828454777048335233 type rsa}
+
+test rsa-parse-deskey-1.0 {parse_key} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test.key.des] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set password "ARoseIsARoseIsARose"
+} -body {
+    dictsort [::pki::pkcs::parse_key $privkey $password]
+} -cleanup {
+    unset privkey password
+} -result {d 4821708078078814272825737770757352316921506482526873519719051463644222257651923197825994018656421190278177720014932984365118366602027256382375921341192781177112398174373076887129954817822368157304055327895506098881228521168940083073283595671416028753301552269895847121119899618677892849270785450525228277087545852904246091363590456069440574806479467479724488815982259021323617233373449030738298588184972148901173121148634892058648703349014218791530847767762515588159636682267580355756974401553230588009724381821442787415368995149629493809933380894522643851913309510865914033228986295772184835354265231482340110365953 e 65537 l 2048 n 20606474229739240365059039861892702888430699076971875439310562489263214483191006887246310401088091004060054335612563612411917991000786455919906798626524375611634511845705141177165689526939976649836053082770641226108840795034158866930145876068965913035873741839723777813944236146677082729876717709231945588228947001753667862858297850461440476551869914895980840772354759428144421149613554402682425181850295101375623815063198594704730226304723548382258248785251384891817576645955371924194287071569929361029204431671633821160423187871463713776212876252047207985933876036458343140423787003660018607222053134170461225878347 p 151903506703070744388477144011062627922344490485619606525415439019240332914406492743669447033002173681213181316912563402042948038453846038272948559137687751740338183189809253891948725876860938554446847405802064303332011747457634488959045893106143553864597546566768167692662722957924358908573096347694362541259 q 135655026516400219835182288872064651548166413404981613626584975073279765274581289299963783472100901444904090497633607380440126562041149560121122191822729803838692049608052805597752016733559257401832457990520641184379220785155858496800358974243933025297673311305372951490297748845447521569920828454777048335233 type rsa}
+
+test rsa-generate-csr-1.0 {csr} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test.key.des] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set password "ARoseIsARoseIsARose"
+
+    set privkey [::pki::pkcs::parse_key $privkey $password]
+} -body {
+    ::pki::pkcs::create_csr $privkey [list C US ST Florida L Tampa O Tcllib OU RSA CN TestCert] 1
+} -cleanup {
+    unset privkey password
+} -result {-----BEGIN CERTIFICATE REQUEST-----
+MIICpjCCAY4CAQAwYTELMAkGA1UEBhMCVVMxEDAOBgNVBAgTB0Zsb3JpZGExDjAM
+BgNVBAcTBVRhbXBhMQ8wDQYDVQQKEwZUY2xsaWIxDDAKBgNVBAsTA1JTQTERMA8G
+A1UEAxMIVGVzdENlcnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCj
+PBaKPeHx1oQb0nfMPeglBgyIpsv8CuIH7CAT8SGxoK1zIBQUhnNOZvel1/Kore68
+mY0ftiqmVbLO7aZy9X0Vy97hcEnhIekuPCauVg3kWjOspPbxmd3Bf7vfw7RGsvUt
+GGc3FZnU/X3GhzlKCq1osQCSZdLwirDm8ny4tbkTEDnGIB+4IJbSvifGQDqQNwtx
+cDigwRwAgDDdaKYBiW4bp+ZowJxorqc60w6xcl8DKhpPPaqRFN2kBcAxU/vztan1
+5NjNmmOPIkDcvIDEEkxKDoefTWaaF/MEGNtZZgIfIbVMos9+1soBzBb2ZH5NVtuK
+3RGA+4DxUk5kiI+eLANLAgMBAAGgADANBgkqhkiG9w0BAQUFAAOCAQEAff0WNTPX
+M6rdFGOXBxTsC7NUGcoquuM6QsceadMbBVRtRUUbaUsusXdxDWhdylqHM3xPNx0L
+4Ex0FeL9icD/8xvJmCXzBeNt3uvThTvIwHYqnOCSlhx9InUUx2l6U0rAwZ+CIuMi
+7lG2+Z5qVD035bAZ7LT/4s4fjKSL4cTZQOdCcoFtoptj9+L8EItwwYDzffJWdG8s
+OUtMBn+Zh45k2UtLKu38jBNtVpNFAEJLlr/Arj6Jj3yTmEFrocxkwK6IPbOHQTu3
+tyJ5CkDpUqkxYZ0D4wfr8tFEru0jQNl5bSDt9QQvg1Kj6+OC9aaRvxwnmc6REfky
+8sCv80Pn5dNCGg==
+-----END CERTIFICATE REQUEST-----
+}
+
+test rsa-parse-certv1-1.0 {parse_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v1.crt] r]
+    set pubkey [read $fd]
+    close $fd ; unset fd
+} -body {
+    dictsort [::pki::x509::parse_cert $pubkey]
+} -cleanup {
+    unset pubkey
+} -result {cert 30820221020612481595aa03300d06092a864886f70d0101050500305f310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b1303525341310f300d06035504031306546573744341301e170d3130303830393037353230355a170d3230303830393037353230355a3061310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b13035253413111300f06035504031308546573744365727430820122300d06092a864886f70d01010105000382010f003082010a0282010100a33c168a3de1f1d6841bd277cc3de825060c88a6cbfc0ae207ec2013f121b1a0ad7320141486734e66f7a5d7f2a8adeebc998d1fb62aa655b2ceeda672f57d15cbdee17049e121e92e3c26ae560de45a33aca4f6f199ddc17fbbdfc3b446b2f52d1867371599d4fd7dc687394a0aad68b1009265d2f08ab0e6f27cb8b5b9131039c6201fb82096d2be27c6403a90370b717038a0c11c008030dd68a601896e1ba7e668c09c68aea73ad30eb1725f032a1a4f3daa9114dda405c03153fbf3b5a9f5e4d8cd9a638f2240dcbc80c4124c4a0e879f4d669a17f30418db5966021f21b54ca2cf7ed6ca01cc16f6647e4d56db8add1180fb80f1524e64888f9e2c034b0203010001 data_signature_algo sha1WithRSAEncryption e 65537 extensions {} issuer {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCA} l 2048 n 20606474229739240365059039861892702888430699076971875439310562489263214483191006887246310401088091004060054335612563612411917991000786455919906798626524375611634511845705141177165689526939976649836053082770641226108840795034158866930145876068965913035873741839723777813944236146677082729876717709231945588228947001753667862858297850461440476551869914895980840772354759428144421149613554402682425181850295101375623815063198594704730226304723548382258248785251384891817576645955371924194287071569929361029204431671633821160423187871463713776212876252047207985933876036458343140423787003660018607222053134170461225878347 notAfter 1596959525 notBefore 1281340325 pubkey 3082010a0282010100a33c168a3de1f1d6841bd277cc3de825060c88a6cbfc0ae207ec2013f121b1a0ad7320141486734e66f7a5d7f2a8adeebc998d1fb62aa655b2ceeda672f57d15cbdee17049e121e92e3c26ae560de45a33aca4f6f199ddc17fbbdfc3b446b2f52d1867371599d4fd7dc687394a0aad68b1009265d2f08ab0e6f27cb8b5b9131039c6201fb82096d2be27c6403a90370b717038a0c11c008030dd68a601896e1ba7e668c09c68aea73ad30eb1725f032a1a4f3daa9114dda405c03153fbf3b5a9f5e4d8cd9a638f2240dcbc80c4124c4a0e879f4d669a17f30418db5966021f21b54ca2cf7ed6ca01cc16f6647e4d56db8add1180fb80f1524e64888f9e2c034b0203010001 pubkey_algo rsaEncryption serial_number 20100809075203 signature 7acbd0a587f1663e8a21b65f9161f08431f454d8b988f52f68d6d5bd9ad9675475819024f11c9c40df209fb05a297ffa72292c81e29bbc6c32e49bd968a49e77ae7be1055357e98602a031396f8b994455f936a85922800bddc379b76c2f63653c3b2bbaec4c81bedf9f9da78b6a80b253e8f98cde7289085837b22af454083ec6b772c374b40f1bf8d3c7a5e779b6fbbac885a5fa905a115475c7cf8a4d18deb7c91b96d5e47ba1291f4bc702371f1aede0b952648a6894c5e4c2496a7a8234788a7290d256e5cda99b772f43f019ddb1d758d06a1fd03865fdce762cf22850f996aa8cdc7d844115e3d1c533428d96a9fe774ba5ba07817607664b6bf3bf12 signature_algo sha1WithRSAEncryption subject {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCert} type rsa version 1}
+
+test rsa-parse-certv3-1.0 {parse_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v3.crt] r]
+    set pubkey [read $fd]
+    close $fd ; unset fd
+} -body {
+    dictsort [::pki::x509::parse_cert $pubkey]
+} -cleanup {
+    unset pubkey
+} -result {cert 30820226a003020102020612481595a9c0300d06092a864886f70d0101050500305f310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b1303525341310f300d06035504031306546573744341301e170d3130303830393037353133365a170d3230303830393037353133365a3061310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b13035253413111300f06035504031308546573744365727430820122300d06092a864886f70d01010105000382010f003082010a0282010100a33c168a3de1f1d6841bd277cc3de825060c88a6cbfc0ae207ec2013f121b1a0ad7320141486734e66f7a5d7f2a8adeebc998d1fb62aa655b2ceeda672f57d15cbdee17049e121e92e3c26ae560de45a33aca4f6f199ddc17fbbdfc3b446b2f52d1867371599d4fd7dc687394a0aad68b1009265d2f08ab0e6f27cb8b5b9131039c6201fb82096d2be27c6403a90370b717038a0c11c008030dd68a601896e1ba7e668c09c68aea73ad30eb1725f032a1a4f3daa9114dda405c03153fbf3b5a9f5e4d8cd9a638f2240dcbc80c4124c4a0e879f4d669a17f30418db5966021f21b54ca2cf7ed6ca01cc16f6647e4d56db8add1180fb80f1524e64888f9e2c034b0203010001 data_signature_algo sha1WithRSAEncryption e 65537 extensions {} issuer {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCA} l 2048 n 20606474229739240365059039861892702888430699076971875439310562489263214483191006887246310401088091004060054335612563612411917991000786455919906798626524375611634511845705141177165689526939976649836053082770641226108840795034158866930145876068965913035873741839723777813944236146677082729876717709231945588228947001753667862858297850461440476551869914895980840772354759428144421149613554402682425181850295101375623815063198594704730226304723548382258248785251384891817576645955371924194287071569929361029204431671633821160423187871463713776212876252047207985933876036458343140423787003660018607222053134170461225878347 notAfter 1596959496 notBefore 1281340296 pubkey 3082010a0282010100a33c168a3de1f1d6841bd277cc3de825060c88a6cbfc0ae207ec2013f121b1a0ad7320141486734e66f7a5d7f2a8adeebc998d1fb62aa655b2ceeda672f57d15cbdee17049e121e92e3c26ae560de45a33aca4f6f199ddc17fbbdfc3b446b2f52d1867371599d4fd7dc687394a0aad68b1009265d2f08ab0e6f27cb8b5b9131039c6201fb82096d2be27c6403a90370b717038a0c11c008030dd68a601896e1ba7e668c09c68aea73ad30eb1725f032a1a4f3daa9114dda405c03153fbf3b5a9f5e4d8cd9a638f2240dcbc80c4124c4a0e879f4d669a17f30418db5966021f21b54ca2cf7ed6ca01cc16f6647e4d56db8add1180fb80f1524e64888f9e2c034b0203010001 pubkey_algo rsaEncryption serial_number 20100809075136 signature 30105b040c0d26a7899098e61b73844741510637bdb70ad81c10717bba7bb8dc478ee6cff562ad05f92756475e0ba85b3a9515e73e3904a48165996e48d03a7c435c98d7ca913edf07c7aca6c6dcbc4169bd953c0c073ad8521f7826a57e63740725b56b80ba68291a6c54ea6c74ce6a43879fbd0c0ed2c3b023901a8ef932535742f13b31033c893107caf9642c034952a6a3341edae5d714610d9c040bc044dfeec8bfd3125bf46f2ba15a68e164ca3bdf59f38b8117d1b4c43cfa1755f1169212aaa44ac8251b39b349bb931e8a419257b529e82ad8777fd65a62f45a171eb1b18f0196570e4a3b058e09ad0ec85e0a5968a330e59b32b22a2eae69e1a3a4 signature_algo sha1WithRSAEncryption subject {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCert} type rsa version 3}
+
+test rsa-parse-cacert-1.0 {parse_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory CA.crt] r]
+    set pubkey [read $fd]
+    close $fd ; unset fd
+} -body {
+    dictsort [::pki::x509::parse_cert $pubkey]
+} -cleanup {
+    unset pubkey
+} -result {cert 308202eea0030201020209009b29b6c41fdd35cf300d06092a864886f70d0101050500305f310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b1303525341310f300d06035504031306546573744341301e170d3130303830393037333733385a170d3335303831303037333733385a305f310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b1303525341310f300d0603550403130654657374434130820122300d06092a864886f70d01010105000382010f003082010a0282010100bf65944eeba4d516f9823cadd420a06e3413f14c32eda1f7fea95730ad20ba8e2c5952312210e02c4a848ccfba23fe052b9f35799e3174ae7a27ee4f69a56f96a9e93dad99de558b4f6e9b9c70dd2a6ed89bb3ed97e32c3167b0cc6e17753843097ff6a13276686d0e76004c2f22462717b0f1af3557936605f7899cf3037b85903e8d5449225f55f7320984f1e0864f0e14fe4dcc20aef03d0b593123b801ecbd23fb9be62799ac02b4c992e38ae6cfdbb81bf19209c0ad845c8da56591fa83c24c2fb4705b962bd15a1ccc47fbf70280522d79c5029f87e8315734e7b8a81d27f64ccb3716f8f75aa756251df7b041fc5e1c1b7ad1192bdb1d94154e212c810203010001a381c43081c1301d0603551d0e04160414852c1d09b76b0fa10e35d7aa4bcb48b2deb254d53081910603551d230481893081868014852c1d09b76b0fa10e35d7aa4bcb48b2deb254d5a163a461305f310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b1303525341310f300d060355040313065465737443418209009b29b6c41fdd35cf300c0603551d13040530030101ff data_signature_algo sha1WithRSAEncryption e 65537 extensions {id-ce-subjectKeyIdentifier {false 0414852c1d09b76b0fa10e35d7aa4bcb48b2deb254d5} id-ce-authorityKeyIdentifier {false 3081868014852c1d09b76b0fa10e35d7aa4bcb48b2deb254d5a163a461305f310b30090603550406130255533110300e06035504081307466c6f72696461310e300c0603550407130554616d7061310f300d060355040a130654636c6c6962310c300a060355040b1303525341310f300d060355040313065465737443418209009b29b6c41fdd35cf} id-ce-basicConstraints {false 1 -1}} issuer {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCA} l 2048 n 24161606882664512184359265185750837725108535101957340182512690512950889280510175836653980019439405807509520118166835198926328713901946216313990307823213762851130122553610411084164096778558222486569750697608231998818342043083553499928765840766586577148563804434733745484416582976688503343857730022194918419820043366167270205314454789050632414594372175021330643138454461788318306110532766986666994575469007919602783172146356611527403971910037954057021421611608595373199910520988014831498419657809400692831589285260267441816651113464389720766612297754777522129247659432535168409289483999817599902067306541004223550663809 notAfter 2070344258 notBefore 1281339458 pubkey 3082010a0282010100bf65944eeba4d516f9823cadd420a06e3413f14c32eda1f7fea95730ad20ba8e2c5952312210e02c4a848ccfba23fe052b9f35799e3174ae7a27ee4f69a56f96a9e93dad99de558b4f6e9b9c70dd2a6ed89bb3ed97e32c3167b0cc6e17753843097ff6a13276686d0e76004c2f22462717b0f1af3557936605f7899cf3037b85903e8d5449225f55f7320984f1e0864f0e14fe4dcc20aef03d0b593123b801ecbd23fb9be62799ac02b4c992e38ae6cfdbb81bf19209c0ad845c8da56591fa83c24c2fb4705b962bd15a1ccc47fbf70280522d79c5029f87e8315734e7b8a81d27f64ccb3716f8f75aa756251df7b041fc5e1c1b7ad1192bdb1d94154e212c810203010001 pubkey_algo rsaEncryption serial_number 11180668503388403151 signature bed4868761d804d7e08bec1aaaf265d2d59c6f5390c9fda3c81ef4452ea58b6df7ff7f2be33276a5c21d5b8ac0c62be55e52e47010c704d34380723da2d8cfe57c76e9b204e752a79979c7935627eda80a7fc3a4bed4f5ecea2fd83311fe4054bc62812a3f579738b94a44e0aded6c61c3569175cfb393e8b3a992f5ae8b51692d0a0373d1ca0664f527e7d04877ec49c57ae53eaab100063d4c915ea87bf4b22b634656bc3ba7e71cb5dca982937ec6736f9f0b1da6404245c9a08ca23b027c9cf65d1b41b709fc6e90671543f5f3b7f8b27914e466bfe538d01aae9804fd81591f16ded334cc693929ba0896d8d049b5bd29856b6ada45fa0a777ba9e2f41d signature_algo sha1WithRSAEncryption subject {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCA} type rsa version 3}
+
+test rsa-generate-cert-1.0 {cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test.key.des] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.key] r]
+    set cakey [read $fd]
+    close $fd ; unset fd
+
+    set password "ARoseIsARoseIsARose"
+
+    set privkey [::pki::pkcs::parse_key $privkey $password]
+
+    array set ca_arr [::pki::pkcs::parse_key $cakey $password]
+    array set ca_arr [::pki::x509::parse_cert $cacert]
+    set ca [array get ca_arr]
+
+    set csr [::pki::pkcs::parse_csr [::pki::pkcs::create_csr $privkey [list C US ST Florida L Tampa O Tcllib OU RSA CN TestCert]]]
+} -body {
+    ::pki::x509::create_cert $csr $ca 20100809075203 1281340325 1596959525 0 "" 1
+} -cleanup {
+    unset privkey cakey cacert ca_arr ca password csr
+} -result {-----BEGIN CERTIFICATE-----
+MIIDOTCCAiECBhJIFZWqAzANBgkqhkiG9w0BAQUFADBfMQswCQYDVQQGEwJVUzEQ
+MA4GA1UECBMHRmxvcmlkYTEOMAwGA1UEBxMFVGFtcGExDzANBgNVBAoTBlRjbGxp
+YjEMMAoGA1UECxMDUlNBMQ8wDQYDVQQDEwZUZXN0Q0EwHhcNMTAwODA5MDc1MjA1
+WhcNMjAwODA5MDc1MjA1WjBhMQswCQYDVQQGEwJVUzEQMA4GA1UECBMHRmxvcmlk
+YTEOMAwGA1UEBxMFVGFtcGExDzANBgNVBAoTBlRjbGxpYjEMMAoGA1UECxMDUlNB
+MREwDwYDVQQDEwhUZXN0Q2VydDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+ggEBAKM8Foo94fHWhBvSd8w96CUGDIimy/wK4gfsIBPxIbGgrXMgFBSGc05m96XX
+8qit7ryZjR+2KqZVss7tpnL1fRXL3uFwSeEh6S48Jq5WDeRaM6yk9vGZ3cF/u9/D
+tEay9S0YZzcVmdT9fcaHOUoKrWixAJJl0vCKsObyfLi1uRMQOcYgH7ggltK+J8ZA
+OpA3C3FwOKDBHACAMN1opgGJbhun5mjAnGiupzrTDrFyXwMqGk89qpEU3aQFwDFT
++/O1qfXk2M2aY48iQNy8gMQSTEoOh59NZpoX8wQY21lmAh8htUyiz37WygHMFvZk
+fk1W24rdEYD7gPFSTmSIj54sA0sCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAesvQ
+pYfxZj6KIbZfkWHwhDH0VNi5iPUvaNbVvZrZZ1R1gZAk8RycQN8gn7BaKX/6ciks
+geKbvGwy5JvZaKSed6574QVTV+mGAqAxOW+LmURV+TaoWSKAC93DebdsL2NlPDsr
+uuxMgb7fn52ni2qAslPo+YzecokIWDeyKvRUCD7Gt3LDdLQPG/jTx6Xnebb7usiF
+pfqQWhFUdcfPik0Y3rfJG5bV5HuhKR9LxwI3Hxrt4LlSZIpolMXkwklqeoI0eIpy
+kNJW5c2pm3cvQ/AZ3bHXWNBqH9A4Zf3OdizyKFD5lqqM3H2EQRXj0cUzQo2Wqf53
+S6W6B4F2B2ZLa/O/Eg==
+-----END CERTIFICATE-----
+}
+
+test rsa-generate-cacert-1.0 {cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test.key.des] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.key] r]
+    set cakey [read $fd]
+    close $fd ; unset fd
+
+    set password "ARoseIsARoseIsARose"
+
+    set privkey [::pki::pkcs::parse_key $privkey $password]
+
+    array set ca_arr [::pki::pkcs::parse_key $cakey $password]
+    array set ca_arr [::pki::x509::parse_cert $cacert]
+    set ca [array get ca_arr]
+
+    set csr [::pki::pkcs::parse_csr [::pki::pkcs::create_csr $privkey [list C US ST Florida L Tampa O Tcllib OU RSA CN TestCert]]]
+} -body {
+    ::pki::x509::create_cert $csr $ca 20100809075203 1281340325 1596959525 1 "" 1
+} -cleanup {
+    unset privkey cakey cacert ca_arr ca password csr
+} -result {-----BEGIN CERTIFICATE-----
+MIIDUzCCAjugAwIBAgIGEkgVlaoDMA0GCSqGSIb3DQEBBQUAMF8xCzAJBgNVBAYT
+AlVTMRAwDgYDVQQIEwdGbG9yaWRhMQ4wDAYDVQQHEwVUYW1wYTEPMA0GA1UEChMG
+VGNsbGliMQwwCgYDVQQLEwNSU0ExDzANBgNVBAMTBlRlc3RDQTAeFw0xMDA4MDkw
+NzUyMDVaFw0yMDA4MDkwNzUyMDVaMGExCzAJBgNVBAYTAlVTMRAwDgYDVQQIEwdG
+bG9yaWRhMQ4wDAYDVQQHEwVUYW1wYTEPMA0GA1UEChMGVGNsbGliMQwwCgYDVQQL
+EwNSU0ExETAPBgNVBAMTCFRlc3RDZXJ0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEAozwWij3h8daEG9J3zD3oJQYMiKbL/AriB+wgE/EhsaCtcyAUFIZz
+Tmb3pdfyqK3uvJmNH7YqplWyzu2mcvV9Fcve4XBJ4SHpLjwmrlYN5FozrKT28Znd
+wX+738O0RrL1LRhnNxWZ1P19xoc5SgqtaLEAkmXS8Iqw5vJ8uLW5ExA5xiAfuCCW
+0r4nxkA6kDcLcXA4oMEcAIAw3WimAYluG6fmaMCcaK6nOtMOsXJfAyoaTz2qkRTd
+pAXAMVP787Wp9eTYzZpjjyJA3LyAxBJMSg6Hn01mmhfzBBjbWWYCHyG1TKLPftbK
+AcwW9mR+TVbbit0RgPuA8VJOZIiPniwDSwIDAQABoxMwETAPBgNVHRMBAf8EBTAD
+AQH/MA0GCSqGSIb3DQEBBQUAA4IBAQA5nJ5k5HpGnBmDTB/cWd6LP7ygQ/jg9SEc
+dVhSb6xy7h7O2txsndfH5fTyJilKRAfl/NGs5ZyV9q97OIP1aAhIRQiKUwSHu2+l
+kHHVNn8DFGHRKhA5YSreZKR++tjAmowk0XQbEU33MZVPGPFlrL37V84Xf04MmFdD
+kFtZO/soAzO8cPVizz3DNk7SNDCsWjmaTVH1yKmzBLJhrU86o4BEqbYbjbwdtelZ
+cgeGPntr9c/ngnUlPU90HNp2e65zHUyf/3hWps72tSx5dNKcaE9NX8xxK5WZde8i
+mn/PueMPCKdX1v9Nou51yReEa8D9h7D7klWwacrRoYh9Y4++g1by
+-----END CERTIFICATE-----
+}
+
+test rsa-verify-certv1-1.0 {verify_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v1.crt] r]
+    set pubcert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {true}
+
+test rsa-verify-certv3-1.0 {verify_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v3.crt] r]
+    set pubcert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {true}
+
+test rsa-verify-badcertv1-1.0 {verify_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v1.crt] r]
+    set pubcert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory test-v1.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {false}
+
+test rsa-verify-badcertv3-1.0 {verify_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v3.crt] r]
+    set pubcert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory test-v3.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {false}
+
+test rsa-verify-badcertv3-2.0 {verify_cert} -setup {
+    set fd [open [file join $::tcltest::testsDirectory test-v3.crt] r]
+    set pubcert [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory CA.crt] r]
+    set cacert [read $fd]
+    close $fd ; unset fd
+
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+
+    # Remove all extensions from CA cert
+    array set cacert_arr $cacert
+    set cacert_arr(extensions) ""
+    set cacert [array get cacert_arr]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {false}
+
+test rsa-crypt-roundtrip-1.0 {encrypt, decrypt} -setup {
+    set data      "This is a test"
+    set password  "ARoseIsARoseIsARose"
+
+    set fd [open [file join $::tcltest::testsDirectory test.key.des] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory test-v1.crt] r]
+    set pubkey [read $fd]
+    close $fd ; unset fd
+
+    array set key [::pki::pkcs::parse_key $privkey $password]
+    array set key [::pki::x509::parse_cert $pubkey]
+    set keylist   [array get key]
+    unset password privkey pubkey key
+} -body {
+    set ciphertext [::pki::encrypt -binary -pub  -- $data       $keylist]
+    set plaintext  [::pki::decrypt -binary -priv -- $ciphertext $keylist]
+} -cleanup {
+    unset -nocomplain data ciphertext plaintext
+} -result {This is a test}
+
+test rsa-sign-verify-1.0 {sign, verify} -setup {
+    set data      "This is a test"
+    set password  "ARoseIsARoseIsARose"
+
+    set fd [open [file join $::tcltest::testsDirectory test.key.des] r]
+    set privkey [read $fd]
+    close $fd ; unset fd
+
+    set fd [open [file join $::tcltest::testsDirectory test-v1.crt] r]
+    set pubkey [read $fd]
+    close $fd ; unset fd
+
+    array set key [::pki::pkcs::parse_key $privkey $password]
+    array set key [::pki::x509::parse_cert $pubkey]
+    set keylist   [array get key]
+    unset password privkey pubkey key
+} -body {
+    set ciphertext [::pki::encrypt -binary -priv -- $data       $keylist]
+    set plaintext  [::pki::decrypt -binary -pub  -- $ciphertext $keylist]
+} -cleanup {
+    unset -nocomplain data ciphertext plaintext
+} -result {This is a test}
+
+
+foreach keylen {256 512 1024 2048} {
+
+    # Just one key for the whole round and its tests. Its possible to
+    # generate one for each test, but then we will really spend way to
+    # much effort on the setup of each test.
+    set key [::pki::rsa::generate $keylen]
+
+    test rsa-crypt-roundtrip-2.0.$keylen "encrypt, decrypt pub/priv for keylen $keylen" -body {
+        set plain    "Pub/priv test"
+        set cipher   [::pki::encrypt -binary -pub --  $plain  $key]
+        set uncipher [::pki::decrypt -binary -priv -- $cipher $key]
+
+        string equal $plain $uncipher
+    } -cleanup {
+        unset -nocomplain plain cipher uncipher
+    } -result 1
+
+    test rsa-crypt-roundtrip-2.1.$keylen "encrypt, decrypt priv/pub for keylen $keylen" -body {
+        set plain    "Priv/pub test"
+        set cipher   [::pki::encrypt -binary -priv -- $plain  $key]
+        set uncipher [::pki::decrypt -binary -pub  -- $cipher $key]
+
+        string equal $plain $uncipher
+    } -cleanup {
+        unset -nocomplain plain cipher uncipher
+    } -result 1
+
+    if {$keylen >= 512} {
+        foreach {i hash} {
+            0 md5
+            1 sha1
+            2 sha256
+        } {
+            test rsa-sign-verify-2.$i.$keylen "sign, verify $hash for keylen $keylen" -body {
+                set plain    "This message is so long, it will never fit into a key"
+                set signed   [::pki::sign   $plain  $key   $hash]
+                set verified [::pki::verify $signed $plain $key]
+            } -cleanup {
+                unset -nocomplain plain signed verified
+            } -result true
+        }
+    }
+
+    unset key
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

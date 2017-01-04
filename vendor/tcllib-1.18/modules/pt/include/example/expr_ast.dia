@@ -1,0 +1,44 @@
+# -*- tcl -*- tcl.tk//DSL diagram//EN//1.0
+set boxwidth [3 cm]
+proc achild {args} { arrow <- {*}$args}
+proc char {pos x} {
+    variable movelength
+    move down [expr {0.5*$movelength}]
+    box "\"$x\"" textcolor blue
+    group {
+	text text $pos with nw at [last box nw] textcolor red
+    }
+}
+down
+box "Expression 0 4"
+achild
+box "Factor 0 4"
+group {
+    achild down left left left left ; down
+    box "Term 0 2"
+    achild
+    box "Number 0 2"
+    group {
+	achild down left left ; down
+	box "Digit 0 0" ; char 0 1
+    } ; group {
+	achild down
+	box "Digit 1 1" ; char 1 2
+    } ; group {
+	achild down right right ; down
+	box "Digit 2 2" ; char 2 0
+    }
+} ; group {
+    achild down down down down down
+    box "AddOp 3 3" ; char 3 +
+} ; group {
+    achild down right right ; down
+    box "Term 4 4"
+    achild
+    box "Number 4 4"
+    achild down 
+    box "Digit 4 4" ; char 4 5
+}
+line stroke 2 dotted \
+    from [0.25 between [6th  box nw] [5th box sw ]] \
+    to   [0.25 between [last box ne] [2nd last box se]]

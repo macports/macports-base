@@ -1,0 +1,67 @@
+{}			{Bad length}
+{{}}			{Bad length}
+{{} {}}			{Bad length}
+{{} {} {} {}}		{Bad length}
+{{} {} x}		{Bad tokmap, expected a dictionary}
+{{} {} {x 3 y 3}}	{Bad tokmap, non-total ordering for y and x, at rank 3}
+{-1 {} {}}		{Invalid instruction -1 at PC 0}
+{31 {} {}}		{Invalid instruction 31 at PC 0}
+{0 {} {}}		{Bad program, last instruction 0 (ict_advance) is truncated}
+{1 {} {}}		{Bad program, last instruction 1 (ict_match_token) is truncated}
+{{1 0} {} {}}		{Bad program, last instruction 1 (ict_match_token) is truncated}
+{2 {} {}}		{Bad program, last instruction 2 (ict_match_tokrange) is truncated}
+{{2 0} {} {}}		{Bad program, last instruction 2 (ict_match_tokrange) is truncated}
+{{2 0 0} {} {}}		{Bad program, last instruction 2 (ict_match_tokrange) is truncated}
+{3 {} {}}		{Bad program, last instruction 3 (ict_match_tokclass) is truncated}
+{{3 0} {} {}}		{Bad program, last instruction 3 (ict_match_tokclass) is truncated}
+{4 {} {}}		{Bad program, last instruction 4 (inc_restore) is truncated}
+{{4 0} {} {}}		{Bad program, last instruction 4 (inc_restore) is truncated}
+{5 {} {}}		{Bad program, last instruction 5 (inc_save) is truncated}
+{6 {} {}}		{Bad program, last instruction 6 (icf_ntcall) is truncated}
+{11 {} {}}		{Bad program, last instruction 11 (icf_jalways) is truncated}
+{12 {} {}}		{Bad program, last instruction 12 (icf_jok) is truncated}
+{13 {} {}}		{Bad program, last instruction 13 (icf_jfail) is truncated}
+{20 {} {}}		{Bad program, last instruction 20 (ier_nonterminal) is truncated}
+{24 {} {}}		{Bad program, last instruction 24 (isv_nonterminal_leaf) is truncated}
+{25 {} {}}		{Bad program, last instruction 25 (isv_nonterminal_range) is truncated}
+{26 {} {}}		{Bad program, last instruction 26 (isv_nonterminal_reduce) is truncated}
+{{0 -1} {} {}}		{Invalid string reference -1 for instruction 0 (ict_advance) at 0}
+{{0 0} {} {}}		{Invalid string reference 0 for instruction 0 (ict_advance) at 0}
+{{1 0 -1} {x} {}}	{Invalid string reference -1 for instruction 1 (ict_match_token) at 0}
+{{1 0 1} {x} {}}	{Invalid string reference 1 for instruction 1 (ict_match_token) at 0}
+{{2 0 1 -1} {x y} {}}	{Invalid string reference -1 for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 1 2} {x y} {}}	{Invalid string reference 2 for instruction 2 (ict_match_tokrange) at 0}
+{{3 0 -1} {} {}}	{Invalid string reference -1 for instruction 3 (ict_match_tokclass) at 0}
+{{3 0 0} {} {}}		{Invalid string reference 0 for instruction 3 (ict_match_tokclass) at 0}
+{{4 0 -1} {} {}}	{Invalid string reference -1 for instruction 4 (inc_restore) at 0}
+{{4 0 0} {} {}}		{Invalid string reference 0 for instruction 4 (inc_restore) at 0}
+{{5 -1} {} {}}		{Invalid string reference -1 for instruction 5 (inc_save) at 0}
+{{5 0} {} {}}		{Invalid string reference 0 for instruction 5 (inc_save) at 0}
+{{20 -1} {} {}}		{Invalid string reference -1 for instruction 20 (ier_nonterminal) at 0}
+{{20 0} {} {}}		{Invalid string reference 0 for instruction 20 (ier_nonterminal) at 0}
+{{24 -1} {} {}}		{Invalid string reference -1 for instruction 24 (isv_nonterminal_leaf) at 0}
+{{24 0} {} {}}		{Invalid string reference 0 for instruction 24 (isv_nonterminal_leaf) at 0}
+{{25 -1} {} {}}		{Invalid string reference -1 for instruction 25 (isv_nonterminal_range) at 0}
+{{25 0} {} {}}		{Invalid string reference 0 for instruction 25 (isv_nonterminal_range) at 0}
+{{26 -1} {} {}}		{Invalid string reference -1 for instruction 26 (isv_nonterminal_reduce) at 0}
+{{26 0} {} {}}		{Invalid string reference 0 for instruction 26 (isv_nonterminal_reduce) at 0}
+{{4 -1 0} x {}}		{Invalid branch target -1 for instruction 4 (inc_restore) at 0}
+{{6 -1} {} {}}		{Invalid branch target -1 for instruction 6 (icf_ntcall) at 0}
+{{11 -1} {} {}}		{Invalid branch target -1 for instruction 11 (icf_jalways) at 0}
+{{12 -1} {} {}}		{Invalid branch target -1 for instruction 12 (icf_jok) at 0}
+{{13 -1} {} {}}		{Invalid branch target -1 for instruction 13 (icf_jfail) at 0}
+{{3 -1 0} x {}}		{Invalid token-class -1 for instruction 3 (ict_match_tokclass) at 0}
+{{3 6 0} x {}}		{Invalid token-class 6 for instruction 3 (ict_match_tokclass) at 0}
+{{1 -1 0} x {}}		{Invalid string reference -1 for instruction 1 (ict_match_token) at 0}
+{{1 1 0} x {}}		{Invalid string reference 1 for instruction 1 (ict_match_token) at 0}
+{{1 0 0} x {z 1}}	{Invalid token rank 0 for instruction 1 (ict_match_token) at 0}
+{{2 -1 0 0} x {}}	{Invalid string reference -1 for instruction 2 (ict_match_tokrange) at 0}
+{{2 1 0 0} x {}}	{Invalid string reference 1 for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 -1 0} x {}}	{Invalid string reference -1 for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 1 0} x {}}	{Invalid string reference 1 for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 0 0} x {}}	{Invalid single-token range for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 1 0} {y x} {}}	{Invalid empty range for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 1 0} x {z 1}}	{Invalid token rank 0 for instruction 2 (ict_match_tokrange) at 0}
+{{2 1 0 0} x {z 1}}	{Invalid token rank 0 for instruction 2 (ict_match_tokrange) at 0}
+{{2 0 0 0} x {z 0}}	{Invalid single-token range for instruction 2 (ict_match_tokrange) at 0}
+{{2 1 0 0} x {a 1 b 0}}	{Invalid empty range for instruction 2 (ict_match_tokrange) at 0}

@@ -1,0 +1,495 @@
+
+<div class='fossil-doc' data-title='math::geometry - Tcl Math Library'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::geometry(n) 1.1.3 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::geometry - Geometrical computations</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">References</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.3?</span></b></li>
+<li>package require <b class="pkgname">math::geometry <span class="opt">?1.1.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::geometry::+</b> <i class="arg">point1</i> <i class="arg">point2</i></a></li>
+<li><a href="#2"><b class="cmd">::math::geometry::-</b> <i class="arg">point1</i> <i class="arg">point2</i></a></li>
+<li><a href="#3"><b class="cmd">::math::geometry::p</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#4"><b class="cmd">::math::geometry::distance</b> <i class="arg">point1</i> <i class="arg">point2</i></a></li>
+<li><a href="#5"><b class="cmd">::math::geometry::length</b> <i class="arg">point</i></a></li>
+<li><a href="#6"><b class="cmd">::math::geometry::s*</b> <i class="arg">factor</i> <i class="arg">point</i></a></li>
+<li><a href="#7"><b class="cmd">::math::geometry::direction</b> <i class="arg">angle</i></a></li>
+<li><a href="#8"><b class="cmd">::math::geometry::h</b> <i class="arg">length</i></a></li>
+<li><a href="#9"><b class="cmd">::math::geometry::v</b> <i class="arg">length</i></a></li>
+<li><a href="#10"><b class="cmd">::math::geometry::between</b> <i class="arg">point1</i> <i class="arg">point2</i> <i class="arg">s</i></a></li>
+<li><a href="#11"><b class="cmd">::math::geometry::octant</b> <i class="arg">point</i></a></li>
+<li><a href="#12"><b class="cmd">::math::geometry::rect</b> <i class="arg">nw</i> <i class="arg">se</i></a></li>
+<li><a href="#13"><b class="cmd">::math::geometry::nwse</b> <i class="arg">rect</i></a></li>
+<li><a href="#14"><b class="cmd">::math::geometry::angle</b> <i class="arg">line</i></a></li>
+<li><a href="#15"><b class="cmd">::math::geometry::calculateDistanceToLine</b> <i class="arg">P</i> <i class="arg">line</i></a></li>
+<li><a href="#16"><b class="cmd">::math::geometry::calculateDistanceToLineSegment</b> <i class="arg">P</i> <i class="arg">linesegment</i></a></li>
+<li><a href="#17"><b class="cmd">::math::geometry::calculateDistanceToPolyline</b> <i class="arg">P</i> <i class="arg">polyline</i></a></li>
+<li><a href="#18"><b class="cmd">::math::geometry::calculateDistanceToPolygon</b> <i class="arg">P</i> <i class="arg">polygon</i></a></li>
+<li><a href="#19"><b class="cmd">::math::geometry::findClosestPointOnLine</b> <i class="arg">P</i> <i class="arg">line</i></a></li>
+<li><a href="#20"><b class="cmd">::math::geometry::findClosestPointOnLineSegment</b> <i class="arg">P</i> <i class="arg">linesegment</i></a></li>
+<li><a href="#21"><b class="cmd">::math::geometry::findClosestPointOnPolyline</b> <i class="arg">P</i> <i class="arg">polyline</i></a></li>
+<li><a href="#22"><b class="cmd">::math::geometry::lengthOfPolyline</b> <i class="arg">polyline</i></a></li>
+<li><a href="#23"><b class="cmd">::math::geometry::movePointInDirection</b> <i class="arg">P</i> <i class="arg">direction</i> <i class="arg">dist</i></a></li>
+<li><a href="#24"><b class="cmd">::math::geometry::lineSegmentsIntersect</b> <i class="arg">linesegment1</i> <i class="arg">linesegment2</i></a></li>
+<li><a href="#25"><b class="cmd">::math::geometry::findLineSegmentIntersection</b> <i class="arg">linesegment1</i> <i class="arg">linesegment2</i></a></li>
+<li><a href="#26"><b class="cmd">::math::geometry::findLineIntersection</b> <i class="arg">line1</i> <i class="arg">line2</i></a></li>
+<li><a href="#27"><b class="cmd">::math::geometry::polylinesIntersect</b> <i class="arg">polyline1</i> <i class="arg">polyline2</i></a></li>
+<li><a href="#28"><b class="cmd">::math::geometry::polylinesBoundingIntersect</b> <i class="arg">polyline1</i> <i class="arg">polyline2</i> <i class="arg">granularity</i></a></li>
+<li><a href="#29"><b class="cmd">::math::geometry::intervalsOverlap</b> <i class="arg">y1</i> <i class="arg">y2</i> <i class="arg">y3</i> <i class="arg">y4</i> <i class="arg">strict</i></a></li>
+<li><a href="#30"><b class="cmd">::math::geometry::rectanglesOverlap</b> <i class="arg">P1</i> <i class="arg">P2</i> <i class="arg">Q1</i> <i class="arg">Q2</i> <i class="arg">strict</i></a></li>
+<li><a href="#31"><b class="cmd">::math::geometry::bbox</b> <i class="arg">polyline</i></a></li>
+<li><a href="#32"><b class="cmd">::math::geometry::pointInsidePolygon</b> <i class="arg">P</i> <i class="arg">polyline</i></a></li>
+<li><a href="#33"><b class="cmd">::math::geometry::rectangleInsidePolygon</b> <i class="arg">P1</i> <i class="arg">P2</i> <i class="arg">polyline</i></a></li>
+<li><a href="#34"><b class="cmd">::math::geometry::areaPolygon</b> <i class="arg">polygon</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">math::geometry</b> package is a collection of functions for
+computations and manipulations on two-dimensional geometrical objects,
+such as points, lines and polygons.</p>
+<p>The geometrical objects are implemented as plain lists of coordinates.
+For instance a line is defined by a list of four numbers, the x- and
+y-coordinate of a first point and the x- and y-coordinates of a second
+point on the line.</p>
+<p>The various types of object are recognised by the number of coordinate
+pairs and the context in which they are used: a list of four elements
+can be regarded as an infinite line, a finite line segment but also
+as a polyline of one segment and a point set of two points.</p>
+<p>Currently the following types of objects are distinguished:</p>
+<ul class="doctools_itemized">
+<li><p><em>point</em> - a list of two coordinates representing the x- and
+y-coordinates respectively.</p></li>
+<li><p><em>line</em> - a list of four coordinates, interpreted as the x- and
+y-coordinates of two distinct points on the line.</p></li>
+<li><p><em>line segment</em> - a list of four coordinates, interpreted as the
+x- and y-coordinates of the first and the last points on the line
+segment.</p></li>
+<li><p><em>polyline</em> - a list of an even number of coordinates,
+interpreted as the x- and y-coordinates of an ordered set of points.</p></li>
+<li><p><em>polygon</em> - like a polyline, but the implicit assumption is that
+the polyline is closed (if the first and last points do not coincide,
+the missing segment is automatically added).</p></li>
+<li><p><em>point set</em> - again a list of an even number of coordinates, but
+the points are regarded without any ordering.</p></li>
+</ul>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::geometry::+</b> <i class="arg">point1</i> <i class="arg">point2</i></a></dt>
+<dd><p>Compute the sum of the two vectors given as points and return it.
+The result is a vector as well.</p></dd>
+<dt><a name="2"><b class="cmd">::math::geometry::-</b> <i class="arg">point1</i> <i class="arg">point2</i></a></dt>
+<dd><p>Compute the difference (point1 - point2) of the two vectors
+given as points and return it. The result is a vector as well.</p></dd>
+<dt><a name="3"><b class="cmd">::math::geometry::p</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Construct a point from its coordinates and return it as the
+result of the command.</p></dd>
+<dt><a name="4"><b class="cmd">::math::geometry::distance</b> <i class="arg">point1</i> <i class="arg">point2</i></a></dt>
+<dd><p>Compute the distance between the two points and return it as the
+result of the command. This is in essence the same as</p>
+<pre class="doctools_example">
+    math::geometry::length [math::geomtry::- point1 point2]
+</pre>
+</dd>
+<dt><a name="5"><b class="cmd">::math::geometry::length</b> <i class="arg">point</i></a></dt>
+<dd><p>Compute the length of the vector and return it as the
+result of the command.</p></dd>
+<dt><a name="6"><b class="cmd">::math::geometry::s*</b> <i class="arg">factor</i> <i class="arg">point</i></a></dt>
+<dd><p>Scale the vector by the factor and return it as the
+result of the command. This is a vector as well.</p></dd>
+<dt><a name="7"><b class="cmd">::math::geometry::direction</b> <i class="arg">angle</i></a></dt>
+<dd><p>Given the angle in degrees this command computes and returns
+the unit vector pointing into this direction. The vector for
+angle == 0 points to the right (up), and for angle == 90 up (north).</p></dd>
+<dt><a name="8"><b class="cmd">::math::geometry::h</b> <i class="arg">length</i></a></dt>
+<dd><p>Returns a horizontal vector on the X-axis of the specified length.
+Positive lengths point to the right (east).</p></dd>
+<dt><a name="9"><b class="cmd">::math::geometry::v</b> <i class="arg">length</i></a></dt>
+<dd><p>Returns a vertical vector on the Y-axis of the specified length.
+Positive lengths point down (south).</p></dd>
+<dt><a name="10"><b class="cmd">::math::geometry::between</b> <i class="arg">point1</i> <i class="arg">point2</i> <i class="arg">s</i></a></dt>
+<dd><p>Compute the point which is at relative distance <i class="arg">s</i> between the two
+points and return it as the result of the command. A relative distance of
+<b class="const">0</b> returns <i class="arg">point1</i>, the distance <b class="const">1</b> returns <i class="arg">point2</i>.
+Distances &lt; 0 or &gt; 1 extrapolate along the line between the two point.</p></dd>
+<dt><a name="11"><b class="cmd">::math::geometry::octant</b> <i class="arg">point</i></a></dt>
+<dd><p>Compute the octant of the circle the point is in and return it as the result
+of the command. The possible results are</p>
+<ol class="doctools_enumerated">
+<li><p>east</p></li>
+<li><p>northeast</p></li>
+<li><p>north</p></li>
+<li><p>northwest</p></li>
+<li><p>west</p></li>
+<li><p>southwest</p></li>
+<li><p>south</p></li>
+<li><p>southeast</p></li>
+</ol>
+<p>Each octant is the arc of the circle +/- 22.5 degrees from the cardinal direction
+the octant is named for.</p></dd>
+<dt><a name="12"><b class="cmd">::math::geometry::rect</b> <i class="arg">nw</i> <i class="arg">se</i></a></dt>
+<dd><p>Construct a rectangle from its northwest and southeast corners and return
+it as the result of the command.</p></dd>
+<dt><a name="13"><b class="cmd">::math::geometry::nwse</b> <i class="arg">rect</i></a></dt>
+<dd><p>Extract the northwest and southeast corners of the rectangle and return
+them as the result of the command (a 2-element list containing the
+points, in the named order).</p></dd>
+<dt><a name="14"><b class="cmd">::math::geometry::angle</b> <i class="arg">line</i></a></dt>
+<dd><p>Calculate the angle from the positive x-axis to a given line
+(in two dimensions only).</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">line</i></dt>
+<dd><p>Coordinates of the line</p></dd>
+</dl></dd>
+<dt><a name="15"><b class="cmd">::math::geometry::calculateDistanceToLine</b> <i class="arg">P</i> <i class="arg">line</i></a></dt>
+<dd><p>Calculate the distance of point P to the (infinite) line and return the
+result</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">line</i></dt>
+<dd><p>List of four numbers, the coordinates of two points
+on the line</p></dd>
+</dl></dd>
+<dt><a name="16"><b class="cmd">::math::geometry::calculateDistanceToLineSegment</b> <i class="arg">P</i> <i class="arg">linesegment</i></a></dt>
+<dd><p>Calculate the distance of point P to the (finite) line segment and
+return the result.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">linesegment</i></dt>
+<dd><p>List of four numbers, the coordinates of the
+first and last points of the line segment</p></dd>
+</dl></dd>
+<dt><a name="17"><b class="cmd">::math::geometry::calculateDistanceToPolyline</b> <i class="arg">P</i> <i class="arg">polyline</i></a></dt>
+<dd><p>Calculate the distance of point P to the polyline and
+return the result. Note that a polyline needs not to be closed.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">polyline</i></dt>
+<dd><p>List of numbers, the coordinates of the
+vertices of the polyline</p></dd>
+</dl></dd>
+<dt><a name="18"><b class="cmd">::math::geometry::calculateDistanceToPolygon</b> <i class="arg">P</i> <i class="arg">polygon</i></a></dt>
+<dd><p>Calculate the distance of point P to the polygon and
+return the result. If the list of coordinates is not closed (first and last
+points differ), it is automatically closed.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">polygon</i></dt>
+<dd><p>List of numbers, the coordinates of the
+vertices of the polygon</p></dd>
+</dl></dd>
+<dt><a name="19"><b class="cmd">::math::geometry::findClosestPointOnLine</b> <i class="arg">P</i> <i class="arg">line</i></a></dt>
+<dd><p>Return the point on a line which is closest to a given point.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">line</i></dt>
+<dd><p>List of four numbers, the coordinates of two points
+on the line</p></dd>
+</dl></dd>
+<dt><a name="20"><b class="cmd">::math::geometry::findClosestPointOnLineSegment</b> <i class="arg">P</i> <i class="arg">linesegment</i></a></dt>
+<dd><p>Return the point on a <em>line segment</em> which is closest to a given
+point.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">linesegment</i></dt>
+<dd><p>List of four numbers, the first and last
+points on the line segment</p></dd>
+</dl></dd>
+<dt><a name="21"><b class="cmd">::math::geometry::findClosestPointOnPolyline</b> <i class="arg">P</i> <i class="arg">polyline</i></a></dt>
+<dd><p>Return the point on a <em>polyline</em> which is closest to a given
+point.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>List of two numbers, the coordinates of the point</p></dd>
+<dt>list <i class="arg">polyline</i></dt>
+<dd><p>List of numbers, the vertices of the polyline</p></dd>
+</dl></dd>
+<dt><a name="22"><b class="cmd">::math::geometry::lengthOfPolyline</b> <i class="arg">polyline</i></a></dt>
+<dd><p>Return the length of the <em>polyline</em> (note: it not regarded as a
+polygon)</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">polyline</i></dt>
+<dd><p>List of numbers, the vertices of the polyline</p></dd>
+</dl></dd>
+<dt><a name="23"><b class="cmd">::math::geometry::movePointInDirection</b> <i class="arg">P</i> <i class="arg">direction</i> <i class="arg">dist</i></a></dt>
+<dd><p>Move a point over a given distance in a given direction and return the
+new coordinates (in two dimensions only).</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>Coordinates of the point to be moved</p></dd>
+<dt>double <i class="arg">direction</i></dt>
+<dd><p>Direction (in degrees; 0 is to the right, 90
+upwards)</p></dd>
+<dt>list <i class="arg">dist</i></dt>
+<dd><p>Distance over which to move the point</p></dd>
+</dl></dd>
+<dt><a name="24"><b class="cmd">::math::geometry::lineSegmentsIntersect</b> <i class="arg">linesegment1</i> <i class="arg">linesegment2</i></a></dt>
+<dd><p>Check if two line segments intersect or coincide. Returns 1 if that is
+the case, 0 otherwise (in two dimensions only). If an endpoint of one segment lies on
+the other segment (or is very close to the segment), they are considered to intersect</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">linesegment1</i></dt>
+<dd><p>First line segment</p></dd>
+<dt>list <i class="arg">linesegment2</i></dt>
+<dd><p>Second line segment</p></dd>
+</dl></dd>
+<dt><a name="25"><b class="cmd">::math::geometry::findLineSegmentIntersection</b> <i class="arg">linesegment1</i> <i class="arg">linesegment2</i></a></dt>
+<dd><p>Find the intersection point of two line segments. Return the coordinates
+or the keywords &quot;coincident&quot; or &quot;none&quot; if the line segments coincide or
+have no points in common (in two dimensions only).</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">linesegment1</i></dt>
+<dd><p>First line segment</p></dd>
+<dt>list <i class="arg">linesegment2</i></dt>
+<dd><p>Second line segment</p></dd>
+</dl></dd>
+<dt><a name="26"><b class="cmd">::math::geometry::findLineIntersection</b> <i class="arg">line1</i> <i class="arg">line2</i></a></dt>
+<dd><p>Find the intersection point of two (infinite) lines. Return the coordinates
+or the keywords &quot;coincident&quot; or &quot;none&quot; if the lines coincide or
+have no points in common (in two dimensions only).</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">line1</i></dt>
+<dd><p>First line</p></dd>
+<dt>list <i class="arg">line2</i></dt>
+<dd><p>Second line</p></dd>
+</dl>
+<p>See section <span class="sectref"><a href="#section3">References</a></span> for details on the algorithm and math behind it.</p></dd>
+<dt><a name="27"><b class="cmd">::math::geometry::polylinesIntersect</b> <i class="arg">polyline1</i> <i class="arg">polyline2</i></a></dt>
+<dd><p>Check if two polylines intersect or not (in two dimensions only).</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">polyline1</i></dt>
+<dd><p>First polyline</p></dd>
+<dt>list <i class="arg">polyline2</i></dt>
+<dd><p>Second polyline</p></dd>
+</dl></dd>
+<dt><a name="28"><b class="cmd">::math::geometry::polylinesBoundingIntersect</b> <i class="arg">polyline1</i> <i class="arg">polyline2</i> <i class="arg">granularity</i></a></dt>
+<dd><p>Check whether two polylines intersect, but reduce
+the correctness of the result to the given granularity.
+Use this for faster, but weaker, intersection checking.</p>
+<p>How it works:</p>
+<p>Each polyline is split into a number of smaller polylines,
+consisting of granularity points each. If a pair of those smaller
+lines' bounding boxes intersect, then this procedure returns 1,
+otherwise it returns 0.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">polyline1</i></dt>
+<dd><p>First polyline</p></dd>
+<dt>list <i class="arg">polyline2</i></dt>
+<dd><p>Second polyline</p></dd>
+<dt>int <i class="arg">granularity</i></dt>
+<dd><p>Number of points in each part (&lt;=1 means check
+every edge)</p></dd>
+</dl></dd>
+<dt><a name="29"><b class="cmd">::math::geometry::intervalsOverlap</b> <i class="arg">y1</i> <i class="arg">y2</i> <i class="arg">y3</i> <i class="arg">y4</i> <i class="arg">strict</i></a></dt>
+<dd><p>Check if two intervals overlap.</p>
+<dl class="doctools_arguments">
+<dt>double <i class="arg">y1,y2</i></dt>
+<dd><p>Begin and end of first interval</p></dd>
+<dt>double <i class="arg">y3,y4</i></dt>
+<dd><p>Begin and end of second interval</p></dd>
+<dt>logical <i class="arg">strict</i></dt>
+<dd><p>Check for strict or non-strict overlap</p></dd>
+</dl></dd>
+<dt><a name="30"><b class="cmd">::math::geometry::rectanglesOverlap</b> <i class="arg">P1</i> <i class="arg">P2</i> <i class="arg">Q1</i> <i class="arg">Q2</i> <i class="arg">strict</i></a></dt>
+<dd><p>Check if two rectangles overlap.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P1</i></dt>
+<dd><p>upper-left corner of the first rectangle</p></dd>
+<dt>list <i class="arg">P2</i></dt>
+<dd><p>lower-right corner of the first rectangle</p></dd>
+<dt>list <i class="arg">Q1</i></dt>
+<dd><p>upper-left corner of the second rectangle</p></dd>
+<dt>list <i class="arg">Q2</i></dt>
+<dd><p>lower-right corner of the second rectangle</p></dd>
+<dt>list <i class="arg">strict</i></dt>
+<dd><p>choosing strict or non-strict interpretation</p></dd>
+</dl></dd>
+<dt><a name="31"><b class="cmd">::math::geometry::bbox</b> <i class="arg">polyline</i></a></dt>
+<dd><p>Calculate the bounding box of a polyline. Returns a list of four
+coordinates: the upper-left and the lower-right corner of the box.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">polyline</i></dt>
+<dd><p>The polyline to be examined</p></dd>
+</dl></dd>
+<dt><a name="32"><b class="cmd">::math::geometry::pointInsidePolygon</b> <i class="arg">P</i> <i class="arg">polyline</i></a></dt>
+<dd><p>Determine if a point is completely inside a polygon. If the point
+touches the polygon, then the point is not completely inside the
+polygon.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P</i></dt>
+<dd><p>Coordinates of the point</p></dd>
+<dt>list <i class="arg">polyline</i></dt>
+<dd><p>The polyline to be examined</p></dd>
+</dl></dd>
+<dt><a name="33"><b class="cmd">::math::geometry::rectangleInsidePolygon</b> <i class="arg">P1</i> <i class="arg">P2</i> <i class="arg">polyline</i></a></dt>
+<dd><p>Determine if a rectangle is completely inside a polygon. If polygon
+touches the rectangle, then the rectangle is not complete inside the
+polygon.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">P1</i></dt>
+<dd><p>Upper-left corner of the rectangle</p></dd>
+<dt>list <i class="arg">P2</i></dt>
+<dd><p>Lower-right corner of the rectangle</p></dd>
+<dt>list <i class="arg">polygon</i></dt>
+<dd><p>The polygon in question</p></dd>
+</dl></dd>
+<dt><a name="34"><b class="cmd">::math::geometry::areaPolygon</b> <i class="arg">polygon</i></a></dt>
+<dd><p>Calculate the area of a polygon.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">polygon</i></dt>
+<dd><p>The polygon in question</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http:/wiki.tcl.tk/12070">Polygon Intersection</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Line-line_intersection">http://en.wikipedia.org/wiki/Line-line_intersection</a></p></li>
+<li><p><a href="http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/">http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/</a></p></li>
+</ol>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: geometry</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key581">angle</a>, <a href="../../../../index.html#key478">distance</a>, <a href="../../../../index.html#key579">line</a>, <a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key578">plane geometry</a>, <a href="../../../../index.html#key580">point</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2001 by Ideogramic ApS and other parties<br>
+Copyright &copy; 2004 by Arjen Markus<br>
+Copyright &copy; 2010 by Andreas Kupries<br>
+Copyright &copy; 2010 by Kevin Kenny</p>
+</div>
+</div>

@@ -1,0 +1,117 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_minimize.test,v 1.4 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-minimize-${setimpl}-1.0 {minimize, error} {
+    catch {grammar::fa::op::minimize} res
+    set res
+} {wrong # args: should be "grammar::fa::op::minimize fa ?mapvar?"}
+
+
+test faop-minimize-${setimpl}-1.1 {minimize, error} {
+    catch {grammar::fa::op::minimize a b c} res
+    set res
+} {wrong # args: should be "grammar::fa::op::minimize fa ?mapvar?"}
+
+
+test faop-minimize-${setimpl}-1.2 {minimize, error} {
+    catch {grammar::fa::op::minimize a} res
+    set res
+} {invalid command name "a"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code st fin mapres result} {
+    00 datom x y {}
+    {grammar::fa @ {x {1 0 {@ y}} y {0 1 {}}}}
+
+    01 dalt  u z {0 {u v w} 1 {x y z}}
+    {grammar::fa {@ =} {0 {1 0 {@ 1 = 1}} 1 {0 1 {}}}}
+
+    02 dopt  u x {0 {u v w x} 1 {u w x}}
+    {grammar::fa @ {0 {1 1 {@ 1}} 1 {0 1 {}}}}
+
+    03 drep  u x {0 {u v w x}}
+    {grammar::fa @ {0 {1 1 {@ 0}}}}
+} {
+    set key ${n}.${code}
+
+    test faop-minimize-${setimpl}-2.$key {minimize, bounded} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	grammar::fa::op::minimize a map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+	lappend res [a is deterministic]
+	a destroy
+	set res
+    } {ok 1 1}
+
+    test faop-minimize-${setimpl}-3.$key {minimize, bounded, as method} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	a minimize map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+	lappend res [a is deterministic]
+	a destroy
+	set res
+    } {ok 1 1}
+}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code mapres result} {
+    00 datom {0 x 1 y}
+    {grammar::fa @ {0 {0 0 {@ 1}} 1 {0 0 {}}}}
+
+    01 dalt  {0 v 1 x 2 w 3 y 4 {u v} 5 u 6 {u w} 7 z 8 {x z} 9 {y z}}
+    {grammar::fa {@ =} {0 {0 0 {}} 1 {0 0 {}} 2 {0 0 {}} 3 {0 0 {}} 4 {0 0 {@ 8}} 5 {0 0 {}} 6 {0 0 {= 9}} 7 {0 0 {}} 8 {0 0 {}} 9 {0 0 {}}}}
+
+    02 dopt  {0 {u v} 1 x 2 u 3 v 4 w 5 {w x}}
+    {grammar::fa @ {0 {0 0 {@ 5}} 1 {0 0 {}} 2 {0 0 {}} 3 {0 0 {}} 4 {0 0 {}} 5 {0 0 {}}}}
+
+    03 drep  {0 {u v w x} 1 x 2 u 3 v 4 w 5 {u v w x}}
+    {grammar::fa @ {0 {0 0 {@ 5}} 1 {0 0 {}} 2 {0 0 {}} 3 {0 0 {}} 4 {0 0 {}} 5 {0 0 {@ 5}}}}
+} {
+    set key ${n}.${code}
+
+    test faop-minimize-${setimpl}-4.$key {minimize, unbounded} {
+	grammar::fa a
+	gen $code
+	grammar::fa::op::minimize a map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+        lappend res [a is deterministic] ; # Never formally det, because of missing start.
+	a destroy
+	set res
+    } {ok 1 0}
+
+    test faop-minimize-${setimpl}-5.$key {minimize, unbounded, as method} {
+	grammar::fa a
+	gen $code
+	a minimize map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+        lappend res [a is deterministic] ; # Never formally det, because of missing start.
+	a destroy
+	set res
+    } {ok 1 0}
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

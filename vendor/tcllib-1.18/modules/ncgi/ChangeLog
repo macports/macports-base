@@ -1,0 +1,373 @@
+2013-02-08  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.tcl (::ncgi::DecodeHex): [Bug 3603593]: Fixed bad scoping
+	* ncgi.man: of DecodeHex, now in the ncgi namespace instead of
+	* pkgIndex.tcl: polluting the global. Bumped version to 1.4.2.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-30  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.man: [Bug 3601995]: Accepted [decode] changes by
+	* ncgi.tcl: <quantifier@users.sourceforge.net>. Fixed both missing
+	* ncgi.test: acceptance of various ut-8 sequences, and missing
+	* pkgIndex.tcl: rejection of bad sequences. Test cases
+	  added. Bumped to version 1.4.1.
+
+2012-05-03  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.tcl: Applied Richard Hipp's patch to extend handling of
+	* pkgIndex.tcl: utf characters in [decode]. Extended testsuite.
+	* ncgi.man: Used the opportunity to bump the minimum required
+	* ncgi.test: Tcl runtime up to 8.4. Bumped package version up
+	  to 1.4 to reflect this latter change.
+
+2012-03-30  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.tcl: [Bug 3513149]: Removed superfluous closing
+	* pkgIndex.tcl: bracket. Bumped version to 1.3.3.
+	* ncgi.man:
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-04-23  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.tcl (::ncgi::exists): Fixed documentation in code
+	* ncgi.man: and outside, the result was specified wrongly.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-22  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.man: Tweaked the formatting of the newly committed example
+	  a bit.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: Rewritten to use new features for handling the
+	  environment.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: Fixed ncgi dependencies in the scripts executed by
+	  sub-shells.
+
+2006-09-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: Added 'exit' to the scripts executed in sub-shells,
+	  to make them usable with 'wish'-type shells as well. Fixed
+	  8.4ism in testsuite of 8.2+ package.
+
+2006-07-02  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* ncgi.tcl: Applied patch from [SF Tcllib Bug 532774] to
+	  speed up parsing of large values using string functions
+	  instead of regexp.
+	  
+2006-07-02  Michael Schlenker <mic42@users.sourceforge.net>
+        
+	* ncgi.tcl: Fixed [SF Tcllib Bug 547274]. We could further
+	  enhance the value parsing in case a parameter is specified.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: Fixed use and cleanup of temp. files. Also fixed
+	  warning about changes to the env array.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-30  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Applied fix for [SF Tcllib Bug 756939], and
+	* ncgi.tcl:     accepted [SF Tcllib RFE 842066]. Added new
+	* ncgi.man:     commands 'ncgi::names' and 'ncgi::exists'.
+	* ncgi.test:    Extended the documentation and testsuite. Bumped
+	                version to 1.3
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-04 Brent Welch <welch@panasas.com>
+
+        * ngci.tcl: Added text/xml to the list of types allowed by
+	  ncgi::nvlist.  This is to support URL fetches in tclhttpd from
+	  active X objects that specify their inputs in "xml".
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl:  The variable '_tmpfiles' was used in conjunction with
+	* ncgi.test: some 8.4'isms. The package is certified for Tcl 8.2.
+	             Replaced the offending constructs with equivalents
+		     acceptable to the lesser cores. Spelling fixes in the
+	* formdata.txt: tests, and supporting data file.
+
+2003-07-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.man: Trival spelling fix.
+
+2003-06-16  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.test:
+	* ncgi.tcl (importFile): Got a rewritten version from Steve
+	  Cassidy which fixes some bugs. We now also have tests for
+	  'importFile'. See tcllib patch 611595 for the original code.
+
+2003-05-09  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.tcl (import_file): Brace [expr].
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.test: Fixed all the tests which use a sub-process. The
+	  auto_path was not propagated, causing the sub-process to require
+	  an installed tcllib for correct operation (i.e. to find the
+	  other packages ncgi depends on, like fileutil). also changed the
+	  test prolog to match the other testsuites.
+
+2003-04-25  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.tcl (::ncgi::query): Added code to handle binary data in
+	  query/upload correctly.
+
+2003-04-23  Andreas Kupries  <andreask@activestate.com>
+
+	* ncgi.man:
+	* ncgi.tcl: Added command [importFile] from tcllib patch
+	  611595. The command [tempfile] was relocated into fileutil
+	  instead.
+
+2003-04-10  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl:
+	* ncgi.man:
+	* ncgi.tcl: Fixed bug #614591. Set version of the package to to
+	  1.2.2. Also fixed equivalnet of bug #648679.
+
+2003-02-05  David N. Welton  <davidw@dedasys.com>
+
+	* ncgi.tcl: Use string match instead of regexp.
+
+2002-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl: Updated 'info exist' to 'info exists'.
+
+2002-08-15  David N. Welton  <davidw@dedasys.com>
+
+	* ncgi.tcl (ncgi::setValueList): Fix [ 593254 ] ncgi::SetValue bug
+	- SetValue now works correctly with multipart values with spaces
+	in them.
+
+2002-08-09  David N. Welton  <davidw@dedasys.com>
+
+	* ncgi.test: Added two new tests for setValue.
+
+	* ncgi.tcl (ncgi::multipart): Fix [ 564279 ] ncgi::multipart bug -
+	commented out offending 'puts' statements.
+
+2002-04-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.man: Added doctools manpage.
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.2.1
+
+2001-10-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl (ncgi::redirect): Fixed bug #464560 reported by Ed
+	  Rolfe <erolfe@users.sourceforge.net>. The proposed fix is not
+	  used as it does not pass the testsuite. We check for the
+	  existence of "env(REQUEST_URI)" instead, again, and use the
+	  appropriate alternate information if it does not exist.
+
+2001-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.n:
+	* ncgi.test:
+	* ncgi.tcl:
+	* pkgIndex.tcl: Version up to 1.2
+
+2001-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl: Restricted export list to public API.
+	  [456255]. Patch by Hemang Lavana
+	  <hemanglavana@users.sourceforge.net>
+
+2001-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl: Added missing [global env]. Bug [458023].
+
+2001-08-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* ncgi.tcl: made require Tcl 8.1+, sped up encode and decode.
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ncgi.tcl: Fixed dubious code reported by frink.
+
+2001-06-15  Melissa Chawla <melissachawla@yahoo.com>
+
+	* ncgi.tcl: Applied George Wu's patch (gwu@acm.org) to the
+ 	multipart function.  It failed to process binary data correctly
+ 	because it replaced all "\r\n" sequences with "\n".
+
+2000-07-31  Brent Welch <welch@scriptics.com>
+
+	* ncgi.tcl:  Added ncgi::setValue, ncgi::setValueList,
+	ncgi::setDefaultValue, ncgi::setDefaultValueList to push values
+	back into the CGI environment.
+
+2000-05-26  Melissa Chawla  <hershey@scriptics.com>
+
+	* ncgi.tcl: fixed bug 5727 where Netscape prepends an extra \n to
+	post data sent via HTTPS.  Urlencoded post does not include
+	preceding or trailing whitespace, so to be safe, we trim
+	whitespace off the post data before parsing the attributes.
+
+2000-05-15  Brent Welch <welch@scriptics.com>
+
+	* ncgi.tcl:  Changed ncgi::redirect so it grabs the server name
+	from REQUEST_URI before using the SERVER_NAME value.  This is so
+	the server name matches the previous page better.  Otherwise a
+	transition from "www" to "www.scriptics.com" can trigger
+	Basic Authentication challenges.
+
+2000-05-02  Brent Welch <welch@scriptics.com>
+
+	* ncgi/ncgi.tcl:
+	Moved the '+' decoding from nvlist down into ncgi::decode.
+	Changed ncgi::value to strip out the structure associated with
+	multipart/form-data values.  Use ncgi::valueList to get the
+	structured value.
+
+2000-05-02  Sandeep Tamhankar <sandeep@scriptics.com>
+
+	* ncgi.tcl: Changed ncgi::parseMimeValue such that a key-value
+	pair like name="" would turn into the list {name {}} instead of
+	{name {""}}.
+	
+2000-04-26  Brent Welch <welch@scriptics.com>
+
+	* ncgi.tcl, ncgi.test: changed names to get capitalization
+	right: setCookie, valueList, importAll, urlStub
+
+2000-04-17  Brent Welch  <welch@scriptics.com>
+
+	* ncgi.tcl: Fixed ncgi::reset with no query data.  Fixed
+	ncgi::multipart because it usually gets \r\n data.
+
+2000-04-14  Brent Welch <welch@scriptics.com>
+	
+	* ncgi.tcl: Changed ncgi::list to ncgi::nvlist (for "name value
+	list") becauase	of the inevitable conflict with the global list
+	command.  Added ncgi::importall to import a set of cgi variables.
+	Added multipart/form-data parsing.  Added ncgi::cookie and
+	ncgi::setcookie.
+
+2000-03-20  Eric Melski  <ericm@scriptics.com>
+
+	* ncgi.test: Fixed tests that created files with "source ncgi.tcl"
+	in them to use full path for sourcing, so that tests could be run
+	from any directory. [Bug: 4393]
+
+2000-03-15  Brent Welch <welch@scriptics.com>
+
+	* ncgi.tcl: added ncgi::reset so the ncgi package can be used inside
+	TclHttpd
+
+	* ncgi.test: added ncgi::reset tests, renumbered everything, and
+	switch most tests to use ncgi::reset
+
+2000-03-10  Eric Melski  <ericm@scriptics.com>
+
+	* pkgIndex.tcl: Added package index file.
+
+	* ncgi.test: Added code to add source dir to auto_path, so that 
+	tests could be run on uninstalled package.  Added call to 
+	tcltest::cleanupTests.
+
+

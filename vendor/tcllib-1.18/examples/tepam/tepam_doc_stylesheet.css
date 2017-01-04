@@ -1,0 +1,39 @@
+h1.tepam_page_title {
+   font-weight: bold;
+   font-size:large;
+   background: lightblue;
+   color: black;
+   margin-left: 0.0cm;
+   padding: 0.3cm 0.3cm 0.3cm 0.3cm;}
+div.tepam_command_help {
+   margin-left: 0.6cm;
+   padding: 0.0cm 0.3cm 0.0cm 0.3cm;
+   border: 1px solid black;}
+p.tepam_section_title {
+   margin-left: 0.0cm;
+   text-transform: uppercase;}
+p.tepam_sub_section_title {
+   margin-left: 0.6cm;
+   font-style: italic}
+p.tepam_name {
+   margin-left: 0.9cm;
+   font-weight: bold;}
+p.tepam_synopsis {
+   margin-left: 0.9cm;
+   font-weight: bold;}
+p.tepam_description {
+   margin-left: 0.9cm;}
+ul.tepam_description_list {
+   margin-left: 0.9cm;}
+dt.tepam_argument  {
+   margin-left: 0.9cm; margin-top: 0.2cm; font-weight: bold;}
+p.tepam_argument_description {
+   margin-left: 0.9cm; margin-top: 0.0cm; margin-bottom: 0.2cm; }
+p.tepam_argument_attribute {
+   margin-left: 0.9cm; margin-top: 0.0cm; margin-bottom: 0.0cm; font-size:small;}
+pre.tepam_example {
+   color: black;
+   background: #f5dcb3;
+   border: 1px solid black;
+   margin-left: 0.9cm;
+   padding: 0.2cm 0.2cm 0.2cm 0.2cm;}

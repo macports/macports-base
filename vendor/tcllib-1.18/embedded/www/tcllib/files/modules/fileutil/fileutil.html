@@ -1,0 +1,531 @@
+
+<div class='fossil-doc' data-title='fileutil - file utilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">fileutil(n) 1.15 tcllib &quot;file utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>fileutil - Procedures implementing some file utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Warnings and Incompatibilities</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8</b></li>
+<li>package require <b class="pkgname">fileutil <span class="opt">?1.15?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::fileutil::lexnormalize</b> <i class="arg">path</i></a></li>
+<li><a href="#2"><b class="cmd">::fileutil::fullnormalize</b> <i class="arg">path</i></a></li>
+<li><a href="#3"><b class="cmd">::fileutil::test</b> <i class="arg">path</i> <i class="arg">codes</i> <span class="opt">?<i class="arg">msgvar</i>?</span> <span class="opt">?<i class="arg">label</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::fileutil::cat</b> (<span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i>)...</a></li>
+<li><a href="#5"><b class="cmd">::fileutil::writeFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">data</i></a></li>
+<li><a href="#6"><b class="cmd">::fileutil::appendToFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">data</i></a></li>
+<li><a href="#7"><b class="cmd">::fileutil::insertIntoFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">at</i> <i class="arg">data</i></a></li>
+<li><a href="#8"><b class="cmd">::fileutil::removeFromFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">at</i> <i class="arg">n</i></a></li>
+<li><a href="#9"><b class="cmd">::fileutil::replaceInFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">at</i> <i class="arg">n</i> <i class="arg">data</i></a></li>
+<li><a href="#10"><b class="cmd">::fileutil::updateInPlace</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">cmd</i></a></li>
+<li><a href="#11"><b class="cmd">::fileutil::fileType</b> <i class="arg">filename</i></a></li>
+<li><a href="#12"><b class="cmd">::fileutil::find</b> <span class="opt">?<i class="arg">basedir</i> <span class="opt">?<i class="arg">filtercmd</i>?</span>?</span></a></li>
+<li><a href="#13"><b class="cmd">::fileutil::findByPattern</b> <i class="arg">basedir</i> <span class="opt">?<b class="option">-regexp</b>|<b class="option">-glob</b>?</span> <span class="opt">?<b class="option">--</b>?</span> <i class="arg">patterns</i></a></li>
+<li><a href="#14"><b class="cmd">::fileutil::foreachLine</b> <i class="arg">var filename cmd</i></a></li>
+<li><a href="#15"><b class="cmd">::fileutil::grep</b> <i class="arg">pattern</i> <span class="opt">?<i class="arg">files</i>?</span></a></li>
+<li><a href="#16"><b class="cmd">::fileutil::install</b> <span class="opt">?<b class="option">-m</b> <i class="arg">mode</i>?</span> <i class="arg">source</i> <i class="arg">destination</i></a></li>
+<li><a href="#17"><b class="cmd">::fileutil::stripN</b> <i class="arg">path</i> <i class="arg">n</i></a></li>
+<li><a href="#18"><b class="cmd">::fileutil::stripPwd</b> <i class="arg">path</i></a></li>
+<li><a href="#19"><b class="cmd">::fileutil::stripPath</b> <i class="arg">prefix</i> <i class="arg">path</i></a></li>
+<li><a href="#20"><b class="cmd">::fileutil::jail</b> <i class="arg">jail</i> <i class="arg">path</i></a></li>
+<li><a href="#21"><b class="cmd">::fileutil::touch</b> <span class="opt">?<b class="option">-a</b>?</span> <span class="opt">?<b class="option">-c</b>?</span> <span class="opt">?<b class="option">-m</b>?</span> <span class="opt">?<b class="option">-r</b> <i class="arg">ref_file</i>?</span> <span class="opt">?<b class="option">-t</b> <i class="arg">time</i>?</span> <i class="arg">filename</i> <span class="opt">?<i class="arg">...</i>?</span></a></li>
+<li><a href="#22"><b class="cmd">::fileutil::tempdir</b></a></li>
+<li><a href="#23"><b class="cmd">::fileutil::tempdir</b> <i class="arg">path</i></a></li>
+<li><a href="#24"><b class="cmd">::fileutil::tempdirReset</b></a></li>
+<li><a href="#25"><b class="cmd">::fileutil::tempfile</b> <span class="opt">?<i class="arg">prefix</i>?</span></a></li>
+<li><a href="#26"><b class="cmd">::fileutil::maketempdir</b> <span class="opt">?<b class="option">-prefix</b> <i class="arg">str</i>?</span> <span class="opt">?<b class="option">-suffix</b> <i class="arg">str</i>?</span> <span class="opt">?<b class="option">-dir</b> <i class="arg">str</i>?</span></a></li>
+<li><a href="#27"><b class="cmd">::fileutil::relative</b> <i class="arg">base</i> <i class="arg">dst</i></a></li>
+<li><a href="#28"><b class="cmd">::fileutil::relativeUrl</b> <i class="arg">base</i> <i class="arg">dst</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides implementations of standard unix utilities.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::fileutil::lexnormalize</b> <i class="arg">path</i></a></dt>
+<dd><p>This command performs purely lexical normalization on the <i class="arg">path</i> and returns
+the changed path as its result. Symbolic links in the path are <em>not</em> resolved.</p>
+<p>Examples:</p>
+<pre class="doctools_example">
+    fileutil::lexnormalize /foo/./bar
+    =&gt; /foo/bar
+    fileutil::lexnormalize /foo/../bar
+    =&gt; /bar
+</pre>
+</dd>
+<dt><a name="2"><b class="cmd">::fileutil::fullnormalize</b> <i class="arg">path</i></a></dt>
+<dd><p>This command resolves all symbolic links in the <i class="arg">path</i> and returns
+the changed path as its result.
+In contrast to the builtin <b class="cmd">file normalize</b> this command
+resolves a symbolic link in the last element of the path as well.</p></dd>
+<dt><a name="3"><b class="cmd">::fileutil::test</b> <i class="arg">path</i> <i class="arg">codes</i> <span class="opt">?<i class="arg">msgvar</i>?</span> <span class="opt">?<i class="arg">label</i>?</span></a></dt>
+<dd><p>A command for the testing of several properties of a <i class="arg">path</i>. The
+properties to test for are specified in <i class="arg">codes</i>, either as a list
+of keywords describing the properties, or as a string where each
+letter is a shorthand for a property to test. The recognized keywords,
+shorthands, and associated properties are shown in the list below. The
+tests are executed in the order given to the command.</p>
+<p>The result of the command is a boolean value. It will be true if and
+only if the <i class="arg">path</i> passes all the specified tests.
+In the case of the <i class="arg">path</i> not passing one or more test the first
+failing test will leave a message in the variable referenced by
+<i class="arg">msgvar</i>, if such is specified. The message will be prefixed with
+<i class="arg">label</i>, if it is specified.
+<em>Note</em> that the variabled referenced by <i class="arg">msgvar</i> is not touched at
+all if all the tests pass.</p>
+<dl class="doctools_definitions">
+<dt><em>r</em>ead</dt>
+<dd><p><b class="cmd">file readable</b></p></dd>
+<dt><em>w</em>rite</dt>
+<dd><p><b class="cmd">file writable</b></p></dd>
+<dt><em>e</em>xists</dt>
+<dd><p><b class="cmd">file exists</b></p></dd>
+<dt>e<em>x</em>ec</dt>
+<dd><p><b class="cmd">file executable</b></p></dd>
+<dt><em>f</em>ile</dt>
+<dd><p><b class="cmd">file isfile</b></p></dd>
+<dt><em>d</em>ir</dt>
+<dd><p><b class="cmd">file isdirectory</b></p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::fileutil::cat</b> (<span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i>)...</a></dt>
+<dd><p>A tcl implementation of the UNIX <b class="syscmd"><a href="../../../../index.html#key314">cat</a></b> command.  Returns the
+contents of the specified file(s). The arguments are files to read,
+with interspersed options configuring the process. If there are
+problems reading any of the files, an error will occur, and no data
+will be returned.</p>
+<p>The options accepted are <b class="option">-encoding</b>, <b class="option">-translation</b>,
+<b class="option">-eofchar</b>, and <b class="option">--</b>. With the exception of the last all
+options take a single value as argument, as specified by the tcl
+builtin command <b class="cmd">fconfigure</b>. The <b class="option">--</b> has to be used to
+terminate option processing before a file if that file's name begins
+with a dash.</p>
+<p>Each file can have its own set of options coming before it, and for
+anything not specified directly the defaults are inherited from the
+options of the previous file. The first file inherits the system
+default for unspecified options.</p></dd>
+<dt><a name="5"><b class="cmd">::fileutil::writeFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">data</i></a></dt>
+<dd><p>The command replaces the current contents of the specified <i class="arg">file</i>
+with <i class="arg">data</i>, with the process configured by the options. The
+command accepts the same options as <b class="cmd">::fileutil::cat</b>. The
+specification of a non-existent file is legal and causes the command
+to create the file (and all required but missing directories).</p></dd>
+<dt><a name="6"><b class="cmd">::fileutil::appendToFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">data</i></a></dt>
+<dd><p>This command is like <b class="cmd">::fileutil::writeFile</b>, except that the
+previous contents of <i class="arg">file</i> are not replaced, but appended to. The
+command accepts the same options as <b class="cmd">::fileutil::cat</b></p></dd>
+<dt><a name="7"><b class="cmd">::fileutil::insertIntoFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">at</i> <i class="arg">data</i></a></dt>
+<dd><p>This comment is similar to <b class="cmd">::fileutil::appendToFile</b>, except that
+the new data is not appended at the end, but inserted at a specified
+location within the file. In further contrast this command has to be
+given the path to an existing file. It will not create a missing file,
+but throw an error instead.</p>
+<p>The specified location <i class="arg">at</i> has to be an integer number in the
+range <b class="const">0</b> ... [file size <i class="arg">file</i>]. <b class="const">0</b> will cause
+insertion of the new data before the first character of the existing
+content, whereas [file size <i class="arg">file</i>] causes insertion after
+the last character of the existing content, i.e. appending.</p>
+<p>The command accepts the same options as <b class="cmd">::fileutil::cat</b>.</p></dd>
+<dt><a name="8"><b class="cmd">::fileutil::removeFromFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">at</i> <i class="arg">n</i></a></dt>
+<dd><p>This command is the complement to <b class="cmd">::fileutil::insertIntoFile</b>, removing <i class="arg">n</i> characters from the <i class="arg">file</i>, starting at location <i class="arg">at</i>.
+The specified location <i class="arg">at</i> has to be an integer number in the
+range <b class="const">0</b> ... [file size <i class="arg">file</i>] - <i class="arg">n</i>. <b class="const">0</b>
+will cause the removal of the new data to start with the first
+character of the existing content,
+whereas [file size <i class="arg">file</i>] - <i class="arg">n</i> causes the removal of
+the tail of the existing content, i.e. the truncation of the file.</p>
+<p>The command accepts the same options as <b class="cmd">::fileutil::cat</b>.</p></dd>
+<dt><a name="9"><b class="cmd">::fileutil::replaceInFile</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">at</i> <i class="arg">n</i> <i class="arg">data</i></a></dt>
+<dd><p>This command is a combination of <b class="cmd">::fileutil::removeFromFile</b> and
+<b class="cmd">::fileutil::insertIntoFile</b>. It first removes the part of the
+contents specified by the arguments <i class="arg">at</i> and <i class="arg">n</i>, and then
+inserts <i class="arg">data</i> at the given location, effectively replacing the
+removed by content with <i class="arg">data</i>.
+All constraints imposed on <i class="arg">at</i> and <i class="arg">n</i> by
+<b class="cmd">::fileutil::removeFromFile</b> and <b class="cmd">::fileutil::insertIntoFile</b>
+are obeyed.</p>
+<p>The command accepts the same options as <b class="cmd">::fileutil::cat</b>.</p></dd>
+<dt><a name="10"><b class="cmd">::fileutil::updateInPlace</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">file</i> <i class="arg">cmd</i></a></dt>
+<dd><p>This command can be seen as the generic core functionality of
+<b class="cmd">::fileutil::replaceInFile</b>.
+It first reads the contents of the specified <i class="arg">file</i>, then runs the
+command prefix <i class="arg">cmd</i> with that data appended to it, and at last
+writes the result of that invokation back as the new contents of the
+file.</p>
+<p>If the executed command throws an error the <i class="arg">file</i> is not changed.</p>
+<p>The command accepts the same options as <b class="cmd">::fileutil::cat</b>.</p></dd>
+<dt><a name="11"><b class="cmd">::fileutil::fileType</b> <i class="arg">filename</i></a></dt>
+<dd><p>An implementation of the UNIX <b class="syscmd"><a href="../../../../index.html#key31">file</a></b> command, which uses
+various heuristics to guess the type of a file.  Returns a list
+specifying as much type information as can be determined about the
+file, from most general (eg, &quot;binary&quot; or &quot;text&quot;) to most specific (eg,
+&quot;gif&quot;).  For example, the return value for a GIF file would be &quot;binary
+graphic gif&quot;.  The command will detect the following types of files:
+directory, empty, binary, text, script (with interpreter), executable
+elf, executable dos, executable ne, executable pe, graphic gif, graphic
+jpeg, graphic png, graphic tiff, graphic bitmap, html, xml (with doctype
+if available), message pgp, binary pdf, text ps, text eps, binary
+gravity_wave_data_frame, compressed bzip, compressed gzip, compressed
+zip, compressed tar, audio wave, audio mpeg, and link. It further
+detects doctools, doctoc, and docidx documentation files, and
+tklib diagrams.</p></dd>
+<dt><a name="12"><b class="cmd">::fileutil::find</b> <span class="opt">?<i class="arg">basedir</i> <span class="opt">?<i class="arg">filtercmd</i>?</span>?</span></a></dt>
+<dd><p>An implementation of the unix command <b class="syscmd"><a href="../../../../index.html#key625">find</a></b>. Adapted from the
+Tcler's Wiki. Takes at most two arguments, the path to the directory
+to start searching from and a command to use to evaluate interest in
+each file. The path defaults to &quot;<b class="file">.</b>&quot;, i.e. the current
+directory. The command defaults to the empty string, which means that
+all files are of interest. The command takes care <em>not</em> to
+lose itself in infinite loops upon encountering circular link
+structures. The result of the command is a list containing the paths
+to the interesting files.</p>
+<p>The <i class="arg">filtercmd</i>, if specified, is interpreted as a command prefix
+and one argument is added to it, the name of the file or directory
+find is currently looking at. Note that this name is <em>not</em> fully
+qualified. It has to be joined it with the result of <b class="cmd">pwd</b> to get
+an absolute filename.</p>
+<p>The result of <i class="arg">filtercmd</i> is a boolean value that indicates if the
+current file should be included in the list of interesting files.</p>
+<p>Example:</p>
+<pre class="doctools_example">
+    # find .tcl files
+    package require fileutil
+    proc is_tcl {name} {return [string match *.tcl $name]}
+    set tcl_files [fileutil::find . is_tcl]
+</pre>
+</dd>
+<dt><a name="13"><b class="cmd">::fileutil::findByPattern</b> <i class="arg">basedir</i> <span class="opt">?<b class="option">-regexp</b>|<b class="option">-glob</b>?</span> <span class="opt">?<b class="option">--</b>?</span> <i class="arg">patterns</i></a></dt>
+<dd><p>This command is based upon the <b class="package">TclX</b> command
+<b class="cmd">recursive_glob</b>, except that it doesn't allow recursion over more
+than one directory at a time. It uses <b class="cmd">::fileutil::find</b>
+internally and is thus able to and does follow symbolic links,
+something the <b class="package">TclX</b> command does not do. First argument is
+the directory to start the search in, second argument is a list of
+<i class="arg">patterns</i>. The command returns a list of all files reachable
+through <i class="arg">basedir</i> whose names match at least one of the
+patterns. The options before the pattern-list determine the style of
+matching, either regexp or glob. glob-style matching is the default if
+no options are given. Usage of the option <b class="option">--</b> stops option
+processing. This allows the use of a leading '-' in the patterns.</p></dd>
+<dt><a name="14"><b class="cmd">::fileutil::foreachLine</b> <i class="arg">var filename cmd</i></a></dt>
+<dd><p>The command reads the file <i class="arg">filename</i> and executes the script
+<i class="arg">cmd</i> for every line in the file. During the execution of the
+script the variable <i class="arg">var</i> is set to the contents of the current
+line. The return value of this command is the result of the last
+invocation of the script <i class="arg">cmd</i> or the empty string if the file was
+empty.</p></dd>
+<dt><a name="15"><b class="cmd">::fileutil::grep</b> <i class="arg">pattern</i> <span class="opt">?<i class="arg">files</i>?</span></a></dt>
+<dd><p>Implementation of <b class="syscmd"><a href="../../../../index.html#key316">grep</a></b>. Adapted from the Tcler's Wiki. The
+first argument defines the <i class="arg">pattern</i> to search for. This is
+followed by a list of <i class="arg">files</i> to search through. The list is
+optional and <b class="const">stdin</b> will be used if it is missing. The result
+of the procedures is a list containing the matches. Each match is a
+single element of the list and contains filename, number and contents
+of the matching line, separated by a colons.</p></dd>
+<dt><a name="16"><b class="cmd">::fileutil::install</b> <span class="opt">?<b class="option">-m</b> <i class="arg">mode</i>?</span> <i class="arg">source</i> <i class="arg">destination</i></a></dt>
+<dd><p>The <b class="cmd">install</b> command is similar in functionality to the <b class="syscmd">install</b>
+command found on many unix systems, or the shell script
+distributed with many source distributions (unix/install-sh in the Tcl
+sources, for example).  It copies <i class="arg">source</i>, which can be either a
+file or directory to <i class="arg">destination</i>, which should be a directory,
+unless <i class="arg">source</i> is also a single file.  The <span class="opt">?-m?</span> option lets
+the user specify a unix-style mode (either octal or symbolic - see
+<b class="cmd">file attributes</b>.</p></dd>
+<dt><a name="17"><b class="cmd">::fileutil::stripN</b> <i class="arg">path</i> <i class="arg">n</i></a></dt>
+<dd><p>Removes the first <i class="arg">n</i> elements from the specified <i class="arg">path</i> and
+returns the modified path. If <i class="arg">n</i> is greater than the number of
+components in <i class="arg">path</i> an empty string is returned. The number of
+components in a given path may be determined by performing
+<b class="cmd">llength</b> on the list returned by <b class="cmd">file split</b>.</p></dd>
+<dt><a name="18"><b class="cmd">::fileutil::stripPwd</b> <i class="arg">path</i></a></dt>
+<dd><p>If, and only if the <i class="arg">path</i> is inside of the directory returned by
+[<b class="cmd">pwd</b>] (or the current working directory itself) it is made
+relative to that directory. In other words, the current working
+directory is stripped from the <i class="arg">path</i>.  The possibly modified path
+is returned as the result of the command. If the current working
+directory itself was specified for <i class="arg">path</i> the result is the string
+&quot;<b class="const">.</b>&quot;.</p></dd>
+<dt><a name="19"><b class="cmd">::fileutil::stripPath</b> <i class="arg">prefix</i> <i class="arg">path</i></a></dt>
+<dd><p>If, and only of the <i class="arg">path</i> is inside of the directory
+&quot;<b class="file">prefix</b>&quot; (or the prefix directory itself) it is made relative to
+that directory. In other words, the prefix directory is stripped from
+the <i class="arg">path</i>. The possibly modified path is returned as the result
+of the command.
+If the prefix directory itself was specified for <i class="arg">path</i> the result
+is the string &quot;<b class="const">.</b>&quot;.</p></dd>
+<dt><a name="20"><b class="cmd">::fileutil::jail</b> <i class="arg">jail</i> <i class="arg">path</i></a></dt>
+<dd><p>This command ensures that the <i class="arg">path</i> is not escaping the directory
+<i class="arg">jail</i>. It always returns an absolute path derived from <i class="arg">path</i>
+which is within <i class="arg">jail</i>.</p>
+<p>If <i class="arg">path</i> is an absolute path and already within <i class="arg">jail</i> it is
+returned unmodified.</p>
+<p>An absolute path outside of <i class="arg">jail</i> is stripped of its root element
+and then put into the <i class="arg">jail</i> by prefixing it with it. The same
+happens if <i class="arg">path</i> is relative, except that nothing is stripped of
+it. Before adding the <i class="arg">jail</i> prefix the <i class="arg">path</i> is lexically
+normalized to prevent the caller from using <b class="const">..</b> segments in
+<i class="arg">path</i> to escape the jail.</p></dd>
+<dt><a name="21"><b class="cmd">::fileutil::touch</b> <span class="opt">?<b class="option">-a</b>?</span> <span class="opt">?<b class="option">-c</b>?</span> <span class="opt">?<b class="option">-m</b>?</span> <span class="opt">?<b class="option">-r</b> <i class="arg">ref_file</i>?</span> <span class="opt">?<b class="option">-t</b> <i class="arg">time</i>?</span> <i class="arg">filename</i> <span class="opt">?<i class="arg">...</i>?</span></a></dt>
+<dd><p>Implementation of <b class="syscmd"><a href="../../../../index.html#key317">touch</a></b>. Alter the atime and mtime of the
+specified files. If <b class="option">-c</b>, do not create files if they do not
+already exist. If <b class="option">-r</b>, use the atime and mtime from
+<i class="arg">ref_file</i>. If <b class="option">-t</b>, use the integer clock value
+<i class="arg">time</i>. It is illegal to specify both <b class="option">-r</b> and
+<b class="option">-t</b>. If <b class="option">-a</b>, only change the atime. If <b class="option">-m</b>,
+only change the mtime.</p>
+<p><em>This command is not available for Tcl versions less than 8.3.</em></p></dd>
+<dt><a name="22"><b class="cmd">::fileutil::tempdir</b></a></dt>
+<dd><p>The command returns the path of a directory where the caller can
+place temporary files, such as &quot;<b class="file">/tmp</b>&quot; on Unix systems. The
+algorithm we use to find the correct directory is as follows:</p>
+<ol class="doctools_enumerated">
+<li><p>The directory set by an invokation of <b class="cmd">::fileutil::tempdir</b> with
+an argument. If this is present it is tried exclusively and none of
+the following item are tried.</p></li>
+<li><p>The directory named in the TMPDIR environment variable.</p></li>
+<li><p>The directory named in the TEMP environment variable.</p></li>
+<li><p>The directory named in the TMP environment variable.</p></li>
+<li><p>A platform specific location:</p>
+<dl class="doctools_definitions">
+<dt>Windows</dt>
+<dd><p>&quot;<b class="file">C:\TEMP</b>&quot;, &quot;<b class="file">C:\TMP</b>&quot;, &quot;<b class="file">\TEMP</b>&quot;,
+and &quot;<b class="file">\TMP</b>&quot; are tried in that order.</p></dd>
+<dt>(classic) Macintosh</dt>
+<dd><p>The TRASH_FOLDER environment variable is used.  This is most likely
+not correct.</p></dd>
+<dt>Unix</dt>
+<dd><p>The directories &quot;<b class="file">/tmp</b>&quot;, &quot;<b class="file">/var/tmp</b>&quot;, and &quot;<b class="file">/usr/tmp</b>&quot; are
+tried in that order.</p></dd>
+</dl>
+</li>
+</ol>
+<p>The algorithm utilized is mainly that used in the Python standard
+library. The exception is the first item, the ability to have the
+search overridden by a user-specified directory.</p></dd>
+<dt><a name="23"><b class="cmd">::fileutil::tempdir</b> <i class="arg">path</i></a></dt>
+<dd><p>In this mode the command sets the <i class="arg">path</i> as the first and only
+directory to try as a temp. directory. See the previous item for the
+use of the set directory. The command returns the empty string.</p></dd>
+<dt><a name="24"><b class="cmd">::fileutil::tempdirReset</b></a></dt>
+<dd><p>Invoking this command clears the information set by the
+last call of [<b class="cmd">::fileutil::tempdir</b> <i class="arg">path</i>].
+See the last item too.</p></dd>
+<dt><a name="25"><b class="cmd">::fileutil::tempfile</b> <span class="opt">?<i class="arg">prefix</i>?</span></a></dt>
+<dd><p>The command generates a temporary file name suitable for writing to,
+and the associated file.  The file name will be unique, and the file
+will be writable and contained in the appropriate system specific temp
+directory. The name of the file will be returned as the result of the
+command.</p>
+<p>The code was taken from <a href="http://wiki.tcl.tk/772">http://wiki.tcl.tk/772</a>, attributed to
+Igor Volobouev and anon.</p></dd>
+<dt><a name="26"><b class="cmd">::fileutil::maketempdir</b> <span class="opt">?<b class="option">-prefix</b> <i class="arg">str</i>?</span> <span class="opt">?<b class="option">-suffix</b> <i class="arg">str</i>?</span> <span class="opt">?<b class="option">-dir</b> <i class="arg">str</i>?</span></a></dt>
+<dd><p>The command generates a temporary directory suitable for writing to.
+The directory name will be unique, and the directory will be writable
+and contained in the appropriate system specific temp directory. The
+name of the directory will be returned as the result of the command.</p>
+<p>The three options can used to tweak the behaviour of the command:</p>
+<dl class="doctools_options">
+<dt><b class="option">-prefix</b> str</dt>
+<dd><p>The initial, fixed part of the directory name. Defaults to <b class="const">tmp</b> if not specified.</p></dd>
+<dt><b class="option">-suffix</b> str</dt>
+<dd><p>The fixed tail of the directory. Defaults to the empty string if not specified.</p></dd>
+<dt><b class="option">-dir</b> str</dt>
+<dd><p>The directory to place the new directory into. Defaults to the result of <b class="cmd">fileutil::tempdir</b> if not specified.</p></dd>
+</dl>
+<p>The initial code for this was supplied by <a href="mailto:aplicacionamedida@gmail.com">Miguel Martinez Lopez</a>.</p></dd>
+<dt><a name="27"><b class="cmd">::fileutil::relative</b> <i class="arg">base</i> <i class="arg">dst</i></a></dt>
+<dd><p>This command takes two directory paths, both either absolute or relative
+and computes the path of <i class="arg">dst</i> relative to <i class="arg">base</i>. This relative
+path is returned as the result of the command. As implied in the previous
+sentence, the command is not able to compute this relationship between the
+arguments if one of the paths is absolute and the other relative.</p>
+<p><em>Note:</em> The processing done by this command is purely lexical.
+Symbolic links are <em>not</em> taken into account.</p></dd>
+<dt><a name="28"><b class="cmd">::fileutil::relativeUrl</b> <i class="arg">base</i> <i class="arg">dst</i></a></dt>
+<dd><p>This command takes two file paths, both either absolute or relative
+and computes the path of <i class="arg">dst</i> relative to <i class="arg">base</i>, as seen
+from inside of the <i class="arg">base</i>. This is the algorithm how a browser
+resolves a relative link found in the currently shown file.</p>
+<p>The computed relative path is returned as the result of the command.
+As implied in the previous sentence, the command is not able to compute
+this relationship between the arguments if one of the paths is absolute
+and the other relative.</p>
+<p><em>Note:</em> The processing done by this command is purely lexical.
+Symbolic links are <em>not</em> taken into account.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Warnings and Incompatibilities</a></h2>
+<dl class="doctools_definitions">
+<dt><b class="const">1.14.9</b></dt>
+<dd><p>In this version <b class="cmd">fileutil::find</b>'s broken system for handling
+symlinks was replaced with one working correctly and properly
+enumerating all the legal non-cyclic paths under a base directory.</p>
+<p>While correct this means that certain pathological directory
+hierarchies with cross-linked sym-links will now take about O(n**2)
+time to enumerate whereas the original broken code managed O(n) due to
+its brokenness.</p>
+<p>A concrete example and extreme case is the &quot;<b class="file">/sys</b>&quot;
+hierarchy under Linux where some hundred devices exist under both
+&quot;<b class="file">/sys/devices</b>&quot; and &quot;<b class="file">/sys/class</b>&quot; with the two sub-hierarchies
+linking to the other, generating millions of legal paths to enumerate.
+The structure, reduced to three devices, roughly looks like</p>
+<pre class="doctools_example">
+	/sys/class/tty/tty0 --&gt; ../../dev/tty0
+	/sys/class/tty/tty1 --&gt; ../../dev/tty1
+	/sys/class/tty/tty2 --&gt; ../../dev/tty1
+	/sys/dev/tty0/bus
+	/sys/dev/tty0/subsystem --&gt; ../../class/tty
+	/sys/dev/tty1/bus
+	/sys/dev/tty1/subsystem --&gt; ../../class/tty
+	/sys/dev/tty2/bus
+	/sys/dev/tty2/subsystem --&gt; ../../class/tty
+</pre>
+<p>The command <b class="cmd">fileutil::find</b> currently has no way to escape
+this. When having to handle such a pathological hierarchy It is
+recommended to switch to package <b class="package">fileutil::traverse</b> and the
+same-named command it provides, and then use the <b class="option">-prefilter</b>
+option to prevent the traverser from following symbolic links, like so:</p>
+<pre class="doctools_example">
+    package require fileutil::traverse
+    proc NoLinks {fileName} {
+        if {[string equal [file type $fileName] link]} {
+            return 0
+        }
+        return 1
+    }
+    fileutil::traverse T /sys/devices -prefilter NoLinks
+    T foreach p {
+        puts $p
+    }
+    T destroy
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>fileutil</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key314">cat</a>, <a href="../../../../index.html#key115">file utilities</a>, <a href="../../../../index.html#key316">grep</a>, <a href="../../../../index.html#key315">temp file</a>, <a href="../../../../index.html#key313">test</a>, <a href="../../../../index.html#key317">touch</a>, <a href="../../../../index.html#key117">type</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div>

@@ -1,0 +1,577 @@
+# -*- tcl -*-
+# Tests for the HTML parser
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2001-2005 by ActiveState Tool Corp.
+# All rights reserved.
+#
+# RCS: @(#) $Id: htmlparse.test,v 1.27 2012/08/02 22:21:54 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3 ; # htmlparse itself is 8.2+, however struct::* need 8.3+
+testsNeedTcltest 1.0
+
+support {
+    use struct/list.tcl     struct::list
+
+    useAccel [useTcllibC] struct/tree.tcl struct::tree
+    TestAccelInit                         struct::tree
+
+    use struct/queue.tcl    struct::queue
+    use struct/stack.tcl    struct::stack
+    use cmdline/cmdline.tcl cmdline
+}
+testing {
+    useLocal htmlparse.tcl htmlparse
+}
+
+# -------------------------------------------------------------------------
+
+set html1 {<html><head><title>foo</title><meta name="..."></head><body><h2>Header<p>burble</body></html>}
+set html2 {<html><head><title>foo</title><meta name="..."></head><body><h2>Header<p>burble</b}
+set html3 {<html><head><title>foo</title><meta name="..."></head><body><h2>Header<p><b>burble</b><p><form><input type="..."></form></body></html>}
+
+# Simple remembering callback ...
+proc cb {args} {global tags ; lappend tags $args}
+
+proc tlist {t n} {
+    set tt [list]
+    foreach c [$t children $n] {
+	lappend tt [$t get $c synth]
+    }
+    $t set $n -key synth [list [$t get $n type] $tt]
+}
+
+# -------------------------------------------------------------------------
+
+test htmlparse-1.0 {basic errors} {
+    catch {htmlparse::parse} msg
+    set msg
+} {::htmlparse::parse : html string missing}
+
+test htmlparse-1.2 {basic errors} {
+    catch {htmlparse::parse -cmd "" -split -1 -incvar "" -vroot "" -queue "" a b} msg
+    set msg
+} {::htmlparse::parse : -cmd illegal argument (empty)}
+
+test htmlparse-1.3 {basic errors} {
+    catch {htmlparse::parse -split -1 -incvar "" -vroot "" -queue "" a b} msg
+    set msg
+} {::htmlparse::parse : -split illegal argument (<= 0)}
+
+test htmlparse-1.4 {basic errors} {
+    catch {htmlparse::parse -incvar "" -vroot "" -queue "" a b} msg
+    set msg
+} {::htmlparse::parse : -incvar illegal argument (empty)}
+
+test htmlparse-1.5 {basic errors} {
+    catch {htmlparse::parse -vroot "" -queue "" a b} msg
+    set msg
+} {::htmlparse::parse : -vroot illegal argument (empty)}
+
+test htmlparse-1.6 {basic errors} {
+    catch {htmlparse::parse -queue "" a b} msg
+    set msg
+} {::htmlparse::parse : -queue illegal argument (empty)}
+
+test htmlparse-1.7 {basic errors} {
+    catch {htmlparse::parse a b} msg
+    set msg
+} {::htmlparse::parse : to many arguments behind the options, expected one}
+
+test htmlparse-1.8 {basic errors} {
+    catch {htmlparse::parse -foo a} msg
+    set msg
+} {::htmlparse::parse : Illegal option "-foo"}
+
+test htmlparse-1.9 {parsing errors} {
+    catch {htmlparse::parse -cmd cb $html2} msg
+    set msg
+} {::htmlparse::parse : HTML is incomplete, option -incvar is missing}
+
+
+test htmlparse-2.0 {normal parsing} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot foo $html1
+    set tags
+} [list \
+	[list foo   {} {} {}] \
+	[list html  {} {} {}] \
+	[list head  {} {} {}] \
+	[list title {} {} foo] \
+	[list title /  {} {}] \
+	[list meta  {} {name="..."} {}] \
+	[list head  /  {} {}] \
+	[list body  {} {} {}] \
+	[list h2    {} {} Header] \
+	[list p     {} {} burble] \
+	[list body  /  {} {}] \
+	[list html  /  {} {}] \
+	[list foo   /  {} {}] \
+	]
+
+test htmlparse-2.1 {normal parsing} {
+    set tags [list]
+    htmlparse::parse -cmd {cb @} -vroot foo $html1
+    set tags
+} [list \
+	[list @ foo   {} {} {}] \
+	[list @ html  {} {} {}] \
+	[list @ head  {} {} {}] \
+	[list @ title {} {} foo] \
+	[list @ title /  {} {}] \
+	[list @ meta  {} {name="..."} {}] \
+	[list @ head  /  {} {}] \
+	[list @ body  {} {} {}] \
+	[list @ h2    {} {} Header] \
+	[list @ p     {} {} burble] \
+	[list @ body  /  {} {}] \
+	[list @ html  /  {} {}] \
+	[list @ foo   /  {} {}] \
+	]
+
+test htmlparse-2.2 {normal parsing} {
+    set tags [list]
+    set incomplete ""
+    htmlparse::parse -cmd cb -incvar incomplete -vroot foo $html2
+    list $tags $incomplete
+} [list [list \
+	[list foo   {} {} {}] \
+	[list html  {} {} {}] \
+	[list head  {} {} {}] \
+	[list title {} {} foo] \
+	[list title /  {} {}] \
+	[list meta  {} {name="..."} {}] \
+	[list head  /  {} {}] \
+	[list body  {} {} {}] \
+	[list h2    {} {} Header] \
+	[list p     {} {} burble] \
+	[list foo   /  {} {}] \
+	] "</b"]
+
+test htmlparse-3.0 {incremental parsing} {
+    set tags [list]
+    catch {q destroy}
+    struct::queue q
+    htmlparse::parse -cmd cb -vroot foo -queue q -split 1 $html1
+
+    list $tags [q size] [q peek [q size]]
+} {{} 12 {{{cb} @win@ {foo} {} {} {}} {{cb} @win@ {html} {} {} {}} {{cb} @win@ {head} {} {} {}} {{cb} @win@ {title} {} {} {foo}} {{cb} @win@ {title} {/} {} {}} {{cb} @win@ {meta} {} {name="..."} {}} {{cb} @win@ {head} {/} {} {}} {{cb} @win@ {body} {} {} {}} {{cb} @win@ {h2} {} {} {Header}} {{cb} @win@ {p} {} {} {burble}} {{cb} @win@ {body} {/} {} {}} {{cb} @win@ {html} {/} {} {}}}}
+
+test htmlparse-3.1 {incremental parsing} {
+    set tags [list]
+    catch {q destroy}
+    struct::queue q
+    htmlparse::parse -cmd cb -vroot foo -queue q -split 2 $html1
+
+    list $tags [q size] [q peek [q size]]
+} {{} 6 {{{cb} @win@ {foo} {} {} {}
+{cb} @win@ {html} {} {} {}} {{cb} @win@ {head} {} {} {}
+{cb} @win@ {title} {} {} {foo}} {{cb} @win@ {title} {/} {} {}
+{cb} @win@ {meta} {} {name="..."} {}} {{cb} @win@ {head} {/} {} {}
+{cb} @win@ {body} {} {} {}} {{cb} @win@ {h2} {} {} {Header}
+{cb} @win@ {p} {} {} {burble}} {{cb} @win@ {body} {/} {} {}
+{cb} @win@ {html} {/} {} {}}}}
+
+test htmlparse-3.2 {incremental parsing} {
+    set tags [list]
+    set incomplete ""
+    catch {q destroy}
+    struct::queue q
+
+    htmlparse::parse -cmd cb -incvar incomplete -vroot foo -queue q -split 1 $html2
+    list $tags [q size] [q peek [q size]] $incomplete
+} {{} 10 {{{cb} @win@ {foo} {} {} {}} {{cb} @win@ {html} {} {} {}} {{cb} @win@ {head} {} {} {}} {{cb} @win@ {title} {} {} {foo}} {{cb} @win@ {title} {/} {} {}} {{cb} @win@ {meta} {} {name="..."} {}} {{cb} @win@ {head} {/} {} {}} {{cb} @win@ {body} {} {} {}} {{cb} @win@ {h2} {} {} {Header}} {{cb} @win@ {p} {} {} {burble}}} </b}
+
+test htmlparse-3.3 {incremental parsing} {
+    set tags [list]
+    set incomplete ""
+    catch {q destroy}
+    struct::queue q
+
+    htmlparse::parse -cmd {cb @} -incvar incomplete -vroot foo -queue q -split 1 $html2
+    list $tags [q size] [q peek [q size]] $incomplete
+} {{} 10 {{{cb} {@} @win@ {foo} {} {} {}} {{cb} {@} @win@ {html} {} {} {}} {{cb} {@} @win@ {head} {} {} {}} {{cb} {@} @win@ {title} {} {} {foo}} {{cb} {@} @win@ {title} {/} {} {}} {{cb} {@} @win@ {meta} {} {name="..."} {}} {{cb} {@} @win@ {head} {/} {} {}} {{cb} {@} @win@ {body} {} {} {}} {{cb} {@} @win@ {h2} {} {} {Header}} {{cb} {@} @win@ {p} {} {} {burble}}} </b}
+
+
+proc cb_foo {args} {
+    if {[string equal [lindex $args 1] FOO]} {return }
+    global tags ; lappend tags $args
+}
+
+test htmlparse-3.4 {incremental parsing} {
+    set tags [list]
+    set incomplete ""
+    catch {q destroy}
+    struct::queue q
+
+    set lines [list]
+    lappend lines {<root>} 
+    lappend lines {<tag>Hi there</tag>} 
+    lappend lines {<tag} 
+    lappend lines {>Hi there<} 
+    lappend lines {/tag></root>} 
+
+    foreach l $lines {
+	htmlparse::parse -cmd {cb_foo @} -incvar incomplete -vroot FOO $l
+    }
+    list $tags $incomplete
+} {{{@ root {} {} {}} {@ tag {} {} {Hi there}} {@ tag / {} {}} {@ tag {} {} {Hi there}} {@ tag / {} {}} {@ root / {} {}}} {}}
+
+
+# Don't test: ::htmlparse::debugCallback
+
+test htmlparse-4.0 {predefined (HTML 2.0) entities} {
+    ::htmlparse::mapEscapes {&gt;&lt;&amp;}
+} {><&}
+
+test htmlparse-4.1 {non entities unharmed} {
+    ::htmlparse::mapEscapes {this&that&those as well}
+} {this&that&those as well}
+
+test htmlparse-4.2 {loose SGML parsing for entities} {
+    ::htmlparse::mapEscapes "&amp&amp &amp\n&amp"
+} {&& &
+&}
+
+test htmlparse-4.3 {numeric, decimal entities} {
+    ::htmlparse::mapEscapes {emdash: &#8212; euro: &#8364;}
+} "emdash: \u2014 euro: \u20ac"
+
+test htmlparse-4.4 {numeric, hexadecimal entities} {
+    ::htmlparse::mapEscapes {emdash: &#x2014; euro: &#x20ac;}
+} "emdash: \u2014 euro: \u20ac"
+
+test htmlparse-4.5 {Unknown named entities shall not be mangled} {
+    ::htmlparse::mapEscapes {I am &FOO;! You are &FOO
+We all are &FOO}
+} {I am &FOO;! You are &FOO
+We all are &FOO}
+
+test htmlparse-4.6 {numeric, decimal entities; out-of-range} {
+    ::htmlparse::mapEscapes {too big: &#89998; and unharmed}
+} {too big: &#89998; and unharmed}
+
+test htmlparse-4.7 {numeric, hexadecimal entities; out-of-range} {
+    ::htmlparse::mapEscapes {too big: &#xffff; and unharmed}
+} {too big: &#xffff; and unharmed}
+
+# Bug #1039961
+test htmlparse-4.8 {numeric character references, leading zeros} {
+    ::htmlparse::mapEscapes {Ampersand: &#038;.}
+} {Ampersand: &.}
+
+test htmlparse-4.9 {XHTML/XML entity apos, bug 2028993} {
+    ::htmlparse::mapEscapes {Apostrophe &apos;}
+} {Apostrophe '}
+
+# Ticket 86c971506c - HTML 5.1 entities
+test htmlparse-4.10 {predefined (HTML 5.1) entities} {
+    ::htmlparse::mapEscapes {&blacktriangle;&hbar;}
+} "\u25b4\u210f"
+
+# Bug #861277
+test htmlparse-6.1 {Backslashes in content} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<p>\\</p>"
+    set tags
+} [list \
+    [list html  {} {} {}] \
+    [list p     {} {} {&#92;}] \
+    [list p     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-6.2 {More backslashes in content} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<p>\\abcde</p>"
+    set tags
+} [list \
+    [list html  {} {} {}] \
+    [list p     {} {} {&#92;abcde}] \
+    [list p     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-6.3 {Substitutions from backslashes in content} {
+    htmlparse::mapEscapes {&#92;abcde}
+} {\abcde}
+
+test htmlparse-6.4 {$ in content} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html {<p>$abcde</p>}
+    set tags
+} [list \
+    [list html  {} {} {}] \
+    [list p     {} {} {$abcde}] \
+    [list p     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-6.5 {Substitutions from $ in content} {
+    htmlparse::mapEscapes {$abcde}
+} {$abcde}
+
+test htmlparse-6.6 {Braces in content} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<p>\{\}</p>"
+    set tags
+} [list \
+    [list html  {} {} {}] \
+       [list p     {} {} {&#123;&#125;}] \
+    [list p     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-6.7 {More braces in content} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<p>\{abcde\}</p>"
+    set tags
+} [list \
+    [list html  {} {} {}] \
+       [list p     {} {} {&#123;abcde&#125;}] \
+    [list p     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-6.8 {Substitutions from braces in content} {
+    htmlparse::mapEscapes {&#123;abcde&#125;}
+} {{abcde}}
+
+# Tcllib SF Bug 861287 - Processing of comments.
+test htmlparse-7.1 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&<!-- a comment --></pre>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-7.2 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&</pre><!-- a comment -->"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-7.3 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<!-- a comment --><pre>&</pre>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-7.4 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&<!-- a comment -- ></pre>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-7.5 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&</pre><!-- a comment -- >"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-7.6 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<!-- a comment -- ><pre>&</pre>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-8.1 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&<-- no comment --></pre>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} {&&lt;-- no comment --&gt;}] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-8.2 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&</pre><-- no comment -->"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {&lt;-- no comment --&gt;}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-8.3 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<-- no comment --><pre>&</pre>"
+    set tags
+}  [list \
+    [list html  {} {} {&lt;-- no comment --&gt;}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-8.4 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&<-- no comment -- ></pre>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} {&&lt;-- no comment -- &gt;}] \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-8.5 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<pre>&</pre><-- no comment -- >"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list pre   {} {} &] \
+    [list pre   /  {} {&lt;-- no comment -- &gt;}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-8.6 {html comments} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<-- no comment -- ><pre>&</pre>"
+    set tags
+}  [list \
+    [list html  {} {} {&lt;-- no comment -- &gt;}] \
+    [list pre   {} {} &]  \
+    [list pre   /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-9.0 {handle empty tags} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<b><a/></b>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list b     {} {} {}] \
+    [list a     {} {} {}] \
+    [list a     /  {} {}] \
+    [list b     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-9.1 {handle empty tags, attributes} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<b><a href=\"b\"/></b>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list b     {} {} {}] \
+    [list a     {} {href="b"} {}] \
+    [list a     /  {} {}] \
+    [list b     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-9.2 {handle empty tags, text coming after} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<b><a/>xx</b>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list b     {} {} {}] \
+    [list a     {} {} {}] \
+    [list a     /  {} xx] \
+    [list b     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-9.3 {handle empty tags, text coming before} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<b>xx<a/></b>"
+    set tags
+}  [list \
+    [list html  {} {} {}] \
+    [list b     {} {} xx] \
+    [list a     {} {} {}] \
+    [list a     /  {} {}] \
+    [list b     /  {} {}] \
+    [list html  /  {} {}] ]
+
+test htmlparse-10.0 {bad html, raising error} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html "<a<a/>>"
+    set tags
+}  [list \
+     [list html {} {} {}] \
+     [list a<a  {} {} {}] \
+     [list a<a  /  {} {>}] \
+     [list html /  {} {}] ]
+
+test htmlparse-10.1 {bad html, varying argument counts} {
+    set tags [list]
+    htmlparse::parse -cmd cb -vroot html {<a b="<a"/><a>}
+    set tags
+}  [list \
+     [list html {} {} {}] \
+     [list a    {} {b="<a"} {}] \
+     [list a    /  {} {}] \
+     [list a    {} {} {}] \
+     [list html /  {} {}] ]
+
+
+set extraarg {a & b \1 \0 \\1 \\0 \} $ [ ] }
+test htmlparse-11.0 {metachar callback} {
+    set tags [list]
+    htmlparse::parse -cmd [list cb $extraarg] -vroot html {<a b="a">x</a>}
+    set tags
+}  [list \
+     [list $extraarg html {} {} {}] \
+     [list $extraarg a    {} {b="a"} {x}] \
+     [list $extraarg a    /  {} {}] \
+     [list $extraarg html /  {} {}] ]
+
+
+# -------------------------------------------------------------------------
+# In this section we run all the tests depending on a struct::tree,
+# and thus have to test all the available implementations.
+
+set tests [file join [file dirname [info script]] htmlparse.tree_testsuite]
+
+catch {memory validate on}
+
+TestAccelDo struct::tree impl {
+    # The global variable 'impl' is part of the public API the
+    # testsuit (in htmlparse_tree.testsuite) can expect from the
+    # environment.
+
+    namespace import -force struct::tree
+
+    set usec [time {source $tests} 1]
+
+    #puts "$impl:\t$usec"
+}
+
+catch {memory validate off}
+
+unset usec
+unset tests
+
+# -------------------------------------------------------------------------
+
+# Take a look at the cache.
+#parray ::htmlparse::splitdata
+TestAccelExit struct::tree
+testsuiteCleanup
+return

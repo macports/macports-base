@@ -1,0 +1,52 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-cparam-config-critcl-1.0 {convert, wrong#args} -body {
+    pt::cparam::configuration::critcl def
+} -returnCodes error -result {wrong # args: should be "pt::cparam::configuration::critcl def class pkg version cmd"}
+
+test pt-cparam-config-critcl-1.1 {convert, wrong#args} -body {
+    pt::cparam::configuration::critcl def C
+} -returnCodes error -result {wrong # args: should be "pt::cparam::configuration::critcl def class pkg version cmd"}
+
+test pt-cparam-config-critcl-1.2 {convert, wrong#args} -body {
+    pt::cparam::configuration::critcl def C P
+} -returnCodes error -result {wrong # args: should be "pt::cparam::configuration::critcl def class pkg version cmd"}
+
+test pt-cparam-config-critcl-1.3 {convert, wrong#args} -body {
+    pt::cparam::configuration::critcl def C P V
+} -returnCodes error -result {wrong # args: should be "pt::cparam::configuration::critcl def class pkg version cmd"}
+
+test pt-cparam-config-critcl-2.0 {reset, wrong#args} -body {
+    pt::cparam::configuration::critcl def C P V C XXX
+} -returnCodes error -result {wrong # args: should be "pt::cparam::configuration::critcl def class pkg version cmd"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of c/param output configured for critcl.
+
+TestFilesProcess $mytestdir ok peg_serial-canonical peg_cparam-critcl -> n label input data expected {
+    test pt-cparam-config-critcl-3.$n "pt::cparam::configuration::critcl, $label, ok :- $input" -setup {
+
+	pt::peg::to::cparam reset
+	pt::peg::to::cparam configure -name     TEMPLATE
+	pt::peg::to::cparam configure -file     TEST
+
+	pt::cparam::configuration::critcl def \
+	    PARSER PACKAGE 1 \
+	    {pt::peg::to::cparam configure}
+
+    } -body {
+	pt::peg::to::cparam convert $data
+    } -cleanup {
+	pt::peg::to::cparam reset
+    } -result $expected
+}
+
+
+#----------------------------------------------------------------------
+unset n label input data expected

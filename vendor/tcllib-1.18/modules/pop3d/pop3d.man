@@ -1,0 +1,273 @@
+[comment {-*- tcl -*-}]
+[manpage_begin pop3d n 1.1.0]
+[keywords internet]
+[keywords network]
+[keywords pop3]
+[keywords protocol]
+[keywords {rfc 1939}]
+[keywords secure]
+[keywords ssl]
+[keywords tls]
+[copyright {2002-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2005 Reinhard Max  <max@suse.de>}]
+[moddesc   {Tcl POP3 Server Package}]
+[titledesc {Tcl POP3 server implementation}]
+[category  Networking]
+[require Tcl 8.3]
+[require pop3d [opt 1.1.0]]
+[description]
+[para]
+
+[list_begin definitions]
+
+[call  [cmd ::pop3d::new] [opt [arg serverName]]]
+
+This command creates a new server object with an associated global Tcl
+command whose name is [arg serverName].
+
+[list_end]
+
+The command [cmd serverName] may be used to invoke various operations
+on the server.  It has the following general form:
+
+[list_begin definitions]
+[call [cmd serverName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+
+[para]
+
+A pop3 server can be started on any port the caller has permission for
+from the operating system. The default port will be 110, which is the
+port defined by the standard specified in
+RFC 1939 ([uri http://www.rfc-editor.org/rfc/rfc1939.txt]).
+
+After creating, configuring and starting a the server object will
+listen for and accept connections on that port and handle them
+according to the POP3 protocol.
+
+[para]
+
+[emph Note:] The server provided by this module will handle only the
+basic protocol by itself. For the higher levels of user authentication
+and handling of the actual mailbox contents callbacks will be invoked.
+
+[para]
+
+The following commands are possible for server objects:
+
+[list_begin definitions]
+
+[call [arg serverName] [method up]]
+
+After this call the server will listen for connections on its configured port.
+
+[call [arg serverName] [method down]]
+
+After this call the server will stop listening for connections. This
+does not affect existing connections.
+
+[call [arg serverName] [method destroy] [opt [arg mode]]]
+
+Destroys the server object. Currently open connections are handled
+depending on the chosen mode.
+
+The provided [arg mode]s are:
+
+[list_begin definitions]
+
+[def [const kill]]
+
+Destroys the server immediately, and forcefully closes all currently
+open connections. This is the default mode.
+
+[def [const defer]]
+
+Stops the server from accepting new connections and will actually
+destroy it only after the last of the currently open connections for
+the server is closed.
+
+[list_end]
+
+[call [arg serverName] [method configure]]
+
+Returns a list containing all options and their current values in a
+format suitable for use by the command [cmd {array set}]. The options
+themselves are described in section [sectref Options].
+
+[call [arg serverName] [method configure] [arg -option]]
+
+Returns the current value of the specified option. This is an alias
+for the method [method cget]. The options themselves are described in
+section [sectref Options].
+
+[call [arg serverName] [method configure] [arg {-option value}]...]
+
+Sets the specified option to the provided value. The options
+themselves are described in section [sectref Options].
+
+[call [arg serverName] [method cget] [arg -option]]
+
+Returns the current value of the specified option. The options
+themselves are described in section [sectref Options].
+
+[call [arg serverName] [method conn] list]
+
+Returns a list containing the ids of all connections currently open.
+
+[call [arg serverName] [method conn] state [arg id]]
+
+Returns a list suitable for [lb][cmd {array set}][rb] containing the
+state of the connection referenced by [arg id].
+
+[list_end]
+
+[section Options]
+
+The following options are available to pop3 server objects.
+
+[list_begin definitions]
+
+[def "[option -port] [arg port]"]
+
+Defines the [arg port] to listen on for new connections. Default is
+110. This option is a bit special. If [arg port] is set to "0" the
+server, or rather the operating system, will select a free port on its
+own. When querying [option -port] the id of this chosen port will be
+returned. Changing the port while the server is up will neither change
+the returned value, nor will it change on which port the server is
+listening on. Only after resetting the server via a call to
+
+[method down] followed by a call to [method up] will the new port take
+effect. It is at that time that the value returned when querying
+[option -port] will change too.
+
+[def "[option -auth] [arg command]"]
+
+Defines a [arg command] prefix to call whenever the authentication of
+a user is required. If no such command is specified the server will
+reject all users. The interface which has to be provided by the
+command prefix is described in section [sectref Authentication].
+
+[def "[option -storage] [arg command]"]
+
+Defines a [arg command] prefix to call whenever the handling of
+mailbox contents is required. If no such command is specified the
+server will claim that all mailboxes are empty. The interface which
+has to be provided by the command prefix is described in section
+[sectref Mailboxes].
+
+[def "[option -socket] [arg command]"]
+
+Defines a [arg command] prefix to call for opening the listening socket.
+This can be used to make the pop3 server listen on a SSL socket
+as provided by the [package tls] package, see the command [cmd tls::socket].
+
+[list_end]
+
+[section Authentication]
+
+Here we describe the interface which has to be provided by the
+authentication callback so that pop3 servers following the interface
+of this module are able to use it.
+
+[list_begin definitions]
+
+[call [arg authCmd] [method exists] [arg name]]
+
+This method is given a user[arg name] and has to return a boolean
+value telling whether or not the specified user exists.
+
+[call [arg authCmd] [method lookup] [arg name]]
+
+This method is given a user[arg name] and has to return a two-element
+list containing the password for this user and a storage reference, in
+this order.
+
+[para]
+
+The storage reference is passed unchanged to the storage callback, see
+sections [sectref Options] and [sectref Mailboxes] for either the
+option defining it and or the interface to provide, respectively.
+
+[list_end]
+
+[section Mailboxes]
+
+Here we describe the interface which has to be provided by the storage
+callback so that pop3 servers following the interface of this module
+are able to use it. The [arg mbox] argument is the storage reference
+as returned by the [method lookup] method of the authentication
+command, see section [sectref Authentication].
+
+[list_begin definitions]
+
+[call [arg storageCmd] [method dele] [arg mbox] [arg msgList]]]
+
+Deletes the messages whose numeric ids are contained in the
+[arg msgList] from the mailbox specified via [arg mbox].
+
+[call [arg storageCmd] [method lock] [arg mbox]]
+
+This method locks the specified mailbox for use by a single connection
+to the server. This is necessary to prevent havoc if several
+connections to the same mailbox are open. The complementary method is
+[method unlock]. The command will return true if the lock could be set
+successfully or false if not.
+
+[call [arg storageCmd] [method unlock] [arg mbox]]
+
+This is the complementary method to [method lock], it revokes the lock
+on the specified mailbox.
+
+[call [arg storageCmd] [method size] [arg mbox] [opt [arg msgId]]]
+
+Determines the size of the message specified through its id in
+[arg msgId], in bytes, and returns this number. The command will
+return the size of the whole maildrop if no message id was specified.
+
+[call [arg storageCmd] [method stat] [arg mbox]]
+
+Determines the number of messages in the specified mailbox and returns
+this number.
+
+[call [arg storageCmd] [method get] [arg mbox] [arg msgId]]
+
+Returns a handle for the specified message. This handle is a mime
+token following the interface described in the documentation of
+package [package mime]. The pop3 server will use the functionality of
+the mime token to send the mail to the requestor at the other end of a
+pop3 connection.
+
+[list_end]
+
+[section {Secure mail transfer}]
+
+The option [option -socket] (see [sectref Options]) enables users of
+the package to override how the server opens its listening socket.
+
+The envisioned main use is the specification of the [cmd tls::socket]
+command, see package [package tls], to secure the communication.
+
+[example {
+	package require tls
+	tls::init \\
+		...
+
+	pop3d::new S -socket tls::socket
+	...
+}]
+
+[section References]
+
+[list_begin enumerated]
+[enum] [uri http://www.rfc-editor.org/rfc/rfc1939.txt {RFC 1939}]
+[enum] [uri http://www.rfc-editor.org/rfc/rfc2449.txt {RFC 2449}]
+[list_end]
+
+[vset CATEGORY pop3d]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

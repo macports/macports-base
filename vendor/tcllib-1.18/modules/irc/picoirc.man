@@ -1,0 +1,162 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 0.5.2]
+[manpage_begin picoirc n [vset VERSION]]
+[see_also {rfc 1459}]
+[keywords chat]
+[keywords irc]
+[moddesc   {Simple embeddable IRC interface}]
+[titledesc {Small and simple embeddable IRC client.}]
+[category  Networking]
+[require Tcl]
+[require picoirc [opt [vset VERSION]]]
+[description]
+
+This package provides a general purpose minimal IRC client suitable for
+embedding in other applications. All communication with the parent
+application is done via an application provided callback procedure.
+Each connection has its own state so you can hook up multiple servers
+in a single application instance.
+
+[para]
+
+To initiate an IRC connection you must call [cmd picoirc::connect]
+with a callback procedure, a nick-name to use on IRC and the IRC URL
+that describes the connection. This will return a variable name that
+is the irc connection context. See [sectref CALLBACK] for details.
+
+[para]
+
+This package is a fairly simple IRC client. If you need something with
+more capability investigate the [package irc] package.
+
+[para]
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::picoirc::connect] [arg callback] [arg nick] [arg url]]
+
+Create a new irc connection to the server specified by [arg url] and
+login using the [arg nick] as the username. The [arg callback] must be
+as specified in [sectref CALLBACK]. Returns a package-specific variable
+that is used when calling other commands in this package.
+
+[call [cmd ::picoirc::post] [arg context] [arg channel] [arg message]]
+
+This should be called to process user input and send it to the
+server. A number of commands are recognised when prefixed with a
+forward-slash (/). Such commands are converted to IRC command
+sequences and then sent.
+
+[call [cmd ::picoirc::splituri] [arg uri]]
+
+Splits an IRC scheme uniform resource indicator into its component
+parts. Returns a list of server, port and channel. The default port is
+6667 and there is no default channel.
+
+[call [cmd ::picoirc::send] [arg context] [arg line]]
+
+This command is where all raw output to the server is handled. The
+default action is to write the [arg line] to the irc socket. However,
+before this happens the callback is called with "debug write". This
+permits the application author to inspect the raw IRC data and if
+desired to return a break error code to halt further processing. In
+this way the application can override the default send via the
+callback procedure.
+
+[list_end]
+
+[section CALLBACK]
+
+The callback must look like:
+
+[example {
+proc Callback {context state args} {
+}
+}]
+
+where context is the irc context variable name (in case you need to pass
+it back to a picoirc procedure). state is one of a number of states as
+described below.
+
+[list_begin options]
+
+[opt_def init]
+
+called just before the socket is created
+
+[opt_def connect]
+
+called once we have connected, before we join any channels
+
+[opt_def close]
+
+called when the socket gets closed, before the context is deleted. If
+an error occurs before we get connected the only argument will be the
+socket error message.
+
+[opt_def userlist "[arg channel] [arg nicklist]"]
+
+called to notify the application of an updated userlist. This is
+generated when the output of the NAMES irc command is seen. The
+package collects the entire output which can span a number of output
+lines from the server and calls this callback when they have all been
+received.
+
+[opt_def chat "[arg target] [arg nick] [arg message] [arg type]"]
+
+called when a message arrives. [arg target] is the identity that the
+message was targetted for. This can be the logged in nick or a channel
+name. [arg nick] is the name of the sender of the message.
+[arg message] is the message text. [arg type] is set to "ACTION" if the
+message was sent as a CTCP ACTION
+
+[opt_def system "[arg channel] [arg message]"]
+
+called when a system message is received
+
+[opt_def topic "[arg channel] [arg topic]"]
+
+called when the channel topic string is seen. [arg topic] is the text
+of the channel topic.
+
+[opt_def traffic "[arg action] [arg channel] [arg nick] [opt [arg newnick]]"]
+
+called when users join, leave or change names.
+[arg action] is either entered, left or nickchange and [arg nick]
+is the user doing the action. [arg newnick] is
+the new name if [arg action] is nickchange.
+[para]
+[emph NOTE]: [arg channel] is often empty for these messages as nick
+activities are global for the irc server. You will have
+to manage the nick for all connected channels yourself.
+
+[opt_def version]
+
+This is called to request a version string to use to
+override the internal version. If implemented, you should
+return as colon delimited string as
+[para]
+  Appname:Appversion:LibraryVersion
+[para]
+For example, the default is
+[para]
+  PicoIRC:[lb]package provide picoirc[rb]:Tcl [lb]info patchlevel[rb]
+
+[opt_def debug "[arg type] [arg raw]"]
+
+called when data is either being read or written to the network
+socket. [arg type] is set to [const read] when reading data and
+[const write] if the data is to be written. [arg raw] is the
+unprocessed IRC protocol data.
+[para]
+In both cases the application can return a break error code to
+interrupt further processing of the raw data. If this is a
+[const read] operation then the package will not handle this line. If
+the operation is [const write] then the package will not send the
+data. This callback is intended for debugging protocol issues but
+could be used to redirect all input and output if desired.
+
+[list_end]
+[manpage_end]

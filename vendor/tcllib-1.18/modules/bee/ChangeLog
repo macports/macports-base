@@ -1,0 +1,116 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bee.pcx: New file. Syntax definitions for the public commands of
+	  the bee package.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bee.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bee.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bee.test: Hooked into the new common test support code.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* bee.test: Fixed typo.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* bee.bench: New file, benchmarks, only basics for now.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bee.man:      Cleared up version confusion. This package
+	* bee.test:     definitely requires 8.4. Fixed in package
+	* pkgIndex.tcl: index, docs, added boilerplate abort to
+	                testsuite.
+
+	* bee.test: Fixed problem with testsuite, cannot use viewFile,
+	  does not do binary.
+
+2004-08-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bee.tcl: Typo police.
+	* bee.man:
+	* bee.test:
+
+2004-06-23  Andreas Kupries  <andreas_kupries@users.sourceforge.bet>
+
+	* bee.man: Polished the documentation.
+
+2004-06-21  Andreas Kupries  <andreas_kupries@users.sourceforge.bet>
+
+	* bee.tcl: Completed the implementation.
+	* bee.man: Completed documentation.
+	* bee.test: Completed testsuite.
+
+2004-06-18  Andreas Kupries  <andreas_kupries@users.sourceforge.bet>
+
+	* New module: BEE de- and encoding. BEE is the serialization
+	  format used by BitTorrent for its data and protocol messages.

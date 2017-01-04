@@ -1,0 +1,130 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment { $Id: multiplexer.man,v 1.11 2009/01/29 06:16:20 andreas_kupries Exp $ }]
+[manpage_begin multiplexer n 0.2]
+[keywords chat]
+[keywords multiplexer]
+[moddesc   {One-to-many communication with sockets.}]
+[titledesc {One-to-many communication with sockets.}]
+[category  {Programming tools}]
+[require Tcl 8.2]
+[require logger]
+[require multiplexer [opt 0.2]]
+[description]
+
+The [package multiplexer] package provides a generic system for one-to-many
+communication utilizing sockets.  For example, think of a chat system
+where one user sends a message which is then broadcast to all the
+other connected users.
+
+[para]
+
+It is possible to have different multiplexers running concurrently.
+
+[list_begin definitions]
+
+[call [cmd ::multiplexer::create]]
+
+The [cmd create] command creates a new multiplexer 'instance'.  For
+example:
+
+[example {set mp [::multiplexer::create]}]
+
+This instance can then be manipulated like so: [example {${mp}::Init 35100}]
+
+[call [cmd \${multiplexer_instance}::Init] [arg port]]
+
+This starts the multiplexer listening on the specified port.
+
+[call [cmd \${multiplexer_instance}::Config] [arg key] [arg value]]
+
+Use [cmd Config] to configure the multiplexer instance.  Configuration
+options currently include:
+
+[list_begin options]
+
+[opt_def sendtoorigin]
+
+A boolean flag. If [const true], the sender will receive a copy of the
+sent message.  Defaults to [const false].
+
+[opt_def debuglevel]
+
+Sets the debug level to use for the multiplexer instance, according to
+those specified by the [package logger] package (debug, info, notice,
+warn, error, critical).
+
+[list_end]
+
+[call [cmd \${multiplexer_instance}::AddFilter] [arg cmdprefix]]
+
+Command to add a filter for data that passes through the multiplexer
+instance.
+
+The registered [arg cmdprefix] is called when data arrives at a
+multiplexer instance. If there is more than one filter command
+registered at the instance they will be called in the order of
+registristation, and each filter will get the result of the preceding
+filter as its argument. The first filter gets the incoming data as its
+argument. The result returned by the last filter is the data which
+will be broadcast to all clients of the multiplexer instance.
+
+The command prefix is called as
+
+[list_begin definitions]
+[call [cmd cmdprefix] [arg data] [arg chan] [arg clientaddress] [arg clientport]]
+
+Takes the incoming [arg data], modifies it, and returns that as its
+result. The last three arguments contain information about the client
+which sent the data to filter: The channel connecting us to the
+client, its ip-address, and its ip-port.
+
+[list_end]
+
+[call [cmd \${multiplexer_instance}::AddAccessFilter] [arg cmdprefix]]
+
+Command to add an access filter.
+
+The registered [arg cmdprefix] is called when a new client socket
+tries to connect to the multixer instance. If there is more than one
+access filter command registered at the instance they will be called
+in the order of registristation. If any of the called commands returns
+[const -1] the access to the multiplexer instance is denied and the
+client channel is closed immediately. Any other result grants the
+client access to the multiplexer instance.
+
+The command prefix is called as
+
+[list_begin definitions]
+[call [cmd cmdprefix] [arg chan] [arg clientaddress] [arg clientport]]
+
+The arguments contain information about the client which tries to
+connected to the instance: The channel connecting us to the client,
+its ip-address, and its ip-port.
+
+[list_end]
+
+[call [cmd \${multiplexer_instance}::AddExitFilter] [arg cmdprefix]]
+
+Adds filter to be run when client socket generates an EOF condition.
+
+The registered [arg cmdprefix] is called when a client socket of the
+multixer signals EOF. If there is more than one exit filter command
+registered at the instance they will be called in the order of
+registristation. Errors thrown by an exit filter are ignored, but
+logged. Any result returned by an exit filter is ignored.
+
+The command prefix is called as
+
+[list_begin definitions]
+[call [cmd cmdprefix] [arg chan] [arg clientaddress] [arg clientport]]
+
+The arguments contain information about the client which signaled the
+EOF: The channel connecting us to the client, its ip-address, and its
+ip-port.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY multiplexer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

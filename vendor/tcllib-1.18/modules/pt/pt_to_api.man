@@ -1,0 +1,217 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt_export_api i 1]
+[include include/module.inc]
+[titledesc {Parser Tools Export API}]
+[description]
+[include include/ref_intro.inc]
+
+This document describes two APIs. First the API shared by all packages
+for the conversion of Parsing Expression Grammars into some other
+format, and then the API shared by the packages which implement the
+export plugins sitting on top of the conversion packages.
+
+[para]
+
+Its intended audience are people who wish to create their own
+converter for some type of output, and/or an export plugin for
+their or some other converter.
+
+[para]
+
+It resides in the Export section of the Core Layer of Parser Tools.
+[para][image arch_core_export][para]
+
+[section {Converter API}]
+
+Any (grammar) export converter has to follow the rules set out below:
+
+[list_begin enumerated][comment {-- converter rules --}]
+
+[enum]	A converter is a package. Its name is arbitrary, however it is
+	recommended to put it under the [namespace ::pt::peg::to]
+	namespace.
+
+[enum]	The package provides either a single Tcl command following the
+	API outlined below, or a class command whose instances follow
+	the same API. The commands which follow the API are called
+	[term {converter commands}].
+
+[enum]	A converter command has to provide the following three methods
+	with the given signatures and semantics. Converter commands
+	are allowed to provide more methods of their own, but not
+	less, and they may not provide different semantics for the
+	standardized methods.
+
+[list_begin definitions][comment {-- api command signatures --}]
+
+[call [cmd CONVERTER] [method reset]]
+
+This method has to reset the configuration of the converter to its
+default settings. The result of the method has to be the empty
+string.
+
+[call [cmd CONVERTER] [method configure]]
+
+This method, in this form, has to return a dictionary containing the
+current configuration of the converter.
+
+[call [cmd CONVERTER] [method configure] [arg option]]
+
+This method, in this form, has to return the current value of the
+specified configuration [arg option] of the converter.
+
+[para]
+
+Please read the section [sectref Options] for the set of standard
+options any converter has to accept.
+
+Any other options accepted by a specific converter will be described
+in its manpage.
+
+[call [cmd CONVERTER] [method configure] [arg option] [arg value]...]
+
+This command, in this form, sets the specified [arg option]s of the
+converter to the given [arg value]s.
+
+[para]
+
+Please read the section [sectref Options] for the set of standard
+options a converter has to accept.
+
+Any other options accepted by a specific converter will be described
+in its manpage.
+
+[call [cmd CONVERTER] [method convert] [arg serial]]
+
+This method has to accept the canonical serialization of a parsing
+expression grammar, as specified in section
+[sectref {PEG serialization format}], and contained in [arg serial].
+
+The result of the method has to be the result of converting the input
+grammar into whatever the converter is for, per its configuration.
+
+[list_end][comment {-- api command signatures --}]
+[list_end][comment {-- converter rules --}]
+
+[section {Plugin API}]
+
+Any (grammar) export plugin has to follow the rules set out below:
+
+[list_begin enumerated][comment {-- plugin rules --}]
+
+[enum]	A plugin is a package.
+
+[enum]	The name of a plugin package has the form
+
+		pt::peg::export::[var FOO],
+
+	where [var FOO] is the name of the format the plugin will
+	generate output for.
+
+[enum]	The plugin can expect that the package
+	[package pt::peg::export::plugin] is present, as
+	indicator that it was invoked from a genuine plugin manager.
+
+	[para]
+
+	It is recommended that a plugin does check for the presence of
+	this package.
+
+[enum]	A plugin has to provide a single command, in the global
+	namespace, with the signature shown below. Plugins are allowed
+	to provide more command of their own, but not less, and they
+	may not provide different semantics for the standardized
+	command.
+
+[list_begin definitions][comment {-- api command signatures --}]
+
+[call [cmd ::export] [arg serial] [arg configuration]]
+
+This command has to accept the canonical serialization of a parsing
+expression grammar and the configuration for the converter invoked by
+the plugin. The result of the command has to be the result of the
+converter invoked by the plugin for th input grammar and
+configuration.
+
+[list_begin arguments][comment {-- arguments --}]
+
+[arg_def string serial]
+
+This argument will contain the [term canonical] serialization of the
+parsing expression grammar for which to generate the output.
+
+The specification of what a [term canonical] serialization is can be
+found in the section [sectref {PEG serialization format}].
+
+[arg_def dictionary configuration]
+
+This argument will contain the configuration to configure the
+converter with before invoking it, as a dictionary mapping from
+options to values.
+
+[para]
+
+Please read the section [sectref Options] for the set of standard
+options any converter has to accept, and thus any plugin as well.
+
+Any other options accepted by a specific plugin will be described in
+its manpage.
+
+[list_end][comment {-- arguments --}]
+[list_end][comment {-- api command signatures --}]
+
+[enum]	A single usage cycle of a plugin consists of an invokation of
+	the command [cmd export]. This call has to leave the plugin in
+	a state where another usage cycle can be run without problems.
+
+[list_end][comment {-- plugin rules --}]
+
+[section Options]
+
+Each export converter and plugin for an export converter has to accept
+the options below in their [method configure] method. Converters are
+allowed to ignore the contents of these options when performing a
+conversion, but they must not reject them. Plugins are expected to
+pass the options given to them to the converter they are invoking.
+
+[list_begin options]
+[include include/format/options_std.inc]
+[list_end]
+
+[section Usage]
+
+To use a converter do
+
+[example {
+    # Get the converter (single command here, not class)
+    package require the-converter-package
+
+    # Provide a configuration
+    theconverter configure ...
+
+    # Perform the conversion
+    set result [theconverter convert $thegrammarserial]
+
+    ... process the result ...
+}]
+
+To use a plugin [var FOO] do
+
+[example {
+    # Get an export plugin manager
+    package require pt::peg::export
+    pt::peg::export E
+
+    # Provide a configuration
+    E configuration set ...
+
+    # Run the plugin, and the converter inside.
+    set result [E export serial $grammarserial FOO]
+
+    ... process the result ...
+}]
+
+[include include/serial/pegrammar.inc]
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

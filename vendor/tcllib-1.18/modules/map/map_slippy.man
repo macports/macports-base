@@ -1,0 +1,189 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin map::slippy n 0.5]
+[keywords geodesy]
+[keywords geography]
+[keywords latitute]
+[keywords location]
+[keywords longitude]
+[keywords map]
+[keywords slippy]
+[keywords zoom]
+[moddesc   {Mapping utilities}]
+[titledesc {Common code for slippy based map packages}]
+[require Tcl 8.4]
+[require Tk 8.4]
+[require map::slippy [opt 0.5]]
+[description]
+
+This package provides a number of methods doing things needed by all
+types of slippy-based map packages.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::map::slippy] [method length] [arg level]]
+
+This method returns the width/height of a slippy-based map at the
+specified zoom [arg level], in pixels. This is, in essence, the result
+of
+
+[example {
+	expr { [tiles $level] * [tile size] }
+}]
+
+[call [cmd ::map::slippy] [method tiles] [arg level]]
+
+This method returns the width/height of a slippy-based map at the
+specified zoom [arg level], in [term tiles].
+
+[call [cmd ::map::slippy] [method {tile size}]]
+
+This method returns the width/height of a tile in a slippy-based map,
+in pixels.
+
+[call [cmd ::map::slippy] [method {tile valid}] [arg tile] \
+	[arg levels] [opt [arg msgvar]]]
+
+This method checks whether [arg tile] described a valid tile in a
+slippy-based map containing that many zoom [arg levels]. The result is
+a boolean value, [const true] if the tile is valid, and [const false]
+otherwise. For the latter a message is left in the variable named by
+[arg msgvar], should it be specified.
+
+[para]
+
+A tile identifier as stored in [arg tile] is a list containing zoom
+level, tile row, and tile column, in this order. The command
+essentially checks this, i.e. the syntax, that the zoom level is
+between 0 and "[arg levels]-1", and that the row/col information is
+within the boundaries for the zoom level, i.e. 0 ...
+"[lb]tiles $zoom[rb]-1".
+
+[call [cmd ::map::slippy] [method {geo 2tile}] [arg geo]]
+
+Converts a geographical location at a zoom level ([arg geo], a list
+containing zoom level, latitude, and longitude, in this order) to a
+tile identifier (list containing zoom level, row, and column) at that
+level. The tile identifier uses pure integer numbers for the tile
+coordinates, for all geographic coordinates mapping to that tile.
+
+[call [cmd ::map::slippy] [method {geo 2tile.float}] [arg geo]]
+
+Converts a geographical location at a zoom level ([arg geo], a list
+containing zoom level, latitude, and longitude, in this order) to a
+tile identifier (list containing zoom level, row, and column) at that
+level. The tile identifier uses floating point numbers for the tile
+coordinates, representing not only the tile the geographic coordinates
+map to, but also the fractional location inside of that tile.
+
+[call [cmd ::map::slippy] [method {geo 2point}] [arg geo]]
+
+Converts a geographical location at a zoom level ([arg geo], a list
+containing zoom level, latitude, and longitude, in this order) to a
+pixel position (list containing zoom level, y, and x) at that level.
+
+[call [cmd ::map::slippy] [method {tile 2geo}] [arg tile]]
+
+Converts a tile identifier at a zoom level ([arg tile], list
+containing zoom level, row, and column) to a geographical location
+(list containing zoom level, latitude, and longitude, in this order)
+at that level.
+
+[call [cmd ::map::slippy] [method {tile 2point}] [arg tile]]
+
+Converts a tile identifier at a zoom level ([arg tile], a list
+containing zoom level, row, and column, in this order) to a pixel
+position (list containing zoom level, y, and x) at that level.
+
+[call [cmd ::map::slippy] [method {point 2geo}] [arg point]]
+
+Converts a pixel position at a zoom level ([arg point], list
+containing zoom level, y, and x) to a geographical location (list
+containing zoom level, latitude, and longitude, in this order) at that
+level.
+
+[call [cmd ::map::slippy] [method {point 2tile}] [arg point]]
+
+Converts a pixel position at a zoom level ([arg point], a list
+containing zoom level, y, and x, in this order) to a tile identifier
+(list containing zoom level, row, and column) at that level.
+
+[call [cmd ::map::slippy] [method {fit geobox}] [arg canvdim] \
+     [arg geobox] [arg zmin] [arg zmax]]
+
+Calculates the zoom level (whithin the bounds [arg zmin] and
+[arg zmax]) such that [arg geobox] (a 4-element list containing the
+latitudes and longitudes lat0, lat1, lon0 and lon1 of a geo box,
+in this order) fits into a viewport given by [arg canvdim], a
+2-element list containing the width and height of the viewport, in
+this order.
+
+[list_end]
+
+[section {Coordinate systems}]
+
+The commands of this package operate on three distinct coordinate
+systems, which are explained below.
+
+[subsection Geographic]
+
+[term Geographic]al coordinates are represented by [term Latitude] and
+[term Longitude], each of which is measured in degrees, as they are
+essentially angles.
+
+[para] [const Zero] longitude is the [term {Greenwich meridian}], with
+positive values going [term east], and negative values going
+[term west], for a total range of +/- 180 degrees. Note that +180 and
+-180 longitude are the same [term meridian], opposite to greenwich.
+
+[para] [const zero] latitude the [term Equator], with positive values
+going [term north] and negative values going [term south]. While the
+true range is +/- 90 degrees the projection used by the package
+requires us to cap the range at +/- 85.05112877983284 degrees. This
+means that north and south pole are not representable and not part of
+any map.
+
+[subsection Tiles]
+
+While [sectref Geographic]al coordinates of the previous section are
+independent of zoom level the [term {tile coordinates}] are not.
+
+[para] Generally the integer part of tile coordinates represent the
+row and column number of the tile in question, wheras the fractional
+parts signal how far inside the tile the location in question is, with
+pure integer coordinates (no fractional part) representing the upper
+left corner of the tile.
+
+[para] The zero point of the map is at the upper left corner,
+regardless of zoom level, with larger coordinates going right (east)
+and down (south), and smaller coordinates going left (west) and up
+(north). Again regardless of zxoom level.
+
+[para] Negative tile coordinates are not allowed.
+
+[para] At zoom level 0 the whole map is represented by a single,
+putting the geographic zero at 1/2, 1/2 of tile coordinates, and the
+range of tile coordinates as [lb]0...1[rb].
+
+[para] To go from a zoom level N to the next deeper level N+1 each
+tile of level N is split into its four quadrants, which then are the
+tiles of level N+1.
+
+[para] This means that at zoom level N the map is sliced (horizontally
+and vertically) into 2^N stripes, for a total of 4^N tiles, with tile
+coordinates ranging from 0 to 2^N+1.
+
+[subsection Pixels/Points]
+
+[term {pixel coordinates}], also called [term {point coordinates}] are
+in essence [sectref Tiles {tile coordinates}] scaled by the size of
+the image representing a tile. This tile size currently has a fixed
+value, [const 256].
+
+[section References]
+
+[list_begin enum]
+[enum]	[uri http://wiki.openstreetmap.org/wiki/Main_Page]
+[list_end]
+[manpage_end]

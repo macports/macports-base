@@ -1,0 +1,39 @@
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='TEST' version='3.14.15.926' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) **Copyright**'/>
+</head>
+<namesection>
+<name>TEST</name>
+<desc></desc>
+
+</namesection>
+
+
+
+<section id='section1'>
+<title>DESCRIPTION</title>
+Argument	::<m>Argument</m>::
+Class		::<class>Class</class>::
+Command		::<cmd>Command</cmd>::
+Comment		::::
+Const		::<l>Constant</l>::
+Emphasis	::<emph>Emphasis</emph>::
+File		::<file>File/Path</file>::
+Function	::<fun>Function</fun>::
+Method		::<method>Method</method>::
+Namespace	::<term>Namespace</term>::
+Option		::<option>Option</option>::
+Optional	::<o>Optional</o>::
+Package		::<package>Package</package>::
+Syscmd		::<syscmd>SystemCommand</syscmd>::
+Term		::<term>Term</term>::
+Type		::<type>Type</type>::
+Uri		::<url>Uri</url>::
+Variable	::<variable>Variable</variable>::
+Widget		::<widget>Widget</widget>::
+</section>
+
+
+
+</manpage>

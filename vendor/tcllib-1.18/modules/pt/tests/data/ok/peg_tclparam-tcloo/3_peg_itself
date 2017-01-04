@@ -1,0 +1,2417 @@
+## -*- tcl -*-
+##
+## OO-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require TclOO
+package require pt::rde::oo ; # OO-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+oo::class create PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    superclass pt::rde::oo ; # TODO - Define this class.
+                             # Or can we inherit from a snit
+                             # class too ?
+
+    method parse {channel} {
+	my reset $channel
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    method parset {text} {
+	my reset {}
+	my data $text
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    method MAIN {} {
+        my sym_Grammar
+        return
+    }
+    
+    #
+    # leaf Symbol 'ALNUM'
+    #
+    
+    method sym_ALNUM {} {
+        # x
+        #     "<alnum>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start ALNUM
+        my sequence_4
+        my si:void_leaf_symbol_end ALNUM
+        return
+    }
+    
+    method sequence_4 {} {
+        # x
+        #     "<alnum>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <alnum>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'ALPHA'
+    #
+    
+    method sym_ALPHA {} {
+        # x
+        #     "<alpha>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start ALPHA
+        my sequence_9
+        my si:void_leaf_symbol_end ALPHA
+        return
+    }
+    
+    method sequence_9 {} {
+        # x
+        #     "<alpha>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <alpha>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'AND'
+    #
+    
+    method sym_AND {} {
+        # x
+        #     '&'
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start AND
+        my sequence_14
+        my si:void_leaf_symbol_end AND
+        return
+    }
+    
+    method sequence_14 {} {
+        # x
+        #     '&'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char &
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'APOSTROPH'
+    #
+    
+    method sym_APOSTROPH {} {
+        # '''
+    
+        my si:void_void_symbol_start APOSTROPH
+        my si:next_char '
+        my si:void_clear_symbol_end APOSTROPH
+        return
+    }
+    
+    #
+    # leaf Symbol 'ASCII'
+    #
+    
+    method sym_ASCII {} {
+        # x
+        #     "<ascii>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start ASCII
+        my sequence_21
+        my si:void_leaf_symbol_end ASCII
+        return
+    }
+    
+    method sequence_21 {} {
+        # x
+        #     "<ascii>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <ascii>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Attribute'
+    #
+    
+    method sym_Attribute {} {
+        # x
+        #     /
+        #         (VOID)
+        #         (LEAF)
+        #     (COLON)
+    
+        my si:value_symbol_start Attribute
+        my sequence_29
+        my si:reduce_symbol_end Attribute
+        return
+    }
+    
+    method sequence_29 {} {
+        # x
+        #     /
+        #         (VOID)
+        #         (LEAF)
+        #     (COLON)
+    
+        my si:value_state_push
+        my choice_26
+        my si:valuevalue_part
+        my sym_COLON
+        my si:value_state_merge
+        return
+    }
+    
+    method choice_26 {} {
+        # /
+        #     (VOID)
+        #     (LEAF)
+    
+        my si:value_state_push
+        my sym_VOID
+        my si:valuevalue_branch
+        my sym_LEAF
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Char'
+    #
+    
+    method sym_Char {} {
+        # /
+        #     (CharSpecial)
+        #     (CharOctalFull)
+        #     (CharOctalPart)
+        #     (CharUnicode)
+        #     (CharUnescaped)
+    
+        my si:value_symbol_start Char
+        my choice_37
+        my si:reduce_symbol_end Char
+        return
+    }
+    
+    method choice_37 {} {
+        # /
+        #     (CharSpecial)
+        #     (CharOctalFull)
+        #     (CharOctalPart)
+        #     (CharUnicode)
+        #     (CharUnescaped)
+    
+        my si:value_state_push
+        my sym_CharSpecial
+        my si:valuevalue_branch
+        my sym_CharOctalFull
+        my si:valuevalue_branch
+        my sym_CharOctalPart
+        my si:valuevalue_branch
+        my sym_CharUnicode
+        my si:valuevalue_branch
+        my sym_CharUnescaped
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharOctalFull'
+    #
+    
+    method sym_CharOctalFull {} {
+        # x
+        #     '\'
+        #     range (0 .. 2)
+        #     range (0 .. 7)
+        #     range (0 .. 7)
+    
+        my si:void_symbol_start CharOctalFull
+        my sequence_44
+        my si:void_leaf_symbol_end CharOctalFull
+        return
+    }
+    
+    method sequence_44 {} {
+        # x
+        #     '\'
+        #     range (0 .. 2)
+        #     range (0 .. 7)
+        #     range (0 .. 7)
+    
+        my si:void_state_push
+        my si:next_char \134
+        my si:voidvoid_part
+        my si:next_range 0 2
+        my si:voidvoid_part
+        my si:next_range 0 7
+        my si:voidvoid_part
+        my si:next_range 0 7
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharOctalPart'
+    #
+    
+    method sym_CharOctalPart {} {
+        # x
+        #     '\'
+        #     range (0 .. 7)
+        #     ?
+        #         range (0 .. 7)
+    
+        my si:void_symbol_start CharOctalPart
+        my sequence_52
+        my si:void_leaf_symbol_end CharOctalPart
+        return
+    }
+    
+    method sequence_52 {} {
+        # x
+        #     '\'
+        #     range (0 .. 7)
+        #     ?
+        #         range (0 .. 7)
+    
+        my si:void_state_push
+        my si:next_char \134
+        my si:voidvoid_part
+        my si:next_range 0 7
+        my si:voidvoid_part
+        my optional_50
+        my si:void_state_merge
+        return
+    }
+    
+    method optional_50 {} {
+        # ?
+        #     range (0 .. 7)
+    
+        my si:void2_state_push
+        my si:next_range 0 7
+        my si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharSpecial'
+    #
+    
+    method sym_CharSpecial {} {
+        # x
+        #     '\'
+        #     [nrt'\"[]\]
+    
+        my si:void_symbol_start CharSpecial
+        my sequence_57
+        my si:void_leaf_symbol_end CharSpecial
+        return
+    }
+    
+    method sequence_57 {} {
+        # x
+        #     '\'
+        #     [nrt'\"[]\]
+    
+        my si:void_state_push
+        my si:next_char \134
+        my si:voidvoid_part
+        my si:next_class nrt'\42\133\135\134
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharUnescaped'
+    #
+    
+    method sym_CharUnescaped {} {
+        # x
+        #     !
+        #         '\'
+        #     <dot>
+    
+        my si:void_symbol_start CharUnescaped
+        my sequence_64
+        my si:void_leaf_symbol_end CharUnescaped
+        return
+    }
+    
+    method sequence_64 {} {
+        # x
+        #     !
+        #         '\'
+        #     <dot>
+    
+        my si:void_state_push
+        my notahead_61
+        my si:voidvoid_part
+        my i_input_next dot
+        my si:void_state_merge
+        return
+    }
+    
+    method notahead_61 {} {
+        # !
+        #     '\'
+    
+        my i_loc_push
+        my si:next_char \134
+        my si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharUnicode'
+    #
+    
+    method sym_CharUnicode {} {
+        # x
+        #     "\u"
+        #     <xdigit>
+        #     ?
+        #         x
+        #             <xdigit>
+        #             ?
+        #                 x
+        #                     <xdigit>
+        #                     ?
+        #                         <xdigit>
+    
+        my si:void_symbol_start CharUnicode
+        my sequence_82
+        my si:void_leaf_symbol_end CharUnicode
+        return
+    }
+    
+    method sequence_82 {} {
+        # x
+        #     "\u"
+        #     <xdigit>
+        #     ?
+        #         x
+        #             <xdigit>
+        #             ?
+        #                 x
+        #                     <xdigit>
+        #                     ?
+        #                         <xdigit>
+    
+        my si:void_state_push
+        my si:next_str \134u
+        my si:voidvoid_part
+        my si:next_xdigit
+        my si:voidvoid_part
+        my optional_80
+        my si:void_state_merge
+        return
+    }
+    
+    method optional_80 {} {
+        # ?
+        #     x
+        #         <xdigit>
+        #         ?
+        #             x
+        #                 <xdigit>
+        #                 ?
+        #                     <xdigit>
+    
+        my si:void2_state_push
+        my sequence_78
+        my si:void_state_merge_ok
+        return
+    }
+    
+    method sequence_78 {} {
+        # x
+        #     <xdigit>
+        #     ?
+        #         x
+        #             <xdigit>
+        #             ?
+        #                 <xdigit>
+    
+        my si:void_state_push
+        my si:next_xdigit
+        my si:voidvoid_part
+        my optional_76
+        my si:void_state_merge
+        return
+    }
+    
+    method optional_76 {} {
+        # ?
+        #     x
+        #         <xdigit>
+        #         ?
+        #             <xdigit>
+    
+        my si:void2_state_push
+        my sequence_74
+        my si:void_state_merge_ok
+        return
+    }
+    
+    method sequence_74 {} {
+        # x
+        #     <xdigit>
+        #     ?
+        #         <xdigit>
+    
+        my si:void_state_push
+        my si:next_xdigit
+        my si:voidvoid_part
+        my optional_72
+        my si:void_state_merge
+        return
+    }
+    
+    method optional_72 {} {
+        # ?
+        #     <xdigit>
+    
+        my si:void2_state_push
+        my si:next_xdigit
+        my si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # value Symbol 'Class'
+    #
+    
+    method sym_Class {} {
+        # x
+        #     (OPENB)
+        #     *
+        #         x
+        #             !
+        #                 (CLOSEB)
+        #             (Range)
+        #     (CLOSEB)
+        #     (WHITESPACE)
+    
+        my si:value_symbol_start Class
+        my sequence_96
+        my si:reduce_symbol_end Class
+        return
+    }
+    
+    method sequence_96 {} {
+        # x
+        #     (OPENB)
+        #     *
+        #         x
+        #             !
+        #                 (CLOSEB)
+        #             (Range)
+        #     (CLOSEB)
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my sym_OPENB
+        my si:voidvalue_part
+        my kleene_92
+        my si:valuevalue_part
+        my sym_CLOSEB
+        my si:valuevalue_part
+        my sym_WHITESPACE
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_92 {} {
+        # *
+        #     x
+        #         !
+        #             (CLOSEB)
+        #         (Range)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_90
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_90 {} {
+        # x
+        #     !
+        #         (CLOSEB)
+        #     (Range)
+    
+        my si:void_state_push
+        my notahead_87
+        my si:voidvalue_part
+        my sym_Range
+        my si:value_state_merge
+        return
+    }
+    
+    method notahead_87 {} {
+        # !
+        #     (CLOSEB)
+    
+        my i_loc_push
+        my sym_CLOSEB
+        my si:void_notahead_exit
+        return
+    }
+    
+    #
+    # void Symbol 'CLOSE'
+    #
+    
+    method sym_CLOSE {} {
+        # x
+        #     '\)'
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start CLOSE
+        my sequence_101
+        my si:void_clear_symbol_end CLOSE
+        return
+    }
+    
+    method sequence_101 {} {
+        # x
+        #     '\)'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char \51
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'CLOSEB'
+    #
+    
+    method sym_CLOSEB {} {
+        # ']'
+    
+        my si:void_void_symbol_start CLOSEB
+        my si:next_char \135
+        my si:void_clear_symbol_end CLOSEB
+        return
+    }
+    
+    #
+    # void Symbol 'COLON'
+    #
+    
+    method sym_COLON {} {
+        # x
+        #     ':'
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start COLON
+        my sequence_108
+        my si:void_clear_symbol_end COLON
+        return
+    }
+    
+    method sequence_108 {} {
+        # x
+        #     ':'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char :
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'COMMENT'
+    #
+    
+    method sym_COMMENT {} {
+        # x
+        #     '#'
+        #     *
+        #         x
+        #             !
+        #                 (EOL)
+        #             <dot>
+        #     (EOL)
+    
+        my si:void_void_symbol_start COMMENT
+        my sequence_121
+        my si:void_clear_symbol_end COMMENT
+        return
+    }
+    
+    method sequence_121 {} {
+        # x
+        #     '#'
+        #     *
+        #         x
+        #             !
+        #                 (EOL)
+        #             <dot>
+        #     (EOL)
+    
+        my si:void_state_push
+        my si:next_char #
+        my si:voidvoid_part
+        my kleene_118
+        my si:voidvoid_part
+        my sym_EOL
+        my si:void_state_merge
+        return
+    }
+    
+    method kleene_118 {} {
+        # *
+        #     x
+        #         !
+        #             (EOL)
+        #         <dot>
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_116
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_116 {} {
+        # x
+        #     !
+        #         (EOL)
+        #     <dot>
+    
+        my si:void_state_push
+        my notahead_113
+        my si:voidvoid_part
+        my i_input_next dot
+        my si:void_state_merge
+        return
+    }
+    
+    method notahead_113 {} {
+        # !
+        #     (EOL)
+    
+        my i_loc_push
+        my sym_EOL
+        my si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'CONTROL'
+    #
+    
+    method sym_CONTROL {} {
+        # x
+        #     "<control>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start CONTROL
+        my sequence_126
+        my si:void_leaf_symbol_end CONTROL
+        return
+    }
+    
+    method sequence_126 {} {
+        # x
+        #     "<control>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <control>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'DAPOSTROPH'
+    #
+    
+    method sym_DAPOSTROPH {} {
+        # '\"'
+    
+        my si:void_void_symbol_start DAPOSTROPH
+        my si:next_char \42
+        my si:void_clear_symbol_end DAPOSTROPH
+        return
+    }
+    
+    #
+    # leaf Symbol 'DDIGIT'
+    #
+    
+    method sym_DDIGIT {} {
+        # x
+        #     "<ddigit>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start DDIGIT
+        my sequence_133
+        my si:void_leaf_symbol_end DDIGIT
+        return
+    }
+    
+    method sequence_133 {} {
+        # x
+        #     "<ddigit>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <ddigit>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Definition'
+    #
+    
+    method sym_Definition {} {
+        # x
+        #     ?
+        #         (Attribute)
+        #     (Identifier)
+        #     (IS)
+        #     (Expression)
+        #     (SEMICOLON)
+    
+        my si:value_symbol_start Definition
+        my sequence_143
+        my si:reduce_symbol_end Definition
+        return
+    }
+    
+    method sequence_143 {} {
+        # x
+        #     ?
+        #         (Attribute)
+        #     (Identifier)
+        #     (IS)
+        #     (Expression)
+        #     (SEMICOLON)
+    
+        my si:value_state_push
+        my optional_137
+        my si:valuevalue_part
+        my sym_Identifier
+        my si:valuevalue_part
+        my sym_IS
+        my si:valuevalue_part
+        my sym_Expression
+        my si:valuevalue_part
+        my sym_SEMICOLON
+        my si:value_state_merge
+        return
+    }
+    
+    method optional_137 {} {
+        # ?
+        #     (Attribute)
+    
+        my si:void2_state_push
+        my sym_Attribute
+        my si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # leaf Symbol 'DIGIT'
+    #
+    
+    method sym_DIGIT {} {
+        # x
+        #     "<digit>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start DIGIT
+        my sequence_148
+        my si:void_leaf_symbol_end DIGIT
+        return
+    }
+    
+    method sequence_148 {} {
+        # x
+        #     "<digit>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <digit>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'DOT'
+    #
+    
+    method sym_DOT {} {
+        # x
+        #     '.'
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start DOT
+        my sequence_153
+        my si:void_leaf_symbol_end DOT
+        return
+    }
+    
+    method sequence_153 {} {
+        # x
+        #     '.'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char .
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'EOF'
+    #
+    
+    method sym_EOF {} {
+        # !
+        #     <dot>
+    
+        my si:void_void_symbol_start EOF
+        my notahead_157
+        my si:void_clear_symbol_end EOF
+        return
+    }
+    
+    method notahead_157 {} {
+        # !
+        #     <dot>
+    
+        my i_loc_push
+        my i_input_next dot
+        my si:void_notahead_exit
+        return
+    }
+    
+    #
+    # void Symbol 'EOL'
+    #
+    
+    method sym_EOL {} {
+        # [\n\r]
+    
+        my si:void_void_symbol_start EOL
+        my si:next_class \n\r
+        my si:void_clear_symbol_end EOL
+        return
+    }
+    
+    #
+    # value Symbol 'Expression'
+    #
+    
+    method sym_Expression {} {
+        # x
+        #     (Sequence)
+        #     *
+        #         x
+        #             (SLASH)
+        #             (Sequence)
+    
+        my si:value_symbol_start Expression
+        my sequence_169
+        my si:reduce_symbol_end Expression
+        return
+    }
+    
+    method sequence_169 {} {
+        # x
+        #     (Sequence)
+        #     *
+        #         x
+        #             (SLASH)
+        #             (Sequence)
+    
+        my si:value_state_push
+        my sym_Sequence
+        my si:valuevalue_part
+        my kleene_167
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_167 {} {
+        # *
+        #     x
+        #         (SLASH)
+        #         (Sequence)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_165
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_165 {} {
+        # x
+        #     (SLASH)
+        #     (Sequence)
+    
+        my si:void_state_push
+        my sym_SLASH
+        my si:voidvalue_part
+        my sym_Sequence
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'Final'
+    #
+    
+    method sym_Final {} {
+        # x
+        #     "END"
+        #     (WHITESPACE)
+        #     (SEMICOLON)
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start Final
+        my sequence_176
+        my si:void_clear_symbol_end Final
+        return
+    }
+    
+    method sequence_176 {} {
+        # x
+        #     "END"
+        #     (WHITESPACE)
+        #     (SEMICOLON)
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str END
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:voidvoid_part
+        my sym_SEMICOLON
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Grammar'
+    #
+    
+    method sym_Grammar {} {
+        # x
+        #     (WHITESPACE)
+        #     (Header)
+        #     *
+        #         (Definition)
+        #     (Final)
+        #     (EOF)
+    
+        my si:value_symbol_start Grammar
+        my sequence_186
+        my si:reduce_symbol_end Grammar
+        return
+    }
+    
+    method sequence_186 {} {
+        # x
+        #     (WHITESPACE)
+        #     (Header)
+        #     *
+        #         (Definition)
+        #     (Final)
+        #     (EOF)
+    
+        my si:void_state_push
+        my sym_WHITESPACE
+        my si:voidvalue_part
+        my sym_Header
+        my si:valuevalue_part
+        my kleene_182
+        my si:valuevalue_part
+        my sym_Final
+        my si:valuevalue_part
+        my sym_EOF
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_182 {} {
+        # *
+        #     (Definition)
+    
+        while {1} {
+            my si:void2_state_push
+        my sym_Definition
+            my si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # leaf Symbol 'GRAPH'
+    #
+    
+    method sym_GRAPH {} {
+        # x
+        #     "<graph>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start GRAPH
+        my sequence_191
+        my si:void_leaf_symbol_end GRAPH
+        return
+    }
+    
+    method sequence_191 {} {
+        # x
+        #     "<graph>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <graph>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Header'
+    #
+    
+    method sym_Header {} {
+        # x
+        #     (PEG)
+        #     (Identifier)
+        #     (StartExpr)
+    
+        my si:value_symbol_start Header
+        my sequence_197
+        my si:reduce_symbol_end Header
+        return
+    }
+    
+    method sequence_197 {} {
+        # x
+        #     (PEG)
+        #     (Identifier)
+        #     (StartExpr)
+    
+        my si:void_state_push
+        my sym_PEG
+        my si:voidvalue_part
+        my sym_Identifier
+        my si:valuevalue_part
+        my sym_StartExpr
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'Ident'
+    #
+    
+    method sym_Ident {} {
+        # x
+        #     /
+        #         [_:]
+        #         <alpha>
+        #     *
+        #         /
+        #             [_:]
+        #             <alnum>
+    
+        my si:void_symbol_start Ident
+        my sequence_210
+        my si:void_leaf_symbol_end Ident
+        return
+    }
+    
+    method sequence_210 {} {
+        # x
+        #     /
+        #         [_:]
+        #         <alpha>
+        #     *
+        #         /
+        #             [_:]
+        #             <alnum>
+    
+        my si:void_state_push
+        my choice_202
+        my si:voidvoid_part
+        my kleene_208
+        my si:void_state_merge
+        return
+    }
+    
+    method choice_202 {} {
+        # /
+        #     [_:]
+        #     <alpha>
+    
+        my si:void_state_push
+        my si:next_class _:
+        my si:voidvoid_branch
+        my si:next_alpha
+        my si:void_state_merge
+        return
+    }
+    
+    method kleene_208 {} {
+        # *
+        #     /
+        #         [_:]
+        #         <alnum>
+    
+        while {1} {
+            my si:void2_state_push
+        my choice_206
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method choice_206 {} {
+        # /
+        #     [_:]
+        #     <alnum>
+    
+        my si:void_state_push
+        my si:next_class _:
+        my si:voidvoid_branch
+        my si:next_alnum
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Identifier'
+    #
+    
+    method sym_Identifier {} {
+        # x
+        #     (Ident)
+        #     (WHITESPACE)
+    
+        my si:value_symbol_start Identifier
+        my sequence_215
+        my si:reduce_symbol_end Identifier
+        return
+    }
+    
+    method sequence_215 {} {
+        # x
+        #     (Ident)
+        #     (WHITESPACE)
+    
+        my si:value_state_push
+        my sym_Ident
+        my si:valuevalue_part
+        my sym_WHITESPACE
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'IS'
+    #
+    
+    method sym_IS {} {
+        # x
+        #     "<-"
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start IS
+        my sequence_220
+        my si:void_clear_symbol_end IS
+        return
+    }
+    
+    method sequence_220 {} {
+        # x
+        #     "<-"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <-
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'LEAF'
+    #
+    
+    method sym_LEAF {} {
+        # x
+        #     "leaf"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start LEAF
+        my sequence_225
+        my si:void_leaf_symbol_end LEAF
+        return
+    }
+    
+    method sequence_225 {} {
+        # x
+        #     "leaf"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str leaf
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Literal'
+    #
+    
+    method sym_Literal {} {
+        # /
+        #     x
+        #         (APOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (APOSTROPH)
+        #                 (Char)
+        #         (APOSTROPH)
+        #         (WHITESPACE)
+        #     x
+        #         (DAPOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (DAPOSTROPH)
+        #                 (Char)
+        #         (DAPOSTROPH)
+        #         (WHITESPACE)
+    
+        my si:value_symbol_start Literal
+        my choice_254
+        my si:reduce_symbol_end Literal
+        return
+    }
+    
+    method choice_254 {} {
+        # /
+        #     x
+        #         (APOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (APOSTROPH)
+        #                 (Char)
+        #         (APOSTROPH)
+        #         (WHITESPACE)
+        #     x
+        #         (DAPOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (DAPOSTROPH)
+        #                 (Char)
+        #         (DAPOSTROPH)
+        #         (WHITESPACE)
+    
+        my si:value_state_push
+        my sequence_239
+        my si:valuevalue_branch
+        my sequence_252
+        my si:value_state_merge
+        return
+    }
+    
+    method sequence_239 {} {
+        # x
+        #     (APOSTROPH)
+        #     *
+        #         x
+        #             !
+        #                 (APOSTROPH)
+        #             (Char)
+        #     (APOSTROPH)
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my sym_APOSTROPH
+        my si:voidvalue_part
+        my kleene_235
+        my si:valuevalue_part
+        my sym_APOSTROPH
+        my si:valuevalue_part
+        my sym_WHITESPACE
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_235 {} {
+        # *
+        #     x
+        #         !
+        #             (APOSTROPH)
+        #         (Char)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_233
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_233 {} {
+        # x
+        #     !
+        #         (APOSTROPH)
+        #     (Char)
+    
+        my si:void_state_push
+        my notahead_230
+        my si:voidvalue_part
+        my sym_Char
+        my si:value_state_merge
+        return
+    }
+    
+    method notahead_230 {} {
+        # !
+        #     (APOSTROPH)
+    
+        my i_loc_push
+        my sym_APOSTROPH
+        my si:void_notahead_exit
+        return
+    }
+    
+    method sequence_252 {} {
+        # x
+        #     (DAPOSTROPH)
+        #     *
+        #         x
+        #             !
+        #                 (DAPOSTROPH)
+        #             (Char)
+        #     (DAPOSTROPH)
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my sym_DAPOSTROPH
+        my si:voidvalue_part
+        my kleene_248
+        my si:valuevalue_part
+        my sym_DAPOSTROPH
+        my si:valuevalue_part
+        my sym_WHITESPACE
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_248 {} {
+        # *
+        #     x
+        #         !
+        #             (DAPOSTROPH)
+        #         (Char)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_246
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_246 {} {
+        # x
+        #     !
+        #         (DAPOSTROPH)
+        #     (Char)
+    
+        my si:void_state_push
+        my notahead_243
+        my si:voidvalue_part
+        my sym_Char
+        my si:value_state_merge
+        return
+    }
+    
+    method notahead_243 {} {
+        # !
+        #     (DAPOSTROPH)
+    
+        my i_loc_push
+        my sym_DAPOSTROPH
+        my si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'LOWER'
+    #
+    
+    method sym_LOWER {} {
+        # x
+        #     "<lower>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start LOWER
+        my sequence_259
+        my si:void_leaf_symbol_end LOWER
+        return
+    }
+    
+    method sequence_259 {} {
+        # x
+        #     "<lower>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <lower>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'NOT'
+    #
+    
+    method sym_NOT {} {
+        # x
+        #     '!'
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start NOT
+        my sequence_264
+        my si:void_leaf_symbol_end NOT
+        return
+    }
+    
+    method sequence_264 {} {
+        # x
+        #     '!'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char !
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'OPEN'
+    #
+    
+    method sym_OPEN {} {
+        # x
+        #     '\('
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start OPEN
+        my sequence_269
+        my si:void_clear_symbol_end OPEN
+        return
+    }
+    
+    method sequence_269 {} {
+        # x
+        #     '\('
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char \50
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'OPENB'
+    #
+    
+    method sym_OPENB {} {
+        # '['
+    
+        my si:void_void_symbol_start OPENB
+        my si:next_char \133
+        my si:void_clear_symbol_end OPENB
+        return
+    }
+    
+    #
+    # void Symbol 'PEG'
+    #
+    
+    method sym_PEG {} {
+        # x
+        #     "PEG"
+        #     !
+        #         /
+        #             [_:]
+        #             <alnum>
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start PEG
+        my sequence_281
+        my si:void_clear_symbol_end PEG
+        return
+    }
+    
+    method sequence_281 {} {
+        # x
+        #     "PEG"
+        #     !
+        #         /
+        #             [_:]
+        #             <alnum>
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str PEG
+        my si:voidvoid_part
+        my notahead_278
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    method notahead_278 {} {
+        # !
+        #     /
+        #         [_:]
+        #         <alnum>
+    
+        my i_loc_push
+        my choice_206
+        my si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'PLUS'
+    #
+    
+    method sym_PLUS {} {
+        # x
+        #     '+'
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start PLUS
+        my sequence_286
+        my si:void_leaf_symbol_end PLUS
+        return
+    }
+    
+    method sequence_286 {} {
+        # x
+        #     '+'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char +
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Prefix'
+    #
+    
+    method sym_Prefix {} {
+        # x
+        #     ?
+        #         /
+        #             (AND)
+        #             (NOT)
+        #     (Suffix)
+    
+        my si:value_symbol_start Prefix
+        my sequence_296
+        my si:reduce_symbol_end Prefix
+        return
+    }
+    
+    method sequence_296 {} {
+        # x
+        #     ?
+        #         /
+        #             (AND)
+        #             (NOT)
+        #     (Suffix)
+    
+        my si:value_state_push
+        my optional_293
+        my si:valuevalue_part
+        my sym_Suffix
+        my si:value_state_merge
+        return
+    }
+    
+    method optional_293 {} {
+        # ?
+        #     /
+        #         (AND)
+        #         (NOT)
+    
+        my si:void2_state_push
+        my choice_291
+        my si:void_state_merge_ok
+        return
+    }
+    
+    method choice_291 {} {
+        # /
+        #     (AND)
+        #     (NOT)
+    
+        my si:value_state_push
+        my sym_AND
+        my si:valuevalue_branch
+        my sym_NOT
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Primary'
+    #
+    
+    method sym_Primary {} {
+        # /
+        #     (ALNUM)
+        #     (ALPHA)
+        #     (ASCII)
+        #     (CONTROL)
+        #     (DDIGIT)
+        #     (DIGIT)
+        #     (GRAPH)
+        #     (LOWER)
+        #     (PRINTABLE)
+        #     (PUNCT)
+        #     (SPACE)
+        #     (UPPER)
+        #     (WORDCHAR)
+        #     (XDIGIT)
+        #     (Identifier)
+        #     x
+        #         (OPEN)
+        #         (Expression)
+        #         (CLOSE)
+        #     (Literal)
+        #     (Class)
+        #     (DOT)
+    
+        my si:value_symbol_start Primary
+        my choice_322
+        my si:reduce_symbol_end Primary
+        return
+    }
+    
+    method choice_322 {} {
+        # /
+        #     (ALNUM)
+        #     (ALPHA)
+        #     (ASCII)
+        #     (CONTROL)
+        #     (DDIGIT)
+        #     (DIGIT)
+        #     (GRAPH)
+        #     (LOWER)
+        #     (PRINTABLE)
+        #     (PUNCT)
+        #     (SPACE)
+        #     (UPPER)
+        #     (WORDCHAR)
+        #     (XDIGIT)
+        #     (Identifier)
+        #     x
+        #         (OPEN)
+        #         (Expression)
+        #         (CLOSE)
+        #     (Literal)
+        #     (Class)
+        #     (DOT)
+    
+        my si:value_state_push
+        my sym_ALNUM
+        my si:valuevalue_branch
+        my sym_ALPHA
+        my si:valuevalue_branch
+        my sym_ASCII
+        my si:valuevalue_branch
+        my sym_CONTROL
+        my si:valuevalue_branch
+        my sym_DDIGIT
+        my si:valuevalue_branch
+        my sym_DIGIT
+        my si:valuevalue_branch
+        my sym_GRAPH
+        my si:valuevalue_branch
+        my sym_LOWER
+        my si:valuevalue_branch
+        my sym_PRINTABLE
+        my si:valuevalue_branch
+        my sym_PUNCT
+        my si:valuevalue_branch
+        my sym_SPACE
+        my si:valuevalue_branch
+        my sym_UPPER
+        my si:valuevalue_branch
+        my sym_WORDCHAR
+        my si:valuevalue_branch
+        my sym_XDIGIT
+        my si:valuevalue_branch
+        my sym_Identifier
+        my si:valuevalue_branch
+        my sequence_317
+        my si:valuevalue_branch
+        my sym_Literal
+        my si:valuevalue_branch
+        my sym_Class
+        my si:valuevalue_branch
+        my sym_DOT
+        my si:value_state_merge
+        return
+    }
+    
+    method sequence_317 {} {
+        # x
+        #     (OPEN)
+        #     (Expression)
+        #     (CLOSE)
+    
+        my si:void_state_push
+        my sym_OPEN
+        my si:voidvalue_part
+        my sym_Expression
+        my si:valuevalue_part
+        my sym_CLOSE
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'PRINTABLE'
+    #
+    
+    method sym_PRINTABLE {} {
+        # x
+        #     "<print>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start PRINTABLE
+        my sequence_327
+        my si:void_leaf_symbol_end PRINTABLE
+        return
+    }
+    
+    method sequence_327 {} {
+        # x
+        #     "<print>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <print>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'PUNCT'
+    #
+    
+    method sym_PUNCT {} {
+        # x
+        #     "<punct>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start PUNCT
+        my sequence_332
+        my si:void_leaf_symbol_end PUNCT
+        return
+    }
+    
+    method sequence_332 {} {
+        # x
+        #     "<punct>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <punct>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'QUESTION'
+    #
+    
+    method sym_QUESTION {} {
+        # x
+        #     '?'
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start QUESTION
+        my sequence_337
+        my si:void_leaf_symbol_end QUESTION
+        return
+    }
+    
+    method sequence_337 {} {
+        # x
+        #     '?'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char ?
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Range'
+    #
+    
+    method sym_Range {} {
+        # /
+        #     x
+        #         (Char)
+        #         (TO)
+        #         (Char)
+        #     (Char)
+    
+        my si:value_symbol_start Range
+        my choice_346
+        my si:reduce_symbol_end Range
+        return
+    }
+    
+    method choice_346 {} {
+        # /
+        #     x
+        #         (Char)
+        #         (TO)
+        #         (Char)
+        #     (Char)
+    
+        my si:value_state_push
+        my sequence_343
+        my si:valuevalue_branch
+        my sym_Char
+        my si:value_state_merge
+        return
+    }
+    
+    method sequence_343 {} {
+        # x
+        #     (Char)
+        #     (TO)
+        #     (Char)
+    
+        my si:value_state_push
+        my sym_Char
+        my si:valuevalue_part
+        my sym_TO
+        my si:valuevalue_part
+        my sym_Char
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'SEMICOLON'
+    #
+    
+    method sym_SEMICOLON {} {
+        # x
+        #     ';'
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start SEMICOLON
+        my sequence_351
+        my si:void_clear_symbol_end SEMICOLON
+        return
+    }
+    
+    method sequence_351 {} {
+        # x
+        #     ';'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char \73
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Sequence'
+    #
+    
+    method sym_Sequence {} {
+        # +
+        #     (Prefix)
+    
+        my si:value_symbol_start Sequence
+        my poskleene_355
+        my si:reduce_symbol_end Sequence
+        return
+    }
+    
+    method poskleene_355 {} {
+        # +
+        #     (Prefix)
+    
+        my i_loc_push
+        my sym_Prefix
+        my si:kleene_abort
+        while {1} {
+            my si:void2_state_push
+        my sym_Prefix
+            my si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # void Symbol 'SLASH'
+    #
+    
+    method sym_SLASH {} {
+        # x
+        #     '/'
+        #     (WHITESPACE)
+    
+        my si:void_void_symbol_start SLASH
+        my sequence_360
+        my si:void_clear_symbol_end SLASH
+        return
+    }
+    
+    method sequence_360 {} {
+        # x
+        #     '/'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char /
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'SPACE'
+    #
+    
+    method sym_SPACE {} {
+        # x
+        #     "<space>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start SPACE
+        my sequence_365
+        my si:void_leaf_symbol_end SPACE
+        return
+    }
+    
+    method sequence_365 {} {
+        # x
+        #     "<space>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <space>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'STAR'
+    #
+    
+    method sym_STAR {} {
+        # x
+        #     '*'
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start STAR
+        my sequence_370
+        my si:void_leaf_symbol_end STAR
+        return
+    }
+    
+    method sequence_370 {} {
+        # x
+        #     '*'
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_char *
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'StartExpr'
+    #
+    
+    method sym_StartExpr {} {
+        # x
+        #     (OPEN)
+        #     (Expression)
+        #     (CLOSE)
+    
+        my si:value_symbol_start StartExpr
+        my sequence_317
+        my si:reduce_symbol_end StartExpr
+        return
+    }
+    
+    #
+    # value Symbol 'Suffix'
+    #
+    
+    method sym_Suffix {} {
+        # x
+        #     (Primary)
+        #     ?
+        #         /
+        #             (QUESTION)
+        #             (STAR)
+        #             (PLUS)
+    
+        my si:value_symbol_start Suffix
+        my sequence_386
+        my si:reduce_symbol_end Suffix
+        return
+    }
+    
+    method sequence_386 {} {
+        # x
+        #     (Primary)
+        #     ?
+        #         /
+        #             (QUESTION)
+        #             (STAR)
+        #             (PLUS)
+    
+        my si:value_state_push
+        my sym_Primary
+        my si:valuevalue_part
+        my optional_384
+        my si:value_state_merge
+        return
+    }
+    
+    method optional_384 {} {
+        # ?
+        #     /
+        #         (QUESTION)
+        #         (STAR)
+        #         (PLUS)
+    
+        my si:void2_state_push
+        my choice_382
+        my si:void_state_merge_ok
+        return
+    }
+    
+    method choice_382 {} {
+        # /
+        #     (QUESTION)
+        #     (STAR)
+        #     (PLUS)
+    
+        my si:value_state_push
+        my sym_QUESTION
+        my si:valuevalue_branch
+        my sym_STAR
+        my si:valuevalue_branch
+        my sym_PLUS
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'TO'
+    #
+    
+    method sym_TO {} {
+        # '-'
+    
+        my si:void_void_symbol_start TO
+        my si:next_char -
+        my si:void_clear_symbol_end TO
+        return
+    }
+    
+    #
+    # leaf Symbol 'UPPER'
+    #
+    
+    method sym_UPPER {} {
+        # x
+        #     "<upper>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start UPPER
+        my sequence_393
+        my si:void_leaf_symbol_end UPPER
+        return
+    }
+    
+    method sequence_393 {} {
+        # x
+        #     "<upper>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <upper>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'VOID'
+    #
+    
+    method sym_VOID {} {
+        # x
+        #     "void"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start VOID
+        my sequence_398
+        my si:void_leaf_symbol_end VOID
+        return
+    }
+    
+    method sequence_398 {} {
+        # x
+        #     "void"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str void
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'WHITESPACE'
+    #
+    
+    method sym_WHITESPACE {} {
+        # *
+        #     /
+        #         <space>
+        #         (COMMENT)
+    
+        my si:void_void_symbol_start WHITESPACE
+        my kleene_405
+        my si:void_clear_symbol_end WHITESPACE
+        return
+    }
+    
+    method kleene_405 {} {
+        # *
+        #     /
+        #         <space>
+        #         (COMMENT)
+    
+        while {1} {
+            my si:void2_state_push
+        my choice_403
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method choice_403 {} {
+        # /
+        #     <space>
+        #     (COMMENT)
+    
+        my si:void_state_push
+        my si:next_space
+        my si:voidvoid_branch
+        my sym_COMMENT
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'WORDCHAR'
+    #
+    
+    method sym_WORDCHAR {} {
+        # x
+        #     "<wordchar>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start WORDCHAR
+        my sequence_410
+        my si:void_leaf_symbol_end WORDCHAR
+        return
+    }
+    
+    method sequence_410 {} {
+        # x
+        #     "<wordchar>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <wordchar>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'XDIGIT'
+    #
+    
+    method sym_XDIGIT {} {
+        # x
+        #     "<xdigit>"
+        #     (WHITESPACE)
+    
+        my si:void_symbol_start XDIGIT
+        my sequence_415
+        my si:void_leaf_symbol_end XDIGIT
+        return
+    }
+    
+    method sequence_415 {} {
+        # x
+        #     "<xdigit>"
+        #     (WHITESPACE)
+    
+        my si:void_state_push
+        my si:next_str <xdigit>
+        my si:voidvoid_part
+        my sym_WHITESPACE
+        my si:void_state_merge
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide OO_PACKAGE 1
+return

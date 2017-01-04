@@ -1,0 +1,215 @@
+000,VERSIONS:,1:7.5p1
+001,CATCH return ok,17
+002,CATCH return error,33
+003,CATCH no catch used,9
+004,IF if true numeric,61
+005,IF elseif true numeric,292
+006,IF else true numeric,82
+007,IF if true num/num,174
+008,IF if false num/num,182
+009,IF if false al/num,121
+010,IF if true al/al,184
+011,IF if false al/al,243
+012,IF if true al,76
+013,IF elseif true al,154
+014,IF else true al,323
+015,SWITCH first true,241
+016,SWITCH second true,282
+017,SWITCH ninth true,284
+018,SWITCH default true,292
+019,DATA create in a list,29501
+020,DATA create in an array,40784
+021,DATA access in a list,175028
+022,DATA access in an array,39744
+023,EVAL cmd eval in list obj var,26
+024,EVAL cmd eval as list,52
+025,EVAL cmd eval as string,64
+026,EVAL cmd and mixed lists,2112
+027,EVAL list cmd and mixed lists,2259
+028,EVAL list cmd and pure lists,2245
+029,EXPR unbraced,365
+030,EXPR braced,386
+031,EXPR inline,177
+032,EXPR one operand,65
+033,EXPR ten operands,141
+034,EXPR fifty operands,430
+035,EXPR incr with incr,45
+036,EXPR incr with expr,74
+037,FCOPY std: 160010 bytes,26979
+038,"STR/LIST length, obj shimmer",2638
+039,"LIST length, pure list",1837
+040,STR length of a LIST,400
+041,"LIST exact search, first item",1693
+042,"LIST exact search, middle item",1944
+043,"LIST exact search, last item",2009
+044,"LIST exact search, non-item",2118
+045,"LIST sorted search, first item",1610
+046,"LIST sorted search, middle item",2252
+047,"LIST sorted search, last item",1784
+048,"LIST sorted search, non-item",2057
+049,"LIST exact search, untyped item",2218
+050,"LIST exact search, typed item",1872
+051,"LIST sorted search, typed item",2221
+052,LIST sort,9644
+053,LIST typed sort,23969
+054,LIST remove first element,522
+055,LIST remove middle element,677
+056,LIST remove last element,675
+057,LIST replace first element,978
+058,LIST replace middle element,876
+059,LIST replace last element,1243
+060,LIST replace first el with multiple,612
+061,LIST replace middle el with multiple,1123
+062,LIST replace last el with multiple,1313
+063,LIST replace range,971
+064,LIST remove in mixed list,617
+065,LIST replace in mixed list,592
+066,LIST index first element,375
+067,LIST index middle element,536
+068,LIST index last element,663
+069,LIST insert an item at start,563
+070,LIST insert an item at middle,630
+071,"LIST insert an item at ""end""",1200
+072,"LIST small, early range",383
+073,"LIST small, late range",685
+074,"LIST large, early range",697
+075,"LIST large, late range",551
+076,LIST append to list,682
+077,LIST join list,3167
+078,"LOOP for, iterate list",583297
+079,"LOOP foreach, iterate list",12556
+080,LOOP for (to 1000),73851
+081,LOOP while (to 1000),80404
+082,"LOOP for, iterate string",199570
+083,"LOOP foreach, iterate string",13206
+084,MAP string 1 val,(8.2+)
+085,MAP string 2 val,(8.2+)
+086,MAP string 3 val,(8.2+)
+087,MAP string 4 val,(8.2+)
+088,MAP string 1 val -nocase,(8.2+)
+089,MAP string 2 val -nocase,(8.2+)
+090,MAP string 3 val -nocase,(8.2+)
+091,MAP string 4 val -nocase,(8.2+)
+092,MAP regsub 1 val,3684
+093,MAP regsub 2 val,11576
+094,MAP regsub 3 val,12456
+095,MAP regsub 4 val,13884
+096,MAP regsub 1 val -nocase,4488
+097,MAP regsub 2 val -nocase,11911
+098,MAP regsub 3 val -nocase,14437
+099,MAP regsub 4 val -nocase,16818
+100,"MAP string, no match",(8.2+)
+101,"MAP string -nocase, no match",(8.2+)
+102,"MAP regsub, no match",4823
+103,"MAP regsub -nocase, no match",5249
+104,MAP string short,(8.2+)
+105,MAP regsub short,432
+106,PROC explicit return,11
+107,PROC implicit return,15
+108,PROC explicit return (2),10
+109,PROC implicit return (2),24
+110,PROC explicit return (3),25
+111,PROC implicit return (3),18
+112,PROC heavily commented,753
+113,"PROC do-nothing, no args",2
+114,"PROC do-nothing, one arg",21
+115,PROC local links with global,11505
+116,PROC local links with upvar,10317
+117,PROC local links with variable,9212
+118,"READ 595K, gets",985676
+119,"READ 595K, read",3834017
+120,"READ 595K, read & size",3704813
+121,"READ 3050b, gets",2201
+122,"READ 3050b, read",415
+123,"READ 3050b, read & size",361
+124,"BREAD 595K, gets",979961
+125,"BREAD 595K, read",3741298
+126,"BREAD 595K, read & size",3688120
+127,"BREAD 3050b, gets",2178
+128,"BREAD 3050b, read",359
+129,"BREAD 3050b, read & size",495
+130,REGEXP literal regexp,26
+131,REGEXP var-based regexp,61
+132,REGEXP count all matches,2776
+133,REGEXP extract all matches,3620
+134,STARTUP time to launch tclsh,90323
+135,STR str [string compare],193
+136,STR str [string equal],198
+137,"STR str $a equal """"",410
+138,"STR str num == """"",419
+139,STR str $a eq $b,261
+140,STR str $a ne $b,265
+141,STR str $a eq $b (same obj),338
+142,STR str $a ne $b (same obj),235
+143,STR length (==4010),867
+144,STR index 0,614
+145,STR index 100,601
+146,STR index 500,493
+147,STR index2 0,583
+148,STR index2 100,459
+149,STR index2 500,468
+150,STR first (success),519
+151,STR first (failure),822
+152,STR first (total failure),631
+153,STR last (success),728
+154,STR last (failure),859
+155,STR last (total failure),1153
+156,"STR match, simple (success early)",489
+157,"STR match, simple (success late)",502
+158,"STR match, simple (failure)",680
+159,"STR match, simple (total failure)",378
+160,"STR match, complex (success early)",448
+161,"STR match, complex (success late)",1676
+162,"STR match, complex (failure)",1698
+163,"STR match, complex (total failure)",1602
+164,"STR range, index 100..200 of 4010",609
+165,"STR replace, no replacement",1315
+166,"STR replace, equal replacement",1263
+167,"STR replace, longer replacement",1309
+168,"STR repeat, abcdefghij * 10",963
+169,"STR repeat, abcdefghij * 100",9065
+170,"STR repeat, abcdefghij * 1000",86928
+171,"STR repeat, 4010 chars * 10",7688
+172,"STR repeat, 4010 chars * 100",107290
+173,"STR reverse iter1, 100 chars",8704
+174,"STR reverse iter1, 100 uchars",9034
+175,"STR reverse iter2, 100 chars",8292
+176,"STR reverse iter2, 100 uchars",5431
+177,"STR reverse recur1, 100 chars",11271
+178,"STR reverse recur1, 100 uchars",13821
+179,"STR split, 4010 chars",3169
+180,"STR split, 12000 uchars",9080
+181,"STR split iter, 4010 chars",48521
+182,"STR split iter, 12000 uchars",156287
+183,STR append,1145
+184,STR append (1KB + 1KB),290
+185,STR append (10KB + 1KB),213
+186,STR append (1MB + 2b * 1000),84345
+187,STR append (1MB + 1KB),335
+188,STR append (1MB + 1KB * 20),1724
+189,STR append (1MB + 1KB * 1000),81930
+190,STR append (1MB + 1MB * 3),876
+191,STR append (1MB + 1MB * 5),342
+192,STR append (1MB + (1b + 1K + 1b) * 100),9893
+193,STR info locals match,9043
+194,TRACE no trace set,91
+195,TRACE read,113
+196,TRACE write,78
+197,TRACE unset,112
+198,TRACE all set (rwu),105
+199,UNSET var exists,37
+200,UNSET catch var exists,58
+201,UNSET catch var !exist,96
+202,UNSET info check var exists,78
+203,UNSET info check var !exist,64
+204,UNSET nocomplain var exists,56
+205,UNSET nocomplain var !exist,109
+206,VAR access locally set,67
+207,VAR access local proc arg,110
+208,VAR access global,121
+209,VAR access upvar,101
+210,VAR set scalar,74
+211,VAR set array element,35
+212,VAR 100 'set's in array,827
+213,VAR 'array set' of 100 elems,993
+

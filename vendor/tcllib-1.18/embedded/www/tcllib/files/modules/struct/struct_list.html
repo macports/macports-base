@@ -1,0 +1,696 @@
+
+<div class='fossil-doc' data-title='struct::list - Tcl Data Structures'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">struct::list(n) 1.8.3 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>struct::list - Procedures for manipulating lists</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">LONGEST COMMON SUBSEQUENCE AND FILE COMPARISON</a></li>
+<li class="doctools_section"><a href="#section4">TABLE JOIN</a></li>
+<li class="doctools_section"><a href="#section5">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">struct::list <span class="opt">?1.8.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::struct::list</b> <b class="method">longestCommonSubsequence</b> <i class="arg">sequence1</i> <i class="arg">sequence2</i> <span class="opt">?<i class="arg">maxOccurs</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::struct::list</b> <b class="method">longestCommonSubsequence2</b> <i class="arg">sequence1 sequence2</i> <span class="opt">?<i class="arg">maxOccurs</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::struct::list</b> <b class="method">lcsInvert</b> <i class="arg">lcsData</i> <i class="arg">len1</i> <i class="arg">len2</i></a></li>
+<li><a href="#4"><b class="cmd">::struct::list</b> <b class="method">lcsInvert2</b> <i class="arg">lcs1</i> <i class="arg">lcs2</i> <i class="arg">len1</i> <i class="arg">len2</i></a></li>
+<li><a href="#5"><b class="cmd">::struct::list</b> <b class="method">lcsInvertMerge</b> <i class="arg">lcsData</i> <i class="arg">len1</i> <i class="arg">len2</i></a></li>
+<li><a href="#6"><b class="cmd">::struct::list</b> <b class="method">lcsInvertMerge2</b> <i class="arg">lcs1</i> <i class="arg">lcs2</i> <i class="arg">len1</i> <i class="arg">len2</i></a></li>
+<li><a href="#7"><b class="cmd">::struct::list</b> <b class="method">reverse</b> <i class="arg">sequence</i></a></li>
+<li><a href="#8"><b class="cmd">::struct::list</b> <b class="method">shuffle</b> <i class="arg">list</i></a></li>
+<li><a href="#9"><b class="cmd">::struct::list</b> <b class="method">assign</b> <i class="arg">sequence</i> <i class="arg">varname</i> <span class="opt">?<i class="arg">varname</i>?</span>...</a></li>
+<li><a href="#10"><b class="cmd">::struct::list</b> <b class="method">flatten</b> <span class="opt">?<b class="option">-full</b>?</span> <span class="opt">?<b class="option">--</b>?</span> <i class="arg">sequence</i></a></li>
+<li><a href="#11"><b class="cmd">::struct::list</b> <b class="method">map</b> <i class="arg">sequence</i> <i class="arg">cmdprefix</i></a></li>
+<li><a href="#12"><b class="cmd">::struct::list</b> <b class="method">mapfor</b> <i class="arg">var</i> <i class="arg">sequence</i> <i class="arg">script</i></a></li>
+<li><a href="#13"><b class="cmd">::struct::list</b> <b class="method">filter</b> <i class="arg">sequence</i> <i class="arg">cmdprefix</i></a></li>
+<li><a href="#14"><b class="cmd">::struct::list</b> <b class="method">filterfor</b> <i class="arg">var</i> <i class="arg">sequence</i> <i class="arg">expr</i></a></li>
+<li><a href="#15"><b class="cmd">::struct::list</b> <b class="method">split</b> <i class="arg">sequence</i> <i class="arg">cmdprefix</i> <span class="opt">?<i class="arg">passVar</i> <i class="arg">failVar</i>?</span></a></li>
+<li><a href="#16"><b class="cmd">::struct::list</b> <b class="method">fold</b> <i class="arg">sequence</i> <i class="arg">initialvalue</i> <i class="arg">cmdprefix</i></a></li>
+<li><a href="#17"><b class="cmd">::struct::list</b> <b class="method">shift</b> <i class="arg">listvar</i></a></li>
+<li><a href="#18"><b class="cmd">::struct::list</b> <b class="method">iota</b> <i class="arg">n</i></a></li>
+<li><a href="#19"><b class="cmd">::struct::list</b> <b class="method">equal</b> <i class="arg">a</i> <i class="arg">b</i></a></li>
+<li><a href="#20"><b class="cmd">::struct::list</b> <b class="method">repeat</b> <i class="arg">size</i> <i class="arg">element1</i> <span class="opt">?<i class="arg">element2</i> <i class="arg">element3</i>...?</span></a></li>
+<li><a href="#21"><b class="cmd">::struct::list</b> <b class="method">repeatn</b> <i class="arg">value</i> <i class="arg">size</i>...</a></li>
+<li><a href="#22"><b class="cmd">::struct::list</b> <b class="method">dbJoin</b> <span class="opt">?<b class="option">-inner</b>|<b class="option">-left</b>|<b class="option">-right</b>|<b class="option">-full</b>?</span> <span class="opt">?<b class="option">-keys</b> <i class="arg">varname</i>?</span> {<i class="arg">keycol</i> <i class="arg">table</i>}...</a></li>
+<li><a href="#23"><b class="cmd">::struct::list</b> <b class="method">dbJoinKeyed</b> <span class="opt">?<b class="option">-inner</b>|<b class="option">-left</b>|<b class="option">-right</b>|<b class="option">-full</b>?</span> <span class="opt">?<b class="option">-keys</b> <i class="arg">varname</i>?</span> <i class="arg">table</i>...</a></li>
+<li><a href="#24"><b class="cmd">::struct::list</b> <b class="method">swap</b> <i class="arg">listvar</i> <i class="arg">i</i> <i class="arg">j</i></a></li>
+<li><a href="#25"><b class="cmd">::struct::list</b> <b class="method">firstperm</b> <i class="arg">list</i></a></li>
+<li><a href="#26"><b class="cmd">::struct::list</b> <b class="method">nextperm</b> <i class="arg">perm</i></a></li>
+<li><a href="#27"><b class="cmd">::struct::list</b> <b class="method">permutations</b> <i class="arg">list</i></a></li>
+<li><a href="#28"><b class="cmd">::struct::list</b> <b class="method">foreachperm</b> <i class="arg">var</i> <i class="arg">list</i> <i class="arg">body</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">::struct::list</b> namespace contains several useful commands
+for processing Tcl lists. Generally speaking, they implement
+algorithms more complex or specialized than the ones provided by Tcl
+itself.</p>
+<p>It exports only a single command, <b class="cmd">struct::list</b>. All
+functionality provided here can be reached through a subcommand of
+this command.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::struct::list</b> <b class="method">longestCommonSubsequence</b> <i class="arg">sequence1</i> <i class="arg">sequence2</i> <span class="opt">?<i class="arg">maxOccurs</i>?</span></a></dt>
+<dd><p>Returns the longest common subsequence of elements in the two lists
+<i class="arg">sequence1</i> and <i class="arg">sequence2</i>. If the <i class="arg">maxOccurs</i> parameter
+is provided, the common subsequence is restricted to elements that
+occur no more than <i class="arg">maxOccurs</i> times in <i class="arg">sequence2</i>.</p>
+<p>The return value is a list of two lists of equal length. The first
+sublist is of indices into <i class="arg">sequence1</i>, and the second sublist is
+of indices into <i class="arg">sequence2</i>.  Each corresponding pair of indices
+corresponds to equal elements in the sequences; the sequence returned
+is the longest possible.</p></dd>
+<dt><a name="2"><b class="cmd">::struct::list</b> <b class="method">longestCommonSubsequence2</b> <i class="arg">sequence1 sequence2</i> <span class="opt">?<i class="arg">maxOccurs</i>?</span></a></dt>
+<dd><p>Returns an approximation to the longest common sequence of elements in
+the two lists <i class="arg">sequence1</i> and <i class="arg">sequence2</i>.
+If the <i class="arg">maxOccurs</i> parameter is omitted, the subsequence computed
+is exactly the longest common subsequence; otherwise, the longest
+common subsequence is approximated by first determining the longest
+common sequence of only those elements that occur no more than
+<i class="arg">maxOccurs</i> times in <i class="arg">sequence2</i>, and then using that result
+to align the two lists, determining the longest common subsequences of
+the sublists between the two elements.</p>
+<p>As with <b class="method">longestCommonSubsequence</b>, the return value is a list
+of two lists of equal length.  The first sublist is of indices into
+<i class="arg">sequence1</i>, and the second sublist is of indices into
+<i class="arg">sequence2</i>.  Each corresponding pair of indices corresponds to
+equal elements in the sequences.  The sequence approximates the
+longest common subsequence.</p></dd>
+<dt><a name="3"><b class="cmd">::struct::list</b> <b class="method">lcsInvert</b> <i class="arg">lcsData</i> <i class="arg">len1</i> <i class="arg">len2</i></a></dt>
+<dd><p>This command takes a description of a longest common subsequence
+(<i class="arg">lcsData</i>), inverts it, and returns the result. Inversion means
+here that as the input describes which parts of the two sequences are
+identical the output describes the differences instead.</p>
+<p>To be fully defined the lengths of the two sequences have to be known
+and are specified through <i class="arg">len1</i> and <i class="arg">len2</i>.</p>
+<p>The result is a list where each element describes one chunk of the
+differences between the two sequences. This description is a list
+containing three elements, a type and two pairs of indices into
+<i class="arg">sequence1</i> and <i class="arg">sequence2</i> respectively, in this order.
+The type can be one of three values:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">added</b></dt>
+<dd><p>Describes an addition. I.e. items which are missing in <i class="arg">sequence1</i>
+can be found in <i class="arg">sequence2</i>.
+The pair of indices into <i class="arg">sequence1</i> describes where the added
+range had been expected to be in <i class="arg">sequence1</i>. The first index
+refers to the item just before the added range, and the second index
+refers to the item just after the added range.
+The pair of indices into <i class="arg">sequence2</i> describes the range of items
+which has been added to it. The first index refers to the first item
+in the range, and the second index refers to the last item in the
+range.</p></dd>
+<dt><b class="const">deleted</b></dt>
+<dd><p>Describes a deletion. I.e. items which are in <i class="arg">sequence1</i> are
+missing from <i class="arg">sequence2</i>.
+The pair of indices into <i class="arg">sequence1</i> describes the range of items
+which has been deleted. The first index refers to the first item in
+the range, and the second index refers to the last item in the range.
+The pair of indices into <i class="arg">sequence2</i> describes where the deleted
+range had been expected to be in <i class="arg">sequence2</i>. The first index
+refers to the item just before the deleted range, and the second index
+refers to the item just after the deleted range.</p></dd>
+<dt><b class="const">changed</b></dt>
+<dd><p>Describes a general change. I.e a range of items in <i class="arg">sequence1</i>
+has been replaced by a different range of items in <i class="arg">sequence2</i>.
+The pair of indices into <i class="arg">sequence1</i> describes the range of items
+which has been replaced. The first index refers to the first item in
+the range, and the second index refers to the last item in the range.
+The pair of indices into <i class="arg">sequence2</i> describes the range of items
+replacing the original range. Again the first index refers to the
+first item in the range, and the second index refers to the last item
+in the range.</p></dd>
+</dl>
+<pre class="doctools_example">
+    sequence 1 = {a b r a c a d a b r a}
+    lcs 1      =   {1 2   4 5     8 9 10}
+    lcs 2      =   {0 1   3 4     5 6 7}
+    sequence 2 =   {b r i c a     b r a c}
+    Inversion  = {{deleted  {0  0} {-1 0}}
+                  {changed  {3  3}  {2 2}}
+                  {deleted  {6  7}  {4 5}}
+                  {added   {10 11}  {8 8}}}
+</pre>
+<p><em>Notes:</em></p>
+<ul class="doctools_itemized">
+<li><p>An index of <b class="const">-1</b> in a <i class="term">deleted</i> chunk refers to just before
+the first element of the second sequence.</p></li>
+<li><p>Also an index equal to the length of the first sequence in an
+<i class="term">added</i> chunk refers to just behind the end of the sequence.</p></li>
+</ul></dd>
+<dt><a name="4"><b class="cmd">::struct::list</b> <b class="method">lcsInvert2</b> <i class="arg">lcs1</i> <i class="arg">lcs2</i> <i class="arg">len1</i> <i class="arg">len2</i></a></dt>
+<dd><p>Similar to <b class="method">lcsInvert</b>. Instead of directly taking the result
+of a call to <b class="method">longestCommonSubsequence</b> this subcommand expects
+the indices for the two sequences in two separate lists.</p></dd>
+<dt><a name="5"><b class="cmd">::struct::list</b> <b class="method">lcsInvertMerge</b> <i class="arg">lcsData</i> <i class="arg">len1</i> <i class="arg">len2</i></a></dt>
+<dd><p>Similar to <b class="method">lcsInvert</b>. It returns essentially the same
+structure as that command, except that it may contain chunks of type
+<b class="const">unchanged</b> too.</p>
+<p>These new chunks describe the parts which are unchanged between the
+two sequences. This means that the result of this command describes
+both the changed and unchanged parts of the two sequences in one
+structure.</p>
+<pre class="doctools_example">
+    sequence 1 = {a b r a c a d a b r a}
+    lcs 1      =   {1 2   4 5     8 9 10}
+    lcs 2      =   {0 1   3 4     5 6 7}
+    sequence 2 =   {b r i c a     b r a c}
+    Inversion/Merge  = {{deleted   {0  0} {-1 0}}
+                        {unchanged {1  2}  {0 1}}
+                        {changed   {3  3}  {2 2}}
+                        {unchanged {4  5}  {3 4}}
+                        {deleted   {6  7}  {4 5}}
+                        {unchanged {8 10}  {5 7}}
+                        {added    {10 11}  {8 8}}}
+</pre>
+</dd>
+<dt><a name="6"><b class="cmd">::struct::list</b> <b class="method">lcsInvertMerge2</b> <i class="arg">lcs1</i> <i class="arg">lcs2</i> <i class="arg">len1</i> <i class="arg">len2</i></a></dt>
+<dd><p>Similar to <b class="method">lcsInvertMerge</b>. Instead of directly taking the
+result of a call to <b class="method">longestCommonSubsequence</b> this subcommand
+expects the indices for the two sequences in two separate lists.</p></dd>
+<dt><a name="7"><b class="cmd">::struct::list</b> <b class="method">reverse</b> <i class="arg">sequence</i></a></dt>
+<dd><p>The subcommand takes a single <i class="arg">sequence</i> as argument and returns a new
+sequence containing the elements of the input sequence in reverse
+order.</p></dd>
+<dt><a name="8"><b class="cmd">::struct::list</b> <b class="method">shuffle</b> <i class="arg">list</i></a></dt>
+<dd><p>The subcommand takes a <i class="arg">list</i> and returns a copy of that list
+with the elements it contains in random order. Every possible
+ordering of elements is equally likely to be generated. The
+Fisher-Yates shuffling algorithm is used internally.</p></dd>
+<dt><a name="9"><b class="cmd">::struct::list</b> <b class="method">assign</b> <i class="arg">sequence</i> <i class="arg">varname</i> <span class="opt">?<i class="arg">varname</i>?</span>...</a></dt>
+<dd><p>The subcommand assigns the first <b class="variable">n</b> elements of the input
+<i class="arg">sequence</i> to the one or more variables whose names were listed
+after the sequence, where <b class="variable">n</b> is the number of specified
+variables.</p>
+<p>If there are more variables specified than there are elements in the
+<i class="arg">sequence</i> the empty string will be assigned to the superfluous
+variables.</p>
+<p>If there are more elements in the <i class="arg">sequence</i> than variable names
+specified the subcommand returns a list containing the unassigned
+elements. Else an empty list is returned.</p>
+<pre class="doctools_example">
+    tclsh&gt; ::struct::list assign {a b c d e} foo bar
+    c d e
+    tclsh&gt; set foo
+    a
+    tclsh&gt; set bar
+    b
+</pre>
+</dd>
+<dt><a name="10"><b class="cmd">::struct::list</b> <b class="method">flatten</b> <span class="opt">?<b class="option">-full</b>?</span> <span class="opt">?<b class="option">--</b>?</span> <i class="arg">sequence</i></a></dt>
+<dd><p>The subcommand takes a single <i class="arg">sequence</i> and returns a new
+sequence where one level of nesting was removed from the input
+sequence. In other words, the sublists in the input sequence are
+replaced by their elements.</p>
+<p>The subcommand will remove any nesting it finds if the option
+<b class="option">-full</b> is specified.</p>
+<pre class="doctools_example">
+    tclsh&gt; ::struct::list flatten {1 2 3 {4 5} {6 7} {{8 9}} 10}
+    1 2 3 4 5 6 7 {8 9} 10
+    tclsh&gt; ::struct::list flatten -full {1 2 3 {4 5} {6 7} {{8 9}} 10}
+    1 2 3 4 5 6 7 8 9 10
+</pre>
+</dd>
+<dt><a name="11"><b class="cmd">::struct::list</b> <b class="method">map</b> <i class="arg">sequence</i> <i class="arg">cmdprefix</i></a></dt>
+<dd><p>The subcommand takes a <i class="arg">sequence</i> to operate on and a command
+prefix (<i class="arg">cmdprefix</i>) specifying an operation, applies the command
+prefix to each element of the sequence and returns a sequence
+consisting of the results of that application.</p>
+<p>The command prefix will be evaluated with a single word appended to
+it. The evaluation takes place in the context of the caller of the
+subcommand.</p>
+<pre class="doctools_example">
+    tclsh&gt; # squaring all elements in a list
+    tclsh&gt; proc sqr {x} {expr {$x*$x}}
+    tclsh&gt; ::struct::list map {1 2 3 4 5} sqr
+    1 4 9 16 25
+    tclsh&gt; # Retrieving the second column from a matrix
+    tclsh&gt; # given as list of lists.
+    tclsh&gt; proc projection {n list} {::lindex $list $n}
+    tclsh&gt; ::struct::list map {{a b c} {1 2 3} {d f g}} {projection 1}
+    b 2 f
+</pre>
+</dd>
+<dt><a name="12"><b class="cmd">::struct::list</b> <b class="method">mapfor</b> <i class="arg">var</i> <i class="arg">sequence</i> <i class="arg">script</i></a></dt>
+<dd><p>The subcommand takes a <i class="arg">sequence</i> to operate on and a tcl <i class="arg">script</i>,
+applies the script to each element of the sequence and returns a sequence
+consisting of the results of that application.</p>
+<p>The script will be evaluated as is, and has access to the current list element
+through the specified iteration variable <i class="arg">var</i>. The evaluation takes place
+in the context of the caller of the subcommand.</p>
+<pre class="doctools_example">
+    tclsh&gt; # squaring all elements in a list
+    tclsh&gt; ::struct::list mapfor x {1 2 3 4 5} {
+	expr {$x * $x}
+    }
+    1 4 9 16 25
+    tclsh&gt; # Retrieving the second column from a matrix
+    tclsh&gt; # given as list of lists.
+    tclsh&gt; ::struct::list mapfor x {{a b c} {1 2 3} {d f g}} {
+	lindex $x 1
+    }
+    b 2 f
+</pre>
+</dd>
+<dt><a name="13"><b class="cmd">::struct::list</b> <b class="method">filter</b> <i class="arg">sequence</i> <i class="arg">cmdprefix</i></a></dt>
+<dd><p>The subcommand takes a <i class="arg">sequence</i> to operate on and a command
+prefix (<i class="arg">cmdprefix</i>) specifying an operation, applies the command
+prefix to each element of the sequence and returns a sequence
+consisting of all elements of the <i class="arg">sequence</i> for which the command
+prefix returned <b class="const">true</b>.
+In other words, this command filters out all elements of the input
+<i class="arg">sequence</i> which fail the test the <i class="arg">cmdprefix</i> represents, and
+returns the remaining elements.</p>
+<p>The command prefix will be evaluated with a single word appended to
+it. The evaluation takes place in the context of the caller of the
+subcommand.</p>
+<pre class="doctools_example">
+    tclsh&gt; # removing all odd numbers from the input
+    tclsh&gt; proc even {x} {expr {($x % 2) == 0}}
+    tclsh&gt; ::struct::list filter {1 2 3 4 5} even
+    2 4
+</pre>
+<p><em>Note:</em> The <b class="method">filter</b> is a specialized application of
+<b class="method">fold</b> where the result is extended with the current item or
+not, depending o nthe result of the test.</p></dd>
+<dt><a name="14"><b class="cmd">::struct::list</b> <b class="method">filterfor</b> <i class="arg">var</i> <i class="arg">sequence</i> <i class="arg">expr</i></a></dt>
+<dd><p>The subcommand takes a <i class="arg">sequence</i> to operate on and a tcl expression
+(<i class="arg">expr</i>) specifying a condition, applies the conditionto each element
+of the sequence and returns a sequence consisting of all elements of the
+<i class="arg">sequence</i> for which the expression returned <b class="const">true</b>.
+In other words, this command filters out all elements of the input
+<i class="arg">sequence</i> which fail the test the condition <i class="arg">expr</i> represents, and
+returns the remaining elements.</p>
+<p>The expression will be evaluated as is, and has access to the current list
+element through the specified iteration variable <i class="arg">var</i>. The evaluation
+takes place in the context of the caller of the subcommand.</p>
+<pre class="doctools_example">
+    tclsh&gt; # removing all odd numbers from the input
+    tclsh&gt; ::struct::list filterfor x {1 2 3 4 5} {($x % 2) == 0}
+    2 4
+</pre>
+</dd>
+<dt><a name="15"><b class="cmd">::struct::list</b> <b class="method">split</b> <i class="arg">sequence</i> <i class="arg">cmdprefix</i> <span class="opt">?<i class="arg">passVar</i> <i class="arg">failVar</i>?</span></a></dt>
+<dd><p>This is a variant of method <b class="method">filter</b>, see above. Instead of
+returning just the elements passing the test we get lists of both
+passing and failing elements.</p>
+<p>If no variable names are specified then the result of the command will
+be a list containing the list of passing elements, and the list of
+failing elements, in this order. Otherwise the lists of passing and
+failing elements are stored into the two specified variables, and the
+result will be a list containing two numbers, the number of elements
+passing the test, and the number of elements failing, in this order.</p>
+<p>The interface to the test is the same as used by <b class="method">filter</b>.</p></dd>
+<dt><a name="16"><b class="cmd">::struct::list</b> <b class="method">fold</b> <i class="arg">sequence</i> <i class="arg">initialvalue</i> <i class="arg">cmdprefix</i></a></dt>
+<dd><p>The subcommand takes a <i class="arg">sequence</i> to operate on, an arbitrary
+string <i class="arg">initial value</i> and a command prefix (<i class="arg">cmdprefix</i>)
+specifying an operation.</p>
+<p>The command prefix will be evaluated with two words appended to
+it. The second of these words will always be an element of the
+sequence. The evaluation takes place in the context of the caller of
+the subcommand.</p>
+<p>It then reduces the sequence into a single value through repeated
+application of the command prefix and returns that value. This
+reduction is done by</p>
+<dl class="doctools_definitions">
+<dt><b class="const">1</b></dt>
+<dd><p>Application of the command to the initial value and the first element
+of the list.</p></dd>
+<dt><b class="const">2</b></dt>
+<dd><p>Application of the command to the result of the last call and the
+second element of the list.</p></dd>
+<dt><b class="const">...</b></dt>
+<dd></dd>
+<dt><b class="const">i</b></dt>
+<dd><p>Application of the command to the result of the last call and the
+<b class="variable">i</b>'th element of the list.</p></dd>
+<dt><b class="const">...</b></dt>
+<dd></dd>
+<dt><b class="const">end</b></dt>
+<dd><p>Application of the command to the result of the last call and the last
+element of the list. The result of this call is returned as the result
+of the subcommand.</p></dd>
+</dl>
+<pre class="doctools_example">
+    tclsh&gt; # summing the elements in a list.
+    tclsh&gt; proc + {a b} {expr {$a + $b}}
+    tclsh&gt; ::struct::list fold {1 2 3 4 5} 0 +
+    15
+</pre>
+</dd>
+<dt><a name="17"><b class="cmd">::struct::list</b> <b class="method">shift</b> <i class="arg">listvar</i></a></dt>
+<dd><p>The subcommand takes the list contained in the variable named by
+<i class="arg">listvar</i> and shifts it down one element.
+After the call <i class="arg">listvar</i> will contain a list containing the second
+to last elements of the input list. The first element of the ist is
+returned as the result of the command. Shifting the empty list does
+nothing.</p></dd>
+<dt><a name="18"><b class="cmd">::struct::list</b> <b class="method">iota</b> <i class="arg">n</i></a></dt>
+<dd><p>The subcommand returns a list containing the integer numbers
+in the range <b class="const">[0,n)</b>. The element at index <b class="variable">i</b>
+of the list contain the number <b class="const">i</b>.</p>
+<p>For &quot;<i class="arg">n</i> == <b class="const">0</b>&quot; an empty list will be returned.</p></dd>
+<dt><a name="19"><b class="cmd">::struct::list</b> <b class="method">equal</b> <i class="arg">a</i> <i class="arg">b</i></a></dt>
+<dd><p>The subcommand compares the two lists <i class="arg">a</i> and <i class="arg">b</i> for
+equality. In other words, they have to be of the same length and have
+to contain the same elements in the same order. If an element is a
+list the same definition of equality applies recursively.</p>
+<p>A boolean value will be returned as the result of the command.
+This value will be <b class="const">true</b> if the two lists are equal, and
+<b class="const">false</b> else.</p></dd>
+<dt><a name="20"><b class="cmd">::struct::list</b> <b class="method">repeat</b> <i class="arg">size</i> <i class="arg">element1</i> <span class="opt">?<i class="arg">element2</i> <i class="arg">element3</i>...?</span></a></dt>
+<dd><p>The subcommand creates a list of length
+&quot;<i class="arg">size</i> * <em>number of elements</em>&quot; by repeating <i class="arg">size</i>
+times the sequence of elements
+<i class="arg">element1</i> <i class="arg">element2</i> <i class="arg">...</i>.
+<i class="arg">size</i> must be a positive integer, <i class="arg">element</i><b class="variable">n</b> can be any
+Tcl value.
+Note that <b class="cmd">repeat 1 arg ...</b>  is identical to
+<b class="cmd">list arg ...</b>, though the <i class="arg">arg</i> is required
+with <b class="method">repeat</b>.</p>
+<p><em>Examples:</em></p>
+<pre class="doctools_example">
+    tclsh&gt; ::struct::list repeat 3 a
+    a a a
+    tclsh&gt; ::struct::list repeat 3 [::struct::list repeat 3 0]
+    {0 0 0} {0 0 0} {0 0 0}
+    tclsh&gt; ::struct::list repeat 3 a b c
+    a b c a b c a b c
+    tclsh&gt; ::struct::list repeat 3 [::struct::list repeat 2 a] b c
+    {a a} b c {a a} b c {a a} b c
+</pre>
+</dd>
+<dt><a name="21"><b class="cmd">::struct::list</b> <b class="method">repeatn</b> <i class="arg">value</i> <i class="arg">size</i>...</a></dt>
+<dd><p>The subcommand creates a (nested) list containing the <i class="arg">value</i> in
+all positions. The exact size and degree of nesting is determined by
+the <i class="arg">size</i> arguments, all of which have to be integer numbers
+greater than or equal to zero.</p>
+<p>A single argument <i class="arg">size</i> which is a list of more than one element
+will be treated as if more than argument <i class="arg">size</i> was specified.</p>
+<p>If only one argument <i class="arg">size</i> is present the returned list will not
+be nested, of length <i class="arg">size</i> and contain <i class="arg">value</i> in all
+positions.
+If more than one <i class="arg">size</i> argument is present the returned
+list will be nested, and of the length specified by the last
+<i class="arg">size</i> argument given to it. The elements of that list
+are defined as the result of <b class="cmd">Repeat</b> for the same arguments,
+but with the last <i class="arg">size</i> value removed.</p>
+<p>An empty list will be returned if no <i class="arg">size</i> arguments are present.</p>
+<pre class="doctools_example">
+    tclsh&gt; ::struct::list repeatn  0 3 4
+    {0 0 0} {0 0 0} {0 0 0} {0 0 0}
+    tclsh&gt; ::struct::list repeatn  0 {3 4}
+    {0 0 0} {0 0 0} {0 0 0} {0 0 0}
+    tclsh&gt; ::struct::list repeatn  0 {3 4 5}
+    {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}} {{0 0 0} {0 0 0} {0 0 0} {0 0 0}}
+</pre>
+</dd>
+<dt><a name="22"><b class="cmd">::struct::list</b> <b class="method">dbJoin</b> <span class="opt">?<b class="option">-inner</b>|<b class="option">-left</b>|<b class="option">-right</b>|<b class="option">-full</b>?</span> <span class="opt">?<b class="option">-keys</b> <i class="arg">varname</i>?</span> {<i class="arg">keycol</i> <i class="arg">table</i>}...</a></dt>
+<dd><p>The method performs a table join according to relational algebra. The
+execution of any of the possible outer join operation is triggered by
+the presence of either option <b class="option">-left</b>, <b class="option">-right</b>, or
+<b class="option">-full</b>. If none of these options is present a regular inner
+join will be performed. This can also be triggered by specifying
+<b class="option">-inner</b>. The various possible join operations are explained in
+detail in section <span class="sectref"><a href="#section4">TABLE JOIN</a></span>.</p>
+<p>If the <b class="option">-keys</b> is present its argument is the name of a
+variable to store the full list of found keys into. Depending on the
+exact nature of the input table and the join mode the output table may
+not contain all the keys by default. In such a case the caller can
+declare a variable for this information and then insert it into the
+output table on its own, as she will have more information about the
+placement than this command.</p>
+<p>What is left to explain is the format of the arguments.</p>
+<p>The <i class="arg">keycol</i> arguments are the indices of the columns in the
+tables which contain the key values to use for the joining. Each
+argument applies to the table following immediately after it. The
+columns are counted from <b class="const">0</b>, which references the first
+column. The table associated with the column index has to have at
+least <i class="arg">keycol</i>+1 columns. An error will be thrown if there are
+less.</p>
+<p>The <i class="arg">table</i> arguments represent a table or matrix of rows and
+columns of values. We use the same representation as generated and
+consumed by the methods <b class="method">get rect</b> and <b class="method">set rect</b> of
+<b class="cmd"><a href="../../../../index.html#key51">matrix</a></b> objects. In other words, each argument is a list,
+representing the whole matrix.  Its elements are lists too, each
+representing a single rows of the matrix. The elements of the
+row-lists are the column values.</p>
+<p>The table resulting from the join operation is returned as the result
+of the command. We use the same representation as described above for
+the input <i class="arg">table</i>s.</p></dd>
+<dt><a name="23"><b class="cmd">::struct::list</b> <b class="method">dbJoinKeyed</b> <span class="opt">?<b class="option">-inner</b>|<b class="option">-left</b>|<b class="option">-right</b>|<b class="option">-full</b>?</span> <span class="opt">?<b class="option">-keys</b> <i class="arg">varname</i>?</span> <i class="arg">table</i>...</a></dt>
+<dd><p>The operations performed by this method are the same as described
+above for <b class="method">dbJoin</b>. The only difference is in the specification
+of the keys to use. Instead of using column indices separate from the
+table here the keys are provided within the table itself. The row
+elements in each <i class="arg">table</i> are not the lists of column values, but a
+two-element list where the second element is the regular list of
+column values and the first element is the key to use.</p></dd>
+<dt><a name="24"><b class="cmd">::struct::list</b> <b class="method">swap</b> <i class="arg">listvar</i> <i class="arg">i</i> <i class="arg">j</i></a></dt>
+<dd><p>The subcommand exchanges the elements at the indices <i class="arg">i</i> and
+<i class="arg">j</i> in the list stored in the variable named by <i class="arg">listvar</i>. The
+list is modified in place, and also returned as the result of the
+subcommand.</p></dd>
+<dt><a name="25"><b class="cmd">::struct::list</b> <b class="method">firstperm</b> <i class="arg">list</i></a></dt>
+<dd><p>This subcommand returns the lexicographically first permutation of the
+input <i class="arg">list</i>.</p></dd>
+<dt><a name="26"><b class="cmd">::struct::list</b> <b class="method">nextperm</b> <i class="arg">perm</i></a></dt>
+<dd><p>This subcommand accepts a permutation of a set of elements (provided
+by <i class="arg">perm</i>) and returns the next permutatation in lexicographic
+sequence.</p>
+<p>The algorithm used here is by Donal E. Knuth, see section
+<span class="sectref"><a href="#section5">REFERENCES</a></span> for details.</p></dd>
+<dt><a name="27"><b class="cmd">::struct::list</b> <b class="method">permutations</b> <i class="arg">list</i></a></dt>
+<dd><p>This subcommand returns a list containing all permutations of the
+input <i class="arg">list</i> in lexicographic order.</p></dd>
+<dt><a name="28"><b class="cmd">::struct::list</b> <b class="method">foreachperm</b> <i class="arg">var</i> <i class="arg">list</i> <i class="arg">body</i></a></dt>
+<dd><p>This subcommand executes the script <i class="arg">body</i> once for each
+permutation of the specified <i class="arg">list</i>. The permutations are visited
+in lexicographic order, and the variable <i class="arg">var</i> is set to the
+permutation for which <i class="arg">body</i> is currently executed. The result of
+the loop command is the empty string.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">LONGEST COMMON SUBSEQUENCE AND FILE COMPARISON</a></h2>
+<p>The <b class="method">longestCommonSubsequence</b> subcommand forms the core of a
+flexible system for doing differential comparisons of files, similar
+to the capability offered by the Unix command <b class="syscmd"><a href="../../../../index.html#key562">diff</a></b>.
+While this procedure is quite rapid for many tasks of file comparison,
+its performance degrades severely if <i class="arg">sequence2</i> contains many
+equal elements (as, for instance, when using this procedure to compare
+two files, a quarter of whose lines are blank.  This drawback is
+intrinsic to the algorithm used (see the Reference for details).</p>
+<p>One approach to dealing with the performance problem that is sometimes
+effective in practice is arbitrarily to exclude elements that appear
+more than a certain number of times.
+This number is provided as the <i class="arg">maxOccurs</i> parameter.  If frequent
+lines are excluded in this manner, they will not appear in the common
+subsequence that is computed; the result will be the longest common
+subsequence of infrequent elements.
+The procedure <b class="method">longestCommonSubsequence2</b> implements this
+heuristic.
+It functions as a wrapper around <b class="method">longestCommonSubsequence</b>; it
+computes the longest common subsequence of infrequent elements, and
+then subdivides the subsequences that lie between the matches to
+approximate the true longest common subsequence.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">TABLE JOIN</a></h2>
+<p>This is an operation from relational algebra for relational databases.</p>
+<p>The easiest way to understand the regular inner join is that it
+creates the cartesian product of all the tables involved first and
+then keeps only all those rows in the resulting table for which the
+values in the specified key columns are equal to each other.</p>
+<p>Implementing this description naively, i.e. as described above will
+generate a <em>huge</em> intermediate result. To avoid this the
+cartesian product and the filtering of row are done at the same
+time. What is required is a fast way to determine if a key is present
+in a table. In a true database this is done through indices. Here we
+use arrays internally.</p>
+<p>An <i class="term">outer</i> join is an extension of the inner join for two
+tables. There are three variants of outerjoins, called <i class="term">left</i>,
+<i class="term">right</i>, and <i class="term">full</i> outer joins. Their result always
+contains all rows from an inner join and then some additional rows.</p>
+<ol class="doctools_enumerated">
+<li><p>For the left outer join the additional rows are all rows from the left
+table for which there is no key in the right table. They are joined to
+an empty row of the right table to fit them into the result.</p></li>
+<li><p>For the right outer join the additional rows are all rows from the right
+table for which there is no key in the left table. They are joined to
+an empty row of the left table to fit them into the result.</p></li>
+<li><p>The full outer join combines both left and right outer join. In other
+words, the additional rows are as defined for left outer join, and
+right outer join, combined.</p></li>
+</ol>
+<p>We extend all the joins from two to <b class="variable">n</b> tables (<b class="variable">n</b> &gt; 2) by
+executing</p>
+<pre class="doctools_example">
+    (...((table1 join table2) join table3) ...) join tableN
+</pre>
+<p>Examples for all the joins:</p>
+<pre class="doctools_example">
+    Inner Join
+    {0 foo}              {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} inner join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}             {3 driver}
+    Left Outer Join
+    {0 foo}                   {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} left outer join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}                  {3 driver}   {2 blue  {} {}}
+    Right Outer Join
+    {0 foo}                    {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} right outer join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}                   {3 driver}   {{} {}   3 driver}
+    Full Outer Join
+    {0 foo}                   {0 bagel}    {0 foo   0 bagel}
+    {1 snarf} full outer join {1 snatz}  = {1 snarf 1 snatz}
+    {2 blue}                  {3 driver}   {2 blue  {} {}}
+                                           {{} {}   3 driver}
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>J. W. Hunt and M. D. McIlroy, &quot;An algorithm for differential
+file comparison,&quot; Comp. Sci. Tech. Rep. #41, Bell Telephone
+Laboratories (1976). Available on the Web at the second
+author's personal site: <a href="http://www.cs.dartmouth.edu/~doug/">http://www.cs.dartmouth.edu/~doug/</a></p></li>
+<li><p>Donald E. Knuth, &quot;Fascicle 2b of 'The Art of Computer Programming'
+volume 4&quot;. Available on the Web at the author's personal site:
+<a href="http://www-cs-faculty.stanford.edu/~knuth/fasc2b.ps.gz">http://www-cs-faculty.stanford.edu/~knuth/fasc2b.ps.gz</a>.</p></li>
+</ol>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>struct :: list</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key568">Fisher-Yates</a>, <a href="../../../../index.html#key570">assign</a>, <a href="../../../../index.html#key551">common</a>, <a href="../../../../index.html#key553">comparison</a>, <a href="../../../../index.html#key562">diff</a>, <a href="../../../../index.html#key556">differential</a>, <a href="../../../../index.html#key559">equal</a>, <a href="../../../../index.html#key572">equality</a>, <a href="../../../../index.html#key223">filter</a>, <a href="../../../../index.html#key560">first permutation</a>, <a href="../../../../index.html#key557">flatten</a>, <a href="../../../../index.html#key565">folding</a>, <a href="../../../../index.html#key563">full outer join</a>, <a href="../../../../index.html#key571">generate permutations</a>, <a href="../../../../index.html#key567">inner join</a>, <a href="../../../../index.html#key558">join</a>, <a href="../../../../index.html#key552">left outer join</a>, <a href="../../../../index.html#key302">list</a>, <a href="../../../../index.html#key550">longest common subsequence</a>, <a href="../../../../index.html#key201">map</a>, <a href="../../../../index.html#key575">next permutation</a>, <a href="../../../../index.html#key574">outer join</a>, <a href="../../../../index.html#key549">permutation</a>, <a href="../../../../index.html#key217">reduce</a>, <a href="../../../../index.html#key573">repeating</a>, <a href="../../../../index.html#key281">repetition</a>, <a href="../../../../index.html#key566">reshuffle</a>, <a href="../../../../index.html#key554">reverse</a>, <a href="../../../../index.html#key555">right outer join</a>, <a href="../../../../index.html#key569">shuffle</a>, <a href="../../../../index.html#key564">subsequence</a>, <a href="../../../../index.html#key561">swapping</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2003-2005 by Kevin B. Kenny. All rights reserved<br>
+Copyright &copy; 2003-2012 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

@@ -1,0 +1,273 @@
+# rc4.test - Copyright (C) 2004 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# $Id: rc4.test,v 1.12 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal rc4.tcl rc4
+}
+
+# -------------------------------------------------------------------------
+
+if {[llength [info commands ::rc4::rc4c]]} {
+    puts "> critcl"
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+# -------------------------------------------------------------------------
+
+test rc4-1.0 {rc4 basic command options} {
+    list [catch {::rc4::rc4} msg] $msg
+} {1 {wrong # args: should be "rc4 ?-hex? -key key -in channel | string"}}
+
+test rc4-1.1 {rc4 basic command options} {
+    list [catch {::rc4::rc4 -key secret} msg] $msg
+} {1 {wrong # args: should be "rc4 ?-hex? -key key -in channel | string"}}
+
+# -------------------------------------------------------------------------
+
+# Test vectors
+set tests {
+    "\x01\x23\x45\x67\x89\xab\xcd\xef"
+    "\x01\x23\x45\x67\x89\xab\xcd\xef" 
+    "\x75\xb7\x87\x80\x99\xe0\xc5\x96"
+
+    "\x01\x23\x45\x67\x89\xab\xcd\xef"
+    "\x00\x00\x00\x00\x00\x00\x00\x00"
+    "\x74\x94\xc2\xe7\x10\x4b\x08\x79"
+
+    "\x00\x00\x00\x00\x00\x00\x00\x00"
+    "\x00\x00\x00\x00\x00\x00\x00\x00"
+    "\xde\x18\x89\x41\xa3\x37\x5d\x3a"
+
+    "\xef\x01\x23\x45"
+    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    "\xd6\xa1\x41\xa7\xec\x3c\x38\xdf\xbd\x61"
+}
+
+lappend tests \
+    "\x01\x23\x45\x67\x89\xab\xcd\xef" \
+    [string repeat \x01 512] \
+    [binary format H* \
+         [join \
+              "75 95 c3 e6 11 4a 09 78 0c 4a d4 52 33 8e 1f fd 9a 1b e9 49\
+               8f 81 3d 76 53 34 49 b6 77 8d ca d8 c7 8a 8d 2b a9 ac 66 08\
+               5d 0e 53 d5 9c 26 c2 d1 c4 90 c1 eb be 0c e6 6d 1b 6b 1b 13\
+               b6 b9 19 b8 47 c2 5a 91 44 7a 95 e7 5e 4e f1 67 79 cd e8 bf\
+               0a 95 85 0e 32 af 96 89 44 4f d3 77 10 8f 98 fd cb d4 e7 26\
+               56 75 00 99 0b cc 7e 0c a3 c4 aa a3 04 a3 87 d2 0f 3b 8f bb\
+               cd 42 a1 bd 31 1d 7a 43 03 dd a5 ab 07 88 96 ae 80 c1 8b 0a\
+               f6 6d ff 31 96 16 eb 78 4e 49 5a d2 ce 90 d7 f7 72 a8 17 47\
+               b6 5f 62 09 3b 1e 0d b9 e5 ba 53 2f af ec 47 50 83 23 e6 71\
+               32 7d f9 44 44 32 cb 73 67 ce c8 2f 5d 44 c0 d0 0b 67 d6 50\
+               a0 75 cd 4b 70 de dd 77 eb 9b 10 23 1b 6b 5b 74 13 47 39 6d\
+               62 89 74 21 d4 3d f9 b4 2e 44 6e 35 8e 9c 11 a9 b2 18 4e cb\
+               ef 0c d8 e7 a8 77 ef 96 8f 13 90 ec 9b 3d 35 a5 58 5c b0 09\
+               29 0e 2f cd e7 b5 ec 66 d9 08 4b e4 40 55 a6 19 d9 dd 7f c3\
+               16 6f 94 87 f7 cb 27 29 12 42 64 45 99 85 14 c1 5d 53 a1 8c\
+               86 4c e3 a2 b7 55 57 93 98 81 26 52 0e ac f2 e3 06 6e 23 0c\
+               91 be e4 dd 53 04 f5 fd 04 05 b3 5b d9 9c 73 13 5d 3d 9b c3\
+               35 ee 04 9e f6 9b 38 67 bf 2d 7b d1 ea a5 95 d8 bf c0 06 6f\
+               f8 d3 15 09 eb 0c 6c aa 00 6c 80 7a 62 3e f8 4c 3d 33 c1 95\
+               d2 3e e3 20 c4 0d e0 55 81 57 c8 22 d4 b8 c5 69 d8 49 ae d5\
+               9d 4e 0f d7 f3 79 58 6b 4b 7f f6 84 ed 6a 18 9f 74 86 d4 9b\
+               9c 4b ad 9b a2 4b 96 ab f9 24 37 2c 8a 8f ff b1 0d 55 35 49\
+               00 a7 7a 3d b5 f2 05 e1 b9 9f cd 86 60 86 3a 15 9a d4 ab e4\
+               0f a4 89 34 16 3d dd e5 42 a6 58 55 40 fd 68 3c bf d8 c0 0f\
+               12 12 9a 28 4d ea cc 4c de fe 58 be 71 37 54 1c 04 71 26 c8\
+               d4 9e 27 55 ab 18 1a b7 e9 40 b0 c0" {}]]
+
+if {[llength [info commands ::rc4::rc4c]] != 0} {
+    set n 0
+    foreach {key input output} $tests {
+        test rc4-critcl-2.$n {rc4 test vectors (critcl based)} {
+            list [catch {::rc4::rc4 -key $key $input} msg] $msg
+        } [list 0 $output]
+        incr n
+    }
+}
+
+puts "> pure Tcl - array based"
+::rc4::SelectImplementation array
+set n 0
+foreach {key input output} $tests {
+    test rc4-array-2.$n {rc4 test vectors (pure tcl array based)} {
+        list [catch {::rc4::rc4 -key $key $input} msg] $msg
+    } [list 0 $output]
+    incr n
+}
+
+puts "> pure Tcl - list based"
+::rc4::SelectImplementation list
+set n 0
+foreach {key input output} $tests {
+    test rc4-list-2.$n {rc4 test vectors (pure tcl list based)} {
+        list [catch {::rc4::rc4 -key $key $input} msg] $msg
+    } [list 0 $output]
+    incr n
+}
+
+test rc4-3.0 {rc4 check hyphen handling} {
+    list [catch {rc4::rc4 -hex -key - \0} msg] $msg
+} {0 9d}
+
+test rc4-3.1 {rc4 check hyphen handling} {
+    list [catch {rc4::rc4 -hex -key -- \0} msg] $msg
+} {0 9d}
+
+test rc4-3.2 {rc4 check hyphen handling} {
+    list [catch {rc4::rc4 -hex -key - -} msg] $msg
+} {0 b0}
+
+test rc4-3.3 {rc4 check hyphen handling} {
+    list [catch {rc4::rc4 -hex -key - --} msg] $msg
+} {0 b046}
+
+test rc4-3.4 {rc4 check hyphen handling} {
+    list [catch {rc4::rc4 -hex -key - -- -} msg] $msg
+} {0 b0}
+
+test rc4-3.5 {rc4 check hyphen handling} {
+    list [catch {rc4::rc4 -hex -key - -- --} msg] $msg
+} {0 b046}
+
+test rc4-4.0 {check file reading} {
+    list [catch {
+        set f [open [set path [makeFile {} rc4test.data]] w]
+        fconfigure $f -translation lf -eofchar {} -encoding binary
+        puts -nonewline $f "\0\1\2"
+        close $f
+        set res [rc4::rc4 -hex -key 01234567 -infile $path]
+        removeFile rc4test.data
+        set res
+    } msg] $msg
+} {0 91d4f1}
+
+test rc4-4.1 {check channel reading} {
+    list [catch {
+        set f [open [set path [makeFile {} rc4test.data]] w]
+        fconfigure $f -translation lf -eofchar {} -encoding binary
+        puts -nonewline $f "\0\1\2"
+        close $f
+
+        set f [open $path r]
+        fconfigure $f -translation lf -eofchar {} -encoding binary
+        set r [rc4::rc4 -hex -key 01234567 -in $f]
+        close $f
+        removeFile rc4test.data
+        set r
+    } msg] $msg
+} {0 91d4f1}
+
+test rc4-4.2 {check channel output} {
+    list [catch {
+        set f [open [makeFile {} rc4test.data] w+]
+        fconfigure $f -translation lf -eofchar {} -encoding binary
+        set r [rc4::rc4 -hex -key 01234567 -out $f "abcdef"]
+        seek $f 0
+        set s [rc4::Hex [read $f]]
+        close $f
+        removeFile rc4test.data
+        list $r $s
+    } msg] $msg
+} {0 {{} f0b7907b2341}}
+
+test rc4-4.3 {check channel input and output} {
+    list [catch {
+        set f [open [makeFile {} rc4test.data] w+]
+        fconfigure $f -translation lf -eofchar {} -encoding binary
+        puts -nonewline $f "abcdef"
+        seek $f 0
+        set g [open [makeFile {} rc4test2.data] w+]
+        fconfigure $g -translation lf -eofchar {} -encoding binary
+        set r [rc4::rc4 -hex -key 01234567 -in $f -out $g]
+        close $f
+        seek $g 0
+        set s [rc4::Hex [read $g]]
+        close $g
+        removeFile rc4test.data
+        removeFile rc4test2.data
+        list $r $s
+    } msg] $msg
+} {0 {{} f0b7907b2341}}
+
+proc ::rc4::TestCommandProc {junk data} {
+    if {[string compare $junk "JuNk"] != 0} {
+        set ::rc4::_test magicfailure
+    } else {
+        set ::rc4::_test [Hex $data]
+    }
+}
+
+test rc4-5.0 {check -command option} {
+    set ::rc4::_test unset
+    list [catch {
+        set r [rc4::rc4 -key 01234567 \
+                   -command [list ::rc4::TestCommandProc JuNk] "abcdef"]
+        list $r $::rc4::_test
+    } msg] $msg
+} {0 {{} f0b7907b2341}}
+
+test rc4-5.1 {check -command option (-hex should be ignored)} {
+    set ::rc4::_test unset
+    list [catch {
+        set r [rc4::rc4 -hex -key 01234567 \
+                   -command [list ::rc4::TestCommandProc JuNk] "abcdef"]
+        list $r $::rc4::_test
+    } msg] $msg
+} {0 {{} f0b7907b2341}}
+
+test rc4-5.2 {check -command option with channel input} {
+    set ::rc4::_test unset
+    list [catch {
+        set f [open [makeFile {} rc4test.data] w+]
+        fconfigure $f -translation lf -eofchar {} -encoding binary        
+        puts -nonewline $f "abcdef"
+        seek $f 0
+        set id [after 1000 {set ::rc4::_test timeout}]
+        set r [rc4::rc4 -key 01234567 -in $f \
+                   -command [list ::rc4::TestCommandProc JuNk]]
+        vwait ::rc4::_test
+        after cancel $id
+        close $f
+        removeFile rc4test.data
+        list $r $::rc4::_test
+    } msg] $msg
+} {0 {{} f0b7907b2341}}
+
+test rc4-5.3 {check -command option with file input} {
+    set ::rc4::_test unset
+    list [catch {
+        set f [open [set path [makeFile {} rc4test.data]] w]
+        fconfigure $f -translation lf -eofchar {} -encoding binary        
+        puts -nonewline $f "abcdef"
+        close $f
+        set id [after 1000 {set ::rc4::_test timeout}]
+        set r [rc4::rc4 -key 01234567 -infile $path \
+                   -command [list ::rc4::TestCommandProc JuNk]]
+        vwait ::rc4::_test
+        after cancel $id
+        removeFile rc4test.data
+        list $r $::rc4::_test
+    } msg] $msg
+} {0 {{} f0b7907b2341}}
+
+# -------------------------------------------------------------------------
+
+catch {unset ::rc4::_test}
+rename ::rc4::TestCommandProc {}
+testsuiteCleanup
+
+# Local variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

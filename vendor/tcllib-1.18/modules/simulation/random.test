@@ -1,0 +1,239 @@
+## -*- tcl -*-
+# Tests for the PRNG procedures -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# $Id: random.test,v 1.1 2011/06/17 06:40:14 arjenmarkus Exp $
+#
+# Copyright (c) 2011 by Arjen Markus
+# All rights reserved.
+#
+# -------------------------------------------------------------------------
+
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+#support {
+#    useLocal random.tcl     simulation::random
+#}
+testing {
+    useLocal random.tcl simulation::random
+}
+
+# -------------------------------------------------------------------------
+
+#
+# As the values were given with four digits, an absolute
+# error is most appropriate
+#
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 0.1e-4} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+test "Bernoulli-1.0" "Bernoulli generator with p=0" \
+    -body {
+    set p [::simulation::random::prng_Bernoulli 0.0]
+    set count 0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        if { $rnd > 0.0 } {
+            incr count
+        }
+    }
+    set count
+} -result 0
+
+test "Bernoulli-1.1" "Bernoulli generator with p=1" \
+    -body {
+    set p [::simulation::random::prng_Bernoulli 1.0]
+    set count 0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        if { $rnd > 0.0 } {
+            incr count
+        }
+    }
+    set count
+} -result 1000
+
+test "Uniform-1.0" "Uniform generator with number between -1.0 and 1.0" \
+    -body {
+    set p [::simulation::random::prng_Uniform -1.0 1.0]
+    set nearminus1 0
+    set nearplus1 0
+    set outside 0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        if { $rnd > 0.9 } {
+            incr nearplus1
+        }
+        if { $rnd < -0.9 } {
+            incr nearminus1
+        }
+        if { $rnd < -1.0 || $rnd > 1.0 } {
+            incr outside
+        }
+    }
+
+    #
+    # It is very unlikely that all 1000 numbers stay within the range -0.9 -- 0.9
+    #
+    set result [expr {$nearplus1 > 0 && $nearminus1 > 0 && $outside == 0}]
+} -result 1
+
+test "Exponential-1.0" "Exponential generator with minimum -1.0 and mean 1" \
+    -body {
+    set p [::simulation::random::prng_Exponential -1.0 1.0]
+    set outside 0
+    set mean    0.0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        if { $rnd < -1.0 } {
+            incr outside
+        }
+        set mean [expr {$mean + $rnd}]
+    }
+    set mean [expr {$mean / 1000.0}]
+
+    #
+    # We use a rough estimate for the deviation in the mean
+    #
+    set result [expr {$outside == 0 && abs($mean - 1.0) < 0.5}]
+} -result 1
+
+test "Discrete-1.0" "Discrete generator with numbers 0, 1, 2 and 3" \
+    -body {
+    set p [::simulation::random::prng_Discrete 4]
+    set outside 0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        switch -- $rnd {
+            0 - 1 - 2 - 3 {
+               # Nothing to do
+            }
+            default {
+               incr outside
+            }
+        }
+    }
+    set result [expr {$outside == 0}]
+} -result 1
+
+test "Poisson-1.0" "Poisson generator with mean 10" \
+    -body {
+    set p [::simulation::random::prng_Poisson 10]
+    set noninteger 0
+    set mean       0.0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        if { ![string is integer -strict $rnd] } {
+            incr noninteger
+        }
+        set mean [expr {$mean + $rnd}]
+    }
+    set mean [expr {$mean / 1000.0}]
+
+    #
+    # We use a rough estimate for the deviation in the mean
+    #
+    set result [expr {$noninteger == 0 && abs($mean - 10.0) < 0.5}]
+} -result 1
+
+test "Normal-1.0" "Normal generator with mean 1 and standard deviation 1" \
+    -body {
+    set p [::simulation::random::prng_Normal 1 1]
+    set mean       0.0
+    set stdev      0.0
+    for {set i 0} {$i < 1000} {incr i} {
+        set rnd [$p]
+        set mean  [expr {$mean  + $rnd}]
+        set stdev [expr {$stdev + $rnd * $rnd}]
+    }
+    set mean  [expr {$mean  / 1000.0}]
+    set stdev [expr {sqrt($stdev / 1000.0)}]
+
+    #
+    # We use a rough estimate for the deviation in the mean and stdev
+    # Main effect of test: is the procedure syntactically correct?
+    #
+    set result [expr {abs($mean - 1.0) < 0.5 && abs($stdev - 1.0) < 0.5}]
+} -result 1
+
+#
+# TODO: These tests merely check that the generated procedure "works"
+#
+test "Pareto-1.0" "Pareto generator with minimum 1 and steepness 2" \
+    -body {
+    set p [::simulation::random::prng_Pareto 1 2]
+    set rnd [$p]
+    set result 1
+} -result 1
+
+test "Gumbel-1.0" "Gumbel generator with minimum 1 and scale factor 3" \
+    -body {
+    set p [::simulation::random::prng_Gumbel 1 3]
+    set rnd [$p]
+    set result 1
+} -result 1
+
+test "ChiSquared-1.0" "chi-squared generator with 4 degrees of freedom" \
+    -body {
+    set p [::simulation::random::prng_chiSquared 4]
+    set rnd [$p]
+    set result 1
+} -result 1
+
+test "Disk-1.0" "disk generator with radius 2" \
+    -body {
+    set p [::simulation::random::prng_Disk 2]
+    set rnd [$p]
+    set result [llength $rnd]
+} -result 2
+
+test "Ball-1.0" "ball generator with radius 2" \
+    -body {
+    set p [::simulation::random::prng_Ball 2]
+    set rnd [$p]
+    set result [llength $rnd]
+} -result 3
+
+test "Sphere-1.0" "sphere generator with radius 2.5" \
+    -body {
+    set p [::simulation::random::prng_Sphere 2.5]
+    set rnd [$p]
+    set result [llength $rnd]
+} -result 3
+
+test "Rectangle-1.0" "rectangle generator with sides 10 and 0.1" \
+    -body {
+    set p [::simulation::random::prng_Rectangle 10 0.1]
+    set rnd [$p]
+    set result [llength $rnd]
+} -result 2
+
+test "Block-1.0" "block generator with sides 10, 0.1 and 2.5" \
+    -body {
+    set p [::simulation::random::prng_Block 10 0.1 2.5]
+    set rnd [$p]
+    set result [llength $rnd]
+} -result 3
+
+# End of test cases
+testsuiteCleanup

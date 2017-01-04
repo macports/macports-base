@@ -1,0 +1,193 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-04-14  Andreas Kupries  <andreask@activestate.com>
+
+	* receiver.man: Added missing docs for the reception stream
+	  commands, and the missing keywords regarding secure transfer.
+
+	* transmitter.man: Fixed typos in the documentation of the stream
+	  commands.
+
+2009-04-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* transmitter.tcl: Tweaked the result of the convenience
+	* receiver.tcl: stream commands.
+
+	* ../../examples/transfer/stransmit.tcl: New files, example of
+	* ../../examples/transfer/sreceive.tcl: ssl-secured transfers.
+	* ../../examples/transfer/certs:
+
+	* connect.man: General face-lift, using a common structure for
+	* copyops.man: the documentation of classes and objects. Moved
+	* ddest.man: common text blocks into include files. Examples
+	* dsource.man: added showing use of TLS. Added feedback sections
+	* receiver.man: where missing, standardized on feedback.inc of
+	* tqueue.man: doctools2base.
+	* transmitter.man:
+
+	* include/complete.inc: New files, shared blocks of text.
+	* include/connect_options.inc:
+	* include/connect_result.inc:
+	* include/connect_result_ref.inc:
+	* include/ddest_options.inc:
+	* include/dsource_options.inc:
+	* include/secure.inc:
+
+2009-04-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../../examples/transfer: New directory, and files, demonstrating
+	  the stream type methods.
+
+	* copyops.tcl: Made transfer properly chunked for channels.
+	* copyops.man: Bumped to version 0.3.
+	* pkgIndex.tcl:
+
+	* ddest.tcl: Cleanup of older snit constructs. Added -progress
+	* ddest.man: option. Bumped to version 0.2
+	* pkgIndex.tcl:
+
+	* receiver.tcl: Cleanup of older snit constructs. Added two
+	* receiver.man: type methods for quick setup of fire-and-forget
+	* pkgIndex.tcl: transfers. Bumped to version 0.2.
+
+	* transmitter.tcl: Cleanup of older snit constructs. Added two
+	* transmitter.man: type methods for quick setup of fire-and-forget
+	* pkgIndex.tcl: transfers. Bumped to version 0.2.
+
+	* connect.tcl: Cleaned up use of older snit constructs, replaced
+	* pkgIndex.tcl: with modern usage. Added option -socketcmd to
+	* connect.man: allow replacement of ::socket with anything
+	  compatible. The envisioned main use is the specfication of
+	  tls::socket. I.e. this option allows the creation of secure
+	  transfer channels, without making the package explicitly
+	  dependent on TLS. Bumped to version 0.2.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-02-29  Andreas Kupries  <andreask@activestate.com>
+
+	* copyops.tcl (::transfer::copy::doString): Removed bogus trailing
+	* pkgIndex.tcl: closing bracket. Version bumped to 0.2
+	* copyops.man:
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* receiver.tcl:    Replaced deprecated {expand} syntax in comments
+	* transmitter.tcl: with {*}.
+	* copyops.tcl:
+
+2007-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* transmitter.man: Fixed all warnings due to use of now deprecated
+	* receiver.man: commands. Added a section about how to give feedback.
+	* tqueue.man:
+	* copyops.man:
+	* connect.man:
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-07-21  Andreas Kupries <andreask@activestate.com>
+
+	* copyops.tcl (::transfer::copy::HandlerChan): Removed superfluous
+	  closing bracket.
+
+	* connect.tcl: Prevent configuration for empty
+	  options. Propagation of callback command into the accept hook.
+
+	* dsource.tcl: instance variable 'type' conflicts with method
+	  argument 'type', fixed. Type 'channel' renamed to 'chan' for
+	  better match to copyops.
+
+	* ddest.tcl: instance variable 'type' conflicts with method
+	  argument 'type', fixed. Various syntax errors (argument swap),
+	  validation of -file fixed.
+
+	* receiver.tcl:    Added missing argument to callback.
+	* transmitter.tcl: Added missing argument to callback.
+
+2006-06-06  Andreas Kupries <andreask@activestate.com>
+
+	* transmitter.tcl: Fixed index/provide version mismatches.
+	* receiver.tcl: 
+	* dsource.tcl: 
+	* ddest.tcl: 
+	* connect.tcl: 
+
+2006-05-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* copyops.tcl (options): Fixed typo, missing brace after argument
+	  with default value.
+
+2006-05-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* transmitter.tcl: Compound objects, pulling connection setup and
+	* transmitter.man: data sources, data destination resp. together.
+	* receiver.tcl:
+	* receiver.man:
+	* pkgIndex.tcl:
+
+	* connect.tcl:  Connection setup, active, or passively waiting
+	* connect.man:  on the partner.
+	* pkgIndex.tcl:
+
+	* ddest.tcl:    Management of a destination, encapsulation
+	* ddest.man:    of all information needed to describe the
+	* pkgIndex.tcl: transfer destination.
+
+	* dsource.tcl:  Management of a source, encapsulation
+	* dsource.man:  of all information needed to describe the
+	* pkgIndex.tcl: transfer source.
+
+2006-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tqueue.tcl: Second package, management of a queue of
+	* tqueue.man: transfer requests, executed in fifo order.
+	* pkgIndex.tcl:
+
+	* copyops.man: Fixed markup of option arguments.
+
+	* coopyops.tcl: The first of a series of packages for the
+	* copyops.man:  transfer of data across channel. Most basic
+	* pkgIndex.tcl: commands.

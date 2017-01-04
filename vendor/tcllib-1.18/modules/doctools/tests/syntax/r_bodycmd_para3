@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[para]
+--> (FmtError) Manpage error (bodycmd), "para" : Command not allowed outside of the body of the manpage.

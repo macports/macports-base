@@ -1,0 +1,1006 @@
+2013-07-11  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.man: Ticket [8b317b4a63]: Added code to the 8.4+
+	* fileutil.tcl: implementations of GLOBF and GLOBD to guard
+	* fileutil.test: ourselves against VFS packages mishandling the
+	* pkgIndex.tcl: -types option of [glob]. vfs::zip is an example.
+	  This mishandling causes glob to return the same data for the two
+	  calls with "-types x" and "-types {hidden x}", generating lists
+	  with duplicate entries. We now generally de-duplicate the result
+	  ourselves. Bumped the package version to 1.14.6. Thanks to
+	  <eugene.mindrov@gmail.com> for the investigation identifying
+	  this problem.
+
+2013-02-14  Andreas Kupries  <andreask@activestate.com>
+
+	* decode.tcl: Bumped fileutil::decode to 0.2 to distinguish
+	* pkgIndex.tcl: properly from the 0.1.xxx version which existed in
+	  AS/perforce before it moved to tcllib/fossil. That should have
+	  been done as part of the move, and was forgotten.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-28  Andreas Kupries <andreask@activestate.com>
+
+	* decode.tcl: New. Simple package to support writing decoders
+	* pkgIndex.tcl: for binary files.
+
+2013-01-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: [Bug 3147481], [Bug 3141568]. Fixed issues with
+	* fileutil.tcl: changes to [glob]'s behaviour in 8.5+, reported
+	* find.setup: by guardus@users.sourceforge.net. Plus [Bug 3599839]
+	* find.test: reminding us of these, and Win 7. Bumped version to
+	* pkgIndex.tcl: 1.14.5. Extended testsuite, can be repro'd under
+	  Unix also.
+
+2012-08-29  Andreas Kupries <andreask@activestate.com>
+
+	* traverse.tcl (Init): Fixed a bug where a symlink to the
+	* traverse.man: base directory was not handled correctly.
+	* traverse.test: It got expanded and should not have been.
+	* pkgIndex.tcl: Cause was missing initialization of the _known set
+	* find.setup: with the normalized base path. Added test for this.
+	  Bumped version to 0.4.3.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-12-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* traverse.tcl: Mark directories as 'known' only if we decided
+	* traverse.man: to recurse into them. Otherwise a link to a
+	* pkgIndex.tcl: directory we choose to not follow may non-
+	  deterministically prevent us from recursing into the original
+	  directory, depending on the order we encounter them in. Bumped
+	  package version to 0.4.2.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-06-16  Andreas Kupries  <akupries@shaw.ca>
+
+	* fileutil.tcl (::fileutil::fileType): Fumbled the extension of
+	* fileutil.man: the doctools/toc/idx detector in the last change.
+	* pkgIndex.tcl: Fixed the bogosity, merging the separate checks.
+	  Bumped to version 1.14.4.
+
+2010-06-09  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::fileType): Extended to recognize tklib
+	* fileutil.man: diagram files, and extended the doctools/toc/idx
+	* pkgIndex.tcl: detector to accept markers in the same style as
+	  for tklib diagrams. Bumped to version 1.14.3.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-24  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl: Extended the doctools/toc/idx detector with
+	* fileutil.man: checks for inclusion and exclusion markers
+	* pkgIndex.tcl: allowing the user to force acceptance or rejection
+	of files for complex situations (like an include file looking like
+	a doctools main file but not bein so, and the converse, a main
+	file lacking the regular marker, which is hidden in an included
+	file). Bumped to version 1.14.2.
+
+2009-10-27  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::stripPath): [Bug 2872536]. Fixed both
+	* fileutil.man: issues. Compare the canonical list representations
+	* pkgIndex.tcl: for the \\bar problem, and separate $prefix from
+	* strip.test: '*' by a space to prevent matching on a partial path
+	  segment. Thanks to Ashok P. Nadkarni
+	  <apnadkarni@users.sourceforge.net> for the report. Bumped the
+	  version to 1.14.1. Extended the testsuite.
+
+	* pathops.test: Cleaned up some win vs unix issues in the tests.
+
+2009-10-06  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.test: Added fixes to test cleanups, to prevents errors
+	* inplace.test: when the testsuite is only run partially.
+	* test.test: 
+
+2009-09-14  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl: Renamed the internal command 'LexNormalize' to
+	* fileutil.man: 'lexnormalize' and documented it, making it
+	* pkgIndex.tcl: public. Bumped version to 1.14. This closes and
+	  accepts the feature request [SF Tcllib Bug 2855302]. Tests are
+	  currently only indirect, through testing of commands 'jail' and
+	  'relativeUrl'.
+
+2009-04-01  Andreas Kupries  <andreask@activestate.com>
+
+	* multiop.tcl (Copy): Fix special case with copying directories
+	* multiop.man: where the source is one level to deep, or copy fails.
+	* pkgIndex.tcl: Bumped version to 0.5.3.
+
+2009-02-10  Andreas Kupries  <andreask@activestate.com>
+
+	* traverse.man: Fixed bug in the requirements, this package
+	* traverse.tcl: needs fileutil (-> fullnormalize). Bumped
+	* pkgIndex.tcl: version to 0.4.1.
+
+2009-02-05  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::stripPath): Fixed handling
+	* fileutil.man: of letter-case on windows, comparisons
+	* strip.test: have to be case-insensitive. Bumped version
+	* pkgIndex.tcl: to 1.13.6. See [SF Tcllib Bug 2499641].
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-12-02  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.man: Fixed [Bug 2376321] (fileutil::TempDir, use
+	* fileutil.tcl: of env(TRASHFOLDER) for OSX). Bumped version
+	* pkgIndex.tcl: to 1.13.5. 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-10-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiop.test: Canonicalized sorting of two test results.
+	* multi.test: 
+
+2008-09-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiop.tcl: Sync'd to 2008 Sep 3 change in wip-core, using
+	* multiop.man: the new name of the wip processor component.
+	* pkgIndex.tcl: Bumped version to 0.5.2.
+
+2008-06-20  Andreas Kupries  <andreask@activestate.com>
+
+	* multiop.tcl: Fixed usage of struct::stack. Now using the
+	* multiop.man: official construction command instead of an
+	* pkgIndex.tcl: internal command recently removed from the
+	  struct::stack package. Bumped version to 0.5.1.
+
+2008-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multi.man: Updated to changes in doctools (sub)section reference
+	  handling.
+
+2008-02-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* traverse.tcl: Made snit dependency more strict, requesting 1.3+.
+
+2007-10-22  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl: Changed handling of broken symbolic links
+	* fileutil.man: by fileutil::find and fileutil::traverse.
+	* traverse.tcl: They are now recognized and returned.
+	* traverse.man: Extended the testsuite. Bumped fileutil
+	* pkgIndex.tcl: to v1.13.4 and fileutil::traverse to v0.4.
+	* find.setup:
+	* find.test:
+	* traverse.text:
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiop.setup: Moved the common setup code for the testing of
+	* multiop.test: the multi-file operations into a separate file.
+	* multi.test: Added commands to query the state of objects.
+	* multiop.tcl: Updated both testsuite and documentation. Version
+	* multiop.man: bumped to 0.5.
+	* pkgIndex.tcl:
+
+2007-08-15  Andreas Kupries  <andreask@activestate.com>
+
+	* multiop.tcl (ChDir, ChUp): Fixed the method calls in change dir
+	* multiop.man: operations, forget the $self. Version bumped to 0.4.
+	* pkgIndex.tcl:
+
+2007-08-13  Andreas Kupries  <andreask@activestate.com>
+
+	* multiop.tcl (Expand): Fixed bug in recursive expansion, pattern
+	  applies to the last segment of the path.
+
+	* multiop.tcl: New features coming out of dog-fooding: Removed
+	* multiop.man: hardwired fixation on files, accept all paths by
+	* multiop.test: default, and added commands to allow the user to
+	* multi.test: limit the expansion to files, firectories, or links.
+	* pkgIndex.tcl: New command to allow the user to specify how
+	  strict checking of the 'in(to)' argument is, and if empty
+	  expansions are acceptable. Documentation updated. Testsuite
+	  updated and extended. Version bumped to 0.3
+
+2007-08-10  Andreas Kupries  <andreask@activestate.com>
+
+	* multiop.tcl: New features - Recursive processing.
+	* multiop.test: Expand only mode. Save/restore set of files
+	* pkgIndex.tcl: to/from a variable. Platform checking
+	* multi.test: semi-conditional commands. Invoke a user command for
+	* multiop.man: the file set. Test suite extended, documentation
+	  updated. Version bumped to 0.2
+
+	* fileutil.tcl: The rewrite of find changed how it invoked the
+	* fileutil.man: filter command. As that however is documented this
+	* pkgIndex.tcl: change is a bug. Restored the old way of invoking
+	* find.test: the filter command. Version bumped to 1.13.3.
+	  Extended the testsuite to verify the API.
+
+2007-08-08  Andreas Kupries  <andreask@activestate.com>
+
+	* inplace.test: Fixed failures of some tests on Windows.
+
+	* fileutil.tcl: Working around a possible bug in the handling of
+	  path intreps by the core, on Windows. See commentary in
+	  'fullnormalize', and 'find.setup' (f_setupcircle).
+
+	* find.test: Moved the support code into a separate file, the new
+	* find.setup: 'find.setup'. Added a testsuite for the package
+	* traverse.test: 'fileutil::traverse', using the same support
+	* traverse.tcl: code. Rewrote the internals of traverse.tcl based
+	* traverse.man: on the experience gained by the rewrite of 'find',
+	* pkgIndex.tcl: using similar re-focatorization of the platform
+	  and core dependencies, and made the traversal state variables
+	  easier to understand (separated the processing and result
+	  stack). Bumped version of traverse to 0.3.
+
+2007-08-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* find.test: Reworked the setup/cleanup code, made the tests more
+	  independent from each other.
+
+	* traverse.man: New file, first documentation for
+	  fileutil::traverse.
+
+2007-08-07  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::find): Command rewritten to use a
+	* pkgIndex.tcl: portable iterative traversal core. Platform and
+	* fileutil.man: Tcl version dependencies have been re-factored
+	  into separate small commands. Should be more readable and
+	  maintainable. Handling of circular symbolic links is now
+	  portable (via a portable 'file normalize'). Order of paths in
+	  the output changed, this however was never documented. Version
+	  bumped to 1.13.2.
+
+2007-08-03  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.test: Cleaned the setup/cleanup code up a bit.
+
+	* filetype.test: Split the overly large file fileutil.test
+	* fileutil.test: into a series of smaller test files for
+	* find.test: specific commands.
+	* inplace.test:
+	* pathops.test:
+	* strip.test:
+	* test.test:
+
+2007-08-01  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.test: Fixed problems with the tests for
+	  fileutil::writeFile and companions. The regsub did not like
+	  paths containing special characters like '+'. Replaced with a
+	  'string map' construction.
+
+	* multiop.tcl: Language tweak. Allow 'from', and 'into' (and aliases)
+	* multiop.man: as qualifiers to 'the', i.e. allow specification after
+	* multiop.test: 'the'. Updates documentation and examples too.
+
+	* multi.tcl: Added documentation and testsuite for the multiop
+	* multi.man: package built on top of the multiop objects. Bug
+	* multi.test: fixes.
+	* multiop.tcl:
+	* multiop.man:
+	* multiop.test:
+
+2007-07-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiop.man: Wrote the actual documentation for the core
+	* multiop.tcl: multi-file objects. Tweaked the syntax a bit.
+
+2007-07-31  Andreas Kupries  <andreask@activestate.com>
+
+	* multiop.tcl: New packages in module. Scatter/gather
+	* multiop.test: operations, multi-file operations.
+	* multiop.man: First user of 'wip' code.
+	* multi.tcl:
+	* pkgIndex.tcl:
+
+2007-07-27  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl: Fixed problems of 'relative' and 'relativeUrl'
+	* fileutil.man: with paths containing . and .., i.e. like
+	* fileutil.test: '/foo/bar/../common'. Done by making the paths
+	* pkgIndex.man: absolute and then using LexNormalize to remove
+	  them. Added a fast path to LexNormalize to quickly return for
+	  paths not containing . nor .. Also fixed bug in handling .. with
+	  short relative paths. Extended the testsuite. Package bumped to
+	  version 1.13.1 (patchlevel, bugfixes only).
+
+2007-06-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl (::fileutil::fullnormalize): Simplified the
+	  implementation by recognizing that the complex
+	  file split/lrange/eval/join combo is just 'file dirname'.
+
+2007-06-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* traverse.tcl: Fixed invokation of -filter callback when used for
+	* pkgIndex.tcl:	directories. Wrongly used only the short path. Now
+	  correctly uses the full name. Bumped package version to 0.2.
+
+2007-05-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Added command 'tempdirReset' to allow users to
+	* fileutil.man: clear the information set via 'tempdir path'.
+	* pkgIndex.tcl: Bumped package to version 1.13. Additionally
+	  extended relative-url computation to make the result of an
+	  edge-case nicer looking (result was ok, but not
+	  optimal). Extended testsuite for this. Extended error output
+	  when computation of relative path fails.
+
+2007-03-28  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::fileType): Added definitions to
+	* pkgIndex.tcl: recognize Apple .icns files.
+	* fileutil.man:  Bumped version up to 1.12.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2007-03-12  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::TempDir): Added code to collect all
+	* pkgIndex.tcl: problems encountered, to be reported if no temp
+	* fileutil.man: directory could be found, to aid in the
+	  debugging of the situation. Bumped version up to 1.11.
+
+2007-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Added a command [fileutil::fullnormalize].
+	* fileutil.man: Documented it, extended the testsuite. Bumped
+	* filetuil.test: version up to 1.10. Removed nonsensical
+	* pkgIndex.tcl: [file join one_element] calls from the testsuite.
+
+2006-10-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Marked all 20 permission dependent tests as
+	  'notRoot' as they cannot fail when the superuser executes the
+	  testsuite.
+
+2006-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Rewritten to use new features for handling the
+	  environment.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl: Bumped version to 1.9
+	* fileutil.man:
+	* pkgIndex.tcl:
+
+2006-09-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Fixed 8.3isms in the testsuite. Symbolic
+	  permissions for 'file attributes' are not available in 8.2 yet
+	  :(. Also fixed the tests using hardcoded wrong#args messages to
+	  use the compatibility commands instead.
+
+2006-09-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Fixed 8.4ism in the testsuite of a 8.2+ package.
+
+2006-07-19  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (fileutil::jail): Fixed [Tcllib SF Bug 1525172], by
+	* fileutil.test:                 Ramon Ribo. Accepted the provided
+	                                 solution. Extended the testsuite.
+
+2006-06-16  Andreas Kupries <andreask@activestate.com>
+
+	* fileutil.tcl:  Added commands to compute paths relative to some
+	* fileutil.man:  base. Extended testsuite, documentation.
+	* fileutil.test: 
+	* pkgIndex.tcl: 
+
+2006-04-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man:  Extended documentation.
+	* fileutil.test: Extended testsuite for x/exec.
+	* fileutil.tcl:  Added x/exec'utable flag to the 'test' command.
+
+2006-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* traverse.tcl: Bug fixes. Added the missing declaration of the
+	  dev/inode cache, and moved the restoration of the old working
+	  directory in the 8.3 glob -directory emulation to their proper
+	  place.
+
+	* traverse.tcl: New file. Object based directory traversal,
+	* pkgIndex.tcl: incremental at the core, i.e. can be event-
+	  driven. Iterative algorithm, no trouble with deep directory
+	  structures anymore. Not documented yet, no testsuite yet.
+
+2006-03-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Removed some hardcoded paths into my
+	  system. Thanks to Michael Schlenker for catching this.
+
+2006-03-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl:  Extended the tempdir command to allow the user 
+	* fileutil.man:  to set a directory to use, exclusively. Updated
+	* fileutil.test: both documentation and testsuite.
+
+	* fileutil.tcl:  Added a 'test' command for the quick testing of
+	* fileutil.man:  several properties of a given path. Extended
+	* fileutil.test: both documentation and testsuite.
+
+2006-02-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: Updated the documentation to cover all the new
+	  commands.
+
+	* fileutil.test: Extended testsuite to cover the command
+	  'updateInPlace'.
+
+	* fileutil.tcl: Fixed bug in implementation of 'updateInPlace', we
+	  wrote the unchanged input back instead of the transformation
+	  result.
+
+2006-02-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Extended the testsuite to cover the commands
+	  'appendToFile', 'insertIntoFile', 'removeFromFile', and
+	  'replaceInFile'.
+
+	* fileutil.tcl: Added argument validation to the commands
+	  'appendToFile', 'insertIntoFile', 'removeFromFile', and
+	  'replaceInFile'. Modified their implementation to use shorter
+	  implementations for the degenerate cases.
+
+2006-02-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Extended testsuite to cover the command
+	  'writeFile'.
+
+	* fileutil.tcl: Fixed problems in common option processor and
+	  supporting commands.
+
+2006-02-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Added commands 'writeFile', 'appendToFile',
+	  'insertIntoFile', 'removeFromFile', 'replaceInFile', and
+	  'updateInPlace'. Extended 'cat' with option processing for
+	  -encoding, ...
+
+	* fileutil.test: Extended testsuite of 'cat', and made
+	  this part self-contained with regard to temp files.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Fixed use and cleanup of temp.files.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Hooked into the new common test support code.
+
+2006-01-18  Andreas Kupries <andreask@activestate.com>
+
+	* fileutil.man: Fixed a typo, clarified usage of the filtercmd for
+	  find (Boolean result), added an example for that as well. This
+	  fixes the [SF Tcllib Bug 1409083] submitted by Glenn Jackman
+	  <glennjnn@users.sourceforge.net>.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test (tempdir-1.2): Added code to remove the env
+	  variable TEMP as well. It is set on my host and can thus
+	  interfere with the test.
+
+2005-06-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Fixed a bug in find, where it excluded symbolic
+	* fileutil.tcl:  links if the destination was circular. This is
+	  wrong. The link itself can be listed in the result, it just must
+	  not be followed. Otherwise even non-circular links are not listed.
+
+2005-02-14  Andreas Kupries <andreask@activestate.com>
+
+	* fileutil.man (find): Documented the implicit arguments to the
+	  filter command (current working directory). This fixes [SF
+	  Tcllib Bug 1048995].
+
+2005-02-10  Andreas Kupries <andreask@activestate.com>
+
+	* fileutil.tcl (fileutil::jail): Fixed a problem reported by Pat
+	  Thoyts. Test jail-2.1 failed on windows. The reason was improper
+	  handling of volume-relative paths. They have to be handled like
+	  absolute paths, but were not. Changed the initial if condition a
+	  bit to fix this.
+
+2005-02-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Made glob patterns platform-dependent. This fixes
+	  [SF Tcllib Bug 1098039].
+
+2005-02-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Added test case for the handling of dot-files by
+	  [find]. This is for [SF Tcllib Bug 1098039].
+
+2005-02-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Completed implementation and testing of the 'jail'
+	  command which ensures that a path is inside a specific
+	  directory. Implemented a 'LexNormalize' helper
+	  command.
+
+	* fileutil.test: Added additional test for 'jail' beyond our
+	  current suite.
+
+2005-02-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Implemented command 'stripPath'. Like 'stripPwd'
+	  for a general prefix path [SF Tcllib RFE 1040372].
+
+	* fileutil.test: Added tests for 'stripPath.
+	* fileutil.man: Documented 'stripPath'.
+
+2005-02-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Added tests for the 'Normalize' forward
+	  compatibility wrapper. Got them from the Tcl testsuite for 'file
+	  normalize'. Added tests for the new 'jail' command.
+	
+	* fileutil.tcl: Wrote a forward compatibility implementation of
+	  'file normalize', for use with a Tcl core < 8.4. Updated the
+	  (non)use of 'file normalize' by 'tempdir' and 'tempfile'.
+	  Updated the namespace export clause. Implemented the 'jail'
+	  command [SF Tcllib RFE 111076].
+
+2005-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Extended tests for the case of inacessible
+	  directories.
+	
+	* fileutil.tcl (find): Fixed SF [Tcllib Bug 1111153]. This is the
+	  same as [Tcllib SF Bug 862491]. Catching problems now when
+	  cd'ing into the chosen base directory, and ignoring all
+	  directories for which the [cd] fails (permissions).
+
+2005-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: Fixed the doctools syntax error in the new text
+	  from the last entry.
+
+2005-01-26  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.man: Added a small note on the measure used to count
+	  elements in fileutil::stripN.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Introduced a "makeBinaryFile" command to ensure
+	  the correct generation of the example files which contain
+	  binary. Thanks to Greg Baker <gregb@ifost.org.au> for noticing
+	  the problem on his Mac OS X box and helping in debugging it.
+
+2004-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Fixed platform problems in testsuite, bad
+	  characters in filenames for Windows.
+
+2004-06-16  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (fileType): Added code to recognize files written
+	  in the doctools, doctoc, and docidx documentation formats.
+
+2004-05-30  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* fileutil.tcl: added tests for dos executables, tar, zip, bmp, wav, and mp3 to fileType
+	* fileutil.man: updated to reflect new types for fileType
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Updated version number to sync with 1.6.1
+	* fileutil.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Rel. engineering. Updated version number 
+	* fileutil.man: of fileutil to reflect its changes, to 1.6.1.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Cleaning up after Aaron. Updated the test
+	  filetype-1.12 to look for the extended return value of fileType
+	  when applied to jpeg images. The last checkin changed this, but
+	  the test was not updated as well, most likely not even
+	  run. Found and corrected during release preparation and testing.
+
+2004-05-11  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* fileutil.tcl: updated the jpeg test to recognize exif format
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: The tempdir tests used advanced test syntax not
+	  available before 8.4 (IIRC). Not useable for 8.2. Ditto the lot of
+	  the install tests also used 8.3 and 8.4 features. Straightened
+	  the bad syntax out (killed the tests), and added proper
+	  constraints to the tests.
+
+	* fileutil.tcl: Ooops. fileutil is certified for usage with Tcl
+	  8.2, there is no [file normalize] before 8.4. Made the usage
+	  (See 2004-02-03) conditional.
+
+2004-02-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Modified the tests a bit to use glob characters
+	  in file names to check that the code is robust against that too.
+
+	  See http://bugs.activestate.com/show_bug.cgi?id=29491
+
+2004-02-03  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (tempdir, tempfile): Now [file normalize]'ing the
+	  results of these two commands. More windows friendly.
+
+2004-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl (fileutil::find): Fixed bug in handling a single
+	  file as base directory: The initial list was not set up as a
+	  list, and the test results (see below) were not listified either
+	  for these cases. That broke down for paths containing
+	  spaces. Also fixed: Neither the windows nor the pre-8.4 version
+	  of the command had been modified to deal with a single file.
+	  Oversight from the change @ 2003-10-22 by David N. Welton
+	  <davidw@dedasys.com>.
+
+	  Regularized a number of error returns.
+
+	* fileutil.test: Changed testsuite to use files and directories
+	  containing spaces in their names. A number of tests
+	  failed. Modified the tempdir tests to better exclude and
+	  manipulate the environment to enforce the wanted result.
+
+2004-01-23  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (fileType): The check for an attached metakit
+	  database left a channel on the tested file open. This causes the
+	  application to leak channels, and on windows the file is also
+	  locked against deletion. Fixed.
+
+2003-11-15  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.man: Added new test and docs for change below.
+
+	* fileutil.tcl (::fileutil::cat): Make cat accept multiple files
+	(bug [830075]).
+
+2003-10-27  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.man: Better formatting of the new docs.
+
+2003-10-25  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.man: Documented 'fileutil::tempdir' algorithm.
+
+2003-10-23  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.man: Updated documentation, added description of
+	  'fileutil::tempdir'.
+
+2003-10-23  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.test (tempdir): Added a few very simple tests for
+	  tempdir under Unix.
+
+	* fileutil.tcl (::fileutil::tempdir): Added tempdir
+	  implementation.
+	  (::fileutil::tempfile): Use new tempdir command.
+
+2003-10-22  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.tcl (::fileutil::find): Change Unix version of find
+	  command to accept a file (as opposed to a directory) as an
+	  argument.  This reflects the behavior of the Unix find
+	  command. This change also needs to be added to the windows
+	  version, but should probably be done by someone who can test it
+	  on that platform.
+	  (::fileutil::install): -m option only works on Unix, as far as I
+	  know.
+	  (::fileutil::install): Make sure correct thing is chmod'ed.
+
+	* fileutil.test: Added tests for find to check that it works ok
+	  with a single file as an argument.  Also, error out if initial
+	  file does not correspond to 'isfile' or 'isdirectory'.
+
+2003-09-03  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (fileutil::fileType): Fixed the SourceForge Tcllib
+	  bug [795585]. We are now allowing whitespace between the #! and
+	  path of the script interpreter. Extended to identify metakit
+	  databases, also when attached to another file.
+
+	  (tempfile): Added 'global env', access to 'env' was bad, causing
+	  malfunction on windows.
+
+2003-08-12  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.man: Fixed a bad call of [cmd] in the documentation of
+	  the new install command. Always use 'sak validate moldule' to
+	  validate the whole module, or 'sak text module' when wishing to
+	  validate only the documentation.
+
+2003-08-06  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (find): The fix for SF tcllib bug [647974]
+	  introduced a tcl command new to tcl 8.4. This command is
+	  [file system]. Changing the code to exclude dev/inode checking
+	  only for 8.4 and above. For versions of Tcl below 8.4. the fix
+	  is not required as they do not have virtual filesystem
+	  support. This fixes SF tcllib bug [784157].
+
+2003-08-06  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.man: Added documentation for the new 'install' command.
+
+	* fileutil.tcl (::fileutil::install): Added 'install' command,
+	which is similar in functionality to the Unix install command - it
+	is basically file copy with some additional features.
+
+	* fileutil.test: Added tests for 'install' fileutil command.
+
+2003-07-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.5.1 as this is a bug fix. Any bug fixes and
+	  more minor changes coming in the future do not have to bump the
+	  version number anymore until the next release. Only a major
+	  change warrants another bump before the release.
+
+	* fileutil.tcl: Fixed SF tcllib bug [647974]. We now ignore
+	  device/inode information if the current path is in a virtual
+	  filesystem. We also assume now that VFS's do not support links,
+	  thus also obviating the need for the data, circles cannot occur.
+
+2003-05-09  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.tcl (::fileutil::tempfile): Braced [expr].
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* fileutil.tcl:   The touch command cannot be implemented in Tcl
+	* fileutil.test:  versions < 8.3 so do not define the command.
+	* fileutil.man:   Noted in documentation and skipped tests.
+
+2003-04-23  Andreas Kupries  <andreask@pliers.activestate.com>
+
+	* fileutil.man:
+	* fileutil.tcl: Added command [tempfile]. Was part of tcllib patch
+	  611595, but has a better place here.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.man:
+	* fileutil.tcl:
+	* pkgIndex.tcl:  Set version of the package to to 1.5.
+
+2003-04-02  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.test (fileutil): Fixed tcllib SF bug #714214 reported
+	  by Pat Thoyts, by working around the 'makeFile' command provided
+	  with tcltest. It seems to have issues when doing binary data.
+
+2003-03-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl (fileutil::touch): Applied patch #688965 provided
+	  by Glenn Jackman <glennjnn@users.sourceforge.net>. This patch
+	  provides a better message when asking the [fileutil::touch]
+	  command for help.
+
+2003-03-24  Andreas Kupries  <andreask@activestate.com>
+
+	* fileutil.test:
+	* fileutil.man:
+	* fileutil.tcl: Fixed bug #707009, reported by Helmut Giese
+	  <hgiese@users.sourceforge.net>, also updated the documentation
+	  and the testsuite.
+
+2003-01-28  David N. Welton  <davidw@dedasys.com>
+
+	* fileutil.tcl (::fileutil::fileType): Use 'string match' instead
+	  of regexp.  Require Tcl 8.2.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: More semantic markup, less visual one.
+
+2002-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl:
+	* fileutil.man:
+	* fileutil.test: Accepted enhanced format detection by Philip
+	  Ehrens <pehrens@ligo.caltech.edu>.
+
+2002-05-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl (cat): Fixed bug #556504, reported by Michael
+	  A. Cleverly <cleverly@users.sourceforge.net>. The fix was
+	  provided by Michael too. The problem was reading files which are
+	  reported as size 0, but actually have content, just dynamically
+	  generated (Linux /proc is an example of an fs containing such
+	  files).
+
+2002-05-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: Documented the two new commands (stripN,
+	  stripPwd).
+
+	* fileutil.tcl: Made up my mind about SF Bug #462015. The proposed
+	  interface change to [find] is rejected to keep the interface of
+	  the library procedure simple and without hidden surprises =
+	  KISS. Added a command [stripPwd] instead which can be used by
+	  the caller of [find] to make the returned paths relative to the
+	  current working directory. Also added [stripN] to strip a fixed
+	  number of elements from the beginning of a path.
+
+2002-04-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.man: Added doctools manpage.
+	* fileutils.n: Updated to reflect change of version.
+
+2002-03-20  Eric Melski  <ericm@ajubasolutions.com>
+
+	* Bumped version to 1.4
+	
+	* fileutil.n:
+	* fileutil.test:
+	* fileutil.tcl: Added fileType command posted to comp.lang.tcl by
+	  Phil Ehrens, with some minor modifications.
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.3
+
+2001-12-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test: Restricted tests 2.2 and 2.3 to the directory
+	  structure created for the test and not the whole directory the
+	  test is run in. Bugfix for item #486572.
+
+2001-11-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.test:
+	* fileutil.n:
+	* fileutil.tcl: Applied patch #477805 by Glenn Jackman
+	  <glennjnn@users.sourceforge.net> implementing the unix 'touch'
+	  command. Contains documentation and testsuite for the new
+	  command too.
+
+2001-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Restricted export list to public API.
+	  [456255]. Patch by Hemang Lavana
+	  <hemanglavana@users.sourceforge.net>
+
+2001-08-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* All of the changes below are related to tcllib Patch [449531] by
+	  Anselm Lingnau <lingnau@users.sourceforge.net>. Instead of
+	  taking in the proposed highlevel 'fileinput' I added some of the
+	  more low-level commands from Tclx which can be used to
+	  create/compose 'fileinput'.
+
+	* pkgIndex.tcl: Moved version of fileutil to 1.2.
+
+	* fileutil.test: Added tests for the new commands. Moved version
+	  of fileutil to 1.2.
+
+	* fileutil.n: Added documentation of the new commands. Moved
+	  version of fileutil to 1.2.
+
+	* fileutil.tcl (findByPattern, foreachLine): New commands, modeled
+	  after TclX's 'recursive_glob' and 'for_file'. Moved version of
+	  fileutil to 1.2.
+
+2001-07-31  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.n: Added manpage documenting the commands. tcllib Bug
+	  [446584].
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: Fixed dubious code reported by frink.
+
+2001-03-20  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* fileutil.tcl: [Bug #410104, Patch #410106]
+	  New implementation of ::fileutil::find for unixoid OSs using
+	  stat and device/inode configuration to detect and break circular
+	  softlink structures. This implementation also skips un'stat'able
+	  files and directories.
+
+	* fileutil.test: Added fileutil-1.4 testing the circle breaker
+	  (only under unix).
+
+2000-03-10  Eric Melski  <ericm@scriptics.com>
+
+	* fileutil.test:
+	* fileutil.tcl: Added cat function, duplicates standard UNIX "cat"
+	  utility.
+
+2000-03-09  Eric Melski  <ericm@scriptics.com>
+
+	* fileutil.test: Collected tests into one file; adapted tests for
+	  use in/out of tcllib test framework.
+

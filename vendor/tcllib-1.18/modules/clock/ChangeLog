@@ -1,0 +1,16 @@
+2013-02-08  Andreas Kupries  <andreask@activestate.com>
+
+	* iso8601.test: [Bug 3603702]: Fixed TZ-dependent test case.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module, 2 packages.
+	* rfc2822.tcl: Parsing rfc2822 dates (mail, news)
+	* iso8601.tcl: Parsing iso8601 dates and times.
+	* pkgIndex.tcl:

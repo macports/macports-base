@@ -1,0 +1,925 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<MAIN>>:
+         call              sym_Expression
+         halt
+
+#
+# value Symbol 'AddOp'
+#
+
+sym_AddOp:
+# /
+#     '-'
+#     '+'
+
+         symbol_restore    AddOp
+  found! jump              found_7
+         loc_push
+
+         call              choice_5
+
+   fail! value_clear
+     ok! value_leaf        AddOp
+         symbol_save       AddOp
+         error_nonterminal AddOp
+         loc_pop_discard
+
+found_7:
+     ok! ast_value_push
+         return
+
+choice_5:
+# /
+#     '-'
+#     '+'
+
+         error_clear
+
+         loc_push
+         error_push
+
+         input_next        "t -"
+     ok! test_char         "-"
+
+         error_pop_merge
+     ok! jump              oknoast_4
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t +"
+     ok! test_char         "+"
+
+         error_pop_merge
+     ok! jump              oknoast_4
+
+         loc_pop_rewind
+         status_fail
+         return
+
+oknoast_4:
+         loc_pop_discard
+         return
+#
+# value Symbol 'Digit'
+#
+
+sym_Digit:
+# /
+#     '0'
+#     '1'
+#     '2'
+#     '3'
+#     '4'
+#     '5'
+#     '6'
+#     '7'
+#     '8'
+#     '9'
+
+         symbol_restore    Digit
+  found! jump              found_22
+         loc_push
+
+         call              choice_20
+
+   fail! value_clear
+     ok! value_leaf        Digit
+         symbol_save       Digit
+         error_nonterminal Digit
+         loc_pop_discard
+
+found_22:
+     ok! ast_value_push
+         return
+
+choice_20:
+# /
+#     '0'
+#     '1'
+#     '2'
+#     '3'
+#     '4'
+#     '5'
+#     '6'
+#     '7'
+#     '8'
+#     '9'
+
+         error_clear
+
+         loc_push
+         error_push
+
+         input_next        "t 0"
+     ok! test_char         "0"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 1"
+     ok! test_char         "1"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 2"
+     ok! test_char         "2"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 3"
+     ok! test_char         "3"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 4"
+     ok! test_char         "4"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 5"
+     ok! test_char         "5"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 6"
+     ok! test_char         "6"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 7"
+     ok! test_char         "7"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 8"
+     ok! test_char         "8"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t 9"
+     ok! test_char         "9"
+
+         error_pop_merge
+     ok! jump              oknoast_19
+
+         loc_pop_rewind
+         status_fail
+         return
+
+oknoast_19:
+         loc_pop_discard
+         return
+#
+# value Symbol 'Expression'
+#
+
+sym_Expression:
+# /
+#     (Function)
+#     /
+#         x
+#             '\('
+#             (Expression)
+#             '\)'
+#         x
+#             (Factor)
+#             *
+#                 x
+#                     (MulOp)
+#                     (Factor)
+
+         symbol_restore    Expression
+  found! jump              found_50
+         loc_push
+         ast_push
+
+         call              choice_48
+
+   fail! value_clear
+     ok! value_reduce      Expression
+         symbol_save       Expression
+         error_nonterminal Expression
+         ast_pop_rewind
+         loc_pop_discard
+
+found_50:
+     ok! ast_value_push
+         return
+
+choice_48:
+# /
+#     (Function)
+#     /
+#         x
+#             '\('
+#             (Expression)
+#             '\)'
+#         x
+#             (Factor)
+#             *
+#                 x
+#                     (MulOp)
+#                     (Factor)
+
+         error_clear
+
+         ast_push
+         loc_push
+         error_push
+
+         call              sym_Function
+
+         error_pop_merge
+     ok! jump              ok_47
+
+         ast_pop_rewind
+         loc_pop_rewind
+         ast_push
+         loc_push
+         error_push
+
+         call              choice_45
+
+         error_pop_merge
+     ok! jump              ok_47
+
+         ast_pop_rewind
+         loc_pop_rewind
+         status_fail
+         return
+
+ok_47:
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+choice_45:
+# /
+#     x
+#         '\('
+#         (Expression)
+#         '\)'
+#     x
+#         (Factor)
+#         *
+#             x
+#                 (MulOp)
+#                 (Factor)
+
+         error_clear
+
+         ast_push
+         loc_push
+         error_push
+
+         call              sequence_28
+
+         error_pop_merge
+     ok! jump              ok_44
+
+         ast_pop_rewind
+         loc_pop_rewind
+         ast_push
+         loc_push
+         error_push
+
+         call              sequence_41
+
+         error_pop_merge
+     ok! jump              ok_44
+
+         ast_pop_rewind
+         loc_pop_rewind
+         status_fail
+         return
+
+ok_44:
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+sequence_28:
+# x
+#     '\('
+#     (Expression)
+#     '\)'
+
+         loc_push
+         error_clear
+
+         error_push
+
+         input_next        "t ("
+     ok! test_char         "("
+
+         error_pop_merge
+   fail! jump              failednoast_30
+         ast_push
+         error_push
+
+         call              sym_Expression
+
+         error_pop_merge
+   fail! jump              failed_29
+         error_push
+
+         input_next        "t )"
+     ok! test_char         ")"
+
+         error_pop_merge
+   fail! jump              failed_29
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_29:
+         ast_pop_rewind
+
+failednoast_30:
+         loc_pop_rewind
+         return
+
+sequence_41:
+# x
+#     (Factor)
+#     *
+#         x
+#             (MulOp)
+#             (Factor)
+
+         ast_push
+         loc_push
+         error_clear
+
+         error_push
+
+         call              sym_Factor
+
+         error_pop_merge
+   fail! jump              failed_42
+         error_push
+
+         call              kleene_38
+
+         error_pop_merge
+   fail! jump              failed_42
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_42:
+         ast_pop_rewind
+         loc_pop_rewind
+         return
+
+kleene_38:
+# *
+#     x
+#         (MulOp)
+#         (Factor)
+
+         loc_push
+         error_push
+
+         call              sequence_35
+
+         error_pop_merge
+   fail! jump              failed_39
+         loc_pop_discard
+         jump              kleene_38
+
+failed_39:
+         loc_pop_rewind
+         status_ok
+         return
+
+sequence_35:
+# x
+#     (MulOp)
+#     (Factor)
+
+         ast_push
+         loc_push
+         error_clear
+
+         error_push
+
+         call              sym_MulOp
+
+         error_pop_merge
+   fail! jump              failed_36
+         error_push
+
+         call              sym_Factor
+
+         error_pop_merge
+   fail! jump              failed_36
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_36:
+         ast_pop_rewind
+         loc_pop_rewind
+         return
+#
+# value Symbol 'Factor'
+#
+
+sym_Factor:
+# x
+#     (Term)
+#     *
+#         x
+#             (AddOp)
+#             (Term)
+
+         symbol_restore    Factor
+  found! jump              found_64
+         loc_push
+         ast_push
+
+         call              sequence_61
+
+   fail! value_clear
+     ok! value_reduce      Factor
+         symbol_save       Factor
+         error_nonterminal Factor
+         ast_pop_rewind
+         loc_pop_discard
+
+found_64:
+     ok! ast_value_push
+         return
+
+sequence_61:
+# x
+#     (Term)
+#     *
+#         x
+#             (AddOp)
+#             (Term)
+
+         ast_push
+         loc_push
+         error_clear
+
+         error_push
+
+         call              sym_Term
+
+         error_pop_merge
+   fail! jump              failed_62
+         error_push
+
+         call              kleene_58
+
+         error_pop_merge
+   fail! jump              failed_62
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_62:
+         ast_pop_rewind
+         loc_pop_rewind
+         return
+
+kleene_58:
+# *
+#     x
+#         (AddOp)
+#         (Term)
+
+         loc_push
+         error_push
+
+         call              sequence_55
+
+         error_pop_merge
+   fail! jump              failed_59
+         loc_pop_discard
+         jump              kleene_58
+
+failed_59:
+         loc_pop_rewind
+         status_ok
+         return
+
+sequence_55:
+# x
+#     (AddOp)
+#     (Term)
+
+         ast_push
+         loc_push
+         error_clear
+
+         error_push
+
+         call              sym_AddOp
+
+         error_pop_merge
+   fail! jump              failed_56
+         error_push
+
+         call              sym_Term
+
+         error_pop_merge
+   fail! jump              failed_56
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_56:
+         ast_pop_rewind
+         loc_pop_rewind
+         return
+#
+# value Symbol 'Function'
+#
+
+sym_Function:
+# (Sinus)
+
+         symbol_restore    Function
+  found! jump              found_67
+         loc_push
+         ast_push
+
+         call              sym_Sinus
+
+   fail! value_clear
+     ok! value_reduce      Function
+         symbol_save       Function
+         error_nonterminal Function
+         ast_pop_rewind
+         loc_pop_discard
+
+found_67:
+     ok! ast_value_push
+         return
+#
+# value Symbol 'MulOp'
+#
+
+sym_MulOp:
+# /
+#     '*'
+#     '/'
+
+         symbol_restore    MulOp
+  found! jump              found_74
+         loc_push
+
+         call              choice_72
+
+   fail! value_clear
+     ok! value_leaf        MulOp
+         symbol_save       MulOp
+         error_nonterminal MulOp
+         loc_pop_discard
+
+found_74:
+     ok! ast_value_push
+         return
+
+choice_72:
+# /
+#     '*'
+#     '/'
+
+         error_clear
+
+         loc_push
+         error_push
+
+         input_next        "t *"
+     ok! test_char         "*"
+
+         error_pop_merge
+     ok! jump              oknoast_71
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t /"
+     ok! test_char         "/"
+
+         error_pop_merge
+     ok! jump              oknoast_71
+
+         loc_pop_rewind
+         status_fail
+         return
+
+oknoast_71:
+         loc_pop_discard
+         return
+#
+# value Symbol 'Number'
+#
+
+sym_Number:
+# x
+#     ?
+#         (Sign)
+#     +
+#         (Digit)
+
+         symbol_restore    Number
+  found! jump              found_87
+         loc_push
+         ast_push
+
+         call              sequence_84
+
+   fail! value_clear
+     ok! value_reduce      Number
+         symbol_save       Number
+         error_nonterminal Number
+         ast_pop_rewind
+         loc_pop_discard
+
+found_87:
+     ok! ast_value_push
+         return
+
+sequence_84:
+# x
+#     ?
+#         (Sign)
+#     +
+#         (Digit)
+
+         ast_push
+         loc_push
+         error_clear
+
+         error_push
+
+         call              optional_77
+
+         error_pop_merge
+   fail! jump              failed_85
+         error_push
+
+         call              poskleene_80
+
+         error_pop_merge
+   fail! jump              failed_85
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_85:
+         ast_pop_rewind
+         loc_pop_rewind
+         return
+
+optional_77:
+# ?
+#     (Sign)
+
+         loc_push
+         error_push
+
+         call              sym_Sign
+
+         error_pop_merge
+   fail! loc_pop_rewind
+     ok! loc_pop_discard
+         status_ok
+         return
+
+poskleene_80:
+# +
+#     (Digit)
+
+         loc_push
+
+         call              sym_Digit
+
+   fail! jump              failed_81
+
+loop_82:
+         loc_pop_discard
+         loc_push
+         error_push
+
+         call              sym_Digit
+
+         error_pop_merge
+     ok! jump              loop_82
+         status_ok
+
+failed_81:
+         loc_pop_rewind
+         return
+#
+# value Symbol 'Sign'
+#
+
+sym_Sign:
+# /
+#     '-'
+#     '+'
+
+         symbol_restore    Sign
+  found! jump              found_93
+         loc_push
+
+         call              choice_5
+
+   fail! value_clear
+     ok! value_leaf        Sign
+         symbol_save       Sign
+         error_nonterminal Sign
+         loc_pop_discard
+
+found_93:
+     ok! ast_value_push
+         return
+#
+# value Symbol 'Sinus'
+#
+
+sym_Sinus:
+# x
+#     's'
+#     'i'
+#     'n'
+#     '\('
+#     (Expression)
+#     '\)'
+
+         symbol_restore    Sinus
+  found! jump              found_105
+         loc_push
+         ast_push
+
+         call              sequence_101
+
+   fail! value_clear
+     ok! value_reduce      Sinus
+         symbol_save       Sinus
+         error_nonterminal Sinus
+         ast_pop_rewind
+         loc_pop_discard
+
+found_105:
+     ok! ast_value_push
+         return
+
+sequence_101:
+# x
+#     's'
+#     'i'
+#     'n'
+#     '\('
+#     (Expression)
+#     '\)'
+
+         loc_push
+         error_clear
+
+         error_push
+
+         input_next        "t s"
+     ok! test_char         "s"
+
+         error_pop_merge
+   fail! jump              failednoast_103
+         error_push
+
+         input_next        "t i"
+     ok! test_char         "i"
+
+         error_pop_merge
+   fail! jump              failednoast_103
+         error_push
+
+         input_next        "t n"
+     ok! test_char         "n"
+
+         error_pop_merge
+   fail! jump              failednoast_103
+         error_push
+
+         input_next        "t ("
+     ok! test_char         "("
+
+         error_pop_merge
+   fail! jump              failednoast_103
+         ast_push
+         error_push
+
+         call              sym_Expression
+
+         error_pop_merge
+   fail! jump              failed_102
+         error_push
+
+         input_next        "t )"
+     ok! test_char         ")"
+
+         error_pop_merge
+   fail! jump              failed_102
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_102:
+         ast_pop_rewind
+
+failednoast_103:
+         loc_pop_rewind
+         return
+#
+# value Symbol 'Term'
+#
+
+sym_Term:
+# (Number)
+
+         symbol_restore    Term
+  found! jump              found_108
+         loc_push
+         ast_push
+
+         call              sym_Number
+
+   fail! value_clear
+     ok! value_reduce      Term
+         symbol_save       Term
+         error_nonterminal Term
+         ast_pop_rewind
+         loc_pop_discard
+
+found_108:
+     ok! ast_value_push
+         return
+
+#
+#

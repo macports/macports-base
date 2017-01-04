@@ -1,0 +1,280 @@
+# -*- tcl -*-
+# Tests for the logger facility.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2002 by David N. Welton <davidw@dedasys.com>.
+# Copyright (c) 2004,2005 by Michael Schlenker <mic42@users.sourceforge.net>.
+#
+# $Id: logger_trace.test,v 1.2 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+testing {
+    useLocal logger.tcl logger
+}
+
+# -------------------------------------------------------------------------
+
+proc traceproc0 { } {
+    traceproc1
+}
+
+proc traceproc1 { args } {
+    return "procresult1"
+}
+
+proc traceproc2 { args } {
+    return "procresult2"
+}
+
+proc traceproc3 { args } {
+    return "procresult3"
+}
+
+test logger-trace-1.1 {Test <service>::trace with no arguments.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace
+} -returnCodes 1 -result [::tcltest::wrongNumArgs ::logger::tree::tracetest::trace {action args} 0]
+
+test logger-trace-1.2 {Test <service>::trace with an unknown action} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace foo
+} -returnCodes 1 -result \
+    {Invalid action "foo": must be status, add, remove, on, or off}
+
+test logger-trace-on-1.1 {Verify that tracing is disabled by default.} -body {
+    set l [::logger::init tracetest]
+    set ${l}::tracingEnabled
+} -result 0
+
+test logger-trace-on-1.2 {Test <service>::trace on with extra arguments} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace on 1
+} -returnCodes 1 -result {wrong # args: should be "trace on"}
+
+test logger-trace-on-1.3 {Test <service>::trace on with no extra arguments and verify that the tracing state flag is enabled afterward.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace on
+    set ${l}::tracingEnabled
+} -cleanup {
+    ${l}::trace off
+} -result 1
+
+test logger-trace-on-1.4 {Verify <service>::trace on enables tracing only for the one service and not for any of its children.} -body {
+    set l1 [::logger::init tracetest]
+    set l2 [::logger::init tracetest::child]
+    ${l1}::trace on
+    set ${l2}::tracingEnabled
+} -cleanup {
+    ${l1}::trace off
+} -result 0
+
+test logger-trace-off-1.1 {Test <service>::trace off with extra arguments} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace off 1
+} -returnCodes 1 -result {wrong # args: should be "trace off"}
+
+test logger-trace-off-1.2 {Test <service>::trace off with no extra arguments and verify that tracing state flag is disabled afterward.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace off
+    set ${l}::tracingEnabled
+} -result 0
+
+test logger-trace-off-1.3 {Verify that <service>::trace on followed by off leaves tracing disabled.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace on
+    ${l}::trace off
+    set ${l}::tracingEnabled
+} -result 0
+
+test logger-trace-remove-1.1 {Test <service>::trace remove with no targets specified.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace remove
+} -returnCodes 1 -result \
+    {wrong # args: should be "trace remove ?-ns? <proc> ..."}
+
+test logger-trace-remove-1.2 {Test <service>::trace remove with procedure names that don't exist.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace remove nosuchproc1 nosuchproc2
+} -result {}
+
+test logger-trace-remove-1.3 {Test <service>::trace remove with -ns switch and namespace names that don't exist.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace remove -ns nosuchns
+} -result {}
+
+test logger-trace-remove-1.4 {Verify that <service>::trace remove does glob pattern matching on procedure names.} -body {
+    namespace eval ::tracetest {
+        proc foo1 {} {}
+        proc foo2 {} {}
+        proc bar1 {} {}
+        proc bar2 {} {}
+        proc bar3 {} {}
+    }
+    set l [::logger::init tracetest]
+    ${l}::trace add ::tracetest::bar1
+    ${l}::trace add ::tracetest::bar2
+    ${l}::trace add ::tracetest::bar3
+    ${l}::trace remove ::tracetest::bar*
+    ${l}::trace status
+} -cleanup {
+    namespace delete ::tracetest
+} -result {}
+
+test logger-trace-add-1.1 {Test <service>::trace add with no targets specified.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace add
+} -returnCodes 1 -result \
+    {wrong # args: should be "trace add ?-ns? <proc> ..."}
+
+test logger-trace-add-1.2 {Test <service>::trace add with procedure names that don't exist, and verify that they are not listed in <service>::trace status.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace add nosuchproc1 nosuchproc2
+    ${l}::trace status
+} -cleanup {
+    ${l}::trace remove nosuchproc1 nosuchproc2
+} -result {}
+
+test logger-trace-add-1.3 {Verify that <service>::trace add with the -ns switch followed by <service>::trace remove with the -ns switch, both with the same namespace, leaves no traces for the namespace remaining.} -body {
+    namespace eval ::tracetest {
+        proc test1 {} {}
+        proc test2 {} {}
+        proc test3 {} {}
+    }
+    set l [::logger::init tracetest]
+    ${l}::trace add -ns ::tracetest
+    ${l}::trace remove -ns ::tracetest
+    ${l}::trace status
+} -cleanup {
+    namespace delete ::tracetest
+} -result {}
+
+test logger-trace-add-1.4 {Verify that <service>::trace add with the -ns switch registers traces for all of the procedures in that namespace.} -body {
+    namespace eval ::tracetest {
+        proc test1 {} {}
+        proc test2 {} {}
+        proc test3 {} {}
+    }
+    set l [::logger::init tracetest]
+    ${l}::trace add -ns ::tracetest
+    lsort -dictionary [${l}::trace status]
+} -cleanup {
+    ${l}::trace remove -ns ::tracetest
+    namespace delete ::tracetest
+} -result {::tracetest::test1 ::tracetest::test2 ::tracetest::test3}
+
+test logger-trace-add-1.5 {Verify that <service>::trace add does glob pattern matching on procedure names.} -body {
+    namespace eval ::tracetest {
+        proc foo1 {} {}
+        proc foo2 {} {}
+        proc bar1 {} {}
+        proc bar2 {} {}
+        proc bar3 {} {}
+    }
+    set l [::logger::init tracetest]
+    ${l}::trace add ::tracetest::bar*
+    lsort -dictionary [${l}::trace status]
+} -cleanup {
+    ${l}::trace remove -ns ::tracetest
+    namespace delete ::tracetest
+} -result {::tracetest::bar1 ::tracetest::bar2 ::tracetest::bar3}
+
+test logger-trace-status-1.1 {Verify that <service>::trace status with no argument returns an empty list when no traces are currently active.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace status
+} -result {}
+
+test logger-trace-status-1.2 {Verify that <service>::trace status returns 0 when given the name of a procedure that is not currently being traced.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace status foo
+} -result 0
+
+test logger-trace-status-1.3 {Verify that <service>::trace status returns 0 when given the name of a procedure that was, but is no longer, being traced.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace add foo
+    ${l}::trace remove foo
+    ${l}::trace status foo
+} -result 0
+
+test logger-trace-status-1.4 {Verify that <service>::trace status returns 0 when given the name of a procedure that doesn't exist, but was passed to <service>::trace add.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace add nosuchproc
+    ${l}::trace status nosuchproc
+} -cleanup {
+    ${l}::trace remove nosuchproc
+} -result 0
+
+test logger-trace-status-1.5 {Verify that <service>::trace status returns 1 when given the name of an existing procedure that is currently registered via <service>::trace add.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace add traceproc1
+    ${l}::trace status traceproc1
+} -cleanup {
+    ${l}::trace remove traceproc1
+} -result 1
+
+test logger-trace-log-1.1 {Verify that invoking a procedure that has been registered for tracing via <service>::trace add does NOT generate a log message when tracing is turned off.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace off       ;# Should already be off.  Just in case.
+    ${l}::trace add traceproc1
+    traceproc1
+} -cleanup {
+    ${l}::trace remove traceproc1
+} -result "procresult1" -output {}
+
+test logger-trace-log-1.2 {Verify that invoking a procedure that has been registered for tracing via <service>::trace add DOES generate a log message when tracing is turned on BEFORE registration. This test calls the traced function through another function, which should result in a non-empty caller string.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace on
+    ${l}::trace add traceproc1
+    traceproc0
+} -cleanup {
+    ${l}::trace remove traceproc1
+    ${l}::trace off
+} -result "procresult1" -match regexp -output \
+{\[.*\] \[tracetest\] \[trace\] 'enter {proc ::traceproc1 level 2 script .*logger_trace.test caller ::traceproc0 procargs {args {}}}'
+\[.*\] \[tracetest\] \[trace\] 'leave {proc ::traceproc1 level 2 script .*logger_trace.test caller ::traceproc0 status ok result procresult1}'
+}
+
+test logger-trace-log-1.3 {Verify that invoking a procedure that has been registered for tracing via <service>::trace add DOES generate a log message when tracing is turned on AFTER registration. This test calls the traced function directly, which should result in the caller being an empty string.} -body {
+    set l [::logger::init tracetest]
+    ${l}::trace add traceproc2
+    ${l}::trace on
+    traceproc2
+} -cleanup {
+    ${l}::trace remove traceproc2
+    ${l}::trace off
+} -result "procresult2" -match regexp -output \
+{\[.*\] \[tracetest\] \[trace\] 'enter {proc ::traceproc2 level 1 script .*logger_trace.test caller {} procargs {args {}}}'
+\[.*\] \[tracetest\] \[trace\] 'leave {proc ::traceproc2 level 1 script .*logger_trace.test caller {} status ok result procresult2}'
+}
+
+test logger-trace-logproc-1.1 {Verify that a logproc can be specified for trace logging.} -body {
+    set l [::logger::init tracetest]
+    proc ::tracelog { message } {
+        puts $message
+    }
+    ${l}::logproc trace ::tracelog
+    ${l}::trace add traceproc2
+    ${l}::trace on
+    traceproc2
+} -cleanup {
+    ${l}::trace remove traceproc2
+    ${l}::trace off
+    rename ::tracelog {}
+} -result "procresult2" -match regexp -output \
+{enter {proc ::traceproc2 level 1 script .*logger_trace.test caller {} procargs {args {}}}
+leave {proc ::traceproc2 level 1 script .*logger_trace.test caller {} status ok result procresult2}
+}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

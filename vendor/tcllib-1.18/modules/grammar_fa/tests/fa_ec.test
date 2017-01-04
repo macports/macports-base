@@ -1,0 +1,84 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_ec.test,v 1.4 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-ec-${setimpl}-1.0 {epsilon closure} {
+    grammar::fa a
+    catch {a epsilon_closure} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodepsilon_closure type selfns win self s"}
+
+test fa-ec-${setimpl}-1.1 {epsilon closure} {
+    grammar::fa a
+    catch {a epsilon_closure x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+test fa-ec-${setimpl}-1.2 {epsilon closure} {
+    grammar::fa a
+    catch {a epsilon_closure x y} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodepsilon_closure type selfns win self s"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+foreach {n code ec} {
+    00 x       {x}
+    01 x-      {x}
+    02 xe      {x}
+    03 xy      {x}
+    04 xy-     {x}
+    05 xye     {x y}
+    06 xyee    {x y}
+    07 xye-    {x y}
+    08 xy--    {x}
+    09 xy-=    {x}
+    10 xyz/ee  {x y z}
+    11 xyz/e-  {x z}
+    12 xyz/--  {x}
+    13 xyz/-=  {x}
+    14 xyz|ee  {x z}
+    15 xyz|e-  {x}
+    16 xyz|--  {x}
+    17 xyz|-=  {x}
+    18 xyz+eee {x y z}
+    19 xyz+ee- {x y z}
+    20 xyz+e-- {x y}
+    21 xyz+e-= {x y}
+    22 xyz+--- {x}
+    23 xyz+--= {x}
+    24 xyz+-=_ {x}
+    25 xyz&eee {x y z}
+    26 xyz&ee- {x y z}
+    27 xyz&e-- {x y}
+    28 xyz&e-= {x y}
+    29 xyz&--- {x}
+    30 xyz&--= {x}
+    31 xyz&-=_ {x}
+    32 xyz!ee  {x y z}
+    33 xyz!e-  {x y}
+    34 xyz!--  {x}
+    35 xyz!-=  {x}
+    36 xyz!-e  {x}
+} {
+    test fa-ec-${setimpl}-2.${n}.$code {epsilon closure} {
+	grammar::fa a
+	gen $code
+	set res [lsort [a epsilon_closure x]]
+	a destroy
+	set res
+    } $ec
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

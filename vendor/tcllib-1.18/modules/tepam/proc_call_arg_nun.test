@@ -1,0 +1,451 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# proc_call_arg_nun.test:
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It validates the usage of the different combinations of named and
+# unnamed arguments using the default argument organization (named arguments
+# first, unnamed at the end).
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: proc_call_arg_nun.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+set tepam::named_arguments_first 1
+
+namespace import tepam::*
+
+# Tests is an extension of the test command. It adds the option -variations that allows \
+# specifying a list values. For each of these values the test command is executed, replacing all '%1' 
+# of the original test command string by the altered value.
+proc tests {name description args} {
+   set VariationList(0) {""}; # Default variation list 0, in case no variations are required
+   for {set NbrVariationLists 0} {1} {incr NbrVariationLists} {
+      set VariationListPos [lsearch -exact $args -variations]
+      if {$VariationListPos<0} break
+      set VariationList($NbrVariationLists) [lindex $args [expr $VariationListPos+1]]
+      set args [lreplace $args $VariationListPos [expr $VariationListPos+1]]
+   }
+   for {set TestNbr 0} {$TestNbr<[llength $VariationList(0)]} {incr TestNbr} {
+      set TestExec "test \"$name\.$TestNbr\" \"$description.$TestNbr\""
+      foreach Arg $args {
+         set NewArg $Arg
+         for {set vl 0} {$vl<$NbrVariationLists} {incr vl} {
+            regsub -all "%[expr $vl+1]" $NewArg [lindex $VariationList($vl) $TestNbr] NewArg
+         }
+         append TestExec " \{$NewArg\}"
+      }
+      uplevel 1 $TestExec
+   }
+}
+
+######## Argument combinations ########
+
+   # Named arguments first: No arguments:
+
+      tepam::procedure Procedure_Arg_0a {-args {}} {return ""}
+      tepam::procedure Procedure_Arg_0b {} {return ""}
+
+      foreach c {a b} {
+         tests tepam-proccall.nun.noarg.$c.0 "Procedure calls, UNN, no arguments defined, $c, 0"  \
+               -body "Procedure_Arg_0$c" \
+               -result "" -output ""
+         tests tepam-proccall.nun.noarg.$c.1 "Procedure calls, UNN, no arguments defined, $c, 0"  \
+               -body "Procedure_Arg_0$c --" \
+               -result "" -output ""
+         tests tepam-proccall.nun.noarg.$c.2 "Procedure calls, UNN, no arguments defined, $c, 1"  \
+               -variations { Parameter2 {""} ?} \
+               -body "Procedure_Arg_0$c %1" \
+               -returnCodes error -result "*: Too many unnamed arguments: *" -output "" -match glob
+         tests tepam-proccall.nun.noarg.$c.3 "Procedure calls, UNN, no arguments defined, $c, 2"  \
+               -variations { -Parameter2} \
+               -body "Procedure_Arg_0$c -- %1" \
+               -returnCodes error -result "*: Too many unnamed arguments, or incorrectly u*" -output "" -match glob
+         tests tepam-proccall.nun.noarg.$c.4 "Procedure calls, UNN, no arguments defined, $c, 3"  \
+               -variations { -Parameter2} \
+               -body "Procedure_Arg_0$c %1" \
+               -returnCodes error -result "*: Argument '%1' not known*" -output "" -match glob
+      }
+
+   # Unnamed argument (1) without default value:
+
+      tepam::procedure Procedure_Arg_1 {
+         -args {
+            {Arg1}
+         }
+      } {
+         return "Arg1:$Arg1"
+      }
+   
+      tests tepam-proccall.nun.1un.0 "Procedure calls, UNN, one argument without default value, 0"  \
+            -body "Procedure_Arg_1" \
+            -returnCodes error -result "*: Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.1un.1 "Procedure calls, UNN, one argument without default value, 1"  \
+            -body "Procedure_Arg_1 --" \
+            -returnCodes error -result "*: Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.1un.2 "Procedure calls, UNN, one argument without default value, 2"  \
+            -variations {abc 123 {} {asd asdf {xx 123 34}} } \
+            -body "Procedure_Arg_1 \"%1\"" \
+            -result "Arg1:%1" -output ""
+      tests tepam-proccall.nun.1un.3 "Procedure calls, UNN, one argument without default value, 3"  \
+            -variations {abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_1 -- \"%1\"" \
+            -result "Arg1:%1" -output ""
+      tests tepam-proccall.nun.1un.4 "Procedure calls, UNN, one argument without default value, 4"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_1 -Arg1 \"%1\"" \
+            -result "Arg1:%1" -output ""
+      tests tepam-proccall.nun.1un.5 "Procedure calls, UNN, one argument without default value, 5"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_1 -Arg1 \"%1\" --" \
+            -result "Arg1:%1" -output ""
+      tests tepam-proccall.nun.1un.6 "Procedure calls, UNN, one argument without default value, 6"  \
+            -variations { Parameter2 "" ?} \
+            -body "Procedure_Arg_1 Parameter1 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments:*" -output "" -match glob
+      tests tepam-proccall.nun.1un.7 "Procedure calls, UNN, one argument without default value, 7"  \
+            -variations { -Parameter2} \
+            -body "Procedure_Arg_1 Parameter1 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments, or incorrectly u*" -output "" -match glob
+      tests tepam-proccall.nun.1un.8 "Procedure calls, UNN, one argument without default value, 8"  \
+            -variations { -Parameter2} \
+            -body "Procedure_Arg_1 -- Parameter1 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments, or incorrectly u*" -output "" -match glob
+
+   # Unnamed arguments (2) without default value:
+
+      tepam::procedure Procedure_Arg_2b {
+         -args {
+            {Arg1}
+            {Arg2}
+         }
+      } {
+         return "Arg1:$Arg1, Arg2:$Arg2"
+      }
+   
+      tests tepam-proccall.nun.2un.0 "Procedure calls, UNN, two argument without default value, 0"  \
+            -body "Procedure_Arg_2b" \
+            -returnCodes error -result "*: Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.2un.1 "Procedure calls, UNN, two argument without default value, 0"  \
+            -body "Procedure_Arg_2b --" \
+            -returnCodes error -result "*: Required argument is missing: Arg1" -output "" -match glob
+      tests tepam-proccall.nun.2un.2 "Procedure calls, UNN, two argument without default value, 0"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_2b \"%1\"" \
+            -returnCodes error -result "*: Required argument is missing: Arg2*" -output "" -match glob
+      tests tepam-proccall.nun.2un.3 "Procedure calls, UNN, two argument without default value, 0"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2b  \"%1\"  \"%2\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+
+   # Unnamed arguments partitially with default value:
+
+      tepam::procedure Procedure_Arg_2 {
+         -args {
+            {Arg1}
+            {Arg2 -default 2}
+         }
+      } {
+         return "Arg1:$Arg1, Arg2:$Arg2"
+      }
+   
+      tests tepam-proccall.nun.1dun1un.0 "Procedure calls, UNN, two argument, one with default value, 0"  \
+            -body "Procedure_Arg_2" \
+            -returnCodes error -result "*: Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.1dun1un.1 "Procedure calls, UNN, two argument, one with default value, 0"  \
+            -variations {abc 123 "" {asd asdf {xx 123 34}}} \
+            -body "Procedure_Arg_2 \"%1\"" \
+            -result "Arg1:%1, Arg2:2" -output ""
+      tests tepam-proccall.nun.1dun1un.2 "Procedure calls, UNN, two argument, one with default value, 0"  \
+            -variations { Parameter2 -Parameter2 "" ?} \
+            -body "Procedure_Arg_2 Parameter1 \"%1\"" \
+            -result "Arg1:Parameter1, Arg2:%1" -output ""
+      tests tepam-proccall.nun.1dun1un.3 "Procedure calls, UNN, two argument, one with default value, 0"  \
+            -variations { Parameter2  "" ?} \
+            -body "Procedure_Arg_2 Parameter1 Parameter2 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments:*" -output "" -match glob
+      tests tepam-proccall.nun.1dun1un.4 "Procedure calls, UNN, two argument, one with default value, 0"  \
+            -variations { -Parameter2} \
+            -body "Procedure_Arg_2 Parameter1 Parameter2 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments, or incorrectly u*" -output "" -match glob
+
+   # Unnamed arguments with default value:
+
+      tepam::procedure Procedure_Arg_2a {
+         -args {
+            {Arg1 -default 1}
+            {Arg2 -default 2}
+         }
+      } {
+         return "Arg1:$Arg1, Arg2:$Arg2"
+      }
+   
+      tests tepam-proccall.nun.2dun.0 "Procedure calls, UNN, two argument with default values, 0"  \
+            -body "Procedure_Arg_2a" \
+            -result "Arg1:1, Arg2:2" -output ""
+      tests tepam-proccall.nun.2dun.1 "Procedure calls, UNN, two argument with default values, 0"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_2a \"%1\"" \
+            -result "Arg1:%1, Arg2:2" -output ""
+      tests tepam-proccall.nun.2dun.2 "Procedure calls, UNN, two argument with default values, 0"  \
+            -variations { Parameter2 -Parameter2 "" ?} \
+            -body "Procedure_Arg_2a Parameter1 \"%1\"" \
+            -result "Arg1:Parameter1, Arg2:%1" -output ""
+      tests tepam-proccall.nun.2dun.3 "Procedure calls, UNN, two argument with default values, 0"  \
+            -variations { Parameter2 "" ?} \
+            -body "Procedure_Arg_2a Parameter1 Parameter2 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments:*" -output "" -match glob
+      tests tepam-proccall.nun.2dun.4 "Procedure calls, UNN, two argument with default values, 0"  \
+            -variations { -Parameter2} \
+            -body "Procedure_Arg_2a Parameter1 Parameter2 \"%1\"" \
+            -returnCodes error -result "*: Too many unnamed arguments, or incorrectly u*" -output "" -match glob
+
+   # One named and one unnamed argument, without default values (1)
+
+      tepam::procedure Procedure_Arg_2d {
+         -args {
+            {-Arg1}
+            {Arg2}
+         }
+      } {
+         return "Arg1:$Arg1, Arg2:$Arg2"
+      }
+   
+      tests tepam-proccall.nun.1un1n.0 "Procedure calls, UNN, one unnamed and one named argument, 0"  \
+            -body "Procedure_Arg_2d" \
+            -returnCodes error -result "*Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.1un1n.1 "Procedure calls, UNN, one unnamed and one named argument, 1"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_2d \"%1\"" \
+            -returnCodes error -result "*Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.1un1n.2 "Procedure calls, UNN, one unnamed and one named argument, 2"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d  \"%1\"  \"%2\"" \
+            -returnCodes error -result "*: Too many unnamed arguments: *" -output "" -match glob
+      tests tepam-proccall.nun.1un1n.3 "Procedure calls, UNN, one unnamed and one named argument, 3"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d -Arg1 \"%1\" \"%2\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+      tests tepam-proccall.nun.1un1n.4 "Procedure calls, UNN, one unnamed and one named argument, 4"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d  -Arg1 \"%1\" -Arg2 \"%2\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+      tests tepam-proccall.nun.1un1n.5 "Procedure calls, UNN, one unnamed and one named argument, 5"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d  -Arg2 \"%2\" -Arg1 \"%1\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+
+   # One named and one unnamed argument, without default values (2)
+
+      tepam::procedure Procedure_Arg_2e {
+         -args {
+            {Arg2}
+            {-Arg1}
+         }
+      } {
+         return "Arg1:$Arg1, Arg2:$Arg2"
+      }
+   
+      tests tepam-proccall.nun.1un1n.6 "Procedure calls, UNN, one unnamed and one named argument, 6"  \
+            -body "Procedure_Arg_2d" \
+            -returnCodes error -result "*: Required argument is missing: Arg1" -output "" -match glob
+      tests tepam-proccall.nun.1un1n.7 "Procedure calls, UNN, one unnamed and one named argument, 7"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_2d \"%1\"" \
+            -returnCodes error -result "*: Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.1un1n.8 "Procedure calls, UNN, one unnamed and one named argument, 8"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d  \"%1\"  \"%2\"" \
+            -returnCodes error -result "*: Too many unnamed arguments*" -output "" -match glob
+      tests tepam-proccall.nun.1un1n.9 "Procedure calls, UNN, one unnamed and one named argument, 9"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d -Arg1 \"%1\" \"%2\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+      tests tepam-proccall.nun.1un1n.10 "Procedure calls, UNN, one unnamed and one named argument, 10"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d  -Arg1 \"%1\" -Arg2 \"%2\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+      tests tepam-proccall.nun.1un1n.11 "Procedure calls, UNN, one unnamed and one named argument, 11"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2d  -Arg2 \"%2\" -Arg1 \"%1\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+
+   # Two named arguments, without default values
+
+      tepam::procedure Procedure_Arg_2c {
+         -args {
+            {-Arg1}
+            {-Arg2}
+         }
+      } {
+         return "Arg1:$Arg1, Arg2:$Arg2"
+      }
+   
+      tests tepam-proccall.nun.2n.0 "Procedure calls, UNN, two named argument, 0"  \
+            -body "Procedure_Arg_2c" \
+            -returnCodes error -result "*Required argument is missing: Arg1*" -output "" -match glob
+      tests tepam-proccall.nun.2n.1 "Procedure calls, UNN, two named argument, 1"  \
+            -variations { abc 123 "" "{asd asdf {xx 123 34}}"} \
+            -body "Procedure_Arg_2c -Arg1 \"%1\"" \
+            -returnCodes error -result "*Required argument is missing: Arg2*" -output "" -match glob
+      tests tepam-proccall.nun.2n.2 "Procedure calls, UNN, two named argument, 2"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2c -Arg1 \"%1\" -Arg2 \"%2\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+      tests tepam-proccall.nun.2n.3 "Procedure calls, UNN, two named argument, 3"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -body "Procedure_Arg_2c -Arg2 \"%2\" -Arg1 \"%1\"" \
+            -result "Arg1:%1, Arg2:%2" -output ""
+      tests tepam-proccall.nun.2n.4 "Procedure calls, UNN, two named argument, 4"  \
+            -variations {a "" {}} \
+            -variations {b "" 123} \
+            -variations {c "" {}} \
+            -body "Procedure_Arg_2c \"%3\" -Arg1 \"%1\" -Arg2 \"%2\"" \
+            -returnCodes error -result "*: Too many unnamed arguments: *" -output "" -match glob
+
+   # Multiple arguments - One unnamed argument
+
+      tepam::procedure Procedure_Multiple_Arg3 {
+         -args {
+            {Arg -multiple}
+         }
+      } {
+         return $Arg
+      }
+
+      tests tepam-proccall.nun.1mu.0 "Procedure calls, UNN, one unnamed multiple argument, 0"  \
+               -body "Procedure_Multiple_Arg3" \
+               -returnCodes error -result "*Required argument is missing: Arg*" -output "" -match glob
+      tests tepam-proccall.nun.1mu.1 "Procedure calls, UNN, one unnamed multiple argument, 1"  \
+               -body "Procedure_Multiple_Arg3 Hello" \
+               -result "Hello" -output ""
+      tests tepam-proccall.nun.1mu.2 "Procedure calls, UNN, one unnamed multiple argument, 2"  \
+               -body "Procedure_Multiple_Arg3 {Hello world}" \
+               -result "{Hello world}" -output ""
+      tests tepam-proccall.nun.1mu.3 "Procedure calls, UNN, one unnamed multiple argument, 3"  \
+               -body "Procedure_Multiple_Arg3 {Hello my} world" \
+               -result "{Hello my} world" -output ""
+      tests tepam-proccall.nun.1mu.4 "Procedure calls, UNN, one unnamed multiple argument, 4"  \
+               -body "Procedure_Multiple_Arg3 Hello {my world}" \
+               -result "Hello {my world}" -output ""
+      tests tepam-proccall.nun.1mu.5 "Procedure calls, UNN, one unnamed multiple argument, 5"  \
+               -body "Procedure_Multiple_Arg3 {Hello my} {nice world}" \
+               -result "{Hello my} {nice world}" -output ""
+      tests tepam-proccall.nun.1mu.6 "Procedure calls, UNN, one unnamed multiple argument, 6"  \
+               -body "Procedure_Multiple_Arg3 {Hello my} {nice world,} {how are} you" \
+               -result "{Hello my} {nice world,} {how are} you" -output ""
+
+   # Multiple arguments - Two unnamed argument, both not optional
+
+      tepam::procedure Procedure_Multiple_Arg2a {
+         -args {
+            {Arg1}
+            {Arg2 -multiple}
+         }
+      } {
+         return $Arg1:$Arg2
+      }
+
+      tests tepam-proccall.nun.1mu1u.0 "Procedure calls, UNN, two unnamed argument, one is multiple, 0"  \
+               -body "Procedure_Multiple_Arg2a" \
+               -returnCodes error -result "*Required argument is missing: Arg*" -output "" -match glob
+      tests tepam-proccall.nun.1mu1u.1 "Procedure calls, UNN, two unnamed argument, one is multiple, 1"  \
+               -body "Procedure_Multiple_Arg2a Message" \
+               -returnCodes error -result "*Required argument is missing: Arg*" -output "" -match glob
+      tests tepam-proccall.nun.1mu1u.2 "Procedure calls, UNN, two unnamed argument, one is multiple, 2"  \
+               -body "Procedure_Multiple_Arg2a Message Hello" \
+               -result "Message:Hello" -output ""
+      tests tepam-proccall.nun.1mu1u.3 "Procedure calls, UNN, two unnamed argument, one is multiple, 3"  \
+               -body "Procedure_Multiple_Arg2a Message {Hello world}" \
+               -result "Message:{Hello world}" -output ""
+      tests tepam-proccall.nun.1mu1u.4 "Procedure calls, UNN, two unnamed argument, one is multiple, 4"  \
+               -body "Procedure_Multiple_Arg2a Message Hello world" \
+               -result "Message:Hello world" -output ""
+      tests tepam-proccall.nun.1mu1u.5 "Procedure calls, UNN, two unnamed argument, one is multiple, 7"  \
+               -body "Procedure_Multiple_Arg2a Message Hello {my world}" \
+               -result "Message:Hello {my world}" -output ""
+      tests tepam-proccall.nun.1mu1u.6 "Procedure calls, UNN, two unnamed argument, one is multiple, 8"  \
+               -body "Procedure_Multiple_Arg2a Message {Hello my} {nice world}" \
+               -result "Message:{Hello my} {nice world}" -output ""
+      tests tepam-proccall.nun.1mu1u.7 "Procedure calls, UNN, two unnamed argument, one is multiple, 9"  \
+               -body "Procedure_Multiple_Arg2a Message {Hello my} {nice world,} {how are} you" \
+               -result "Message:{Hello my} {nice world,} {how are} you" -output ""
+
+   # Multiple arguments - One named argument
+
+      tepam::procedure Procedure_Multiple_Arg3 {
+         -args {
+            {-Arg -multiple}
+         }
+      } {
+         return $Arg
+      }
+
+      tests tepam-proccall.nun.1mn.0 "Procedure calls, UNN, one named multiple argument, 0"  \
+               -body "Procedure_Multiple_Arg3" \
+               -returnCodes error -result "*Required argument is missing: Arg*" -output "" -match glob
+      tests tepam-proccall.nun.1mn.1 "Procedure calls, UNN, one named multiple argument, 1"  \
+               -body "Procedure_Multiple_Arg3 -Arg Hello" \
+               -result "Hello" -output ""
+      tests tepam-proccall.nun.1mn.2 "Procedure calls, UNN, one named multiple argument, 2"  \
+               -body "Procedure_Multiple_Arg3 -Arg Hello world" \
+               -returnCodes error -result "*: Too many unnamed arguments: *" -output "" -match glob
+      tests tepam-proccall.nun.1mn.3 "Procedure calls, UNN, one named multiple argument, 3"  \
+               -body "Procedure_Multiple_Arg3 -Arg {Hello world}" \
+               -result "{Hello world}" -output ""
+      tests tepam-proccall.nun.1mn.4 "Procedure calls, UNN, one named multiple argument, 4"  \
+               -body "Procedure_Multiple_Arg3 -Arg Hello -Arg world" \
+               -result "Hello world" -output ""
+      tests tepam-proccall.nun.1mn.5 "Procedure calls, UNN, one named multiple argument, 5"  \
+               -body "Procedure_Multiple_Arg3 -Arg {Hello my} -Arg world" \
+               -result "{Hello my} world" -output ""
+      tests tepam-proccall.nun.1mn.6 "Procedure calls, UNN, one named multiple argument, 6"  \
+               -body "Procedure_Multiple_Arg3 -Arg Hello -Arg {my world}" \
+               -result "Hello {my world}" -output ""
+      tests tepam-proccall.nun.1mn.7 "Procedure calls, UNN, one named multiple argument, 7"  \
+               -body "Procedure_Multiple_Arg3 -Arg {Hello my} -Arg {nice world}" \
+               -result "{Hello my} {nice world}" -output ""
+      tests tepam-proccall.nun.1mn.8 "Procedure calls, UNN, one named multiple argument, 8"  \
+               -body "Procedure_Multiple_Arg3 -Arg {Hello my} -Arg {nice world,} -Arg {how are} -Arg you" \
+               -result "{Hello my} {nice world,} {how are} you" -output ""
+
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: proc_call_arg_nun.test
+# Modifications:
+#
+# Revision 1.1  2010/02/11 21:50:55  droll
+# * TEPAM module checkin
+##########################################################################
+

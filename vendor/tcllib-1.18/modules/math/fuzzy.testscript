@@ -1,0 +1,21 @@
+# Rough tests for math::fuzzy procs
+# To do: convert to Tcltest
+
+package require math::fuzzy
+namespace import ::math::fuzzy::*
+
+puts "[teq 1.0 1.001] - expected: 0"
+puts "[teq 1.0 1.0000000000000000001] - expected: 1"
+puts "[tne 1.0 1.001] - expected: 1"
+puts "[tne 1.0 1.0000000000000000001] - expected: 0"
+puts "[tgt 1.0 1.001] - expected: 0"
+puts "[tgt 1.0 1.0000000000000000001] - expected: 0"
+
+set x 0.11
+set y [expr {(($x*11.0)-$x)-0.1}]
+set z 1.0
+puts "X: $x"
+puts "Y: $y"
+puts "Z: $z"
+puts "Floor: [tfloor $y] ([expr {floor($y)}])"
+puts "Ceil:  [tceil  $y] ([expr {ceil($y)}])"

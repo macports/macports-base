@@ -1,0 +1,209 @@
+# -*- tcl -*-
+# Graph tests - deserialize
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: deserialize.test,v 1.3 2008/10/11 23:23:48 andreas_kupries Exp $
+
+# Syntax: graph deserialize SERIALIZATION
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-deserialize-1.0 {deserialize, wrong #args, missing} {
+    SETUP
+    catch {mygraph deserialize} result
+    mygraph destroy
+    set result
+} [tmWrong deserialize serial 0]
+
+test graph-${impl}-${setimpl}-deserialize-1.1 {deserialize, wrong #args, to many} {
+    SETUP
+    catch {mygraph deserialize foo bar} result
+    mygraph destroy
+    set result
+} [tmTooMany deserialize serial]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-deserialize-2.0 {deserialize, incorrect length} {
+    SETUP
+    set serial {. %3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: list length not 1 mod 3.}}
+
+test graph-${impl}-${setimpl}-deserialize-2.1 {deserialize, attributes, graph, !dict} {
+    SETUP
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data . foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: malformed graph attribute dictionary.}}
+
+test graph-${impl}-${setimpl}-deserialize-2.2 {deserialize, attributes, node, !dict} {
+    SETUP
+    set serial {%3 {.} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: malformed node attribute dictionary.}}
+
+test graph-${impl}-${setimpl}-deserialize-2.3 {deserialize, attributes, arc, !dict} {
+    SETUP
+    set serial {%3 {} {{f 6 {.}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: malformed arc attribute dictionary.}}
+
+test graph-${impl}-${setimpl}-deserialize-2.4 {deserialize, duplicate arcs} {
+    SETUP
+    set serial {%3 {} {{a 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: duplicate definition of arc "a".}}
+
+test graph-${impl}-${setimpl}-deserialize-2.5 {deserialize, non-numeric node-reference} {
+    SETUP
+    set serial {%3 {} {{f . {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: bad arc destination reference ".".}}
+
+test graph-${impl}-${setimpl}-deserialize-2.6 {deserialize, incorrect node-reference, not 0 mod 3} {
+    SETUP
+    set serial {%3 {} {{f 2 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: bad arc destination reference "2".}}
+
+test graph-${impl}-${setimpl}-deserialize-2.7 {deserialize, out-of-range node-reference, lower bound} {
+    SETUP
+    set serial {%3 {} {{f -2 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: bad arc destination reference "-2".}}
+
+test graph-${impl}-${setimpl}-deserialize-2.8 {deserialize, out-of-range node-reference, upper bound} {
+    SETUP
+    set serial {%3 {} {{f 14 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: bad arc destination reference "14".}}
+
+test graph-${impl}-${setimpl}-deserialize-2.9 {deserialize, duplicate nodes} {
+    SETUP
+    set serial {%1 {foo bar} {{a 3 {}} {c 6 {}}} %1 {} {} %3 {} {{f 3 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: duplicate node names.}}
+
+test graph-${impl}-${setimpl}-deserialize-2.10 {deserialize, wrong arc information length, missing} {
+    SETUP
+    set serial {%3 {} {{f 6}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: arc information length not 3 or 4.}}
+
+test graph-${impl}-${setimpl}-deserialize-2.11 {deserialize, wrong arc information length, too many} {
+    SETUP
+    set serial {%3 {} {{f 6 {. .} _weight_ toomuch}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set fail [catch {mygraph deserialize $serial} result]
+    mygraph destroy
+    list $fail $result
+} {1 {error in serialization: arc information length not 3 or 4.}}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-deserialize-3.0 {deserialize, empty graph} {
+    SETUP
+    set serial {{}}
+    mygraph deserialize $serial
+    set result [validate_serial mygraph $serial]
+    mygraph destroy
+    set result
+} ok
+
+test graph-${impl}-${setimpl}-deserialize-3.1 {deserialize} {
+    SETUP
+
+    # Our check of the success of the deserialize
+    # is to validate the generated graph against the
+    # serialized data.
+
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+
+    set     result [list]
+    lappend result [validate_serial mygraph $serial]
+
+    mygraph deserialize $serial
+    lappend result [validate_serial mygraph $serial]
+
+    mygraph destroy
+    set result
+} {attr/graph/data-mismatch ok}
+
+test graph-${impl}-${setimpl}-deserialize-3.2 {deserialize} {
+    SETUP
+
+    # Our check of the success of the deserialize
+    # is to validate the generated graph against the
+    # serialized data.
+
+    # Applying to serialization one after the
+    # other. Checking that the second operation
+    # completely squashes the data from the first.
+
+    set seriala {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+    set serialb {%0 {foo bar} {{a 3 {}} {c 6 {}}} %1 {} {} %3 {} {{f 3 {}}} {data foo}}
+
+    set     result [list]
+    lappend result [validate_serial mygraph $seriala]
+    lappend result [validate_serial mygraph $serialb]
+
+    mygraph deserialize $seriala
+    lappend result [validate_serial mygraph $seriala]
+    lappend result [validate_serial mygraph $serialb]
+
+    mygraph deserialize $serialb
+    lappend result [validate_serial mygraph $seriala]
+    lappend result [validate_serial mygraph $serialb]
+
+    mygraph destroy
+    set result
+} [list \
+	attr/graph/data-mismatch attr/graph/data-mismatch \
+	ok nodes/mismatch/#nodes \
+	arc/b/unknown ok]
+
+
+test graph-${impl}-${setimpl}-deserialize-3.3 {deserialize, weights} {
+    SETUP
+
+    # Our check of the success of the deserialize
+    # is to validate the generated graph against the
+    # serialized data.
+
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {} 333} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {} 888}} %2 {} {{e 0 {}}} {data foo}}
+
+    set     result [list]
+    lappend result [validate_serial mygraph $serial]
+
+    mygraph deserialize $serial
+    lappend result [validate_serial mygraph $serial]
+
+    mygraph destroy
+    set result
+} {attr/graph/data-mismatch ok}
+
+# -------------------------------------------------------------------------

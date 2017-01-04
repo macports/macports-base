@@ -1,0 +1,541 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-10-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bench.tcl: Bumped to version 0.4 for 2008-06-30 commit by
+	* bench.man: myself. Was a major rewrite of the internals,
+	* pkgIndex.tcl: should have been bumped then.
+
+2008-06-30  Andreas Kupries  <andreask@activestate.com>
+
+	* bench.tcl (::bench::Invoke): Reworked the protocol between
+	* libbench.tcl: manager and execution system to allow for
+	  incremental returning of results and proper progress
+	  feedback. This enables users to see how a benchmark progresses,
+	  and to provide their own notes about conditions and decisions as
+	  well.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-23  Andreas Kupries  <andreask@activestate.com>
+
+	* bench.tcl: Fixed problem with the glob patterns used to query
+	* bench.man: the data array, was not matching the list quoting
+	* pkgIndex.tcl: used to generate the keys. Was fine while we had
+	  no keys with spaces in the interp reference, but with -pkgdir
+	  this is possible, and broke. Version bumped to 0.3.1. Reported
+	  by Rolf Ade.
+
+2007-08-21  Andreas Kupries  <andreask@activestate.com>
+
+	* bench.tcl (::bench::run): Extended with a new option -pkgdir
+	* bench.man: helping in the handling of multiple versions of a
+	* pkgIndex.tcl: package to benchmark, as suggested and first
+	* libbench.tcl: implemented by Rolf Ade. Moved invokation of
+	  libbench to a separate helper procedure. Extended the
+	  documentation. Version bumped to 0.3.
+
+2007-04-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bench_lang_intro.man: New files, documentation of the
+	* bench_lang_spec.man: benchmark declaration language, and
+	* bench_read.man: of the supporting packages.
+	* bench_wcsv.man:
+	* bench_wtext.man:
+
+2007-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* libbench.tcl: Added new benchmark options -ipre, -ipost. Per
+	* pkgIndex.tcl: iteration pre/post scripts, untimed. Version of
+	* bench.cl:     package 'bench' is now 0.2.
+
+2007-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bench_wcsv.tcl: Fixed sorting of descriptions in text and
+	* bench_wtext.tcl: csv output. Version is now 0.1.2.
+
+2007-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bench.tcl (bench::norm): Removed 'split ,' from code, was left
+	* pkgIndex.tcl: in wrongly after the rewrite of the raw
+	  representation. The relevant key is a list which we can and have
+	  to use directly, no split required. The fixed bug caused the
+	  normalization to fail and return the empty string for all
+	  cells. Version number bumped to 0.1.1 for this.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-06-13  Andreas Kupries <andreask@activestate.com>
+
+	* bench_read.tcl:  Rewrite the internal raw representation, use
+	* bench.tcl:       lists as array keys, easier to handle, no
+	* bench_wcsv.tcl:  splitting, and quoting is done automatically
+	* bench_wtext.tcl: by Tcl itself. See [Tcllib SF Bug 1414159].
+
+2006-05-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* bench_read.tcl: Fixed typo "-error" --> "-code error".
+
+2006-01-25  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* bench_wcsv.tcl : Fixed bug when trying to format benchs on windows.
+	* bench_wtext.tcl: The interpreter path was truncated due to a misuse of
+	split and lindex, where string first was appropriate.
+
+2005-10-27  Andreas Kupries <andreask@activestate.com>
+
+	* bench.tcl (::bench::norm): Fixed bug leaving time data in
+	  non-reference column when the reference is empty. To the unwary
+	  the result looks like factors, which have ridiculous values. Now
+	  the row is shown, but empty.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* bench.tcl (::bench::del): New command. Removal of a column from
+	  benchmark data.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* bench_read.tcl: New file. Command and package to read benchmark
+	  data in the text, csv, or raw formats.
+
+	* bench.tcl (::bench::edit): New command. Changes specified
+	  interpreter path to user specified value. Needed if we wish to
+	  merge data coming from the same interpreter, for different
+	  revisions of the package under test.
+
+2005-10-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Package derived from the original code added to Tcllib.
+
+2004-12-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/parse.bench: ensure file size is consistent between interp
+	runs with formatted BOUND string.
+
+2004-12-27  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* doc/runbench.1: fix doc for -throwerrors [Bug 1091766]
+
+	* runbench.tcl (getInterps): use exec << instead of echo [Bug 1091764]
+
+2004-12-24  Miguel Sofer <msofer@users.sf.net>
+
+	* tcl/namespace.bench: new benchmark, measures the cost of calling
+	the same global command alternating different namespaces.
+
+2004-12-20  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/array.bench (new): array hash benchmarks
+
+	* tcl/file.bench: fix checkall to operate for tclsh <=8.0
+
+	* tcl/string.bench: fix string match -nocase for tclsh <=8.2
+
+	* runbench.tcl (convertVersion): add -globtclsh -globwish file
+	path glob opts (tclsh* and wish* by default).
+	Normalize soft-links.
+
+	* normbench.tcl (normalize-text): harden time norm check
+
+2003-08-06  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* normbench.tcl (normalize): correct normalization of new-style
+	stats where TclX data is present in output.
+
+2003-02-11  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/list.bench: lsearch -regexp benchmarks
+
+	* tcl/file.bench: updated with more benchmarks
+
+2003-02-08  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/startup.bench: replaced by file benchmarks
+	* tcl/file.bench: file benchmarks
+
+2002-11-13  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/regexp.bench: added anchored re tests
+
+	* tcl/klist.bench: allow method filter from command lineinvocation.
+
+	* tcl/list.bench: add lset benchmarks
+
+	* tcl/md5.bench: correct to work with pre-8.2 interps
+
+	* tcl/string.bench: add string growth, remove split benchmarks
+	* tcl/split.bench: more split benchmarks
+
+	* runbench.tcl: allow tclsh*/wish* (no version required)
+
+2002-07-24  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/base64.bench: added the current code from tcllib.
+	
+2002-06-20  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/read.bench: modified to actually "use" the data being read
+	by setting a local variable. 
+
+2002-06-20  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/md5.bench: added the faster implementation from tcllib
+	
+2002-06-12  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/catch.bench: corrected use of string map in toplevel code
+
+	* tcl/expr.bench: corrected use of string repeat in toplevel code
+
+	* tcl/sha1.bench: correct wideint problem for 8.4 in sha1DF
+
+	* tcl/string.bench: corrected string equality checks to use
+	different variables (objects)
+
+	* tcl/gccont.bench: new benchmark that does some bioinformatics
+	manipulation on dna sequences
+
+2002-06-12  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/klist.bench:
+	* tcl/heapsort.bench: added algorithms using [lset]
+	
+2002-06-11  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/regexp.bench: made the bench access the match variables, to
+	benchmark also the read access to them.
+	* tcl/vars.bench: added a "VAR ref local" benchmark, to be able to
+	compare the access times of linked variables to those of local
+	variables. 
+
+2002-05-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/parse.bench: more complex string parsing benchmark (8.0+)
+
+	* tcl/encoding.bench: start of some encoding benchmarks (8.1+)
+
+	* tcl/expr.bench: added ==/!= expr benchmarks
+
+	* tcl/string.bench: corrected the equality benchmarks to not use
+	the same object unless specified.
+
+2002-04-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* runbench.tcl:
+	* libbench.tcl: added ability to set # threads to use if Thread
+	package can be loaded.
+	improved -result error checking
+
+	* tcl/base64.bench: verify result of encode/decode
+
+	* tcl/proc.bench: added empty proc benchmarks
+
+	* tcl/list.bench: added LIST concat benchmarks (hartweg)
+
+2002-03-27  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/catch.bench: modified the catch benchmarks to allow
+	comparison with catching non-error exceptions; added new 
+	"CATCH except" benchmark.
+
+2002-03-15  Miguel Sofer <msofer@users.sourceforge.net>
+
+	* tcl/catch.bench: added benchmark for catch in a body with many
+	nested exception ranges.
+	
+2002-02-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/loops.bench: added while 1 benchmark
+
+	* tcl/conditional.bench: added if 1/0 benchmark
+
+2002-02-07  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* runbench.tcl: noted thread option.
+
+	* libbench.tcl: added ability to check result of test
+
+	* tcl/base64.bench: stripped arg stuff out of code to make it work
+	in 8.0 as well.
+
+	* tcl/list.bench: corrected list-2.11 to append to simple var.
+
+	* tcl/map.bench: added http mapReply & simple regsubs benchmarks
+
+	* tcl/read.bench: commented out new changing buffersize benchmarks
+	as they do weird things to various interp versions.
+
+	* tcl/regexp.bench: added static regexp benchmarks
+
+	* tcl/string.bench: added string first utf benchmarks
+
+	* tcl/vars.bench: corrected namespace usage for pre-8 interps.
+
+2001-09-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/string.bench: added exact string match benchmark and fixed
+	other string match benchmarks
+
+	* tcl/list.bench: added simple list benchmark
+
+	* tcl/vars.bench: added mset benchmarks
+
+	* libbench.tcl:
+	* runbench.tcl: added support for -threads option to try and load
+	a thread package and run separate benchmark files simultaneously.
+
+2001-08-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/methods.bench:
+	* tcl/vars.bench: added some more benchmarks
+
+2001-07-18  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* tcl/read.bench: new "read" benchmarks detailing the effect of
+	  the buffersize on IO performance. Created to check out the
+	  performance patch associated with SF item #427196.
+
+2001-06-19  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/binary.bench: new "binary" benchmarks
+
+	* tcl/string.bench: more random split benchmarks
+
+2001-06-03  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* libbench.tcl: 
+	* runbench.tcl: reduced default iterations to 1000 (still quite
+	sufficient to remove random noise).
+
+2001-05-31  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/conditional.bench: added switch/if comparison bench.
+
+	* tcl/base64.bench: new benchmark with base64 code (from tcllib).
+
+	* tcl/md5.bench: new benchmark with Libes' md5 (from tcllib).
+
+	* tcl/sha1.bench: new benchmark with a couple of pure tcl sha1
+	routines (Libes and Fellows).
+
+2001-05-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doc/libbench.n:
+	* doc/runbench.1:
+	* doc/normbench.1: Added documentation of benchmark library and
+	  applications.
+
+	* doc: Added documentation directory.
+
+2001-05-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* runbench.tcl: corrected error for reporting errors in sourced files
+
+	* tcl/fcopy.bench: made use of bench_tmpfile for more accurate
+	data (not skewed by network).
+
+	* libbench.tcl (bench_tmpfile): correctly allow multiple calls to
+	bench_tmpfile within one file.
+
+	* normbench.tcl: new file that allows for post-process
+	normalization of the benchmark data.
+	Corrected last minute code checkin bug.
+	Added support for moving left (to higher versions) to normalize
+	when the requested version returned non-double data.
+
+	* tcl/libbench.tcl:
+	* tcl/runbench.tcl: changed -iterations to be a maximum number for
+	timings, to override any larger number the benchmark may set for
+	itself.
+	Rearranged result format of benchmarks to return data by benchmark
+	description.  Benchmarks are now always returned in alphabetical
+	order of the benchmark description.
+	Changed benchmarks to rerun the interpreter per benchmark file
+	instead of sourcing all files into the same interpreter.  This
+	reduces any skew related to excessive mem usage or other factors
+	that may arise for one benchmark file.
+	Changed midpoint numbers to time elapsed calculation.
+	Added -normalize option that post-processes the time information
+	to normalize against one version as a baseline.
+	Changed -errors <bool> to -throwerrors with no arg, and changed
+	the default to not throw errors in benchmark files.
+	Added version string to verbose run info.
+
+	* tcl/klist.bench: added support for <8.0 to all benchmarks except
+	shuffle0, with notably reduced default run iters due to extreme
+	slowness of <8.0 interps for these tasks.
+
+	* tcl/string.bench:
+	* tcl/regexp.bench: fixed incorrect str-repeat replacement function
+
+2001-05-18  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/string.bench: added <8.0 compatible rev-recursive benchmark,
+	fixed non-octal escape in ustring instantiation.
+
+	* tcl/wordcount.bench: added <8.1 compatible benchmarks
+
+	* tcl/methods.bench: return for interps <8.0
+
+2001-05-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcl/conditional.bench: Changed some descriptions to make them
+	  unique and matching to the code.
+
+	* tcl/fcopy.bench: New benchmarks for the [fcopy] command
+	  (unsupported0 in older versions of the core).
+
+2001-05-16  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/string.bench: added static string length benchmarks
+
+	* tcl/wordcount.in: 
+	* tcl/wordcount.bench: wordcount benchmarks
+
+	* tcl/heapsort.bench: new file with heapsort benchmark
+	* tcl/string.bench:
+	* tcl/matrix.bench:
+	* tcl/regexp.bench: extended benchmarks
+
+2001-05-11  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/string.bench: clarified string reverse benchmarks, added
+	more to the string compare benchmarks.
+
+	* tcl/matrix.bench: some new matrix benchmarks.  Basically a seed
+	file looking for more.  procs courtesy Sofer.
+
+	* tcl/list.bench: added a list-iter benchmark
+
+	* tcl/klist.bench: reduced default iters in klist.bench.  Accuracy
+	seems about the same without the wait...
+
+	* libbench.tcl: 
+	* runbench.tcl: added support for -rmatch option (regexp match of
+	benchmark description).
+	Added MIDPOINT verbose puts for interim time notes.
+
+2001-04-11  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* tcl/klist.bench: added shuffle5* from wiki.
+
+2001-03-28  Jeff Hobbs  <jeffh@activestate.com>
+
+	* tcl/string.bench: fixed str-first proc that had bogus code in it.
+	added more split benchmarks for dkf's split improvement in 8.4.
+	
+	* tk/canvas.bench: expanded item draw benchmarks
+
+2001-03-23    <jeffh@activestate.com>
+
+	* tk/canvas.bench: added simple item draw benchmarks
+
+2001-03-15    <jeffh@activestate.com>
+
+	* tcl/klist.bench: improved non-tclbench data output.
+
+	* runbench.tcl: added more error capturing.
+
+	* tcl/string.bench: fixed calls to string repeat to work with
+	<8.1.1 interps.
+
+	* tcl/klist.bench: new file to benchmark various list shuffling
+	techniques (from wiki).
+	* tcl/methods.bench: new file to benchmark various method
+	invocation speeds (petasis).
+
+2000-10-19  Jeff Hobbs  <hobbs@ajubasolutions.com>
+
+	* tcl/string.bench (str-append-2): added more append tests
+
+2000-08-30  Jeff Hobbs  <hobbs@scriptics.com>
+
+	* tcl/string.bench: made string repeat calls compatible with
+	pre-8.1.1 interpreters.
+
+	* libbench.tcl (bench_tmpfile): add env to global list
+
+2000-08-29  Eric Melski  <ericm@ajubasolutions.com>
+
+	* tcl/string.bench: Extended string append benchmarks to exploit
+	new growth algorithm for string objects in Tcl 8.4a2.
+
+2000-05-31  Jeff Hobbs  <hobbs@scriptics.com>
+
+	* runbench.tcl: new options -errors (passed to libbench), -verbose
+	(by default we are now quieter on output), -output <text|list|csv>
+	(different output types - csv is char-sep-value for Excel).
+	Added start/finish times (in -verbose mode).
+	* libbench.tcl: libbench now takes -option switches for
+	flexibility, options for -errors BOOL (error suppression), -interp
+	NAME (to specify interp), -match PATTERN (glob pattern to filter
+	tests by desc), -iters NUM (default number of iters to run).
+	Reorganized how data is returned to runbench master.
+
+	* tk/entry.bench (new):
+	* tk/canvas.bench (new): new tests for widget creation, config
+
+	* tcl/array.bench (removed):
+	* tcl/vars.bench: merged array.bench tests into VAR
+
+	* tcl/map.bench: fixed for compatability with Tcl7.4-
+
+2000-05-25  Jeff Hobbs  <hobbs@scriptics.com>
+
+	* runbench.tcl: added -match, -notcl, -notk options, restructured
+	startup sequence.
+
+	* libbench.tcl: added ability to return string values from bench
+	tests and support for filtering tests to run.
+
+	* tcl/string.bench: moved string mapping benchmarks and added more
+	string equality benchmarks
+	* tcl/map.bench: added extended string mapping benchmark
+
+	* tcl/read.bench:
+	* tcl/startup.bench:
+	* tk/startup.bench: updated code to reflect proc-oriented tmpfile
+	operations.

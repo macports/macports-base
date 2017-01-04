@@ -1,0 +1,270 @@
+/*
+ * -*- tcl -*-
+ * Parsing Expression Grammar 'TEMPLATE'.
+ * Generated for unknown, from file 'TEST'
+ */
+
+/*
+ * Declaring the parse functions
+ */
+
+<<attributes>> void <<ns>>poskleene_4 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_7 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>kleene_9 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_11 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_eos (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>notahead_15 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_18 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>poskleene_20 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>optional_23 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_25 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_ex (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_X (<<STATE>> <<state>>);
+
+/*
+ * Precomputed table of strings (symbols, error messages, etc.).
+ */
+
+static char const* <<string-table>> [22] = {
+    /*        0 = */   "alnum",
+    /*        1 = */   "alpha",
+    /*        2 = */   "ascii",
+    /*        3 = */   "control",
+    /*        4 = */   "ddigit",
+    /*        5 = */   "digit",
+    /*        6 = */   "graph",
+    /*        7 = */   "lower",
+    /*        8 = */   "print",
+    /*        9 = */   "punct",
+    /*       10 = */   "space",
+    /*       11 = */   "upper",
+    /*       12 = */   "wordchar",
+    /*       13 = */   "xdigit",
+    /*       14 = */   "n eos",
+    /*       15 = */   "eos",
+    /*       16 = */   "cl xz",
+    /*       17 = */   "n ex",
+    /*       18 = */   "ex",
+    /*       19 = */   "t x",
+    /*       20 = */   "n X",
+    /*       21 = */   "X"
+};
+
+/*
+ * Grammar Start Expression
+ */
+
+<<attributes>> void <<ns>><<main>> (<<STATE>> <<state>>) { <<prelude>>
+    <<self>> <<ns>>sym_eos (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'eos'
+ */
+
+<<attributes>> void <<ns>>sym_eos (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (ex)
+    *     *
+    *         x
+    *             +
+    *                 <space>
+    *             (ex)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 15)) return ;
+    <<self>> <<ns>>sequence_11 (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 15, 14);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_11 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (ex)
+    *     *
+    *         x
+    *             +
+    *                 <space>
+    *             (ex)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>sym_ex (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    <<self>> <<ns>>kleene_9 (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>kleene_9 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * *
+    *     x
+    *         +
+    *             <space>
+    *         (ex)
+    */
+
+    while (1) {
+        rde_param_i_state_push_2 (<<state>>);
+        <<self>> <<ns>>sequence_7 (<<state>>);
+        if (rde_param_i_kleene_close(<<state>>)) return;
+    }
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_7 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     +
+    *         <space>
+    *     (ex)
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    <<self>> <<ns>>poskleene_4 (<<state>>);
+    if (rde_param_i_seq_void2value(<<state>>)) return;
+    <<self>> <<ns>>sym_ex (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>poskleene_4 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * +
+    *     <space>
+    */
+
+    rde_param_i_loc_push (<<state>>);
+    rde_param_i_next_space (<<state>>, 10);
+    if (rde_param_i_kleene_abort(<<state>>)) return;
+    while (1) {
+        rde_param_i_state_push_2 (<<state>>);
+        rde_param_i_next_space (<<state>>, 10);
+        if (rde_param_i_kleene_close(<<state>>)) return;
+    }
+    return;
+}
+
+/*
+ * value Symbol 'ex'
+ */
+
+<<attributes>> void <<ns>>sym_ex (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     +
+    *         x
+    *             !
+    *                 (X)
+    *             [xz]
+    *     ?
+    *         (X)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 18)) return ;
+    <<self>> <<ns>>sequence_25 (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 18, 17);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_25 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     +
+    *         x
+    *             !
+    *                 (X)
+    *             [xz]
+    *     ?
+    *         (X)
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    <<self>> <<ns>>poskleene_20 (<<state>>);
+    if (rde_param_i_seq_void2value(<<state>>)) return;
+    <<self>> <<ns>>optional_23 (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>poskleene_20 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * +
+    *     x
+    *         !
+    *             (X)
+    *         [xz]
+    */
+
+    rde_param_i_loc_push (<<state>>);
+    <<self>> <<ns>>sequence_18 (<<state>>);
+    if (rde_param_i_kleene_abort(<<state>>)) return;
+    while (1) {
+        rde_param_i_state_push_2 (<<state>>);
+        <<self>> <<ns>>sequence_18 (<<state>>);
+        if (rde_param_i_kleene_close(<<state>>)) return;
+    }
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_18 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     !
+    *         (X)
+    *     [xz]
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    <<self>> <<ns>>notahead_15 (<<state>>);
+    if (rde_param_i_seq_void2void(<<state>>)) return;
+    rde_param_i_next_class (<<state>>, "xz", 16);
+    rde_param_i_state_merge_void (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>notahead_15 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * !
+    *     (X)
+    */
+
+    rde_param_i_notahead_start_d (<<state>>);
+    <<self>> <<ns>>sym_X (<<state>>);
+    rde_param_i_notahead_exit_d (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>optional_23 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * ?
+    *     (X)
+    */
+
+    rde_param_i_state_push_2 (<<state>>);
+    <<self>> <<ns>>sym_X (<<state>>);
+    rde_param_i_state_merge_ok (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'X'
+ */
+
+<<attributes>> void <<ns>>sym_X (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * 'x'
+    */
+
+    if (rde_param_i_symbol_start (<<state>>, 21)) return ;
+    rde_param_i_next_char (<<state>>, "x", 19);
+    rde_param_i_symbol_done_leaf (<<state>>, 21, 20);
+    return;
+}
+
+/*
+ */

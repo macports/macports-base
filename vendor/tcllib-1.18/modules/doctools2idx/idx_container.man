@@ -1,0 +1,296 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools::idx n 2]
+[keywords conversion]
+[keywords {docidx markup}]
+[keywords documentation]
+[keywords formatting]
+[keywords generation]
+[keywords HTML]
+[keywords index]
+[keywords json]
+[keywords {keyword index}]
+[keywords latex]
+[keywords manpage]
+[keywords markup]
+[keywords nroff]
+[keywords parsing]
+[keywords plugin]
+[keywords reference]
+[keywords {tcler's wiki}]
+[keywords text]
+[keywords TMML]
+[keywords url]
+[keywords wiki]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {Holding keyword indices}]
+[category  {Documentation tools}]
+[require doctools::idx [opt 2]]
+[require Tcl 8.4]
+[require doctools::idx::structure]
+[require snit]
+[description]
+
+This package provides a class to contain and programmatically
+manipulate keyword indices
+
+[para]
+
+This is one of the three public pillars the management of keyword
+indices resides on. The other two pillars are
+
+[list_begin enum]
+[enum] [manpage {Exporting keyword indices}], and
+[enum] [manpage {Importing keyword indices}]
+[list_end]
+
+[para]
+
+For information about the [sectref Concepts] of keyword indices, and
+their parts, see the same-named section.
+
+For information about the data structure which is used to encode
+keyword indices as values see the section
+[sectref {Keyword index serialization format}].
+
+This is the only format directly known to this class. Conversions from
+and to any other format are handled by export and import manager
+objects. These may be attached to a container, but do not have to be,
+it is merely a convenience.
+
+[section Concepts] [include include/concept.inc]
+
+[section API]
+[subsection {Package commands}]
+
+[list_begin definitions]
+
+[call [cmd ::doctools::idx] [arg objectName]]
+
+This command creates a new container object with an associated Tcl
+command whose name is [arg objectName]. This [term object] command is
+explained in full detail in the sections [sectref {Object command}]
+and [sectref {Object methods}]. The object command will be created
+under the current namespace if the [arg objectName] is not fully
+qualified, and in the specified namespace otherwise.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::doctools::idx] command have the
+following general form:
+
+[list_begin definitions]
+
+[call [cmd objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object it is invoked for.
+
+[call [arg objectName] [method {key add}] [arg name]]
+
+This method adds the keyword [arg name] to the index. If the keyword
+is already known nothing is done. The result of the method is the
+empty string.
+
+[call [arg objectName] [method {key remove}] [arg name]]
+
+This method removes the keyword [arg name] from the index. If the
+keyword is already gone nothing is done. Any references for whom this
+keyword was the last association are removed as well.  The result of
+the method is the empty string.
+
+[call [arg objectName] [method {key references}] [arg name]]
+
+This method returns a list containing the names of all references
+associated with the keyword [arg name]. An error is thrown in the
+keyword is not known to the index. The order of the references in the
+list is undefined.
+
+[call [arg objectName] [method keys]]
+
+This method returns a list containing the names of all keywords known
+to the index. The order of the keywords in the list is undefined.
+
+[call [arg objectName] [method {reference add}] [arg type] [arg key] [arg name] [arg label]]
+
+This method adds the reference [arg name] to the index and associates
+it with the keyword [arg key].
+
+The other two arguments hold the [arg type] and [arg label] of the
+reference, respectively.
+
+The type has to match the stored information, should the reference
+exist already, i.e. this information is immutable after the reference
+is known. The only way to change it is delete and recreate the
+reference.
+
+The label on the other hand is automatically updated to the value of
+the argument, overwriting any previously stored information.
+
+Should the reference exists already it is simply associated with the
+[arg key].  If that is true already as well nothing is done, but the
+[arg label] updated to the new value.  The result of the method is the
+empty string.
+
+[para]
+
+The [arg type] argument has be to one of [const manpage] or [const url].
+
+[call [arg objectName] [method {reference remove}] [arg name]]
+
+The reference [arg name] is removed from the index. All associations
+with keywords are released and the relevant reference labels removed.
+The result of the method is the empty string.
+
+[call [arg objectName] [method {reference label}] [arg name]]
+
+This method returns the label associated with the reference
+[arg name]. An error is thrown if the reference is not known.
+
+[call [arg objectName] [method {reference keys}] [arg name]]
+
+This method returns a list containing the names of all keywords
+associated with the reference [arg name]. An error is thrown in the
+reference is not known to the index. The order of the keywords in the
+list is undefined.
+
+[call [arg objectName] [method {reference type}] [arg name]]
+
+This method returns the type of the reference [arg name]. An error is
+thrown in the reference is not known to the index.
+
+[call [arg objectName] [method references]]
+
+This method returns a list containing the names of all references
+known to the index. The order of the references in the list is
+undefined.
+
+[call [arg objectName] [method title]]
+
+Returns the currently defined title of the keyword index.
+
+[call [arg objectName] [method title] [arg text]]
+
+Sets the title of the keyword index to [arg text], and returns it as
+the result of the command.
+
+[call [arg objectName] [method label]]
+
+Returns the currently defined label of the keyword index.
+
+[call [arg objectName] [method label] [arg text]]
+
+Sets the label of the keyword index to [arg text], and returns it as
+the result of the command.
+
+[call [arg objectName] [method importer]]
+
+Returns the import manager object currently attached to the container,
+if any.
+
+[call [arg objectName] [method importer] [arg object]]
+
+Attaches the [arg object] as import manager to the container, and
+returns it as the result of the command.
+
+Note that the [arg object] is [emph not] put into ownership of the
+container. I.e., destruction of the container will [emph not] destroy
+the [arg object].
+
+[para]
+
+It is expected that [arg object] provides a method named
+[method {import text}] which takes a text and a format name, and
+returns the canonical serialization of the keyword index contained in
+the text, assuming the given format.
+
+[call [arg objectName] [method exporter]]
+
+Returns the export manager object currently attached to the container,
+if any.
+
+[call [arg objectName] [method exporter] [arg object]]
+
+Attaches the [arg object] as export manager to the container, and
+returns it as the result of the command.
+
+Note that the [arg object] is [emph not] put into ownership of the
+container. I.e., destruction of the container will [emph not] destroy
+the [arg object].
+
+[para]
+
+It is expected that [arg object] provides a method named
+[method {export object}] which takes the container and a format name,
+and returns a text encoding keyword index stored in the container, in
+the given format. It is further expected that the [arg object] will
+use the container's method [method serialize] to obtain the
+serialization of the keyword index from which to generate the text.
+
+[call [arg objectName] [method {deserialize =}] [arg data] [opt [arg format]]]
+
+This method replaces the contents of the index object with the index
+contained in the [arg data]. If no [arg format] was specified it is
+assumed to be the regular serialization of a keyword index.
+
+[para]
+
+Otherwise the object will use the attached import manager to convert
+the data from the specified format to a serialization it can handle.
+
+In that case an error will be thrown if the container has no import
+manager attached to it.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method {deserialize +=}] [arg data] [opt [arg format]]]
+
+This method behaves like [method {deserialize =}] in its essentials,
+except that it merges the keyword index in the [arg data] to its
+contents instead of replacing it.
+
+The method will throw an error if merging is not possible, i.e. would
+produce an invalid index. The existing content is left unchanged in
+that case.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method serialize] [opt [arg format]]]
+
+This method returns the keyword index contained in the object. If no
+[arg format] is not specified the returned result is the canonical
+serialization of its contents.
+
+[para]
+
+Otherwise the object will use the attached export manager to convert
+the data to the specified format.
+
+In that case an error will be thrown if the container has no export
+manager attached to it.
+
+[list_end]
+
+[include include/serialization.inc]
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,47 @@
+# -*- tcl -*-
+# Graph tests - arc existence
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: exists.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc exists ARC
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-exists-1.0 {arc exists, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc exists} msg
+    mygraph destroy
+    set msg
+} [tmWrong {arc exists} arc 0]
+
+test graph-${impl}-${setimpl}-arc-exists-1.1 {arc exists, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc exists 0 1} msg
+    mygraph destroy
+    set msg
+} [tmTooMany {arc exists} arc]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-exists-2.0 {arc exists} {
+    SETUP
+    set     res {}
+    lappend res [mygraph arc exists arc1]
+
+    mygraph node insert node1 node2
+    mygraph arc  insert node1 node2 arc1
+
+    lappend res [mygraph arc exists arc1]
+
+    mygraph arc  delete arc1
+
+    lappend res [mygraph arc exists arc1]
+
+    mygraph destroy
+    set res
+} {0 1 0}
+
+# ---------------------------------------------------

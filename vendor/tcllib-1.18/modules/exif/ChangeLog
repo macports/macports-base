@@ -1,0 +1,176 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif.pcx: New file. Syntax definitions for the public commands
+	  of the exif package.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-27  Andreas Kupries <andreask@activestate.com>
+
+	* exif.test: [SF Tcllib Bug 1272798]. Using 'format' to get
+	  results with a deterministic precision.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif.test: Hooked into the new common test support code.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* exif.test: Fixed typo.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+Wed Sep 29 15:11:35 2004  Andreas Kupries <andreask@activestate.com>
+
+	* exif.tcl (makerNote): Fixed [Tcllib SF Bug 1028668]. There are
+ 	* exif.test:            images in the wild which do not provide
+	                        AFPoint information in the makerNote Exif
+				data. Test suite is new.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-09  Andreas Kupries  <andreask@activestate.com>
+
+	* exif.tcl (::exif::makerNote): Added missing logical operator to
+	  if condition for field 34. Procheck report.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* exif.tcl:
+	* exif.man:
+	* pkgIndex.tcl: Fixed bug #614591. Set version of the package to
+	  to 1.1.
+
+2003-04-01  Andreas Kupries  <andreask@activestate.com>
+
+	* exif.man:
+	* exif.tcl: Applied patch for SF tcllib bug #665737 provided by
+	  Tim J. Edwards <timje@users.sourceforge.net>. This not only
+	  fixes the bug mentioned above, but also corrects some spelling
+	  mistakes, adds support for a number of additional EXIF tags, and
+	  provides functionality to dump a thumbnail image contained in
+	  the data to a file.
+
+	  The change in the interface of 'analyze' (stream -> file) was
+	  reverted and an additional file based command provided
+	  instead. This command is a wrapper around the stream interface.
+
+	  Updated the documentation.
+
+2003-02-06  David N. Welton  <davidw@dedasys.com>
+
+	* exif.tcl (exif::makerNote): Use string match instead of regexp.
+
+2002-08-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif.tcl: Applied patch for bug report SF #530907 partially.
+
+	  Parts of the patch are accepted and applied
+	  * FlashPixVersion
+	  * Construction of FlashMode
+
+	  Not applied parts:
+	  * SubjectDistance. Patch assumes that unit is millimeter and
+	    converts to meter. Spec says that unit _is_ meter. (*). Is it
+	    possible that the specific camera of the submitter implements
+	    the standard incorrectly ?
+
+	  * ShutterSpeedValue. Instead of logical inversion (1/value
+	    seconds) I added the proper unit for frequency (Hz).
+
+	  (*) http://www.media.mit.edu/pia/Research/deepview/exif.html
+	  	0x9206 SubjectDistance  signed rational 1  Distance to focus point, unit is meter 
+
+	* exif.tcl: Applied patch SF #582828 provided by Anselm Lingnau
+	  <lingnau@users.sourceforge.net> to make the module work with
+	  Digital IXUS.
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif.man: Fixed formatting errors in the doctools manpage.
+
+2002-02-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>  
+
+	* Added module on behalf of Darren New.
+

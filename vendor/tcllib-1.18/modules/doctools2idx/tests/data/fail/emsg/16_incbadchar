@@ -1,0 +1,2 @@
+error on line 1.8: Errors in include file "@/tests/data/unexpected_char"
+"@/tests/data/unexpected_char": error on line 1.27: Bad character in string

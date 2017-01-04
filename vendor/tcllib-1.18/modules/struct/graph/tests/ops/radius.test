@@ -1,0 +1,45 @@
+# -*- tcl -*-
+# Graph ops tests - Dijkstra, distances, radius
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: radius.test,v 1.2 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::radius G ?options?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-radius-1.0 {radius, wrong args, missing} {
+    catch {struct::graph::op::radius} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::radius {g args} 0]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+set n 0
+foreach {setup radius unradius} {
+    SETUP_A 6 5
+    SETUP_B 6 4
+} {
+    test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-radius-3.$n "radius, $setup, directed" {
+	$setup
+	set result [struct::graph::op::radius mygraph -arcmode directed]
+	mygraph destroy
+	set result
+    } $radius
+
+    test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-radius-4.$n "radius, $setup, undirected" {
+	$setup
+	set result [struct::graph::op::radius mygraph -arcmode undirected]
+	mygraph destroy
+	set result
+    } $unradius
+
+    incr n
+}
+
+# ---------------------------------------------------

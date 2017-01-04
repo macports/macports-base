@@ -1,0 +1,300 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-21  Andreas Kupries  <andreask@activestate.com>
+
+	* html.man: Documentation of tableFrom{Array,List} extended per
+	  [Tcllib SF Bug 1740573] (David Scott Cargo). Disabled the
+	  documentation of 'html::title', per the same report, the command
+	  seems to be not really for users, but only for internal use.
+
+2007-06-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.man: Fixed bug [SF Bug 1740573], documentation typos,
+	  etc. Thanks to David Scott Cargo <escargo@users.sourceforge.net>
+	  for the report.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries <andreask@activestate.com>
+
+	* html.man: Bumped version to 1.4.
+	* html.tcl:
+	* pkgIndex.tcl:
+
+2006-09-12  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * html.tcl : fixed [SF Tcllib Bug 1557268], and 
+          html.test: updated the test suite.
+          
+2006-07-02  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* html.tcl : fixed [SF Tcllib Bug 1230699] and updated the tests.
+	  html.test: Removed unused variables leftover from use in tclhttpd.
+	  
+2006-06-28  Michael Schlenker <mic42@users.sourceforge.net>
+        
+	* html.tcl (::html::meta): fixed [SF Tcllib Bug 1494597] and
+	  changed tests so the test against the correct HTML 4.01 spec
+	  for <meta>.
+
+2006-06-13  Andreas Kupries <andreask@activestate.com>
+
+	* html.tcl (::html::css, ::html::js): New commands, implementing
+	  [SF Tcllib RFE 970878]. Reworked the internals to be cleaner.
+
+	* html.tcl (::html::doctype): New command, implements [SF Tcllib
+	  RFE 1494660], proposed by <robert_hicks@users.sourceforge.net>.
+	  Changed the implementation to be table-driven.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.test: Fixed use of duplicate test names.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-03  Andreas Kupries <andreask@activestate.com>
+
+	* html.tcl (::html::html_entities): Accepted the [SF Tcllib Patch
+	* html.tcl (::html::nl2br):         1294733], creating two small
+	* html.man:                         commands for the conversion of
+	* html.test:                        special characters to their
+	                                    entities, and line-endings to
+	                                    <br>. Extended documentation
+	                                    and testsuite.
+
+2005-01-19  Andreas Kupries <andreask@activestate.com>
+
+	* html.tcl (::html::font): Fixed [Tcllib SF Bug 1105010], reported
+	  by Luciano <lucianoes@users.sourceforge.net>. The parameters for
+	  the font tag were duplicated.
+	* html.test: Added tests for "html::font".
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+Wed Sep 29 12:01:34 2004  Andreas Kupries <andreask@activestate.com>
+
+	* html.man: Accepted patch provided by Michael Schlenker
+ 	  <mic42@users.sourceforge.net>, completes the documentation of
+ 	  html::checkSet. This fixes [Tcllib SF Bug 898774].
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl:
+	* html.man:
+	* html.tcl: Fixed bug #614591. Set version of the package to to
+	  1.2.2. Fixed equivalent of bug #648679.
+
+2003-02-24  David N. Welton  <davidw@dedasys.com>
+
+	* html.tcl (html::quoteFormValue): Package requires Tcl 8.2 in any
+	case, so having an implementation of this proc for older Tcl
+	versions doesn't make much sense.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.man: More semantic markup, less visual one.
+
+2002-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.tcl: Updated 'info exist' to 'info exists'.
+
+2002-06-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl:
+	* html.tcl:
+	* html.n:
+	* html.man: Bumped to version 1.2.1.
+
+2002-04-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* html.man: Added doctools manpage.
+
+2002-02-14  Joe English  <jenglish@users.sourceforge.net>
+
+	* html.n: Remove mention of (unimplemented, undocumented) 
+	  formatCode procedure (SF BUG #461434).
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.2
+
+2002-01-11  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* html.n:
+	* html.tcl: Accepted patch #484117 provided by Decoster Jos
+	  <decosterjos@users.sourceforge.net> providing two new function
+	  to generated lists and parameterized table rows.
+
+2001-10-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* html.n:
+	* html.test:
+	* html.tcl:
+	* pkgIndex.tcl: Version up to 1.1.1
+
+2001-08-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* html.tcl: added 8.1+ improved version of quoteFormValue.
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* html.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-19  Melissa Chawla <melissachawla@yahoo.com>
+
+	* modules/html/html.tcl: Added set and eval commands to this
+ 	package.  These commands have the same syntax as those built in to
+ 	Tcl, but they are reworked to return "" so they blend into HTML
+ 	template files without appending unwanted results.  The html::set
+ 	command must take two arguments.
+
+2001-06-15  Brent Welch <welch@panasas.com>
+
+	* modules/html/html.tcl: Updated the version to 1.1
+	Removed the "namespace export *" because you really do not
+	want to import these routines, especialy the new "if", "foreach", etc.
+
+2001-06-15  Melissa Chawla <melissachawla@yahoo.com>
+
+	* modules/html/html.tcl: Added if, for, foreach, and while control
+ 	structures to this package.  The control structures have the same
+ 	syntax as those built in to Tcl, but these are reworked to blend
+ 	into HTML template files.  Rather than evaluating a body clause,
+ 	we return the subst'ed body (concatenated to eachother in cases
+ 	where multiple loop bodies were subst'ed).
+
+	Fixed minor bug in textInput that caused tests to fail.
+
+2000-08-22  Dan Kuchler <kuchler@ajubasolutions.com>
+
+        * modules/html/html.tcl:
+        Removed the 'html::resolveUrl' procedure because it provided
+        the same functionality as the uri::resolve function, only
+        html::resolveUrl was undocumented and untested and as a result
+        did not seem to work as well as uri::resolve.
+
+2000-07-31  Brent Welch <welch@scriptics.com>
+
+	* modules/html/html.tcl:
+	Changed html::textInput to take "args" for additional stuff to
+	put into the <text> tag instead of "defaultValue".  The ncgi
+	module now has ncgi::setDefaultValue for that purpose.
+
+2000-07-28  Brent Welch <welch@scriptics.com>
+
+	* modules/html/html.tcl, html.n: Added html::passwordInputRow
+
+2000-07-24  Brent Welch <welch@scriptics.com>
+
+	* modules/html/html.tcl: Fixed html::closeTag to tolerate
+	bad calls - when noone has called openTag on anything
+	or when the tag stack is empty.
+
+2000-06-04  Brent Welch <welch@scriptics.com>
+
+	* modules/html/html.tcl: Added html::headTag to add any tag
+	to the HEAD section generated by html::head.
+
+2000-05-16  Brent Welch <welch@scriptics.com>
+
+	* modules/html/html.tcl: Added html::refresh to generate
+	META tags that cause a page to refresh.
+
+2000-04-26  Brent Welch <welch@scriptics.com>
+
+	* html/html.tcl:  Added urlResove and urlParent URL parsing
+	routines.
+
+2000-04-26  Brent Welch <welch@scriptics.com>
+
+	* html/html.tcl: track name changes in ncgi
+
+2000-04-24  Brent Welch  <welch@scriptics.com>
+	
+	* html/html.tcl, html.test: Cleanup of procedure names in html package.
+	* html/html.n:	Updates to the man page
+	* html/html.test: 60% through tests
+

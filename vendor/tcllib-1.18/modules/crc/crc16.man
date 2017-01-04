@@ -1,0 +1,142 @@
+[manpage_begin crc16 n 1.1.2]
+[see_also cksum(n)]
+[see_also crc32(n)]
+[see_also sum(n)]
+[keywords checksum]
+[keywords cksum]
+[keywords crc]
+[keywords crc16]
+[keywords crc32]
+[keywords {cyclic redundancy check}]
+[keywords {data integrity}]
+[keywords security]
+[copyright {2002, Pat Thoyts}]
+[moddesc   {Cyclic Redundancy Checks}]
+[titledesc {Perform a 16bit Cyclic Redundancy Check}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require crc16 [opt 1.1.2]]
+[description]
+[para]
+
+This package provides a Tcl-only implementation of the CRC
+algorithms based upon information provided at
+http://www.microconsultants.com/tips/crc/crc.txt
+
+There are a number of permutations available for calculating CRC
+checksums and this package can handle all of them. Defaults are set up
+for the most common cases.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::crc::crc16] [opt "-format [arg format]"] \
+  [opt "-seed [arg value]"] [opt "-implementation [arg procname]"] [arg message]]
+[call [cmd ::crc::crc16] [opt "-format [arg format]"] \
+  [opt "-seed [arg value]"] [opt "-implementation [arg procname]"] "-filename [arg file]"]
+[call [cmd ::crc::crc-ccitt] [opt "-format [arg format]"] \
+  [opt "-seed [arg value]"] [opt "-implementation [arg procname]"] [arg message]]
+[call [cmd ::crc::crc-ccitt] [opt "-format [arg format]"] \
+  [opt "-seed [arg value]"] [opt "-implementation [arg procname]"] "-filename [arg file]"]
+[call [cmd ::crc::xmodem] [opt "-format [arg format]"] \
+  [opt "-seed [arg value]"] [opt "-implementation [arg procname]"] [arg message]]
+[call [cmd ::crc::xmodem] [opt "-format [arg format]"] \
+  [opt "-seed [arg value]"] [opt "-implementation [arg procname]"] "-filename [arg file]"]
+
+The command takes either string data or a file name and returns a checksum
+value calculated using the CRC algorithm. The command used sets up the
+CRC polynomial, initial value and bit ordering for the desired
+standard checksum calculation. The result is formatted
+using the [arg format](n) specifier provided or as an unsigned integer
+(%u) by default.
+
+[para]
+
+A number of common polynomials are in use with the CRC algorithm and
+the most commonly used of these are included in this package. For
+convenience each of these has a command alias in the crc namespace.
+
+[para]
+
+It is possible to implement the CRC-32 checksum using this crc16
+package as the implementation is sufficiently generic to extend to 32
+bit checksums. As an example this has been done already - however this
+is not the fastest method to implement this algorithm in Tcl and a
+separate [package crc32] package is available.
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "-filename [arg name]"]
+
+Return a checksum for the file contents instead of for parameter data.
+
+[def "-format [arg string]"]
+
+Return the checksum using an alternative format template.
+
+[def "-seed [arg value]"]
+
+Select an alternative seed value for the CRC calculation. The default
+is 0 for the CRC16 calculation and 0xFFFF for the CCITT version.
+This can be useful for calculating the CRC for data
+structures without first converting the whole structure into a
+string. The CRC of the previous member can be used as the seed for
+calculating the CRC of the next member. It is also used for
+accumulating a checksum from fragments of a large message (or file)
+
+[def "-implementation [arg procname]"]
+
+This hook is provided to allow users to provide their own
+implementation (perhaps a C compiled extension). The
+procedure specfied is called with two parameters. The first is the
+data to be checksummed and the second is the seed value. An
+integer is expected as the result.
+[para]
+The package provides some implementations of standard CRC polynomials
+for the XMODEM, CCITT and the usual CRC-16 checksum. For convenience,
+additional commands have been provided that make use of these
+implementations.
+
+[def "--"]
+
+Terminate option processing.
+
+[list_end]
+
+[section EXAMPLES]
+
+[para]
+[example {
+% crc::crc16 "Hello, World!"
+64077
+}]
+
+[para]
+[example {
+% crc::crc-ccitt "Hello, World!"
+26586
+}]
+
+[para]
+[example {
+% crc::crc16 -format 0x%X "Hello, World!"
+0xFA4D
+}]
+
+[para]
+[example {
+% crc::crc16 -file crc16.tcl
+51675
+}]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY crc]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

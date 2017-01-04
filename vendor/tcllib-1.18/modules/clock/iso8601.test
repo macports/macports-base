@@ -1,0 +1,220 @@
+# -------------------------------------------------------------------------
+# iso8601.test -*- tcl -*-
+# (C) 2013 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+            [file dirname [file dirname [file join [pwd] [info script]]]] \
+            devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+testing {
+    useLocal iso8601.tcl clock::iso8601
+}
+
+# -------------------------------------------------------------------------
+
+test clock-iso8601-1.0.0 {parse_date wrong\#args} -constraints {tcl8.5plus tcl8.5minus} -body {
+    clock::iso8601 parse_date
+} -returnCodes error -result {wrong # args: should be "clock::iso8601 parse_date string ..."}
+
+test clock-iso8601-1.0.1 {parse_date wrong\#args} -constraints {tcl8.6plus} -body {
+    clock::iso8601 parse_date
+} -returnCodes error -result {wrong # args: should be "clock::iso8601 parse_date string ?arg ...?"}
+
+test clock-iso8601-1.1.0 {parse_date, bad option} -constraints {tcl8.5plus tcl8.5minus} -body {
+    clock::iso8601 parse_date 1994-11-05 -foo x
+} -returnCodes error -result {bad switch "-foo", must be -base, -format, -gmt, -locale or -timezone}
+
+test clock-iso8601-1.1.1 {parse_date, bad option} -constraints {tcl8.6plus} -body {
+    clock::iso8601 parse_date 1994-11-05 -foo x
+} -returnCodes error -result {bad option "-foo", must be -base, -format, -gmt, -locale or -timezone}
+
+# NOTE: While listed as legal, -format is NOT. This is because the
+# command simply hands off to clock scan, and we are seeing its error
+# message.  Either we do our own argument check first, or we capture
+# and rewrite the error.
+
+# -------------------------------------------------------------------------
+
+test clock-iso8601-2.0 {parse_date, bad input} -body {
+    clock::iso8601 parse_date A
+} -returnCodes error -result {not an iso8601 date string}
+
+test clock-iso8601-2.1 {parse_date} -body {
+    clock format [clock::iso8601 parse_date 1994-11-05] -format %D
+} -result 11/05/1994
+
+# -------------------------------------------------------------------------
+
+test clock-iso8601-2.0.0 {parse_date, format: 19700102, reformatted with clock format -format {%D}} -body {
+    clock format [clock::iso8601 parse_date {19700102}] -format {%D}
+} -result {01/02/1970}
+
+test clock-iso8601-2.0.1 {parse_date, format: 1970-W01-5, reformatted with clock format -format {%D}} -body {
+    clock format [clock::iso8601 parse_date {1970-W01-5}] -format {%D}
+} -result {01/02/1970}
+
+test clock-iso8601-2.1.0 {parse_date, format: 19700102, using -timezone :UTC} -body {
+    clock::iso8601 parse_date {19700102} -timezone :UTC
+} -result {86400}
+
+test clock-iso8601-2.1.1 {parse_date, format: 1970-W01-5, using -timezone :UTC} -body {
+    clock::iso8601 parse_date {1970-W01-5} -timezone :UTC
+} -result {86400}
+
+test clock-iso8601-2.2.0 {parse_date, format: 970701 (yymmdd), reformatted with clock format -format {%D}} -body {
+    clock format [clock::iso8601 parse_date {970701}] -format {%D}
+} -result {07/01/1997}
+
+test clock-iso8601-2.2.1 {parse_date, format: 1997-07, reformatted with clock format -format {%D}} -body {
+    clock format [clock::iso8601 parse_date {1997-07}] -format {%D}
+} -result {07/01/1997}
+
+test clock-iso8601-2.3.0 {parse_date, format: 970701 (yymmdd), using -timezone :UTC} -body {
+    clock::iso8601 parse_date {970701} -timezone :UTC
+} -result {867715200}
+
+test clock-iso8601-2.3.1 {parse_date, format: 1997-07, using -timezone :UTC} -body {
+    clock::iso8601 parse_date {1997-07} -timezone :UTC
+} -result {867715200}
+
+test clock-iso8601-2.4.0 {parse_date, format: 1997, reformatted with clock format -format {%D}} -body {
+    clock format [clock::iso8601 parse_date {1997}] -format {%D}
+} -result {01/01/1997}
+
+test clock-iso8601-2.4.1 {parse_date, format: 1997, reformatted with clock format -format {%D}} -body {
+    clock format [clock::iso8601 parse_date {1997}] -format {%D}
+} -result {01/01/1997}
+
+test clock-iso8601-2.5.0 {parse_date, format: 1997, using -timezone :UTC} -body {
+    clock::iso8601 parse_date {1997} -timezone :UTC
+} -result {852076800}
+
+test clock-iso8601-2.5.1 {parse_date, format: 1997-, using -timezone :UTC} -body {
+    clock::iso8601 parse_date {1997} -timezone :UTC
+} -result {852076800}
+
+# -------------------------------------------------------------------------
+
+foreach {n iso week} {
+    00 01/01/2005 2004-W53-6 	
+    01 01/02/2005 2004-W53-7
+    02 12/31/2005 2005-W52-6
+    03 01/01/2007 2007-W01-1
+    04 12/30/2007 2007-W52-7 	
+    05 12/31/2007 2008-W01-1
+    06 01/01/2008 2008-W01-2
+    07 12/28/2008 2008-W52-7
+    08 12/29/2008 2009-W01-1
+    09 12/30/2008 2009-W01-2
+    10 12/31/2008 2009-W01-3
+    11 01/01/2009 2009-W01-4
+    12 12/31/2009 2009-W53-4
+    13 01/01/2010 2009-W53-5
+    14 01/02/2010 2009-W53-6
+    15 01/03/2010 2009-W53-7
+} {
+    test clock-iso8601-2.6.$n {parse_date, format: YYYY-Www-D into %D} -body {
+        clock format [clock::iso8601 parse_date $week] -format {%D}
+    } -result $iso
+
+    test clock-iso8601-2.7.$n {parse_date, format: YYYYWwwD into %D} -body {
+        clock format [clock::iso8601 parse_date [string map {- {}} $week]] -format {%D}
+    } -result $iso
+}
+
+foreach {n iso week} {
+    00 01/01/2007 2007-W01
+    01 12/31/2007 2008-W01
+    02 12/29/2008 2009-W01
+} {
+    test clock-iso8601-2.8.$n {parse_date, format: YYYY-Www into %D} -body {
+        clock format [clock::iso8601 parse_date $week] -format {%D}
+    } -result $iso
+
+    test clock-iso8601-2.9.$n {parse_date, format: YYYYWww into %D} -body {
+        clock format [clock::iso8601 parse_date [string map {- {}} $week]] -format {%D}
+    } -result $iso
+}
+
+# -------------------------------------------------------------------------
+
+test clock-iso8601-5.0.0 {parse_time wrong\#args} -constraints {tcl8.5plus tcl8.5minus} -body {
+    clock::iso8601 parse_time
+} -returnCodes error -result {wrong # args: should be "clock::iso8601 parse_time string ..."}
+
+test clock-iso8601-5.0.1 {parse_time wrong\#args} -constraints {tcl8.6plus} -body {
+    clock::iso8601 parse_time
+} -returnCodes error -result {wrong # args: should be "clock::iso8601 parse_time string ?arg ...?"}
+
+test clock-iso8601-5.1 {parse_time, bad option} -body {
+    clock::iso8601 parse_time A -foo x
+} -returnCodes error -result {not an iso8601 time string}
+
+# -------------------------------------------------------------------------
+
+test clock-iso8601-6.0.0 {parse_time, full date time} -body {
+    clock::iso8601 parse_time 2004-W33-2T18:52:24Z
+} -result {1092163944}
+
+test clock-iso8601-6.0.1 {parse_time, full time} -body {
+    clock format [clock::iso8601 parse_time 18:52:24Z] -format {%X %z} -timezone :UTC
+} -result {18:52:24 +0000}
+
+test clock-iso8601-6.1.0 {parse_time, full date time to minute and offset as +/-hh:mm} -body {
+    clock::iso8601 parse_time 1997-07-16T19:20+01:00
+} -result {869077200}
+
+test clock-iso8601-6.1.1 {parse_time, full date time to minute and offset as +/-hhmm} -body {
+    clock::iso8601 parse_time 1997-07-16T19:20+0100
+} -result {869077200}
+
+test clock-iso8601-6.2.0 {parse_time, full date time to hour and offset as +/-hh:mm} -body {
+    clock::iso8601 parse_time 1997-07-16T19+01:00
+} -result {869076000}
+
+test clock-iso8601-6.2.1 {parse_time, full date time to hour and offset as +/-hhmm} -body {
+    clock::iso8601 parse_time 1997-07-16T19+0100
+} -result {869076000}
+
+test clock-iso8601-6.3.0 {parse_time, full date time to second and offset as +/-hh:mm} -body {
+    clock::iso8601 parse_time 1997-07-16T19:20:30+01:00
+} -result {869077230}
+
+test clock-iso8601-6.3.1 {parse_time, full date time to second and offset as +/-hhmm} -body {
+    clock::iso8601 parse_time 1997-07-16T19:20:30+0100
+} -result {869077230}
+
+test clock-iso8601-6.4.0 {parse_time, full date time to minute and offset as +/-hh:mm} -body {
+    clock::iso8601 parse_time 1997-07-16T19:20:30.45+01:00
+} -returnCodes error -result {input string does not match supplied format}
+
+test clock-iso8601-6.4.1 {parse_time, full date time to minute and offset as +/-hhmm} -body {
+    clock::iso8601 parse_time 1997-07-16T19:20:30.45+0100
+} -returnCodes error -result {input string does not match supplied format}
+
+# -------------------------------------------------------------------------
+
+test clock-iso8601-7.0 {parse_time, bad input} -body {
+    clock::iso8601 parse_time A
+} -returnCodes error -result {not an iso8601 time string}
+
+test clock-iso8601-7.1 {parse_time} -body {
+    # The difference to midnight is constant.
+    # The day part is not, and there is TZ.
+    expr {[clock::iso8601 parse_time 08:15:30] -
+          [clock::iso8601 parse_time 00:00:00]}
+} -result 29730
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

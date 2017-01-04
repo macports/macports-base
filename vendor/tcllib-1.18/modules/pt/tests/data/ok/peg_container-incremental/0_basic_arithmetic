@@ -1,0 +1,43 @@
+snit::type a_pe_grammar {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {n Expression}
+
+        $myg add   AddOp
+        $myg mode  AddOp      value
+        $myg rule  AddOp      {/ {t -} {t +}}
+
+        $myg add   Digit
+        $myg mode  Digit      value
+        $myg rule  Digit      {/ {t 0} {t 1} {t 2} {t 3} {t 4} {t 5} {t 6} {t 7} {t 8} {t 9}}
+
+        $myg add   Expression
+        $myg mode  Expression value
+        $myg rule  Expression {/ {x {t \50} {n Expression} {t \51}} {x {n Factor} {* {x {n MulOp} {n Factor}}}}}
+
+        $myg add   Factor
+        $myg mode  Factor     value
+        $myg rule  Factor     {x {n Term} {* {x {n AddOp} {n Term}}}}
+
+        $myg add   MulOp
+        $myg mode  MulOp      value
+        $myg rule  MulOp      {/ {t *} {t /}}
+
+        $myg add   Number
+        $myg mode  Number     value
+        $myg rule  Number     {x {? {n Sign}} {+ {n Digit}}}
+
+        $myg add   Sign
+        $myg mode  Sign       value
+        $myg rule  Sign       {/ {t -} {t +}}
+
+        $myg add   Term
+        $myg mode  Term       value
+        $myg rule  Term       {n Number}
+
+        return
+    }
+
+    component myg
+    delegate method * to myg
+}

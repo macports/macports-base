@@ -1,0 +1,252 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* do.test: Fixed result difference between 8.5/8.6.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* control.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* do.test: More boilerplate simplified via use of test support.
+	* no-op.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* no-op.test: Hooked into the new common test support code.
+	* do.test:
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* do.test (test do-2.3): Made the expected error stack conditional
+	  on the version of Tcl executing the testsuite. Tcl 8.5 is now
+	  generating a stack different from 8.4 or below.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* do.test: Skip test 1.14 if tcl < 8.3.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* control.man:
+	* control.tcl:
+	* pkgIndex.tcl:  Set version of the package to to 0.1.2.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* control.man: More semantic markup, less visual one.
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* control.man: Fixed formatting errors in the doctools manpage.
+
+2002-02-21  Don Porter <dgp@users.sourceforge.net>
+
+	* control.tcl:
+	* pkgIndex.tcl: Bumped to 0.1.1.
+	* rswitch.tcl:
+	* rswitch.test: removed files from HEAD branch that aren't yet
+	ready for release.
+	* tclIndex: ran genIndex
+
+2002-02-21  Reinhard Max  <max@suse.de>
+
+	* do.test: Updated do-2.3 to reflect the change of the standard
+	"wrong # args:..." message for Tcl 8.4. (Bug #517595)
+	
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* assert.tcl: 
+	* do.tcl: Frink run
+
+2002-01-29  Reinhard Max  <max@suse.de>
+
+	* do.test: Changed the performance comparison part at the end to
+	  be skipped during "make test".
+	
+	* RELEASE 0.1: bundled with tcllib 1.2
+
+2002-01-18  Don Porter <dgp@users.sourceforge.net>
+
+	* Bumped back to 0.1, which has never been released yet.
+
+2002-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 0.2
+
+2002-01-18  Reinhard Max  <max@suse.de>
+
+	* do.tcl: 
+	* do.test:
+	* control.n: Extended [control::do] to allow ommitting the 2nd and
+	3rd argument. Added tests and changed the manpage to reflect this.
+
+2001-11-30  Don Porter <dgp@users.sourceforge.net>
+
+	* control.n: Changed format to match precedent in Tcl's memory.n.
+
+2001-11-27  Don Porter <dgp@users.sourceforge.net>
+
+	* control.n: Added [control::do] to SYNOPSIS.
+
+2001-11-09  Don Porter <dgp@users.sourceforge.net>
+
+	* control.n: Some revisions to [control::do] documentation,
+	and added LIMITATIONS section where the [return -code] limitation
+	is explained.  Corrections to *roff markup.
+
+2001-11-08  Don Porter <dgp@users.sourceforge.net>
+
+	* ascaller.tcl (ErrorInfoAsCaller): new utility proc that provides
+	only ::errorInfo management, leaving return code matters to the caller.
+	* do.tcl: At the prompting of Reinhard Max, replaced use of the
+	[BodyAsCaller] and [CommandAsCaller] routines with the simpler
+	[ErrorInfoAsCaller] with big performance improvement.
+	* do.test: New tests from Reinhard Max for testing ::errorInfo.
+	* tclIndex: generated
+
+2001-11-07  Don Porter <dgp@users.sourceforge.net>
+
+	* do.tcl: updated to use [BodyAsCaller] and [CommandAsCaller]
+	so that proper ::errorInfo management is achieved.
+
+	* rswitch.tcl:
+	* ascaller.tcl (new-file): factored out utility procs from
+	rswitch.tcl so they can be used by other conotrol commands.
+	* tclIndex: generated
+
+	* rswitch.test: corrected syntax error [Bug 478989]
+
+2001-11-07  Reinhard Max  <max@suse.de>
+
+	* do.tcl: 
+	* do.test: New files: define and test [control::do].
+	* control.tcl:
+	* control.n: Added support and documentation for [control::do].
+	* tclIndex: Generated.
+
+2001-11-03  Don Porter <dgp@users.sourceforge.net>
+
+	* rswitch.tcl: Replaced bogus copyright notice with public
+	domain boilerplate.
+	* rswitch.test: Added tests and test source material.
+
+	* pkgIndex.tcl:
+	* control.tcl: Addition of rswitch means bump 0.0 -> 0.1.
+	
+	* genIndex (new file):
+	* index.tcl (deleted file): renamed index.tcl -> genIndex so
+	it won't be mistakenly installed anymore.  Purpose of genIndex
+	is to regenerate the tclIndex file.  [Bug 475846]
+	* tclIndex: Generated.
+
+2001-11-03  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* rswitch.tcl: checked in Don's usenet posted implementation
+	* rswitch.test: some tests for the rswitch.tcl command.
+
+RELEASE 0: bundled with tcllib 1.1
+
+2001-08-21  Don Porter <dgp@users.sourceforge.net>
+
+	* control.tcl:
+	* control.n: Added and documented new commands [control::control]
+	and [control::assert].
+	* pkgIndex.tcl: Updated to reflect Tcl 8.2 dependence.
+	* tclIndex: Generated
+
+	* assert.tcl: New file: implements [control::assert].
+
+2001-08-21  Don Porter <dgp@users.sourceforge.net>
+
+	* index.tcl: New file: Utility script for generating tclIndex.
+	* tclIndex: Generated.
+
+        * no-op.tcl:
+	* no-op.test: New files: Define and test [control::no-op].
+
+        * control.tcl:
+	* control.n:
+	* pkgIndex.tcl:
+	* ChangeLog: New files: Main provide script, documentation, and
+	hand-crafted index script of new control package.
+

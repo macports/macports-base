@@ -1,0 +1,131 @@
+[vset CKSUM_VERSION 1.1.4]
+[manpage_begin cksum n [vset CKSUM_VERSION]]
+[see_also crc32(n)]
+[see_also sum(n)]
+[keywords checksum]
+[keywords cksum]
+[keywords crc]
+[keywords crc32]
+[keywords {cyclic redundancy check}]
+[keywords {data integrity}]
+[keywords security]
+[copyright {2002, Pat Thoyts}]
+[moddesc   {Cyclic Redundancy Checks}]
+[titledesc {Calculate a cksum(1) compatible checksum}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require cksum [opt [vset CKSUM_VERSION]]]
+[description]
+[para]
+
+This package provides a Tcl implementation of the cksum(1) algorithm
+based upon information provided at in the GNU implementation of this
+program as part of the GNU Textutils 2.0 package.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd "::crc::cksum"] \
+        [opt [arg "-format format"]] \
+        [opt [arg "-chunksize size"]] \
+        [lb] [arg "-channel chan"] | \
+        [arg "-filename file"] | [arg "string" ] [rb]]
+
+The command takes string data or a channel or file name and returns a
+checksum value calculated using the [syscmd cksum(1)] algorithm. The
+result is formatted using the [arg format](n) specifier provided or as
+an unsigned integer (%u) by default.
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "-channel [arg name]"]
+
+Return a checksum for the data read from a channel. The command will
+read data from the channel until the [cmd "eof"] is true. If you need
+to be able to process events during this calculation see the
+[sectref {PROGRAMMING INTERFACE}] section
+
+[def "-filename [arg name]"]
+
+This is a convenience option that opens the specified file, sets the
+encoding to binary and then acts as if the [arg -channel] option had
+been used. The file is closed on completion.
+
+[def "-format [arg string]"]
+
+Return the checksum using an alternative format template.
+
+[list_end]
+
+[section {PROGRAMMING INTERFACE}]
+
+The cksum package implements the checksum using a context variable to
+which additional data can be added at any time. This is expecially
+useful in an event based environment such as a Tk application or a web
+server package. Data to be checksummed may be handled incrementally
+during a [cmd fileevent] handler in discrete chunks. This can improve
+the interactive nature of a GUI application and can help to avoid
+excessive memory consumption.
+
+[list_begin definitions]
+
+[call [cmd "::crc::CksumInit"]]
+
+Begins a new cksum context. Returns a token ID that must be used for the
+remaining functions. An optional seed may be specified if required.
+
+[call [cmd "::crc::CksumUpdate"] [arg "token"] [arg "data"]]
+
+Add data to the checksum identified by token. Calling
+[emph {CksumUpdate $token "abcd"}] is equivalent to calling
+[emph {CksumUpdate $token "ab"}] followed by
+[emph {CksumUpdate $token "cb"}]. See [sectref {EXAMPLES}].
+
+[call [cmd "::crc::CksumFinal"] [arg "token"]]
+
+Returns the checksum value and releases any resources held by this
+token. Once this command completes the token will be invalid. The
+result is a 32 bit integer value.
+
+[list_end]
+
+[section EXAMPLES]
+
+[para]
+[example {
+% crc::cksum "Hello, World!"
+2609532967
+}]
+
+[para]
+[example {
+% crc::cksum -format 0x%X "Hello, World!"
+0x9B8A5027
+}]
+
+[para]
+[example {
+% crc::cksum -file cksum.tcl
+1828321145
+}]
+
+[para]
+[example {
+% set tok [crc::CksumInit]
+% crc::CksumUpdate $tok "Hello, "
+% crc::CksumUpdate $tok "World!"
+% crc::CksumFinal $tok
+2609532967
+}]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY crc]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

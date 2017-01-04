@@ -1,0 +1,669 @@
+[vset VERSION 1.1]
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::rde n [vset VERSION]]
+[include include/module.inc]
+[titledesc {Parsing Runtime Support, PARAM based}]
+[require pt::rde [opt [vset VERSION]]]
+[require snit]
+[require struct::stack 1.5]
+[require pt::ast 1.1]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a class whose instances provide the runtime
+support for recursive descent parsers with backtracking, as is needed
+for the execution of, for example, parsing expression grammars. It
+implements the [manpage {PackRat Machine Specification}], as such that
+document is [emph required] reading to understand both this manpage,
+and the package itself. The description below does make numerous
+shorthand references to the PARAM's instructions and the various parts
+of its architectural state.
+
+[para]
+
+The package resides in the Execution section of the Core Layer of
+Parser Tools.
+[para][image arch_core_transform][para]
+
+[para]
+
+Note: This package not only has the standard Tcl implementation, but
+also an accelerator, i.e. a C implementation, based on Critcl.
+
+[para]
+
+[subsection {Class API}]
+
+The package exports the API described here.
+
+[list_begin definitions]
+
+[call [cmd ::pt::rde] [arg objectName]]
+
+The command creates a new runtime object for a recursive descent
+parser with backtracking and returns the fully qualified name of the
+object command as its result. The API of this object command is
+described in the section [sectref {Object API}]. It may be used to
+invoke various operations on the object.
+
+[list_end]
+
+[subsection {Object API}]
+
+All objects created by this package provide the following 63 methods
+for the manipulation and querying of their state, which is, in essence
+the architectural state of a PARAM.
+
+[para]
+
+First some general methods and the state accessors.
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object, releasing all claimed memory, and
+deleting the associated object command.
+
+[call [arg objectName] [method reset] [arg chan]]
+
+This method resets the state of the runtme to its defaults, preparing
+it for the parsing of the character in the channel [arg chan], which
+becomes IN.
+
+[include include/channel_notes.inc]
+
+[call [arg objectName] [method complete]]
+
+This method completes parsing, either returning the AST made from the
+elements of ARS, or throwing an error containing the current ER.
+
+[call [arg objectName] [method chan]]
+
+This method returns the handle of the channel which is IN.
+
+[call [arg objectName] [method line]]
+
+This method returns the line number for the position IN is currently
+at. Note that this may not match with the line number for CL, due to
+backtracking.
+
+[call [arg objectName] [method column]]
+
+This method returns the column for the position IN is currently
+at. Note that this may not match with the column for CL, due to
+backtracking.
+
+[call [arg objectName] [method current]]
+
+This method returns CC.
+
+[call [arg objectName] [method location]]
+
+This method returns CL.
+
+[call [arg objectName] [method locations]]
+
+This method returns the LS. The topmost entry of the stack will be the
+first element of the returned list.
+
+[call [arg objectName] [method ok]]
+
+This method returns ST.
+
+[call [arg objectName] [method value]]
+
+This method returns SV.
+
+[call [arg objectName] [method error]]
+
+This method returns ER. This is either the empty string for an empty
+ER, or a list of 2 elements, the location the error is for, and a set
+of messages which specify which symbols were expected at the
+location. The messages are encoded as one of the possible atomic
+parsing expressions (special operators, terminal, range, and
+nonterminal operator).
+
+[call [arg objectName] [method errors]]
+
+This method returns ES. The topmost entry of the stack will be the
+first element of the returned list. Each entry is encoded as described
+for [method error].
+
+[call [arg objectName] [method tokens] [opt "[arg from] [opt [arg to]]"]]
+
+This method returns the part of TC for the range of locations of IN
+starting at [arg from] and ending at [arg to]. If [arg to] is not
+specified it is taken as identical to [arg from]. If neither argument
+is specified the whole of TC is returned.
+
+[para]
+
+Each token in the returned list is a list of three elements itself,
+containing the character at the location, and the associated line and
+column numbers, in this order.
+
+[call [arg objectName] [method symbols]]
+
+This method returns a dictionary containing NC. Keys are two-element
+lists containing nonterminal symbol and location, in this order. The
+values are 4-tuples containing CL, ST, ER, and SV, in this order. ER
+is encoded as specified for the method [method error].
+
+[call [arg objectName] [method known]]
+
+This method returns a list containing the keys of SC. They are
+encoded in the same manner as is done by method [method symbols].
+
+[call [arg objectName] [method reducible]]
+
+This method returns ARS. The topmost entry of the stack will be the
+first element of the returned list
+
+[call [arg objectName] [method asts]]
+
+This method returns AS. The topmost entry of the stack will be the
+first element of the returned list
+
+[call [arg objectName] [method ast]]
+
+This is a convenience method returning the topmost element of ARS.
+
+[call [arg objectName] [method position] [arg loc]]
+
+This method returns the line and column numbers for the specified
+location of IN, assuming that this location has already been reached
+during the parsing process.
+
+[list_end]
+
+The following methods implement all PARAM instructions. They all have
+the prefix "i_".
+
+[para]
+
+The control flow is mainly provided by Tcl's builtin commands, like
+[cmd if], [cmd while], etc., plus a few guarded variants of PARAM
+instructions and Tcl commands.. That means that these instruction
+variants will do nothing if their guard condition is not
+fulfilled. They can be recognized by the prefix "i:ok_" and "i:fail_",
+which denote the value ST has to have for the instruction to execute.
+
+[para]
+
+The instructions are listed in the same order they occur in the
+[manpage {PackRat Machine Specification}], with the guard variants
+listed after their regular implementation, if any, or in their place.
+
+[list_begin definitions]
+
+[vset INS input_next][vset IA0 msg][include include/rde_1ins.inc]
+
+[vset INS test_alnum][include include/rde_0ins.inc]
+[vset INS test_alpha][include include/rde_0ins.inc]
+[vset INS test_ascii][include include/rde_0ins.inc]
+[vset INS test_char][vset IA0 char][include include/rde_1ins.inc]
+[vset INS test_ddigit][include include/rde_0ins.inc]
+[vset INS test_digit][include include/rde_0ins.inc]
+[vset INS test_graph][include include/rde_0ins.inc]
+[vset INS test_lower][include include/rde_0ins.inc]
+[vset INS test_print][include include/rde_0ins.inc]
+[vset INS test_punct][include include/rde_0ins.inc]
+[vset INS test_range][vset IA0 chars][vset IA1 chare][include include/rde_2ins.inc]
+[vset INS test_space][include include/rde_0ins.inc]
+[vset INS test_upper][include include/rde_0ins.inc]
+[vset INS test_wordchar][include include/rde_0ins.inc]
+[vset INS test_xdigit][include include/rde_0ins.inc]
+
+[vset INS error_clear][include include/rde_0ins.inc]
+[vset INS error_push][include include/rde_0ins.inc]
+[vset INS error_pop_merge][include include/rde_0ins.inc]
+[vset INS error_nonterminal][vset IA0 symbol][include include/rde_1ins.inc]
+
+[vset INS status_ok][include include/rde_0ins.inc]
+[vset INS status_fail][include include/rde_0ins.inc]
+[vset INS status_negate][include include/rde_0ins.inc]
+
+[vset INS loc_push][include include/rde_0ins.inc]
+[vset INS loc_pop_discard][include include/rde_0ins.inc]
+[vset INS loc_pop_rewind][include include/rde_0ins.inc]
+[vset G ok][vset INS loc_pop_rewind][include include/rde_0gins.inc]
+[vset IFAIL loc_pop_rewind]
+[vset IOK   loc_pop_discard]
+[vset IOKX  discard][include include/rde_0cins.inc]
+
+[vset INS symbol_restore][vset IA0 symbol][include include/rde_1ins.inc]
+
+[para] The boolean result of the check is returned as the result of
+the method and can be used with standard Tcl control flow commands.
+
+[vset INS symbol_save][vset IA0 symbol][include include/rde_1ins.inc]
+
+[vset INS value_clear][include include/rde_0ins.inc]
+[vset IFAIL value_clear]
+[vset IOK   value_leaf]
+[vset IOKX  leaf][include include/rde_0cins.inc]
+[vset IFAIL value_clear]
+[vset IOK   value_reduce]
+[vset IOKX  reduce][include include/rde_0cins.inc]
+
+[vset G ok][vset INS ast_value_push][include include/rde_0ginsb.inc]
+[vset INS ast_push][include include/rde_0ins.inc]
+[vset INS ast_pop_rewind][include include/rde_0ins.inc]
+[vset G fail][vset INS ast_pop_rewind][include include/rde_0gins.inc]
+[vset IFAIL ast_pop_rewind]
+[vset IOK   ast_pop_discard]
+[vset IOKX  discard][include include/rde_0cins.inc]
+[vset INS ast_pop_discard][include include/rde_0ins.inc]
+[vset IFAIL ast_pop_discard]
+[vset IOK   ast_pop_rewind]
+[vset IOKX  rewind][include include/rde_0cins.inc]
+
+[call [arg objectName] [method i:ok_continue]]
+
+This guarded method executes only for "ST == ok". Then it aborts the
+current iteration of the innermost loop in the calling Tcl procedure.
+
+[call [arg objectName] [method i:fail_continue]]
+
+This guarded method executes only for "ST == fail". Then it aborts the
+current iteration of the innermost loop in the calling Tcl procedure.
+
+[call [arg objectName] [method i:fail_return]]
+
+This guarded method executes only for "ST == fail". Then it aborts the
+calling Tcl procedure.
+
+[call [arg objectName] [method i:ok_return]]
+
+This guarded method executes only for "ST == ok". Then it aborts the
+calling Tcl procedure.
+
+[list_end]
+[para]
+
+The next set of methods are [term {super instructions}], meaning that
+each implements a longer sequence of instructions commonly used in
+parsers. The combinated instructions of the previous set, i.e. those
+with names matching the pattern "i_*/*", are actually super
+instructions as well, albeit with limited scope, handling 2
+instructions with their control flow. The upcoming set is much broader
+in scope, folding as much as six or more PARAM instructions into a
+single method call.
+
+[para]
+
+In this we can see the reasoning behind their use well:
+
+[list_begin enumerated]
+[enum]
+By using less instructions the generated parsers become smaller, as
+the common parts are now truly part of the common runtime, and not
+explicitly written in the parser's code over and over again.
+
+[enum]
+Using less instructions additionally reduces the overhead associated
+with calls into the runtime, i.e. the cost of method dispatch and of
+setting up the variable context.
+
+[enum]
+Another effect of the super instructions is that their internals can
+be optimized as well, especially regarding control flow, and stack
+use, as the runtime internals are accessible to all instructions
+folded into the sequence.
+[list_end]
+
+[para]
+
+[list_begin definitions]
+[call [arg objectName] [method si:void_state_push]]
+
+This method combines [example {
+i_loc_push
+i_error_clear
+i_error_push
+}]
+
+Parsers use it at the beginning of [term void] sequences and choices
+with a [term void] initial branch.
+
+[call [arg objectName] [method si:void2_state_push]]
+
+This method combines [example {
+i_loc_push
+i_error_clear
+i_error_push
+}]
+
+Parsers use it at the beginning of optional and repeated expressions.
+
+[call [arg objectName] [method si:value_state_push]]
+
+This method combines [example {
+i_ast_push
+i_loc_push
+i_error_clear
+i_error_push
+}]
+
+Parsers use it at the beginning of sequences generating an AST and
+choices with an initial branch generating an AST.
+
+[call [arg objectName] [method si:void_state_merge]]
+
+This method combines [example {
+i_error_pop_merge
+i_loc_pop_rewind/discard
+}]
+
+Parsers use it at the end of void sequences and choices whose last
+branch is void.
+
+[call [arg objectName] [method si:void_state_merge_ok]]
+
+This method combines [example {
+i_error_pop_merge
+i_loc_pop_rewind/discard
+i_status_ok
+}]
+
+Parsers use it at the end of optional expressions
+
+[call [arg objectName] [method si:value_state_merge]]
+
+This method combines [example {
+i_error_pop_merge
+i_ast_pop_rewind/discard
+i_loc_pop_rewind/discard
+}]
+
+Parsers use it at the end of sequences generating ASTs and choices
+whose last branch generates an AST
+
+[call [arg objectName] [method si:value_notahead_start]]
+
+This method combines [example {
+i_loc_push
+i_ast_push
+}]
+
+Parsers use it at the beginning of negative lookahead predicates which
+generate ASTs.
+
+[call [arg objectName] [method si:void_notahead_exit]]
+
+This method combines [example {
+i_loc_pop_rewind
+i_status_negate
+}]
+
+Parsers use it at the end of void negative lookahead predicates.
+
+[call [arg objectName] [method si:value_notahead_exit]]
+
+This method combines [example {
+i_ast_pop_discard/rewind
+i_loc_pop_rewind
+i_status_negate
+}]
+
+Parsers use it at the end of negative lookahead predicates which
+generate ASTs.
+
+[call [arg objectName] [method si:kleene_abort]]
+
+This method combines [example {
+i_loc_pop_rewind/discard
+i:fail_return
+}]
+
+Parsers use it to stop a positive repetition when its first, required, expression fails.
+
+[call [arg objectName] [method si:kleene_close]]
+
+This method combines [example {
+i_error_pop_merge
+i_loc_pop_rewind/discard
+i:fail_status_ok
+i:fail_return
+}]
+
+Parsers use it at the end of repetitions.
+
+[call [arg objectName] [method si:voidvoid_branch]]
+
+This method combines [example {
+i_error_pop_merge
+i:ok_loc_pop_discard
+i:ok_return
+i_loc_rewind
+i_error_push
+}]
+
+Parsers use it when transiting between branches of a choice when both are void.
+
+[call [arg objectName] [method si:voidvalue_branch]]
+
+This method combines [example {
+i_error_pop_merge
+i:ok_loc_pop_discard
+i:ok_return
+i_ast_push
+i_loc_rewind
+i_error_push
+}]
+
+Parsers use it when transiting between branches of a choice when the
+failing branch is void, and the next to test generates an AST.
+
+[call [arg objectName] [method si:valuevoid_branch]]
+
+This method combines [example {
+i_error_pop_merge
+i_ast_pop_rewind/discard
+i:ok_loc_pop_discard
+i:ok_return
+i_loc_rewind
+i_error_push
+}]
+
+Parsers use it when transiting between branches of a choice when the
+failing branch generates an AST, and the next to test is void.
+
+[call [arg objectName] [method si:valuevalue_branch]]
+
+This method combines [example {
+i_error_pop_merge
+i_ast_pop_discard
+i:ok_loc_pop_discard
+i:ok_return
+i_ast_rewind
+i_loc_rewind
+i_error_push
+}]
+
+Parsers use it when transiting between branches of a choice when both
+generate ASTs.
+
+[call [arg objectName] [method si:voidvoid_part]]
+
+This method combines [example {
+i_error_pop_merge
+i:fail_loc_pop_rewind
+i:fail_return
+i_error_push
+}]
+
+Parsers use it when transiting between parts of a sequence and both
+are void.
+
+[call [arg objectName] [method si:voidvalue_part]]
+
+This method combines [example {
+i_error_pop_merge
+i:fail_loc_pop_rewind
+i:fail_return
+i_ast_push
+i_error_push
+}]
+
+Parsers use it when transiting between parts of a sequence and the
+sucessfully matched part is void, and after it an AST is generated.
+
+[call [arg objectName] [method si:valuevalue_part]]
+
+This method combines [example {
+i_error_pop_merge
+i:fail_ast_pop_rewind
+i:fail_loc_pop_rewind
+i:fail_return
+i_error_push
+}]
+
+Parsers use it when transiting between parts of a sequence and both
+parts generate ASTs.
+
+[call [arg objectName] [method si:value_symbol_start] [arg symbol]]
+
+This method combines [example {
+if/found? i_symbol_restore $symbol
+i:found:ok_ast_value_push
+i:found_return
+i_loc_push
+i_ast_push
+}]
+
+Parsers use it at the beginning of a nonterminal symbol generating an
+AST, whose right-hand side may have generated an AST as well.
+
+[call [arg objectName] [method si:value_void_symbol_start] [arg symbol]]
+
+This method combines [example {
+if/found? i_symbol_restore $symbol
+i:found:ok_ast_value_push
+i:found_return
+i_loc_push
+i_ast_push
+}]
+
+Parsers use it at the beginning of a void nonterminal symbol whose
+right-hand side may generate an AST.
+
+[call [arg objectName] [method si:void_symbol_start] [arg symbol]]
+
+This method combines [example {
+if/found? i_symbol_restore $symbol
+i:found_return
+i_loc_push
+i_ast_push
+}]
+
+Parsers use it at the beginning of a nonterminal symbol generating an
+AST whose right-hand side is void.
+
+[call [arg objectName] [method si:void_void_symbol_start] [arg symbol]]
+
+This method combines [example {
+if/found? i_symbol_restore $symbol
+i:found_return
+i_loc_push
+}]
+
+Parsers use it at  the beginning of a void nonterminal symbol whose
+right-hand side is void as well.
+
+[call [arg objectName] [method si:reduce_symbol_end] [arg symbol]]
+
+This method combines [example {
+i_value_clear/reduce $symbol
+i_symbol_save        $symbol
+i_error_nonterminal  $symbol
+i_ast_pop_rewind
+i_loc_pop_discard
+i:ok_ast_value_push
+}]
+
+Parsers use it at the end of a non-terminal symbol generating an AST
+using the AST generated by the right-hand side as child.
+
+[call [arg objectName] [method si:void_leaf_symbol_end] [arg symbol]]
+
+This method combines [example {
+i_value_clear/leaf  $symbol
+i_symbol_save       $symbol
+i_error_nonterminal $symbol
+i_loc_pop_discard
+i:ok_ast_value_push
+}]
+
+Parsers use it at the end of a non-terminal symbol generating an AST
+whose right-hand side is void.
+
+[call [arg objectName] [method si:value_leaf_symbol_end] [arg symbol]]
+
+This method combines [example {
+i_value_clear/leaf  $symbol
+i_symbol_save       $symbol
+i_error_nonterminal $symbol
+i_loc_pop_discard
+i_ast_pop_rewind
+i:ok_ast_value_push
+}]
+
+Parsers use it at the end of a non-terminal symbol generating an AST
+discarding the AST generated by the right-hand side.
+
+[call [arg objectName] [method si:value_clear_symbol_end] [arg symbol]]
+
+This method combines [example {
+i_value_clear
+i_symbol_save       $symbol
+i_error_nonterminal $symbol
+i_loc_pop_discard
+i_ast_pop_rewind
+}]
+
+Parsers use it at the end of a void non-terminal symbol, discarding
+the AST generated by the right-hand side.
+
+[call [arg objectName] [method si:void_clear_symbol_end] [arg symbol]]
+
+This method combines [example {
+i_value_clear
+i_symbol_save       $symbol
+i_error_nonterminal $symbol
+i_loc_pop_discard
+}]
+
+Parsers use it at the end of a void non-terminal symbol with a void
+right-hand side.
+
+[call [arg objectName] [method si:next_char] [arg tok]]
+[call [arg objectName] [method si:next_range] [arg toks] [arg toke]]
+[call [arg objectName] [method si:next_alnum]]
+[call [arg objectName] [method si:next_alpha]]
+[call [arg objectName] [method si:next_ascii]]
+[call [arg objectName] [method si:next_ddigit]]
+[call [arg objectName] [method si:next_digit]]
+[call [arg objectName] [method si:next_graph]]
+[call [arg objectName] [method si:next_lower]]
+[call [arg objectName] [method si:next_print]]
+[call [arg objectName] [method si:next_punct]]
+[call [arg objectName] [method si:next_space]]
+[call [arg objectName] [method si:next_upper]]
+[call [arg objectName] [method si:next_wordchar]]
+[call [arg objectName] [method si:next_xdigit]]
+
+These methods all combine [example {
+i_input_next $msg
+i:fail_return
+}]
+
+with the appropriate [cmd i_test_xxx] instruction. Parsers use them for
+handling atomic expressions.
+
+[list_end]
+[para]
+
+[include include/feedback.inc]
+[manpage_end]

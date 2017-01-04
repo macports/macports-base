@@ -1,0 +1,209 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-05-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4c.tcl: Fixed a leak in the critcl implemented due to
+	mismanaged reference counting.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-04-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl:      Clean up variables after intialization.
+	* pkgIndex.tcl: Bumped to 1.0.5
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md4.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* md4.man: Bumped version to 1.0.4
+	* md4.tcl:
+	* pkgIndex.tcl:
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md4.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md4.test: Hooked into the new common test support code.
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* md4.bench: New file. Basic benchmarks for MD4 hashes.
+
+2005-10-17  Andreas Kupries <andreask@activestate.com>
+
+	* md4.tcl: Trivial comment typo fix.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4c.tcl:     Fix to permit compilation with msvc
+	* md4.h:        
+
+2005-02-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl:      Arranged to run all available implementations in
+	* md4.test:     the tests.
+
+2005-02-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* pkgIndex.tcl: Incremented version to 1.0.3
+	* md4.tcl:      Rationalized the accelerator package handling.
+	* md4.test:     Added cryptkit as a potential accelerator.
+	* md4.man:      Added mention of the accelerators.
+
+2005-02-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl:      Fixed the tests to use both critcl and pure-Tcl
+	* md4.test:     if the critcl version is available.
+	
+	* md4.tcl:      Made hashing cope with data that begins with a 
+	* md4.test:     hyphen and made the '--' end-of-options marker
+	* md4.man:      optional. Incremented version.
+	* pkgIndex.tcl:  
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md4.tcl: Updated version number to sync with 1.6.1
+	* md4.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md4.tcl: Rel. engineering. Updated version number 
+	* md4.man: of md4 to reflect its changes, to 1.0.2.
+	* pkgIndex.tcl:
+
+2004-02-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl: Streamlined the rotate-left function and fixed a rare
+	  bug that occurs if the hash result produces a hypen as the first
+	  character and we are using Trf's hex function.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl: Remove frink warnings to quieten sak validate. 
+
+2003-05-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl: Changed the method MD4Final uses to produce the binary
+	result to avoid problems on 64bit architectures.
+	* md4.c:     Removed the c_src subdirectory and moved all files
+	* md4.h:     into the md4 module directory. We want to keep the
+	* md4c.tcl:  source tree as flat as possible.
+	* md4.tcl, md4.man, pkgIndex.tcl: Hiked version to 1.0.1
+	
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-30  Pat Thoyts  <Patrick.Thoyts@renishaw.com>
+
+	* md4.man: Added documentation for the hmac command and for the
+	programming interface to the MD4 algorithm.
+	* md4c.tcl: Fixed md5c attribution.
+
+2003-04-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4c.tcl: Added critcl-based C implementation md4c.
+	* md4.tcl:  Enable use of md4c if available.
+	* md4.test: Report the implmentation (C or pure-tcl)
+	* c_src/md4.h:  The md4 implementation from RFC1320
+	* c_src/md4.c: 
+	
+2003-04-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.test: Added a series of tests to check all lengths of input
+	up to over 2 MD4 block lengths.
+	* md4_check.c: Included the C code used to generate the new test
+	results from the OpenSSL MD4 implementation.
+
+2003-04-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.tcl: Implemented chunked reading from file or
+	channel, added -file and -channel options to md4.
+	Implemented hmac command with -key option.
+	Provide MD4Init, MD4Update, MD4Final as per C-usage to permit use
+	on streaming data.
+	
+2003-04-15  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md4.test: 
+	* md4.tcl:
+	* md4.man:
+	* ChangeLog:  Initial versions.
+

@@ -1,0 +1,467 @@
+# -*- tcl -*-
+#------------------------------------------------------------
+# record.test --
+#
+#    test suite for struct::record module
+#
+# Tcl tests for testing the struct::record package, which
+# loosely immitates a 'C' structure. Invoke this test suite
+# by: tclsh record.test
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal record.tcl struct::record
+}
+
+# -------------------------------------------------------------------------
+
+namespace import struct::record
+
+#----------------------------------------------------------------------
+
+test record-0.1 {record define} {
+    record define phones {home work cell}
+} ::phones
+
+test record-0.2 {record define - multi line} {
+    record define contact {
+	first
+	middle
+	last
+	{record phones phlist}
+    }
+} ::contact
+
+test record-0.3 {record define - multi line} {
+    record define mycontact {
+        age
+        sex
+        {record contact cont}
+    }
+} ::mycontact
+
+test record-0.4 {definition with instantiation} {
+    record define location {
+        street
+        city
+	state
+	{country USA}
+    } loc(1) loc(5)
+} ::location
+
+test record-0.5 {test error with circular records} {
+    catch {
+	record define circular {
+	    one
+	    {record circular cir}
+	} cir(1)
+    } err
+    set err
+} "Can not have circular records. Structure was not created."
+
+test record-0.6 {single instance} {
+    contact cont(1)
+} ::cont(1)
+
+test record-0.7 {auto instance} {
+    contact #auto
+} ::contact0
+
+test record-0.8 {instance of double nested record} {
+    set res [mycontact #auto]
+    lappend res [record show values $res]
+    set res
+} {::mycontact0 {-age {} -sex {} -cont {-first {} -middle {} -last {} -phlist {-home {} -work {} -cell {}}}}}
+
+test record-0.9 {setting a instance var via alias} {
+    cont(1).first Brett
+} Brett
+
+test record-1.0 {setting a nested instance var via alias} {
+    cont(1).phlist.cell 425-555-1212
+} 425-555-1212
+
+test record-1.1 {setting a double nested instance var via alias} {
+    mycontact0.cont.phlist.cell 206-555-1212
+} 206-555-1212
+
+test record-1.2 {setting values via config} {
+    cont(1) config -middle Allen -last Schwarz
+} ""
+
+test record-1.3 {setting a double nested instance  via config} {
+    mycontact0 config -cont.phlist.cell 206-555-1212
+} ""
+
+test record-1.4 {get a value via cget} {
+    cont(1) cget -first -middle -last
+} [list Brett Allen Schwarz]
+
+test record-1.5 {get a double nested value via cget} {
+    mycontact0 cget -cont.phlist.cell
+} 206-555-1212
+
+test record-1.6 {get a value via alias} {
+    cont(1).first
+} Brett
+
+test record-1.7 {record default value} {
+    loc(1) cget -country
+} USA
+
+test record-1.8 {setting values via config} {
+    loc(1) config -street somestreet -city somecity -state somestate -country somecountry
+} ""
+
+test record-1.9 {setting nested vars via config} {
+    cont(1) config -phlist.home 425-555-1212
+} ""
+
+test record-2.0 {test value of nested member} {
+    cont(1) cget -phlist.home
+} 425-555-1212
+
+test record-2.1 {config with no values} {
+    loc(1) config
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-2.2 {get with no values} {
+    loc(1) cget
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-2.3 {get with just instance command} {
+    loc(1)
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-2.4 {get a nest value via alias} {
+    cont(1).phlist.cell
+} 425-555-1212
+
+test record-2.5 {set values during instantiation} {
+    location loc(2) -street street2 -city city2 -state state2 -country country2
+} ::loc(2)
+
+test record-2.6 {get the above value via alias} {
+    loc(2).street
+} street2
+
+test record-2.7 {set values during instantiation - nested record} {
+    contact cont(2) -first John -middle Q -last Doe -phlist [list home 425-555-1212 work 425-555-1222 cell 425-555-1111]
+} ::cont(2)
+
+test record-2.8 {copy one instance to another during creation} {
+    eval contact cont(3) [cont(1)]
+} ::cont(3)
+
+test record-2.9 {get the above values via alias} {
+    cont(2).phlist.home
+} 425-555-1212
+
+test record-3.0 {copy one definition to another definition} {
+    record define new_contact [record show members contact]
+} ::new_contact
+
+test record-3.1 {show defined records} {
+    record show records
+} [lsort [list ::phones ::contact ::location ::new_contact ::mycontact]]
+
+test record-3.2 {show members} {
+    record show members phones
+} [list home work cell]
+
+test record-3.3 {show members - with default value} {
+    record show members location
+} [list street city state [list country USA]]
+
+test record-3.4 {show members - nested record} {
+    record show members contact
+} [list first middle last [list record phones phlist]]
+
+test record-3.5 {show values} {
+    record show values loc(1)
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-3.6 {show values - nested} {
+    record show values cont(1)
+} [list -first Brett -middle Allen -last Schwarz -phlist [list -home 425-555-1212 -work {} -cell 425-555-1212]]
+
+test record-3.7 {show instances} {
+    record show instance location
+} [list ::loc(1) ::loc(2) ::loc(5)]
+
+
+test record-3.8 {delete an instance} {
+    record delete instance loc(2)
+} ""
+
+test record-3.9 {delete a nested instance} {
+    record delete instance cont(2)
+} ""
+
+test record-4.0 {delete a record} {
+    record delete record location
+} ""
+
+test record-4.1 {test existence of an instance that was deleted} {
+    record exists instance loc(1)
+} 0
+
+test record-4.2 {show existence of an instance} {
+    record exists instance cont(1)
+} 1
+
+test record-4.3 {show non-existent instance} {
+    record exists instance junk
+} 0
+
+test record-4.4 {show existence of record} {
+    record exists record contact
+} 1
+
+
+##
+##    NAMESPACE TESTS
+##
+
+test record-5.0 {record define} {
+    namespace eval myns {
+	record define phones {home work cell}
+    }
+} ::myns::phones
+
+test record-5.1 {record define - multi line} {
+    record define ::myns::contact {
+	first
+	middle
+	last
+	{record phones phlist}
+    }
+} ::myns::contact
+
+test record-5.2 {definition with instantiation} {
+    namespace eval myns {
+	record define location {
+	    street
+	    city
+	    state
+	    {country USA}
+	} loc(1) loc(5)
+    }
+} ::myns::location
+
+test record-5.3 {test error with circular records} {
+    catch {
+	namespace eval myns {
+	    record define circular {
+		one
+		{record ::myns::circular cir}
+	    } cir(1)
+	}
+    } err
+    set err
+} "Can not have circular records. Structure was not created."
+
+test record-5.4 {single instance} {
+    namespace eval myns {
+	contact cont(1)
+    }
+} ::myns::cont(1)
+
+test record-5.5 {auto instance} {
+    namespace eval myns {
+	contact #auto
+    }
+} ::myns::contact0
+
+test record-5.6 {setting a instance var via alias} {
+    myns::cont(1).first Brett
+} Brett
+
+test record-5.7 {setting a nested instance var via alias} {
+    myns::cont(1).phlist.cell 425-555-1212
+} 425-555-1212
+
+test record-5.8 {setting values via config} {
+    myns::cont(1) config -middle Allen -last Schwarz
+} ""
+
+test record-5.9 {get a value via cget} {
+    myns::cont(1) cget -first -middle -last
+} [list Brett Allen Schwarz]
+
+test record-6.0 {record default value} {
+    myns::loc(1) cget -country
+} USA
+
+test record-6.1 {setting values via config} {
+    myns::loc(1) config -street somestreet -city somecity -state somestate -country somecountry
+} ""
+
+test record-6.2 {setting nested vars via config} {
+    myns::cont(1) config -phlist.home 425-555-1212
+} ""
+
+test record-6.3 {test value of nested member} {
+    myns::cont(1) cget -phlist.home
+} 425-555-1212
+
+test record-6.4 {config with no values} {
+    myns::loc(1) config
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-6.5 {get with no values} {
+    myns::loc(1) cget
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-6.6 {get with just instance command} {
+    myns::loc(1)
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-6.7 {get a nest value via alias} {
+    myns::cont(1).phlist.cell
+} 425-555-1212
+
+test record-6.8 {set values during instantiation} {
+    namespace eval myns {
+	location loc(2) -street street2 -city city2 -state state2 -country country2
+    }
+} ::myns::loc(2)
+
+test record-6.9 {get the above value via alias} {
+    myns::loc(2).street
+} street2
+
+test record-7.0 {set values during instantiation - nested record} {
+    namespace eval myns {
+	contact cont(2) -first John -middle Q -last Doe -phlist [list home 425-555-1212 work 425-555-1222 cell 425-555-1111]
+    }
+} ::myns::cont(2)
+
+test record-7.1 {get the above values via alias} {
+    myns::cont(2).phlist.home
+} 425-555-1212
+
+
+test record-7.2 {show defined records} {
+    record show records
+} [lsort [list ::contact ::myns::phones ::myns::contact ::myns::location ::new_contact ::phones ::mycontact]]
+
+test record-7.3 {show members} {
+    record show members myns::phones
+} [list home work cell]
+
+test record-7.4 {show members - with default value} {
+    record show members myns::location
+} [list street city state [list country USA]]
+
+test record-7.5 {show members - nested record} {
+    record show members myns::contact
+} [list first middle last [list record phones phlist]]
+
+test record-7.6 {show values} {
+    record show values myns::loc(1)
+} [list -street somestreet -city somecity -state somestate -country somecountry]
+
+test record-7.7 {show values - nested} {
+    record show values myns::cont(1)
+} [list -first Brett -middle Allen -last Schwarz -phlist [list -home 425-555-1212 -work {} -cell 425-555-1212]]
+
+test record-7.8 {show instances} {
+    record show instance myns::location
+} [list ::myns::loc(1) ::myns::loc(2) ::myns::loc(5)]
+
+
+test record-7.9 {delete an instance} {
+    record delete instance myns::loc(2)
+} ""
+
+test record-8.0 {delete a nested instance} {
+    record delete instance myns::cont(2)
+} ""
+
+test record-8.1 {delete a record} {
+    record delete record myns::location
+} ""
+
+test record-8.2 {test existence of an instance that was deleted} {
+    record exists instance myns::loc(1)
+} 0
+
+test record-8.3 {show existence of an instance} {
+    record exists instance myns::cont(1)
+} 1
+
+test record-8.4 {show non-existent instance} {
+    record exists instance myns::junk
+} 0
+
+test record-8.5 {show existence of record} {
+    record exists record myns::contact
+} 1
+
+
+# Auto instances and deletion.
+
+test record-9.0 {auto instance & deletion} {
+    set res {}
+    lappend res [contact #auto]
+    lappend res [contact #auto]
+
+    record delete instance [lindex $res end]
+
+    lappend res [contact #auto]
+
+} {::contact1 ::contact2 ::contact3}
+
+test record-10.0 {nesting records more than one level} {
+    set jmod aMacro
+
+    record define fitParams {
+	amp
+	unmod
+	jcoup
+	t2star
+    }
+
+    record define fitData {
+	delays
+	values
+    }
+
+    record define fitInput {
+	{reps 30}
+	{sdev 0.1}
+	{seed 12345}
+	{record fitParams params}
+	{record fitData data}
+    }
+
+    record define fitXYData {
+	silent
+	verbose
+	macro
+	confidence
+	{record fitInput input}
+    }
+
+    set fitXYInputData [fitXYData #auto]
+
+    $fitXYInputData.silent true
+    $fitXYInputData.verbose true
+    $fitXYInputData.macro $jmod
+    $fitXYInputData.confidence 0.9
+
+    set res [record show values $fitXYInputData]
+
+    record delete instance $fitXYInputData
+    set res
+} {-silent true -verbose true -macro aMacro -confidence 0.9 -input {-reps 30 -sdev 0.1 -seed 12345 -params {-amp {} -unmod {} -jcoup {} -t2star {}} -data {-delays {} -values {}}}}

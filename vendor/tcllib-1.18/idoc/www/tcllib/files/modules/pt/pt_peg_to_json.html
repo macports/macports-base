@@ -1,0 +1,623 @@
+
+<html><head>
+<title>pt::peg::to::json - Parser Tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'to.inc' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- pt::peg::to::json.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pt::peg::to::json(n) 1 tcllib &quot;Parser Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pt::peg::to::json - PEG Conversion. Write JSON format</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Options</a></li>
+<li class="doctools_section"><a href="#section4">JSON Grammar Exchange Format</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">PEG serialization format</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection2">Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section6">PE serialization format</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection3">Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">pt::peg::to::json <span class="opt">?1?</span></b></li>
+<li>package require <b class="pkgname">pt::peg</b></li>
+<li>package require <b class="pkgname">json::write</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">pt::peg::to::json</b> <b class="method">reset</b></a></li>
+<li><a href="#2"><b class="cmd">pt::peg::to::json</b> <b class="method">configure</b></a></li>
+<li><a href="#3"><b class="cmd">pt::peg::to::json</b> <b class="method">configure</b> <i class="arg">option</i></a></li>
+<li><a href="#4"><b class="cmd">pt::peg::to::json</b> <b class="method">configure</b> <i class="arg">option</i> <i class="arg">value</i>...</a></li>
+<li><a href="#5"><b class="cmd">pt::peg::to::json</b> <b class="method">convert</b> <i class="arg">serial</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Are you lost ?
+Do you have trouble understanding this document ?
+In that case please read the overview provided by the
+<i class="term"><a href="pt_introduction.html">Introduction to Parser Tools</a></i>. This document is the
+entrypoint to the whole system the current package is a part of.</p>
+<p>This package implements the converter from parsing expression grammars
+to JSON markup.</p>
+<p>It resides in the Export section of the Core Layer of Parser Tools,
+and can be used either directly with the other packages of this layer,
+or indirectly through the export manager provided by
+<b class="package"><a href="pt_peg_export.html">pt::peg::export</a></b>. The latter is intented for use in untrusted
+environments and done through the corresponding export plugin
+<b class="package"><a href="pt_peg_export_json.html">pt::peg::export::json</a></b> sitting between converter
+and export manager.</p>
+<p><img alt="arch_core_eplugins" src="../../../../image/arch_core_eplugins.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The API provided by this package satisfies the specification of the
+Converter API found in the <i class="term"><a href="pt_to_api.html">Parser Tools Export API</a></i>
+specification.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">pt::peg::to::json</b> <b class="method">reset</b></a></dt>
+<dd><p>This command resets the configuration of the package to its default
+settings.</p></dd>
+<dt><a name="2"><b class="cmd">pt::peg::to::json</b> <b class="method">configure</b></a></dt>
+<dd><p>This command returns a dictionary containing the current configuration
+of the package.</p></dd>
+<dt><a name="3"><b class="cmd">pt::peg::to::json</b> <b class="method">configure</b> <i class="arg">option</i></a></dt>
+<dd><p>This command returns the current value of the specified configuration
+<i class="arg">option</i> of the package. For the set of legal options, please read
+the section <span class="sectref"><a href="#section3">Options</a></span>.</p></dd>
+<dt><a name="4"><b class="cmd">pt::peg::to::json</b> <b class="method">configure</b> <i class="arg">option</i> <i class="arg">value</i>...</a></dt>
+<dd><p>This command sets the given configuration <i class="arg">option</i>s of the
+package, to the specified <i class="arg">value</i>s. For the set of legal options,
+please read the section <span class="sectref"><a href="#section3">Options</a></span>.</p></dd>
+<dt><a name="5"><b class="cmd">pt::peg::to::json</b> <b class="method">convert</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command takes the canonical serialization of a parsing expression
+grammar, as specified in section <span class="sectref"><a href="#section5">PEG serialization format</a></span>,
+and contained in <i class="arg">serial</i>, and generates JSON markup
+encoding the grammar, per the current package configuration.
+The created string is then returned as the result of the command.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Options</a></h2>
+<p>The converter to the JSON grammar exchange format recognizes the
+following configuration variables and changes its behaviour as they
+specify.</p>
+<dl class="doctools_options">
+<dt><b class="option">-file</b> string</dt>
+<dd><p>The value of this option is the name of the file or other entity from
+which the grammar came, for which the command is run. The default
+value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-name</b> string</dt>
+<dd><p>The value of this option is the name of the grammar we are processing.
+The default value is <b class="const">a_pe_grammar</b>.</p></dd>
+<dt><b class="option">-user</b> string</dt>
+<dd><p>The value of this option is the name of the user for which the command
+is run. The default value is <b class="const">unknown</b>.</p></dd>
+<dt><b class="option">-indented</b> boolean</dt>
+<dd><p>If this option is set the system will break the generated JSON across
+lines and indent it according to its inner structure, with each key of
+a dictionary on a separate line.</p>
+<p>If the option is not set (the default), the whole JSON object will be
+written on a single line, with minimum spacing between all elements.</p></dd>
+<dt><b class="option">-aligned</b> boolean</dt>
+<dd><p>If this option is set the system will ensure that the values for the
+keys in a dictionary are vertically aligned with each other, for a
+nice table effect.
+To make this work this also implies that <b class="option">-indented</b> is set.</p>
+<p>If the option is not set (the default), the output is formatted as per
+the value of <b class="variable">indented</b>, without trying to align the values for
+dictionary keys.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">JSON Grammar Exchange Format</a></h2>
+<p>The <b class="const">json</b> format for parsing expression grammars was written as
+a data exchange format not bound to Tcl. It was defined to allow the
+exchange of grammars with PackRat/PEG based parser generators for
+other languages.</p>
+<p>It is formally specified by the rules below:</p>
+<ol class="doctools_enumerated">
+<li><p>The JSON of any PEG is a JSON object.</p></li>
+<li><p>This object holds a single key, <b class="const">pt::grammar::peg</b>, and its
+value. This value holds the contents of the grammar.</p></li>
+<li><p>The contents of the grammar are a JSON object holding the set of
+nonterminal symbols and the starting expression. The relevant keys and
+their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">rules</b></dt>
+<dd><p>The value is a JSON object whose keys are the names of the nonterminal
+symbols known to the grammar.</p>
+<ol class="doctools_enumerated">
+<li><p>Each nonterminal symbol may occur only once.</p></li>
+<li><p>The empty string is not a legal nonterminal symbol.</p></li>
+<li><p>The value for each symbol is a JSON object itself. The relevant
+keys and their values in this dictionary are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">is</b></dt>
+<dd><p>The value is a JSON string holding the Tcl serialization of the
+parsing expression describing the symbols sentennial structure, as
+specified in the section <span class="sectref"><a href="#section6">PE serialization format</a></span>.</p></dd>
+<dt><b class="const">mode</b></dt>
+<dd><p>The value is a JSON holding holding one of three values specifying how
+a parser should handle the semantic value produced by the symbol.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">value</b></dt>
+<dd><p>The semantic value of the nonterminal symbol is an abstract syntax
+tree consisting of a single node node for the nonterminal itself,
+which has the ASTs of the symbol's right hand side as its children.</p></dd>
+<dt><b class="const">leaf</b></dt>
+<dd><p>The semantic value of the nonterminal symbol is an abstract syntax
+tree consisting of a single node node for the nonterminal, without any
+children. Any ASTs generated by the symbol's right hand side are
+discarded.</p></dd>
+<dt><b class="const">void</b></dt>
+<dd><p>The nonterminal has no semantic value. Any ASTs generated by the
+symbol's right hand side are discarded (as well).</p></dd>
+</dl></dd>
+</dl>
+</li>
+</ol></dd>
+<dt><b class="const">start</b></dt>
+<dd><p>The value is a JSON string holding the Tcl serialization of the start
+parsing expression of the grammar, as specified in the section
+<span class="sectref"><a href="#section6">PE serialization format</a></span>.</p></dd>
+</dl>
+</li>
+<li><p>The terminal symbols of the grammar are specified implicitly as the
+set of all terminal symbols used in the start expression and on the
+RHS of the grammar rules.</p></li>
+</ol>
+<p>As an aside to the advanced reader, this is pretty much the same as
+the Tcl serialization of PE grammars, as specified in section
+<span class="sectref"><a href="#section5">PEG serialization format</a></span>, except that the Tcl dictionaries
+and lists of that format are mapped to JSON objects and arrays. Only
+the parsing expressions themselves are not translated further, but
+kept as JSON strings containing a nested Tcl list, and there is no
+concept of canonicity for the JSON either.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Example</a></h3>
+<p>Assuming the following PEG for simple mathematical expressions</p>
+<pre class="doctools_example">
+PEG calculator (Expression)
+    Digit      &lt;- '0'/'1'/'2'/'3'/'4'/'5'/'6'/'7'/'8'/'9'       ;
+    Sign       &lt;- '-' / '+'                                     ;
+    Number     &lt;- Sign? Digit+                                  ;
+    Expression &lt;- Term (AddOp Term)*                            ;
+    MulOp      &lt;- '*' / '/'                                     ;
+    Term       &lt;- Factor (MulOp Factor)*                        ;
+    AddOp      &lt;- '+'/'-'                                       ;
+    Factor     &lt;- '(' Expression ')' / Number                   ;
+END;
+</pre>
+<p>a JSON serialization for it is</p>
+<pre class="doctools_example">
+{
+    &quot;pt::grammar::peg&quot; : {
+        &quot;rules&quot; : {
+            &quot;AddOp&quot;     : {
+                &quot;is&quot;   : &quot;\/ {t -} {t +}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;Digit&quot;     : {
+                &quot;is&quot;   : &quot;\/ {t 0} {t 1} {t 2} {t 3} {t 4} {t 5} {t 6} {t 7} {t 8} {t 9}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;Expression&quot; : {
+                &quot;is&quot;   : &quot;\/ {x {t (} {n Expression} {t )}} {x {n Factor} {* {x {n MulOp} {n Factor}}}}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;Factor&quot;    : {
+                &quot;is&quot;   : &quot;x {n Term} {* {x {n AddOp} {n Term}}}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;MulOp&quot;     : {
+                &quot;is&quot;   : &quot;\/ {t *} {t \/}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;Number&quot;    : {
+                &quot;is&quot;   : &quot;x {? {n Sign}} {+ {n Digit}}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;Sign&quot;      : {
+                &quot;is&quot;   : &quot;\/ {t -} {t +}&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            },
+            &quot;Term&quot;      : {
+                &quot;is&quot;   : &quot;n Number&quot;,
+                &quot;mode&quot; : &quot;value&quot;
+            }
+        },
+        &quot;start&quot; : &quot;n Expression&quot;
+    }
+}
+</pre>
+<p>and a Tcl serialization of the same is</p>
+<pre class="doctools_example">
+pt::grammar::peg {
+    rules {
+        AddOp      {is {/ {t -} {t +}}                                                                mode value}
+        Digit      {is {/ {t 0} {t 1} {t 2} {t 3} {t 4} {t 5} {t 6} {t 7} {t 8} {t 9}}                mode value}
+        Expression {is {x {n Term} {* {x {n AddOp} {n Term}}}}                                        mode value}
+        Factor     {is {/ {x {t (} {n Expression} {t )}} {n Number}}                                  mode value}
+        MulOp      {is {/ {t *} {t /}}                                                                mode value}
+        Number     {is {x {? {n Sign}} {+ {n Digit}}}                                                 mode value}
+        Sign       {is {/ {t -} {t +}}                                                                mode value}
+        Term       {is {x {n Factor} {* {x {n MulOp} {n Factor}}}}                                    mode value}
+    }
+    start {n Expression}
+}
+</pre>
+<p>The similarity of the latter to the JSON should be quite obvious.</p>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">PEG serialization format</a></h2>
+<p>Here we specify the format used by the Parser Tools to serialize
+Parsing Expression Grammars as immutable values for transport,
+comparison, etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a PEG may have more than one regular serialization only exactly
+one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any PEG is a nested Tcl dictionary.</p></li>
+<li><p>This dictionary holds a single key, <b class="const">pt::grammar::peg</b>, and its
+value. This value holds the contents of the grammar.</p></li>
+<li><p>The contents of the grammar are a Tcl dictionary holding the set of
+nonterminal symbols and the starting expression. The relevant keys and
+their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">rules</b></dt>
+<dd><p>The value is a Tcl dictionary whose keys are the names of the
+nonterminal symbols known to the grammar.</p>
+<ol class="doctools_enumerated">
+<li><p>Each nonterminal symbol may occur only once.</p></li>
+<li><p>The empty string is not a legal nonterminal symbol.</p></li>
+<li><p>The value for each symbol is a Tcl dictionary itself. The relevant
+keys and their values in this dictionary are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">is</b></dt>
+<dd><p>The value is the serialization of the parsing expression describing
+the symbols sentennial structure, as specified in the section
+<span class="sectref"><a href="#section6">PE serialization format</a></span>.</p></dd>
+<dt><b class="const">mode</b></dt>
+<dd><p>The value can be one of three values specifying how a parser should
+handle the semantic value produced by the symbol.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">value</b></dt>
+<dd><p>The semantic value of the nonterminal symbol is an abstract syntax
+tree consisting of a single node node for the nonterminal itself,
+which has the ASTs of the symbol's right hand side as its children.</p></dd>
+<dt><b class="const">leaf</b></dt>
+<dd><p>The semantic value of the nonterminal symbol is an abstract syntax
+tree consisting of a single node node for the nonterminal, without any
+children. Any ASTs generated by the symbol's right hand side are
+discarded.</p></dd>
+<dt><b class="const">void</b></dt>
+<dd><p>The nonterminal has no semantic value. Any ASTs generated by the
+symbol's right hand side are discarded (as well).</p></dd>
+</dl></dd>
+</dl>
+</li>
+</ol></dd>
+<dt><b class="const">start</b></dt>
+<dd><p>The value is the serialization of the start parsing expression of the
+grammar, as specified in the section <span class="sectref"><a href="#section6">PE serialization format</a></span>.</p></dd>
+</dl>
+</li>
+<li><p>The terminal symbols of the grammar are specified implicitly as the
+set of all terminal symbols used in the start expression and on the
+RHS of the grammar rules.</p></li>
+</ol></dd>
+<dt>canonical serialization</dt>
+<dd><p>The canonical serialization of a grammar has the format as specified
+in the previous item, and then additionally satisfies the constraints
+below, which make it unique among all the possible serializations of
+this grammar.</p>
+<ol class="doctools_enumerated">
+<li><p>The keys found in all the nested Tcl dictionaries are sorted in
+ascending dictionary order, as generated by Tcl's builtin command
+<b class="cmd">lsort -increasing -dict</b>.</p></li>
+<li><p>The string representation of the value is the canonical representation
+of a Tcl dictionary. I.e. it does not contain superfluous whitespace.</p></li>
+</ol></dd>
+</dl>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Example</a></h3>
+<p>Assuming the following PEG for simple mathematical expressions</p>
+<pre class="doctools_example">
+PEG calculator (Expression)
+    Digit      &lt;- '0'/'1'/'2'/'3'/'4'/'5'/'6'/'7'/'8'/'9'       ;
+    Sign       &lt;- '-' / '+'                                     ;
+    Number     &lt;- Sign? Digit+                                  ;
+    Expression &lt;- Term (AddOp Term)*                            ;
+    MulOp      &lt;- '*' / '/'                                     ;
+    Term       &lt;- Factor (MulOp Factor)*                        ;
+    AddOp      &lt;- '+'/'-'                                       ;
+    Factor     &lt;- '(' Expression ')' / Number                   ;
+END;
+</pre>
+<p>then its canonical serialization (except for whitespace) is</p>
+<pre class="doctools_example">
+pt::grammar::peg {
+    rules {
+        AddOp      {is {/ {t -} {t +}}                                                                mode value}
+        Digit      {is {/ {t 0} {t 1} {t 2} {t 3} {t 4} {t 5} {t 6} {t 7} {t 8} {t 9}}                mode value}
+        Expression {is {x {n Term} {* {x {n AddOp} {n Term}}}}                                        mode value}
+        Factor     {is {/ {x {t (} {n Expression} {t )}} {n Number}}                                  mode value}
+        MulOp      {is {/ {t *} {t /}}                                                                mode value}
+        Number     {is {x {? {n Sign}} {+ {n Digit}}}                                                 mode value}
+        Sign       {is {/ {t -} {t +}}                                                                mode value}
+        Term       {is {x {n Factor} {* {x {n MulOp} {n Factor}}}}                                    mode value}
+    }
+    start {n Expression}
+}
+</pre>
+</div>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">PE serialization format</a></h2>
+<p>Here we specify the format used by the Parser Tools to serialize
+Parsing Expressions as immutable values for transport, comparison,
+etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a parsing expression may have more than one regular
+serialization only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>Regular serialization</dt>
+<dd><dl class="doctools_definitions">
+<dt><b class="const">Atomic Parsing Expressions</b></dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The string <b class="const">epsilon</b> is an atomic parsing expression. It matches
+the empty string.</p></li>
+<li><p>The string <b class="const">dot</b> is an atomic parsing expression. It matches
+any character.</p></li>
+<li><p>The string <b class="const">alnum</b> is an atomic parsing expression. It matches
+any Unicode alphabet or digit character. This is a custom extension of
+PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">alpha</b> is an atomic parsing expression. It matches
+any Unicode alphabet character. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">ascii</b> is an atomic parsing expression. It matches
+any Unicode character below U0080. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">control</b> is an atomic parsing expression. It matches
+any Unicode control character. This is a custom extension of PEs based
+on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">digit</b> is an atomic parsing expression. It matches
+any Unicode digit character. Note that this includes characters
+outside of the [0..9] range. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">graph</b> is an atomic parsing expression. It matches
+any Unicode printing character, except for space. This is a custom
+extension of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">lower</b> is an atomic parsing expression. It matches
+any Unicode lower-case alphabet character. This is a custom extension
+of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">print</b> is an atomic parsing expression. It matches
+any Unicode printing character, including space. This is a custom
+extension of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">punct</b> is an atomic parsing expression. It matches
+any Unicode punctuation character. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">space</b> is an atomic parsing expression. It matches
+any Unicode space character. This is a custom extension of PEs based
+on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">upper</b> is an atomic parsing expression. It matches
+any Unicode upper-case alphabet character. This is a custom extension
+of PEs based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">wordchar</b> is an atomic parsing expression. It
+matches any Unicode word character. This is any alphanumeric character
+(see alnum), and any connector punctuation characters (e.g.
+underscore). This is a custom extension of PEs based on Tcl's builtin
+command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">xdigit</b> is an atomic parsing expression. It matches
+any hexadecimal digit character. This is a custom extension of PEs
+based on Tcl's builtin command <b class="cmd">string is</b>.</p></li>
+<li><p>The string <b class="const">ddigit</b> is an atomic parsing expression. It matches
+any decimal digit character. This is a custom extension of PEs based
+on Tcl's builtin command <b class="cmd">regexp</b>.</p></li>
+<li><p>The expression
+    [list t <b class="variable">x</b>]
+is an atomic parsing expression. It matches the terminal string <b class="variable">x</b>.</p></li>
+<li><p>The expression
+    [list n <b class="variable">A</b>]
+is an atomic parsing expression. It matches the nonterminal <b class="variable">A</b>.</p></li>
+</ol></dd>
+<dt><b class="const">Combined Parsing Expressions</b></dt>
+<dd><ol class="doctools_enumerated">
+<li><p>For parsing expressions <b class="variable">e1</b>, <b class="variable">e2</b>, ... the result of
+    [list / <b class="variable">e1</b> <b class="variable">e2</b> ... ]
+is a parsing expression as well.
+This is the <i class="term">ordered choice</i>, aka <i class="term">prioritized choice</i>.</p></li>
+<li><p>For parsing expressions <b class="variable">e1</b>, <b class="variable">e2</b>, ... the result of
+    [list x <b class="variable">e1</b> <b class="variable">e2</b> ... ]
+is a parsing expression as well.
+This is the <i class="term">sequence</i>.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list * <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">kleene closure</i>, describing zero or more
+repetitions.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list + <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">positive kleene closure</i>, describing one or more
+repetitions.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list &amp; <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">and lookahead predicate</i>.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list ! <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">not lookahead predicate</i>.</p></li>
+<li><p>For a parsing expression <b class="variable">e</b> the result of
+    [list ? <b class="variable">e</b>]
+is a parsing expression as well.
+This is the <i class="term">optional input</i>.</p></li>
+</ol></dd>
+</dl></dd>
+<dt>Canonical serialization</dt>
+<dd><p>The canonical serialization of a parsing expression has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this parsing expression.</p>
+<ol class="doctools_enumerated">
+<li><p>The string representation of the value is the canonical representation
+of a pure Tcl list. I.e. it does not contain superfluous whitespace.</p></li>
+<li><p>Terminals are <em>not</em> encoded as ranges (where start and end of the
+range are identical).</p></li>
+</ol></dd>
+</dl>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Example</a></h3>
+<p>Assuming the parsing expression shown on the right-hand side of the
+rule</p>
+<pre class="doctools_example">
+    Expression &lt;- Term (AddOp Term)*
+</pre>
+<p>then its canonical serialization (except for whitespace) is</p>
+<pre class="doctools_example">
+    {x {n Term} {* {x {n AddOp} {n Term}}}}
+</pre>
+</div>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pt</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key3">EBNF</a>, <a href="../../../../index.html#key259">JSON</a>, <a href="../../../../index.html#key15">LL(k)</a>, <a href="../../../../index.html#key6">PEG</a>, <a href="../../../../index.html#key7">TDPL</a>, <a href="../../../../index.html#key4">context-free languages</a>, <a href="../../../../index.html#key20">conversion</a>, <a href="../../../../index.html#key0">expression</a>, <a href="../../../../index.html#key110">format conversion</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key8">parsing expression</a>, <a href="../../../../index.html#key14">parsing expression grammar</a>, <a href="../../../../index.html#key1">push down automaton</a>, <a href="../../../../index.html#key10">recursive descent</a>, <a href="../../../../index.html#key109">serialization</a>, <a href="../../../../index.html#key2">state</a>, <a href="../../../../index.html#key13">top-down parsing languages</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Parsing and Grammars</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

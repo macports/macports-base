@@ -1,0 +1,110 @@
+# -*- tcl -*-
+# Testsuite for pt::pe::op.
+# Called by the ../pe_op.test driver file.
+
+test pt-pe-op-set:${setimpl}-1.0 {op rename, wrong#args} -body {
+    pt::pe::op rename
+} -returnCodes error -result {wrong # args: should be "pt::pe::op rename nt ntnew serial"}
+
+test pt-pe-op-set:${setimpl}-1.1 {op rename, wrong#args} -body {
+    pt::pe::op rename PE
+} -returnCodes error -result {wrong # args: should be "pt::pe::op rename nt ntnew serial"}
+
+test pt-pe-op-set:${setimpl}-1.2 {op rename, wrong#args} -body {
+    pt::pe::op rename PE NTOLD
+} -returnCodes error -result {wrong # args: should be "pt::pe::op rename nt ntnew serial"}
+
+test pt-pe-op-set:${setimpl}-1.3 {op rename, wrong#args} -body {
+    pt::pe::op rename PE NTOLD NTNEW XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe::op rename nt ntnew serial"}
+
+
+test pt-pe-op-set:${setimpl}-2.0 {op called, wrong#args} -body {
+    pt::pe::op called
+} -returnCodes error -result {wrong # args: should be "pt::pe::op called serial"}
+
+test pt-pe-op-set:${setimpl}-2.1 {op called, wrong#args} -body {
+    pt::pe::op called PE XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe::op called serial"}
+
+
+test pt-pe-op-set:${setimpl}-3.0 {op flatten, wrong#args} -body {
+    pt::pe::op flatten
+} -returnCodes error -result {wrong # args: should be "pt::pe::op flatten serial"}
+
+test pt-pe-op-set:${setimpl}-3.1 {op flatten, wrong#args} -body {
+    pt::pe::op flatten PE XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe::op flatten serial"}
+
+
+test pt-pe-op-set:${setimpl}-4.0 {op fusechars, wrong#args} -body {
+    pt::pe::op fusechars
+} -returnCodes error -result {wrong # args: should be "pt::pe::op fusechars serial"}
+
+test pt-pe-op-set:${setimpl}-4.1 {op fusechars, wrong#args} -body {
+    pt::pe::op fusechars PE XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe::op fusechars serial"}
+
+# -------------------------------------------------------------------------
+
+test pt-pe-op-set:${setimpl}-5.0 {op rename} -body {
+    pt::pe::op rename SYM XXX \
+	{x {t A} {* {n SYM}} {t B}}
+} -result {x {t A} {* {n XXX}} {t B}}
+
+
+test pt-pe-op-set:${setimpl}-6.0 {op called} -body {
+    lsort -dict [pt::pe::op called \
+	       {x {t A} {* {n SYM}} {t B} {n OTHER} {n SYM}}]
+} -result {OTHER SYM}
+
+# -------------------------------------------------------------------------
+# flatten & fuse
+
+set n 0
+foreach {data expected} {
+    {* {x {x {n A}}}}                    {* {n A}}
+    {* {/ {/ {n A}}}}                    {* {n A}}
+    {x {t a} {x {t b} dot {t y}} {t z}}  {x {t a} {t b} dot {t y} {t z}}
+    {/ {t a} {/ {t b} dot {t y}} {t z}}  {/ {t a} {t b} dot {t y} {t z}}
+    {x {t a} {t b}}                      {x {t a} {t b}}
+    {/ {t a} {t b}}                      {/ {t a} {t b}}
+} {
+    test pt-pe-op-set:${setimpl}-7.$n {op flatten} -body {
+	pt::pe::op flatten $data
+    } -result $expected
+    incr n
+}
+
+#----------------------------------------------------------------------
+
+set     trial {}
+lappend trial {x {t a} {t b} {n X} {t c} {n Z} {t d} {t e} {t f}}           {x {str a b} {n X} {t c} {n Z} {str d e f}}	       
+lappend trial {x {n X} {t a} {t b} {t c} {n Z} {t d} {t e} {t f}}           {x {n X} {str a b c} {n Z} {str d e f}}	       
+lappend trial {x {t a} {n X} {t b} {n Y} {t c} {n Z} {t d} {n A}}           {x {t a} {n X} {t b} {n Y} {t c} {n Z} {t d} {n A}}  
+lappend trial {x {t a} {t b}}                                               {x {str a b}}					       
+lappend trial {/ {t a} {t b} {n X} {t c} {n Z} {t d} {.. 0 9} {t e}}        {/ {cl a b} {n X} {t c} {n Z} {cl d {0 9} e}}	       
+lappend trial {/ {.. 0 0} {n X} {.. 1 1} {t a} {n Z} {.. 0 9} {n A} {n B}}  {/ {t 0} {n X} {cl 1 a} {n Z} {cl {0 9}} {n A} {n B}}
+lappend trial {/ {t a} {t b}}                                               {/ {cl a b}}
+
+lappend trial \
+    [list / space [list t "\{"]] \
+    [list / space [list t "\{"]]
+
+lappend trial \
+    [list / [list t n] [list t r] [list t t] [list t '] [list t "\""] [list t "\["] [list t "\]"] [list t "\\"]] \
+    [list / [list cl n r t ' "\"" "\[" "\]" "\\"]]
+
+lappend trial \
+    [list / [list t \n] [list t \r]] \
+    [list / [list cl \n \r]]
+
+set n 0
+foreach {data expected} $trial {
+    test pt-pe-op-set:${setimpl}-8.$n {op fusechars} -body {
+	pt::pe::op fusechars $data
+    } -result $expected
+    incr n
+}
+
+#----------------------------------------------------------------------

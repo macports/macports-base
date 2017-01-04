@@ -1,0 +1,108 @@
+[manpage_begin struct::stack n 1.5.3]
+[keywords graph]
+[keywords matrix]
+[keywords queue]
+[keywords tree]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Create and manipulate stack objects}]
+[category  {Data structures}]
+[require Tcl 8.4]
+[require struct::stack [opt 1.5.3]]
+[description]
+
+The [namespace ::struct] namespace contains a commands for processing
+finite stacks.
+
+[para]
+
+It exports a single command, [cmd ::struct::stack]. All functionality
+provided here can be reached through a subcommand of this command.
+
+[para]
+
+[emph Note:] As of version 1.3.3 of this package a critcl based C
+implementation is available. This implementation however requires Tcl
+8.4 to run.
+
+[para]
+
+The [cmd ::struct::stack] command creates a new stack object with an
+associated global Tcl command whose name is [emph stackName].  This
+command may be used to invoke various operations on the stack.  It has
+the following general form:
+
+[list_begin definitions]
+
+[call [arg stackName] [cmd option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.  The following commands are possible for stack objects:
+
+[call [arg stackName] [method clear]]
+
+Remove all items from the stack.
+
+[call [arg stackName] [method destroy]]
+
+Destroy the stack, including its storage space and associated command.
+
+[call [arg stackName] [method get]]
+
+Returns the whole contents of the stack as a list, without removing
+them from the stack.
+
+[call [arg stackName] [method getr]]
+
+A variant of [method get], which returns the contents in reversed order.
+
+[call [arg stackName] [method peek] [opt [arg count]]]
+
+Return the top [arg count] items of the stack, without removing them from
+the stack.  If [arg count] is not specified, it defaults to 1.  If
+[arg count] is 1, the result is a simple string; otherwise, it is a
+list.  If specified, [arg count] must be greater than or equal to 1.
+
+If there are not enoughs items on the stack to fulfull the request,
+this command will throw an error.
+
+[call [arg stackName] [method peekr] [opt [arg count]]]
+
+A variant of [method peek], which returns the items in reversed order.
+
+[call [arg stackName] [method trim] [opt [arg newsize]]]
+
+Shrinks the stack to contain at most [arg newsize] elements and
+returns a list containing the elements which were removed. Nothing is
+done if the stack is already at the specified size, or smaller. In
+that case the result is the empty list.
+
+[call [arg stackName] [method trim*] [opt [arg newsize]]]
+
+A variant of [method trim] which performs the shrinking, but does not
+return the removed elements.
+
+[call [arg stackName] [method pop] [opt [arg count]]]
+
+Return the top [arg count] items of the stack, and remove them
+from the stack.  If [arg count] is not specified, it defaults to 1.
+If [arg count] is 1, the result is a simple string; otherwise, it is a
+list.  If specified, [arg count] must be greater than or equal to 1.
+
+If there are not enoughs items on the stack to fulfull the request,
+this command will throw an error.
+
+[call [arg stackName] [method push] [arg item] [opt [arg item...]]]
+
+Push the [arg item] or items specified onto the stack.  If more than
+one [arg item] is given, they will be pushed in the order they are
+listed.
+
+[call [arg stackName] [method size]]
+
+Return the number of items on the stack.
+
+[list_end]
+
+[vset CATEGORY {struct :: stack}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

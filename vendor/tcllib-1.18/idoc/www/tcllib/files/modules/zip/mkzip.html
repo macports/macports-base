@@ -1,0 +1,222 @@
+
+<html><head>
+<title>zipfile::mkzip - Zip archive creation</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'mkzip.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009 Pat Thoyts
+   -->
+<! -- zipfile::mkzip.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">zipfile::mkzip(n) 1.2 tcllib &quot;Zip archive creation&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>zipfile::mkzip - Build a zip archive</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">zipfile::mkzip <span class="opt">?1.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::zipfile::mkzip::mkzip</b> <i class="arg">zipfile</i> <span class="opt">?<b class="option">-zipkit</b>?</span> <span class="opt">?<b class="option">-runtime</b> <i class="arg">prefix</i>?</span> <span class="opt">?<b class="option">-comment</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-directory</b> <i class="arg">rootpath</i>?</span> <span class="opt">?<b class="option">-exclude</b> <i class="arg">exclude</i>?</span> <span class="opt">?<b class="option">--</b>?</span> <span class="opt">?<i class="arg">path</i>...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package utilizes the zlib functions in Tcl 8.6 to build zip
+archives.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::zipfile::mkzip::mkzip</b> <i class="arg">zipfile</i> <span class="opt">?<b class="option">-zipkit</b>?</span> <span class="opt">?<b class="option">-runtime</b> <i class="arg">prefix</i>?</span> <span class="opt">?<b class="option">-comment</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-directory</b> <i class="arg">rootpath</i>?</span> <span class="opt">?<b class="option">-exclude</b> <i class="arg">exclude</i>?</span> <span class="opt">?<b class="option">--</b>?</span> <span class="opt">?<i class="arg">path</i>...?</span></a></dt>
+<dd><p>From <a href="http://wiki.tcl.tk/15158">http://wiki.tcl.tk/15158</a></p>
+<p>This command constructs a zip archive from a directory tree
+using nothing but Tcl 8.6 core features. The resulting zip file should
+be compatible with other <b class="syscmd"><a href="../../../../index.html#key42">zip</a></b> programs - with the possible
+exception of unicode support. The files generated by this command use
+utf-8 encoding for all filenames and comments and it has been noticed
+particularly on Windows the <b class="syscmd">info-zip</b> and the Windows built-in
+zip view have rather poor support for this part of the ZIP file
+specification. The <b class="syscmd">7-Zip</b> program does correctly display utf8
+filenames however and the <b class="package">vfs::zip</b> package will use these of
+course.</p>
+<p>If you use</p>
+<pre class="doctools_example"><b class="cmd">::mkzip::mkzip</b> mystuff.tm -zipkit -directory mystuff.vfs</pre>
+<p>it will pack your &quot;<b class="file">mystuff.vfs/</b>&quot; virtual filesystem tree into a
+zip archive with a suitable header such that on unix you may mark it
+executable and it should run with tclkit. Or you can run it with
+<b class="syscmd">tclsh</b> or <b class="syscmd">wish</b> 8.6 if you like.</p>
+<p>To change the executable header, specify the <b class="option">-runtime</b>
+&quot;<b class="file">preface</b>&quot; where preface is a file containing code you want
+prefixed. For instance, on Windows you can create a self-extracting
+zip archive using</p>
+<pre class="doctools_example">
+mkzip mystuff.exe -directory mystuff.vfs -runtime unzipsfx.exe
+</pre>
+<p>The &quot;<b class="file">unzipsfx.exe</b>&quot; is the Info-Zip self-extracting stub.</p>
+<p>Accepted options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-runtime</b> path</dt>
+<dd><p>This option specifies a file to use as prefix to the actual zip
+archive. If specified <b class="option">-zipkit</b> will be ignored.</p></dd>
+<dt><b class="option">-zipkit</b></dt>
+<dd><p>Instructs the command to generate a prefix which makes the archive a
+zip-based starkit. Ignored if <b class="option">-runtime</b> is present.</p></dd>
+<dt><b class="option">-comment</b> string</dt>
+<dd><p>This options specifies a global comment to place into the generated
+archive.</p></dd>
+<dt><b class="option">-directory</b> path</dt>
+<dd><p>This option specifies the directory to place into the generated
+archive. If specified any argument <i class="arg">path</i>s are <em>ignored</em>.</p></dd>
+<dt><b class="option">-exclude</b> list</dt>
+<dd><p>This option specifies a list of glob patterns. All paths matching at
+least one of the patterns are not placed into the generated archive.
+This option defaults to</p>
+<pre class="doctools_example">
+    CVS/* */CVS/* *~ &quot;.#*&quot; &quot;*/.#*&quot;
+</pre>
+</dd>
+<dt><b class="option">--</b></dt>
+<dd><p>This option signals the end of the options, forcing processing of all
+further words as arguments, even if they begin with a dash character.</p></dd>
+</dl>
+<p>Accepted arguments:</p>
+<dl class="doctools_arguments">
+<dt>path <i class="arg">path</i></dt>
+<dd><p>Each path is a directory or file to place into the generated archive.
+Note however that these will be ignored when option <b class="option">-directory</b>
+is specified.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>zipfile</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key43">decompression</a>, <a href="../../../../index.html#key42">zip</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>File</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Pat Thoyts</p>
+</div>
+</div></body></html>

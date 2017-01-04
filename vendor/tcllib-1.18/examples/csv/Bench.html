@@ -1,0 +1,258 @@
+<html><head><title>Core Benchmark Results</title></head><body>
+<h1>Core Benchmark Results</h1>
+<p><table border=1>
+<tr><td>000</td> <td>VERSIONS:                              </td> <td>1:8.4a3</td> <td>1:8.3.3</td> <td>1:8.2.3</td> <td>1:8.1.1</td> <td>1:8.0.5</td> <td>1:7.6p2</td> <td>1:7.5p1</td></tr>
+<tr><td>001</td> <td>CATCH return ok                        </td> <td>11     </td> <td>6      </td> <td>7      </td> <td>4      </td> <td>5      </td> <td>28     </td> <td>17     </td></tr>
+<tr><td>002</td> <td>CATCH return error                     </td> <td>70     </td> <td>64     </td> <td>275    </td> <td>54     </td> <td>204    </td> <td>146    </td> <td>33     </td></tr>
+<tr><td>003</td> <td>CATCH no catch used                    </td> <td>10     </td> <td>6      </td> <td>7      </td> <td>13     </td> <td>4      </td> <td>24     </td> <td>9      </td></tr>
+<tr><td>004</td> <td>IF if true numeric                     </td> <td>17     </td> <td>11     </td> <td>13     </td> <td>7      </td> <td>9      </td> <td>152    </td> <td>61     </td></tr>
+<tr><td>005</td> <td>IF elseif true numeric                 </td> <td>20     </td> <td>15     </td> <td>16     </td> <td>20     </td> <td>11     </td> <td>299    </td> <td>292    </td></tr>
+<tr><td>006</td> <td>IF else true numeric                   </td> <td>20     </td> <td>15     </td> <td>16     </td> <td>15     </td> <td>11     </td> <td>318    </td> <td>82     </td></tr>
+<tr><td>007</td> <td>IF if true num/num                     </td> <td>17     </td> <td>12     </td> <td>281    </td> <td>22     </td> <td>9      </td> <td>329    </td> <td>174    </td></tr>
+<tr><td>008</td> <td>IF if false num/num                    </td> <td>17     </td> <td>12     </td> <td>13     </td> <td>13     </td> <td>9      </td> <td>202    </td> <td>182    </td></tr>
+<tr><td>009</td> <td>IF if false al/num                     </td> <td>27     </td> <td>20     </td> <td>20     </td> <td>29     </td> <td>17     </td> <td>467    </td> <td>121    </td></tr>
+<tr><td>010</td> <td>IF if true al/al                       </td> <td>31     </td> <td>26     </td> <td>26     </td> <td>51     </td> <td>169    </td> <td>292    </td> <td>184    </td></tr>
+<tr><td>011</td> <td>IF if false al/al                      </td> <td>31     </td> <td>25     </td> <td>25     </td> <td>51     </td> <td>60     </td> <td>217    </td> <td>243    </td></tr>
+<tr><td>012</td> <td>IF if true al                          </td> <td>32     </td> <td>25     </td> <td>25     </td> <td>42     </td> <td>51     </td> <td>214    </td> <td>76     </td></tr>
+<tr><td>013</td> <td>IF elseif true al                      </td> <td>47     </td> <td>39     </td> <td>338    </td> <td>89     </td> <td>156    </td> <td>358    </td> <td>154    </td></tr>
+<tr><td>014</td> <td>IF else true al                        </td> <td>46     </td> <td>40     </td> <td>42     </td> <td>71     </td> <td>51     </td> <td>292    </td> <td>323    </td></tr>
+<tr><td>015</td> <td>SWITCH first true                      </td> <td>63     </td> <td>42     </td> <td>103    </td> <td>58     </td> <td>73     </td> <td>391    </td> <td>241    </td></tr>
+<tr><td>016</td> <td>SWITCH second true                     </td> <td>58     </td> <td>39     </td> <td>153    </td> <td>65     </td> <td>62     </td> <td>340    </td> <td>282    </td></tr>
+<tr><td>017</td> <td>SWITCH ninth true                      </td> <td>67     </td> <td>44     </td> <td>238    </td> <td>73     </td> <td>112    </td> <td>391    </td> <td>284    </td></tr>
+<tr><td>018</td> <td>SWITCH default true                    </td> <td>62     </td> <td>38     </td> <td>46     </td> <td>73     </td> <td>77     </td> <td>492    </td> <td>292    </td></tr>
+<tr><td>019</td> <td>DATA create in a list                  </td> <td>4883   </td> <td>4083   </td> <td>15014  </td> <td>12925  </td> <td>7886   </td> <td>40180  </td> <td>29501  </td></tr>
+<tr><td>020</td> <td>DATA create in an array                </td> <td>5388   </td> <td>4916   </td> <td>19172  </td> <td>12827  </td> <td>16792  </td> <td>53723  </td> <td>40784  </td></tr>
+<tr><td>021</td> <td>DATA access in a list                  </td> <td>4028   </td> <td>3546   </td> <td>15346  </td> <td>10386  </td> <td>7024   </td> <td>182889 </td> <td>175028 </td></tr>
+<tr><td>022</td> <td>DATA access in an array                </td> <td>3507   </td> <td>3223   </td> <td>14156  </td> <td>6966   </td> <td>7640   </td> <td>43232  </td> <td>39744  </td></tr>
+<tr><td>023</td> <td>EVAL cmd eval in list obj var          </td> <td>26     </td> <td>22     </td> <td>52     </td> <td>40     </td> <td>84     </td> <td>27     </td> <td>26     </td></tr>
+<tr><td>024</td> <td>EVAL cmd eval as list                  </td> <td>24     </td> <td>21     </td> <td>49     </td> <td>88     </td> <td>144    </td> <td>22     </td> <td>52     </td></tr>
+<tr><td>025</td> <td>EVAL cmd eval as string                </td> <td>60     </td> <td>50     </td> <td>54     </td> <td>79     </td> <td>90     </td> <td>26     </td> <td>64     </td></tr>
+<tr><td>026</td> <td>EVAL cmd and mixed lists               </td> <td>3347   </td> <td>3546   </td> <td>32485  </td> <td>21937  </td> <td>13914  </td> <td>3017   </td> <td>2112   </td></tr>
+<tr><td>027</td> <td>EVAL list cmd and mixed lists          </td> <td>3403   </td> <td>3591   </td> <td>40366  </td> <td>19014  </td> <td>14703  </td> <td>2936   </td> <td>2259   </td></tr>
+<tr><td>028</td> <td>EVAL list cmd and pure lists           </td> <td>543    </td> <td>582    </td> <td>40115  </td> <td>21974  </td> <td>12611  </td> <td>2653   </td> <td>2245   </td></tr>
+<tr><td>029</td> <td>EXPR unbraced                          </td> <td>153    </td> <td>167    </td> <td>502    </td> <td>23     </td> <td>331    </td> <td>313    </td> <td>365    </td></tr>
+<tr><td>030</td> <td>EXPR braced                            </td> <td>29     </td> <td>25     </td> <td>29     </td> <td>53     </td> <td>92     </td> <td>505    </td> <td>386    </td></tr>
+<tr><td>031</td> <td>EXPR inline                            </td> <td>31     </td> <td>30     </td> <td>40     </td> <td>68     </td> <td>59     </td> <td>321    </td> <td>177    </td></tr>
+<tr><td>032</td> <td>EXPR one operand                       </td> <td>11     </td> <td>6      </td> <td>158    </td> <td>9      </td> <td>11     </td> <td>47     </td> <td>65     </td></tr>
+<tr><td>033</td> <td>EXPR ten operands                      </td> <td>18     </td> <td>13     </td> <td>97     </td> <td>13     </td> <td>20     </td> <td>159    </td> <td>141    </td></tr>
+<tr><td>034</td> <td>EXPR fifty operands                    </td> <td>48     </td> <td>43     </td> <td>45     </td> <td>71     </td> <td>85     </td> <td>708    </td> <td>430    </td></tr>
+<tr><td>035</td> <td>EXPR incr with incr                    </td> <td>16     </td> <td>11     </td> <td>10     </td> <td>16     </td> <td>22     </td> <td>31     </td> <td>45     </td></tr>
+<tr><td>036</td> <td>EXPR incr with expr                    </td> <td>11     </td> <td>7      </td> <td>9      </td> <td>11     </td> <td>13     </td> <td>73     </td> <td>74     </td></tr>
+<tr><td>037</td> <td>FCOPY std:      160010 bytes           </td> <td>10069  </td> <td>10242  </td> <td>46300  </td> <td>25104  </td> <td>26557  </td> <td>       </td> <td>       </td></tr>
+<tr><td>038</td> <td>FCOPY binary:   160010 bytes           </td> <td>9932   </td> <td>9892   </td> <td>41776  </td> <td>25211  </td> <td>       </td> <td>       </td> <td>       </td></tr>
+<tr><td>039</td> <td>FCOPY encoding: 160010 bytes           </td> <td>9818   </td> <td>9831   </td> <td>44598  </td> <td>25972  </td> <td>       </td> <td>       </td> <td>       </td></tr>
+<tr><td>040</td> <td>KLIST shuffle0 llength 1               </td> <td>144    </td> <td>127    </td> <td>554    </td> <td>271    </td> <td>367    </td> <td>       </td> <td>       </td></tr>
+<tr><td>041</td> <td>KLIST shuffle0 llength 10              </td> <td>457    </td> <td>413    </td> <td>1592   </td> <td>901    </td> <td>728    </td> <td>       </td> <td>       </td></tr>
+<tr><td>042</td> <td>KLIST shuffle0 llength 100             </td> <td>3986   </td> <td>3552   </td> <td>13565  </td> <td>8229   </td> <td>6484   </td> <td>       </td> <td>       </td></tr>
+<tr><td>043</td> <td>KLIST shuffle0 llength 1000            </td> <td>44083  </td> <td>41766  </td> <td>164223 </td> <td>92480  </td> <td>81157  </td> <td>       </td> <td>       </td></tr>
+<tr><td>044</td> <td>KLIST shuffle0 llength 10000           </td> <td>563245 </td> <td>533804 </td> <td>2073612</td> <td>1214997</td> <td>1161217</td> <td>       </td> <td>       </td></tr>
+<tr><td>045</td> <td>KLIST shuffle1 llength 1               </td> <td>84     </td> <td>85     </td> <td>367    </td> <td>163    </td> <td>149    </td> <td>       </td> <td>       </td></tr>
+<tr><td>046</td> <td>KLIST shuffle1 llength 10              </td> <td>358    </td> <td>333    </td> <td>1371   </td> <td>718    </td> <td>634    </td> <td>       </td> <td>       </td></tr>
+<tr><td>047</td> <td>KLIST shuffle1 llength 100             </td> <td>6374   </td> <td>5238   </td> <td>12737  </td> <td>9243   </td> <td>8576   </td> <td>       </td> <td>       </td></tr>
+<tr><td>048</td> <td>KLIST shuffle1 llength 1000            </td> <td>1190696</td> <td>1194146</td> <td>1770024</td> <td>1762135</td> <td>1736049</td> <td>       </td> <td>       </td></tr>
+<tr><td>049</td> <td>KLIST shuffle1a llength 1              </td> <td>110    </td> <td>100    </td> <td>94     </td> <td>172    </td> <td>150    </td> <td>       </td> <td>       </td></tr>
+<tr><td>050</td> <td>KLIST shuffle1a llength 10             </td> <td>474    </td> <td>368    </td> <td>404    </td> <td>768    </td> <td>910    </td> <td>       </td> <td>       </td></tr>
+<tr><td>051</td> <td>KLIST shuffle1a llength 100            </td> <td>4667   </td> <td>3625   </td> <td>3833   </td> <td>8986   </td> <td>9480   </td> <td>       </td> <td>       </td></tr>
+<tr><td>052</td> <td>KLIST shuffle1a llength 1000           </td> <td>47818  </td> <td>37340  </td> <td>39248  </td> <td>84798  </td> <td>95305  </td> <td>       </td> <td>       </td></tr>
+<tr><td>053</td> <td>KLIST shuffle1a llength 10000          </td> <td>474513 </td> <td>380522 </td> <td>408005 </td> <td>861405 </td> <td>1004602</td> <td>       </td> <td>       </td></tr>
+<tr><td>054</td> <td>KLIST shuffle2 llength 1               </td> <td>104    </td> <td>99     </td> <td>108    </td> <td>196    </td> <td>229    </td> <td>       </td> <td>       </td></tr>
+<tr><td>055</td> <td>KLIST shuffle2 llength 10              </td> <td>440    </td> <td>375    </td> <td>481    </td> <td>938    </td> <td>1080   </td> <td>       </td> <td>       </td></tr>
+<tr><td>056</td> <td>KLIST shuffle2 llength 100             </td> <td>3762   </td> <td>3625   </td> <td>4250   </td> <td>8904   </td> <td>9803   </td> <td>       </td> <td>       </td></tr>
+<tr><td>057</td> <td>KLIST shuffle2 llength 1000            </td> <td>39573  </td> <td>37028  </td> <td>45651  </td> <td>95513  </td> <td>116933 </td> <td>       </td> <td>       </td></tr>
+<tr><td>058</td> <td>KLIST shuffle2 llength 10000           </td> <td>474558 </td> <td>433771 </td> <td>527055 </td> <td>1176566</td> <td>1304458</td> <td>       </td> <td>       </td></tr>
+<tr><td>059</td> <td>KLIST shuffle3 llength 1               </td> <td>104    </td> <td>98     </td> <td>102    </td> <td>217    </td> <td>170    </td> <td>       </td> <td>       </td></tr>
+<tr><td>060</td> <td>KLIST shuffle3 llength 10              </td> <td>380    </td> <td>335    </td> <td>376    </td> <td>786    </td> <td>832    </td> <td>       </td> <td>       </td></tr>
+<tr><td>061</td> <td>KLIST shuffle3 llength 100             </td> <td>3408   </td> <td>2883   </td> <td>3413   </td> <td>7161   </td> <td>7632   </td> <td>       </td> <td>       </td></tr>
+<tr><td>062</td> <td>KLIST shuffle3 llength 1000            </td> <td>38716  </td> <td>33237  </td> <td>37667  </td> <td>87353  </td> <td>82985  </td> <td>       </td> <td>       </td></tr>
+<tr><td>063</td> <td>KLIST shuffle3 llength 10000           </td> <td>945771 </td> <td>777699 </td> <td>844383 </td> <td>1789387</td> <td>1732151</td> <td>       </td> <td>       </td></tr>
+<tr><td>064</td> <td>KLIST shuffle4 llength 1               </td> <td>114    </td> <td>102    </td> <td>100    </td> <td>202    </td> <td>178    </td> <td>       </td> <td>       </td></tr>
+<tr><td>065</td> <td>KLIST shuffle4 llength 10              </td> <td>431    </td> <td>374    </td> <td>416    </td> <td>837    </td> <td>876    </td> <td>       </td> <td>       </td></tr>
+<tr><td>066</td> <td>KLIST shuffle4 llength 100             </td> <td>3871   </td> <td>3250   </td> <td>3758   </td> <td>8572   </td> <td>8278   </td> <td>       </td> <td>       </td></tr>
+<tr><td>067</td> <td>KLIST shuffle4 llength 1000            </td> <td>40201  </td> <td>32119  </td> <td>38186  </td> <td>82985  </td> <td>80450  </td> <td>       </td> <td>       </td></tr>
+<tr><td>068</td> <td>KLIST shuffle4 llength 10000           </td> <td>393369 </td> <td>330472 </td> <td>398724 </td> <td>874454 </td> <td>834612 </td> <td>       </td> <td>       </td></tr>
+<tr><td>069</td> <td>STR/LIST length, obj shimmer           </td> <td>2390   </td> <td>2767   </td> <td>2333   </td> <td>905    </td> <td>28     </td> <td>2585   </td> <td>2638   </td></tr>
+<tr><td>070</td> <td>LIST length, pure list                 </td> <td>18     </td> <td>13     </td> <td>13     </td> <td>21     </td> <td>18     </td> <td>2023   </td> <td>1837   </td></tr>
+<tr><td>071</td> <td>STR length of a LIST                   </td> <td>15     </td> <td>12     </td> <td>12     </td> <td>529    </td> <td>23     </td> <td>525    </td> <td>400    </td></tr>
+<tr><td>072</td> <td>LIST exact search, first item          </td> <td>19     </td> <td>11     </td> <td>14     </td> <td>17     </td> <td>32     </td> <td>2303   </td> <td>1693   </td></tr>
+<tr><td>073</td> <td>LIST exact search, middle item         </td> <td>69     </td> <td>25     </td> <td>27     </td> <td>46     </td> <td>38     </td> <td>1787   </td> <td>1944   </td></tr>
+<tr><td>074</td> <td>LIST exact search, last item           </td> <td>132    </td> <td>48     </td> <td>50     </td> <td>90     </td> <td>111    </td> <td>2261   </td> <td>2009   </td></tr>
+<tr><td>075</td> <td>LIST exact search, non-item            </td> <td>314    </td> <td>110    </td> <td>121    </td> <td>212    </td> <td>220    </td> <td>2099   </td> <td>2118   </td></tr>
+<tr><td>076</td> <td>LIST sorted search, first item         </td> <td>23     </td> <td>12     </td> <td>12     </td> <td>16     </td> <td>29     </td> <td>1862   </td> <td>1610   </td></tr>
+<tr><td>077</td> <td>LIST sorted search, middle item        </td> <td>24     </td> <td>26     </td> <td>26     </td> <td>42     </td> <td>40     </td> <td>1623   </td> <td>2252   </td></tr>
+<tr><td>078</td> <td>LIST sorted search, last item          </td> <td>24     </td> <td>52     </td> <td>49     </td> <td>84     </td> <td>121    </td> <td>2145   </td> <td>1784   </td></tr>
+<tr><td>079</td> <td>LIST sorted search, non-item           </td> <td>23     </td> <td>111    </td> <td>122    </td> <td>201    </td> <td>257    </td> <td>1999   </td> <td>2057   </td></tr>
+<tr><td>080</td> <td>LIST exact search, untyped item        </td> <td>131    </td> <td>47     </td> <td>51     </td> <td>80     </td> <td>101    </td> <td>2166   </td> <td>2218   </td></tr>
+<tr><td>081</td> <td>LIST exact search, typed item          </td> <td>128    </td> <td>48     </td> <td>49     </td> <td>77     </td> <td>111    </td> <td>2072   </td> <td>1872   </td></tr>
+<tr><td>082</td> <td>LIST sorted search, typed item         </td> <td>19     </td> <td>46     </td> <td>50     </td> <td>93     </td> <td>104    </td> <td>1887   </td> <td>2221   </td></tr>
+<tr><td>083</td> <td>LIST sort                              </td> <td>3299   </td> <td>3578   </td> <td>3293   </td> <td>6723   </td> <td>7021   </td> <td>10959  </td> <td>9644   </td></tr>
+<tr><td>084</td> <td>LIST typed sort                        </td> <td>2739   </td> <td>2943   </td> <td>2660   </td> <td>4737   </td> <td>4651   </td> <td>28889  </td> <td>23969  </td></tr>
+<tr><td>085</td> <td>LIST remove first element              </td> <td>317    </td> <td>296    </td> <td>363    </td> <td>806    </td> <td>866    </td> <td>625    </td> <td>522    </td></tr>
+<tr><td>086</td> <td>LIST remove middle element             </td> <td>325    </td> <td>291    </td> <td>358    </td> <td>692    </td> <td>876    </td> <td>656    </td> <td>677    </td></tr>
+<tr><td>087</td> <td>LIST remove last element               </td> <td>318    </td> <td>293    </td> <td>360    </td> <td>689    </td> <td>879    </td> <td>754    </td> <td>675    </td></tr>
+<tr><td>088</td> <td>LIST replace first element             </td> <td>310    </td> <td>289    </td> <td>346    </td> <td>722    </td> <td>917    </td> <td>727    </td> <td>978    </td></tr>
+<tr><td>089</td> <td>LIST replace middle element            </td> <td>316    </td> <td>286    </td> <td>353    </td> <td>693    </td> <td>1045   </td> <td>1024   </td> <td>876    </td></tr>
+<tr><td>090</td> <td>LIST replace last element              </td> <td>316    </td> <td>283    </td> <td>346    </td> <td>963    </td> <td>832    </td> <td>1450   </td> <td>1243   </td></tr>
+<tr><td>091</td> <td>LIST replace first el with multiple    </td> <td>333    </td> <td>304    </td> <td>372    </td> <td>819    </td> <td>938    </td> <td>702    </td> <td>612    </td></tr>
+<tr><td>092</td> <td>LIST replace middle el with multiple   </td> <td>319    </td> <td>310    </td> <td>351    </td> <td>691    </td> <td>736    </td> <td>1088   </td> <td>1123   </td></tr>
+<tr><td>093</td> <td>LIST replace last el with multiple     </td> <td>319    </td> <td>282    </td> <td>347    </td> <td>813    </td> <td>740    </td> <td>1413   </td> <td>1313   </td></tr>
+<tr><td>094</td> <td>LIST replace range                     </td> <td>294    </td> <td>282    </td> <td>343    </td> <td>744    </td> <td>866    </td> <td>1198   </td> <td>971    </td></tr>
+<tr><td>095</td> <td>LIST remove in mixed list              </td> <td>389    </td> <td>374    </td> <td>2195   </td> <td>833    </td> <td>999    </td> <td>829    </td> <td>617    </td></tr>
+<tr><td>096</td> <td>LIST replace in mixed list             </td> <td>377    </td> <td>352    </td> <td>2184   </td> <td>1054   </td> <td>925    </td> <td>756    </td> <td>592    </td></tr>
+<tr><td>097</td> <td>LIST index first element               </td> <td>18     </td> <td>10     </td> <td>13     </td> <td>16     </td> <td>25     </td> <td>451    </td> <td>375    </td></tr>
+<tr><td>098</td> <td>LIST index middle element              </td> <td>17     </td> <td>10     </td> <td>13     </td> <td>16     </td> <td>23     </td> <td>516    </td> <td>536    </td></tr>
+<tr><td>099</td> <td>LIST index last element                </td> <td>17     </td> <td>11     </td> <td>13     </td> <td>13     </td> <td>17     </td> <td>622    </td> <td>663    </td></tr>
+<tr><td>100</td> <td>LIST insert an item at start           </td> <td>291    </td> <td>298    </td> <td>366    </td> <td>775    </td> <td>805    </td> <td>729    </td> <td>563    </td></tr>
+<tr><td>101</td> <td>LIST insert an item at middle          </td> <td>269    </td> <td>266    </td> <td>370    </td> <td>684    </td> <td>667    </td> <td>978    </td> <td>630    </td></tr>
+<tr><td>102</td> <td>LIST insert an item at "end"           </td> <td>257    </td> <td>254    </td> <td>349    </td> <td>670    </td> <td>1013   </td> <td>1779   </td> <td>1200   </td></tr>
+<tr><td>103</td> <td>LIST small, early range                </td> <td>23     </td> <td>19     </td> <td>16     </td> <td>42     </td> <td>35     </td> <td>500    </td> <td>383    </td></tr>
+<tr><td>104</td> <td>LIST small, late range                 </td> <td>23     </td> <td>18     </td> <td>16     </td> <td>28     </td> <td>38     </td> <td>618    </td> <td>685    </td></tr>
+<tr><td>105</td> <td>LIST large, early range                </td> <td>37     </td> <td>29     </td> <td>24     </td> <td>54     </td> <td>108    </td> <td>511    </td> <td>697    </td></tr>
+<tr><td>106</td> <td>LIST large, late range                 </td> <td>40     </td> <td>30     </td> <td>21     </td> <td>81     </td> <td>131    </td> <td>567    </td> <td>551    </td></tr>
+<tr><td>107</td> <td>LIST append to list                    </td> <td>409    </td> <td>401    </td> <td>396    </td> <td>917    </td> <td>1032   </td> <td>737    </td> <td>682    </td></tr>
+<tr><td>108</td> <td>LIST join list                         </td> <td>1053   </td> <td>1072   </td> <td>1066   </td> <td>1818   </td> <td>1453   </td> <td>3672   </td> <td>3167   </td></tr>
+<tr><td>109</td> <td>LOOP for, iterate list                 </td> <td>6616   </td> <td>5198   </td> <td>5372   </td> <td>13766  </td> <td>9653   </td> <td>662376 </td> <td>583297 </td></tr>
+<tr><td>110</td> <td>LOOP foreach, iterate list             </td> <td>1919   </td> <td>1845   </td> <td>1952   </td> <td>3750   </td> <td>3553   </td> <td>11561  </td> <td>12556  </td></tr>
+<tr><td>111</td> <td>LOOP for (to 1000)                     </td> <td>2566   </td> <td>2674   </td> <td>3065   </td> <td>4639   </td> <td>4867   </td> <td>66896  </td> <td>73851  </td></tr>
+<tr><td>112</td> <td>LOOP while (to 1000)                   </td> <td>2568   </td> <td>2942   </td> <td>3065   </td> <td>4551   </td> <td>4637   </td> <td>69891  </td> <td>80404  </td></tr>
+<tr><td>113</td> <td>LOOP for, iterate string               </td> <td>6456   </td> <td>9440   </td> <td>9637   </td> <td>141594 </td> <td>14530  </td> <td>219770 </td> <td>199570 </td></tr>
+<tr><td>114</td> <td>LOOP foreach, iterate string           </td> <td>2240   </td> <td>2249   </td> <td>3955   </td> <td>9099   </td> <td>8147   </td> <td>15468  </td> <td>13206  </td></tr>
+<tr><td>115</td> <td>MAP string 1 val                       </td> <td>679    </td> <td>5931   </td> <td>6028   </td> <td>9096   </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>116</td> <td>MAP string 2 val                       </td> <td>1562   </td> <td>6643   </td> <td>6877   </td> <td>12943  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>117</td> <td>MAP string 3 val                       </td> <td>1836   </td> <td>7673   </td> <td>7832   </td> <td>12825  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>118</td> <td>MAP string 4 val                       </td> <td>2510   </td> <td>8429   </td> <td>8622   </td> <td>17267  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>119</td> <td>MAP string 1 val -nocase               </td> <td>3497   </td> <td>10259  </td> <td>10381  </td> <td>17685  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>120</td> <td>MAP string 2 val -nocase               </td> <td>6218   </td> <td>14570  </td> <td>15024  </td> <td>27379  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>121</td> <td>MAP string 3 val -nocase               </td> <td>8364   </td> <td>19344  </td> <td>18973  </td> <td>35569  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>122</td> <td>MAP string 4 val -nocase               </td> <td>10135  </td> <td>21861  </td> <td>22132  </td> <td>39660  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>123</td> <td>MAP regsub 1 val                       </td> <td>3702   </td> <td>3954   </td> <td>4303   </td> <td>9663   </td> <td>1830   </td> <td>4430   </td> <td>3684   </td></tr>
+<tr><td>124</td> <td>MAP regsub 2 val                       </td> <td>16066  </td> <td>16981  </td> <td>18176  </td> <td>41500  </td> <td>4184   </td> <td>9394   </td> <td>11576  </td></tr>
+<tr><td>125</td> <td>MAP regsub 3 val                       </td> <td>21671  </td> <td>23258  </td> <td>24817  </td> <td>52315  </td> <td>6075   </td> <td>11441  </td> <td>12456  </td></tr>
+<tr><td>126</td> <td>MAP regsub 4 val                       </td> <td>26657  </td> <td>29335  </td> <td>31350  </td> <td>67973  </td> <td>8659   </td> <td>15319  </td> <td>13884  </td></tr>
+<tr><td>127</td> <td>MAP regsub 1 val -nocase               </td> <td>3686   </td> <td>3913   </td> <td>4332   </td> <td>9463   </td> <td>2766   </td> <td>4729   </td> <td>4488   </td></tr>
+<tr><td>128</td> <td>MAP regsub 2 val -nocase               </td> <td>15821  </td> <td>17024  </td> <td>18134  </td> <td>40735  </td> <td>5881   </td> <td>9546   </td> <td>11911  </td></tr>
+<tr><td>129</td> <td>MAP regsub 3 val -nocase               </td> <td>20987  </td> <td>23228  </td> <td>24747  </td> <td>52639  </td> <td>8625   </td> <td>12501  </td> <td>14437  </td></tr>
+<tr><td>130</td> <td>MAP regsub 4 val -nocase               </td> <td>26227  </td> <td>29397  </td> <td>31314  </td> <td>66937  </td> <td>11664  </td> <td>14510  </td> <td>16818  </td></tr>
+<tr><td>131</td> <td>MAP string, no match                   </td> <td>926    </td> <td>7712   </td> <td>8028   </td> <td>14020  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>132</td> <td>MAP string -nocase, no match           </td> <td>6726   </td> <td>18725  </td> <td>18933  </td> <td>35683  </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>133</td> <td>MAP regsub, no match                   </td> <td>1149   </td> <td>2764   </td> <td>2830   </td> <td>6704   </td> <td>1843   </td> <td>3352   </td> <td>4823   </td></tr>
+<tr><td>134</td> <td>MAP regsub -nocase, no match           </td> <td>1151   </td> <td>2785   </td> <td>2890   </td> <td>6609   </td> <td>3563   </td> <td>4499   </td> <td>5249   </td></tr>
+<tr><td>135</td> <td>MAP string short                       </td> <td>37     </td> <td>41     </td> <td>39     </td> <td>116    </td> <td>(8.2+) </td> <td>(8.2+) </td> <td>(8.2+) </td></tr>
+<tr><td>136</td> <td>MAP regsub short                       </td> <td>164    </td> <td>180    </td> <td>193    </td> <td>308    </td> <td>154    </td> <td>244    </td> <td>432    </td></tr>
+<tr><td>137</td> <td>MTHD direct ns proc call               </td> <td>10     </td> <td>6      </td> <td>8      </td> <td>3      </td> <td>7      </td> <td>       </td> <td>       </td></tr>
+<tr><td>138</td> <td>MTHD imported ns proc call             </td> <td>11     </td> <td>6      </td> <td>7      </td> <td>5      </td> <td>7      </td> <td>       </td> <td>       </td></tr>
+<tr><td>139</td> <td>MTHD interp alias proc call            </td> <td>25     </td> <td>18     </td> <td>18     </td> <td>18     </td> <td>9      </td> <td>       </td> <td>       </td></tr>
+<tr><td>140</td> <td>MTHD indirect proc eval                </td> <td>36     </td> <td>29     </td> <td>61     </td> <td>56     </td> <td>72     </td> <td>       </td> <td>       </td></tr>
+<tr><td>141</td> <td>MTHD indirect proc eval #2             </td> <td>58     </td> <td>48     </td> <td>57     </td> <td>81     </td> <td>107    </td> <td>       </td> <td>       </td></tr>
+<tr><td>142</td> <td>MTHD array stored proc call            </td> <td>14     </td> <td>9      </td> <td>10     </td> <td>22     </td> <td>19     </td> <td>       </td> <td>       </td></tr>
+<tr><td>143</td> <td>MTHD switch method call                </td> <td>50     </td> <td>38     </td> <td>83     </td> <td>119    </td> <td>172    </td> <td>       </td> <td>       </td></tr>
+<tr><td>144</td> <td>MTHD ns lookup call                    </td> <td>99     </td> <td>81     </td> <td>216    </td> <td>374    </td> <td>376    </td> <td>       </td> <td>       </td></tr>
+<tr><td>145</td> <td>MTHD inline call                       </td> <td>5      </td> <td>3      </td> <td>3      </td> <td>2      </td> <td>2      </td> <td>       </td> <td>       </td></tr>
+<tr><td>146</td> <td>PROC explicit return                   </td> <td>15     </td> <td>7      </td> <td>8      </td> <td>7      </td> <td>7      </td> <td>11     </td> <td>11     </td></tr>
+<tr><td>147</td> <td>PROC implicit return                   </td> <td>11     </td> <td>6      </td> <td>7      </td> <td>4      </td> <td>11     </td> <td>16     </td> <td>15     </td></tr>
+<tr><td>148</td> <td>PROC explicit return (2)               </td> <td>12     </td> <td>7      </td> <td>8      </td> <td>13     </td> <td>13     </td> <td>14     </td> <td>10     </td></tr>
+<tr><td>149</td> <td>PROC implicit return (2)               </td> <td>10     </td> <td>6      </td> <td>7      </td> <td>10     </td> <td>18     </td> <td>21     </td> <td>24     </td></tr>
+<tr><td>150</td> <td>PROC explicit return (3)               </td> <td>10     </td> <td>7      </td> <td>7      </td> <td>4      </td> <td>14     </td> <td>14     </td> <td>25     </td></tr>
+<tr><td>151</td> <td>PROC implicit return (3)               </td> <td>10     </td> <td>6      </td> <td>7      </td> <td>3      </td> <td>12     </td> <td>10     </td> <td>18     </td></tr>
+<tr><td>152</td> <td>PROC heavily commented                 </td> <td>10     </td> <td>5      </td> <td>6      </td> <td>12     </td> <td>5      </td> <td>629    </td> <td>753    </td></tr>
+<tr><td>153</td> <td>PROC do-nothing, no args               </td> <td>8      </td> <td>5      </td> <td>28     </td> <td>38     </td> <td>4      </td> <td>5      </td> <td>2      </td></tr>
+<tr><td>154</td> <td>PROC do-nothing, one arg               </td> <td>10     </td> <td>5      </td> <td>6      </td> <td>9      </td> <td>8      </td> <td>15     </td> <td>21     </td></tr>
+<tr><td>155</td> <td>PROC local links with global           </td> <td>1579   </td> <td>1569   </td> <td>1626   </td> <td>3586   </td> <td>4533   </td> <td>7955   </td> <td>11505  </td></tr>
+<tr><td>156</td> <td>PROC local links with upvar            </td> <td>1287   </td> <td>1166   </td> <td>1387   </td> <td>2806   </td> <td>2922   </td> <td>8371   </td> <td>10317  </td></tr>
+<tr><td>157</td> <td>PROC local links with variable         </td> <td>1195   </td> <td>1101   </td> <td>1334   </td> <td>2614   </td> <td>1050   </td> <td>9091   </td> <td>9212   </td></tr>
+<tr><td>158</td> <td>READ 595K, gets                        </td> <td>340064 </td> <td>299797 </td> <td>306109 </td> <td>819327 </td> <td>372526 </td> <td>978472 </td> <td>985676 </td></tr>
+<tr><td>159</td> <td>READ 595K, read                        </td> <td>77751  </td> <td>97698  </td> <td>97019  </td> <td>227338 </td> <td>2936958</td> <td>3774669</td> <td>3834017</td></tr>
+<tr><td>160</td> <td>READ 595K, read & size                 </td> <td>77606  </td> <td>97909  </td> <td>97074  </td> <td>242255 </td> <td>124776 </td> <td>3696432</td> <td>3704813</td></tr>
+<tr><td>161</td> <td>READ 3050b, gets                       </td> <td>1869   </td> <td>1641   </td> <td>2052   </td> <td>4118   </td> <td>954    </td> <td>2074   </td> <td>2201   </td></tr>
+<tr><td>162</td> <td>READ 3050b, read                       </td> <td>522    </td> <td>494    </td> <td>494    </td> <td>789    </td> <td>748    </td> <td>503    </td> <td>415    </td></tr>
+<tr><td>163</td> <td>READ 3050b, read & size                </td> <td>569    </td> <td>534    </td> <td>530    </td> <td>790    </td> <td>410    </td> <td>467    </td> <td>361    </td></tr>
+<tr><td>164</td> <td>BREAD 595K, gets                       </td> <td>350077 </td> <td>292326 </td> <td>304961 </td> <td>833500 </td> <td>365165 </td> <td>953379 </td> <td>979961 </td></tr>
+<tr><td>165</td> <td>BREAD 595K, read                       </td> <td>50105  </td> <td>50454  </td> <td>50018  </td> <td>228963 </td> <td>2952787</td> <td>3640795</td> <td>3741298</td></tr>
+<tr><td>166</td> <td>BREAD 595K, read & size                </td> <td>50303  </td> <td>50486  </td> <td>50140  </td> <td>246365 </td> <td>87019  </td> <td>3685978</td> <td>3688120</td></tr>
+<tr><td>167</td> <td>BREAD 3050b, gets                      </td> <td>2097   </td> <td>1777   </td> <td>1774   </td> <td>5220   </td> <td>1062   </td> <td>2208   </td> <td>2178   </td></tr>
+<tr><td>168</td> <td>BREAD 3050b, read                      </td> <td>340    </td> <td>347    </td> <td>334    </td> <td>1310   </td> <td>412    </td> <td>458    </td> <td>359    </td></tr>
+<tr><td>169</td> <td>BREAD 3050b, read & size               </td> <td>396    </td> <td>389    </td> <td>369    </td> <td>1144   </td> <td>1230   </td> <td>390    </td> <td>495    </td></tr>
+<tr><td>170</td> <td>REGEXP literal regexp                  </td> <td>39     </td> <td>37     </td> <td>38     </td> <td>42     </td> <td>31     </td> <td>26     </td> <td>26     </td></tr>
+<tr><td>171</td> <td>REGEXP var-based regexp                </td> <td>41     </td> <td>40     </td> <td>40     </td> <td>55     </td> <td>45     </td> <td>30     </td> <td>61     </td></tr>
+<tr><td>172</td> <td>REGEXP count all matches               </td> <td>137    </td> <td>139    </td> <td>530    </td> <td>1280   </td> <td>1332   </td> <td>2277   </td> <td>2776   </td></tr>
+<tr><td>173</td> <td>REGEXP extract all matches             </td> <td>169    </td> <td>177    </td> <td>616    </td> <td>1790   </td> <td>1129   </td> <td>3068   </td> <td>3620   </td></tr>
+<tr><td>174</td> <td>STARTUP time to launch tclsh           </td> <td>21138  </td> <td>20425  </td> <td>18293  </td> <td>85723  </td> <td>102877 </td> <td>70500  </td> <td>90323  </td></tr>
+<tr><td>175</td> <td>STR str [string compare]               </td> <td>18     </td> <td>26     </td> <td>24     </td> <td>17     </td> <td>26     </td> <td>199    </td> <td>193    </td></tr>
+<tr><td>176</td> <td>STR str [string equal]                 </td> <td>18     </td> <td>25     </td> <td>23     </td> <td>68     </td> <td>38     </td> <td>160    </td> <td>198    </td></tr>
+<tr><td>177</td> <td>STR str $a equal ""                    </td> <td>17     </td> <td>26     </td> <td>24     </td> <td>81     </td> <td>52     </td> <td>670    </td> <td>410    </td></tr>
+<tr><td>178</td> <td>STR str num == ""                      </td> <td>19     </td> <td>14     </td> <td>24     </td> <td>36     </td> <td>52     </td> <td>338    </td> <td>419    </td></tr>
+<tr><td>179</td> <td>STR str $a eq $b                       </td> <td>22     </td> <td>33     </td> <td>31     </td> <td>39     </td> <td>56     </td> <td>231    </td> <td>261    </td></tr>
+<tr><td>180</td> <td>STR str $a ne $b                       </td> <td>23     </td> <td>31     </td> <td>30     </td> <td>85     </td> <td>47     </td> <td>226    </td> <td>265    </td></tr>
+<tr><td>181</td> <td>STR str $a eq $b (same obj)            </td> <td>22     </td> <td>33     </td> <td>36     </td> <td>161    </td> <td>53     </td> <td>271    </td> <td>338    </td></tr>
+<tr><td>182</td> <td>STR str $a ne $b (same obj)            </td> <td>21     </td> <td>33     </td> <td>30     </td> <td>28     </td> <td>57     </td> <td>203    </td> <td>235    </td></tr>
+<tr><td>183</td> <td>STR length (==4010)                    </td> <td>15     </td> <td>14     </td> <td>13     </td> <td>678    </td> <td>17     </td> <td>508    </td> <td>867    </td></tr>
+<tr><td>184</td> <td>STR index 0                            </td> <td>26     </td> <td>19     </td> <td>19     </td> <td>487    </td> <td>30     </td> <td>522    </td> <td>614    </td></tr>
+<tr><td>185</td> <td>STR index 100                          </td> <td>21     </td> <td>24     </td> <td>19     </td> <td>500    </td> <td>43     </td> <td>491    </td> <td>601    </td></tr>
+<tr><td>186</td> <td>STR index 500                          </td> <td>21     </td> <td>18     </td> <td>19     </td> <td>483    </td> <td>42     </td> <td>489    </td> <td>493    </td></tr>
+<tr><td>187</td> <td>STR index2 0                           </td> <td>21     </td> <td>19     </td> <td>19     </td> <td>494    </td> <td>27     </td> <td>485    </td> <td>583    </td></tr>
+<tr><td>188</td> <td>STR index2 100                         </td> <td>20     </td> <td>19     </td> <td>19     </td> <td>470    </td> <td>26     </td> <td>557    </td> <td>459    </td></tr>
+<tr><td>189</td> <td>STR index2 500                         </td> <td>21     </td> <td>19     </td> <td>19     </td> <td>484    </td> <td>40     </td> <td>764    </td> <td>468    </td></tr>
+<tr><td>190</td> <td>STR first (success)                    </td> <td>19     </td> <td>16     </td> <td>15     </td> <td>21     </td> <td>33     </td> <td>533    </td> <td>519    </td></tr>
+<tr><td>191</td> <td>STR first (failure)                    </td> <td>120    </td> <td>56     </td> <td>50     </td> <td>123    </td> <td>117    </td> <td>697    </td> <td>822    </td></tr>
+<tr><td>192</td> <td>STR first (total failure)              </td> <td>109    </td> <td>42     </td> <td>28     </td> <td>54     </td> <td>57     </td> <td>545    </td> <td>631    </td></tr>
+<tr><td>193</td> <td>STR last (success)                     </td> <td>19     </td> <td>229    </td> <td>224    </td> <td>469    </td> <td>18     </td> <td>815    </td> <td>728    </td></tr>
+<tr><td>194</td> <td>STR last (failure)                     </td> <td>90     </td> <td>99     </td> <td>91     </td> <td>185    </td> <td>201    </td> <td>657    </td> <td>859    </td></tr>
+<tr><td>195</td> <td>STR last (total failure)               </td> <td>82     </td> <td>90     </td> <td>83     </td> <td>135    </td> <td>151    </td> <td>584    </td> <td>1153   </td></tr>
+<tr><td>196</td> <td>STR match, simple (success early)      </td> <td>17     </td> <td>14     </td> <td>13     </td> <td>25     </td> <td>33     </td> <td>503    </td> <td>489    </td></tr>
+<tr><td>197</td> <td>STR match, simple (success late)       </td> <td>16     </td> <td>14     </td> <td>13     </td> <td>11     </td> <td>27     </td> <td>619    </td> <td>502    </td></tr>
+<tr><td>198</td> <td>STR match, simple (failure)            </td> <td>17     </td> <td>15     </td> <td>13     </td> <td>26     </td> <td>36     </td> <td>421    </td> <td>680    </td></tr>
+<tr><td>199</td> <td>STR match, simple (total failure)      </td> <td>16     </td> <td>18     </td> <td>13     </td> <td>17     </td> <td>30     </td> <td>456    </td> <td>378    </td></tr>
+<tr><td>200</td> <td>STR match, complex (success early)     </td> <td>17     </td> <td>23     </td> <td>22     </td> <td>33     </td> <td>35     </td> <td>466    </td> <td>448    </td></tr>
+<tr><td>201</td> <td>STR match, complex (success late)      </td> <td>145    </td> <td>1020   </td> <td>1040   </td> <td>2173   </td> <td>926    </td> <td>1529   </td> <td>1676   </td></tr>
+<tr><td>202</td> <td>STR match, complex (failure)           </td> <td>122    </td> <td>1011   </td> <td>1010   </td> <td>1785   </td> <td>964    </td> <td>1357   </td> <td>1698   </td></tr>
+<tr><td>203</td> <td>STR match, complex (total failure)     </td> <td>90     </td> <td>994    </td> <td>994    </td> <td>1844   </td> <td>1216   </td> <td>1725   </td> <td>1602   </td></tr>
+<tr><td>204</td> <td>STR range, index 100..200 of 4010      </td> <td>26     </td> <td>21     </td> <td>21     </td> <td>716    </td> <td>25     </td> <td>589    </td> <td>609    </td></tr>
+<tr><td>205</td> <td>STR replace, no replacement            </td> <td>79     </td> <td>270    </td> <td>264    </td> <td>570    </td> <td>166    </td> <td>1217   </td> <td>1315   </td></tr>
+<tr><td>206</td> <td>STR replace, equal replacement         </td> <td>92     </td> <td>277    </td> <td>257    </td> <td>526    </td> <td>140    </td> <td>1560   </td> <td>1263   </td></tr>
+<tr><td>207</td> <td>STR replace, longer replacement        </td> <td>95     </td> <td>270    </td> <td>265    </td> <td>551    </td> <td>103    </td> <td>1563   </td> <td>1309   </td></tr>
+<tr><td>208</td> <td>STR repeat, abcdefghij * 10            </td> <td>19     </td> <td>22     </td> <td>22     </td> <td>21     </td> <td>199    </td> <td>997    </td> <td>963    </td></tr>
+<tr><td>209</td> <td>STR repeat, abcdefghij * 100           </td> <td>39     </td> <td>72     </td> <td>74     </td> <td>120    </td> <td>1267   </td> <td>8488   </td> <td>9065   </td></tr>
+<tr><td>210</td> <td>STR repeat, abcdefghij * 1000          </td> <td>245    </td> <td>565    </td> <td>557    </td> <td>798    </td> <td>12264  </td> <td>81587  </td> <td>86928  </td></tr>
+<tr><td>211</td> <td>STR repeat, 4010 chars * 10            </td> <td>314    </td> <td>797    </td> <td>671    </td> <td>1971   </td> <td>1494   </td> <td>11891  </td> <td>7688   </td></tr>
+<tr><td>212</td> <td>STR repeat, 4010 chars * 100           </td> <td>7347   </td> <td>18287  </td> <td>18194  </td> <td>47967  </td> <td>69328  </td> <td>105423 </td> <td>107290 </td></tr>
+<tr><td>213</td> <td>STR reverse iter1, 100 chars           </td> <td>1285   </td> <td>1628   </td> <td>1425   </td> <td>4104   </td> <td>1871   </td> <td>8459   </td> <td>8704   </td></tr>
+<tr><td>214</td> <td>STR reverse iter1, 100 uchars          </td> <td>1264   </td> <td>1768   </td> <td>1436   </td> <td>4448   </td> <td>1864   </td> <td>8250   </td> <td>9034   </td></tr>
+<tr><td>215</td> <td>STR reverse iter2, 100 chars           </td> <td>808    </td> <td>1252   </td> <td>1168   </td> <td>3860   </td> <td>2099   </td> <td>8379   </td> <td>8292   </td></tr>
+<tr><td>216</td> <td>STR reverse iter2, 100 uchars          </td> <td>807    </td> <td>1259   </td> <td>1096   </td> <td>4086   </td> <td>1602   </td> <td>9513   </td> <td>5431   </td></tr>
+<tr><td>217</td> <td>STR reverse recur1, 100 chars          </td> <td>4092   </td> <td>4770   </td> <td>3998   </td> <td>8749   </td> <td>8470   </td> <td>20868  </td> <td>11271  </td></tr>
+<tr><td>218</td> <td>STR reverse recur1, 100 uchars         </td> <td>4169   </td> <td>5467   </td> <td>4767   </td> <td>8794   </td> <td>9075   </td> <td>21634  </td> <td>13821  </td></tr>
+<tr><td>219</td> <td>STR split, 4010 chars                  </td> <td>2663   </td> <td>2138   </td> <td>8847   </td> <td>23626  </td> <td>18954  </td> <td>4372   </td> <td>3169   </td></tr>
+<tr><td>220</td> <td>STR split, 12100 uchars                </td> <td>7207   </td> <td>6395   </td> <td>       </td> <td>       </td> <td>       </td> <td>       </td> <td>       </td></tr>
+<tr><td>221</td> <td>STR split iter, 4010 chars             </td> <td>9349   </td> <td>9372   </td> <td>16664  </td> <td>39846  </td> <td>35962  </td> <td>52886  </td> <td>48521  </td></tr>
+<tr><td>222</td> <td>STR split iter, 12100 uchars           </td> <td>28171  </td> <td>28299  </td> <td>       </td> <td>       </td> <td>       </td> <td>       </td> <td>       </td></tr>
+<tr><td>223</td> <td>STR append                             </td> <td>100    </td> <td>82     </td> <td>71     </td> <td>108    </td> <td>164    </td> <td>1055   </td> <td>1145   </td></tr>
+<tr><td>224</td> <td>STR append (1KB + 1KB)                 </td> <td>65     </td> <td>55     </td> <td>49     </td> <td>96     </td> <td>79     </td> <td>236    </td> <td>290    </td></tr>
+<tr><td>225</td> <td>STR append (10KB + 1KB)                </td> <td>186    </td> <td>193    </td> <td>196    </td> <td>474    </td> <td>75     </td> <td>215    </td> <td>213    </td></tr>
+<tr><td>226</td> <td>STR append (1MB + 2b * 1000)           </td> <td>37786  </td> <td>70498  </td> <td>74635  </td> <td>178639 </td> <td>12391  </td> <td>82339  </td> <td>84345  </td></tr>
+<tr><td>227</td> <td>STR append (1MB + 1KB)                 </td> <td>29729  </td> <td>63374  </td> <td>61479  </td> <td>136891 </td> <td>68     </td> <td>215    </td> <td>335    </td></tr>
+<tr><td>228</td> <td>STR append (1MB + 1KB * 20)            </td> <td>29635  </td> <td>64566  </td> <td>61865  </td> <td>127033 </td> <td>270    </td> <td>1551   </td> <td>1724   </td></tr>
+<tr><td>229</td> <td>STR append (1MB + 1KB * 1000)          </td> <td>66605  </td> <td>94413  </td> <td>101998 </td> <td>177875 </td> <td>10955  </td> <td>78370  </td> <td>81930  </td></tr>
+<tr><td>230</td> <td>STR append (1MB + 1MB * 3)             </td> <td>126103 </td> <td>153051 </td> <td>157370 </td> <td>282029 </td> <td>218    </td> <td>248    </td> <td>876    </td></tr>
+<tr><td>231</td> <td>STR append (1MB + 1MB * 5)             </td> <td>157407 </td> <td>303871 </td> <td>315407 </td> <td>1051814</td> <td>45     </td> <td>543    </td> <td>342    </td></tr>
+<tr><td>232</td> <td>STR append (1MB + (1b + 1K + 1b) * 100)</td> <td>33118  </td> <td>63834  </td> <td>69167  </td> <td>290360 </td> <td>2398   </td> <td>8930   </td> <td>9893   </td></tr>
+<tr><td>233</td> <td>STR info locals match                  </td> <td>828    </td> <td>818    </td> <td>993    </td> <td>2025   </td> <td>1518   </td> <td>8071   </td> <td>9043   </td></tr>
+<tr><td>234</td> <td>TRACE no trace set                     </td> <td>35     </td> <td>25     </td> <td>26     </td> <td>18     </td> <td>27     </td> <td>42     </td> <td>91     </td></tr>
+<tr><td>235</td> <td>TRACE read                             </td> <td>35     </td> <td>26     </td> <td>26     </td> <td>16     </td> <td>59     </td> <td>128    </td> <td>113    </td></tr>
+<tr><td>236</td> <td>TRACE write                            </td> <td>35     </td> <td>25     </td> <td>26     </td> <td>16     </td> <td>55     </td> <td>78     </td> <td>78     </td></tr>
+<tr><td>237</td> <td>TRACE unset                            </td> <td>35     </td> <td>26     </td> <td>26     </td> <td>16     </td> <td>70     </td> <td>94     </td> <td>112    </td></tr>
+<tr><td>238</td> <td>TRACE all set (rwu)                    </td> <td>35     </td> <td>25     </td> <td>25     </td> <td>18     </td> <td>59     </td> <td>77     </td> <td>105    </td></tr>
+<tr><td>239</td> <td>UNSET var exists                       </td> <td>14     </td> <td>8      </td> <td>9      </td> <td>8      </td> <td>16     </td> <td>27     </td> <td>37     </td></tr>
+<tr><td>240</td> <td>UNSET catch var exists                 </td> <td>16     </td> <td>9      </td> <td>10     </td> <td>52     </td> <td>20     </td> <td>61     </td> <td>58     </td></tr>
+<tr><td>241</td> <td>UNSET catch var !exist                 </td> <td>69     </td> <td>64     </td> <td>59     </td> <td>191    </td> <td>120    </td> <td>77     </td> <td>96     </td></tr>
+<tr><td>242</td> <td>UNSET info check var exists            </td> <td>19     </td> <td>14     </td> <td>13     </td> <td>69     </td> <td>27     </td> <td>80     </td> <td>78     </td></tr>
+<tr><td>243</td> <td>UNSET info check var !exist            </td> <td>16     </td> <td>11     </td> <td>11     </td> <td>6      </td> <td>17     </td> <td>73     </td> <td>64     </td></tr>
+<tr><td>244</td> <td>UNSET nocomplain var exists            </td> <td>14     </td> <td>9      </td> <td>10     </td> <td>35     </td> <td>20     </td> <td>52     </td> <td>56     </td></tr>
+<tr><td>245</td> <td>UNSET nocomplain var !exist            </td> <td>14     </td> <td>64     </td> <td>59     </td> <td>157    </td> <td>122    </td> <td>90     </td> <td>109    </td></tr>
+<tr><td>246</td> <td>VAR access locally set                 </td> <td>14     </td> <td>8      </td> <td>10     </td> <td>18     </td> <td>20     </td> <td>106    </td> <td>67     </td></tr>
+<tr><td>247</td> <td>VAR access local proc arg              </td> <td>14     </td> <td>9      </td> <td>10     </td> <td>6      </td> <td>26     </td> <td>88     </td> <td>110    </td></tr>
+<tr><td>248</td> <td>VAR access global                      </td> <td>34     </td> <td>25     </td> <td>26     </td> <td>101    </td> <td>61     </td> <td>82     </td> <td>121    </td></tr>
+<tr><td>249</td> <td>VAR access upvar                       </td> <td>36     </td> <td>29     </td> <td>30     </td> <td>103    </td> <td>65     </td> <td>97     </td> <td>101    </td></tr>
+<tr><td>250</td> <td>VAR set scalar                         </td> <td>10     </td> <td>6      </td> <td>7      </td> <td>4      </td> <td>11     </td> <td>35     </td> <td>74     </td></tr>
+<tr><td>251</td> <td>VAR set array element                  </td> <td>18     </td> <td>12     </td> <td>14     </td> <td>9      </td> <td>33     </td> <td>59     </td> <td>35     </td></tr>
+<tr><td>252</td> <td>VAR 100 'set's in array                </td> <td>162    </td> <td>133    </td> <td>160    </td> <td>296    </td> <td>292    </td> <td>917    </td> <td>827    </td></tr>
+<tr><td>253</td> <td>VAR 'array set' of 100 elems           </td> <td>293    </td> <td>251    </td> <td>264    </td> <td>741    </td> <td>816    </td> <td>1063   </td> <td>993    </td></tr>
+</table></p></body></html>

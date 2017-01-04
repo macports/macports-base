@@ -1,0 +1,182 @@
+
+<html><head>
+<title>grammar::me_intro - Grammar operations and usage</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'me_intro.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- grammar::me_intro.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::me_intro(n) 0.1 tcllib &quot;Grammar operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::me_intro - Introduction to virtual machines for parsing token streams</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document is an introduction to and overview of the basic
+facilities for the parsing and/or matching of <i class="term">token</i>
+streams. One possibility often used for the token domain are
+characters.</p>
+<p>The packages themselves all provide variants of one
+<i class="term"><a href="../../../../index.html#key24">virtual machine</a></i>, called a <i class="term">match engine</i> (short
+<i class="term">ME</i>), which has all the facilities needed for the matching and
+parsing of a stream, and which are either controlled directly, or are
+customized with a match program. The virtual machine is basically a
+pushdown automaton, with additional elements for backtracking and/or
+handling of semantic data and construction of abstract syntax trees
+(<i class="term"><a href="../../../../index.html#key814">AST</a></i>).</p>
+<p>Because of the high degree of similarity in the actual implementations
+of the aforementioned virtual machine and the data structures they
+receive and generate these common parts are specified in a separate
+document which will be referenced by the documentation for packages
+actually implementing it.</p>
+<p>The relevant documents are:</p>
+<dl class="doctools_definitions">
+<dt><b class="package"><a href="me_vm.html">grammar::me_vm</a></b></dt>
+<dd><p>Virtual machine specification.</p></dd>
+<dt><b class="package"><a href="me_ast.html">grammar::me_ast</a></b></dt>
+<dd><p>Specification of various representations used for abstract syntax
+trees.</p></dd>
+<dt><b class="package"><a href="me_util.html">grammar::me::util</a></b></dt>
+<dd><p>Utility commands.</p></dd>
+<dt><b class="package"><a href="me_tcl.html">grammar::me::tcl</a></b></dt>
+<dd><p>Singleton ME virtual machine implementation tied to Tcl for control
+flow and stacks. Hardwired for pull operation. Uninteruptible during
+processing.</p></dd>
+<dt><b class="package"><a href="me_cpu.html">grammar::me::cpu</a></b></dt>
+<dd><p>Object-based ME virtual machine implementation with explicit control
+flow, and stacks, using bytecodes. Suspend/Resumable. Push/pull
+operation.</p></dd>
+<dt><b class="package"><a href="me_cpucore.html">grammar::me::cpu::core</a></b></dt>
+<dd><p>Core functionality for state manipulation and stepping used in the
+bytecode based implementation of ME virtual machines.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_me</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key22">CFG</a>, <a href="../../../../index.html#key27">CFL</a>, <a href="../../../../index.html#key15">LL(k)</a>, <a href="../../../../index.html#key6">PEG</a>, <a href="../../../../index.html#key25">TPDL</a>, <a href="../../../../index.html#key23">context-free grammar</a>, <a href="../../../../index.html#key4">context-free languages</a>, <a href="../../../../index.html#key0">expression</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key14">parsing expression grammar</a>, <a href="../../../../index.html#key1">push down automaton</a>, <a href="../../../../index.html#key10">recursive descent</a>, <a href="../../../../index.html#key13">top-down parsing languages</a>, <a href="../../../../index.html#key12">transducer</a>, <a href="../../../../index.html#key24">virtual machine</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

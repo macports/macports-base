@@ -1,0 +1,75 @@
+# -*- tcl -*-
+# Graph ops tests - Connected components II.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: bridge.test,v 1.3 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::isBridge? G A
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-1.0 {isBridge?, wrong args, missing} {
+    catch {struct::graph::op::isBridge?} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::isBridge? {g arc} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-1.1 {isBridge?, wrong args, missing} {
+    catch {struct::graph::op::isBridge? g} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::isBridge? {g arc} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-1.2 {isBridge?, wrong args, too many} {
+    catch {struct::graph::op::isBridge? g x y} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::isBridge? {g arc}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-2.0 {isBridge?, bad arc} {
+    SETUP
+    catch {struct::graph::op::isBridge? mygraph foo} result
+    mygraph destroy
+    set result
+} {arc "foo" does not exist in graph "mygraph"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-3.1 {isBridge?} {
+    SETUP_A
+    set result [lsort -dict [struct::graph::op::isBridge? mygraph 'arc0_1']]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-3.2 {isBridge?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isBridge? mygraph bridge1]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-3.3 {isBridge?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isBridge? mygraph bridge2]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-3.4 {isBridge?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isBridge? mygraph bridge3]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isBridge?-3.5 {isBridge?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isBridge? mygraph nobridge]]
+    mygraph destroy
+    set result
+} 0
+
+# ---------------------------------------------------

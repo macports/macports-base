@@ -1,0 +1,181 @@
+# -*- tcl -*-
+# Testsuite string::token::shell
+#
+# Copyright (c) 2013 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      fileutil/fileutil.tcl  fileutil
+    useLocal token.tcl              string::token
+}
+testing {
+    useLocal token_shell.tcl string::token::shell
+}
+
+# -------------------------------------------------------------------------
+
+test string-token-shell-1.0 "string token shell, wrong#args, not enough" -body {
+    string token shell
+} -returnCodes error -result {wrong # args: should be "::string::token::shell ?-indices? ?-partial? ?--? text"}
+
+test string-token-shell-1.1 "string token shell, wrong#args, too many" -body {
+    string token shell T X
+} -returnCodes error -result {wrong # args: should be "::string::token::shell ?-indices? ?-partial? ?--? text"}
+
+test string-token-shell-1.2 "string token shell, bad option" -body {
+    string token shell -foo T
+} -returnCodes error -result {Bad option -foo, expected one of -indices, or -partial}
+
+test string-token-shell-1.3 "string token shell, wrong#args, too many" -body {
+    string token shell -- T X
+} -returnCodes error -result {wrong # args: should be "::string::token::shell ?-indices? ?-partial? ?--? text"}
+
+# -------------------------------------------------------------------------
+
+foreach {n label line tokens} {
+    0  empty               {}          {}
+    1  leading-whitespace  {  }        {}
+    2  plain-words         {a}         {a}
+    3  plain-words         {a b}       {a b}
+    4  trailing-whitespace {a b c  }   {a b c}
+    5  inter-whitespace    {a   b}     {a b}
+    6  single-quoted-words {'a' b}     {a b}
+    7  single-quoted-words {a 'b'}     {a b}
+    8  single-quoted-words {a 'b' c}   {a b c}
+    9  single-quoted-words {a '' c}    {a {} c}
+    10 double-quoted-words {"a" b}     {a b}
+    11 double-quoted-words {a "b"}     {a b}
+    12 double-quoted-words {a "b" c}   {a b c}
+    13 double-quoted-words {a "\"" c}  {a {"} c}
+    14 mixed-quoted-words  {a "\"" ''} {a {"} {}}
+    15 double-quoted-words {a "" c}    {a {} c}
+    16 mixed               {a 'b' "c" d "e\"\"f" } {a b c d e\"\"f}
+    17 backslashes         {a "\\" c}   {a \\ c}
+    18 backslashes         {a "\"\\" c} {a \"\\ c}
+    19 escaping-plain      {a \\ c}     {a \\ c}
+    20 escaping-plain      {a \" c}     {a {"} c}
+    21 escaping-plain      {a \"b c}    {a {"b} c}
+} {
+    test string-token-shell-2.$n "string token shell, $label" -body {
+	string token shell $line
+    } -result $tokens
+}
+
+# Extended parsing output for -indices
+foreach {n label line tokens} {
+    0  empty               {}          {}
+    1  leading-whitespace  {  }        {}
+    2  plain-words         {a}         {{PLAIN 0 0 a}}
+    3  plain-words         {a b}       {{PLAIN 0 0 a} {PLAIN 2 2 b}}
+    4  trailing-whitespace {a b c }    {{PLAIN 0 0 a} {PLAIN 2 2 b} {PLAIN 4 4 c}}
+    5  inter-whitespace    {a   b}     {{PLAIN 0 0 a} {PLAIN 4 4 b}}
+    6  single-quoted-words {'a' b}     {{S:QUOTED 0 2 a} {PLAIN 4 4 b}}
+    7  single-quoted-words {a 'b'}     {{PLAIN 0 0 a} {S:QUOTED 2 4 b}}
+    8  single-quoted-words {a 'b' c}   {{PLAIN 0 0 a} {S:QUOTED 2 4 b} {PLAIN 6 6 c}}
+    9  single-quoted-words {a '' c}    {{PLAIN 0 0 a} {S:QUOTED 2 3 {}} {PLAIN 5 5 c}}
+    10 double-quoted-words {"a" b}     {{D:QUOTED 0 2 a} {PLAIN 4 4 b}}
+    11 double-quoted-words {a "b"}     {{PLAIN 0 0 a} {D:QUOTED 2 4 b}}
+    12 double-quoted-words {a "b" c}   {{PLAIN 0 0 a} {D:QUOTED 2 4 b} {PLAIN 6 6 c}}
+    13 double-quoted-words {a "\"" c}  {{PLAIN 0 0 a} {D:QUOTED 2 5 {"}} {PLAIN 7 7 c}}
+    14 mixed-quoted-words  {a "\"" ''} {{PLAIN 0 0 a} {D:QUOTED 2 5 {"}} {S:QUOTED 7 8 {}}}
+    15 double-quoted-words {a "" c}    {{PLAIN 0 0 a} {D:QUOTED 2 3 {}} {PLAIN 5 5 c}}
+    16 mixed               {a 'b' "c" d "e\"\"f" } {{PLAIN 0 0 a} {S:QUOTED 2 4 b} {D:QUOTED 6 8 c} {PLAIN 10 10 d} {D:QUOTED 12 19 e\"\"f}}
+    17 backslashes         {a "\\" c}   {{PLAIN 0 0 a} {D:QUOTED 2 5 \\} {PLAIN 7 7 c}}
+    18 backslashes         {a "\"\\" c} {{PLAIN 0 0 a} {D:QUOTED 2 7 \"\\} {PLAIN 9 9 c}}
+    19 escaping-plain      {a \\ c}     {{PLAIN 0 0 a} {PLAIN 2 3 \\} {PLAIN 5 5 c}}
+    20 escaping-plain      {a \" c}     {{PLAIN 0 0 a} {PLAIN 2 3 {"}} {PLAIN 5 5 c}}
+    21 escaping-plain      {a \"b c}    {{PLAIN 0 0 a} {PLAIN 2 4 {"b}} {PLAIN 6 6 c}}
+} {
+    test string-token-shell-4.$n "string token shell -indices, $label" -body {
+	string token shell -indices $line
+    } -result $tokens
+}
+
+foreach {n label line tokens} {
+    0 words-without-whitespace {'a'"b"} {Expected whitespace, got start of word at offset 3}
+    1 words-without-whitespace {"a"'b'} {Expected whitespace, got start of word at offset 3}
+    2 words-without-whitespace {'a''b'} {Expected whitespace, got start of word at offset 3}
+    3 words-without-whitespace {"a""b"} {Expected whitespace, got start of word at offset 3}
+    4 words-without-whitespace {a"b"}   {Expected whitespace, got start of word at offset 1}
+    5 words-without-whitespace {a'b'}   {Expected whitespace, got start of word at offset 1}
+    6 incomplete-word-at-end   {a '}    {Unexpected character ''' at offset 2}
+    7 incomplete-word-at-end   {a "}    {Unexpected character '"' at offset 2}
+    8 incomplete-word-at-end   {a'}     {Unexpected character ''' at offset 1}
+    9 incomplete-word-at-end   {a"}     {Unexpected character '"' at offset 1}
+} {
+    test string-token-shell-3.$n "string token shell, $label" -body {
+	string token shell $line
+    } -returnCodes error -result $tokens
+
+    # -indices has no effect on what is an error for strict parsing.
+    test string-token-shell-5.$n "string token shell -indices, $label" -body {
+	string token shell -indices $line
+    } -returnCodes error -result $tokens
+}
+
+foreach {n label line tokens} {
+    6 incomplete-word-at-end   {a '}   {a {}}
+    7 incomplete-word-at-end   {a "}   {a {}}
+    10 incomplete-word-at-end  {a ' }  {a { }}
+    11 incomplete-word-at-end  {a " }  {a { }}
+    12 incomplete-word-at-end  {a 'b } {a {b }}
+    13 incomplete-word-at-end  {a "b } {a {b }}
+} {
+    # -partial parsing accepts incomplete words at the end of the line.
+    test string-token-shell-6.$n "string token shell -partial, $label" -body {
+	string token shell -partial $line
+    } -result $tokens
+}
+
+foreach {n label line tokens} {
+    6 incomplete-word-at-end   {a '}    {{PLAIN 0 0 a} {S:QUOTED:PART 2 2 {}}}
+    7 incomplete-word-at-end   {a "}    {{PLAIN 0 0 a} {D:QUOTED:PART 2 2 {}}}
+    10 incomplete-word-at-end  {a ' }   {{PLAIN 0 0 a} {S:QUOTED:PART 2 3 { }}}
+    11 incomplete-word-at-end  {a " }   {{PLAIN 0 0 a} {D:QUOTED:PART 2 3 { }}}
+    12 incomplete-word-at-end  {a 'b }  {{PLAIN 0 0 a} {S:QUOTED:PART 2 4 {b }}}
+    13 incomplete-word-at-end  {a "b }  {{PLAIN 0 0 a} {D:QUOTED:PART 2 4 {b }}}
+} {
+    # -partial, -indices parsing accepts incomplete words at the end of the line.
+    test string-token-shell-8.$n "string token shell -partial, $label" -body {
+	string token shell -partial -indices $line
+    } -result $tokens
+}
+
+foreach {n label line tokens} {
+    0 words-without-whitespace {'a'"b"} {Expected whitespace, got start of word at offset 3}
+    1 words-without-whitespace {"a"'b'} {Expected whitespace, got start of word at offset 3}
+    2 words-without-whitespace {'a''b'} {Expected whitespace, got start of word at offset 3}
+    3 words-without-whitespace {"a""b"} {Expected whitespace, got start of word at offset 3}
+    4 words-without-whitespace {a"b"}   {Expected whitespace, got start of word at offset 1}
+    5 words-without-whitespace {a'b'}   {Expected whitespace, got start of word at offset 1}
+    8 incomplete-word-at-end   {a'}     {Expected whitespace, got start of word at offset 1}
+    9 incomplete-word-at-end   {a"}     {Expected whitespace, got start of word at offset 1}
+} {
+    # -partial parsing still throws errors for bad inter-word syntax.
+    test string-token-shell-7.$n "string token shell -partial, $label" -body {
+	string token shell -partial $line
+    } -returnCodes error -result $tokens
+
+    # -indices has no effect on the error messages
+    test string-token-shell-9.$n "string token shell -partial, $label" -body {
+	string token shell -indices -partial $line
+    } -returnCodes error -result $tokens
+}
+
+
+test string-token-shell-10.0 "string token shell, -- stops option processing" -body {
+    string token shell -- "-foo bar"
+} -result {-foo bar}
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+return

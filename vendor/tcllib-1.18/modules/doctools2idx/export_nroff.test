@@ -1,0 +1,73 @@
+# -*- tcl -*-
+# idx_export_nroff.test:  tests for the doctools::idx::export::nroff package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export_nroff.test,v 1.2 2009/04/29 02:10:34 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    useLocal structure.tcl      doctools::idx::structure
+    use doctools2base/text.tcl               doctools::text
+    use doctools2base/nroff_manmacros.tcl    doctools::nroff::man_macros
+}
+testing {
+    package provide doctools::idx::export::plugin 1
+    # The above fakes the export plugin environment.
+
+    useLocal export_nroff.tcl doctools::idx::export::nroff
+}
+
+source [tcllibPath doctools2base/tests/common]
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+# General set of error cases regarding the number of arguments.
+
+test doctools-idx-export-nroff-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-idx-export-nroff-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-idx-export-nroff-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of nroff output, from index serialization,
+# for all possible plugin configurations.
+
+foreach {k inline section} {
+    0 0 -external
+    1 1 -inlined
+} {
+    TestFilesProcess $mytestdir ok serial nroff$section -> n label input data expected {
+	test doctools-idx-export-nroff-2.$k.$n "doctools::idx::export::nroff, $label$section, ok" -setup {
+	    set configuration [list inline $inline user _dummy_]
+	} -body {
+	    stripnroffcomments [stripmanmacros [export $data $configuration]]
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected
+testsuiteCleanup
+return

@@ -1,0 +1,32 @@
+# -*- tcl -*- textutil::split.pcx
+# Syntax of the commands provided by package textutil::split.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register textutil::split
+pcx::tcldep   0.7 needs tcl 8.2
+
+namespace eval ::textutil::split {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.7 std ::textutil::split::splitn \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkNatNum
+    }}
+pcx::check 0.7 std ::textutil::split::splitx \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkRegexp
+    }}
+
+# Initialization via pcx::init.
+# Use a ::textutil::split::init procedure for non-standard initialization.
+pcx::complete

@@ -1,0 +1,44 @@
+#-*- tcl -*-
+#Tests for heuristics of local searching for Traveling Salesman Problem.
+#2 and 3 approximation algorithms.
+#
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+#Test 1.0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-TSPHeuristic2OPT-1.0 { graph simulation } -setup {
+    SETUP_TSPHEURISTIC_1 C
+} -body {
+    lsort -dict [struct::graph::op::TSPLocalSearching mygraph $C]
+} -cleanup {
+    mygraph destroy
+    unset C
+} -result {{a b} {a c} {b e} {c d} {d e}}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-TSPHeuristic2OPT-2.0 { wrong args, missing } {
+    catch {struct::graph::op::TSPLocalSearching} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::TSPLocalSearching {G C} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-TSPHeuristic2OPT-2.1 { wrong args, missing } {
+    catch {struct::graph::op::TSPLocalSearching G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::TSPLocalSearching {G C} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-TSPHeuristic2OPT-2.2 { wrong args, too many} {
+    catch {struct::graph::op::TSPLocalSearching G a b} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::TSPLocalSearching {G C}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-TSPHeuristic2OPT-2.0 { wrong args, missing } -setup {
+    SETUP_TSPHEURISTIC_1 C
+} -body {
+    struct::graph::op::TSPLocalSearching mygraph {h j k}
+} -returnCodes error -cleanup {
+    mygraph destroy
+} -result {Given cycle has arcs not included in graph G.}

@@ -1,0 +1,105 @@
+## -*- tcl -*-
+##
+## OO-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require TclOO
+package require pt::rde::oo ; # OO-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+oo::class create PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    superclass pt::rde::oo ; # TODO - Define this class.
+                             # Or can we inherit from a snit
+                             # class too ?
+
+    method parse {channel} {
+	my reset $channel
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    method parset {text} {
+	my reset {}
+	my data $text
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    method MAIN {} {
+        my sym_TEST
+        return
+    }
+    
+    #
+    # value Symbol 'TEST'
+    #
+    
+    method sym_TEST {} {
+        # x
+        #     !
+        #         'a'
+        #     (IDENTIFIER)
+    
+        my si:void_symbol_start TEST
+        my sequence_6
+        my si:void_leaf_symbol_end TEST
+        return
+    }
+    
+    method sequence_6 {} {
+        # x
+        #     !
+        #         'a'
+        #     (IDENTIFIER)
+    
+        my si:void_state_push
+        my notahead_3
+        my si:voidvoid_part
+        my i_status_fail ; # Undefined symbol 'IDENTIFIER'
+        my si:void_state_merge
+        return
+    }
+    
+    method notahead_3 {} {
+        # !
+        #     'a'
+    
+        my i_loc_push
+        my si:next_char a
+        my si:void_notahead_exit
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide OO_PACKAGE 1
+return

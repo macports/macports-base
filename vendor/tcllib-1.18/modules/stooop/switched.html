@@ -1,0 +1,242 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.61 [en] (X11; I; Linux 2.2.11 i686) [Netscape]">
+   <title>stooop switched class</title>
+</head>
+<body>
+
+<center>
+<dt>
+<b><font size=+4>the switched class</font></b></dt></center>
+
+<p>&nbsp;
+<br>&nbsp;
+<br>
+<p>The <b>switched</b> class serves as base class for user classes with
+switch / option configuration method. It provides facilities for managing
+options through a simple interface.
+<p>For example:
+<pre>set vehicle [new car -length 4.5 -width 2 -power 100 -fuel diesel]
+puts "my car was running on [switched::cget $vehicle -fuel]"
+switched::configure $vehicle -power 40 -fuel electricity
+puts "but is now running on clean [switched::cget $vehicle -fuel]"</pre>
+Of course, as you might have guessed, the <b>car</b> class is derived from
+the <b>switched</b> class. Let us see how it works:
+<pre>class car {
+&nbsp;&nbsp;&nbsp; proc car {this args} switched {$args} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # car specific initialization code here
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; switched::complete $this
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+}</pre>
+The switched class constructor takes the optional configuration option
+/ value pairs as parameters. The switched class layer then completely manages
+the switched options: it checks their validity, stores their values and
+provides a clean interface to the user layer configuration setting procedures.
+<p>The switched class members available to the programmer are:
+<p><b>switched</b>
+<ul>
+<li>
+complete{}</li>
+
+<li>
+<i>options{}</i></li>
+
+<li>
+<i>set-option{}</i></li>
+
+<li>
+...</li>
+
+<li>
+complete</li>
+
+<li>
+-option</li>
+
+<li>
+...</li>
+</ul>
+The <b>complete</b> procedure is used to tell the switched layer that the
+derived class object (a car in the examples) is completely built. At that
+time, the initial configuration of the switched object occurs, using default
+option values (see <b>options</b> procedure) eventually overridden by construction
+time values, passed at the time of the <i>new</i> operator invocation.
+The complete procedure must be called once only, usually around or at the
+end of the derived class constructor. <i>(<b>Note</b>: also check the <b>complete</b>
+data member later in this chapter)</i>
+<p>The <b>options</b> procedure must return the configuration description
+for <b>all</b> options that the switched object will accept. It is a pure
+virtual member procedure and therefore its implementation is <b>mandatory</b>
+in the derived class layer. The procedure must return a list of lists.
+Each list pertains to a single option and is composed of the switch name,
+the default value for the option and an optional initial value. For example:
+<pre>class car {
+&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; proc options {this} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return [list\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -fuel petrol petrol]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -length {} {}]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -power {} {}]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -width {} {}]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; proc set-fuel {this value} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+}</pre>
+In this case, 4 options are specified: <i>fuel</i>, <i>length</i>, <i>power</i>
+and <i>width</i>. The default and initial values for the <i>fuel</i> option
+are identical and set to <i>petrol</i>. For the other options, values are
+all empty.
+<p>For each option, there must be a corresponding set-<i>option</i> procedure
+defined in the derived class layer. For example, since we defined a <i>fuel</i>
+option, there is a set-<i>fuel</i> procedure in the car class. The parameters
+always are the object identifier (since this is not a static procedure,
+but rather a dynamically defined virtual one), followed by the new value
+for the option. The set-<i>option</i> procedure is only invoked if the
+new value differs from the current one (a cache scheme for improving performance),
+or if there is no initial value set in the options procedure for that option.
+<p>In the options procedure, if the initial value differs from&nbsp; the
+default value or is omitted, then initial configuration is forced and the
+corresponding set-<i>option</i> procedure is invoked by the switched <i>complete</i>
+procedure located at the end of the derived class constructor. For example:
+<pre>class car {
+&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; proc options {this} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return [list\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -fuel petrol]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -length {} {}]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -power 100 50]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -width {} {}]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+}</pre>
+In this case, configuration is forced on the <i>fuel</i> and <i>power</i>
+options, that is the corresponding set-<i>option</i> procedures will be
+invoked when the switched object is constructed (see set-<i>option</i>
+procedures documentation below).
+<p>For the <i>fuel</i> option, since there is no initial value, the set-<i>fuel</i>
+procedure is called with the default value (<i>petrol</i>) as argument.
+For the <i>power</i> option, since the initial value differs from the default
+value, the set-<i>power</i> procedure is called with the initial value
+as argument (<i>50</i>).
+<p>For the other options, since the initial values (last elements of the
+option lists) are identical to their default values, the corresponding
+set-<i>option</i> procedures will not be invoked. It is the programmer's
+responsibility to insure that the initial option values are correct.
+<p>The <b>set-<i>option</i></b> procedures may be viewed as dynamic virtual
+functions. There must be one implementation per supported option, as returned
+by the <i>options</i> procedure. For example:
+<pre>class car {
+&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; proc options {this} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return [list\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -width {} {}]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; proc set-width {this value} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+}</pre>
+Since the <i>-width</i> option was listed in the options procedure, a <i>set-width</i>
+procedure implementation is provided, which of course would proceed to
+set the width of the car (and would modify the looks of a graphical representation,
+for example).
+<p>As you add a supported <i>option</i> in the list returned by the options
+procedure, the corresponding set-<i>option</i> procedure may be called
+as soon as the switched object is complete, which occurs when the switched
+level <i>complete</i> procedure is invoked. For example:
+<br>&nbsp;
+<pre>class car {
+&nbsp;&nbsp;&nbsp; proc car {this args} switched {args} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; switched::complete $this
+&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; proc options {this} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return [list\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -fuel petrol]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -length 4.5]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -power 350]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [list -width 1.8]\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; proc set-fuel {this value} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; proc set-length {this value} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; proc set-power {this value} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; proc set-width {this value} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+}</pre>
+
+<pre>new car</pre>
+In this case, a new car is created with no options, which causes the car
+constructor to be called, which in turns calls the switched level <i>complete</i>
+procedure after the car object layer is completely initialized. At this
+point, since there are no initial values in any option list in the options
+procedure, the set-fuel procedure is called with its default value of <i>petrol</i>
+as parameter, followed by the set-length call with <i>4.5</i> value, set-power
+with <i>350</i> value and finally with set-width with <i>1.8</i> as parameter.
+This is a good way to test the set-option procedures when debugging, and
+when done, just fill-in the initial option values.
+<p>The switched layer checks that an option is valid (that is, listed in
+the options procedure) but obviously does not check the validity of the
+value passed to the set-<i>option</i> procedure, which should throw an
+error (for example by using the Tcl error command) if the value is invalid.
+<p>The switched layer also keeps track of the options current values, so
+that a set-<i>option</i> procedure is called only when the corresponding
+option value passed as parameter is different from the current value (see
+<i>-option</i>
+data members description).
+<p>The <b><i>-option</i></b> data member is the option current value. There
+is one for each option listed in the options procedure. It is a read-only
+value which the switched layer checks against when an option is changed.
+It is rarely used at the layer derived from switched, except in the few
+cases, such as in the following example:
+<pre>...</pre>
+
+<pre>proc car::options {this} {
+&nbsp;&nbsp;&nbsp; return {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {-manufacturer {} {}}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...
+&nbsp;&nbsp;&nbsp; }
+}</pre>
+
+<pre>proc car::set-manufacturer {this value} {}</pre>
+
+<pre>proc car::printData {this} {
+&nbsp;&nbsp;&nbsp; puts "manufacturer: $switched::($this,-manufacturer)"
+&nbsp;&nbsp;&nbsp; ...
+}</pre>
+In this case, the manufacturer's name is stored at the switched layer level
+(this is why the set-manufacturer procedure has nothing to do) and later
+retrieved in the printData procedure.
+<p>The <b>complete</b> data member (not to be confused with the complete
+procedure) is a boolean. Its initial value is <i>false</i> and it is set
+to <i>true</i> at the very end of the switched complete procedure. It becomes
+useful when some options should be set at construction time only and not
+dynamically, as the following example shows:
+<pre>proc car::set-width {this value} {
+&nbsp;&nbsp;&nbsp; if {$switched::($this,complete)} {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; error {option -width cannot be set dynamically}
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; ...
+}</pre>
+
+</body>
+</html>

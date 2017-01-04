@@ -1,0 +1,195 @@
+# -*- tcl -*-
+#Edmonds Karp algorithm - computing maximum flow in a flow network
+#
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+# ------------------------------------------------------------------------------------
+#Test 1.0 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.0 { graph simulation } {
+    SETUP_FORDFULKERSON_1
+    set result [dictsort [struct::graph::op::FordFulkerson mygraph s t]]
+    mygraph destroy
+    set result
+} {{s v1} 12 {s v2} 11 {v1 v3} 12 {v2 v4} 11 {v3 t} 19 {v4 t} 4 {v4 v3} 7}
+
+#Test 1.1
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.1 { graph simulation } {
+    SETUP_FORDFULKERSON_2
+    set result [dictsort [struct::graph::op::FordFulkerson mygraph a d]]
+    mygraph destroy
+    set result
+} {{a b} 1000000 {a c} 1000000 {b d} 1000000 {c d} 1000000}
+
+#Test 1.2
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.2 { graph simulation } {
+    SETUP_FORDFULKERSON_3
+    set result [dictsort [struct::graph::op::FordFulkerson mygraph s t]]
+    mygraph destroy
+    set result
+} {{s v1} 6 {s v2} 5 {s v3} 3 {v1 t} 3 {v1 v2} 3 {v2 t} 8 {v3 t} 3}
+
+#Test 1.3
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.3 { graph simulation } {
+    SETUP_FORDFULKERSON_4
+    set result [dictsort [struct::graph::op::FordFulkerson mygraph s t]]
+    mygraph destroy
+    set result
+} {{s v1} 4 {s v2} 5 {s v3} 3 {v1 t} 3 {v1 v2} 1 {v2 t} 6 {v3 t} 3}
+
+#Test 1.4
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.4 { graph simulation } {
+    SETUP_FORDFULKERSON_5
+    set result [dictsort [struct::graph::op::FordFulkerson mygraph s t]]
+    mygraph destroy
+    set result
+} {{s v1} 6.5 {s v2} 5.5 {s v3} 3.5 {v1 t} 3.1 {v1 v2} 3.4000000000000004 {v2 t} 8.9 {v3 t} 3.5}
+
+#Test 1.5
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.5 { graph simulation } -setup {
+    SETUP_FORDFULKERSON_1
+    set output {}
+    foreach arc [mygraph arcs] {
+	set u [mygraph arc source $arc]
+	set v [mygraph arc target $arc]
+	dict set f [list $u $v] 0
+	dict set f [list $v $u] 0
+    }
+} -body {
+    set result [struct::graph::op::createResidualGraph mygraph $f]
+    foreach arc [$result arcs] {
+	set throughput [$result arc get $arc throughput]
+	if { $throughput } {
+	    dict set output $arc $throughput
+	}
+    }
+    dictsort $output
+} -cleanup {
+    unset throughput output f arc u v
+    $result destroy
+    mygraph destroy
+} -result {{s v1} 16 {s v2} 13 {v1 v2} 10 {v1 v3} 12 {v2 v1} 4 {v2 v4} 14 {v3 t} 20 {v3 v2} 9 {v4 t} 4 {v4 v3} 7}
+
+#Test 1.6
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.6 { graph simulation } -setup {
+    SETUP_FORDFULKERSON_1
+    set output {}
+    set f [SETUP_FLOWS_1 mygraph]
+} -body {
+    set result [struct::graph::op::createResidualGraph mygraph $f]
+    foreach arc [$result arcs] {
+	set throughput [$result arc get $arc throughput]
+	if { $throughput } {
+	    dict set output $arc $throughput
+	}
+    }
+    dictsort $output
+} -cleanup {
+    unset throughput output f arc
+    $result destroy
+    mygraph destroy
+} -result {{s v1} 12 {s v2} 13 {t v4} 4 {v1 s} 4 {v1 v2} 10 {v1 v3} 8 {v2 v1} 4 {v2 v3} 4 {v2 v4} 10 {v3 t} 20 {v3 v1} 4 {v3 v2} 5 {v4 v2} 4 {v4 v3} 7}
+
+#Test 1.7
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.7 { graph simulation } -setup {
+    SETUP_FORDFULKERSON_1
+    set output {}
+    set f [SETUP_FLOWS_2 mygraph]
+} -body {
+    set result [struct::graph::op::createResidualGraph mygraph $f]
+    foreach arc [$result arcs] {
+	set throughput [$result arc get $arc throughput]
+	if { $throughput } {
+	    dict set output $arc $throughput
+	}
+    }
+    dictsort $output
+} -cleanup {
+    unset throughput output f arc
+    $result destroy
+    mygraph destroy
+} -result {{s v1} 5 {s v2} 13 {t v3} 7 {t v4} 4 {v1 s} 11 {v1 v2} 3 {v1 v3} 8 {v2 v1} 11 {v2 v3} 4 {v2 v4} 3 {v3 t} 13 {v3 v1} 4 {v3 v2} 5 {v3 v4} 7 {v4 v2} 11}
+
+#Test 1.8
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.8 { graph simulation } -setup {
+    SETUP_FORDFULKERSON_1
+    set output {}
+    set f [SETUP_FLOWS_3 mygraph]
+} -body {
+    set result [struct::graph::op::createResidualGraph mygraph $f]
+    foreach arc [$result arcs] {
+	set throughput [$result arc get $arc throughput]
+	if { $throughput } {
+	    dict set output $arc $throughput
+	}
+    }
+    dictsort $output
+} -cleanup {
+    unset throughput output f arc
+    $result destroy
+    mygraph destroy
+} -result {{s v1} 5 {s v2} 5 {t v3} 15 {t v4} 4 {v1 s} 11 {v1 v2} 11 {v2 s} 8 {v2 v1} 3 {v2 v3} 4 {v2 v4} 3 {v3 t} 5 {v3 v1} 12 {v3 v2} 5 {v3 v4} 7 {v4 v2} 11}
+
+#Test 1.9
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-1.9 { graph simulation } -setup {
+    SETUP_FORDFULKERSON_1
+    set output {}
+    set f [SETUP_FLOWS_4 mygraph]
+} -body {
+    set result [struct::graph::op::createResidualGraph mygraph $f]
+    foreach arc [$result arcs] {
+	set throughput [$result arc get $arc throughput]
+	if { $throughput } {
+	    dict set output $arc $throughput
+	}
+    }
+    dictsort $output
+} -cleanup {
+    unset throughput output f arc
+    $result destroy
+    mygraph destroy
+} -result {{s v1} 5 {s v2} 1 {t v3} 19 {t v4} 4 {v1 s} 11 {v1 v2} 11 {v2 s} 12 {v2 v1} 3 {v2 v4} 3 {v3 t} 1 {v3 v1} 12 {v3 v2} 9 {v3 v4} 7 {v4 v2} 11}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-2.0 { FordFulkerson, wrong args, missing } {
+    catch {struct::graph::op::FordFulkerson} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::FordFulkerson {G s t} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-2.1 { FordFulkerson, wrong args, missing } {
+    catch {struct::graph::op::FordFulkerson G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::FordFulkerson {G s t} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-2.2 { FordFulkerson, wrong args, missing } {
+    catch {struct::graph::op::FordFulkerson G s} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::FordFulkerson {G s t} 2]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-2.3 { FordFulkerson, wrong args, too many} {
+    catch {struct::graph::op::FordFulkerson G s t z} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::FordFulkerson {G s t}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0 - case when sink and source nodes given at input aren't nodes of input graph 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-3.0 {FordFulkerson, wrong sink or source } {
+    SETUP_FORDFULKERSON_1
+    catch {struct::graph::op::FordFulkerson mygraph a b } result
+    mygraph destroy
+    set result
+} [LackOfSinkOrSource a b]
+
+#Test 3.1 - case when input network has lacking attributes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-FordFulkerson-3.1 {FordFulkerson, missing attributes } {
+    SETUP_BUSACKERGOWEN_2
+    catch {struct::graph::op::FordFulkerson mygraph s t } result
+    mygraph destroy
+    set result
+} [WrongAttributes throughput]
+

@@ -1,0 +1,54 @@
+2013-02-22  Andreas Kupries  <andreask@activestate.com>
+
+	* aycock.man: Fixed outdated doctools markup.
+
+2013-02-08  Andreas Kupries  <andreask@activestate.com>
+
+	* aycock.man: Fixed missing short package title.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Fixed guard condition, requiring 8.5+.
+
+	* aycock.test: Fixed test setup, i.e. added the standard
+	  boilerplate.
+
+	* aycock-build.tcl: Made proc names fully qualified.
+	* aycock-debug.tcl:
+	* aycock-runtime.tcl:
+
+	All files changed from Windows to Unix line endings.
+
+2010-10-22  Kevin B. Kenny  <kennykb@acm.org>
+
+	* aycock.man:		Added a missing [list_begin] [list_end]
+				pair bracketing the list of methods for
+				the parser.
+
+2010-10-18  Kevin B, Kenny  <kennykb@acm.org>
+
+	* aycock-build.tcl:
+	* aycock-debug.tcl:
+	* aycock-runtime.tcl:
+	* aycock.man:
+	* aycock.test:
+	* pkgIndex.tcl:		1.0 release of an Aycock-Earley-Horspool
+				parser generator for Tcl.

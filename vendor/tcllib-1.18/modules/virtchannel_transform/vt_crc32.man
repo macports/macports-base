@@ -1,0 +1,70 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::transform::crc32 n 1]
+[keywords {channel transformation}]
+[keywords checksum]
+[keywords crc32]
+[keywords {reflected channel}]
+[keywords {tip 230}]
+[keywords transformation]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Crc32 transformation}]
+[require Tcl 8.6]
+[require tcl::transform::core [opt 1]]
+[require tcl::transform::crc32 [opt 1]]
+[description]
+[para]
+
+The [package tcl::transform::crc32] package provides a command
+creating a channel transformation which passes the read and written
+bytes through unchanged (like [package tcl::transform::identity]), but
+additionally continuously computes the crc32 checksums of the data it
+has seen for each direction and stores them in Tcl variables specified
+at construction time. The checksum in question is zlib's crc32.
+
+[para] Related transformations in this module are
+[package tcl::transform::adler32],
+[package tcl::transform::counter],
+[package tcl::transform::identity], and
+[package tcl::transform::observe].
+
+[para] The internal [package TclOO] class implementing the transform
+handler is a sub-class of the [package tcl::transform::core]
+framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::transform::crc32] [arg chan] [option -option] [arg value]...]
+
+This command creates a crc32 checksumming transformation on top of
+the channel [arg chan] and returns its handle. The accepted options are
+
+[list_begin options]
+[opt_def -read-variable varname]
+
+The value of the option is the name of a global or namespaced
+variable, the location where the transformation has to store the
+crc32 checksum of the data read from the channel.
+
+[para] If not specified, or the empty string, the checksum of the read
+direction is not saved.
+
+[opt_def -write-variable varname]
+
+The value of the option is the name of a global or namespaced
+variable, the location where the transformation has to store the
+crc32 checksum of the data written to the channel.
+
+[para] If not specified, or the empty string, the checksum of the
+write direction is not saved.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

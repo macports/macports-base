@@ -1,0 +1,19 @@
+<!ENTITY % mu 'arg | bold | p' >
+<!ELEMENT api (title?, header?, group*, detail?)>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT header (#PCDATA | %mu;)*>
+<!ELEMENT detail (#PCDATA | %mu;)*>
+<!ELEMENT p (#PCDATA | %mu;)*>
+<!ELEMENT bold (#PCDATA)>
+
+<!ELEMENT group (name, header?, (method|function)*)>
+<!ELEMENT desc (#PCDATA)>
+<!ATTLIST group used CDATA #IMPLIED>
+
+<!ELEMENT method (object?, name, args, result, detail*)>
+<!ELEMENT function (name, args, result, detail*)>
+<!ELEMENT object (#PCDATA | arg)*>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT args (#PCDATA | %mu;)*>
+<!ELEMENT arg (#PCDATA)>
+<!ELEMENT result (#PCDATA | %mu;)*>

@@ -1,0 +1,65 @@
+RCS: @(#) $Id: README.releasemgr,v 1.2 2009/07/10 16:33:31 andreas_kupries Exp $
+
+Welcome to the tcllib, the Tcl Standard Library.
+================================================
+
+Introduction
+------------
+
+This README is intended to be a guide to the tools available to a
+
+	Release manager
+
+working on the creation of a release of Tcllib.
+
+Audience
+--------
+
+The intended audience is the release manager of Tcllib, his deputies,
+and anybody else interested in the task.
+
+Basics
+------
+
+< Flesh this out >
+
+	sak.tcl validate
+	sak.tcl test run
+	sak.tcl review
+	sak.tcl readme
+	sak.tcl localdoc
+	sak.tcl release (change to include rpmspec+gentip55+yml)
+
+< Tasks, and how to perform them >
+
+  	 Making a release (candidate) branch.
+	 Readying the release in the branch.
+	 Make the release official, merging the branch back.
+
+Uploading and releasing files
+--------------------------------------------
+
+(1) Create a proper fossil event for the release, via
+
+      http://core.tcl.tk/tcllib/eventedit
+
+    See existing events (*) for a template
+
+    (Ad *) http://core.tcl.tk/tcllib/event/dac0ddcd2e990234143196b4dc438fe01e7b9817
+
+(2) Update the following web locations
+
+    (a) Home page:	http://core.tcl.tk/tcllib/home
+    (b) Downloads:	http://core.tcl.tk/tcllib/wiki?name=Downloads 
+    (c) Past Releases:	http://core.tcl.tk/tcllib/wiki?name=Past+Releases
+
+    Admin access to the fossil repository required
+
+    (d) http://www.tcl.tk/home/release.txt
+    (e) http://www.tcl.tk/software/tcllib/*.tml
+
+    ssh access to tcl.activestate.com
+    aka        	  www.tcl.tk
+    required.
+
+    (f) http://wiki.tcl.tk/1246

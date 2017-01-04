@@ -1,0 +1,36 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::send n 0.1]
+[keywords {character output}]
+[keywords control]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {General output to terminals}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::send [opt 0.1]]
+[description]
+
+This package provides the most primitive commands for sending characters
+to a terminal. They are in essence convenient wrappers around the
+builtin command [cmd puts].
+
+[list_begin definitions]
+[call [cmd ::term::send::wrch] [arg chan] [arg str]]
+
+Send the text [arg str] to the channel specified by the handle [arg chan].
+In contrast to the builtin command [cmd puts] this command does not
+terminate the string with a line terminator. It also forces an  flush of
+Tcl internal and OS buffers to ensure that the characters are processed
+immediately.
+
+[call [cmd ::term::send::wr] [arg str]]
+
+This convenience command is like [cmd ::term::send::wrch], except that the
+destination channel is fixed to [emph stdout].
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

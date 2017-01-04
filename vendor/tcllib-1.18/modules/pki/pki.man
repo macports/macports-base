@@ -1,0 +1,302 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin pki n 0.6]
+[see_also aes(n)]
+[see_also blowfish(n)]
+[see_also des(n)]
+[see_also md5(n)]
+[see_also sha1(n)]
+[keywords cipher]
+[keywords {data integrity}]
+[keywords encryption]
+[keywords {public key cipher}]
+[keywords rsa]
+[keywords security]
+[copyright {2010, 2011, 2012, 2013, Roy Keene, Andreas Kupries}]
+[moddesc {public key encryption}]
+[titledesc {Implementation of the public key cipher}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.5]
+[require pki [opt 0.6]]
+[description]
+[para]
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::pki::encrypt"] \
+        [opt [arg "-binary"]] \
+        [opt [arg "-hex"]] \
+        [opt [arg "-pad"]] \
+        [opt [arg "-nopad"]] \
+        [opt [arg "-priv"]] \
+        [opt [arg "-pub"]] \
+        [opt [arg "--"]] \
+	[arg input] [arg key]]
+
+Encrypt a message using PKI (probably RSA).
+
+Requires the caller to specify either [option -priv] to encrypt with
+the private key or [option -pub] to encrypt with the public key.  The
+default option is to pad and return in hex.  One of [option -pub] or
+[option -priv] must be specified.
+
+The [option -hex] option causes the data to be returned in encoded as
+a hexidecimal string, while the [option -binary] option causes the data
+to be returned as a binary string.  If they are specified multiple
+times, the last one specified is used.
+
+The [option -pad] option causes the data to be padded per PKCS#1 prior
+to being encrypted.  The [option -nopad] inhibits this behaviour.  If
+they are specified multiple times, the last one specified is used.
+
+[comment {
+	What happens when both are specified ?
+          -- Last one specified takes precedence
+	What happens when none are specified ?
+          -- Error is generated for "-priv/-pub", defaults to -hex -pad
+
+	What are -hex, -binary ?
+          -- Results stored in hex or binary, like sha1::sha1's -hex/-bin
+	What are -pad, -nopad ?
+          -- Whether or not to pad the input per PKCS#1
+
+	Could it be sensible to use "-encoding binary|hex" instead ?
+          -- Yes, but I was trying to be similar to existing modules
+	Could it be sensible to use "-pad <bool>" ?
+          -- Yes
+	With suitable defaults ?
+}]
+
+The input to encrypt is specified as [arg input].
+
+The [arg key] parameter, holding the key to use, is a return value
+from either
+[cmd ::pki::pkcs::parse_key],
+[cmd ::pki::x509::parse_cert], or
+[cmd ::pki::rsa::generate].
+
+[para] Mapping to OpenSSL's [syscmd openssl] application:
+[list_begin enumerated]
+[enum]	"openssl rsautl -encrypt" == "::pki::encrypt -binary -pub"
+[enum]	"openssl rsautl -sign"    == "::pki::encrypt -binary -priv"
+[list_end]
+
+[call [cmd "::pki::decrypt"] \
+        [opt [arg "-binary"]] \
+        [opt [arg "-hex"]] \
+        [opt [arg "-unpad"]] \
+        [opt [arg "-nounpad"]] \
+        [opt [arg "-priv"]] \
+        [opt [arg "-pub"]] \
+        [opt [arg "--"]] \
+	[arg input] [arg key]]
+
+Decrypt a message using PKI (probably RSA). See [cmd ::pki::encrypt] for option handling.
+
+[para] Mapping to OpenSSL's [syscmd openssl] application:
+[list_begin enumerated]
+[enum]	"openssl rsautl -decrypt" == "::pki::decrypt -binary -priv"
+[enum]	"openssl rsautl -verify"  == "::pki::decrypt -binary -pub"
+[list_end]
+
+[call [cmd ::pki::sign] [arg input] [arg key] [opt [arg algo]]]
+
+Digitally sign message [arg input] using the private [arg key].  If [arg algo]
+is ommited "sha1" is assumed.  Possible values for [arg algo] include
+"md5", "sha1", "sha256", and "raw".  Specifyin "raw" for [arg algo] will
+inhibit the building of an ASN.1 structure to encode which hashing
+algorithm was chosen.
+
+The [arg input] should be the plain text, hashing will be performed on it.
+
+The [arg key] should include the private key.
+
+[comment {
+	What is the default for algo?
+          -- sha1
+	What choices for algo has the user ?
+          -- md5, sha1, sha256, and "raw" currently
+}]
+
+[call [cmd ::pki::verify] [arg signedmessage] [arg plaintext] [arg key] [opt [arg algo]]]
+
+Verify a digital signature using a public [arg key].  Returns true or false.
+
+[comment {
+	What is the default for algo?
+          -- The default is to look at the data for the OID of the algorithm, but if it was signed "raw" it will need to be specified.  It's actually ignored right now.
+	What choices for algo has the user ?
+          -- md5, sha1, sha256
+
+    NOTE: Why is the result OK and ?
+
+    I would have expected a simple boolean value.
+      -- It's probably reasonable to change it.  It's more likely to generate an error than return failed.
+}]
+
+[call [cmd ::pki::key] [arg key] [opt [arg password]] [opt [arg encodePem]]]
+
+Convert a key structure into a serialized PEM (default) or DER encoded private key suitable for other applications.  For RSA keys this means PKCS#1.
+
+[call [cmd ::pki::pkcs::parse_key] [arg key] [opt [arg password]]]
+
+Convert a PKCS#1 private [arg key] into a usable key, i.e. one which
+can be used as argument for
+[cmd ::pki::encrypt],
+[cmd ::pki::decrypt],
+[cmd ::pki::sign], and
+[cmd ::pki::verify].
+
+[comment {
+	What is the default for password?
+	What choices for password has the user ?
+}]
+
+[call [cmd ::pki::x509::parse_cert] [arg cert]]
+
+Convert an X.509 certificate to a usable (public) key, i.e. one which
+can be used as argument for
+[cmd ::pki:encrypt],
+[cmd ::pki::decrypt], and
+[cmd ::pki::verify].
+
+The [arg cert] argument can be either PEM or DER encoded.
+
+[call [cmd ::pki::rsa::generate] [arg bitlength] [opt [arg exponent]]]
+
+Generate a new RSA key pair, the parts of which can be used as
+argument for
+[cmd ::pki::encrypt],
+[cmd ::pki::decrypt],
+[cmd ::pki::sign], and
+[cmd ::pki::verify].
+
+The [arg bitlength] argument is the length of the public key modulus.
+
+The [arg exponent] argument should generally not be specified unless
+you really know what you are doing.
+
+[comment {
+	What is the default for exponent?
+          -- 65537 (0x10001)
+	What choices for exponent has the user ?
+          -- Any value, but it should be chosen wisely.  This is the "RSA exponent" and small values may represent a security risk.
+}]
+
+[call [cmd ::pki::x509::verify_cert] [arg cert] [arg trustedcerts] [opt [arg intermediatecerts]]]
+
+Verify that a trust can be found between the certificate specified in the
+[arg cert] argument and one of the certificates specified in the list
+of certificates in the [arg trustedcerts] argument.  (Eventually the
+chain can be through untrusted certificates listed in the [arg intermediatecerts]
+argument, but this is currently unimplemented).
+
+The certificates specified in the [arg cert] and [arg trustedcerts] option
+should be parsed (from [cmd ::pki::x509::parse_cert]).
+
+[call [cmd ::pki::x509::validate_cert] \
+     [arg cert] \
+     [opt "[option -sign_message] [arg dn_of_signer]"] \
+     [opt "[option -encrypt_message] [arg dn_of_signer]"] \
+     [opt "[option -sign_cert] [arg dn_to_be_signed] [arg ca_depth]"] \
+     [opt "[option -ssl] [arg dn]"] \
+]
+
+Validate that a certificate is valid to be used in some capacity.  If
+multiple options are specified they must all be met for this procedure
+to return "true".
+
+Currently, only the [option "-sign_cert"] option is functional.
+
+Arguments for the [option "-sign_cert"] option are [arg dn_to_be_signed]
+and [arg ca_depth].  The [arg dn_to_be_signed] is the distinguished from
+the subject of a certificate to verify that the certificate specified in
+the [arg cert] argument can sign.  The [arg ca_depth] argument is used to
+indicate at which depth the verification should be done at.  Some
+certificates are limited to how far down the chain they can be used to
+verify a given certificate.
+
+[call [cmd ::pki::pkcs::create_csr] [arg keylist] [arg namelist] [opt [arg encodePem]] [opt [arg algo]]]
+
+Generate a certificate signing request from a key pair specified in
+the [arg keylist] argument.
+
+The [arg namelist] argument is a list of "name" followed by "value"
+pairs to encoding as the requested distinguished name in the CSR.
+
+The [arg encodePem] option specifies whether or not the result should
+be PEM encoded or DER encoded.  A "true" value results in the result
+being PEM encoded, while any other value 9results in the the result
+being DER encoded.  DER encoding is the default.
+
+The [arg algo] argument specifies the hashing algorithm we should use
+to sign this certificate signing request with.  The default is "sha1".
+Other possible values include "md5" and "sha256".
+
+[call [cmd ::pki::pkcs::parse_csr] [arg csr]]
+
+Parse a Certificate Signing Request.  The [arg csr] argument can be
+either PEM or DER encoded.
+
+[call [cmd ::pki::x509::create_cert] [arg signreqlist] [arg cakeylist] [arg serial_number] [arg notBefore] [arg notAfter] [arg isCA] [arg extensions] [opt [arg encodePem]] [opt [arg algo]]]
+
+Sign a signing request (usually from [cmd ::pki::pkcs::create_csr] or
+[cmd ::pki::pkcs::parse_csr]) with a Certificate Authority (CA) certificate.
+
+The [arg signreqlist] argument should be the parsed signing request.
+
+The [arg cakeylist] argument should be the parsed CA certificate.
+
+The [arg serial_number] argument should be a serial number unique to
+this certificate from this certificate authority.
+
+The [arg notBefore] and [arg notAfter] arguments should contain the
+time before and after which (respectively) the certificate should
+be considered invalid.  The time should be encoded as something
+[cmd "clock format"] will accept (i.e., the results of [cmd "clock seconds"]
+and [cmd "clock add"]).
+
+The [arg isCA] argument is a boolean argumen describing whether or not
+the signed certificate should be a a CA certificate.  If specified as
+true the "id-ce-basicConstraints" extension is added with the arguments
+of "critical" being true, "allowCA" being true, and caDepth being
+-1 (infinite).
+
+The [arg extensions] argument is a list of extensions and their parameters
+that should be encoded into the created certificate.   Currently only one
+extension is understood ("id-ce-basicConstraints").  It accepts three
+arguments [arg critical] [arg allowCA] [arg caDepth].  The [arg critical]
+argument to this extension (and any extension) whether or not the
+validator should reject the certificate as invalid if it does not
+understand the extension (if set to "true") or should ignore the extension
+(if set to "false").  The [arg allowCA] argument is used to specify
+as a boolean value whether or not we can be used a certificate
+authority (CA).  The [arg caDepth] argument indicates how many children
+CAs can be children of this CA in a depth-wise fashion.  A value of "0"
+for the [arg caDepth] argument means that this CA cannot sign a CA
+certificate and have the result be valid.  A value of "-1" indicates
+infinite depth.
+
+[list_end]
+
+[section "EXAMPLES"]
+
+[example {
+}]
+
+[example {
+}]
+
+[section "REFERENCES"]
+
+[list_begin enumerated]
+[enum]
+[list_end]
+
+[section AUTHORS]
+Roy Keene
+
+[vset CATEGORY rsa]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

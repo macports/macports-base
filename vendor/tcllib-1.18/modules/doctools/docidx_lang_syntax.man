@@ -1,0 +1,120 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin docidx_lang_syntax n 1.0]
+[see_also docidx_intro]
+[see_also docidx_lang_cmdref]
+[see_also docidx_lang_faq]
+[see_also docidx_lang_intro]
+[keywords {docidx commands}]
+[keywords {docidx language}]
+[keywords {docidx markup}]
+[keywords {docidx syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {docidx language syntax}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document contains the formal specification of the syntax of the
+docidx markup language, version 1 in Backus-Naur-Form. This document
+is intended to be a reference, complementing the
+[term {docidx language command reference}].
+
+A beginner should read the much more informally written
+[term {docidx language introduction}] first before trying to
+understand either this document or the command reference.
+
+[section Fundamentals]
+
+In the broadest terms possible the [term {docidx markup language}] is
+like SGML and similar languages. A document written in this language
+consists primarily of markup commands, with text embedded into it at
+some places.
+
+[para]
+
+Each markup command is a just Tcl command surrounded by a matching
+pair of [const [lb]] and [const [rb]]. Which commands are available,
+and their arguments, i.e. syntax is specified in the
+[term {docidx language command reference}].
+
+[para]
+
+In this document we specify first the lexeme, and then the syntax,
+i.e. how we can mix text and markup commands with each other.
+
+[section {Lexical definitions}]
+
+In the syntax rules listed in the next section
+
+[list_begin enumerated]
+[enum]
+<TEXT> stands for all text except markup commands.
+
+[enum]
+Any XXX stands for the markup command [lb]xxx[rb] including its
+arguments. Each markup command is a Tcl command surrounded by a
+matching pair of [const [lb]] and [const [rb]]. Inside of these
+delimiters the usual rules for a Tcl command apply with regard to word
+quotation, nested commands, continuation lines, etc.
+
+[enum]
+<WHITE> stands for all text consisting only of spaces, newlines,
+tabulators and the [cmd comment] markup command.
+[list_end]
+
+[section Syntax]
+
+The rules listed here specify only the syntax of docidx documents. The
+lexical level of the language was covered in the previous section.
+
+[para]
+
+Regarding the syntax of the (E)BNF itself
+
+[list_begin enumerated]
+[enum]
+The construct { X } stands for zero or more occurrences of X.
+[enum]
+The construct [lb] X [rb] stands for zero or one occurrence of X.
+[list_end]
+
+The syntax:
+
+[example {
+index     = defs
+            INDEX_BEGIN
+            [ contents ]
+            INDEX_END
+            { <WHITE> }
+
+defs      = { INCLUDE | VSET | <WHITE> }
+contents  = keyword { keyword }
+
+keyword   = defs KEY ref { ref }
+ref       = MANPAGE | URL | defs
+}]
+
+At last a rule we were unable to capture in the EBNF syntax, as it is
+about the arguments of the markup commands, something which is not
+modeled here.
+
+[list_begin enumerated]
+[enum]
+
+The arguments of all markup commands have to be plain text, and/or text
+markup commands, i.e. one of
+
+[list_begin enumerated]
+[enum][cmd lb],
+[enum][cmd rb], or
+[enum][cmd vset] (1-argument form).
+[list_end]
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

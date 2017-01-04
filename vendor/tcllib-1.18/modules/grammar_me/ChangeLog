@@ -1,0 +1,211 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_tcl.test: (mevmtcl-ict_match_tokclass-1.2*): Fixed test
+	  results for Tcl 8.6 and higher.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	*
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	*
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	*
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	*
+
+2008-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_cpucore.man: Updated to changes in doctools (sub)section
+	* me_cpu.man: reference handling.
+	* me_tcl.man:
+
+2008-03-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* gasm.man: Added documentation for package 'grammar::me::cpu::gasm'.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	*
+
+2007-08-01  Andreas Kupries  <andreask@activestate.com>
+
+	* me_util.test: Updated to use the TestAccel utility commands to
+	  handle accelerators.
+	* me_tcl.test: Updated 8.5 specific test to extensions in 'string is'.
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_cpu.testsuite: Replaced deprecated {expand} syntax in
+	  comments with {*}.
+
+2007-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_ast.man: Fixed all warnings due to use of now deprecated
+	* me_cpu.man: commands. Added a section about how to give
+	* me_cpucore.man: feedback.
+	* me_intro.man:
+	* me_tcl.man:
+	* me_util.man:
+	* me_vm.man:
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	*
+
+2006-09-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_cpu.testsuite: Replaced hardwired snit error messages with
+	  command constructing them based on the version of snit
+	  used. Fixed test names as well.
+
+	* me_cpucore.testsuite: Replaced hardwired error messages with
+	  command constructing them based on the version of Tcl used.
+
+2006-06-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* grammar_me/me_cpucore.tests.semantics.txt: Extended to cover the
+	  remaining untested instructions. This completes the behavioural
+	  tests.
+
+	* grammar_me/me_cpucore.man: Added documentation for the new
+	* grammar_me/me_cpucore.tcl: accessor commands. Fixed problems
+	* grammar_me/me_cpucore.test: uncovered by the last tests.
+
+	* grammar_me/me_cpu.man: Lifted all changes to the cpucore into
+	* grammar_me/me_cpu.tcl: the cpu object (extended acessors,
+	* grammar_me/me_cpu.test: documentation, etc.). Created testsuite
+	* grammar_me/me_cpu.testsuite: using the core testsuite as
+	  template, and sharing the instruction descriptions with it.
+
+	* grammar_me/gasm.tcl:     New package for the assembly of a ME
+	* grammar_me/pkgIndex.tcl: program, using a graph as internal
+	  structure. Bumped the versions of the cpu::core and cpu packages
+	  as well.
+
+2006-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_cpucore.tcl (asm): Extended the assembler to detect and
+	  ignore comment pseudo instructions.
+
+2006-06-20  Andreas Kupries <andreask@activestate.com>
+
+	* me_cpucore.tests.semantics.txt: Extended coverage of testsuite,
+	* me_cpucore.testsuite:           more bugfixes.
+	* me_cpucore.tcl:
+
+	* me_cpucore.tcl: Bug fixes, additional state accessor commands,
+	  more argument checking, extended error messages from validator
+	  used by disassembler and state creation.
+
+	* me_cpucore.test:                  Added testsuite for the cpu,
+	* me_cpucore.testsuite:             already semi-prepared for when
+	* me_cpucore.tests.asm-map.txt:     we get a C impl. of the ME cpu.
+	* me_cpucore.tests.badasm-map.txt:  Largely table-driven.
+	* me_cpucore.tests.badmach-map.txt: Incomplete.
+	* me_cpucore.tests.semantics.txt:
+
+2006-06-15  Andreas Kupries <andreask@activestate.com>
+
+        * me_util.test: Split tests into separate file and added handling
+	  of both regular and critcl tree.
+        * me_util.testsuite: New file. Actual tests.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_tcl.test: Fixed use of duplicate test names.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_tcl.test: More boilerplate simplified via use of test support.
+	* me_util.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_tcl.test: Hooked into the new common test support code.
+	* me_util.test:
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	*
+
+2005-10-03  Andreas Kupries <andreask@activestate.com>
+
+	* me_tcl.test (ME_state): token ranks are stored in an array/dict,
+	  used dictsort to generate a canonical representation we can
+	  compare against. ... Also duplicate tokclass test depending on
+	  error message by "string is", different results in 8.4 and 8.5.
+
+2005-09-30  Andreas Kupries <andreask@activestate.com>
+
+	* me_cpucore.tcl: Fixed more typos.
+	* me_cpucore.tcl: Fixed namespace typo.
+
+	* me_tcl.test:   Added forgotten check to tests, the packages cannot
+	* me_utils.test: run against Tcl 8.3 and below.
+
+2005-09-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_vm.man:      Removed the hardwired generation of error
+	* me_tcl.man:     messages and made them explicit arguments of the
+	* me_tcl.tcl:     instructions which can generate errors. More
+	* me_tcl.test:    work for a generator, but ensures that
+	* me_cpucore.man: user-strings are not contaminated by Tcl code
+	* me_cpucore.tcl: (character representation).
+
+2005-09-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_tcl.tcl: Fixed bug uncovered by the testuite.
+
+	* me_tcl.test: Completed the testsuite.
+
+2005-08-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* me_tcl.man: Added more accessor commands, to be able to inspect
+	  the full state of the ME vm when running the testsuite.
+
+	* me_tcl.tcl: Implemented the newly specified accessor commands.
+
+	* me_tcl.test: **New file** Skeleton framework for the testsuite
+	  of the ME vm.
+
+	* me_util.tcl: Added argument sanity checking.
+
+	* me_util.test: **New file** Added a testsuite for the commands
+	  doing the conversions between AST representations.
+
+2005-04-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module: Virtual machine for parsing, various
+	  implementations, utilities.

@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[syscmd .t]
+--> (FmtError) Manpage error (nodonecmd), "syscmd .t" : Command not allowed after [manpage_end].

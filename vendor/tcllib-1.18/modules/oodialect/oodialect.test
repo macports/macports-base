@@ -1,0 +1,162 @@
+# tool.test - Copyright (c) 2015 Sean Woods
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+testsNeed        TclOO 1
+
+support {
+    use dicttool/dicttool.tcl dicttool
+    use oometa/oometa.tcl     oo::meta
+}
+testing {
+    useLocal oodialect.tcl oo::dialect
+}
+
+# -------------------------------------------------------------------------
+
+::oo::dialect::create ::alpha
+
+proc ::alpha::define::is_alpha {} {
+  dict set ::testinfo([current_class]) is_alpha 1
+}
+
+::alpha::define ::alpha::object {
+  is_alpha
+}
+
+::oo::dialect::create ::bravo ::alpha
+
+proc ::bravo::define::is_bravo {} {
+  dict set ::testinfo([current_class]) is_bravo 1
+}
+
+::bravo::define ::bravo::object {
+  is_bravo
+}
+
+::oo::dialect::create ::charlie ::bravo
+
+proc ::charlie::define::is_charlie {} {
+  dict set ::testinfo([current_class]) is_charlie 1
+}
+
+::charlie::define ::charlie::object {
+  is_charlie
+}
+
+::oo::dialect::create ::delta ::charlie
+
+proc ::delta::define::is_delta {} {
+  dict set ::testinfo([current_class]) is_delta 1
+}
+
+::delta::define ::delta::object {
+  is_delta
+}
+
+::delta::class create adam {
+  is_alpha
+  is_bravo
+  is_charlie
+  is_delta
+}
+
+test oodialect-keyword-001 {Testing keyword application} {
+  set ::testinfo(::adam)
+} {is_alpha 1 is_bravo 1 is_charlie 1 is_delta 1}
+
+test oodialect-keyword-002 {Testing keyword application} {
+  set ::testinfo(::alpha::object)
+} {is_alpha 1}
+
+test oodialect-keyword-003 {Testing keyword application} {
+  set ::testinfo(::bravo::object)
+} {is_bravo 1}
+
+test oodialect-keyword-004 {Testing keyword application} {
+  set ::testinfo(::charlie::object)
+} {is_charlie 1}
+
+test oodialect-keyword-005 {Testing keyword application} {
+  set ::testinfo(::delta::object)
+} {is_delta 1}
+
+###
+# Declare an object from a namespace
+###
+namespace eval ::test1 {
+  ::alpha::class create a {
+    aliases A
+    is_alpha
+  }
+  ::alpha::define b {
+    aliases B BEE
+    is_alpha
+  }
+  ::alpha::class create ::c {
+    aliases C
+    is_alpha
+  }
+  ::alpha::define ::d {
+    aliases D
+    is_alpha
+  }
+}
+
+test oodialect-naming-001 {Testing keyword application} {
+  set ::testinfo(::test1::a)
+} {is_alpha 1}
+
+test oodialect-naming-002 {Testing keyword application} {
+  set ::testinfo(::test1::b)
+} {is_alpha 1}
+
+test oodialect-naming-003 {Testing keyword application} {
+  set ::testinfo(::c)
+} {is_alpha 1}
+
+test oodialect-naming-004 {Testing keyword application} {
+  set ::testinfo(::d)
+} {is_alpha 1}
+
+test oodialect-aliasing-001 {Testing keyword application} {
+namespace eval ::test1 {
+    ::alpha::define e {
+       superclass A
+    }
+}
+} ::test1::e
+
+test oodialect-aliasing-002 {Testing keyword application} {
+namespace eval ::test1 {
+    ::bravo::define f {
+       superclass A
+    }
+}
+} ::test1::f
+
+test oodialect-ancestry-001 {Testing heritage} {
+  ::oo::meta::ancestors ::test1::f
+} {::oo::object ::alpha::object ::bravo::object ::test1::a ::test1::f}
+
+test oodialect-ancestry-001 {Testing heritage} {
+  ::oo::meta::ancestors ::alpha::object
+} {::oo::object ::alpha::object}
+
+test oodialect-ancestry-001 {Testing heritage} {
+  ::oo::meta::ancestors ::delta::object
+} {::oo::object ::alpha::object ::bravo::object ::charlie::object ::delta::object}
+# -------------------------------------------------------------------------
+
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

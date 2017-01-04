@@ -1,0 +1,8 @@
+pt::grammar::peg {
+    rules {
+	Expression {is {n Function}                                     mode value}
+	Function   {is {n Sinus}                                        mode value}
+	Sinus      {is {x {t s} {t i} {t n} {t (} {n Expression} {t )}} mode value}
+    }
+    start {n Expression}
+}

@@ -1,0 +1,40 @@
+# -*- tcl -*-
+# pt_peg_to_json.test:  tests for the pt::peg::to::json converter package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_to_json.test,v 1.2 2011/01/14 03:49:54 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+support {
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+    use      json/json_write.tcl    json::write
+
+    useLocal pt_pexpression.tcl     pt::pe
+    useLocal pt_pegrammar.tcl       pt::peg
+
+    source [localPath tests/common]
+}
+testing {
+    useLocal pt_peg_to_json.tcl pt::peg::to::json
+}
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+source [localPath tests/pt_peg_to_json.tests]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
