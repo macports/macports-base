@@ -1,0 +1,97 @@
+# -*- tcl -*-
+# Graph tests - graph/arc/node set (attribute set)
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: set.test,v 1.3 2008/03/07 06:51:39 andreas_kupries Exp $
+
+# Syntax: graph      set      KEY ?VALUE?
+# Syntax: graph arc  set ARC  KEY ?VALUE?
+# Syntax: graph node set NODE KEY ?VALUE?
+
+# -------------------------------------------------------------------------
+
+foreach {e ex stem mp mk} {
+    arc   Arc   {mygraph arc}  {arc }  x
+    node  Node  {mygraph node} {node } x
+    graph Graph {mygraph}      {}      {}
+} {
+    AttrSetup
+
+    # -------------------------------------------------------------------------
+    # Wrong # args: Missing, Too many
+
+    test graph-${impl}-${setimpl}-${e}-set-1.0 "$e set, wrong # args, missing" {
+	SETUP
+	catch {CMD set} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}set" "${mp}key ?value?" 0 "${mp}key args"] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-set-1.1 "$e set, wrong # args, missing" !graph {
+	SETUP
+	catch {CMD set a} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}set" "${mp}key ?value?" 1 "${mp}key args"] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-set-1.2 "$e set, wrong # args, too many" {
+	SETUP
+	catch {CMD set a b c d} msg
+	mygraph destroy
+	set msg
+    } [tmE \
+	   "wrong # args: should be \"$MY ${mp}set ${mp}key ?value?\"" \
+	   [tmTooManyA "${mp}set" "${mp}key ?value?"]] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Logical arguments checks and failures
+
+    test graph-${impl}-${setimpl}-${e}-set-2.0 "$e set, missing $e" !graph {
+	SETUP
+	catch {CMD set x data} msg
+	mygraph destroy
+	set msg
+    } [Missing$ex $MY x] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-set-2.1 "$e set, no attributes (retrieval)" {
+	SETUP
+	$ex
+	catch {SetR$ex foo} msg
+	mygraph destroy
+	set msg
+    } [MissingKey $mk $e foo] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-set-2.2 "$e set, missing key (retrieval)" {
+	SETUP
+	$ex
+	SetW$ex data ""
+	catch {SetR$ex foo} msg
+	mygraph destroy
+	set msg
+    } [MissingKey $mk $e foo] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Ok arguments.
+
+    test graph-${impl}-${setimpl}-${e}-set-3.0 "$e set, set value, result" {
+	SETUP
+	$ex
+	set     result {}
+	lappend result [SetW$ex baz foobar]
+	lappend result [Get$ex  baz]
+	mygraph destroy
+	set result
+    } {foobar foobar} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-set-3.1 "$e set, retrieve value" {
+	SETUP
+	$ex
+	SetW$ex baz foobar
+
+	set result [SetR$ex baz]
+	mygraph destroy
+	set result
+    } foobar ; # {}    
+}
+
+# -------------------------------------------------------------------------

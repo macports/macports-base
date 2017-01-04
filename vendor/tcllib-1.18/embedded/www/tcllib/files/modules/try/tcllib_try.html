@@ -1,0 +1,231 @@
+
+<div class='fossil-doc' data-title='try - Forward compatibility implementation of [try]'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">try(n) 1 tcllib &quot;Forward compatibility implementation of [try]&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>try - try - Trap and process errors and exceptions</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">try <span class="opt">?1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::try</b> <i class="arg">body</i> <span class="opt">?<i class="arg">handler...</i>?</span> <span class="opt">?<b class="method">finally</b> <i class="arg">script</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a forward-compatibility implementation of Tcl
+8.6's try/finally command (TIP 329), for Tcl 8.5. The code was
+directly pulled from Tcl 8.6 revision ?, when try/finally was
+implemented as Tcl procedure instead of in C.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::try</b> <i class="arg">body</i> <span class="opt">?<i class="arg">handler...</i>?</span> <span class="opt">?<b class="method">finally</b> <i class="arg">script</i>?</span></a></dt>
+<dd><p>This command executes the script <i class="arg">body</i> and, depending on what the
+outcome of that script is (normal exit, error, or some other
+exceptional result), runs a handler script to deal with the case. Once
+that has all happened, if the <b class="method">finally</b> clause is present, the
+<i class="arg">script</i> it includes will be run and the result of the handler (or
+the <i class="arg">body</i> if no handler matched) is allowed to continue to
+propagate. Note that the <b class="method">finally</b> clause is processed even if
+an error occurs and irrespective of which, if any, <i class="arg">handler</i> is
+used.</p>
+<p>The <i class="arg">handler</i> clauses are each expressed as several words,
+and must have one of the following forms:</p>
+<dl class="doctools_definitions">
+<dt><b class="method">on</b> <i class="arg">code variableList script</i></dt>
+<dd><p>This clause matches if the evaluation of <i class="arg">body</i> completed with the
+exception code <i class="arg">code</i>. The <i class="arg">code</i> may be expressed as an
+integer or one of the following literal words:
+<b class="const">ok</b>, <b class="const">error</b>, <b class="const">return</b>, <b class="const">break</b>, or
+<b class="const">continue</b>. Those literals correspond to the integers 0 through
+4 respectively.</p></dd>
+<dt><b class="method">trap</b> <i class="arg">pattern variableList script</i></dt>
+<dd><p>This clause matches if the evaluation of <i class="arg">body</i> resulted in an
+error and the prefix of the <b class="option">-errorcode</b> from the interpreter's
+status dictionary is equal to the <i class="arg">pattern</i>. The number of prefix
+words taken from the <b class="option">-errorcode</b> is equal to the list-length
+of <i class="arg">pattern</i>, and inter-word spaces are normalized in both the
+<b class="option">-errorcode</b> and <i class="arg">pattern</i> before comparison.</p>
+<p>The <i class="arg">variableList</i> word in each <i class="arg">handler</i> is always
+interpreted as a list of variable names. If the first word of the list
+is present and non-empty, it names a variable into which the result of
+the evaluation of <i class="arg">body</i> (from the main <b class="cmd"><a href="tcllib_throw.html">try</a></b>) will be placed;
+this will contain the human-readable form of any errors. If the second
+word of the list is present and non-empty, it names a variable into
+which the options dictionary of the interpreter at the moment of
+completion of execution of <i class="arg">body</i> will be placed.</p>
+<p>The <i class="arg">script</i> word of each <i class="arg">handler</i> is also always
+interpreted the same: as a Tcl script to evaluate if the clause is
+matched. If <i class="arg">script</i> is a literal <b class="const">-</b> and the <i class="arg">handler</i>
+is not the last one, the <i class="arg">script</i> of the following <i class="arg">handler</i>
+is invoked instead (just like with the <b class="cmd">switch</b> command).</p>
+<p>Note that <i class="arg">handler</i> clauses are matched against in order,
+and that the first matching one is always selected.
+At most one <i class="arg">handler</i> clause will selected.
+As a consequence, an <b class="method">on error</b> will mask any subsequent
+<b class="method">trap</b> in the <b class="cmd"><a href="tcllib_throw.html">try</a></b>. Also note that <b class="method">on error</b> is
+equivalent to <b class="method">trap {}</b>.</p>
+<p>If an exception (i.e. any non-<b class="const">ok</b> result) occurs during
+the evaluation of either the <i class="arg">handler</i> or the <b class="method">finally</b>
+clause, the original exception's status dictionary will be added to
+the new exception's status dictionary under the <b class="option">-during</b> key.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">EXAMPLES</a></h2>
+<p>Ensure that a file is closed no matter what:</p>
+<pre class="doctools_example">
+set f [open /some/file/name a]
+<b class="cmd"><a href="tcllib_throw.html">try</a></b> {
+    puts \$f &quot;some message&quot;
+    # ...
+} <b class="cmd">finally</b> {
+    close \$f
+}
+</pre>
+<p>Handle different reasons for a file to not be openable for reading:</p>
+<pre class="doctools_example">
+<b class="cmd"><a href="tcllib_throw.html">try</a></b> {
+    set f [open /some/file/name]
+} <b class="method">trap</b> {POSIX EISDIR} {} {
+    puts &quot;failed to open /some/file/name: it's a directory&quot;
+} <b class="method">trap</b> {POSIX ENOENT} {} {
+    puts &quot;failed to open /some/file/name: it doesn't exist&quot;
+}
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>try</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>catch(n), error(n), return(n), throw(n)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key158">cleanup</a>, <a href="../../../../index.html#key161">error</a>, <a href="../../../../index.html#key162">exception</a>, <a href="../../../../index.html#key160">final</a>, <a href="../../../../index.html#key159">resource management</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Utility</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 Donal K. Fellows, BSD licensed</p>
+</div>
+</div>

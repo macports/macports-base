@@ -1,0 +1,218 @@
+<div class='fossil-doc' data-title='nameserv::auto - Name service facility'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">nameserv::auto(n) 0.3 tcllib &quot;Name service facility&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>nameserv::auto - Name service facility, Client Extension</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section4">EVENTS</a></li>
+<li class="doctools_section"><a href="#section5">DESIGN</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">nameserv::auto <span class="opt">?0.3?</span></b></li>
+<li>package require <b class="pkgname">nameserv</b></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Please read the document <i class="term"><a href="nns_intro.html">Name service facility, introduction</a></i>
+first.</p>
+<p>This package provides the <em>exact</em> same API as is provided by
+package <b class="package"><a href="nns_client.html">nameserv</a></b>, i.e. the regular name service client. It
+differs from the former by taking measures to ensure that longer-lived
+data, i.e. bound names, continuous and unfullfilled async searches,
+survive the loss of the connection to the name server as much as is
+possible.</p>
+<p>This means that the bound names and continuous and unfullfilled async
+searches are remembered client-side and automatically re-entered into
+the server when the connection comes back after its loss. For bound
+names there is one important limitation to such restoration: It is
+possible that a name of this client was bound by a different client
+while the connection was gone. Such names are fully lost, and the best
+the package can and will do is to inform the user of this.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The user-visible API is mainly identical to the API of <b class="package"><a href="nns_client.html">nameserv</a></b>
+and is therefore not described here. Please read the documentation of
+<b class="package"><a href="nns_client.html">nameserv</a></b>.</p>
+<p>The differences are explained below, in the sections <span class="sectref"><a href="#section3">OPTIONS</a></span> and
+<span class="sectref"><a href="#section4">EVENTS</a></span>.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">OPTIONS</a></h2>
+<p>This package supports all the options of package <b class="package"><a href="nns_client.html">nameserv</a></b>,
+plus one more. The additional option allows the user to specify the
+time interval between attempts to restore a lost connection.</p>
+<dl class="doctools_options">
+<dt><b class="option">-delay</b> <i class="arg">milliseconds</i></dt>
+<dd><p>The value of this option is an integer value &gt; 0 which specifies the
+interval to wait between attempts to restore a lost connection, in
+milliseconds. The default value is <b class="const">1000</b>, i.e. one second.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EVENTS</a></h2>
+<p>This package generates all of the events of package <b class="package"><a href="nns_client.html">nameserv</a></b>,
+plus two more. Both events are generated for the tag <i class="term"><a href="nns_client.html">nameserv</a></i>.</p>
+<dl class="doctools_definitions">
+<dt><i class="term">lost-name</i></dt>
+<dd><p>This event is generated when a bound name is truly lost, i.e. could
+not be restored after the temporary loss of the connection to the name
+server. It indicates that a different client took ownership of the
+name while this client was out of contact.</p>
+<p>The detail information of the event will be a Tcl dictionary
+containing two keys, <b class="const">name</b>, and <b class="const">data</b>. Their values hold
+all the information about the lost name.</p></dd>
+<dt><i class="term">re-connection</i></dt>
+<dd><p>This event is generated when the connection to the server is
+restored. The remembered data has been restored when the event is
+posted.</p>
+<p>The event has no detail information.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">DESIGN</a></h2>
+<p>The package is implemented on top of the regular nameservice client,
+i.e. package <b class="package"><a href="nns_client.html">nameserv</a></b>. It detects the loss of the
+connection by listening for <i class="term">lost-connection</i> events, on the tag
+<i class="term"><a href="nns_client.html">nameserv</a></i>.</p>
+<p>It reacts to such events by starting a periodic timer and trying to
+reconnect to the server whenver this timer triggers. On success the
+timer is canceled, a <i class="term">re-connection</i> event generated, and the
+package proceeds to re-enter the remembered bound names and continuous
+searches.</p>
+<p>Another loss of the connection, be it during or after re-entering the
+remembered information simply restarts the timer and subsequent
+reconnection attempts.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>nameserv</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="nns_client.html">nameserv(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key514">automatic</a>, <a href="../../../../index.html#key30">client</a>, <a href="../../../../index.html#key29">name service</a>, <a href="../../../../index.html#key513">reconnect</a>, <a href="../../../../index.html#key512">restore</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007-2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

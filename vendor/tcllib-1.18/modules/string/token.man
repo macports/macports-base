@@ -1,0 +1,97 @@
+[manpage_begin string::token n 1]
+[keywords lexing]
+[keywords regex]
+[keywords string]
+[keywords tokenization]
+[moddesc   {Text and string utilities}]
+[titledesc {Regex based iterative lexing}]
+[category  {Text processing}]
+[require Tcl 8.5]
+[require string::token [opt 1]]
+[require fileutil]
+[description]
+
+This package provides commands for regular expression based lexing
+(tokenization) of strings.
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd {::string token text}] [arg lex] [arg string]]
+
+This command takes an ordered dictionary [arg lex] mapping regular
+expressions to labels, and tokenizes the [arg string] according to
+this dictionary.
+
+[para] The result of the command is a list of tokens, where each token
+is a 3-element list of label, start- and end-index in the [arg string].
+
+[para] The command will throw an error if it is not able to tokenize
+the whole string.
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd {::string token file}] [arg lex] [arg path]]
+
+This command is a convenience wrapper around
+[cmd {::string token text}] above, and [cmd {fileutil::cat}], enabling
+the easy tokenization of whole files.
+
+[emph Note] that this command loads the file wholly into memory before
+starting to process it.
+
+[para] If the file is too large for this mode of operation a command
+directly based on [cmd {::string token chomp}] below will be
+necessary.
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd {::string token chomp}] [arg lex] [arg startvar] [arg string] [arg resultvar]]
+
+This command is the work horse underlying [cmd {::string token text}]
+above. It is exposed to enable users to write their own lexers, which,
+for example may apply different lexing dictionaries according to some
+internal state, etc.
+
+[para] The command takes an ordered dictionary [arg lex] mapping
+regular expressions to labels, a variable [arg startvar] which
+indicates where to start lexing in the input [arg string], and a
+result variable [arg resultvar] to extend.
+
+[para] The result of the command is a tri-state numeric code
+indicating one of
+[list_begin definitions]
+[def [const 0]] No token found.
+[def [const 1]] Token found.
+[def [const 2]] End of string reached.
+[list_end]
+
+Note that recognition of a token from [arg lex] is started at the
+character index in [arg startvar].
+
+[para] If a token was recognized (status [const 1]) the command will
+update the index in [arg startvar] to point to the first character of
+the [arg string] past the recognized token, and it will further extend
+the [arg resultvar] with a 3-element list containing the label
+associated with the regular expression of the token, and the start-
+and end-character-indices of the token in [arg string].
+
+[para] Neither [arg startvar] nor [arg resultvar] will be updated if
+no token is recognized at all.
+
+[para] Note that the regular expressions are applied (tested) in the
+order they are specified in [arg lex], and the first matching pattern
+stops the process. Because of this it is recommended to specify the
+patterns to lex with from the most specific to the most general.
+
+[para] Further note that all regex patterns are implicitly prefixed
+with the constraint escape [const \A] to ensure that a match starts
+exactly at the character index found in [arg startvar].
+
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

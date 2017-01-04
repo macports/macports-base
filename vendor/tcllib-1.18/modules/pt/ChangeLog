@@ -1,0 +1,2582 @@
+2014-01-22  Andreas Kupries  <aku@hephaistos>
+
+	* pt_pgen.tcl Ticket [1b7fe4fe19]: Fixed missing class/package
+	* pt_pgen.man: initialization for critcl generator. Bumped
+	* pkgIndex.tcl: package version to 1.0.2
+
+	* ../../apps/pt Ticket [c3ab006ca2]: Fixed help delivered by the
+	  'pt' application.
+
+2014-01-22  Andreas Kupries  <aku@hephaistos>
+
+	* pt_peg_from_peg.man: Fixed handling of empty strings in a
+	* pt_peg_from_peg.tcl: PEG. Treat as <epsilon>. Bumped to 1.0.2
+	* pt_peg_to_peg.man: Fixed generation of PEG from
+	* pt_peg_to_peg.tcl: <epsilon>. Produce a proper empty
+	  string. Bumped to 1.0.1
+
+	* tests/data/ok/peg_container-bulk/11_epsilon: New files to test
+	* tests/data/ok/peg_container-incremental/11_epsilon: handling of
+	* tests/data/ok/peg_container-templated-bulk/11_epsilon: <epsilon>
+	* tests/data/ok/peg_container-templated-incremental/11_epsilon: and
+	* tests/data/ok/peg_cparam/11_epsilon: empty strings across the board.
+	* tests/data/ok/peg_cparam-critcl/11_epsilon:
+	* tests/data/ok/peg_json-indalign/11_epsilon:
+	* tests/data/ok/peg_json-indented/11_epsilon:
+	* tests/data/ok/peg_json-ultracompact/11_epsilon:
+	* tests/data/ok/peg_param/11_epsilon:
+	* tests/data/ok/peg_param-compact/11_epsilon:
+	* tests/data/ok/peg_param-inlined/11_epsilon:
+	* tests/data/ok/peg_param-unopt/11_epsilon:
+	* tests/data/ok/peg_peg/11_epsilon:
+	* tests/data/ok/peg_peg-ast/11_epsilon:
+	* tests/data/ok/peg_peg-ast-fused/11_epsilon:
+	* tests/data/ok/peg_peg-ast-templated/11_epsilon:
+	* tests/data/ok/peg_peg-ast-templated-fused/11_epsilon:
+	* tests/data/ok/peg_peg-fused/11_epsilon:
+	* tests/data/ok/peg_peg-templated/11_epsilon:
+	* tests/data/ok/peg_peg-templated-fused/11_epsilon:
+	* tests/data/ok/peg_serial/11_epsilon:
+	* tests/data/ok/peg_serial-canonical/11_epsilon:
+	* tests/data/ok/peg_serial-print/11_epsilon:
+	* tests/data/ok/peg_tclparam/11_epsilon:
+	* tests/data/ok/peg_tclparam-snit/11_epsilon:
+	* tests/data/ok/peg_tclparam-tcloo/11_epsilon:
+
+2013-12-17  Andreas Kupries <andreask@activestate.com>
+
+	* pt_parse_peg.man: Added missing documentation for the PEG parser
+	  package.
+	* pt_peg_op.man: Added missing documentation for this utility package.
+	* pt_peg_op.tcl: Exported 'minimize'.
+
+2013-12-06  Andreas Kupries <andreask@activestate.com>
+
+	* tools/regenerate_parsers.tcl: Ticket [f5155519e7]. Dropped use
+	* ../../apps/pt: of bash. Switched to easier to read invokation
+	  without all the shell tricks and magic.
+
+2013-08-06  Andreas Kupries  <aku@hephaistos>
+
+	* pt_astree.man [Ticket 0d9f835d4d]: Removed (non)terminal
+	  methods, and replaced with documentation for new, new0.
+
+	* pt_peg_interp.man [Ticket 0d9f835d4d]: Fixed typo of
+	  "pt::peg::interpreter", to "pt::peg::interp".
+
+2013-03-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pt: Moved to the apps/ directory, with the other proper applications.
+	* pt.man:
+
+2013-03-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tests/data/ok/peg_json-indalign/0_basic_arithmetic: Updated to match
+	* tests/data/ok/peg_json-indalign/2_fun_arithmetic: json::write 1.0.2
+	* tests/data/ok/peg_json-indalign/3_peg_itself: ("/" not quoted as "\/")
+	* tests/data/ok/peg_json-indalign/4_choice:
+	* tests/data/ok/peg_json-indented/0_basic_arithmetic:
+	* tests/data/ok/peg_json-indented/2_fun_arithmetic:
+	* tests/data/ok/peg_json-indented/3_peg_itself:
+	* tests/data/ok/peg_json-indented/4_choice:
+	* tests/data/ok/peg_json-ultracompact/0_basic_arithmetic:
+	* tests/data/ok/peg_json-ultracompact/2_fun_arithmetic:
+	* tests/data/ok/peg_json-ultracompact/3_peg_itself:
+	* tests/data/ok/peg_json-ultracompact/4_choice:
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rde_critcl/util.c: Fix build warning, get a strlen declaration.
+	* rde_critcl/param.c: Fix bug in TRACE output.
+	* rde_critcl/p.c: Tweaked TRACE output for clarity.
+	* rde_critcl/ot.c: Fix the actual issue, a missing string rep for
+	  a Tcl_Obj literal getting interned.
+	* pt_rdengine.tcl: Bumped package version to 1.0.2
+	* pt_rdengine.man:
+	* pkgIndex.tcl
+
+	* tests/data/ok/peg_param-critcl/0_basic_arithmetic: Updated the
+	* tests/data/ok/peg_param-critcl/10_notahead: test data to match
+	* tests/data/ok/peg_param-critcl/1_functions: the code change
+	* tests/data/ok/peg_param-critcl/2_fun_arithmetic: (in param.c)
+	* tests/data/ok/peg_param-critcl/3_peg_itself: above.
+	* tests/data/ok/peg_param-critcl/4_choice:
+	* tests/data/ok/peg_param-critcl/5_sequence:
+	* tests/data/ok/peg_param-critcl/6_optional:
+	* tests/data/ok/peg_param-critcl/7_kleene:
+	* tests/data/ok/peg_param-critcl/8_pkleene:
+	* tests/data/ok/peg_param-critcl/9_ahead:
+
+2011-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tests/data/ok/peg_tclparam-tcloo/0_basic_arithmetic: Updated the
+	* tests/data/ok/peg_tclparam-tcloo/10_notahead: test data to match
+	* tests/data/ok/peg_tclparam-tcloo/1_functions: the [2011-06-06]
+	* tests/data/ok/peg_tclparam-tcloo/2_fun_arithmetic: change.
+	* tests/data/ok/peg_tclparam-tcloo/3_peg_itself:
+	* tests/data/ok/peg_tclparam-tcloo/4_choice:
+	* tests/data/ok/peg_tclparam-tcloo/5_sequence:
+	* tests/data/ok/peg_tclparam-tcloo/6_optional:
+	* tests/data/ok/peg_tclparam-tcloo/7_kleene:
+	* tests/data/ok/peg_tclparam-tcloo/8_pkleene:
+	* tests/data/ok/peg_tclparam-tcloo/9_ahead:
+
+	* tests/data/ok/peg_param-critcl/0_basic_arithmetic: Updated the
+	* tests/data/ok/peg_param-critcl/10_notahead: test data to match
+	* tests/data/ok/peg_param-critcl/1_functions: an unrecorded code
+	* tests/data/ok/peg_param-critcl/2_fun_arithmetic: change.
+	* tests/data/ok/peg_param-critcl/3_peg_itself:
+	* tests/data/ok/peg_param-critcl/4_choice:
+	* tests/data/ok/peg_param-critcl/5_sequence:
+	* tests/data/ok/peg_param-critcl/6_optional:
+	* tests/data/ok/peg_param-critcl/7_kleene:
+	* tests/data/ok/peg_param-critcl/8_pkleene:
+	* tests/data/ok/peg_param-critcl/9_ahead:
+
+2011-09-08  Andreas Kupries  <andreask@activestate.com>
+
+	* include/expr_pe.inc: Fixed the example to be a proper expression
+	* include/expr_pe_serial.inc: grammar, with the correct operator
+	* include/expr_peg.inc: precedences. Thanks to Lars Hellstrom.
+	* include/expr_serial.inc:
+
+2011-06-06  Andreas Kupries  <andreask@activestate.com>
+
+	* pt_tclparam_config_tcloo.tcl: Fixed typo, OO is TclOO.
+	* pkgIndex.tcl: Bumped version to 1.0.2.
+
+2011-02-16  Andreas Kupries  <andreask@activestate.com>
+
+	* include/format/options_tclparam_oo.inc: Documented option -package, and
+	* include/format/options_tclparam_snit.inc: the new cross -class/-package
+	* pkgIndex.tcl: resolution. Implemented resolution of missing -package
+	* pt_pgen.tcl: and -class through each other. Bumped version to 1.0.1.
+	* pt_pgen.man:
+
+2011-01-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* include/example/expr_ptgenb.inc: Fixed a typo in the example,
+	* include/example/full_app.inc: and dropped continuation lines
+	  to prevent missformatting in the formatted docs.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pt_peg_to_json.test: Dropped the local json::write package,
+	* pkgIndex.tcl: replaced with use of the common json::write
+	* json_write.tcl: derived from it.
+
+2010-11-25  Andreas Kupries  <andreask@activestate.com>
+
+	* pt_cparam_config_critcl.man: Added pragmas for meta-data
+	* pt_cparam_config_critcl.tcl: scanning to prevent the
+	  requirements of the embedded code template to be taken as the
+	  requirements of the package itself. Bumped version to 1.0.1.
+
+2010-10-07  Andreas Kupries  <andreask@activestate.com>
+
+	* pt_tclparam_config_snit.man: Added pragmas for meta-data
+	* pt_tclparam_config_snit.tcl: scanning to prevent the
+	* pt_tclparam_config_tcloo.man: requirements of the embedded code
+	* pt_tclparam_config_tcloo.tcl: template to be taken as the
+	* pkgIndex.tcl: requirements of this package. Bumped versions to
+	1.0.1.
+
+2010-07-27  Andreas Kupries  <andreask@activestate.com>
+
+	* pt_peg_interp.test: New files. Additional testsuites.
+	* pt_runtime.test: Demonstrate the problem with X* and X?
+	* tests/pt_peg_interp.tests: alone in a symbol, for modes
+	* tests/pt_runtime.tests: leaf and value.
+
+	* pt_peg_interp.tcl: Fixed two typos in comments.
+	* pt_rdengine.test:
+
+	* pt_astree.tcl: New constructor new0 for zero-length
+	* pt_astree.man: nodes. Bumped version to 1.1
+	
+	* pt_rdengine_tcl.tcl: Use of the new constructor to handle
+	* pt_rdengine.tcl: symbols whose RHS uses * or ? as toplevel
+	* pt_rdengine.man: operator and did not match anything at runtime,
+	  which is allowed. Bumped version to 1.0.1
+
+	* pt_peg_interp.tcl: Some tweaks to the debug helper code (tracing
+	* pt_rdengine_tcl.tcl: expressions and instructions).
+
+	* pkgIndex.tcl: Bumped versions.
+
+2010-07-09  Andreas Kupries  <andreask@activestate.com>
+
+	* include/example/expr_json.inc: Fixed various typos in the JSON
+	  example, i.e. missing closing double-quote, missing commas,
+	  missing backslash quoting of forward slashes in strings.
+
+2010-06-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* include/arch_core.dia: Navigational diagrams and images
+	* include/arch_core.png:
+	* include/arch_core_container.dia:
+	* include/arch_core_container.png:
+	* include/arch_core_eplugins.dia:
+	* include/arch_core_eplugins.png:
+	* include/arch_core_export.dia:
+	* include/arch_core_export.png:
+	* include/arch_core_import.dia:
+	* include/arch_core_import.png:
+	* include/arch_core_iplugins.dia:
+	* include/arch_core_iplugins.png:
+	* include/arch_core_support.dia:
+	* include/arch_core_support.png:
+	* include/arch_core_transform.dia:
+	* include/arch_core_transform.png:
+	* include/arch_support.dia:
+	* include/arch_support.png:
+	* include/arch_user_app.dia:
+	* include/arch_user_app.png:
+	* include/arch_user_pkg.dia:
+	* include/arch_user_pkg.png:
+	* include/architecture.dia: Foundation for the variant diagrams above.
+	* include/architecture.png:
+
+	* include/example/expr_ptgenb.inc: Text blocks for the full examples
+	* include/example/flow.dia: shown in the pt and pt::pgen documentation.
+	* include/example/flow.png:
+	* include/example/full.inc:
+	* include/example/full_app.inc:
+	* include/example/full_pkg.inc:
+	* include/example/parser_use.inc:
+
+	* pt.man: Addition of larger examples to pt and pt::pgen manpages,
+	* pt_astree.man: plus addition of navigational images to all manpages
+	* pt_cparam_config_critcl.man: for packages and APIs.
+	* pt_from_api.man:
+	* pt_introduction.man:
+	* pt_parser_api.man:
+	* pt_peg_container.man:
+	* pt_peg_export.man:
+	* pt_peg_import.man:
+	* pt_peg_interp.man:
+	* pt_pegrammar.man:
+	* pt_pexpression.man:
+	* pt_pgen.man:
+	* pt_rdengine.man:
+	* pt_tclparam_config_snit.man:
+	* pt_tclparam_config_tcloo.man:
+	* pt_to_api.man:
+	* include/export/plugin.inc:
+	* include/export/to.inc:
+	* include/import/from.inc:
+	* include/import/plugin.inc:
+
+2010-06-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* include/serial/ast.inc: Added image for the AST.
+	* include/example/expr_ast.dia: New. tklib diagram for the AST.
+	* include/example/expr_ast.png: New. PNG image of the above.
+	* include/example/expr_ast.txt: New. Text variant of the above.
+	* include/example/expr_ast.pic: New. *roff variant of the above.
+	* include/gen_options.inc: Replaced example with diagram via image.
+	* include/gen_options.dia: New. tklib diagram.
+	* include/gen_options.png: New. PNG image derived from diagram.
+	* include/gen_options.txt: New. Text variant of the above.
+	* include/gen_options.pic: New. *roff variant of the above.
+
+2010-04-07  Andreas Kupries  <andreask@activestate.com>
+
+	* pt_peg_to_cparam.tcl (::pt::peg::to::cparam::convert): Changed
+	* pt_peg_to_cparam.man: definition of string table from 'const
+	* pkgIndex.tcl: char const*' to 'char const*'. The older
+	* tests/data/ok/peg_cparam-critcl/6_optional: definition choked
+	* tests/data/ok/peg_cparam-critcl/8_pkleene: the HPUX cc on IA64.
+	* tests/data/ok/peg_cparam-critcl/1_functions: Bumped version to
+	* tests/data/ok/peg_cparam-critcl/3_peg_itself: 1.0.1. Updated
+	* tests/data/ok/peg_cparam-critcl/10_notahead: the testsuite.
+	* tests/data/ok/peg_cparam-critcl/7_kleene:
+	* tests/data/ok/peg_cparam-critcl/5_sequence:
+	* tests/data/ok/peg_cparam-critcl/4_choice:
+	* tests/data/ok/peg_cparam-critcl/9_ahead:
+	* tests/data/ok/peg_cparam-critcl/0_basic_arithmetic:
+	* tests/data/ok/peg_cparam-critcl/2_fun_arithmetic:
+	* tests/data/ok/peg_cparam/6_optional:
+	* tests/data/ok/peg_cparam/8_pkleene:
+	* tests/data/ok/peg_cparam/1_functions:
+	* tests/data/ok/peg_cparam/3_peg_itself:
+	* tests/data/ok/peg_cparam/10_notahead:
+	* tests/data/ok/peg_cparam/7_kleene:
+	* tests/data/ok/peg_cparam/5_sequence:
+	* tests/data/ok/peg_cparam/4_choice:
+	* tests/data/ok/peg_cparam/9_ahead:
+	* tests/data/ok/peg_cparam/0_basic_arithmetic:
+	* tests/data/ok/peg_cparam/2_fun_arithmetic:
+
+	* pt_parse_peg_c.tcl: See above, updated the generated code.
+
+2010-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module, 'pt' for ParserTools. Requires Tcl 8.5. Supercedes
+	  grammar_peg, grammar_me, and page.
+
+Fossil 2010-03-15 17:22:27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Switched to struct::stack 1.5 with its enhanced speed under Tcl 8.5+,
+    and extended API making a number of our lreverse calls superfluous.
+
+    Tcl based specialized parsers nearly doubled their speed (Ad 7, 80%).
+    Interpretation of grammars gained as well, although only 60%.
+    <verbatim>
+    +---+-------------------------------------------------------+-------------+-----------+------+-------+
+    |   |                                                       | PBASE/BENCH | PXE/BENCH |      |       |
+    |   | INPUT 3044 chars                                      |   chars/sec | chars/sec |    x |     % |
+    +---+-------------------------------------------------------+-------------+-----------+------+-------+
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               |      286.80 |    451.50 | 1.57 | 57.43 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |      807.79 |    807.44 | 1.00 | -0.04 |
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |     3415.33 |   3403.46 | 1.00 | -0.35 |
+    +---+-------------------------------------------------------+-------------+-----------+------+-------+
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |      729.48 |   1317.50 | 1.81 | 80.61 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |     3623.86 |   3612.41 | 1.00 | -0.32 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |    27708.20 |  27630.59 | 1.00 | -0.28 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |    71496.87 |  68350.27 | 0.96 | -4.40 |
+    +---+-------------------------------------------------------+-------------+-----------+------+-------+
+    </verbatim>
+
+Fossil 2010-03-10 06:29:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added super instructions to handle arbitrarily long sequences and
+    choices of characters, i.e. strings and classes, in a single
+    instruction each. Done for both C and Tcl generators and
+    implementations.
+
+    The speed gain is modest, from 2% up to 6%. The C is actually which
+    got the highest gain, i.e. 6%. The Tcl code, for which I made this
+    change and had more hope for, is (only) in the 2-4% range.
+
+    The size gains are better, slashing off about 10-20% of the size of
+    generated parsers.
+
+    The speed numbers ...
+    <verbatim>
+    +---+-------------------------------------------------------+-------------+-------------+------+------+
+    |   |                                                       | PBASE/BENCH | PFUSE/BENCH |      |      |
+    |   | INPUT 3044 chars                                      |   chars/sec |   chars/sec |    x |    % |
+    +---+-------------------------------------------------------+-------------+-------------+------+------+
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               |      287.33 |      291.48 | 1.01 | 1.44 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |      808.06 |      820.24 | 1.02 | 1.51 |
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |     3351.95 |     3444.03 | 1.03 | 2.75 |
+    +---+-------------------------------------------------------+-------------+-------------+------+------+
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |      709.55 |      741.13 | 1.04 | 4.45 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |     3500.13 |     3596.56 | 1.03 | 2.76 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |    26723.71 |    27848.07 | 1.04 | 4.21 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |    67466.47 |    71646.49 | 1.06 | 6.20 |
+    +---+-------------------------------------------------------+-------------+-------------+------+------+
+    </verbatim>
+
+Fossil 2010-03-10 06:27:07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Extended API to handle multiple arguments
+
+Fossil 2010-03-09 03:33:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Line between handling of TC and reading characters redrawn. ReadChar
+    becomes ExtendTC. Calling code in i_input_next and si:next_* is now
+    smaller. Tried to use a cache (variable mytlen) for the length of
+    mytoken, for easier access over 'string length'. However the time
+    needed to manage this variable is more than the time we gain from
+    the direct variale access, making this 'optimization' a net loss.
+
+Fossil 2010-03-07 17:02:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typo in comment
+
+Fossil 2010-03-07 00:18:42  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Removed the handling of the line/column counters from the C and Tcl
+    runtimes. Because this is (a) in the critical path (i.e it is run
+    for every processed character), and (b) irrelevant to the parsing
+    itself. In C its removal does not do much, runtime is apparently
+    dominated by other factors. For Tcl this is a major simplification
+    however and boosts performance by 3 to 8 percent, depending on the
+    implementation of stacks (Tcl, and C respectively). The methods
+    line, column, and position (translation) are gone, the tokens method
+    changes semantics (returns a string now instead of list of
+    char/location data). The token cache drops the lin/col data as well,
+    making it only a plain string.
+
+Fossil 2010-03-05 14:39:23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Simplified the innards of the si:next_ instructions, removed a few
+    superfluous commands
+
+Fossil 2010-03-05 06:20:50  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typo in usage of "string is"
+
+Fossil 2010-03-05 06:19:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Benchmarks updated to new API of grammar interpreter as per change
+    [c566928fec]
+
+Fossil 2010-03-03 03:45:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    si_next_ to si:next_, to consolidate the prefix of super
+    instructions as si:
+
+Fossil 2010-03-03 00:07:12  Andreas Kupries  <andreask@activestate.com>
+
+    Documented the pt::rde super instructions. HTML regenerated.
+
+Fossil 2010-02-27 22:05:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added tests for parser of the PEG specification language, checking
+    out the generated ASTs.
+
+Fossil 2010-02-27 22:04:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked grammar interpreter API, moved specification of grammar to
+    execute from construction time to method. Default grammar is empty
+    (epsilon) now. Brings the API more in line with the API of the
+    parsers specialized to a grammar. Doc updated and HTML regenerated.
+
+Fossil 2010-02-27 22:00:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Drop struct::set use and switching from grammar tests, package not
+    used there
+
+Fossil 2010-02-27 21:58:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Remove bogus reference to set implementation, unseen due to being
+    set by previous tests
+
+Fossil 2010-02-22 00:16:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Merged doc track [d72eb3f762] back to main track
+
+Fossil 2010-02-21 23:25:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Worked on the C/PARAM based parsers. Did the same aggregation of
+    instruction sequences into super instructions. While there is
+    basically no effect on the speed of the generated parsers it does
+    slash the size of parser code by an substantial amount. They also
+    look easier to read, replacing the various non-linear goto
+    statements we had with plain early returns. The runtime inlined into
+    CriTcl parsers is stripped of comments, empty lines, and irrelevant
+    declarations. Updated the test cases.
+
+Fossil 2010-02-21 21:02:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed declaration of message reference, is id, not string
+
+Fossil 2010-02-21 21:02:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed calculation of #entries in generated string table
+
+Fossil 2010-02-19 22:33:25  Andreas Kupries  <andreask@activestate.com>
+
+    Dropped the stripping of unknown options from the plugins. Pass
+    option names through unchanged now, instead of prefixing with dash
+    ('-'). This makes the export manager consistent with the converters,
+    i.e. no FOO (manager) versus -FOO (converter) confusion anymore. It
+    is now -FOO for the export manager as well.
+
+Fossil 2010-02-19 21:17:19  Andreas Kupries  <andreask@activestate.com>
+
+    Dropped bogus requirement in docs. Regenerated HTML
+
+Fossil 2010-02-19 20:53:21  Andreas Kupries  <andreask@activestate.com>
+
+    Dropped hardwiring of user/format configuration from export manager,
+    and call them options
+
+Fossil 2010-02-19 20:50:48  Andreas Kupries  <andreask@activestate.com>
+
+    Changed json export converter to accept -name, -file, and -user
+    options, as required for conformance with the export converter API
+
+Fossil 2010-02-19 04:38:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Merged doc changes back to mainline
+
+Fossil 2010-02-19 04:35:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    <verbatim>
+    Continued optimization work on Tcl/PARAM based parsers.
+
+    Overview of performance changes:
+
+    * Pure C parser unchanged, expected, as it is not modified by this.
+
+    * Grammar interpreter unchanged, expected, as it is not modified by
+      this. Because of the actual looping it uses nothing that can be
+      merged/simplified.
+
+    * Tcl parsers. The interesting part.
+
+      *  33- 55% speed gains on top of a Tcl runtime with Tcl stacks.
+      * 153-170% speed gains on top of a Tcl runtime with C stacks.
+      *      75% speed gains on top of a C runtime.
+
+
+    The work started in the generator code for the parser, where
+    instruction sequences were folded as much as possible, with the
+    newly-made "super-instructions" getting added to the Tcl and C
+    implementations of pt::rde.
+
+    * Converted the choice/sequence code sequences into single super
+      instructions. Implemented these super instructions in the Tcl and C
+      runtimes. In C they simply call the relevant instruction
+      implementations, whereas in Tcl the instruction code is inlined, to
+      avoid additional method dispatch.
+
+      * Per sequence we merged 4-6 to one instruction (init and exit), and
+        per transition between parts 4-5 to one.
+
+      * Per choice we merged 4-6 to one instruction (init and exit), and
+        per transition between branches 5-7 to one.
+
+      * Noted that I missed an optimization of sequence exit in commit [],
+        the loc/ast pop-rewind/dicard instruction could have been merged
+        into existing supers, making fail/return superfluous. This is now
+        all handled in the new supers.
+
+    * Super instructions for handling characters, character ranges, and
+      the predefined character classes. Each folds three instructions into
+      one.
+
+    * Super instructions for (positive) kleene closures, folding six into
+      two instructions per kleene closure, and an additional folding of
+      two into one per positive kleene closure.
+
+    * Super instructions for optional sequences (5/2) and lookahead (3/2
+      or 5/2).
+
+    * Super instructions to handle symbol setup and completion, folding
+      3-5/1 and 4-6/1.
+
+    Detailed performance numbers:
+
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    |   | BASELINE     INPUT 3044 chars                         |   u-seconds | seconds | chars/sec | usec/char |
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               | 11178686.40 |   11.18 |    272.30 |   3672.37 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |  4152088.34 |    4.15 |    733.13 |   1364.02 |
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |   933447.08 |    0.93 |   3261.03 |    306.65 |
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |  6680846.60 |    6.68 |    455.63 |   2194.76 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |  2614125.16 |    2.61 |   1164.44 |    858.78 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |   202883.36 |    0.20 |  15003.69 |     66.65 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |    46395.68 |    0.05 |  65609.56 |     15.24 |
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    |   | SUPERED                    INPUT 3044 chars           |   u-seconds | seconds | chars/sec | usec/char |
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               | 10748830.70 |   10.75 |    283.19 |   3531.15 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |  4106306.58 |    4.11 |    741.30 |   1348.98 |
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |   899587.82 |    0.90 |   3383.77 |    295.53 |
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |  4324268.00 |    4.32 |    703.93 |   1420.59 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |   963972.73 |    0.96 |   3157.77 |    316.68 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |   116598.70 |    0.12 |  26106.64 |     38.30 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |    46564.36 |    0.05 |  65371.89 |     15.30 |
+    +---+-------------------------------------------------------+-------------+---------+-----------+-----------+
+
+    +---+-------------------------------------------------------+-----------+-----------+------+--------+
+    |   |                                                       |  BASELINE |   SUPERED |      |        |
+    |   | INPUT 3044 chars                                      | chars/sec | chars/sec |    x |      % |
+    +---+-------------------------------------------------------+-----------+-----------+------+--------+
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               |    272.30 |    283.19 | 1.04 |   4.00 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |    733.13 |    741.30 | 1.01 |   1.11 |
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |   3261.03 |   3383.77 | 1.04 |   3.76 |
+    +---+-------------------------------------------------------+-----------+-----------+------+--------+
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |    455.63 |    703.93 | 1.54 |  54.50 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |   1164.44 |   3157.77 | 2.71 | 171.18 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |  15003.69 |  26106.64 | 1.74 |  74.00 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |  65609.56 |  65371.89 | 1.00 |  -0.36 |
+    +---+-------------------------------------------------------+-----------+-----------+------+--------+
+
+    Updated Tcl PEG parser to use these changes.
+    Updated testsuite to the changes in the generated Tcl parser code.
+
+    Another side-effect (beyond the higher speed) of using the super-
+    instructions is that the generated parser code is smaller. Because
+    more code is now in the runtime, and acessible through short commands,
+    instead of requiring long, heavily replicated instruction sequences.
+    This effect is also why super instructions make sense for the C
+    parsers as well. For these it is not about the speed, although some
+    gains may be had there too, but about the space savings.
+    </verbatim>
+
+Fossil 2010-02-19 00:16:48  Andreas Kupries  <andreask@activestate.com>
+
+    Moved import plugin API to separate document, with import converter
+    API, and updated dependent manpages. HTML regenerated
+
+Fossil 2010-02-17 23:16:38  Andreas Kupries  <andreask@activestate.com>
+
+    Moved export plugin API to separate document, with export converter
+    API, and updated dependent manpages. HTML regenerated
+
+Fossil 2010-02-17 19:37:45  Andreas Kupries  <andreask@activestate.com>
+
+    Completed revamp of pt::pegen docs, regenerated the HTML
+
+Fossil 2010-02-17 00:42:06  Andreas Kupries  <andreask@activestate.com>
+
+    Reworked the main docs a bit more, with pt::pgen moving to be
+    maintainer docs
+
+Fossil 2010-02-16 03:18:26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Postprocessing of benchmarks (get chars/seconds as easier to
+    understand measure of speed, and comparing two benchmarks)
+
+Fossil 2010-02-14 22:40:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tcl/PARAM optimizations
+
+    * Dropped two irrelevant instructions at branch/choice exit.
+    * Merged two instructions at choice/branch init into one.
+    * Reorganized inter-branch transitions (changed which instructions are
+      merged into super), resulting in simplified internals of
+      instructions causing less stack-churn (adjacent pop/push cycles).
+
+    Total:
+    * Removed three instructions per choice.
+    * Simplified 1-2 instructions per choice branch.
+
+    Updated Tcl PEG parser to use these changes.
+    Updated testsuite to the changes in the generated Tcl parser code.
+
+    Performance Benchmarks:
+
+    Pure C parser unchanged, expected, as it is not modified by this.
+
+    Grammar interpreter unchanged, expected, as it is not modified by
+    this. Because of the actual looping it uses nothing can be
+    merged/simplified.
+
+    Tcl parsers. The interesting part.
+
+    * 13% speed gains on top of Tcl runtime with Tcl stacks.
+
+      Guessing that these gains are a combined effect of less stack churn
+      and lesser number of instructions (= time in dispatch).
+
+    * 7% speed gains on top of a Tcl runtime with C stacks.
+
+      Guessing that these gains are mainly by the lesser number of
+      instructions, whereas the reduced stack churn is negligible as the
+      stacks are already at C speed.
+
+    * No gains on top of a C runtime.
+
+      Dispatch and stacks are apparently already so fast that the
+      reductions we gain are negligible.
+
+    Full numbers:
+
+    +---+-------------------------------------------------------+-------------+pre mini-super
+    |   | INTERP                                                |           1 |
+    +---+-------------------------------------------------------+-------------+
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |   921297.92 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |  4126362.26 |
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               | 11270454.30 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |    46029.57 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |   202939.32 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |  2730657.87 |
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |  7286020.90 |
+    +---+-------------------------------------------------------+-------------+
+
+    +---+-------------------------------------------------------+-------------+post mini-super
+    |   | INTERP                                                |           1 |
+    +---+-------------------------------------------------------+-------------+
+    | 1 | peg interpreter rde(critcl) stack(n/a) PEG            |   922109.94 |
+    | 2 | peg interpreter rde(tcl) stack(critcl) PEG            |  4221659.87 |
+    | 3 | peg interpreter rde(tcl) stack(tcl) PEG               | 11229381.00 |
+    | 4 | peg specialized parse(critcl) rde(n/a) stack(n/a) PEG |    45696.72 |
+    | 5 | peg specialized parse(tcl) rde(critcl) stack(n/a) PEG |   203223.80 |
+    | 6 | peg specialized parse(tcl) rde(tcl) stack(critcl) PEG |  2541266.51 |
+    | 7 | peg specialized parse(tcl) rde(tcl) stack(tcl) PEG    |  6407152.80 |
+    +---+-------------------------------------------------------+-------------+
+
+    === sorted by speed (in chars/second) ===
+
+    PRE
+    interpreter n/a    tcl    tcl    11270454 11.27 3758.07 266.09
+    specialized tcl    tcl    tcl    7286021  7.29  2429.48 411.61
+    interpreter n/a    tcl    critcl 4126362  4.13  1375.91 726.79
+    specialized tcl    tcl    critcl 2730658  2.73  910.52  1098.27
+    interpreter n/a    critcl n/a    921298   0.92  307.20  3255.19
+    specialized tcl    critcl n/a    202939   0.20  67.67   14777.82
+    specialized critcl n/a    n/a    46030    0.05  15.35   65153.77
+
+    POST									speed normalized against PRE
+    interpreter n/a    tcl    tcl    11229381 11.23 3744.38 267.07		1.0037
+    specialized tcl    tcl    tcl    6407153  6.41  2136.43 468.07		1.1372
+    interpreter n/a    tcl    critcl 4221660  4.22  1407.69 710.38		0.9774
+    specialized tcl    tcl    critcl 2541267  2.54  847.37  1180.12		1.0745
+    interpreter n/a    critcl n/a    922110   0.92  307.47  3252.32		0.9991
+    specialized tcl    critcl n/a    203224   0.20  67.76   14757.13	0.9986
+    specialized critcl n/a    n/a    45697    0.05  15.24   65628.34	1.0073
+
+    === sorted by runtime ===
+
+    interpreter n/a    tcl    tcl    11229381 11.23 3744.38 267.07		1.0037	+0.37%	/effectively unchanged
+    interpreter n/a    tcl    critcl 4221660  4.22  1407.69 710.38		0.9774	-2.26%
+    interpreter n/a    critcl n/a    922110   0.92  307.47  3252.32		0.9991	-0.09%
+
+    specialized tcl    tcl    tcl    6407153  6.41  2136.43 468.07		1.1372	+13.72%	/pure tcl gain
+    specialized tcl    tcl    critcl 2541267  2.54  847.37  1180.12		1.0745	+7.45%	/less gains because with C-stack gad already more speed
+    specialized tcl    critcl n/a    203224   0.20  67.76   14757.13	0.9986	-0.14%	/no real gains for C runtime. stack churn and icount
+    	    	   	  	 	  						/dispatch not enough compared to C-speed alone
+    specialized critcl n/a    n/a    45697    0.05  15.24   65628.34	1.0073	+0.73%	/pure C was not changed.
+
+Fossil 2010-02-14 22:39:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Dropped superfluous helper, and modified commit using message in a
+    file for newer fossil supporting -M
+
+Fossil 2010-02-14 06:06:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Integrate changes anf fixes of [1dfde84572], [90da02b641],
+    [a67d8236f2] into the PEG critcl parser
+
+Fossil 2010-02-14 06:04:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Put line markers into the inlined runtime
+
+Fossil 2010-02-14 06:02:07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix memory leak of state structure, of NC data, and stack
+    mishandling in pop/merge
+
+Fossil 2010-02-14 05:58:49  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Indentation fixup
+
+Fossil 2010-02-13 19:20:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    This change needs a bit more explanation, as it may seem to
+    needlessly complicate the generator. First, when executing a choice
+    or sequence (/- and x-operators), we run choice/sequence-init, and
+    -exit, and in between these for each branch/part the
+    branch/part-init and -exit sequences, and in between that the
+    branch/part code itself. The generator is structured in the same
+    way, easily generating these code pieces. However, in the resulting
+    code choice/seq- and branch/part-init are adjacent, and the
+    branchpart-exit and -init of adjacent branches/parts are adjacent as
+    well. Looking at these combined sequences there are several
+    optimzation possibilites where the code can be simplified. The
+    re-structuring now causes the generator to emit these adjacent
+    sequences together, as they will occur in the output. In this way we
+    can see in the generator where we can optimize, something the
+    current simple system doesn't really show us. As is the change only
+    does the re-structuring, not the optimzation. That will happen in
+    subsequent checkins.
+
+Fossil 2010-02-13 19:19:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated tests affected by bugfix [e28495f2e4]
+
+Fossil 2010-02-12 23:46:48  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started on super-instructions [daea5c0c82]. Tcl/PARAM generator and
+    rde/tcl
+
+Fossil 2010-02-12 23:45:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix directory references to input, and package search
+
+Fossil 2010-02-12 20:08:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweaked docs for PEs a bit, to better differentiate between atomic
+    vs. combined PEs. Regenerated the HTML
+
+Fossil 2010-02-12 20:00:26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on the app documentation. Parser API docs completed
+
+Fossil 2010-02-12 08:22:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More doc work, app docs added, parser api doc started.
+
+Fossil 2010-02-11 05:18:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix code-generation bug in C/PARAM for undefined nonterminals
+
+Fossil 2010-02-10 06:34:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bugfix in container backend of pt::pgen, left-overs from the file
+    API
+
+Fossil 2010-02-10 06:24:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    pt_pgen -> pt, better error handling, integrated help, command
+    syntax changes, to be documented
+
+Fossil 2010-02-10 04:30:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Moved parser regen helper app to a new tools directory
+
+Fossil 2010-02-10 04:30:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated the active PEG parsers to the new grammar of [f5b89bb487]
+
+Fossil 2010-02-08 21:22:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Drop references to struct::set implementation
+
+Fossil 2010-02-08 21:21:42  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Drop use of struct::set in json conversion tests, package not used
+
+Fossil 2010-02-08 21:20:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix use of wrong tests/ file for json import, and remove references
+    to the struct::set implementation
+
+Fossil 2010-02-08 18:50:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Gave the snit and tcloo generators a -package option, like we have
+    for critcl, updated the helper app (re)generating the peg parsers
+
+Fossil 2010-02-06 00:22:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Changed helper app for the regeneration of internal peg parser
+    packages to Tcl, from bash
+
+Fossil 2010-02-06 00:22:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Extended pt_pgen wrapper app to supply input file info through
+    option -file
+
+Fossil 2010-02-06 00:21:34  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bugfix of bad returns, wrongly squashing the result
+
+Fossil 2010-02-06 00:20:29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Creative writing bugfix
+
+Fossil 2010-02-05 23:39:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Move template file -> text conversion out of the pt::pgen package to
+    the wrapper application
+
+Fossil 2010-02-05 23:39:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Brought generated HTML docs up to date
+
+Fossil 2010-02-05 23:35:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on the pt::pgen manpage. Looks complete now
+
+Fossil 2010-02-05 23:34:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweak to the docgen helper
+
+Fossil 2010-02-05 06:13:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on the redone pt_pgen manpage
+
+Fossil 2010-02-04 22:37:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Manpage of pt::pgen restarted from scratch. Incomplete.
+
+Fossil 2010-02-04 20:12:14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Regenerated HTML after fixing a bug in doctools/html inter-document
+    link-generation
+
+Fossil 2010-02-04 08:31:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweak the PEG language grammar: Simpler definitions of EOL,
+    WHITESPACE. Added missing definition of CONTROL. Updated all tests.
+    Fixed typo for SPACE in PEG AST processor, and added CONTROL there
+    as well.
+
+Fossil 2010-02-04 00:51:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    pt::pgen switched to string API, wrapper app pt_pgen does files.
+    Updated docs. Simpler example.
+
+Fossil 2010-02-04 00:27:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Small tweaks to filename and text of the peg language intro
+
+Fossil 2010-02-04 00:14:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added tutorial/introduction to the text language for PE grammars.
+    Some tweaks.
+
+Fossil 2010-02-03 21:05:03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked the why/whatis stuff, lots more examples, and all examples
+    bases on a standard grammar
+
+Fossil 2010-02-03 04:15:57  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Shuffled example and serialization spec includes around
+
+Fossil 2010-02-03 04:10:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed bug in the RDE Tcl/C interface layer. Track Tcl_Obj* uwhose
+    intrep is an interned string, and invalidate them when the parser
+    state is destroyed. Otherwise a future parser may wrongly reuse an
+    already gone intrep. More asserts regarding use of string ids
+
+Fossil 2010-02-03 00:41:23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Now using a standard grammar (4-op expressions) for examples of
+    various representations
+
+Fossil 2010-02-02 23:09:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Addressing another point made by Will, giving the JSON format its
+    own full-blown specification, and noting the similarity to the Tcl
+    serialization only at the end
+
+Fossil 2010-02-02 22:13:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated the documentation of pt::pgen to address points made by Will
+    in his review
+
+Fossil 2010-02-01 17:08:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updates to HTML docs after tweaks in doc sources, see change
+    [86429d140d].
+
+Fossil 2010-02-01 04:36:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed problem of TestFilesProcess with the cparam template, doing
+    unwanted replacements (because lots is using @ for placeholders, or
+    parts thereof). Solution is hackish, should find a different one
+
+Fossil 2010-02-01 04:34:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed lots of copy/paste bogosities in the cparam/critcl testsuite
+
+Fossil 2010-02-01 04:32:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Oops. Forgot the underlying test file in previous commit,
+    [513f872246]
+
+Fossil 2010-02-01 04:31:57  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated testing of peg importer, equivalent to the changes for
+    testing the core conversion, as per change [c71beb9c6f]
+
+Fossil 2010-02-01 04:30:41  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Force the irrelevant packages into quiescent state, this will also
+    catch if they are used again in the future
+
+Fossil 2010-02-01 04:29:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added proper test results for cparam/critcl output
+
+Fossil 2010-02-01 04:28:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated test results, taking [ca324cb654] and [e1dd6a4871] into
+    account
+
+Fossil 2010-01-31 18:10:53  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typo in comment
+
+Fossil 2010-01-31 00:39:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated benchmark numbers in my notes
+
+Fossil 2010-01-31 00:35:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated the benchmarks to handle the 2 implementations of
+    pt::parse::peg, and have them ignore the irrelevant combinations
+
+Fossil 2010-01-30 23:35:33  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated tests to check both implementations of pt::parse::peg, as
+    introduced by [70bbe864da]
+
+Fossil 2010-01-30 23:34:48  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Modified pt::parse::peg to have two implementations, tcl and
+    c(ritcl)
+
+Fossil 2010-01-30 23:33:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    (1) Modified the critcl configuration to inline the C code of the
+    low-level PARAM engine, and to make its API static. Otherwise these
+    functions get into conflict with the pt::rde implementation using
+    the same functions underneath, if both are put into the same shared
+    library. This part uses the SCOPE feature introduced by
+    [d0367c875e]. (2) Added support for a package name separate from the
+    class/namespace information. (3) Implemented the missing 'destroy'
+    method for parser objects. This uses the new client data introduced
+    by [d0367c875e] to store the Tcl_Command token.
+
+Fossil 2010-01-30 23:15:16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    (1) Added notes about class option. (2) Fixed missing package
+    require, because pt::rde may not supply it anymore depending on
+    which implementation is chosen. (3) Made name of snit::type FQN,
+    otherwise use from an accel manager may bork.
+
+Fossil 2010-01-30 23:12:46  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Followup to [d0367c875e]. Commit the file which was left out of that
+    commit due to the bug fixed by [7920ef85].
+
+Fossil 2010-01-30 23:11:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Oops, bug in the new commitm dropped first file from commits
+
+Fossil 2010-01-30 23:04:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked the low-level PARAM implementation. (1) Enabled the user to
+    change the level of visibility for the public functions. Default is
+    global, setting the define SCOPE allows changed. For example, to
+    'static'. (2) Added a clientData field to the state structure, and
+    associated accessor functions.
+
+Fossil 2010-01-30 22:56:59  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added option -package to output format critcl
+
+Fossil 2010-01-30 22:55:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added proper class names, user info, and fixed path for outputfile
+
+Fossil 2010-01-30 22:54:50  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added commit helper reading message from file
+
+Fossil 2010-01-30 02:37:33  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Test setup tweaks. Better handling of parse errors in the converter
+    (more complete stack trace)
+
+Fossil 2010-01-29 20:02:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated tests for pt::peg::from::peg. (1) Dropped struct::set, none
+    of the packages use it. (2) Adding handling of the pt::rde
+    accelerator.
+
+Fossil 2010-01-29 19:05:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed bug introduced with [c0bab67996]. Snit's simpledispatch breaks
+    usage of 'return -code XXX', a construct I use in the guarded
+    control flow instructions, i.e. i:{ok,fail}_{continue,return}.
+
+Fossil 2010-01-29 03:41:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Longer timeline
+
+Fossil 2010-01-29 01:23:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added helper script to generate tcl and critcl parsers for PEG
+
+Fossil 2010-01-29 01:05:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed missing application of @ns@ when calling a parsing function
+
+Fossil 2010-01-29 01:01:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweaked C/PARAM formatting (kleene, poskleene, choice)
+
+Fossil 2010-01-29 00:31:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added tests for C/PARAM conversion, bugfixes in code and draft test
+    controller
+
+Fossil 2010-01-29 00:02:57  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added docs for the new cparam converter and config, updated raft of
+    other docs
+
+Fossil 2010-01-29 00:01:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    The raw C output of the generator takes a -template option, not
+    -class
+
+Fossil 2010-01-29 00:01:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Moved provide, notes on more placeholders, reduce Tcl requirement
+    due to critcl bailing out
+
+Fossil 2010-01-28 19:30:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix missing package requirement. Cannot assume that pt::rde loads
+    it, as the rde may be C based
+
+Fossil 2010-01-28 19:29:40  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Critcl config of C/PARAM; Bugfixes; p vs param header, wrong types,
+    er_convert => rde_param_query_er_tcl, comment syntax, ordering of
+    the code blocks to avoid forward declarations
+
+Fossil 2010-01-28 19:27:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bugfixes in C/PARAM generator: i_symbol_restore calls, and bad subst
+    in the implementations of the specials.
+
+Fossil 2010-01-28 19:25:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Moved er_convert from method level to low-level PARAM, and renamed
+    to rde_param_query_er_tcl. Fixed PARAM headers, do not need anything
+    from the higher layer (no pInt)
+
+Fossil 2010-01-28 08:34:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added draft conversion PEG to C/PARAM, and draft canned config for
+    embedding C/PARAM into a CriTcl environment
+
+Fossil 2010-01-27 00:29:53  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added parset method to the snit and oo templates, and the snit-based
+    peg-parser
+
+Fossil 2010-01-27 00:28:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Changed order of benchmarks
+
+Fossil 2010-01-26 20:11:23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bugfix in nc_clear, forgot to delete the hash-entry pointing to the
+    deleted second-level tables, causing the i_symbol_ instructions to
+    try to operate on these deleted but reachable tables, and panicking
+
+Fossil 2010-01-26 19:57:34  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Benchmark tweaked, switched from virtual channel to parset/data for
+    direct use of a string
+
+Fossil 2010-01-26 19:51:58  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Oops in [70b3f95f5b]. Forgot to make icount init conditional. Fixed.
+
+Fossil 2010-01-26 19:42:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added counting of instructions to the tracing (=> allows generation
+    of execution traces which are comparable between tcl/critcl
+    implementations)
+
+Fossil 2010-01-26 19:40:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed implementation of reset, made it handle a missing channel;
+    tweaks to the i_symbol_ functions
+
+Fossil 2010-01-26 19:32:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bugfixes: i_input_next did not set ST/ER after reading from channel;
+    i_symbol_save used wrong location for key (CL instead of top(LS);
+    Added more asserts to i_value_reduce
+
+Fossil 2010-01-26 19:26:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added trace outside of the enter/leave tracking. Fixed bug in
+    printf, the buffer for fomratted data was to small four the data
+    structures (AST) we are tracking. Moved to static global, and made 1
+    MB (vs 0.5 KB on stack before)
+
+Fossil 2010-01-26 19:24:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Draft definition for parsing from a string instead of channel
+
+Fossil 2010-01-26 19:23:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix ReadChar bug mishandling an undefined channel
+
+Fossil 2010-01-26 19:22:50  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added instruction trace-ability to Tcl RDE. Switch by (de-)comment.
+
+Fossil 2010-01-23 00:56:34  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More tracing trying to find a mishandling of SV
+
+Fossil 2010-01-22 23:55:42  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Deactivated tracing again, and fix macro def error.
+
+Fossil 2010-01-22 23:53:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Optimize sv_set, ignore if value is unchanged, trace sv push on ast
+    a bit more
+
+Fossil 2010-01-22 23:44:27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix crash caused by bogus cleanup of read buffer in state reset
+
+Fossil 2010-01-22 23:43:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked and more tracing using the new enter/return
+
+Fossil 2010-01-22 23:43:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Handle void return in tracing and fix formatting of enter
+
+Fossil 2010-01-22 22:47:23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated trace users to the generic names
+
+Fossil 2010-01-22 22:46:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Extended the trace support to allow enter/return tracing; renamed to
+    be non-rde specific,; reactivated
+
+Fossil 2010-01-22 22:37:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix typo in rde switcheroo
+
+Fossil 2010-01-20 00:42:50  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated benchmarks, allow them to switch between rde implementations
+
+Fossil 2010-01-20 00:27:29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Test tuning for RDE
+
+Fossil 2010-01-20 00:00:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Disabled tracing
+
+Fossil 2010-01-19 23:58:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added check of SV != NULL when pushing on the stack, this place
+    might be broken
+
+Fossil 2010-01-19 23:58:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Dropped bogus range-check
+
+Fossil 2010-01-19 23:57:41  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed out-of-bounds message
+
+Fossil 2010-01-19 22:44:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Traced, fixed missing update of string table size
+
+Fossil 2010-01-19 22:39:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix off-by-one-error in TC query
+
+Fossil 2010-01-19 22:27:37  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started tracing of crash ... Fixed missing return of function
+    rde_param_new()
+
+Fossil 2010-01-19 22:26:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added tracing support
+
+Fossil 2010-01-19 21:29:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed a few variable name typos
+
+Fossil 2009-12-18 23:13:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: More assertions, centered on the string table
+
+Fossil 2009-12-18 23:00:16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: Started peppering code with assertions. Factored
+    dup-string in param_intern into separate function. Noted how the
+    string table can be handled by RDE-stack, also that PARAM should
+    have string table size, for more assertions on use of string ids
+
+Fossil 2009-12-18 06:17:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix missing return of i_symbol_restore result (found
+    flag)
+
+Fossil 2009-12-18 06:14:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix missing guard condition of i:ok_ast_value_push
+
+Fossil 2009-12-18 06:09:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: Fix location err in i_error_nonterminal, and inline
+    error clearance into the test instructions
+
+Fossil 2009-12-18 06:00:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix CL handling in error case of i_test instructions
+
+Fossil 2009-12-18 05:56:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix off-by-one error in TC retrieval
+
+Fossil 2009-12-18 05:55:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix line/col init in TC append, and handling of
+    multiple chars
+
+Fossil 2009-12-18 05:55:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: Added utility macro, panic after a count
+
+Fossil 2009-12-18 05:24:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix another instruction name typo
+
+Fossil 2009-12-18 05:19:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: switch to snit2, import snit error support, fix arg
+    errors for instructions with such (missed arg names), converted all
+    wrong/args tests to support the different messages of snit/critcl
+
+Fossil 2009-12-18 05:18:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: i_error_push fixed, handle NULL
+
+Fossil 2009-12-18 04:24:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: initialization fixes, NC key ordering fixes in query,
+    implemented "data" method
+
+Fossil 2009-12-18 04:23:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: sync error message to tcl implementation
+
+Fossil 2009-12-18 04:22:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: start on implementation specific results, and support
+    for it
+
+Fossil 2009-12-18 04:19:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: TC append extend to take string instead of single char
+
+Fossil 2009-12-18 02:49:48  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: Fixed missing init of IN, and handle null IN for
+    queries
+
+Fossil 2009-12-18 02:49:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: fix typos
+
+Fossil 2009-12-18 02:48:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl :: activate debugging support
+
+Fossil 2009-12-18 02:48:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More helpers
+
+Fossil 2009-12-17 22:44:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl - method complete done
+
+Fossil 2009-12-17 22:28:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl - SC accessors made
+
+Fossil 2009-12-17 22:11:06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl - added CL, TC accessors
+
+Fossil 2009-12-17 21:18:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl - added accessors for SV, ARS, and AS
+
+Fossil 2009-12-17 21:04:07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl - added accessors for ER/ES
+
+Fossil 2009-12-17 20:15:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl - added forgotten destroy method
+
+Fossil 2009-12-17 19:49:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critc - query location stack
+
+Fossil 2009-12-17 19:36:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde c code - started implementing the query methods
+
+Fossil 2009-12-17 19:00:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde critcl code - completed NC cleanup for reset and delete
+
+Fossil 2009-12-17 18:46:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed various typos on the rde critcl code
+
+Fossil 2009-12-17 18:32:35  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    SC --> NC, to be consisten with the specification of the PARAM
+    architectural state
+
+Fossil 2009-12-17 18:29:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde tests - completed ast/symbol instructions. basic tests for query
+    methods (they are indirectly tested everywhere, through their use in
+    the rde_state test helper procedure)
+
+Fossil 2009-12-17 00:25:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde tests, ast instructions, mostly
+
+Fossil 2009-12-16 23:30:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde tests, value instructions
+
+Fossil 2009-12-16 23:00:29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde tests, loc instructions
+
+Fossil 2009-12-16 22:25:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde tests - switched back to myrde as std object, added missing
+    wrong args tests, more tests: status/symbol/error instructions
+
+Fossil 2009-12-16 22:23:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde - Added method to preload TC
+
+Fossil 2009-12-16 19:20:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    rde - added tests for control flow instructions
+
+Fossil 2009-12-16 06:40:42  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    First set of tests, basic create/destroy
+
+Fossil 2009-12-16 06:40:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix bug in handling of optional args to <tokens>
+
+Fossil 2009-12-16 06:39:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added state retrieval for tests
+
+Fossil 2009-12-16 05:59:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Put std accel handling code on top, and started on the (way overdue)
+    rde testsuite.
+
+Fossil 2009-12-16 05:09:11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Make place for switchable main package with accelerators
+
+Fossil 2009-12-16 01:32:59  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Modified TC/CC interaction to avoid copying, now CC is pointer into
+    TC
+
+Fossil 2009-12-16 01:27:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Second series of fixes for problems found by cc
+
+Fossil 2009-12-15 23:54:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    First series of fixes for problems found by the cc
+
+Fossil 2009-12-15 23:22:29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Completed methods test_char/range, added string id ObjType, and use
+    to cache error message strings
+
+Fossil 2009-12-15 06:23:46  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    symbol cache handling completed, a number of bugfixes (typos), sv/er
+    macros for common ops
+
+Fossil 2009-12-15 05:24:26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated to changed stack API, added TC handling, completed
+    i_input_next and CC associated structures
+
+Fossil 2009-12-15 05:23:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    New data structure, token cache, API and implementation
+
+Fossil 2009-12-15 05:22:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Moved API to long int, fixed API of _top, fixed type name typos
+
+Fossil 2009-12-15 00:21:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started on reading input in the C runtime
+
+Fossil 2009-12-14 23:35:35  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Update regarding non-use of interp
+
+Fossil 2009-12-14 23:35:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix error message for i_errror_nonterminal
+
+Fossil 2009-12-14 23:26:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated interning of strings for class tests
+
+Fossil 2009-12-14 23:26:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Implemented all instruction methods, but char/range testing, still
+    missing: query methods
+
+Fossil 2009-12-14 23:23:37  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked char testing in lowest layer to use utf as primary rep,
+    unichar only for classes, and using public Tcl API for tess, instead
+    of doing eval. removed interp, not needed any longer. still missing:
+    symbol, terminal caches
+
+Fossil 2009-12-14 21:08:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added string interning functionality
+
+Fossil 2009-12-14 21:07:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added API to update the string table in use
+
+Fossil 2009-12-14 20:03:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Implemented the simple instructions (no arguments, no query but ST)
+
+Fossil 2009-12-14 20:01:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added API to query ST
+
+Fossil 2009-12-14 19:42:30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added method boilerplate code (syntax info, basic argument check
+    derived from that, todo markers)
+
+Fossil 2009-12-14 05:07:03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on C RDE runtime, here working from the top down.
+
+Fossil 2009-12-13 08:07:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on the C runtime, low level data structures and
+    functions for PARAM state
+
+Fossil 2009-12-13 08:06:53  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    typo fix
+
+Fossil 2009-12-13 01:41:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started on a critcl implementation of the runtime
+
+Fossil 2009-12-13 01:38:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Inlined okfail for the 2 most-used i_test_xxx instructions, and for
+    the remainder pre-compute the error messages
+
+Fossil 2009-12-13 01:37:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More iterations
+
+Fossil 2009-12-13 01:36:40  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Verbose benchmarks, and bench with comparison to a baseline
+
+Fossil 2009-12-13 00:54:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added helper command for benchmarking, and notes about performance
+    on my machine (vs gila).
+
+Fossil 2009-12-12 00:04:20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    typo
+
+Fossil 2009-12-12 00:04:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Nother idea
+
+Fossil 2009-12-11 22:29:14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Draft runtime based on TclOO, plus notes on optimization
+    possibilities
+
+Fossil 2009-12-11 22:26:48  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    typo bugfix
+
+Fossil 2009-12-11 21:41:59  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Basic docs for the parser generator on top of everything
+
+Fossil 2009-12-11 20:26:53  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Draft testcases for TclOO/PARAM
+
+Fossil 2009-12-11 20:03:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    First benchmarks, and notes on results. We are no speed demon.
+
+Fossil 2009-12-11 18:20:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Slight tweak dropping struct::set dependency
+
+Fossil 2009-12-11 17:21:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Pulled some outside notes in
+
+Fossil 2009-12-11 17:14:41  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added generated html docs to repo
+
+Fossil 2009-12-11 17:13:42  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Changed doc html gen to save results in a module-local directory
+
+Fossil 2009-12-11 17:10:29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added table - instructions vs state
+
+Fossil 2009-12-11 08:16:27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added Tcl/PARAM canned config: tcloo based parser classes
+
+Fossil 2009-12-11 08:15:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed the space/whitespace problem of the PEG pe-grammar across all
+    representations in the tests
+
+Fossil 2009-12-11 08:13:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated tests to changes in Tcl/PARAM snit config
+
+Fossil 2009-12-11 06:09:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Generated snit parser for PEG, made a package, and switched from-peg
+    converter from interpreter to compiled parser
+
+Fossil 2009-12-11 06:08:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweaked snit parser to use procs instead of methodschanged
+
+Fossil 2009-12-11 06:06:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added prelude config option, and tweaked the placeholder processing
+    to remove unneeded space
+
+Fossil 2009-12-11 06:05:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added i:ok_return instruction, use of stack get method in places
+
+Fossil 2009-12-11 06:04:26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Extended generator with serial input, and snit output
+
+Fossil 2009-12-11 06:03:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added script app around pt::pgen
+
+Fossil 2009-12-11 02:56:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tcl/PARAM snit config: bugfixes, tweaks. Tcl/PARAM: bugfixes, tweaks
+
+Fossil 2009-12-11 00:59:59  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    tcl/param configuration - snit, basics
+
+Fossil 2009-12-10 22:43:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated docs of Tcl/PARAM converter
+
+Fossil 2009-12-10 08:04:14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed logic error in param assembler, updated testcases. Found while
+    working on the tcl/param converter.
+
+Fossil 2009-12-10 07:56:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Remove unwanted file
+
+Fossil 2009-12-10 07:55:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added parameterizable param assembler generating tcl code. Need
+    predefined configs for plain Tcl, snit, TclOO. Need config handling
+    too.
+
+Fossil 2009-12-10 04:04:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix typos in &/! test results
+
+Fossil 2009-12-09 07:29:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Redone innards of PARAM assembler again. Now looks a bit like a DSL
+    for specifying the translation. New features - compact/inline, with
+    previous state inlined-non-compact, and now default inlined-compact.
+    compact shares PE translations = common sub expression elimination.
+    new test cases
+
+Fossil 2009-12-09 00:59:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added method for block existence check
+
+Fossil 2009-12-09 00:59:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added example code
+
+Fossil 2009-12-08 08:18:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Optimized the manageent of the ARS/AS stacks, based on semantic
+    modes and derived ability to generate AST nodes by partial
+    expressions. Rewrote generator innards to use a dict instead of list
+    for bottom up data transfer (more extensible), tweaked instruction
+    order. Updated associated tests.
+
+Fossil 2009-12-08 05:02:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tests cases for & and ! (pos/neg look-ahead) operators added
+
+Fossil 2009-12-08 05:01:40  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    whitespace tweak
+
+Fossil 2009-12-06 01:52:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated tests for [7c2d7d4320]
+
+Fossil 2009-12-06 00:58:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Testcases for ? * and + operators added
+
+Fossil 2009-12-05 00:06:22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    draft of the transform optimizing mode assignments
+
+Fossil 2009-12-04 23:33:50  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Factored a helper for drop unrealizable to the PE operations
+
+Fossil 2009-12-04 21:29:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    New grammar transform taking out symbol chains, where allowed by the
+    modes
+
+Fossil 2009-12-04 20:56:40  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix bugs (missing export, wrong operation on start expr in called)
+
+Fossil 2009-12-04 20:49:59  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    cleanup from the space clash, now space and whitespace
+
+Fossil 2009-12-04 19:49:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bugfixes in the grammar op, from typos to functional
+
+Fossil 2009-12-04 19:37:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Make grammar transforms a visible package
+
+Fossil 2009-12-04 19:37:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix bug in Called for prefix/suffix operators
+
+Fossil 2009-12-04 19:36:53  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Clean export list
+
+Fossil 2009-12-04 07:36:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Upddated intro with new/gone packages
+
+Fossil 2009-12-04 07:34:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added expression printouts in comments to the param asssembler
+    output
+
+Fossil 2009-12-04 07:34:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    First grammar transforms
+
+Fossil 2009-12-04 07:11:35  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Changed PEG grammar definition, allowing grammars without symbols
+    and rules, only the strt expression
+
+Fossil 2009-12-04 03:28:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added param assembler as output to the parser generator. Fixed
+    template handling
+
+Fossil 2009-12-03 06:18:49  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Basic testcase: sequence operator
+
+Fossil 2009-12-03 06:07:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixing missing reset of label, etc. counter
+
+Fossil 2009-12-03 06:07:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Basic testcase: choice operator, and killed trailing whitespace
+
+Fossil 2009-12-03 06:06:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Killed the cryptic text::write commands, also now removing trailing
+    whitespace when making new lines
+
+Fossil 2009-12-03 03:47:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    completed converter to param assembler
+
+Fossil 2009-12-03 03:16:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added quote cstring, for writing chars usable in C code
+
+Fossil 2009-12-03 03:15:46  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added undef method, to remove saved blocks
+
+Fossil 2009-12-03 00:17:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Completely refactored the assembler internals, started on more use
+    of jump flow in the functions
+
+Fossil 2009-12-02 00:24:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    continued work on the param export
+
+Fossil 2009-12-02 00:24:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    update helper
+
+Fossil 2009-12-01 15:17:20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Canonicalize pe on input to container
+
+Fossil 2009-12-01 07:33:30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on param export.
+
+Fossil 2009-12-01 00:48:35  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started on export to param assembler, in prep for other exports to
+    executable code
+
+Fossil 2009-11-30 06:24:57  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed missing packages, plus new package, parser gen, finally, first
+    draft
+
+Fossil 2009-11-30 06:20:42  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fixed missing var decl
+
+Fossil 2009-11-30 06:02:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fixed copyright typo
+
+Fossil 2009-11-30 06:00:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    updated architectural package information
+
+Fossil 2009-11-30 06:00:07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed peg import/export references
+
+Fossil 2009-11-30 05:59:46  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    updated documented peg syntax
+
+Fossil 2009-11-30 05:57:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Importing from PEG text, conversion core and plugin. placeholder
+    docs for container import
+
+Fossil 2009-11-30 05:29:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fix comment type
+
+Fossil 2009-11-30 02:39:35  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    bug fixes, missing args, bad type codes, negated condition
+
+Fossil 2009-11-30 01:20:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed parens generation for x / operators, and added priorities for
+    str/cl
+
+Fossil 2009-11-29 23:57:46  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added missing constructor
+
+Fossil 2009-11-29 22:03:37  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed char order issue in char class, and dependent representations
+
+Fossil 2009-11-29 22:02:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fix test numbering
+
+Fossil 2009-11-29 22:02:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    another helper
+
+Fossil 2009-11-29 21:40:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    bug fixes: chan, ars/as handling, i_test_ arguments and error
+    messaging, varname typos
+
+Fossil 2009-11-29 21:37:41  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    bugfix in ?, savemode, factored next to method, one place doing call
+    -> atomic pe conversion
+
+Fossil 2009-11-29 21:36:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    change for easier reading
+
+Fossil 2009-11-29 09:44:34  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fixed nonterminal clash in peg grammar
+
+Fossil 2009-11-29 09:44:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fixed missing package in index
+
+Fossil 2009-11-29 08:17:14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    subst -> string map is easier, fixed missing state var for rde
+
+Fossil 2009-11-29 08:16:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    added missing packages
+
+Fossil 2009-11-29 07:55:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    added preloaded container holding the PEG grammar specification,
+    updated doc pkg index
+
+Fossil 2009-11-29 07:50:20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fixed outdated references
+
+Fossil 2009-11-29 07:17:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    added import manager, docs, tests. added import info to the module
+    architectural information, updated package index
+
+Fossil 2009-11-29 07:16:30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    added import docs and text blocks
+
+Fossil 2009-11-29 07:15:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    dropped duplicates
+
+Fossil 2009-11-29 06:43:06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    importing from json
+
+Fossil 2009-11-29 06:34:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    typo
+
+Fossil 2009-11-29 06:33:53  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    typo & formatting tweak
+
+Fossil 2009-11-29 06:05:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    fix typos
+
+Fossil 2009-11-29 03:33:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    typo fix
+
+Fossil 2009-11-29 03:28:57  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Typos and comnsolidation
+
+Fossil 2009-11-29 00:59:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated dependency info, and comments on PARAM state
+
+Fossil 2009-11-29 00:45:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Brought the peg interpreter docs uptodate with its implementation
+
+Fossil 2009-11-29 00:43:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typo, missing element, and added notes on channel usage
+
+Fossil 2009-11-29 00:15:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Finalized the param-based RDE, instruction set and names, per the
+    needs of the PEG interpreter
+
+Fossil 2009-11-28 23:51:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Grammar Interpreter - Fix cons bug, switch to methods for direct
+    execution to simplify access to state, simplified execution due to
+    mode changes, ast changes. Finalized instructions used, and names
+
+Fossil 2009-11-28 22:39:40  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Simplified PARAM after AST changes
+
+Fossil 2009-11-28 00:44:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Consequence of AST changes, semantic modes: drop match, identical to
+    leaf now. further: discard -> void for consistency across all things
+
+Fossil 2009-11-27 23:51:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Changed AST definition to not contain terminals, only nonterminals
+
+Fossil 2009-11-27 07:32:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Removed 2 now superfluous include files
+
+Fossil 2009-11-27 07:23:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked the RDE docs to take advantage of the PARAM spec
+
+Fossil 2009-11-27 07:22:49  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Completed the PARM spec
+
+Fossil 2009-11-27 07:22:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typo
+
+Fossil 2009-11-27 03:55:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Complete reworking the interpreter to perform direct execution of an
+    expression
+
+Fossil 2009-11-27 03:55:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typo
+
+Fossil 2009-11-27 00:40:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started to rework the PEG intepreter from a big switch to a direct
+    execution model
+
+Fossil 2009-11-27 00:27:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on the param spec
+
+Fossil 2009-11-26 08:04:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started separate doc for the virtual machine behind rde, named PARAM
+    aka PAck RAt Machine
+
+Fossil 2009-11-26 07:28:07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    helper for forced commit
+
+Fossil 2009-11-26 07:27:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Title tweak, and changes to instruction names
+
+Fossil 2009-11-26 00:38:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More tweaks
+
+Fossil 2009-11-26 00:33:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworking the rde docs ... put associated methods and state
+    descriptions together
+
+Fossil 2009-11-25 23:19:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    clarification of mycurrent, drop empty string from token description
+
+Fossil 2009-11-25 23:17:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweak converter/export titles
+
+Fossil 2009-11-25 07:02:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started on documenting the parser/runtime state
+
+Fossil 2009-11-25 06:27:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Completes docs for the methods of the runtime; modified complete to
+    not use an artificial symbol for aggregation if the AST stack has
+    only one AST.
+
+Fossil 2009-11-25 06:07:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Drop dependency on textutil, fix typo
+
+Fossil 2009-11-24 08:49:27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Documented the instructions handling locations and ast stack. Fixed
+    argument errors of the AST methods
+
+Fossil 2009-11-24 08:41:06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Documented the instructions handling symbol cache and semantic value
+
+Fossil 2009-11-24 07:40:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Completed docs of the i_chan instructions
+
+Fossil 2009-11-24 07:16:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed description of serialize
+
+Fossil 2009-11-24 07:09:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Work on the parser runtime, first doc draft
+
+Fossil 2009-11-24 07:08:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix section reference
+
+Fossil 2009-11-24 07:08:27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix section reference
+
+Fossil 2009-11-23 21:54:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Strip down and streamline the introduction to parsing expression
+    grammars.
+
+Fossil 2009-11-22 01:57:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    AST structure handling, code, doc, tests
+
+Fossil 2009-11-22 01:57:14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweak labels, drop now irrelevant use of struct::set
+
+Fossil 2009-11-21 23:12:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Typo fixes, and phrasing cleanup
+
+Fossil 2009-11-21 08:55:23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More work on the docs for ASTs
+
+Fossil 2009-11-21 08:39:03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweaks, and formalized the reference from each package to its place
+    in the module architecture
+
+Fossil 2009-11-21 08:37:58  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    More architecture info, core layer structure
+
+Fossil 2009-11-21 08:37:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Docs for ASTs
+
+Fossil 2009-11-21 06:41:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued the renaming to "pt" prefix.
+
+Fossil 2009-11-21 06:28:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    doc tweaks
+
+Fossil 2009-11-21 06:01:41  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Removed the bogus file for which I did the fork dance, and updated
+    test names for the "pt" prefix
+
+Fossil 2009-11-21 05:57:11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    pt::peg::structure --> pt::peg
+
+Fossil 2009-11-21 05:46:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Merge saved file back
+
+Fossil 2009-11-21 05:45:04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Proper file name
+
+Fossil 2009-11-21 05:25:06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Moved pt::peg --> pt::peg::container, as it should have been
+
+Fossil 2009-11-20 06:38:54  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Simplify pt::pe::structure --> pt::pe
+
+Fossil 2009-11-20 06:08:33  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix typo, and tweaked source readability
+
+Fossil 2009-11-20 05:34:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Switch from grammar(_peg) to "pt" (Parser Tools). Code, tests, and
+    docs.
+
+Fossil 2009-11-20 04:42:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Factored more common parts of the documentation into their own
+    files, included as needed.
+
+Fossil 2009-11-20 03:39:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Started on top-down docs, with an introduction, and the basics
+
+Fossil 2009-11-20 03:14:31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated to handle module rename grammar_peg -> pt
+
+Fossil 2009-11-20 03:13:07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added markers to fileutil::fileType
+
+Fossil 2009-11-19 19:51:06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added notes re expression equivalence and simplification and how the
+    t/.. commit [21c4130f31] started a slippery slope
+
+Fossil 2009-11-19 07:01:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Extended peg 2 peg conversion with flatten/fused for string/class
+    aggregation
+
+Fossil 2009-11-19 06:09:48  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Split PE structure handling into basic and advanced, moving
+    rename/called to the latter. Extended advanced with 2 new ops to
+    simplify/transforms expressions.
+
+Fossil 2009-11-19 04:45:13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Dropped code from peg2peg conversion made irrelevant by commit
+    [21c4130f31].
+
+Fossil 2009-11-19 04:43:51  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Simplified the expression walker commands
+
+Fossil 2009-11-19 04:39:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Nailed down an ambiguity in the canonical PE serialization (t X <=>
+    .. X X)
+
+Fossil 2009-11-19 03:45:49  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Split json export into core converter, and small plugin
+
+Fossil 2009-11-19 03:45:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Typo fixes
+
+Fossil 2009-11-18 05:06:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Three files forgotten in last commit
+
+Fossil 2009-11-18 05:05:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Split peg export into core converter, and small plugin
+
+Fossil 2009-11-18 05:03:26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed typos, cleanup
+
+Fossil 2009-11-18 05:02:23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added restricted delta variant
+
+Fossil 2009-11-17 06:28:21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Split the container export plugin into a regular converter package
+    and a much smaller plugin, essentially just a shim between manager
+    and converter. For direct use of the converter in trusted
+    environment, where the overhead of the safe base is not needed.
+
+Fossil 2009-11-17 06:26:19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    text::write API extension, readable cmd names
+
+Fossil 2009-11-17 06:24:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Tweaked doc generation command, clear screen
+
+Fossil 2009-11-16 05:54:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix bugs in the container export (missing component setup, bad
+    access to component), updates tests
+
+Fossil 2009-11-16 05:42:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    container export extended with templating, new testcases, and doc
+    brought up to date
+
+Fossil 2009-11-16 05:23:20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed var name oops
+
+Fossil 2009-11-16 03:53:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated package requirements in docs
+
+Fossil 2009-11-16 03:50:44  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added forgotten char utility package implementation
+
+Fossil 2009-11-16 03:50:03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed bugs in peg export, and added char quoting, updated tests
+
+Fossil 2009-11-16 03:49:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added char quoting to container generation, updated all affected
+    test files
+
+Fossil 2009-11-16 03:48:34  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added char quoting to expression printing, updated affected test
+    files
+
+Fossil 2009-11-16 03:45:33  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix file access in tests, assume utf8 and binary eol == identity to
+    internals
+
+Fossil 2009-11-16 03:44:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Index the char utility package
+
+Fossil 2009-11-16 03:44:31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added pre-cleanup to test runs
+
+Fossil 2009-11-16 03:42:41  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added test files for self-referential peg grammar
+
+Fossil 2009-11-15 21:48:58  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Lifted the peg & container plugin tests to the export manager
+
+Fossil 2009-11-15 21:42:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    New export plugin, "container". Result is snit::type around
+    grammar::peg, preloaded with the exported grammar
+
+Fossil 2009-11-15 21:40:56  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Extended container bulk query methods with bulk setting, and
+    modified add/remove to accept multiple and zero arguments
+
+Fossil 2009-11-15 20:15:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    New method -, undo last +, extend ++ to accept multiple fields
+
+Fossil 2009-11-15 19:37:45  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added recall+add stack operator, added full reset command, changed
+    get/getl to perform full reset before returning the (saved) current
+    block.
+
+Fossil 2009-11-15 19:26:17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bring the plugin package requirements uptodate
+
+Fossil 2009-11-15 19:14:11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    PEG grammar in PEG text, for future tests
+
+Fossil 2009-11-15 17:56:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked peg/peg export to use the text generation support package
+
+Fossil 2009-11-15 17:54:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Wrote text generation support package. Derived from the
+    doctools2base package, but modified, hopefully clearer/easier to use
+
+Fossil 2009-11-15 16:55:25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    peg/peg export test results updated to current output, as near-final
+
+Fossil 2009-11-15 10:01:38  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Continued work on expression/text conversion, basic conversion is
+    done
+
+Fossil 2009-11-15 09:12:34  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Draft peg to peg export, and test case. Fail: Expression conversion
+    not done yet
+
+Fossil 2009-11-15 09:11:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Typo fix
+
+Fossil 2009-11-15 09:11:09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Typo fixes
+
+Fossil 2009-11-15 09:10:49  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Test execution tweak
+
+Fossil 2009-11-15 08:20:08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added documentation for the PEG text representation
+
+Fossil 2009-11-15 08:19:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Version fix, and slight editing of json export docs
+
+Fossil 2009-11-15 06:36:48  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Documentation fixes
+
+Fossil 2009-11-15 06:36:28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Shortcuts to fossil
+
+Fossil 2009-11-15 05:55:15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Factored json specific generation into separate package
+
+Fossil 2009-11-15 05:54:36  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed required and provided versions
+
+Fossil 2009-11-15 05:54:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed missing indicator of chosen struct::set implementation n the
+    export test cases
+
+Fossil 2009-11-15 05:07:29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Updated export to integrate json tests
+
+Fossil 2009-11-15 05:06:55  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added json export
+
+Fossil 2009-11-15 05:03:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Update tests for error message changes, added tests of
+    verify-as-canonical, followup on last change
+
+Fossil 2009-11-15 05:01:24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix trailing white space in the canonical peg serializations, fix
+    error message for it
+
+Fossil 2009-11-15 01:51:37  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Added export manager (code, doc test), draft, as we have no actual
+    plugins yet
+
+Fossil 2009-11-15 01:50:40  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Container paren mismatch fix, and tweak of test setup for future
+    testing of import/export management
+
+Fossil 2009-11-15 01:45:39  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Documentation fixes re package and version requirements
+
+Fossil 2009-11-14 09:01:33  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reworked instructions in the PEG interpreter, and added first draft
+    of the RD engine (= runtime)
+
+Fossil 2009-11-14 07:29:43  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Bumped the version number, this is planned to become the first
+    mature version
+
+Fossil 2009-11-14 07:29:05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Revamped the PEG interpreter. Has no actual foundation for execution
+    yet
+
+Fossil 2009-11-14 07:11:32  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Reformatted a few commands, lsearch -> in, dropped old peg.tcl
+
+Fossil 2009-11-14 04:23:46  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Lifted PEG handling to 8.5 (lassign, ensemble), updated tests. Test
+    canonicalize
+
+Fossil 2009-11-14 03:47:52  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Drop snit requirement, and modified bottomup along the lines of
+    topdown, cmdprefix now has access to caller context
+
+Fossil 2009-11-14 03:44:03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    PE handling now distinguishes regular/canonical serialization
+    (latter = pure list). Updated code, doc, tests, users. topdown
+    method modified to allow callback to reach into caller context
+
+Fossil 2009-11-14 02:47:02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    pe::structure revamped for 8.5 (expansion, lassign, ensemble)
+
+Fossil 2009-11-13 23:50:18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Revamped the container class. General structure with extensible
+    import/export like for doctools v2. Dropped validity tracking.
+    Switched to the structure packages for PE/PEG validation and
+    handling. Basic tests
+
+Fossil 2009-11-13 23:49:01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Forgotten testfiles for grammar merge
+
+Fossil 2009-11-13 23:48:16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    PEG handling extended, grammar merging added, inlined rule
+    canonicalization
+
+Fossil 2009-11-13 23:47:16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    File forgotten in last commit
+
+Fossil 2009-11-13 23:45:47  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    PE handling extended, structural equality check added
+
+Fossil 2009-11-12 21:10:10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fixed bug in topdown method, made bottomup and topdown public (added
+    docs and tests)
+
+Fossil 2009-11-12 06:17:35  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Common text block about symbol modes. Container API tweaks.
+
+Fossil 2009-11-12 06:02:49  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Complete PEG structure spec, verification code, and testsuite
+
+Fossil 2009-11-12 06:02:00  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Fix printing bug in the handling of argument results
+
+Fossil 2009-11-12 04:43:12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    Baseline for the PEG modules and packages
+
+Fossil 2009-11-12 04:37:03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+    initial empty check-in

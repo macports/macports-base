@@ -1,0 +1,367 @@
+[manpage_begin imap4 n 0.5.3]
+[see_also ftp]
+[see_also http]
+[see_also imap]
+[see_also mime]
+[see_also pop3]
+[see_also tls]
+[keywords email]
+[keywords imap]
+[keywords internet]
+[keywords mail]
+[keywords net]
+[keywords rfc3501]
+[keywords ssl]
+[keywords tls]
+[moddesc   {imap client}]
+[titledesc {imap client-side tcl implementation of imap protocol}]
+
+[require Tcl 8.5]
+[require imap4 [opt 0.5.2]]
+
+[description]
+
+The [package imap4] library package provides the client side of the
+[emph "Internet Message Access Protocol"] (IMAP) using standard
+sockets or secure connection via TLS/SSL.
+The package is fully implemented in Tcl.
+
+[para]
+This document describes the procedures and explains their usage.
+
+[section "PROCEDURES"]
+This package defines the following public procedures:
+
+[list_begin definitions]
+[call [cmd ::imap4::open] [arg hostname] [opt [arg port]]]
+[para]Open a new IMAP connection and initalize the handler,
+the imap communication channel (handler) is returned.
+[para][arg hostname] - mail server
+[para][arg port] - connection port, defaults to 143
+[para]The namespace variable [option ::imap4::use_ssl]
+can be used to establish to a secure connection
+via TSL/SSL if set to true. In this case default connection port
+defaults to 993.
+[para][emph Note:]
+For connecting via SSL the Tcl module [emph tls] must be already
+loaded otherwise an error is raised.
+[example {
+    package require tls              ; # must be loaded for TLS/SSL
+    set ::imap4::use_ssl 1           ; # request a secure connection
+    set chan [::imap4::open $server] ; # default port is now 993 }]
+
+[call [cmd ::imap4::starttls] [arg chan]]
+
+Use this when tasked with connecting to an unsecure port which must be
+changed to a secure port prior to user login.  This feature is known
+as [term STARTTLS].
+
+[call [cmd ::imap4::login] [arg chan] [arg user] [arg pass]]
+[para]Login using the IMAP LOGIN command, 0 is returned on successful login.
+[para][arg chan] - imap channel
+[para][arg user] - username
+[para][arg pass] - password
+
+[call [cmd ::imap4::folders] [arg chan] [opt [arg "-inline"]] [opt [arg mboxref]] [opt [arg mboxname]]]
+[para]Get list of matching folders, 0 is returned on success.
+[para]Wildcards '*' as '%' are allowed for [arg mboxref] and [arg mboxname],
+command [cmd ::imap4::folderinfo] can be used to retrieve folder information.
+[para][arg chan] - imap channel
+[para][arg mboxref] - mailbox reference, defaults to ""
+[para][arg mboxname] - mailbox name, defaults to "*"
+[para]If [option "-inline"] is specified a compact folderlist is
+returned instead of the result code. All flags are converted to
+lowercase and leading special characters are removed.
+[example {{{Arc08 noselect} {Arc08/Private {noinferiors unmarked}} {INBOX noinferiors}}}]
+
+[call [cmd ::imap4::select] [arg chan] [opt [arg mailbox]]]
+[para]Select a mailbox, 0 is returned on success.
+[para][arg chan] - imap channel
+[para][arg mailbox] - Path of the mailbox,  defaults to [emph INBOX]
+[para]Prior to examine/select an open mailbox must be closed - see: [cmd ::imap4::close].
+
+[call [cmd ::imap4::examine] [arg chan] [opt [arg mailbox]]]
+[para]"Examines" a mailbox, read-only equivalent of [cmd ::imap4::select].
+[para][arg chan] - imap channel
+[para][arg mailbox] - mailbox name or path to mailbox,
+defaults to [emph INBOX]
+[para]Prior to examine/select an open mailbox must be closed - see: [cmd ::imap4::close].
+
+[call [cmd ::imap4::fetch] [arg chan] [arg range] [opt [arg -inline]] [opt [arg "attr ..."]]]
+[para]Fetch attributes from messages.
+[para]The attributes are fetched and stored in the internal state
+which can be retrieved with command [cmd ::imap4::msginfo], 0 is returned
+on success.
+If [option -inline] is specified, alle records are returned as list
+in order as defined in the [arg attr] argument.
+[para][arg chan] - imap channel
+[para][arg range] - message index in format [emph FROM]:[emph TO]
+[para][arg attr] - imap attributes to fetch
+[para][emph Note:]
+If [emph FROM] is omitted, the 1st message is assumed,
+if [emph TO] is ommitted the last message is assumed.
+All message index ranges are 1-based.
+
+[call [cmd ::imap4::noop] [arg chan]]
+Send NOOP command to server. May get information as untagged data.
+[para][arg chan] - imap channel
+
+[call [cmd ::imap4::check] [arg chan]]
+Send CHECK command to server. Flush to disk.
+[para][arg chan] - imap channel
+
+[call [cmd ::imap4::folderinfo] [arg chan] [opt [arg info]]]
+[para]Get information on the recently selected folderlist.
+If the [arg info] argument is omitted or a null string, the full list
+of information available for the mailbox is returned.
+[para]If the required information name is suffixed with a ? character,
+the command returns true if the information is available, or
+false if it is not.
+[para][arg chan] - imap channel
+[para][arg info] - folderlist options to retrieve
+[para]
+Currently supported options:
+[emph delim] - hierarchy delimiter only,
+[emph match] - ref and mbox search patterns (see [cmd ::imap4::folders]),
+[emph names] - list of folder names only,
+[emph flags] - list of folder names with flags in format
+[emph "{ {name {flags}} ... }"] (see also compact format in function
+[cmd ::imap4::folders]).
+[example {
+{{Arc08 {{\NoSelect}}} {Arc08/Private {{\NoInferiors} {\UnMarked}}} {INBOX {\NoInferiors}}}
+}]
+[call [cmd ::imap4::msginfo] [arg chan] [arg msgid] [opt [arg info]] [opt [arg defval]]]
+[para]Get information (from previously collected using fetch) from a given
+[emph msgid]. If the 'info' argument is omitted or a null string,
+the list of available information options for the given message is
+returned.
+[para]If the required information name is suffixed with a ? character,
+the command returns true if the information is available, or
+false if it is not.
+[para][arg chan] - imap channel
+[para][arg msgid] - message number
+[para][arg info] - imap keyword to retrieve
+[para][arg defval] - default value, returned if info is empty
+
+[para]
+[emph Note:]
+All message index ranges are 1-based.
+
+[call [cmd ::imap4::mboxinfo] [arg chan] [opt [arg info]]]
+[para]Get information on the currently selected mailbox.
+If the [arg info] argument is omitted or a null string, the list
+of available information options for the mailbox is returned.
+[para]If the required information name is suffixed with a ? character,
+the command returns true if the information is available, or
+false if it is not.
+[para][arg chan] - imap channel
+[para][arg opt] - mailbox option to retrieve
+[para]
+Currently supported options:
+[emph EXISTS] (noof msgs),
+[emph RECENT] (noof 'recent' flagged msgs),
+[emph FLAGS]
+[para]In conjunction with OK:
+[emph PERMFLAGS], [emph UIDNEXT], [emph UIDVAL], [emph UNSEEN]
+[para]Div. states:
+[emph CURRENT], [emph FOUND], [emph PERM].
+
+[example {
+    ::imap4::select $chan INBOX
+    puts "[::imap4::mboxinfo $chan exists] mails in INBOX"}]
+
+[call [cmd ::imap4::isableto] [arg chan] [opt [arg capability]]]
+[para]Test for capability.
+It returns 1 if requested capability is supported, 0 otherwise.
+If [arg capability] is omitted all capability imap
+codes are retured as list.
+[para][arg chan] - imap channel
+[para][arg info] - imap keyword to retrieve
+
+[para]
+[emph Note:]
+Use the capability command to ask the server if not
+already done by the user.
+
+[call [cmd ::imap4::create] [arg chan] [arg mailbox]]
+[para]Create a new mailbox.
+[para][arg chan] - imap channel
+[para][arg mailbox] - mailbox name
+
+[call [cmd ::imap4::delete] [arg chan] [arg mailbox]]
+[para]Delete a new mailbox.
+[para][arg chan] - imap channel
+[para][arg mailbox] - mailbox name
+
+[call [cmd ::imap4::rename] [arg chan] [arg oldname] [arg newname]]
+[para]Rename a new mailbox.
+[para][arg chan] - imap channel
+[para][arg mailbox] - old mailbox name
+[para][arg mailbox] - new mailbox name
+
+[call [cmd ::imap4::subscribe] [arg chan] [arg mailbox]]
+[para]Subscribe a new mailbox.
+[para][arg chan] - imap channel
+[para][arg mailbox] - mailbox name
+
+[call [cmd ::imap4::unsubscribe] [arg chan] [arg mailbox]]
+[para]Unsubscribe a new mailbox.
+[para][arg chan] - imap channel
+[para][arg mailbox] - mailbox name
+
+[call [cmd ::imap4::search] [arg chan] [arg expr] [opt [arg "..."]] ]
+[para]Search for mails matching search criterions, 0 is returned on success.
+[para][arg chan] - imap channel
+[para][arg expr] - imap search expression
+
+[para]
+[emph Notes:]
+Currently the following search expressions are handled:
+[para][emph "Mail header flags:"]
+all mail header entries (ending with a colon ":"), like "From:", "Bcc:", ...
+[para][emph "Imap message search flags:"]
+ANSWERED, DELETED, DRAFT, FLAGGED, RECENT,
+SEEN, NEW, OLD, UNANSWERED, UNDELETED,
+UNDRAFT, UNFLAGGED, UNSEEN, ALL
+[para][emph "Imap header search flags:"]
+BODY, CC, FROM, SUBJECT, TEXT, KEYWORD, BCC
+[para][emph "Imap conditional search flags:"]
+SMALLER, LARGER, ON, SENTBEFORE, SENTON, SENTSINCE, SINCE,
+BEFORE (not implemented),
+UID (not implemented)
+[para][emph "Logical search conditions:"]
+OR, NOT
+[example {::imap4::search $chan larger 4000 seen
+puts "Found messages: [::imap4::mboxinfo $chan found]"
+Found messages: 1 3 6 7 8 9 13 14 15 19 20}]
+
+[call [cmd ::imap4::close] [arg chan]]
+[para]Close the mailbox. Permanently removes \Deleted messages and
+return to the AUTH state.
+[para][arg chan] - imap channel
+
+[call [cmd ::imap4::cleanup] [arg chan]]
+[para]Destroy an IMAP connection and free the used space.
+Close the mailbox. Permanently removes \Deleted messages
+and return to the AUTH state.
+[para][arg chan] - imap channel
+
+[call [cmd ::imap4::debugmode] [arg chan] [opt [arg errormsg]]]
+Switch client into command line debug mode.
+[para]This is a developers mode only that pass the control to the
+programmer. Every line entered is sent verbatim to the
+server (after the addition of the request identifier).
+The ::imap4::debug variable is automatically set to '1' on enter.
+[para]It's possible to execute Tcl commands starting the line
+with a slash.
+[para][arg chan] - imap channel
+[para][arg errormsg] - optional error message to display
+
+[call [cmd ::imap4::store] [arg chan] [arg range] [arg data] [arg flaglist]]
+
+[para] Alters data associated with a message in the selected
+mailbox.
+
+[para][arg chan] - imap channel
+[para][arg range] - message index in format [emph FROM]:[emph TO]
+[para][arg flaglist] - Flags the [arg data] operates on.
+[para][arg data] - The currently defined [arg data] items that can be
+stored are shown below. [emph Note] that all of these data types may
+also be suffixed with ".SILENT" to suppress the untagged FETCH
+response.
+
+[list_begin definitions]
+[def FLAGS]
+Replace the flags for the message (other than \Recent) with the
+[arg flaglist].
+[def "+FLAGS"]
+Add the flags in [arg flaglist] to the existing flags for the message.
+[def "-FLAGS"]
+Remove the flags in [arg flaglist] to the existing flags for the
+message.
+[list_end]
+
+For example:
+[example {
+	::imap4::store $chan $start_msgid:$end_msgid +FLAGS "Deleted"
+}]
+
+[call [cmd ::imap4::expunge] [arg chan]]
+
+[para] Permanently removes all messages that have the \Deleted flag
+set from the currently selected mailbox, without the need to close the
+connection.
+
+[para][arg chan] - imap channel
+
+[call [cmd ::imap4::copy] [arg chan] [arg msgid] [arg mailbox]]
+
+[para] Copies the specified message (identified by its message number)
+to the named mailbox, i.e. imap folder.
+
+[para][arg chan] - imap channel
+[para][arg msgid] - message number
+[para][arg mailbox] - mailbox name
+
+[call [cmd ::imap4::logout] [arg chan]]
+
+[para] Informs the server that the client is done with the connection
+and closes the network connection. Permanently removes \Deleted
+messages.
+
+[para] A new connection will need to be established to login once
+more.
+
+[para][arg chan] - imap channel
+
+[list_end]
+
+[section EXAMPLES]
+
+[example_begin]
+    set user myusername
+    set pass xtremescrt
+    set server imap.test.tld
+    set FOLDER INBOX
+    # Connect to server
+    set imap [lb]::imap4::open $server[rb]
+    ::imap4::login $imap $user $pass
+    ::imap4::select $imap $FOLDER
+    # Output all the information about that mailbox
+    foreach info [lb]::imap4::mboxinfo $imap[rb] {
+        puts "$info -> [lb]::imap4::mboxinfo $imap $info[rb]"
+    }
+    # fetch 3 records inline
+    set fields {from: to: subject: size}
+    foreach rec [lb]::imap4::fetch $imap :3 -inline {*}$fields[rb] {
+        puts -nonewline "#[lb]incr idx[rb])"
+        for {set j 0} {$j<[lb]llength $fields[rb]} {incr j} {
+            puts "\t[lb]lindex $fields $j[rb] [lb]lindex $rec $j[rb]"
+        }
+    }
+
+    # Show all the information available about the message ID 1
+    puts "Available info about message 1: [lb]::imap4::msginfo $imap 1[rb]"
+
+    # Use the capability stuff
+    puts "Capabilities: [lb]::imap4::isableto $imap[rb]"
+    puts "Is able to imap4rev1? [lb]::imap4::isableto $imap imap4rev1[rb]"
+
+    # Cleanup
+    ::imap4::cleanup $imap
+[example_end]
+
+[include ../common-text/tls-security-notes.inc]
+
+[section REFERENCES]
+Mark R. Crispin, "INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1",
+RFC 3501, March 2003, [uri http://www.rfc-editor.org/rfc/rfc3501.txt]
+
+[para]
+OpenSSL, [uri http://www.openssl.org/]
+
+[vset CATEGORY imap4]
+[include ../doctools2base/include/feedback.inc]
+
+Only a small part of rfc3501 implemented.
+[manpage_end]

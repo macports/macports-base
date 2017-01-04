@@ -1,0 +1,362 @@
+[pageheader "expander"]
+
+[section SYNOPSIS]
+
+<pre>
+    package require expander 1.0
+</pre><p>
+
+[section DESCRIPTION]
+
+The Tcl "subst" command is often used to support a kind of template
+processing.  Given a string with embedded variables or function calls,
+"subst" will interpolate the variable and function values, returning
+the new string:<p>
+
+[listing]
+[tclsh {set greeting "Howdy"}]
+[tclsh {proc place {} {return "World"}}]
+[tclsh {subst {$greeting, [place]!}}]
+%
+[/listing]
+
+By defining a suitable set of Tcl commands, "subst" can be used to
+implement a markup language similar to HTML.<p>
+
+The "subst" command is efficient, but it has three drawbacks for this
+kind of template processing:<p>
+
+<ul>
+  <li> There's no way to identify and process the plain text between two
+       embedded Tcl commands; that makes it difficult to handle plain
+       text in a context-sensitive way.<p>
+
+  <li> Embedded commands are necessarily bracketed by "[lb]" and
+       "[rb]"; it's convenient to be able to choose different brackets
+       in special cases.  Someone producing web pages that include a
+       large quantity of Tcl code examples might easily prefer to use
+       "<<" and ">>" as the embedded code delimiters instead.<p>
+
+  <li> There's no easy way to handle incremental input, as one might
+       wish to do when reading data from a socket.<p>
+</ul>
+
+At present, expander solves the first two problems; eventually it will
+solve the third problem as well.<p>
+
+To begin, create an expander object:<p>
+
+[listing]
+[tclsh {package require textutil::expander}]
+[tclsh {::textutil::expander myexp}]
+%
+[/listing]
+
+The created "::myexp" object can be used to expand text strings containing
+embedded Tcl commands.  By default, embedded commands are delimited by
+square brackets.  Note that expander doesn't attempt to interpolate
+variables, since variables can be referenced by embedded commands:<p>
+
+[listing]
+[tclsh {set greeting "Howdy"}]
+[tclsh {proc place {} {return "World"}}]
+[tclsh {::myexp expand {[set greeting], [place]!}}]
+%
+[/listing]
+
+[subsection "Embedding Macros"]
+
+An expander macro is simply a Tcl script embedded within a text
+string.  Expander evaluates the script in the global context, and
+replaces it with its result string.  For example,
+
+[listing]
+[tclsh {set greetings {Howdy Hi "What's up"}}]
+[tclsh {::myexp expand {There are many ways to say "Hello, World!":
+[set result {}
+foreach greeting $greetings {
+    append result "$greeting, World!\n"
+}
+set result]
+And that's just a small sample!}}]
+%
+[/listing]
+
+[subsection "Writing Macro Commands"]
+
+More typically, "macro commands" are used to create a markup
+language.  A macro command is just a Tcl command that returns an
+output string.  For example, expand can be used to implement a generic
+document markup language that can be retargeted to HTML or any other
+output format:
+
+[listing]
+[tclsh {proc bold {} {return "<b>"}}]
+[tclsh {proc /bold {} {return "</b>"}}]
+[tclsh {::myexp expand {Some of this text is in [bold]boldface[/bold]}}]
+%
+[/listing]
+
+The above definition of "bold" and "/bold" returns HTML, but such
+commands can be as complicated as needed; they could, for example,
+decide what to return based on the desired output format.<p>
+
+[subsection "Changing the Expansion Brackets"]
+
+By default, embedded macros are enclosed in square brackets,
+"[lb]" and "[rb]".  If square brackets need to be included in the
+output, the input can contain the [command lb] and [command rb]
+commands.  Alternatively, or if square brackets are objectionable for
+some other reason, the macro expansion brackets can be changed to any
+pair of non-empty strings.<p>
+
+The [command setbrackets] command changes the brackets permanently.
+For example, you can write pseudo-html by change them to "<" and ">":<p>
+
+[listing]
+[tclsh {::myexp setbrackets < >}]
+[tclsh {::myexp expand {<bold>This is boldface</bold>}}]
+[/listing]
+
+Alternatively, you can change the expansion brackets temporarily by
+passing the desired brackets to the [command expand] command:<p>
+
+[listing]
+[tclsh {::myexp setbrackets "\[" "\]"}]
+[tclsh {::myexp expand {<bold>This is boldface</bold>} {< >}}]
+%
+[/listing]
+
+[subsection "Customized Macro Expansion"]
+
+By default, macros are evaluated using the Tcl "uplevel #0" command, so
+that the embedded code executes in the global context.  The
+application can provide a different evaluation command using
+[command evalcmd]; this allows the application to use a safe
+interpreter, for example, or even to evaluated something other than
+Tcl code.  There is one caveat: to be recognized as valid, a macro
+must return 1 when passed to Tcl's "info complete" command.<p>
+
+For example, the following code "evaluates" each macro by returning
+the macro text itself.<p>
+
+[listing]
+proc identity {macro} {return $macro}
+::myexp evalcmd identity
+[/listing]
+
+[subsection "Using the Context Stack"]
+
+ Often it's desirable to define a pair of macros
+which operate in some way on the plain text between them.  Consider a
+set of macros for adding footnotes to a web page: one could
+have implement something like this:<p>
+
+[listing]
+    Dr. Pangloss, however, thinks that this is the best of all
+    possible worlds.[lb]footnote "See Candide, by Voltaire"[rb]
+[/listing]
+
+The <code>footnote</code> macro would, presumably, assign a number to
+this footnote and save the text to be formatted later on.  However,
+this solution is ugly if the footnote text is long or should contain
+additional markup.  Consider the following instead:<p>
+
+[listing]
+    Dr. Pangloss, however, thinks that this is the best of all
+    possible worlds.[lb]footnote[rb]See [lb]bookTitle "Candide"[rb], by
+    [lb]authorsName "Voltaire"[rb], for more information.[lb]/footnote[rb]
+[/listing]
+
+Here the footnote text is contained between <code>footnote</code> and
+<code>/footnote</code> macros, continues onto a second line, and
+contains several macros of its own.  This is both clearer and more
+flexible; however, with the features presented so far there's no easy
+way to do it.  That's the purpose of the context stack.<p>
+
+All macro expansion takes place in a particular context.
+Here, the <code>footnote</code> macro pushes a new
+context onto the context stack.  Then, all expanded text gets placed
+in that new context.  <code>/footnote</code> retrieves it by popping
+the context.  Here's a skeleton implementation of these two macros:<p>
+
+[listing]
+    proc footnote {} {
+        ::myexp cpush footnote
+    }
+
+    proc /footnote {} {
+        set footnoteText [lb]::myexp cpop footnote[rb]
+
+        # Save the footnote text, and return an appropriate footnote
+        # number and link.
+    } 
+[/listing]
+
+The [command cpush] command pushes a new context onto the stack; the
+argument is the context's name.  It can be any string, but would
+typically be the name of the macro itself.  Then, [command cpop]
+verifies that the current context has the expected name, pops it off
+of the stack, and returns the accumulated text.<p>
+
+Expand provides several other tools related to the context stack.
+Suppose the first macro in a context pair takes arguments or computes
+values which the second macro in the pair needs.  After calling
+[command cpush], the first macro can define one or more context
+variables; the second macro can retrieve their values any time before
+calling [command cpop].  For example, suppose the document must
+specify the footnote number explicitly:<p>
+
+[listing]
+    proc footnote {footnoteNumber} {
+        ::myexp cpush footnote
+        ::myexp csave num $footnoteNumber
+        # Return an appropriate link
+    }
+
+    proc /footnote {} {
+        set footnoteNumber [lb]::myexp cget num[rb]
+        set footnoteText [lb]::myexp cpop footnote[rb]
+
+        # Save the footnote text and its footnoteNumber for future
+        # output.
+    } 
+[/listing]
+
+At times, it might be desirable to define macros that are valid only
+within a particular context pair; such macros should verify that they
+are only called within the correct context using either
+[command cis] or [command cname].<p>
+
+[section "TCL COMMANDS"]
+
+The package defines the following Tcl commands:<p>
+
+<dl>
+  <dt> [commanddef expander <i>name</i>]
+  <dd> This command creates a new expander object;
+       name is the name of the object, and becomes a new
+       command.  By default, if the name isn't fully qualified, i.e.,
+       if it doesn't completely specify the namespace in which to
+       create the new command, the command is created in the caller's
+       current namespace.<p>
+</dl>
+
+[section "EXPANDER OBJECT COMMANDS"]
+
+Every expander object will accept the following
+subcommands:<p>
+
+<dl>
+  <dt> [commanddef cappend <i>text</i>]
+  <dd> Appends a string to the output in the current context.  This
+       command should rarely be used by macros or application code.<p>
+       
+  <dt> [commanddef cget <i>varname</i>]
+  <dd> Retrieves the value of variable <i>varname</i>, defined in the
+       current context.<p>
+       
+  <dt> [commanddef cis <i>cname</i>]
+  <dd> Determines whether or not the name of the current context
+       is <i>cname</i>.<p>
+       
+  <dt> [commanddef cname]
+  <dd> Returns the name of the current context.<p>
+       
+  <dt> [commanddef cpop <i>cname</i>]
+  <dd> Pops a context from the context stack, returning all accumulated
+       output in that context.  The context must be named <i>cname</i>, or
+       an error results.<p>
+       
+  <dt> [commanddef cpush <i>cname</i>]
+  <dd> Pushes a context named <i>cname</i> onto the context stack.
+       The context must be popped by [command cpop] before expansion
+       ends or an error results.<p>
+       
+  <dt> [commanddef cset <i>varname</i> <i>value</i>]
+  <dd> Sets variable <i>varname</i> to <i>value</i> in the current context.<p>
+       
+  <dt> [commanddef cvar <i>varname</i>]
+  <dd> Retrieves the internal variable name of context variable
+       <i>varname</i>; this allows the variable to be passed to
+       commands like <b>lappend</b>.<p>
+       
+  <dt> [commanddef errmode ?<i>newErrmode</i>?]
+  <dd> Sets the macro expansion error mode to one of "nothing",
+       "macro", "error", or "fail"; the default value is "fail".  The
+       value determines what the expander does if an error is detected
+       during expansion of a macro.<p>
+
+       If the error mode is "fail", the error propagates normally and
+       can be caught or ignored by the application.<p>
+
+       If the error mode is "error", the macro expands into a detailed
+       error message, and expansion continues.<p>
+
+       If the error mode is "macro", the macro expands to itself; that
+       is, it is passed along to the output unchanged.<p>
+
+       If the error mode is "nothing", the macro expands to the empty
+       string, and is effectively ignored.<p>
+
+  <dt> [commanddef evalcmd ?<i>newEvalCmd</i>?]
+  <dd> Returns the current evaluation command, which defaults to
+       "uplevel #0".  If specified, <i>newEvalCmd</i> will be saved
+       for future use and then returned; it must be a Tcl
+       command expecting one additional argument: the macro to evaluate.<p>
+       
+  <dt> [commanddef expand <i>inputString</i> ?<i>brackets</i>?]
+  <dd> Expands the input string, replacing embedded macros with their
+       expanded values, and returns the expanded string.<p>
+
+       If <i>brackets</i> is given, it must be a list of two strings;
+       the items will be used as the left and right macro expansion
+       bracket sequences for this expansion only.<p>
+       
+  <dt> [commanddef lb ?<i>newbracket</i>?]
+  <dd> Returns the current value of the right macro expansion
+       bracket; this is for use as or within a macro, when the bracket
+       needs to be included in the output text.  If <i>newbracket</i> is
+       specified, it becomes the new bracket, and is returned.<p>
+       
+  <dt> [commanddef rb ?<i>newbracket</i>?]
+  <dd> Returns the current value of the right macro expansion
+       bracket; this is for use as or within a macro, when the bracket
+       needs to be included in the output text.  If <i>newbracket</i> is
+       specified, it becomes the new bracket, and is returned.<p>
+       
+  <dt> [commanddef reset]
+  <dd> Resets all expander settings to their initial values.  Unusual
+       results are likely if this command is called from within a call
+       to [command expand].<p>
+       
+  <dt> [commanddef setbrackets <i>lbrack</i> <i>rbrack</i>]
+  <dd> Sets the left and right macro expansion brackets.  This command
+       is for use as or within a macro, or to permanently change the
+       bracket definitions.  By default, the brackets are "[lb]" and
+       "[rb]", but any non-empty string can be used; for example,
+       "<" and ">" or "(*" and "*)" or even "Hello," and "World!".<p>
+
+  <dt> [commanddef textcmd ?<i>newTextCmd</i>?]
+  <dd> Returns the current command for processing polain text, which
+       defaults to the empty string, meaning <i>identity</i>. If
+       specified, <i>newTextCmd</i> will be saved for future use and
+       then returned; it must be a Tcl command expecting one
+       additional argument: the text to process. The expander object
+       will this command for all plain text it encounters, giving the
+       user of the object the ability to process all plain text in
+       some standard way before writing it to the output. The object
+       expects that the command returns the processed plain text.<p>
+       <b>Note</b> that the combination of <i>textcmd plaintext</i> is
+       run through the <i>evalcmd</i> for the actual evaluation. In
+       other words, the <i>textcmd</i> is treated as a special macro
+       implicitly surrounding all plain text in the template.<p>
+</dl>
+
+[section "HISTORY"]
+
+expander was written by William H. Duquette; it is a repackaging of
+the central algorithm of the
+[link http://www.wjduquette.com/expand "expand"] macro processing tool.<p>
+
+[copyright 2001 "William H. Duquette"]

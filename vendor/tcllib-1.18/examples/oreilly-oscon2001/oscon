@@ -1,0 +1,493 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Extract and report oscon schedule
+
+package require struct
+package require csv
+package require report
+package require htmlparse
+package require textutil
+package require log
+
+# Restrict logging to levels 'info' and higher.
+log::lvSuppressLE debug
+
+# 1. CSV structure filled by the parser = main data table
+#    ----------------------------------------------------
+#    Day Time/Start Time/End Track Tower Room Speaker Title
+#
+#    Matrices: "dmain" and "dmainr"
+#
+#    Difference: dmainr contains gratituous newlines in the
+#    speaker column which make for a better TXT report (less
+#    wide).
+#
+#    This is also report 'main'.
+#
+# 2. Schedule report to see conflicts, CSV structure
+#    ----------------------------------------------
+#    Day Time                Location-Columns, one per Room
+#        (15min granularity) (Content: Speaker + Topic)
+#
+#    Matrices: "sched" and "schedr". Difference as for dmain(r)
+#	and the location columns
+#
+#    This will be report 'sched'.
+
+proc main {} {
+    global pfx argv
+
+    set pfx   [lindex $argv 0]
+    set files [lrange $argv 1 end]
+
+    if {($pfx == {}) || ([llength $files] == 0)} {
+	usage
+	exit -1
+    }
+
+    initialize
+    foreach f $files {
+	log::log info "Scanning \"$f\" ..."
+	parse $f
+    }
+    gen_schedule
+    dump_main
+    dump_schedule
+    postscript
+    return
+}
+
+proc usage {} {
+    global argv0
+    puts "usage: $argv0 prefix file..."
+}
+
+
+proc initialize {} {
+    global rooms tracks
+    ::struct::matrix::matrix dmain  ; # data 1
+    ::struct::matrix::matrix dmainr ; # data 1r
+    ::struct::matrix::matrix sched  ; # data 2
+    ::struct::matrix::matrix schedr ; # data 2r
+    array set rooms  {}
+    array set tracks {}
+    dmain  add columns 8
+    dmain  add row {Day Start End Track Tower Room Speaker Title}
+    dmainr add columns 8
+    dmainr add row {Day Start End Track Tower Room Speaker Title}
+    return
+}
+
+proc parse {htmlfile} {
+    global rooms tracks
+
+    ::struct::tree::tree t
+
+    log::log info "Reading \"$htmlfile\" ..."
+    set html [read [set fh [open $htmlfile]]]
+    close $fh
+
+    log::log info "Parsing \"$htmlfile\" ..."
+    htmlparse::2tree $html t
+    htmlparse::removeVisualFluff t
+    htmlparse::removeFormDefs t
+
+    log::log info "Extracting information"
+
+    #puts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Navigate and extract the information
+    #t walk root -command {print %t %n}
+    #exit
+
+    set base [walk {1 1 0 1 1 0 1 0 1 0}]
+    set day  [walkf $base {0 0}]
+    set day  [escape [t get $day -key data]]
+    log::log debug "Day = $day"
+    set day [string range $day 0 2]
+
+    # Walk through the sessions of that day.
+
+    set sess [t next $base]
+    while {$sess != {}} {
+	set start [cvtdate [escape [t get [walkf $sess {0 0}] -key data]]]
+	set track [string trim [escape [t get [walkf $sess {1 0}] -key data]]]
+	set loc   [escape [t get [walkf $sess {1 1 0}] -key data]]
+	set loc   [string trimright $loc "\n\r\t:"]
+
+	log::log debug "    $start - $track - $loc"
+
+	# Separate Room/Tower information ...
+	regexp {(.*) in the (.*) Tower} $loc -> room tower
+	set room  [string trim $room]
+	set tower [string trim $tower]
+	set rooms($tower/$room) .
+	set tracks($track) .
+
+	set talk [walkf $sess {1 1 3}]
+	while {$talk != {}} {
+	    set time    [escape [t get $talk -key data]]
+	    set talk    [t next $talk]
+	    set title   [escape [t get [walkf $talk {0 0 0}] -key data]]
+	    set speaker [escape [t get [walkf $talk {0 2}]   -key data]]
+
+	    # Now we have everything to fill the main table ...
+	    # (After a bit of munging of the strings we got)
+
+	    foreach {start end} [split $time -] break
+	    set start [cvtdate $start]
+	    set end   [cvtdate $end]
+
+	    regsub -all \r  $speaker \n speaker
+	    regsub -all \n+ $speaker \n speaker
+	    regsub -all " *\n *" $speaker "\n" speaker
+	    set speakerc [split $speaker "\n"]
+	    set speakerc [join $speakerc ", "]
+	    log::log debug "        $start - $end - $speakerc - $title"
+
+	    #puts >>$speakerc<<
+	    #puts >>$speaker<<
+
+	    #                Day Time/Start Time/End Tower Room Speaker Title
+	    dmainr add row [list $day $start $end $track $tower $room $speaker  $title]
+	    dmain  add row [list $day $start $end $track $tower $room $speakerc $title]
+
+	    # Forward to next talk
+	    catch {set talk [t next $talk]}
+	    catch {set talk [t next $talk]}
+	}
+
+	set sess [t next $sess]
+    }
+
+    t destroy
+    return
+}
+
+proc print {t n} {
+    set  tp  [$t get $n -key type]
+    set  d   [$t depth $n]
+    set idx ""
+    catch {set  idx [$t index $n]}
+    incr d  $d
+    incr d  $d
+
+    switch -exact -- $tp {
+        a {
+            log::log debug "[textutil::strRepeat " " $d]$idx $tp ([$t get $n -key data]...)"
+        }
+        PCDATA {
+            log::log debug "[textutil::strRepeat " " $d]$idx $tp ([string range [$t get $n -key data] 0 20]...)"
+        }
+        default {
+            log::log debug "[textutil::strRepeat " " $d]$idx $tp"
+        }
+    }
+}
+
+proc walkf {n p} {
+    #log::log info "$n + $p ="
+    foreach idx $p {
+        if {$n == ""} {break}
+        set n [lindex [t children $n] $idx]
+        #log::log info "$idx :- $n"
+    }
+    return $n
+}
+
+proc walk {p} {
+    return [walkf root $p]
+}
+
+proc cvtdate {date} {
+    clock format [clock scan $date] -format "%H:%M"
+}
+
+proc escape {text} {
+    # Special escape for nbsp, convert into space and not the
+    # character specified by the standard.
+
+    regsub -all {&nbsp;} $text { } text
+    htmlparse::mapEscapes $text
+}
+
+
+proc gen_schedule {} {
+    global rooms tracks
+
+    dmain  set rect 0 1 [lsort -decreasing -index 0 [lsort -index 1 [dmain  get rect 0 1 end end]]]
+    dmainr set rect 0 1 [lsort -decreasing -index 0 [lsort -index 1 [dmainr get rect 0 1 end end]]]
+
+    sched  add columns 2
+    schedr add columns 2
+    #sched  add columns [array size rooms]
+    #schedr add columns [array size rooms]
+    sched  add columns [array size tracks]
+    schedr add columns [array size tracks]
+
+    #log::log info Tracks=[array size tracks]
+    #log::log info Rooms.=[array size rooms]
+
+    set res [list Day Time]
+    set c 2
+    foreach k [lsort [array names tracks]] {
+	lappend res $k
+	set tracks($k) $c
+	incr c
+    }
+
+    sched  add row $res
+    schedr add row $res
+
+    # Data in dmain is already sorted by day. By starting time only
+    # partially, there are back references.
+    # Just move them to the correct rooms and rows!
+
+    #-- Day Time Location-Columns, one per Room --
+
+    set n [dmain rows]
+    set p 0
+
+    array set rmap {}
+
+    for {set r 1} {$r < $n} {incr r} {
+	foreach {day start end track tower room speaker title} [dmain get row $r] break
+	#[list $day $start $end $tower $room $speakerc $title]
+
+	set key $day,$start
+	if {![info exists rmap($key)]} {
+	    log::log info "Track schedule $day $start"
+	    sched  add row
+	    schedr add row
+	    incr p
+
+	    set rmap($key) $p
+	    sched  set cell 0 $p $day
+	    sched  set cell 1 $p $start
+	    schedr set cell 0 $p $day
+	    schedr set cell 1 $p $start
+	}
+
+	sched  set cell $tracks($track) $rmap($key) "$tower; $room; $speaker; $title"
+	schedr set cell $tracks($track) $rmap($key) "$tower $room\n$speaker\n$title"
+    }
+
+    # Squeeze the columns 2+ in the report matrix
+
+    set cols [schedr columns]
+    for {set c 2} {$c < $cols} {incr c} {
+
+	if {[schedr columnwidth $c] > 21} {
+	    log::log debug "Squeezing $c"
+	    set col [schedr get column $c]
+	    set res [list]
+	    foreach item $col {
+		lappend res [wrap $item 21]
+	    }
+	    schedr set column $c $res
+	}
+    }
+
+    # Now sort by day (primary key) and starting time (secondary key).
+    # (Meaning we have to sort by time first, and then the day)
+
+    # sched  setrect 0 0 [lsort -decreasing -index 0 [lsort -index 1 [sched  getrect 0 0 end end]]]
+    # schedr setrect 0 0 [lsort -decreasing -index 0 [lsort -index 1 [schedr getrect 0 0 end end]]]
+
+    return
+}
+
+proc dump_main {} {
+    global pfx
+    log::log info "Writing talk information /CSV"
+
+    set f [open ${pfx}.main.csv w]
+    csv::writematrix dmain $f
+    close $f
+
+    log::log info "Writing talk information /TXT"
+
+    # Compute width of report and squeeze the title column to fit
+    # below 80 char/line
+
+    # Day Time/Start Time/End Track Tower Room Speaker Title
+
+    set total 0
+    incr total [dmain columnwidth 0]
+    incr total [dmain columnwidth 1]
+    incr total [dmain columnwidth 2]
+    incr total [dmain columnwidth 3]
+    incr total [dmain columnwidth 4]
+    incr total [dmain columnwidth 5]
+    incr total [dmain columnwidth 6]
+
+    #log::log info Total=$total
+
+    if {$total < 80} {
+	set total [expr {80 - $total}]
+	set titles [dmain getcolumn 7]
+	set res [list]
+	foreach t $titles {
+	    lappend res [textutil::adjust $t -length $total]
+	}
+	dmain setcolumn 7 $res
+    }
+
+    ::report::report r [dmainr columns] style captionedtable 1
+    set f [open ${pfx}.main.txt w]
+    r printmatrix2channel dmainr $f
+    close $f
+    r destroy
+
+    # Now the HTML report, use 'dmain' as base, actually formatting
+    # into lines is done by the browser.
+
+    log::log info "Writing talk information /HTML"
+
+    ::report::report r [dmain columns] style html
+
+    set f [open ${pfx}.main.html w]
+    puts $f "<html><head><title>Talk information and schedule</title></head><body>"
+    puts $f "<h1>Talk information and schedule</h1>"
+    puts $f "<p><table border=1>"
+    r printmatrix2channel dmain $f
+    puts $f "</table></p></body></html>"
+    close $f
+    r destroy
+}
+
+proc dump_schedule {} {
+    global pfx
+    log::log info "Writing track schedule /CSV"
+
+    set f [open ${pfx}.sched.csv w]
+    csv::writematrix sched $f
+    close $f
+
+    log::log info "Writing track schedule /TXT"
+
+    ::report::report r [schedr columns] style captionedtable 1
+    r datasep set [r top get]
+    r datasep enable
+
+    set f [open ${pfx}.sched.txt w]
+    r printmatrix2channel schedr $f
+    close $f
+    r destroy
+
+    # Now the HTML report, use 'sched' as base, actually formatting
+    # into lines is done by the browser.
+
+    log::log info "Writing track schedule /HTML"
+
+    ::report::report r [sched columns] style html
+
+    set f [open ${pfx}.sched.html w]
+    puts $f "<html><head><title>Track schedules</title></head><body>"
+    puts $f "<h1>Track schedules</h1>"
+    puts $f "<p><table border=1>"
+    r printmatrix2channel sched $f
+    puts $f "</table></p></body></html>"
+    close $f
+    r destroy
+}
+
+proc postscript {} {
+    global pfx
+    # Transforms texts into printable postscript, using a2ps (if available)
+
+    catch {exec a2ps -o ${pfx}.main.ps  -1 -B -r -f7 ${pfx}.main.txt}
+    catch {exec a2ps -o ${pfx}.sched.ps -1 -B -r -f4 ${pfx}.sched.txt}
+    return
+}
+
+proc wrap {text len} {
+    # @author Jeffrey Hobbs <jeff at hobbs org>
+    #
+    # @c Wraps the given <a text> into multiple lines not
+    # @c exceeding <a len> characters each. Lines shorter
+    # @c than <a len> characters might get filled up.
+    #
+    # @a text: The string to operate on.
+    # @a len: The maximum allowed length of a single line.
+    #
+    # @r Basically <a text>, but with changed newlines to
+    # @r restrict the length of individual lines to at most
+    # @r <a len> characters.
+
+    # @n This procedure is not checked by the testsuite.
+
+    # @i wrap, word wrap
+
+    # Convert all newlines into spaces and initialize the result
+    # see ::pool::string::oneLine too.
+
+    regsub -all "\n" $text { } text
+    incr len -1
+
+    set out {}
+
+    # As long as the string is longer than the intended length of
+    # lines in the result:
+
+    while {[string len $text] > $len} {
+	# - Find position of last space in the part of the text
+	#   which could a line in the result.
+
+	# - We jump out of the loop if there is none and the whole
+	#   text does not contain spaces anymore. In the latter case
+	#   the rest of the text is one word longer than an intended
+	#   line, we cannot avoid the longer line.
+
+	set i [string last { } [string range $text 0 $len]]
+
+	if {$i == -1 && [set i [string first { } $text]] == -1} {
+	    break
+	}
+
+	# Get the just fitting part of the text, remove any heading
+	# and trailing spaces, then append it to the result string,
+	# don't close it with a newline!
+
+	append out [string trim [string range $text 0 [incr i -1]]]\n
+
+	# Shorten the text by the length of the processed part and
+	# the space used to split it, then iterate.
+
+	set text [string range $text [incr i 2] end]
+    }
+
+    return $out$text
+}
+
+# -------------------------------------------
+# Define the required reports styles
+
+::report::defstyle simpletable {} {
+    data   set [split "[string repeat "| "   [columns]]|"]
+    top    set [split "[string repeat "+ - " [columns]]+"]
+    bottom set [top get]
+    top	   enable
+    bottom enable
+}
+::report::defstyle captionedtable {{n 1}} {
+    simpletable
+    topdata   set [data get]
+    topcapsep set [top  get]
+    topcapsep enable
+    tcaption $n
+}
+::report::defstyle html {} {
+    set c  [columns]
+    set cl $c ; incr cl -1
+    data set "<tr> [split [string repeat " " $cl] ""] </tr>"
+    for {set col 0} {$col < $c} {incr col} {
+	pad $col left  "<td>"
+	pad $col right "</td>"
+    }
+    return
+}
+
+# -------------------------------------------
+
+main
+exit

@@ -1,0 +1,131 @@
+[manpage_begin ntp_time n 1.2.1]
+[see_also ntp]
+[keywords NTP]
+[keywords {rfc 868}]
+[keywords {rfc 2030}]
+[keywords SNTP]
+[keywords time]
+[copyright {2002, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc   {Network Time Facilities}]
+[titledesc {Tcl Time Service Client}]
+[category  Networking]
+[require Tcl 8.0]
+[require time [opt 1.2.1]]
+[description]
+[para]
+
+This package implements a client for the RFC 868 TIME protocol
+([uri http://www.rfc-editor.org/rfc/rfc868.txt]) and also a minimal
+client for the RFC 2030 Simple Network Time Protocol
+([uri http://www.rfc-editor.org/rfc/rfc2030.txt]).
+
+RFC 868 returns the time in seconds since 1 January 1900
+to either tcp or udp clients. RFC 2030 also gives this time but also
+provides a fractional part which is not used in this client.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::time::gettime] [opt [arg "options"]] [arg timeserver] [opt [arg "port"]]]
+
+Get the time from [arg timeserver]. You may specify any of the options
+listed for the [cmd configure] command here. This command returns a
+token which must then be used with the remaining commands in this
+package. Once you have finished, you should use [cmd cleanup] to
+release all resources. The default port is [const 37].
+
+[call [cmd ::time::getsntp] [opt [arg "options"]] [arg timeserver] [opt [arg "port"]]]
+
+Get the time from an SNTP server. This accepts exactly the same
+arguments as [cmd ::time::gettime] except that the default port is
+[const 123]. The result is a token as per [cmd ::time::gettime] and
+should be handled in the same way.
+[para]
+Note that it is unlikely that any SNTP server will reply using tcp so
+you will require the [package tcludp] or the [package ceptcl]
+package. If a suitable package can be loaded then the udp protocol
+will be used by default.
+
+[call [cmd ::time::configure] [opt [arg "options"]]]
+
+Called with no arguments this command returns all the current
+configuration options and values. Otherwise it should be called with
+pairs of option name and value.
+
+[list_begin definitions]
+[def "[cmd -protocol] [arg number]"]
+  Set the default network protocol. This defaults to udp if the tcludp
+  package is available. Otherwise it will use tcp.
+[def "[cmd -port] [arg number]"]
+  Set the default port to use. RFC 868 uses port [const 37], RFC 2030 uses
+port [const 123].
+[def "[cmd -timeout] [arg number]"]
+  Set the default timeout value in milliseconds. The default is 10 seconds.
+[def "[cmd -command] [arg number]"]
+  Set a command procedure to be run when a reply is received. The
+  procedure is called with the time token appended to the argument list.
+[def "[cmd -loglevel] [arg number]"]
+  Set the logging level. The default is 'warning'.
+[list_end]
+
+[call [cmd ::time::cget] [arg name]]
+
+Get the current value for the named configuration option.
+
+[call [cmd ::time::unixtime] [arg token]]
+  Format the returned time for the unix epoch. RFC 868 time defines
+  time 0 as 1 Jan 1900, while unix time defines time 0 as 1 Jan
+  1970. This command converts the reply to unix time.
+
+[call [cmd ::time::status] [arg token]]
+  Returns the status flag. For a successfully completed query this will be
+  [emph ok]. May be [emph error] or [emph timeout] or [emph eof].
+  See also [cmd ::time::error]
+
+[call [cmd ::time::error] [arg token]]
+  Returns the error message provided for requests whose status is [emph error].
+  If there is no error message then an empty string is returned.
+
+[call [cmd ::time::reset] [arg token] [arg [opt reason]]]
+  Reset or cancel the query optionally specfying the reason to record
+  for the [cmd error] command.
+
+[call [cmd ::time::wait] [arg token]]
+  Wait for a query to complete and return the status upon completion.
+
+[call [cmd ::time::cleanup] [arg token]]
+  Remove all state variables associated with the request.
+
+[list_end]
+
+[example {
+% set tok [::time::gettime ntp2a.mcc.ac.uk]
+% set t [::time::unixtime $tok]
+% ::time::cleanup $tok
+}]
+
+[example {
+% set tok [::time::getsntp pool.ntp.org]
+% set t [::time::unixtime $tok]
+% ::time::cleanup $tok
+}]
+
+[example {
+proc on_time {token} {
+   if {[time::status $token] eq "ok"} {
+      puts [clock format [time::unixtime $token]]
+   } else {
+      puts [time::error $token]
+   }
+   time::cleanup $token
+}
+time::getsntp -command on_time pool.ntp.org
+}]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY ntp]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

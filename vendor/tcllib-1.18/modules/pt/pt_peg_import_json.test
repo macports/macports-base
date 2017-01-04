@@ -1,0 +1,45 @@
+# -*- tcl -*-
+# toc_import_json.test:  tests for the doctools::toc::import::json package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_import_json.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      json/json.tcl          json
+
+    useLocal pt_pexpression.tcl     pt::pe
+    useLocal pt_pegrammar.tcl       pt::peg
+    useLocal pt_peg_from_json.tcl   pt::peg::from::json
+
+    source [localPath tests/common]
+}
+testing {
+    package provide pt::peg::import::plugin 1
+    # The above fakes plugin environment. Well, not completely. We are
+    # leaving out a definition for the 'include' alias
+
+    useLocal pt_peg_import_json.tcl pt::peg::import::json
+}
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+source [localPath tests/pt_peg_import_json.tests]
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

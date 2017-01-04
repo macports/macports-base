@@ -1,0 +1,5 @@
+[comment {-*- tcl -*- --- doctools ---}]
+[vset PACKAGE  c]
+[vset NAME     C]
+[vset LONGNAME C]
+[include include/msgcat.inc]

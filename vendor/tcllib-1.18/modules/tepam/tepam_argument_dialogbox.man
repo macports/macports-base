@@ -1,0 +1,570 @@
+[manpage_begin tepam::argument_dialogbox n 0.5.0]
+[see_also tepam(n)]
+[see_also tepam::procedure(n)]
+[keywords {data entry form}]
+[keywords {parameter entry form}]
+[copyright {2009-2013, Andreas Drollinger}]
+[moddesc   {Tcl's Enhanced Procedure and Argument Manager}]
+[titledesc {TEPAM argument_dialogbox, reference manual}]
+[category  {Argument entry form, mega widget}]
+[require Tcl 8.3]
+[require Tk 8.3]
+[require tepam [opt 0.5]]
+
+[description]
+
+[section "ARGUMENT DIALOGBOX CALL"]
+
+TEPAM's [cmd argument_dialogbox] is a flexible and easily usable data entry form generator. Each data entry element of a form is defined via a [emph {data entry item}] that can be provided to [cmd argument_dialogbox] in two formats:
+
+[list_begin definitions]
+[call [cmd tepam::argument_dialogbox] [arg "item_name item_attributes [opt {item_name item_attributes}] [opt {...}]"]]
+
+Using this first format, each [emph {data entry item}] is defined via a pair of two arguments. The first one is the [emph {item name}] that defines the entry widget that has to be used in the form. The second argument, called [emph {item attributes}], specifies the variable which is attributed to the data entry element as well as eventual formatting and context information.
+
+[para]
+The [cmd argument_dialogbox] returns [const ok] if the entered data have been acknowledged (via the [emph OK] button) and validated by a data checker. If the entered data have been rejected (via the [emph Cancel] button) the [cmd argument_dialogbox] returns [const cancel].
+[para]
+A small example illustrates how the [cmd argument_dialogbox] can be employed:
+
+[example_begin]set DialogResult [lb][cmd tepam::argument_dialogbox] \
+   [cmd -title] "Itinerary selection" \
+   [cmd -file] {[arg {-label "Itinerary report" -variable report_file}]} \
+   [cmd -frame] {[arg {-label "Itinerary start"}]} \
+      [cmd -comment] {[arg {-text "Specify your itinerary start location"}]} \
+      [cmd -entry] {[arg {-label "City" -variable start_city -type string}]} \
+      [cmd -entry] {[arg {-label "Street" -variable start_street -type string -optional 1}]} \
+      [cmd -entry] {[arg {-label "Street number" -variable start_street_nbr -type integer -optional 1}]} \
+   [cmd -frame] {[arg {-label "Itinerary destination"}]} \
+      [cmd -comment] {[arg {-text "Specify your itinerary destination"}]} \
+      [cmd -entry] {[arg {-label "City" -variable dest_city -type string}]} \
+      [cmd -entry] {[arg {-label "Street" -variable dest_street -type string -optional 1}]} \
+      [cmd -entry] {[arg {-label "Street number" -variable dest_street_nbr -type integer -optional 1}]} \
+   [cmd -frame] {} \
+   [cmd -checkbutton] {[arg {-label "Don't use highways" -variable no_highway}]}[rb][example_end]
+
+This example opens a dialog box that has the title [emph {Itinerary selection}]. A first entry widget in this box allows selecting a report file. It follows two frames to define respectively an itinerary start and end location. Each of these locations that are described with a comment has three entry widgets to specify respectively the city, street and the street number. Bellow the second frame there is a check button that allows specifying if eventual highways should be ignored.
+
+[call [cmd tepam::argument_dialogbox] \{[arg "item_name item_attributes [opt {item_name item_attributes}] [opt {...}]"]\}]
+Sometimes it is simpler to provide all the data entry item definitions in form of a single list to [cmd argument_dialogbox], and not as individual arguments. The second format that is supported by [cmd argument_dialogbox] corresponds exactly to the first one, except that all item definitions are packed into a single list that is provided to [cmd argument_dialogbox]. The previous example can therefore also be written in the following way:
+
+[example_begin]set DialogResult [lb][cmd "tepam::argument_dialogbox \{"]
+   [cmd -title] "Itinerary selection"
+   [cmd -file] {[arg {-label "Itinerary report" -variable report_file}]}
+   ...
+   [cmd -checkbutton] {[arg {-label "Don't use highways" -variable no_highway}]} [cmd \}][rb][example_end]
+
+[list_end]
+
+The commands [cmd argument_dialogbox] as well as [cmd procedure] are exported from the namespace [namespace tepam]. To use these commands without the [namespace tepam::] namespace prefix, it is sufficient to import them into the main namespace:
+[example_begin][cmd {namespace import tepam::*}]
+
+set DialogResult [lb][cmd argument_dialogbox] \
+   -title "Itinerary selection"
+   ...[example_end]
+
+The following subsections explain the different argument item types that are accepted by the [cmd argument_dialogbox], classified into three groups. The first data entry item definition format will be used in the remaining document, knowing that this format can always be transformed into the second format by putting all arguments into a single list that is then provided to [cmd argument_dialogbox].
+
+[subsection "Context Definition Items"]
+
+The first item group allows specifying some context aspects of an argument dialog box. These items are taking a simple character string as item attribute:
+
+[example_begin]tepam::argument_dialogbox \
+   [cmd -<argument_name>] [arg string] \
+   ...[example_end]
+
+The following items are classified into this group:
+
+[list_begin definitions]
+
+[def "-title [arg string]"]
+The dialog box window's title which is by default [emph Dialog] can be changed with the [emph -title] item:
+[example_begin]tepam::argument_dialogbox \
+   [cmd -title] "System configuration" \
+   ...[example_end]
+
+[def "-window [arg string]"]
+The argument dialog box uses by default [emph .dialog] as dialog top level window. This path can be changed with the [emph -window] item:
+[example_begin]tepam::argument_dialogbox \
+   [cmd -window] .dialog \
+   ...[example_end]
+
+[def "-parent [arg string]"]
+By defining a parent window, the argument dialog box will be displayed beside this one. Without explicit parent window definition, the top-level window will be considered as parent window.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -parent] .my_appl \
+   ...[example_end]
+
+[def "-context [arg string]"]
+If a context is defined the dialog box's state, e.g. the entered data as well as the window size and position, is  restored the next time the argument dialog box is called. The assignment of a context allows saving the dialog box' state in its context to distinguish between different usages of the argument dialog box.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -context] destination_definitions \
+   ...[example_end]
+
+[list_end]
+
+[subsection "Formatting and Display Options"]
+
+Especially for big, complex forms it becomes important that the different data entry widgets are graphically well organized and commented to provide an immediate and clear overview to the user. A couple of items allow structuring and commenting the dialog boxes.
+[para]
+The items of this classification group require as item attributes a definition list, which contains itself attribute name and value pairs:
+
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -<argument_name>] { [arg "
+      [opt {-<attribute_name> <attribute_value>}]
+      [opt {-<attribute_name> <attribute_value>}]
+      [opt {...}]"]
+   }
+   ...[example_end]
+
+The following items are classified into this group:
+
+[list_begin definitions]
+
+[def "-frame [arg list]"]
+The [emph -frame] item allows packing all following entry widgets into a labeled frame, until a next frame item is defined or until the last entry widget has been defined. It recognizes the following attributes inside the item attribute list:
+
+[list_begin definitions]
+[def "-label [arg string]"]
+An optional frame label can be specified with the [arg -label] statement.
+[list_end]
+
+Example:
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -frame] {[arg {-label "Destination address"}]}
+   ...[example_end]
+
+To close an open frame without opening a new one, an empty list has to be provided to the [arg -frame] statement.
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -frame] {}
+   ...[example_end]
+
+[def {-sep [const {{}}]}]
+Entry widgets can be separated with the [arg -sep] statement which doesn't require additional definitions. The related definition list has to exist, but its content is ignored.
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -sep] {}
+   ...[example_end]
+
+[def "-comment [arg string]"]
+Comments and descriptions can be added with the [arg -text] attribute of the [arg -comment] item. Please note that each entry widget itself can also contain a [arg -text] attribute for comments and descriptions. But the [arg -comment] item allows for example adding a description between two frames.
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -comment] {[arg {-text "Specify bellow the destination address"}]}
+   ...[example_end]
+
+[def "-yscroll [const 0]|[const 1]|[const auto]"]
+This attribute allows controlling an eventual vertical scrollbar. Setting it to [const 0] will permanently disable the scrollbar, setting it to [const 1] will enable it. By default it is set to [const auto]. The scrollbar is enabled in this mode only if the vertical data entry form size exceeds 66% of the screen height.
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -yscroll] [const auto]
+   ...[example_end]
+
+[list_end]
+
+
+[subsection "Global Custom Data Validation"]
+
+This item group allows specifying global custom checks to validate the entered data.
+
+[list_begin definitions]
+
+[def "-validatecommand [arg script]"]
+Custom data checks can be performed via validation commands that are defined with the [arg -validatecommand] item. Example:
+
+[example_begin]tepam::argument_dialogbox \
+   -entry {-label "Your comment" -variable YourCom} \
+   [cmd -validatecommand] {IllegalWordDetector $YourCom}[example_end]
+   
+The validation command is executed in the context of the calling procedure, once all the basic data checks have been performed and data variables are assigned. All data is accessed via the data variables. Note that there is also an entry widget specific attribute [arg -validatecommand] that allows declaring custom checks for specific data entries.
+[para]
+The attribute [arg -validatecommand] can be repeated to declare multiple custom checks.
+
+[def "-validatecommand_error_text [arg string]"]
+This item allows overriding the default error message for a global custom argument validation (defined by [arg -validatecommand]). Also this attribute can be repeated in case multiple checks are declared.
+
+[def "-validatecommand2 [arg script]"]
+[def "-validatecommand2_error_text [arg string]"]
+These items are mainly for TEPAM internal usage.
+[para]
+These items corrspond respectively to [arg -validatecommand] and [arg -validatecommand_error_text]. However, the data validation is not performed in the next upper stack level, but two stack levels higher.
+
+[list_end]
+
+
+[subsection "Data Entry Widget Items"]
+
+Data entry widgets are created with the widget items. These items require as item attributes a definition list, which contains itself attribute name and value pairs:
+
+[example_begin]tepam::argument_dialogbox \
+   ...
+   [cmd -<argument_name>] { [arg "
+      [opt {-<attribute_name> <attribute_value>}]
+      [opt {-<attribute_name> <attribute_value>}]
+      [opt {...}]"]
+   }
+   ...[example_end]
+
+The attribute list can contain various attributes to describe and comment an entry widget and to constrain its entered value. All entry widgets are accepting a common set of attributes that are described in the section [sectref {Entry Widget Item Attributes}].
+[para]
+TEPAM defines a rich set of entry widgets. If necessary, this set can be extended with additional application specific entry widgets (see [sectref {APPLICATION SPECIFIC ENTRY WIDGETS}]):
+
+[list_begin definitions]
+
+[def "-entry [arg list]"]
+The [arg -entry] item generates the simplest but most universal data entry widget. It allows entering any kind of data in form of single line strings.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -entry] {-label Name -variable Entry}[example_end]
+
+[def "-text [arg list]"]
+The [arg -text] item generates a multi line text entry widget. The widget's height can be selected with the [arg -height] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -text] {-label Name -variable Text -height 5}[example_end]
+
+[def "-checkbox [arg list]"]
+A group of check boxes is created with the [arg -checkbox] item. The number of check boxes and their option values are specified with a list assigned to the [arg -choices] attribute or via a variable declared with the [arg -choicevariable] attribute:
+[example_begin]tepam::argument_dialogbox \
+   [cmd -checkbox] {-label "Font sytle" -variable FontStyle \
+               -choices {bold italic underline} -default italic}[example_end]
+If the check boxes' labels should differ from the option values, their labels can be defined with the [arg -choicelabels] attribute:
+[example_begin]tepam::argument_dialogbox \
+   [cmd -checkbox] {-label "Font sytle" -variable FontStyle \
+              -choices {bold italic underline} \
+              -choicelabels {Bold Italic Underline} \
+              -default italic}[example_end]
+
+In contrast to a radio box group, a check box group allows selecting simultaneously several choice options. The selection is stored for this reason inside the defined variable in form of a list, even if only one choice option has been selected.
+
+[def "-radiobox [arg list]"]
+A group of radio boxes is created with the [arg -radiobox] item. The number of radio boxes and their option values are specified with a list assigned to the [arg -choices] attribute or via a variable declared with the [arg -choicevariable] attribute.
+[para]
+In contrast to a check box group, a radio box group allows selecting simultaneously only one choice option. The selected option value is stored directly, and not in form of a list, inside the defined variable.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -radiobox] {-label "Text adjustment" -variable Adjustment \
+              -choices {left center right} -default left}[example_end]
+If the radio boxes' labels should differ from the option values, their labels can be defined with the [arg -choicelabels] attribute:
+[example_begin]tepam::argument_dialogbox \
+   [cmd -radiobox] {-label "Text adjustment" -variable Adjustment \
+              -choices {left center right} \
+              -choicelabels {Left Center Right} -default left}[example_end]
+
+[def "-checkbutton [arg list]"]
+The [arg -checkbutton] entry widget allows activating or deactivating a single choice option. The result written into the variable will either be [const 0] if the check button was not activated or [const 1] if it was activated. An eventually provided default value has also to be either [const 0] or [const 1].
+[example_begin]tepam::argument_dialogbox \
+   [cmd -checkbutton] {-label Capitalize -variable Capitalize -default 1}[example_end]
+[list_end]
+
+Several types of list and combo boxes are available to handle selection lists.
+
+[list_begin definitions]
+
+[def "-combobox [arg list]"]
+The combobox is a combination of a normal entry widget together with a drop-down list box. The combobox allows selecting from this drop-down list box a single element. The list of the available elements can be provided either as a list to the [arg -choices] attribute, or via a variable that is specified with the [arg -choicevariable] attribute.
+
+[example_begin]tepam::argument_dialogbox \
+   [cmd -combobox] {-label "Text size" -variable Size -choices {8 9 10 12 15 18} -default 12}[example_end]
+
+And here is an example of using a variable to define the selection list:
+
+[example_begin]set TextSizes {8 9 10 12 15 18}
+tepam::argument_dialogbox \
+   [cmd -combobox] {-label "Text size" -variable Size -choicevariable TextSizes -default 12}[example_end]
+
+[def "-listbox [arg list]"]
+In contrast to the combo box, the list box is always displayed by the [arg listbox] entry widget. Only one element is selectable unless the [arg -multiple_selection] attribute is set. The list box height can be selected with the [arg -height] attribute. If the height is not explicitly defined, the list box height is automatically adapted to the argument dialog box' size.
+The first example uses a variable to define the available choices:
+
+[example_begin]set set AvailableSizes
+for {set k 0} {$k<16} {incr k} {lappend AvailableSizes [lb]expr 1<<$k[rb]}
+
+tepam::argument_dialogbox \
+   [cmd -listbox] {-label "Distance" -variable Distance \
+             -choicevariable AvailableSizes -default 6 -height 5}[example_end]
+
+Here is a multi-element selection example. Please note that also the default selection can contain multiple elements:
+
+[example_begin]tepam::argument_dialogbox \
+   [cmd -listbox] {-label "Text styles" -variable Styles \
+             -choices {bold italic underline overstrike} \
+             -choicelabels {Bold Italic Underline Overstrike} \
+             -default {bold underline} -multiple_selection 1 \
+             -height 3}[example_end]
+
+[def "-disjointlistbox [arg list]"]
+A disjoint list box has to be used instead of a normal list box if the selection order is important. The disjoint list box entry widget has in fact two list boxes, one to select elements and one to display the selected elements in the chosen order.
+[para]
+Disjoint listboxes allow always selecting multiple elements. With the exception of the [arg -multiple_selection] attribute, disjointed list boxes are accepting the same attributes as the normal listbox, e.g. [arg {-height, -choices, -choicevariable, -default}].
+
+[example_begin]tepam::argument_dialogbox \
+   [cmd -disjointlistbox] {-label "Preferred scripting languages" -variable Languages \
+             -comment "Please select your preferred languages in the order" \
+             -choices {JavaScript Lisp Lua Octave PHP Perl Python Ruby Scheme Tcl} \
+             -default {Tcl Perl Python}}[example_end]
+
+[list_end]
+
+The file and directory selectors are building a next group of data entry widgets. A paragraph of section [sectref {Entry Widget Item Attributes}] explains the widget specific attributes that allow specifying the targeted file types, active directory etc.
+
+[list_begin definitions]
+
+[def "-file [arg list]"]
+The item [arg -file] creates a group composed by an entry widget together with a button that allows opening a file browser. The data type [arg file] is automatically selected for this entry if no data type has been explicitly defined with the [arg -type] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -file] {-label "Image file" -variable ImageF \
+          -filetypes {{"GIF" {*.gif}} {"JPG" {*.jpg}}} \
+          -initialfile "picture.gif"}[example_end]
+
+[def "-existingfile [arg list]"]
+The item [arg -existingfile] creates a group composed by an entry widget together with a button that allows opening a browser to select an existing file. The data type [arg existingfile] is automatically selected for this entry if no data type has been explicitly defined with the [arg -type] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -existingfile] {-label "Image file" -variable ImageF \
+                  -filetypes {{"GIF" {*.gif}} {"JPG" {*.jpg}}} \
+                  -initialfile "picture.gif"}[example_end]
+
+[def "-directory [arg list]"]
+The item [arg -directory] creates a group composed by an entry widget together with a button that allows opening a directory browser. The data type [arg directory] is automatically selected for this entry if no data type has been explicitly defined with the [arg -type] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -directory] {-label "Report directory" -variable ReportDir}[example_end]
+
+[def "-existingdirectory [arg list]"]
+The item [arg -existingdirectory] creates a group composed by an entry widget together with a button that allows opening a browser to select an existing directory. The data type [arg existingdirectory] is automatically selected for this entry if no data type has been explicitly defined with the [arg -type] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -existingdirectory] {-label "Report directory" -variable ReportDir}[example_end]
+
+[list_end]
+
+Finally, there is a last group of some other special data entry widgets.
+
+[list_begin definitions]
+
+[def "-color [arg list]"]
+The color selector is composed by an entry widget together with a button that allows opening a color browser. The data type [arg color] is automatically selected for this entry widget type if no data type has been explicitly defined with the [arg -type] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -color] {-label "Background color" -variable Color -default red}[example_end]
+
+[def "-font [arg list]"]
+The font selector is composed by an entry widget together with a button that allows opening a font browser. The data type [arg font] is automatically selected for this entry widget type if no data type has been explicitly defined with the [arg -type] attribute. The entry widget displays an example text in the format of the selected font.
+[para]
+The font browser allows selecting by default the font families provided by the [cmd {font families}] Tk command as well as a reasonable set of different font sizes between 6 points and 40 points. Different sets of font families and font sizes can be specified respectively via the [arg -font_families] or [arg -font_sizes] attributes.
+[para]
+If no default font is provided via the [arg -default] attribute, the default font of the label widget to display the selected font will be used as default selected font. If the font family of this label widget is not part of the available families the first available family is used as default. If the font size of this label widget is not part of the available sizes the next close available size is selected as default size.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -font] {-label "Font" -variable Font \
+          -font_sizes {8 10 12 16} \
+          -default {Arial 20 italic}}[example_end]
+
+[list_end]
+
+[subsection "Entry Widget Item Attributes"]
+
+All the entry widget items are accepting the following attributes:
+
+[list_begin definitions]
+
+[def "-text [arg string]"]
+Eventual descriptions and comments specified with the [arg -text] attribute are displayed above the entry widget.
+[example_begin]tepam::argument_dialogbox \
+   -entry {[cmd {-text "Please enter your name bellow"}] -variable Name}[example_end]
+
+[def "-label [arg string]"]
+The label attribute creates left to the entry widget a label using the provided string as label text:
+[example_begin]tepam::argument_dialogbox \
+   -entry {[cmd {-label Name}] -variable Name}[example_end]
+
+[def "-variable [arg string]"]
+All entry widgets require a specified variable. After accepting the entered information with the OK button, the entry widget's data are stored inside the defined variables.
+[example_begin]tepam::argument_dialogbox \
+   -existingdirectory {-label "Report directory" [cmd {-variable ReportDir}]}[example_end]
+
+[def "-default [arg string]"]
+Eventual default data for the entry widgets can be provided via the [arg -default] attribute. The default value is overridden if an argument dialog box with a defined context is called another time. The value acknowledged in a previous call will be used in this case as default value.
+[example_begin]tepam::argument_dialogbox \
+   -checkbox {-label "Font sytle" -variable FontStyle \
+               -choices {bold italic underline} [cmd {-default italic}]}[example_end]
+
+[def "-optional [const 0]|[const 1]"]
+Data can be specified as optional or mandatory with the [arg -optional] attribute that requires either [const 0] (mandatory) or [const 1] (optional) as attribute data.
+[para]
+In case an entry is optional and no data has been entered, e.g. the entry contains an empty character string, the entry will be considered as undefined and the assigned variable will not be defined.
+[example_begin]tepam::argument_dialogbox \
+   -entry {-label "City" -variable start_city -type string} \
+   -entry {-label "Street" -variable start_street -type string [cmd {-optional 0}]} \
+   -entry {-label "Street number" -variable start_street_nbr -type integer [cmd {-optional 1}]} \[example_end]
+
+[def "-type [arg string]"]
+If the data type is defined with the [arg -type] attribute the argument dialog box will automatically perform a data type check after acknowledging the entered values and before the dialog box is closed. If a type incompatible value is found an error message box appears and the user can correct the value.
+[para]
+The argument dialog box accepts all types that have been specified by the TEPAM package and that are also used by [cmd tepam::procedure] (see the [emph {tepam::procedure reference manual}]).
+[para]
+Some entry widgets like the file and directory widgets, as well as the color and font widgets are specifying automatically the default data type if no type has been specified explicitly with the [arg -type] attribute.
+[example_begin]tepam::argument_dialogbox \
+   [cmd -entry] {-label "Street number" -variable start_street_nbr [cmd {-type integer}]} \[example_end]
+
+[def "-range [arg string]"]
+Values can be constrained with the [arg -range] attribute. The valid range is defined with a list containing the minimum valid value and a maximum valid value.
+[para]
+The [arg -range] attribute has to be used only for numerical arguments, like integers and doubles.
+[example_begin]tepam::argument_dialogbox \
+   -entry {-label Month -variable Month -type integer [cmd {-range {1 12}}]}[example_end]
+
+[def "-validatecommand [arg string]"]
+Custom argument value validations can be performed via specific validation commands that are defined with the [arg -validatecommand] attribute. The provided validation command can be a complete script in which the pattern [emph %P] is placeholder for the argument value that has to be validated.
+[example_begin]tepam::argument_dialogbox \
+   -entry {-label "Your comment" -variable YourCom \
+           [cmd -validatecommand] "IllegalWordDetector %P"}[example_end]
+While the purpose of this custom argument validation attribute is the validation of a specific argument, there is also a global data validation attribute [arg -validatecommand] that allows performing validation that involves multiple arguments.
+
+[def "-validatecommand_error_text [arg string]"]
+This attribute allows overriding the default error message for a custom argument validation (defined by [arg -validatecommand]).
+
+[list_end]
+
+Some other attributes are supported by the list and combo boxes as well as by the radio and check buttons.
+
+[list_begin definitions]
+
+[def "-choices [arg string]"]
+Choice lists can directly be defined with the [arg -choices] attribute. This way to define choice lists is especially adapted for smaller, fixed selection lists.
+[example_begin]tepam::argument_dialogbox \
+   -listbox {-label "Text styles" -variable Styles \
+             [cmd {-choices {bold italic underline}}] -default underline[example_end]
+
+[def "-choicelabels [arg string] [emph {(only check and radio buttons)}]"]
+If the check and radio boxes' labels should differ from the option values, they can be defined with the [arg -choicelabels] attribute:
+[example_begin]tepam::argument_dialogbox \
+   -checkbox {-label "Font sytle" -variable FontStyle \
+              -choices {bold italic underline} \
+              [cmd {-choicelabels {Bold Italic Underline}}] [example_end]
+
+[def "-choicevariable [arg string]"]
+Another way to define the choice lists is using the [arg -choicevariable] attribute. This way to define choice lists is especially adapted for huge and eventually variable selection lists.
+[example_begin]set TextSizes {8 9 10 12 15 18}
+tepam::argument_dialogbox \
+   -combobox {-label "Text size" -variable Size [cmd {-choicevariable TextSizes}]}[example_end]
+
+[def "-multiple_selection [const 0]|[const 1]"]
+The list box item ([cmd -listbox]) allows by default selecting only one list element. By setting the [arg -multiple_selection] attribute to [const 1], multiple elements can be selected.
+[example_begin]tepam::argument_dialogbox \
+   -listbox {-label "Text styles" -variable Styles \
+             -choices {bold italic underline} -default underline \
+             [cmd {-multiple_selection 1}] -height 3}[example_end]
+
+[list_end]
+
+Some additional attributes are supported by the file and directory selection widgets.
+
+[list_begin definitions]
+
+[def "-filetypes [arg string]"]
+The file type attribute is used by the [cmd -file] and [cmd -existingfile] items to define the file endings that are searched by the file browser.
+[example_begin]tepam::argument_dialogbox \
+   -file {-label "Image file" -variable ImageF \
+          [cmd {-filetypes {{"GIF" {*.gif}} {"JPG" {*.jpg}}}}]}[example_end]
+
+[def "-initialfile [arg string]"]
+The initial file used by the file browsers of the [cmd -file] and [cmd -existingfile] widgets are by default the file defined with the [arg -default] attribute, unless a file is specified with the [arg -initialfile] attribute.
+[example_begin]tepam::argument_dialogbox \
+   -file {-variable ImageF [cmd {-initialfile "picture.gif"}]}[example_end]
+
+[def "-activedir [arg string]"]
+The [arg -activedir] attribute will override the default active search directory used by the file browsers of all file and directory entry widgets. The default active search directory is defined by the directory of a specified initial file ([arg -initialfile]) if defined, and otherwise by the directory of the default file/directory, specified with the [arg -default] attribute.
+[example_begin]tepam::argument_dialogbox \
+   -file "-variable ImageF [cmd {-activedir $pwd}]"[example_end]
+
+[list_end]
+
+Finally, there is a last attribute supported by some widgets:
+
+[list_begin definitions]
+
+[def "-height [arg string]"]
+All widgets containing a selection list ([cmd -listbox], [cmd -disjointlistbox], [cmd -font]) as well as the multi line [cmd -text] widget are accepting the [arg -height] attribute that defines the number of displayed rows of the selection lists.
+[example_begin]tepam::argument_dialogbox \
+   -listbox {-label "Text size" -variable Size \
+             -choices {8 9 10 12 15 18} -default 12 [cmd {-height 3}]}[example_end]
+If the no height has been explicitly specified the height of the widget will be dynamically adapted to the argument dialog box' size.
+[list_end]
+
+[section "APPLICATION SPECIFIC ENTRY WIDGETS"]
+
+An application specific entry widget can be made available to the argument dialog box by adding a dedicated procedure to the [namespace tepam] namespace. This procedure has three arguments; the first one is the widget path, the second one a subcommand and the third argument has various purposes:
+
+[example_begin][arg proc] tepam::ad_form(<WidgetName>) {W Command {Par ""}} {
+   [arg {upvar Option Option; # if required}]
+   [arg {variable argument_dialogbox; # if required}]
+   switch $Command {
+      "create" <CreateCommandSequence>
+      "set_choice" <SetChoiceCommandSequence>
+      "set" <SetCommandv>
+      "get" <GetCommandSequence>
+   }
+}[example_end]
+
+[cmd Argument_dialogbox] takes care about the [arg -label] and [arg -text] attributes for all entry widgets. For any data entry widget it creates a frame into which the data entry widget components can be placed. The path to this frame is provided via the [arg W] argument.
+[para]
+The entry widget procedure has to support 3 mandatory and an optional command that are selected via the argument [arg Command]:
+
+[list_begin definitions]
+
+[def [arg create]]
+The entry widget is called a first time with the command [arg create] to build the data entry widget.
+[para]
+The frames that are made available by [cmd argument_dialogbox] for the entry widgets are by default only extendable in the X direction. To make them also extendable in the Y direction, for example for extendable list boxes, the command [cmd {ad_form(make_expandable) $W}] has to be executed when an entry widget is built.
+[def [arg set_choice]]
+The entry widget procedure is only called with the [arg set_choice] command if the [arg -choices] or [arg -choicevariable] has been specified. The command is therefore only relevant for list and combo boxes.
+[para]
+The available selection list that is either specified with the [arg -choices] or [arg -choicevariable] attribute is provided via the [arg Par] argument to the entry widget procedure. This list can be used to initialize an available choice list.
+
+[def [arg set]]
+If a default value is either defined via the [arg -default] attribute or via a preceding call the entry widget procedure is called with the [arg set] command. The argument [arg Par] contains in this case the value to which the entry widget has to be initialized.
+
+[def [arg get]]
+The entry widget procedure's command [arg get] has to return the current value of the entry widget.
+
+[list_end]
+
+Eventually specified entry widget item attributes are available via the [var Option] array variable of the calling procedure. This variable becomes accessible inside the entry widget procedure via the [cmd upvar] command.
+[para]
+There may be a need to store some information in a variable. The array variable [var argument_dialogbox] has to be used for this purpose together with array indexes starting with [emph {"$W,"}], e.g. [emph {argument_dialogbox($W,values)}].
+[para]
+Examples of entry widget procedures are directly provided by the TEPAM package source file that specifies the standard entry widget procedures. The simplest procedure is the one for the basic [emph entry] widget:
+
+[example_begin]proc tepam::ad_form(entry) {W Command {Par ""}} {
+   switch $Command {
+      "create" {pack [lb]entry \$W.entry[rb] -fill x \
+                        -expand yes -pady 4 -side left}
+      "set" {\$W.entry insert 0 $Par}
+      "get" {return [lb]\$W.entry get[rb]}
+   }
+}[example_end]
+
+It is also possible to relay on an existing entry widget procedure to derive a new, more specific one. The [emph radiobox] widget is used for example, to create a new entry widget that allows selecting either [emph left], [emph center] or [emph right]. The original [emph radiobox] widget is called with the [arg set_choice] command immediately after the [emph create] command, to define the fixed list of selection options.
+
+[example {proc tepam::ad_form(rcl) {W Command {Par ""}} {
+   set Res [ad_form(radiobox) $W $Command $Par]
+   if {$Command=="create"} {
+      ad_form(radiobox) $W set_choice {left center right}
+   }
+   return $Res
+}}]
+
+Please consult the TEPAM package source file to find additional and more complex examples of entry widget procedures.
+
+[section "VARIABLES"]
+
+The [cmd argument_dialogbox] is using two variables inside the namespace [namespace ::tepam]:
+
+[list_begin definitions]
+[def "[var argument_dialogbox]"]
+Application specific entry widget procedures can use this array variable to store their own data, using as index the widget path provided to the procedure, e.g. [emph {argument_dialogbox($W,<sub_index>)}].
+
+[def "[var last_parameters]"]
+This array variable is only used by an argument dialog box if its context has been specified via the [arg -context] attribute. The argument dialog box' position and size as well as its entered data are stored inside this variable if the data are acknowledged and the form is closed. This allows the form to restore its previous state once it is called another time.
+[para]
+To reuse the saved parameters not just in the actual application session but also in another one, it is sufficient to store the [var last_parameter] array variable contents in a configuration file which is loaded the next time an application is launched.
+
+[list_end]
+[manpage_end]

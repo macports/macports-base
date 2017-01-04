@@ -1,0 +1,396 @@
+RCS: @(#) $Id: README.developer,v 1.6 2009/06/02 22:49:55 andreas_kupries Exp $
+
+Welcome to the tcllib, the Tcl Standard Library.
+================================================
+
+Introduction
+------------
+
+This README is intended to be a guide to the tools available to a
+
+	Developer
+
+working on Tcllib to help him with his tasks, i.e. making the tasks easier
+to perform. It is our hope that this will improve the quality of even
+non-released revisions of Tcllib, and make the work of the release
+manager easier as well.
+
+Audience
+--------
+
+The intended audience are, first and foremost, developers beginning to
+work on Tcllib. To an experienced developer this document will be less
+of a guide and more of a reference. Anybody else interested in working
+on Tcllib is invited as well.
+
+
+Directory hierarchy and file basics
+------------------------------------
+
+The main directories under the tcllib top directory are
+
+	modules/
+	examples/
+and	apps/
+
+Each directory FOO under modules/ represents one package, sometimes
+more. In the case of the latter the packages are usually related in
+some way. Examples are the base64, math, and struct modules, with
+loose (base64) to strong (math) relations between the packages.
+
+Examples associated with a module FOO, if there are any, are placed
+into the directory
+
+	examples/FOO
+
+Any type of distributable application can be found under apps/,
+together with their documentation, if any. Note that the apps/
+directory is currently not split into sub-directories.
+
+Regarding the files in Tcllib, the most common types found are
+
+	.tcl	Tcl code for a package.
+
+	.man	Documentation for a package, in doctools format.
+
+	.test	Test suite for a package, or part of. Based on tcltest.
+
+	.bench	Performance benchmarks for a package, or part of.
+		Based on modules/bench
+
+	.pcx	Syntax rules for TclDevKit's tclchecker. Using these
+		rules allows tclchecker to check the use of commands
+		of a Tcllib package X without having to scan the
+		implementation of X, i.e. its .tcl files.
+
+
+Adding a new module
+-------------------
+
+Assuming that FOO is the name of the new module, and T is the toplevel
+directory of the Tcllib sources
+
+(1)	Create the directory T/modules/FOO and put all the files of
+	the module into it. Note:
+
+	* The file 'pkgIndex.tcl' is required.
+
+	* Implementation files should have the extension '.tcl',
+	  naturally.
+
+	* If available, documentation should be in doctools format,
+          and the files should have the extension '.man' for SAK to
+          recognize them.
+
+	* If available the testsuite(s) should use 'tcltest' and the
+	  general format as used by the other modules in Tcllib
+	  (declaration of minimally needed Tcl, tcltest, supporting
+	  packages, etc.). The file(s) should have the extension
+	  '.test' for SAK to recognize them.
+
+	  Note that an empty testsuite, or a testsuite which does not
+	  perform any tests is less than useful and will not be
+	  accepted.
+
+	* If available the benchmark(s) should use 'bench' and the
+          general format as used by the other modules in Tcllib. The
+          file(s) should have the extension '.bench' for SAK to
+          recognize them.
+
+	* Other files can be named and placed as the module sees fit.
+
+(2)	If the new module has an example application A which is
+	polished enough for general use, put this application into the
+	file "T/apps/A.tcl", and its documentation into the file
+	"T/apps/A.man". While documentation for the application is
+	optional, it is preferred.
+
+	For examples which are not full-fledged applications, a
+	skeleton, or not really polished for use, etc., create the
+	directory T/examples/FOO/ and put them there.
+
+	A key difference is what happens to them on installation, and
+	what the target audience is.
+
+	The examples are for developers using packages in Tcllib,
+	whereas the applications are also for users of Tcllib which do
+	not have an interest in developing for and with it. As such,
+	they are installed as regular commands, accessible through the
+	PATH, and example files are not installed.
+
+(3)	To make Tcllib's installer aware of FOO, edit the file
+
+		T/support/installation/modules.tcl
+
+	Add a line 'Module FOO $impaction $docaction $exaction'. The
+	various actions describe to the installer how to install the
+	implementation files, the documentation, and the examples.
+
+	Add a line 'Application A' for any application A which was
+	added to T/apps for FOO.
+
+	The following actions are available:
+
+	Implementation
+
+		_tcl - Copy all .tcl files in T/modules/FOO into the installation.
+		_tcr - See above, does it for .tcl files in subdirectories as well.
+		_tci - _tcl + Copying of a tclIndex - special to modules 'math', 'control'.
+		_msg - _tcl + Copying of subdir 'msgs' - special to modules 'dns', 'log'.
+		_doc - _tcl + Copying of subdir 'mpformats' - special to module 'doctools'.
+		_tex - _tcl + Copying of .tex files - special to module 'textutil'.
+
+		The _null action, see below, is available in principle
+		too, but a module without implementation does not make
+		sense.
+
+	Documentation
+
+		_null - Module has no documentation, do nothing.
+		_man  - Process the .man files in T/modules/FOO and
+			install the results (nroff and/or HTML) in the
+			proper location, as given to the installer.
+
+	Examples
+
+		_null - Module has no examples, do nothing
+		_exa  - Copy the directory T/examples/FOO
+			(recursively) to the install location for
+			examples.
+
+
+Testing modules
+---------------
+
+To run the testsuite of a module FOO in tcllib use the 'test run'
+argument of sak.tcl, like so:
+
+	% pwd
+	/the/tcllib/toplevel/directory
+
+	% ./sak.tcl test run FOO
+or	% ./sak.tcl test run modules/FOO
+
+To run the testsuites of all modules either invoke 'test run' without a
+module name, or use 'make test'. The latter assumes that configure was
+run for Tcllib before, i.e.:
+
+	% ./sak.tcl test run
+or	% ./sak.tcl test run
+	% make test
+
+In all of the above cases the result will be a combination of progress
+display and testsuite log, showing for each module the tests that pass
+or failed and how many of each in a summary at the end.
+
+To get a detailed log, it is necessary to invoke 'test run' with
+additional options.
+
+First example:
+	% ./sak.tcl test run -l LOG FOO
+
+This shows the same short log on the terminal, and writes a detailed
+log to the file LOG.log, and excerpts to other files (LOG.summary,
+LOG.failures, etc.).
+
+Second example:
+	% ./sak.tcl test run -v FOO
+	% make test > LOG
+
+This writes the detailed log to stdout, or to the file LOG, instead of
+the short log. In all cases, the detailed log contains a list of all
+test cases executed, which failed, and how they failed (expected
+versus actual results).
+
+Note:
+The commands
+	% make test
+and	% make test > LOG
+
+are able to generate different output (short vs long log) because the
+Makefile target contains code which detects that stdout has been
+redirected to a file and acts accordingly.
+
+Non-developers should reports problems in Tcllib's bug tracker.
+Information about its location and the relevant category can be found
+in the section 'BUGS, IDEAS, FEEDBACK' of the manpage of the module
+and/or package.
+
+Module documentation
+--------------------
+
+The main format used for the documentation of packages in Tcllib is
+'doctools', the support packages of which are part of Tcllib, see the
+module 'doctools'.
+
+To convert this documentation to HTML or nroff manpages, or some other
+format use the 'doc' argument of sak.tcl, like so:
+
+	% pwd
+	/the/tcllib/toplevel/directory
+
+	% ./sak.tcl doc html FOO
+or	% ./sak.tcl doc html modules/FOO
+
+The result of the conversion can be found in the newly-created 'doc'
+directory in the current working directory.
+
+The set of formats the documentation can be converted into can be
+queried via
+
+	% ./sak.tcl help doc
+
+
+To convert the documentation of all modules either invoke 'test run'
+without a module name, or use 'make html-doc', etc.. The latter
+assumes that configure was run for Tcllib before, i.e.:
+
+	% ./sak.tcl doc html
+	% make html-doc
+
+Note the special format 'validate'. Using this format does not convert
+the documentation to anything (and the sub-directory 'doc' will not be
+created), it just checks that the documentation is syntactically
+correct. I.e.
+
+	% ./sak.tcldoc validate modules/FOO
+	% ./sak.tcldoc validate
+
+
+Validating modules
+------------------
+
+Running the testsuite of a module, or checking the syntax of its
+documentation (see the previous sections) are two forms of validation.
+
+The 'validate' command of sak.tcl provides a few more. The online
+documentation of this command is available via
+
+	% ./sak.tcl help validate
+
+The validated parts are man pages, testsuites, version information,
+and syntax. The latter only if various static syntax checkers are
+available on the PATH, like TclDevKit's tclchecker.
+
+Note that testsuite validation is not the execution of the testsuites,
+only if a package has a testsuite or not.
+
+It is strongly recommended to validate a module before committing any
+type of change made to it.
+
+It is recommended to validate all modules before committing any type
+of change made to one of them. We have package inter-dependencies
+between packages in Tcllib, thus changing one package may break
+others, and just validating the changed package will not catch such
+problems.
+
+
+Writing Tests
+-------------
+
+While a previous section talked about running the testsuite for a
+module and the packages therein this has no meaning if the module in
+question has no testsuites at all.
+
+This section gives a very basic overview on methodologies for writing
+tests and testsuites.
+
+First there are "drudgery" tests. Written to check absolutely basic
+assumptions which should never fail.
+
+Example:
+
+	For a command FOO taking two arguments, three tests calling it
+	with zero, one, and three arguments. The basic checks that the
+	command fails if it has not enough arguments, or too many.
+
+After that come the tests checking things based on our knowledge of
+the command, about its properties and assumptions. Some examples based
+on the graph operations added during Google's Summer of Code 2009.
+
+**	The BellmanFord command in struct::graph::ops takes a
+	_startnode_ as argument, and this node should be a node of the
+	graph. equals one test case checking the behavior when the
+	specified node is not a node a graph.
+
+	This often gives rise to code in the implementation which
+	explicitly checks the assumption and throws a nice error.
+	Instead of letting the algorithm fails later in some weird
+	non-deterministic way.
+
+	Such checks cannot be done always. The graph argument for
+	example is just a command in itself, and while we expect it to
+	exhibit a certain interface, i.e. set of sub-commands aka
+	methods, we cannot check that it has them, except by actually
+	trying to use them. That is done by the algorithm anyway, so
+	an explicit check is just overhead we can get by without.
+
+**	IIRC one of the distinguishing characteristic of either
+	BellmanFord and/or Johnson is that they are able to handle
+	negative weights. Whereas Dijkstra requires positive weights.
+
+	This induces (at least) three testcases ... Graph with all
+	positive weights, all negative, and a mix of positive and
+	negative weights.
+
+	Thinking further does the algorithm handle the weight '0' as
+	well ? Another test case, or several, if we mix zero with
+	positive and negative weights.
+
+**	The two algorithms we are currently thinking about are about
+	distances between nodes, and distance can be 'Inf'inity,
+	i.e. nodes may not be connected. This means that good test
+	cases are
+
+	(1)	Strongly connected graph
+	(2)	Connected graph
+	(3)	Disconnected graph.
+
+	At the extremes of (1) and (3) we have the fully connected
+	graphs and graphs without edges, only nodes, i.e. completely
+	disconnected.
+
+**	IIRC both of the algorithms take weighted arcs, and fill in a
+	default if arcs are left unweighted in the input graph.
+
+	This also induces three test cases:
+
+	(1)	Graph will all arcs with explicit weights.
+	(2)	Graph without weights at all.
+	(3)	Graph with mixture of weighted and unweighted graphs.
+
+
+What was described above via examples is called 'black-box' testing.
+Test cases are designed and written based on our knowledge of the
+properties of the algorithm and its inputs, without referencing a
+particular implementation.
+
+Going further, a complement to 'black-box' testing is 'white-box'. For
+this we know the implementation of the algorithm, we look at it and
+design our tests cases so that they force the code through all
+possible paths in the implementation. Wherever a decision is made we
+have a test cases forcing a specific direction of the decision, for
+all possible directions.
+
+In practice I often hope that the black-box tests I have made are
+enough to cover all the paths, obviating the need for white-box tests.
+
+So, if you, dear reader, now believe that writing tests for an
+algorithm takes at least as much time as coding the algorithm, and
+often more time, then you are completely right. It does. Much more
+time. See for example also http://sqlite.org/testing.html, a writeup
+on how the Sqlite database engine is tested.
+
+
+
+An interesting connection is to documentation. In one direction, the
+properties you are checking with black-box testing are properties
+which should be documented in the algorithm man page. And conversely,
+if you have documentation of properties of an algorithm then this is a
+good reference to base black-box tests on.
+
+In practice test cases and documentation often get written together,
+cross-influencing each other. And the actual writing of test cases is
+a mix of black and white box, possibly influencing the implementation
+while writing the tests. Like writing test for 'startnode not in input
+graph' serving as reminder to put in a check for this into the code.

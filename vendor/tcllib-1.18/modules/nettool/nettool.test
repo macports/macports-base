@@ -1,0 +1,101 @@
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+    devtools testutilities.tcl]
+
+package require tcltest
+testsNeedTcl     8.5
+testsNeedTcltest 1.0
+
+testing {
+    useLocal nettool.tcl    nettool
+}
+
+# Test known busy ports
+foreach port {
+  80
+  3020
+  21
+  7794
+} {
+  ::tcltest::test port-busy-$port \
+    "Test that port busy returns true for known port $port" \
+    [list ::nettool::port_busy $port] 1
+}
+
+# Test known free ports
+# And test the full range at 7790-7792 to ensure there
+# are now edge cases at the start and end of a range
+foreach port {
+  1028
+  2446
+  7790 7791 7792 7792
+} {
+  ::tcltest::test port-free-$port \
+    "Test that port busy returns false for known port $port" \
+    [list ::nettool::port_busy $port] 0
+}
+
+# Test that "next" for block 7790 return 7790
+::tcltest::test port-find-0001 \
+    "Test that port find returns the first port in unclaimed block starting at 7790" \
+    [list ::nettool::find_port 7790] 7790
+
+foreach {port nextport comment} {
+  7790 7791 {Start of block}
+  7791 7792 {...}
+  7792 7793 {End of block}
+  7793 7795 {Start of new block}
+} {
+  ::nettool::claim_port $port
+  ::tcltest::test port-claim-0001 \
+      "Test that port busy returns true after $port is claimed" \
+      [list ::nettool::port_busy $port] 1
+  
+  # Test that claiming a port makes it busy
+  ::tcltest::test port-find-0002 \
+      "Test that port find returns the next port in unclaimed block starting at $port following claim" \
+      [list ::nettool::find_port $port] $nextport
+
+}
+
+set port 7790
+::nettool::claim_port $port
+::tcltest::test port-claim-0002 \
+    "Test that port busy returns true after $port is claimed" \
+    [list ::nettool::port_busy $port] 1
+::nettool::release_port $port
+::tcltest::test port-claim-0003 \
+    "Test that port busy returns false after $port is release" \
+    [list ::nettool::port_busy $port] 0
+  
+# Test that claiming a port makes it busy
+::tcltest::test port-find-0004 \
+    "Test that port find returns the next port in released block starting at $port following claim" \
+    [list ::nettool::find_port 7790] 7790
+
+foreach {port nextport comment} {
+  7790 7791 {Start of block}
+  7791 7792 {...}
+  7792 7793 {End of block}
+  7793 7795 {Start of new block}
+} {
+  ::nettool::release_port $port 
+}
+
+# Test that claiming a port makes it busy
+::tcltest::test port-allocate-0004 \
+    "Test allocate port returns the address of an unclaimed spot and claims it" \
+    [list ::nettool::allocate_port 7790] 7790
+
+::tcltest::test port-allocate-0005 \
+    "Test allocate port returns the next address of an claimed spot and claims it" \
+    [list ::nettool::allocate_port 7790] 7791
+
+::tcltest::test port-allocate-0006 \
+    "Test allocate port returns the next address of an claimed spot and claims it" \
+    [list ::nettool::allocate_port 7790] 7792
+
+
+testsuiteCleanup
+return

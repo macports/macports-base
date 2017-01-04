@@ -1,0 +1,259 @@
+<html><head>
+<title>ntp_time - Network Time Facilities</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'ntp_time.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;
+   -->
+<! -- ntp_time.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">ntp_time(n) 1.2.1 tcllib &quot;Network Time Facilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>ntp_time - Tcl Time Service Client</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.0</b></li>
+<li>package require <b class="pkgname">time <span class="opt">?1.2.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::time::gettime</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">timeserver</i> <span class="opt">?<i class="arg">port</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::time::getsntp</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">timeserver</i> <span class="opt">?<i class="arg">port</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::time::configure</b> <span class="opt">?<i class="arg">options</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::time::cget</b> <i class="arg">name</i></a></li>
+<li><a href="#5"><b class="cmd">::time::unixtime</b> <i class="arg">token</i></a></li>
+<li><a href="#6"><b class="cmd">::time::status</b> <i class="arg">token</i></a></li>
+<li><a href="#7"><b class="cmd">::time::error</b> <i class="arg">token</i></a></li>
+<li><a href="#8"><b class="cmd">::time::reset</b> <i class="arg">token</i> <i class="arg"><span class="opt">?reason?</span></i></a></li>
+<li><a href="#9"><b class="cmd">::time::wait</b> <i class="arg">token</i></a></li>
+<li><a href="#10"><b class="cmd">::time::cleanup</b> <i class="arg">token</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package implements a client for the RFC 868 TIME protocol
+(<a href="http://www.rfc-editor.org/rfc/rfc868.txt">http://www.rfc-editor.org/rfc/rfc868.txt</a>) and also a minimal
+client for the RFC 2030 Simple Network Time Protocol
+(<a href="http://www.rfc-editor.org/rfc/rfc2030.txt">http://www.rfc-editor.org/rfc/rfc2030.txt</a>).
+RFC 868 returns the time in seconds since 1 January 1900
+to either tcp or udp clients. RFC 2030 also gives this time but also
+provides a fractional part which is not used in this client.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::time::gettime</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">timeserver</i> <span class="opt">?<i class="arg">port</i>?</span></a></dt>
+<dd><p>Get the time from <i class="arg">timeserver</i>. You may specify any of the options
+listed for the <b class="cmd">configure</b> command here. This command returns a
+token which must then be used with the remaining commands in this
+package. Once you have finished, you should use <b class="cmd"><a href="../../../../index.html#key158">cleanup</a></b> to
+release all resources. The default port is <b class="const">37</b>.</p></dd>
+<dt><a name="2"><b class="cmd">::time::getsntp</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">timeserver</i> <span class="opt">?<i class="arg">port</i>?</span></a></dt>
+<dd><p>Get the time from an SNTP server. This accepts exactly the same
+arguments as <b class="cmd">::time::gettime</b> except that the default port is
+<b class="const">123</b>. The result is a token as per <b class="cmd">::time::gettime</b> and
+should be handled in the same way.</p>
+<p>Note that it is unlikely that any SNTP server will reply using tcp so
+you will require the <b class="package">tcludp</b> or the <b class="package">ceptcl</b>
+package. If a suitable package can be loaded then the udp protocol
+will be used by default.</p></dd>
+<dt><a name="3"><b class="cmd">::time::configure</b> <span class="opt">?<i class="arg">options</i>?</span></a></dt>
+<dd><p>Called with no arguments this command returns all the current
+configuration options and values. Otherwise it should be called with
+pairs of option name and value.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">-protocol</b> <i class="arg">number</i></dt>
+<dd><p>Set the default network protocol. This defaults to udp if the tcludp
+  package is available. Otherwise it will use tcp.</p></dd>
+<dt><b class="cmd">-port</b> <i class="arg">number</i></dt>
+<dd><p>Set the default port to use. RFC 868 uses port <b class="const">37</b>, RFC 2030 uses
+port <b class="const">123</b>.</p></dd>
+<dt><b class="cmd">-timeout</b> <i class="arg">number</i></dt>
+<dd><p>Set the default timeout value in milliseconds. The default is 10 seconds.</p></dd>
+<dt><b class="cmd">-command</b> <i class="arg">number</i></dt>
+<dd><p>Set a command procedure to be run when a reply is received. The
+  procedure is called with the time token appended to the argument list.</p></dd>
+<dt><b class="cmd">-loglevel</b> <i class="arg">number</i></dt>
+<dd><p>Set the logging level. The default is 'warning'.</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::time::cget</b> <i class="arg">name</i></a></dt>
+<dd><p>Get the current value for the named configuration option.</p></dd>
+<dt><a name="5"><b class="cmd">::time::unixtime</b> <i class="arg">token</i></a></dt>
+<dd><p>Format the returned time for the unix epoch. RFC 868 time defines
+  time 0 as 1 Jan 1900, while unix time defines time 0 as 1 Jan
+  1970. This command converts the reply to unix time.</p></dd>
+<dt><a name="6"><b class="cmd">::time::status</b> <i class="arg">token</i></a></dt>
+<dd><p>Returns the status flag. For a successfully completed query this will be
+  <em>ok</em>. May be <em>error</em> or <em>timeout</em> or <em>eof</em>.
+  See also <b class="cmd">::time::error</b></p></dd>
+<dt><a name="7"><b class="cmd">::time::error</b> <i class="arg">token</i></a></dt>
+<dd><p>Returns the error message provided for requests whose status is <em>error</em>.
+  If there is no error message then an empty string is returned.</p></dd>
+<dt><a name="8"><b class="cmd">::time::reset</b> <i class="arg">token</i> <i class="arg"><span class="opt">?reason?</span></i></a></dt>
+<dd><p>Reset or cancel the query optionally specfying the reason to record
+  for the <b class="cmd"><a href="../../../../index.html#key161">error</a></b> command.</p></dd>
+<dt><a name="9"><b class="cmd">::time::wait</b> <i class="arg">token</i></a></dt>
+<dd><p>Wait for a query to complete and return the status upon completion.</p></dd>
+<dt><a name="10"><b class="cmd">::time::cleanup</b> <i class="arg">token</i></a></dt>
+<dd><p>Remove all state variables associated with the request.</p></dd>
+</dl>
+<pre class="doctools_example">
+% set tok [::time::gettime ntp2a.mcc.ac.uk]
+% set t [::time::unixtime $tok]
+% ::time::cleanup $tok
+</pre>
+<pre class="doctools_example">
+% set tok [::time::getsntp pool.ntp.org]
+% set t [::time::unixtime $tok]
+% ::time::cleanup $tok
+</pre>
+<pre class="doctools_example">
+proc on_time {token} {
+   if {[time::status $token] eq &quot;ok&quot;} {
+      puts [clock format [time::unixtime $token]]
+   } else {
+      puts [time::error $token]
+   }
+   time::cleanup $token
+}
+time::getsntp -command on_time pool.ntp.org
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">AUTHORS</a></h2>
+<p>Pat Thoyts</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>ntp</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>ntp</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key80">NTP</a>, <a href="../../../../index.html#key78">SNTP</a>, <a href="../../../../index.html#key77">rfc 2030</a>, <a href="../../../../index.html#key79">rfc 868</a>, <a href="../../../../index.html#key81">time</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

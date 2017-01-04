@@ -1,0 +1,2 @@
+error on line 1.8: Errors in include file "@/tests/data/unexpected_eof"
+"@/tests/data/unexpected_eof": error on line 1.27: Bad <eof>

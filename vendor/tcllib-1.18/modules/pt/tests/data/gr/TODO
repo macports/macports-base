@@ -1,0 +1,36 @@
+Constructions not yet covered by the test suite ...
+
+Operator	Covered	Notes
+--------	-------	-----
+.   dot		y
+..  range	y	char range
+alnum		y
+alpha		y
+ascii		y
+cl		y	general char class, fused char choice
+control		y
+ddigit		y
+digit		y
+graph		y
+lower		y
+n   nonterminal	y
+printable	y
+punct		y
+space		y
+str		y	fused char sequence
+t   terminal	y	general terminal char
+upper		y
+wordchar	y
+xdigit		y
+/   choice	y
+x   sequence	y
+*   repeat0	y	kleene
++   repeat1	y	pos.kleene
+?   optional	y
+!  notahead		lookahead predicate, assert non-match
+--------	-------	-----
+&  ahead		lookahead predicate, assert match
+--------	-------	-----
+epsilon		n	internal, not directly accessible
+			only indirectly through "?"
+--------	-------

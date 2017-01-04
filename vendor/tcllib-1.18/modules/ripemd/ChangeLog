@@ -1,0 +1,150 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-04-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ripemd128.tcl: Cleanup variables after initialization
+	* ripemd160.tcl:
+	* pkgIndex.tcl:  Incremented version to 1.0.4
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ripemd128.man: Fixed all warnings due to use of now deprecated
+	* ripemd160.man: commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ripemd128.test: Hooked into the new common test support code.
+	* ripemd160.test:
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* ripemd128.bench: New file. Basic benchmarks for RIPEMD hashes.
+	* ripme160.bench:
+
+2005-10-17  Andreas Kupries <andreask@activestate.com>
+
+	* ripemd128.tcl: Trivial comment typo fix.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-05  Andreas Kupries <andreask@activestate.com>
+
+	* ripemd128.test: Added test cases demonstrating how ripemd/Trf is
+	* ripemd160.test: mishandling input of specific lengths (multiples
+	  of 64 bytes).
+
+2005-02-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ripemd128.tcl:   Arranged to run all available implementations in
+	* ripemd128.test:  the tests.
+	* ripemd160.tcl:
+	* ripemd160.test:
+
+2005-02-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* pkgIndex.tcl:           Incremented version to 1.0.3
+	* ripemd120.tcl,man,test: Rationalised accelerator handling and added
+	* ripemd160.tcl,man,test: cryptkit as accelerator for RIPEMD-160.
+
+2005-02-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* pkgIndex.tcl:  Incremented version.
+	* ripemd128.tcl,man,test: Made the hashing cope with data that
+	* ripemd160.tcl,man,test:  begins with a hypen is a transparent
+	manner. Made the '--' end-of-options flag optional as it's now
+	redundant. Added suitable tests. Simplified the Hex proc.
+
+2004-12-03  Pat Thoyts  <pat@zsplat.freeserve.co.uk>
+
+	* ripemd160_test.c: Added a test file that can use the OpenSSL
+	library to generate the same tests that we use in tcllib for
+	comparison.
+
+2004-12-03  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ripemd128.test: Added test cases from RFC2286 to both digests. 
+	* ripemd160.test: Also included a test with leading hyphen.
+	* ripemd128.tcl:  Removed usage of memchan in favour of the platform
+	* ripemd168.tcl:  null device. This avoids problems with name clashes
+	                  when loading in [null] or [random].
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-02-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ripemd128.tcl:  Added -- to end options if using Trf's hex in case
+	* ripemd160.tcl:  the hash begins with a - character (possible).
+	
+	* ripemd160.tcl:  Inlined the algorithm functions. This makes the
+	pure-Tcl code about 2x faster than the proc calling version.
+	* ripemd128.tcl:  Streamlined the <<< implementation a bit.
+	
+	* ripemd160.man:  Initial implementation of RIPEMD-160 in
+	* ripemd160.tcl:  pure-Tcl as per ripemd128.
+	* ripemd160.test:
+	* pkgIndex.tcl: 
+	
+2004-02-16  Pat Thoyts  <pat@zsplat.freeserve.co.uk>
+
+	* ripemd128.test:  Add pure-Tcl HMAC tests.
+
+2004-02-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ripemd128.man:   Initial implementation of RIPEMD-128 in 
+	* ripemd128.tcl:   pure-Tcl and deferring to Trf (except on Windows
+	* ripemd128.test:  where that has Trf/Memchan bugs).
+	* pkgIndex.tcl:    

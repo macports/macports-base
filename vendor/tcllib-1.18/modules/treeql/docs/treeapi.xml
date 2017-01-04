@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet href="api.css" type="text/css" ?>
+<!DOCTYPE api SYSTEM "api.dtd" [
+]>
+  <api>
+  <title>Tree API</title>
+  <header>
+    <p>Treeql is a fairly thin query facility over Trees.  It implements an ordered set of nodes which are generated and filtered by application of the treeql query language to each node in turn.</p>
+
+    <p>Some naming confusion arises because some interesting trees can represent things which have 'attributes', whereas some tree abstractions also provide per-node 'attributes'.  We try, in this, to adopt the convention that the abstract tree has 'attributes', whereas the concrete tree may implement node 'properties'.</p>
+
+    <p>As treeql iterates over the ordered set of nodes applying query terms to each node in the set - the functionality of treeql is therefore determined by that of the underlying tree.</p>
+
+    <p>The main value add of Treeql is that it maintains a node set and handles the distribution of functions over that node set.</p>
+
+    <p>Several more abstract 'pre-canned' queries are provided by Treeql, implemented in terms of lower level tree functions.</p>
+
+    <p>Some minimal functionality of the underlying tree is assumed by treeql to implement a minimal set of queries deemed necessary.</p>
+
+    <p>The underlying tree must provide the following API:</p>
+
+  </header>
+
+  <group used="$query apply">
+    <name>Structural generators</name>
+    
+    <method>
+      <object><arg>tree</arg></object>
+      <name>rootname</name>
+      <args></args>
+      <result>returns the tree's root</result>
+    </method>
+    
+    <method>
+      <object><arg>tree</arg></object>
+      <name>children</name>
+      <args><arg>node</arg></args>
+      <result>return all immediate children of <arg>node</arg></result>
+    </method>
+    
+    <method>
+      <object><arg>tree</arg></object>
+      <name>next</name>
+      <args><arg>node</arg></args>
+      <result>return next right sibling of <arg>node</arg></result>
+    </method>
+
+    <method>
+      <object><arg>tree</arg></object>
+      <name>parent</name>
+      <args><arg>node</arg></args>
+      <result>return <arg>node</arg>'s parent</result>
+    </method>
+
+    <method>
+      <object><arg>tree</arg></object>
+      <name>previous</name>
+      <args><arg>node</arg></args>
+      <result>return left sibling of <arg>node</arg></result>
+    </method>
+  </group>
+
+  <group used="$query apply">
+    <name>Property generators</name>
+    
+    <method>
+      <object><arg>tree</arg></object>
+      <name>get</name>
+      <args><arg>node</arg> <arg>key</arg></args>
+      <result>get value of property named <arg>key</arg></result>
+    </method>
+
+    <method>
+      <object><arg>tree</arg></object>
+      <name>keys</name>
+      <args><arg>node</arg> <arg>glob</arg></args>
+      <result>get all <arg>node</arg> property (names,values) whose keys match <arg>glob</arg> (default *)</result>
+    </method>
+    
+    <method>
+      <object><arg>tree</arg></object>
+      <name>set</name>
+      <args><arg>node</arg> <arg>prop</arg> <arg>val</arg></args>
+      <result>set <arg>node</arg> <arg>key</arg> to <arg>value</arg></result>
+    </method>
+  </group>
+
+  <group used="$query bool">
+    <name>Predicates</name>
+
+    <method>
+      <object><arg>tree</arg></object>
+      <name>keyexists</name>
+      <args><arg>node</arg> <arg>key</arg></args>
+      <result><arg>node</arg> has property <arg>key</arg></result>
+    </method>
+  </group>
+</api>

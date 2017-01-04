@@ -1,0 +1,74 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin interp n 0.1.2]
+[keywords alias]
+[keywords {empty interpreter}]
+[keywords interpreter]
+[keywords method]
+[keywords snit]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Interpreter utilities}]
+[titledesc {Interp creation and aliasing}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require interp [opt 0.1.2]]
+[description]
+[para]
+
+This package provides a number of commands for the convenient creation
+of Tcl interpreters for highly restricted execution.
+
+[section API]
+[list_begin definitions]
+
+[call [cmd ::interp::createEmpty] [opt [arg path]]]
+
+This commands creates an empty Tcl interpreter and returns it
+name. Empty means that the new interpreter has neither namespaces, nor
+any commands. It is useful only for the creation of aliases.
+
+[para]
+
+If a [arg path] is specified then it is taken as the name of the new
+interpreter.
+
+[call [cmd ::interp::snitLink] [arg path] [arg methodlist]]
+
+This command assumes that it was called from within a method of a snit
+object, and that the command [cmd mymethod] is available.
+
+[para]
+
+It extends the interpreter specified by [arg path] with aliases for
+all methods found in the [arg methodlist], with the alias directing
+execution to the same-named method of the snit object invoking this
+command.
+
+Each element of [arg methodlist] is actually interpreted as a command
+prefix, with the first word of each prefix the name of the method to
+link to.
+
+[para]
+
+The result of the command is the empty string.
+
+[call [cmd ::interp::snitDictLink] [arg path] [arg methoddict]]
+
+This command behaves like [cmd ::interp::snitLink], except that it
+takes a dictionary mapping from commands to methods as its input, and
+not a list of methods.
+
+Like for [cmd ::interp::snitLink] the method references are actually
+command prefixes.
+
+This command allows the creation of more complex command-method
+mappings than [cmd ::interp::snitLink].
+
+[para]
+
+The result of the command is the empty string.
+
+[list_end]
+
+[vset CATEGORY interp]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

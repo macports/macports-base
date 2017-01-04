@@ -1,0 +1,273 @@
+
+<html><head>
+<title>uri - Tcl Uniform Resource Identifier Management</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'uri.man' by tcllib/doctools with format 'html'
+   -->
+<! -- uri.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">uri(n) 1.2.6 tcllib &quot;Tcl Uniform Resource Identifier Management&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>uri - URI utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">SCHEMES</a></li>
+<li class="doctools_section"><a href="#section4">EXTENDING</a></li>
+<li class="doctools_section"><a href="#section5">CREDITS</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">uri <span class="opt">?1.2.6?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">uri::split</b> <i class="arg">url</i> <span class="opt">?<i class="arg">defaultscheme</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">uri::join</b> <span class="opt">?<i class="arg">key</i> <i class="arg">value</i>?</span>...</a></li>
+<li><a href="#3"><b class="cmd">uri::resolve</b> <i class="arg">base</i> <i class="arg">url</i></a></li>
+<li><a href="#4"><b class="cmd">uri::isrelative</b> <i class="arg">url</i></a></li>
+<li><a href="#5"><b class="cmd">uri::geturl</b> <i class="arg">url</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#6"><b class="cmd">uri::canonicalize</b> <i class="arg">uri</i></a></li>
+<li><a href="#7"><b class="cmd">uri::register</b> <i class="arg">schemeList</i> <i class="arg">script</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package contains two parts. First it provides regular expressions
+for a number of url/uri schemes. Second it provides a number of
+commands for manipulating urls/uris and fetching data specified by
+them. For the latter this package analyses the requested url/uri and
+then dispatches it to the appropriate package (http, ftp, ...) for
+actual fetching.</p>
+<p>The package currently does not conform to
+RFC 2396 (<a href="http://www.rfc-editor.org/rfc/rfc2396.txt">http://www.rfc-editor.org/rfc/rfc2396.txt</a>),
+but quite likely should be. Patches and other help are welcome.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">uri::split</b> <i class="arg">url</i> <span class="opt">?<i class="arg">defaultscheme</i>?</span></a></dt>
+<dd><p><b class="cmd">uri::split</b> takes an <i class="arg">url</i>, decodes it and then returns a
+list of key/value pairs suitable for <b class="cmd">array set</b> containing the
+constituents of the <i class="arg">url</i>. If the scheme is missing from the url
+it defaults to the value of <i class="arg">defaultscheme</i> if it was specified,
+or <i class="term"><a href="../../../../index.html#key445">http</a></i> else. Currently only the schemes <i class="term"><a href="../../../../index.html#key445">http</a></i>,
+<i class="term"><a href="../../../../index.html#key294">ftp</a></i>, <i class="term"><a href="../../../../index.html#key533">mailto</a></i>, <i class="term"><a href="../../../../index.html#key576">urn</a></i>, <i class="term"><a href="../../../../index.html#key531">news</a></i>, <i class="term"><a href="../../../../index.html#key130">ldap</a></i> and
+<i class="term"><a href="../../../../index.html#key31">file</a></i> are supported by the package itself.
+See section <span class="sectref"><a href="#section4">EXTENDING</a></span> on how to expand that range.</p>
+<p>The set of constituents of an url (= the set of keys in the returned
+dictionary) is dependent on the scheme of the url. The only key which
+is therefore always present is <b class="const">scheme</b>. For the following
+schemes the constituents and their keys are known:</p>
+<dl class="doctools_definitions">
+<dt>ftp</dt>
+<dd><p><b class="const">user</b>, <b class="const">pwd</b>, <b class="const">host</b>, <b class="const">port</b>,
+<b class="const">path</b>, <b class="const">type</b></p></dd>
+<dt>http(s)</dt>
+<dd><p><b class="const">user</b>, <b class="const">pwd</b>, <b class="const">host</b>, <b class="const">port</b>,
+<b class="const">path</b>, <b class="const">query</b>, <b class="const">fragment</b>. The fragment
+is optional.</p></dd>
+<dt>file</dt>
+<dd><p><b class="const">path</b>, <b class="const">host</b>. The host is optional.</p></dd>
+<dt>mailto</dt>
+<dd><p><b class="const">user</b>, <b class="const">host</b>. The host is optional.</p></dd>
+<dt>news</dt>
+<dd><p>Either <b class="const">message-id</b> or <b class="const">newsgroup-name</b>.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">uri::join</b> <span class="opt">?<i class="arg">key</i> <i class="arg">value</i>?</span>...</a></dt>
+<dd><p><b class="cmd">uri::join</b> takes a list of key/value pairs (generated by
+<b class="cmd">uri::split</b>, for example) and returns the canonical url they
+represent. Currently only the schemes <i class="term"><a href="../../../../index.html#key445">http</a></i>, <i class="term"><a href="../../../../index.html#key294">ftp</a></i>,
+<i class="term"><a href="../../../../index.html#key533">mailto</a></i>, <i class="term"><a href="../../../../index.html#key576">urn</a></i>, <i class="term"><a href="../../../../index.html#key531">news</a></i>, <i class="term"><a href="../../../../index.html#key130">ldap</a></i> and <i class="term"><a href="../../../../index.html#key31">file</a></i>
+are supported. See section <span class="sectref"><a href="#section4">EXTENDING</a></span> on how to expand that
+range.</p></dd>
+<dt><a name="3"><b class="cmd">uri::resolve</b> <i class="arg">base</i> <i class="arg">url</i></a></dt>
+<dd><p><b class="cmd">uri::resolve</b> resolves the specified <i class="arg">url</i> relative to
+<i class="arg">base</i>. In other words: A non-relative <i class="arg">url</i> is returned
+unchanged, whereas for a relative <i class="arg">url</i> the missing parts are
+taken from <i class="arg">base</i> and prepended to it. The result of this
+operation is returned. For an empty <i class="arg">url</i> the result is
+<i class="arg">base</i>.</p></dd>
+<dt><a name="4"><b class="cmd">uri::isrelative</b> <i class="arg">url</i></a></dt>
+<dd><p><b class="cmd">uri::isrelative</b> determines whether the specified <i class="arg">url</i> is
+absolute or relative.</p></dd>
+<dt><a name="5"><b class="cmd">uri::geturl</b> <i class="arg">url</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p><b class="cmd">uri::geturl</b> decodes the specified <i class="arg">url</i> and then dispatches
+the request to the package appropriate for the scheme found in the
+url. The command assumes that the package to handle the given scheme
+either has the same name as the scheme itself (including possible
+capitalization) followed by <b class="cmd">::geturl</b>, or, in case of this
+failing, has the same name as the scheme itself (including possible
+capitalization). It further assumes that whatever package was loaded
+provides a <b class="cmd">geturl</b>-command in the namespace of the same name as
+the package itself. This command is called with the given <i class="arg">url</i>
+and all given <i class="arg">options</i>. Currently <b class="cmd">geturl</b> does not handle
+any options itself.</p>
+<p><em>Note:</em> <i class="term"><a href="../../../../index.html#key31">file</a></i>-urls are an exception to the rule
+described above. They are handled internally.</p>
+<p>It is not possible to specify results of the command. They depend on
+the <b class="cmd">geturl</b>-command for the scheme the request was dispatched to.</p></dd>
+<dt><a name="6"><b class="cmd">uri::canonicalize</b> <i class="arg">uri</i></a></dt>
+<dd><p><b class="cmd">uri::canonicalize</b> returns the canonical form of a URI.  The
+canonical form of a URI is one where relative path specifications,
+ie. . and .., have been resolved.</p></dd>
+<dt><a name="7"><b class="cmd">uri::register</b> <i class="arg">schemeList</i> <i class="arg">script</i></a></dt>
+<dd><p><b class="cmd">uri::register</b> registers the first element of <i class="arg">schemeList</i> as
+a new scheme and the remaining elements as aliases for this scheme. It
+creates the namespace for the scheme and executes the <i class="arg">script</i> in
+the new namespace. The script has to declare variables containing the
+regular expressions relevant to the scheme. At least the variable
+<b class="variable">schemepart</b> has to be declared as that one is used to extend
+the variables keeping track of the registered schemes.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">SCHEMES</a></h2>
+<p>In addition to the commands mentioned above this package provides
+regular expression to recognize urls for a number of url schemes.</p>
+<p>For each supported scheme a namespace of the same name as the scheme
+itself is provided inside of the namespace <em>uri</em> containing the
+variable <b class="variable">url</b> whose contents are a regular expression to
+recognize urls of that scheme. Additional variables may contain
+regular expressions for parts of urls for that scheme.</p>
+<p>The variable <b class="variable">uri::schemes</b> contains a list of all supported
+schemes. Currently these are <i class="term"><a href="../../../../index.html#key294">ftp</a></i>, <i class="term"><a href="../../../../index.html#key130">ldap</a></i>, <i class="term"><a href="../../../../index.html#key31">file</a></i>,
+<i class="term"><a href="../../../../index.html#key445">http</a></i>, <i class="term"><a href="../../../../index.html#key530">gopher</a></i>, <i class="term"><a href="../../../../index.html#key533">mailto</a></i>, <i class="term"><a href="../../../../index.html#key531">news</a></i>,
+<i class="term"><a href="../../../../index.html#key529">wais</a></i> and <i class="term"><a href="../../../../index.html#key528">prospero</a></i>.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXTENDING</a></h2>
+<p>Extending the range of schemes supported by <b class="cmd">uri::split</b> and
+<b class="cmd">uri::join</b> is easy because both commands do not handle the
+request by themselves but dispatch it to another command in the
+<em>uri</em> namespace using the scheme of the url as criterion.</p>
+<p><b class="cmd">uri::split</b> and <b class="cmd">uri::join</b>
+call <b class="cmd">Split[string totitle &lt;scheme&gt;]</b>
+and  <b class="cmd">Join[string totitle &lt;scheme&gt;]</b> respectively.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">CREDITS</a></h2>
+<p>Original code (regular expressions) by Andreas Kupries.
+Modularisation by Steve Ball, also the split/join/resolve
+functionality.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>uri</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key532">fetching information</a>, <a href="../../../../index.html#key31">file</a>, <a href="../../../../index.html#key294">ftp</a>, <a href="../../../../index.html#key530">gopher</a>, <a href="../../../../index.html#key445">http</a>, <a href="../../../../index.html#key130">ldap</a>, <a href="../../../../index.html#key533">mailto</a>, <a href="../../../../index.html#key531">news</a>, <a href="../../../../index.html#key528">prospero</a>, <a href="../../../../index.html#key534">rfc 2255</a>, <a href="../../../../index.html#key536">rfc 2396</a>, <a href="../../../../index.html#key527">uri</a>, <a href="../../../../index.html#key246">url</a>, <a href="../../../../index.html#key529">wais</a>, <a href="../../../../index.html#key535">www</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div></body></html>

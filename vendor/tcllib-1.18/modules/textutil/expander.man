@@ -1,0 +1,511 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin textutil::expander n 1.3.1]
+[see_also {[uri}]
+[see_also http://www.wjduquette.com/expand]
+[see_also regexp]
+[see_also split]
+[see_also string]
+[keywords string]
+[keywords {template processing}]
+[keywords {text expansion}]
+[copyright {William H. Duquette, http://www.wjduquette.com/expand}]
+[moddesc   {Text and string utilities, macro processing}]
+[titledesc {Procedures to process templates and expand text.}]
+[category  {Documentation tools}]
+[require Tcl 8.2]
+[require textutil::expander [opt 1.3.1]]
+[description]
+
+[para]
+
+The Tcl [cmd subst] command is often used to support a kind of
+template processing. Given a string with embedded variables or
+function calls, [cmd subst] will interpolate the variable and function
+values, returning the new string:
+
+[para]
+
+[example {
+    % set greeting "Howdy"
+    Howdy
+    % proc place {} {return "World"}
+    % subst {$greeting, [place]!}
+    Howdy, World!
+    %
+}]
+
+[para]
+
+By defining a suitable set of Tcl commands, [cmd subst] can be used to
+implement a markup language similar to HTML.
+
+[para]
+
+The [cmd subst] command is efficient, but it has three drawbacks for
+this kind of template processing:
+
+[list_begin itemized]
+
+[item]
+
+There's no way to identify and process the plain text between two
+embedded Tcl commands; that makes it difficult to handle plain text in
+a context-sensitive way.
+
+[item]
+
+Embedded commands are necessarily bracketed by [const [lb]] and
+[const [rb]]; it's convenient to be able to choose different brackets
+in special cases.  Someone producing web pages that include a large
+quantity of Tcl code examples might easily prefer to use [const <<]
+and [const >>] as the embedded code delimiters instead.
+
+[item]
+
+There's no easy way to handle incremental input, as one might wish to
+do when reading data from a socket.
+
+[list_end]
+
+[para]
+
+At present, expander solves the first two problems; eventually it will
+solve the third problem as well.
+
+[para]
+
+The following section describes the command API to the expander; this
+is followed by the tutorial sections, see [sectref TUTORIAL].
+
+[section {EXPANDER API}]
+[para]
+
+The [package textutil::expander] package provides only one command,
+described below. The rest of the section is taken by a description of
+the methods for the expander objects created by this command.
+
+[list_begin definitions]
+
+[call [cmd ::textutil::expander] [arg expanderName]]
+
+The command creates a new expander object with an associated Tcl
+command whose name is [arg expanderName]. This command may be used to
+invoke various operations on the graph. If the [arg expanderName] is
+not fully qualified it is interpreted as relative to the current
+namespace.  The command has the following general form:
+
+[example_begin]
+[arg expanderName] option [opt [arg {arg arg ...}]]
+[example_end]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+
+[para]
+
+The following commands are possible for expander objects:
+
+[list_begin definitions]
+
+[call [arg expanderName] [method cappend] [arg text]]
+
+Appends a string to the output in the current context.  This command
+should rarely be used by macros or application code.
+
+[call [arg expanderName] [method cget] [arg varname]]
+
+Retrieves the value of variable [arg varname], defined in the current
+context.
+
+[call [arg expanderName] [method cis] [arg cname]]
+
+Determines whether or not the name of the current context is
+
+[arg cname].
+
+[call [arg expanderName] [method cname]]
+
+Returns the name of the current context.
+
+[call [arg expanderName] [method cpop] [arg cname]]
+
+Pops a context from the context stack, returning all accumulated
+output in that context.  The context must be named [arg cname], or an
+error results.
+
+[call [arg expanderName] [method ctopandclear]]
+
+Returns the output currently captured in the topmost context and
+clears that buffer. This is similar to a combination of [method cpop]
+followed by [method cpush], except that internal state (brackets) is
+preserved here.
+
+[call [arg expanderName] [method cpush] [arg cname]]
+
+Pushes a context named [arg cname] onto the context stack.  The
+context must be popped by [method cpop] before expansion ends or an
+error results.
+
+[call [arg expanderName] [method cset] [arg varname] [arg value]]
+
+Sets variable [arg varname] to [arg value] in the current context.
+
+[call [arg expanderName] [method cvar] [arg varname]]
+
+Retrieves the internal variable name of context variable
+
+[arg varname]; this allows the variable to be passed to commands like
+[cmd lappend].
+
+[call [arg expanderName] [method errmode] [arg newErrmode]]
+
+Sets the macro expansion error mode to one of [const nothing],
+[const macro], [const error], or [const fail]; the default value is
+[const fail].  The value determines what the expander does if an
+error is detected during expansion of a macro.
+
+[list_begin definitions]
+[def [const fail]]
+
+The error propagates normally and can be caught or ignored by the
+application.
+
+[def [const error]]
+
+The macro expands into a detailed error message, and expansion
+continues.
+
+[def [const macro]]
+
+The macro expands to itself; that is, it is passed along to the output
+unchanged.
+
+[def [const nothing]]
+
+The macro expands to the empty string, and is effectively ignored.
+
+[list_end]
+[para]
+
+[call [arg expanderName] [method evalcmd] [opt [arg newEvalCmd]]]
+
+Returns the current evaluation command, which defaults to
+
+[cmd {uplevel #0}].  If specified, [arg newEvalCmd] will be saved for
+future use and then returned; it must be a Tcl command expecting one
+additional argument: the macro to evaluate.
+
+[call [arg expanderName] [method expand] [arg string] [opt [arg brackets]]]
+
+Expands the input string, replacing embedded macros with their
+expanded values, and returns the expanded string.
+
+[para] Note that this method pushes a new (empty) context on the stack of
+contexts while it is running, and removes it on return.
+
+[para]
+
+If [arg brackets] is given, it must be a list of two strings; the
+items will be used as the left and right macro expansion bracket
+sequences for this expansion only.
+
+[call [arg expanderName] [method lb] [opt [arg newbracket]]]
+
+Returns the current value of the left macro expansion bracket; this is
+for use as or within a macro, when the bracket needs to be included in
+the output text.  If [arg newbracket] is specified, it becomes the new
+bracket, and is returned.
+
+[call [arg expanderName] [method rb] [opt [arg newbracket]]]
+
+Returns the current value of the right macro expansion bracket; this
+is for use as or within a macro, when the bracket needs to be included
+in the output text.  If [arg newbracket] is specified, it becomes the
+new bracket, and is returned.
+
+[call [arg expanderName] [method reset]]
+
+Resets all expander settings to their initial values.  Unusual results
+are likely if this command is called from within a call to
+
+[method expand].
+
+[call [arg expanderName] [method setbrackets] [arg {lbrack rbrack}]]
+
+Sets the left and right macro expansion brackets.  This command is for
+use as or within a macro, or to permanently change the bracket
+definitions.  By default, the brackets are [const [lb]] and
+
+[const [rb]], but any non-empty string can be used; for example,
+[const <] and [const >] or [const (*] and [const *)] or even
+[const Hello,] and [const World!].
+
+[call [arg expanderName] [method textcmd] [opt [arg newTextCmd]]]
+
+Returns the current command for processing plain text, which defaults
+to the empty string, meaning [emph identity]. If specified,
+
+[arg newTextCmd] will be saved for future use and then returned; it
+must be a Tcl command expecting one additional argument: the text to
+process. The expander object will this command for all plain text it
+encounters, giving the user of the object the ability to process all
+plain text in some standard way before writing it to the output. The
+object expects that the command returns the processed plain text.
+
+[para]
+
+[emph Note] that the combination of "[cmd textcmd] [arg plaintext]"
+is run through the [arg evalcmd] for the actual evaluation. In other
+words, the [arg textcmd] is treated as a special macro implicitly
+surrounding all plain text in the template.
+
+[call [arg expanderName] [method where]]
+
+Returns a three-element list containing the current character
+position, line, and column the expander is at in the processing of the
+current input string.
+
+[list_end]
+
+[section TUTORIAL]
+[subsection Basics]
+
+To begin, create an expander object:
+
+[para]
+[example {
+    % package require textutil::expander
+    1.2
+    % ::textutil::expander myexp
+    ::myexp
+    %
+}]
+[para]
+
+The created [cmd ::myexp] object can be used to expand text strings
+containing embedded Tcl commands.  By default, embedded commands are
+delimited by square brackets.  Note that expander doesn't attempt to
+interpolate variables, since variables can be referenced by embedded
+commands:
+
+[para]
+[example {
+    % set greeting "Howdy"
+    Howdy
+    % proc place {} {return "World"}
+    % ::myexp expand {[set greeting], [place]!}
+    Howdy, World!
+    %
+}]
+
+[subsection {Embedding Macros}]
+
+An expander macro is simply a Tcl script embedded within a text
+string.  Expander evaluates the script in the global context, and
+replaces it with its result string.  For example,
+
+[para]
+[example {
+    % set greetings {Howdy Hi "What's up"}
+    Howdy Hi "What's up"
+    % ::myexp expand {There are many ways to say "Hello, World!":
+    [set result {}
+    foreach greeting $greetings {
+	append result "$greeting, World!\\n"
+    }
+    set result]
+    And that's just a small sample!}
+    There are many ways to say "Hello, World!":
+    Howdy, World!
+    Hi, World!
+    What's up, World!
+
+    And that's just a small sample!
+    %
+}]
+
+[subsection {Writing Macro Commands}]
+
+More typically, [emph {macro commands}] are used to create a markup
+language.  A macro command is just a Tcl command that returns an
+output string.  For example, expand can be used to implement a generic
+document markup language that can be retargeted to HTML or any other
+output format:
+
+[para]
+[example {
+    % proc bold {} {return "<b>"}
+    % proc /bold {} {return "</b>"}
+    % ::myexp expand {Some of this text is in [bold]boldface[/bold]}
+    Some of this text is in <b>boldface</b>
+    %
+}]
+[para]
+
+The above definitions of [cmd bold] and [cmd /bold] returns HTML, but
+such commands can be as complicated as needed; they could, for
+example, decide what to return based on the desired output format.
+
+[subsection {Changing the Expansion Brackets}]
+
+By default, embedded macros are enclosed in square brackets,
+
+[const [lb]] and [const [rb]].  If square brackets need to be
+included in the output, the input can contain the [cmd lb] and
+
+[cmd rb] commands.  Alternatively, or if square brackets are
+objectionable for some other reason, the macro expansion brackets can
+be changed to any pair of non-empty strings.
+
+[para]
+
+The [method setbrackets] command changes the brackets permanently.
+For example, you can write pseudo-html by change them to [const <]
+and [const >]:
+
+[para]
+[example {
+    % ::myexp setbrackets < >
+    % ::myexp expand {<bold>This is boldface</bold>}
+    <b>This is boldface</b>
+}]
+[para]
+
+Alternatively, you can change the expansion brackets temporarily by
+passing the desired brackets to the [method expand] command:
+
+[para]
+[example {
+    % ::myexp setbrackets "\\[" "\\]"
+    % ::myexp expand {<bold>This is boldface</bold>} {< >}
+    <b>This is boldface</b>
+    %
+}]
+
+[subsection {Customized Macro Expansion}]
+
+By default, macros are evaluated using the Tcl [cmd {uplevel #0}]
+command, so that the embedded code executes in the global context.
+The application can provide a different evaluation command using
+[method evalcmd]; this allows the application to use a safe
+interpreter, for example, or even to evaluated something other than
+Tcl code.  There is one caveat: to be recognized as valid, a macro
+must return 1 when passed to Tcl's "info complete" command.
+
+[para]
+
+For example, the following code "evaluates" each macro by returning
+the macro text itself.
+
+[para]
+[example {
+    proc identity {macro} {return $macro}
+    ::myexp evalcmd identity
+}]
+
+[subsection {Using the Context Stack}]
+
+Often it's desirable to define a pair of macros which operate in some
+way on the plain text between them.  Consider a set of macros for
+adding footnotes to a web page: one could have implement something
+like this:
+
+[para]
+[example {
+    Dr. Pangloss, however, thinks that this is the best of all
+    possible worlds.[footnote "See Candide, by Voltaire"]
+}]
+[para]
+
+The [cmd footnote] macro would, presumably, assign a number to this
+footnote and save the text to be formatted later on.  However, this
+solution is ugly if the footnote text is long or should contain
+additional markup.  Consider the following instead:
+
+[para]
+[example {
+    Dr. Pangloss, however, thinks that this is the best of all
+    possible worlds.[footnote]See [bookTitle "Candide"], by
+    [authorsName "Voltaire"], for more information.[/footnote]
+}]
+[para]
+
+Here the footnote text is contained between [cmd footnote] and
+[cmd /footnote] macros, continues onto a second line, and contains
+several macros of its own.  This is both clearer and more flexible;
+however, with the features presented so far there's no easy way to do
+it.  That's the purpose of the context stack.
+
+[para]
+
+All macro expansion takes place in a particular context.  Here, the
+[cmd footnote] macro pushes a new context onto the context stack.
+Then, all expanded text gets placed in that new context.
+
+[cmd /footnote] retrieves it by popping the context.  Here's a
+skeleton implementation of these two macros:
+
+[para]
+[example {
+    proc footnote {} {
+        ::myexp cpush footnote
+    }
+
+    proc /footnote {} {
+        set footnoteText [::myexp cpop footnote]
+
+        # Save the footnote text, and return an appropriate footnote
+        # number and link.
+    }
+}]
+[para]
+
+The [method cpush] command pushes a new context onto the stack; the
+argument is the context's name.  It can be any string, but would
+typically be the name of the macro itself.  Then, [method cpop]
+verifies that the current context has the expected name, pops it off
+of the stack, and returns the accumulated text.
+
+[para]
+
+Expand provides several other tools related to the context stack.
+Suppose the first macro in a context pair takes arguments or computes
+values which the second macro in the pair needs.  After calling
+[method cpush], the first macro can define one or more context
+variables; the second macro can retrieve their values any time before
+calling [method cpop].  For example, suppose the document must specify
+the footnote number explicitly:
+
+[para]
+[example {
+    proc footnote {footnoteNumber} {
+        ::myexp cpush footnote
+        ::myexp csave num $footnoteNumber
+        # Return an appropriate link
+    }
+
+    proc /footnote {} {
+        set footnoteNumber [::myexp cget num]
+        set footnoteText [::myexp cpop footnote]
+
+        # Save the footnote text and its footnoteNumber for future
+        # output.
+    }
+}]
+[para]
+
+At times, it might be desirable to define macros that are valid only
+within a particular context pair; such macros should verify that they
+are only called within the correct context using either [method cis]
+or [method cname].
+
+[section HISTORY]
+
+[cmd expander] was written by William H. Duquette; it is a repackaging
+of the central algorithm of the expand macro processing tool.
+
+[vset CATEGORY textutil]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

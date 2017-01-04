@@ -1,0 +1,212 @@
+# -*- tcl -*-
+# toc.test:  tests for the doctools::toc package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export.test,v 1.2 2009/04/29 02:10:56 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    use fileutil/fileutil.tcl    fileutil      ;# tests/common
+
+    use struct/list.tcl          struct::list
+    use snit/snit.tcl            snit
+    use log/logger.tcl           logger
+    use pluginmgr/pluginmgr.tcl  pluginmgr
+
+    use doctools2base/config.tcl          doctools::config
+    useLocal structure.tcl   doctools::toc::structure
+    use doctools2base/nroff_manmacros.tcl doctools::nroff::man_macros
+
+    source [tcllibPath doctools2base/tests/common]
+}
+testing {
+    useLocalKeep export.tcl doctools::toc::export
+}
+
+# -------------------------------------------------------------------------
+
+setup_plugins
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-export-1.0 {export object, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E export object
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::export::Snit_hmethodexport_object type selfns win self obj ?format?"}
+
+test doctools-toc-export-1.1 {export object, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E export object O F XXX
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::export::Snit_hmethodexport_object type selfns win self obj ?format?"}
+
+test doctools-toc-export-2.0 {export serial, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E export serial
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::export::Snit_hmethodexport_serial type selfns win self serial ?format?"}
+
+test doctools-toc-export-2.1 {export serial, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E export serial S F XXX
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::export::Snit_hmethodexport_serial type selfns win self serial ?format?"}
+
+test doctools-toc-export-5.0 {config names, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E config names X
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodnames type selfns win self"}
+
+test doctools-toc-export-6.0 {config get, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E config get X
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodget type selfns win self"}
+
+test doctools-toc-export-7.0 {config set, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E config set
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodset type selfns win self name ?value?"}
+
+test doctools-toc-export-7.1 {config set, wrong#args} -setup {
+    doctools::toc::export E
+} -body {
+    E config set N V X
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodset type selfns win self name ?value?"}
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-export-12.0 {config set, define single var} -setup {
+    doctools::toc::export E
+} -body {
+    E config set N V
+    E config get
+} -cleanup {
+    E destroy
+} -result {N V}
+
+test doctools-toc-export-12.1 {config set, define multiple vars} -setup {
+    doctools::toc::export E
+} -body {
+    E config set N V
+    E config set A B
+    dictsort [E config get]
+} -cleanup {
+    E destroy
+} -result {A B N V}
+
+test doctools-toc-export-12.2 {config set, as query} -setup {
+    doctools::toc::export E
+    E config set N V
+} -body {
+    E config set N
+} -cleanup {
+    E destroy
+} -result V
+
+test doctools-toc-export-13.0 {config unset, all} -setup {
+    doctools::toc::export E
+    E config set N V
+} -body {
+    E config unset
+    E config get
+} -cleanup {
+    E destroy
+} -result {}
+
+test doctools-toc-export-13.1 {config unset, by exact name} -setup {
+    doctools::toc::export E
+    E config set N V
+    E config set A B
+} -body {
+    E config unset N
+    E config get
+} -cleanup {
+    E destroy
+} -result {A B}
+
+test doctools-toc-export-13.2 {config unset, by glob pattern} -setup {
+    doctools::toc::export E
+    E config set N V
+    E config set N' V'
+    E config set A B
+} -body {
+    E config unset N*
+    E config get
+} -cleanup {
+    E destroy
+} -result {A B}
+
+test doctools-toc-export-14.0 {config names, empty} -setup {
+    doctools::toc::export E
+} -body {
+    E config names
+} -cleanup {
+    E destroy
+} -result {}
+
+test doctools-toc-export-14.1 {config names, with variables} -setup {
+    doctools::toc::export E
+    E config set N V
+    E config set A B
+} -body {
+    lsort -dict [E config names]
+} -cleanup {
+    E destroy
+} -result {A N}
+
+test doctools-toc-export-15.0 {config get, empty} -setup {
+    doctools::toc::export E
+} -body {
+    E config get
+} -cleanup {
+    E destroy
+} -result {}
+
+test doctools-toc-export-15.1 {config get, with variables} -setup {
+    doctools::toc::export E
+    E config set N V
+    E config set A B
+} -body {
+    dictsort [E config get]
+} -cleanup {
+    E destroy
+} -result {A B N V}
+
+# toc_export tests, numbering starts at 20
+# -------------------------------------------------------------------------
+
+source [localPath tests/export]
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return

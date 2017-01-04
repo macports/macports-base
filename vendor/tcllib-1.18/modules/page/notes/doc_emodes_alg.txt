@@ -1,0 +1,171 @@
+PE Grammar Tree, after ExprMode Computation
+===========================================
+
+This file is a companion to the file 'doc_emodes.txt'. The former
+describes the node attributes we wish to have, here we formally
+specify the properties of the attributes, and then derive from that an
+algorithm for their computation.
+
+Per node
+--------
+
+First we specify the properties of the attributes on a case by case
+basis, for each possible type of node. This may invole a lot of
+repetition, but this detail is necessary to be able to the patterns in
+the definition which then allow us to simplify things.
+
+Legend
+~~~~~~
+	X		Current node.
+	parent(X)	Parent node of X.
+	users(X)	n-Nodes invoking the definition.
+	def(X)		Definition node invoked by X.
+	children(X)	Set of all children of X.
+	child(X)	Child of X (if X has only a single child)
+	|S|		Cardinality of the set S.
+	AllYes(X)	gen'(Y,yes), for all Y in children(X).
+	AllNo(X)	gen'(Y,no),  for all Y in children(X).
+	SomeYes(X)	gen'(Y,yes), exists  Y in children(X).
+	SomeNo(X)	gen'(Y,no),  exists  Y in children(X).
+	Mode(X)		Nonterminal mode provided by the input.
+	Discard(X)	Mode(X) == discard
+	Value(X)	Mode(X) == value
+	Data(X)		Mode(X) in {match, leaf}
+	
+
+Node type	acc(X)			gen(X)
+~~~~~~~~~	~~~~~~			~~~~~~
+DEF		FALSE,	!Value(X) ||	yes,    Data(X)    || (Value(X) && AllYes(X))
+		   !acc(child(X)) ||	no,     Discard(X) || (Value(X) && AllNo(X))
+			USER ||		maybe,  Value(X) && !AllYes(X) && !AllNo(X)
+			gen(X,no)
+		TRUE,	else
+
+	USER = (|Users(X)| == 1) &&
+	        !acc(Users(X))
+~~~~~~~~~	~~~~~~			~~~~~~
+!, &		FALSE			no
+~~~~~~~~~	~~~~~~			~~~~~~
+?, *		acc(parent(X))		no,	AllNo(X)	[2]
+					maybe,	else
+~~~~~~~~~	~~~~~~			~~~~~~
++		acc(parent(X))		yes,	AllYes(X)
+					no,	AllNo(X)
+					maybe,	else
+~~~~~~~~~	~~~~~~			~~~~~~
+x		acc(parent(X))		yes,	SomeYes(X)	[3]
+					no,	AllNo(X)
+					maybe,	else
+~~~~~~~~~	~~~~~~			~~~~~~
+/		acc(parent(X))		yes,	AllYes(X)	[3]
+					no,	AllNo(X)
+					maybe,	else
+~~~~~~~~~	~~~~~~			~~~~~~
+t, epsilon,	acc(parent(X)) [1]	yes,    acc(parent(X))
+dot, alnum,				no,    !acc(parent(X))
+alpha
+~~~~~~~~~	~~~~~~			~~~~~~
+n		acc(parent(X))		yes,     acc(X) && gen'(def(X),yes)  
+					no,     !acc(X) || gen'(def(X),no)   
+					maybe,   acc(X) && gen'(def(X),maybe)
+~~~~~~~~~	~~~~~~			~~~~~~
+
+From this specification we can draw the following conclusions about
+the properties and their calculation:
+
+- Acceptance data is defined top-down, from root to the leaves.
+
+- Generation data is defined bottom-up, from leaves to the root.
+
+- In the leaves Acceptance data is converted into Generation data.
+  Nonterminal calls additional hook in the Generation data of the
+  called symbols.
+
+- In the definition Generation data can convert into Acceptance data,
+  and Nonterminal uses hook in the Generation data from the calling
+  nodes, and may hook in Acceptance data as well.
+
+The important places are the two sides of boundaries, i.e. the
+definition nodes, and the n-Nodes calling on definitions. Only there
+the property values may need resolution of conflicts. Anywhere else
+the values are derived in simple equations, allowing their computation
+in trivial sweeps.
+
+
+Algorithm
+~~~~~~~~~
+
+1.	Initialization.
+
+	acc(X), gen(X) for all DEFs, without consideration for
+	children and users (use maybe for unknown parts).
+
+2.	Sweep
+
+	For all definitions
+
+	a.	Sweep top-down.
+		acc(X) for all nodes.
+
+	b.	Sweep bottom-up
+		gen(X) for all nodes.
+
+3.	Resolution.
+
+	Recompute acc(X), gen(X) for all DEFs, using the full
+	equations. Remember which nodes changed.
+
+4.	Repeat from 2 using the remembered set of DEFs, if not
+	empty. Stop if the set of changed DEFs is empty.
+
+Algorithm 2
+~~~~~~~~~~~
+
+1.	Initialization.
+
+	acc(X), gen(X) for all DEFs, without consideration for
+	children and users (use maybe for unknown parts).
+
+2.	Sweep
+
+	For all definitions
+
+		Sweep top-down.
+		acc(X), gen(X) for all nodes
+
+		The gen(X) is possible because an initial value is
+		directly computable from acc(X), without having to
+		look at the children at all.
+
+		!acc(X) => gen(X,No).
+		 acc(X) => gen(X,Maybe)
+
+		 Even better. If !acc(X) we can count the type of
+		 calls for invoked nonterminals, and if that is the
+		 number of users we can immediately change their
+		 acc(X) and sweep down further (similar to reachable).
+
+	We remember the interesting places where things can change.
+	The leaf nodes, and lookahead operators.
+
+3.	Sweep the 2nd, working up from each interesting place (sorted
+	by depth, deepest first) up through the ancestors, and when
+	reaching def-Nodes we can now sweep up further into the users.
+
+	If this changes acc(X) for a definition (only down to discard)
+	we remember, and after completion go back to 2.
+
+_____________________________________________________
+[1] Actually the value is not really relevant as there are no childen
+    to consider. However with the chosen definition the number of
+    special cases to consider is reduced. I.e. the definition of the
+    function is more uniform.
+
+[2] The *- and ?-operators match even if the expression underneath them
+    does not. In which case there will be no SV. So the best we can
+    say even if the expression surely does generates an SV is maybe.
+
+[3] The x- and /-operators can be made more accurate if we have data
+    about static match results, as this information can cut down the
+    set of children to actually consider for matching and generation
+    of values.

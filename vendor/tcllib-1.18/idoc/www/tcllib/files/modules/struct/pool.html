@@ -1,0 +1,447 @@
+
+<html><head>
+<title>struct::pool - Tcl Data Structures</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'pool.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002, Erik Leunissen &lt;e.leunissen@hccnet.nl&gt;
+   -->
+<! -- struct::pool.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">struct::pool(n) 1.2.3 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>struct::pool - Create and manipulate pool objects (of discrete items)</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">POOLS AND ALLOCATION</a></li>
+<li class="doctools_section"><a href="#section3">ITEMS</a></li>
+<li class="doctools_section"><a href="#section4">POOL OBJECT COMMAND</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">struct::pool <span class="opt">?1.2.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::struct::pool</b> <span class="opt">?<i class="arg">poolName</i>?</span> <span class="opt">?<i class="arg">maxsize</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">poolName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">poolName</i> <b class="method">add</b> <i class="arg">itemName1</i> <span class="opt">?<i class="arg">itemName2 itemName3 ...</i>?</span></a></li>
+<li><a href="#4"><i class="arg">poolName</i> <b class="method">clear</b> <span class="opt">?<b class="option">-force</b>?</span></a></li>
+<li><a href="#5"><i class="arg">poolName</i> <b class="method">destroy</b> <span class="opt">?<b class="option">-force</b>?</span></a></li>
+<li><a href="#6"><i class="arg">poolName</i> <b class="method">info</b> <i class="arg">type</i> <span class="opt">?<i class="arg">arg</i>?</span></a></li>
+<li><a href="#7"><i class="arg">poolName</i> <b class="method">maxsize</b> <span class="opt">?<i class="arg">maxsize</i>?</span></a></li>
+<li><a href="#8"><i class="arg">poolName</i> <b class="method">release</b> <i class="arg">itemName</i></a></li>
+<li><a href="#9"><i class="arg">poolName</i> <b class="method">remove</b> <i class="arg">itemName</i> <span class="opt">?<b class="option">-force</b>?</span></a></li>
+<li><a href="#10"><i class="arg">poolName</i> <b class="method">request</b> itemVar <span class="opt">?options?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides pool objects which can be used to manage
+finite collections of discrete items.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::struct::pool</b> <span class="opt">?<i class="arg">poolName</i>?</span> <span class="opt">?<i class="arg">maxsize</i>?</span></a></dt>
+<dd><p>Creates a new pool object. If no <i class="arg">poolName</i> is supplied, then the
+new pool will be named pool<b class="variable">X</b>, where X is a positive integer.
+The optional second argument <i class="arg">maxsize</i> has to be a positive
+integer indicating the maximum size of the pool; this is the maximum
+number of items the pool may hold. The default for this value is
+<b class="const">10</b>.</p>
+<p>The pool object has an associated global Tcl command whose name is
+<i class="arg">poolName</i>. This command may be used to invoke various
+configuration operations on the report. It has the following general
+form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">poolName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command. See section <span class="sectref"><a href="#section4">POOL OBJECT COMMAND</a></span> for a detailed
+list of options and their behaviour.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">POOLS AND ALLOCATION</a></h2>
+<p>The purpose of the pool command and the pool object command that it
+generates, is to manage pools of discrete items.
+Examples of a pool of discrete items are:</p>
+<ul class="doctools_itemized">
+<li><p>the seats in a cinema, theatre, train etc.. for which visitors/travelers can  make a reservation;</p></li>
+<li><p>the dynamic IP-addresses that an ISP can dole out  to subscribers;</p></li>
+<li><p>a car rental's collection of cars, which can be rented by customers;</p></li>
+<li><p>the class rooms in a school building, which need to be scheduled;</p></li>
+<li><p>the database connections available to client-threads in a web-server application;</p></li>
+<li><p>the books in a library that customers can borrow;</p></li>
+<li><p>etc ...</p></li>
+</ul>
+<p>The common denominator in the examples is that there is a more or less
+fixed number of items (seats, IP-addresses, cars, ...) that are
+supposed to be allocated on a more or less regular basis. An item can
+be allocated only once at a time. An item that is allocated, must be
+released before it can be re-allocated.  While several items in a pool
+are being allocated and released continuously, the total number of
+items in the pool remains constant.</p>
+<p>Keeping track of which items are allocated, and by whom, is the
+purpose of the pool command and its subordinates.</p>
+<p><em>Pool parlance</em>: If we say that an item is
+<i class="term">allocated</i>, it means that the item is <i class="term">busy</i>,
+<i class="term">owned</i> or <i class="term">occupied</i>; it is not available anymore. If
+an item is <i class="term">free</i>, it is <i class="term">available</i>. Deallocating an
+item is equivalent to setting free or releasing an item. The person or
+entity to which the item has been allotted is said to own the item.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">ITEMS</a></h2>
+<p><em>Discrete items</em></p>
+<p>The <b class="cmd"><a href="../../../../index.html#key304">pool</a></b> command is designed for
+<em>discrete items only</em>. Note that there are pools where
+allocation occurs on a non-discrete basis, for example computer
+memory. There are also pools from which the shares that are doled out
+are not expected to be returned, for example a charity fund or a pan
+of soup from which you may receive a portion. Finally, there are even
+pools from which nothing is ever allocated or returned, like a
+swimming pool or a cesspool.</p>
+<p><em>Unique item names</em></p>
+<p>A pool cannot manage duplicate item names. Therefore, items in a pool
+must have unique names.</p>
+<p><em>Item equivalence</em></p>
+<p>From the point of view of the manager of a pool, items are
+equivalent. The manager of a pool is indifferent about which
+entity/person occupies a given item. However, clients may have
+preferences for a particular item, based on some item property they
+know.</p>
+<p><em>Preferences</em></p>
+<p>A future owner may have a preference for a particular item. Preference
+based allocation is supported (see the <b class="option">-prefer</b> option to the
+request subcommand). A preference for a particular item is most likely
+to result from variability among features associated with the
+items. Note that the pool commands themselves are not designed to
+manage such item properties. If item properties play a role in an
+application, they should be managed separately.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">POOL OBJECT COMMAND</a></h2>
+<p>The following subcommands and corresponding arguments are available to
+any pool object command.</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">poolName</i> <b class="method">add</b> <i class="arg">itemName1</i> <span class="opt">?<i class="arg">itemName2 itemName3 ...</i>?</span></a></dt>
+<dd><p>This command adds the items on the command line to the pool. If
+duplicate item names occur on the command line, an error is raised. If
+one or more of the items already exist in the pool, this also is
+considered an error.</p></dd>
+<dt><a name="4"><i class="arg">poolName</i> <b class="method">clear</b> <span class="opt">?<b class="option">-force</b>?</span></a></dt>
+<dd><p>Removes all items from the pool. If there are any allocated items at
+the time when the command is invoked, an error is raised. This
+behaviour may be modified through the <b class="option">-force</b> argument. If it
+is supplied on the command line, the pool will be cleared regardless
+the allocation state of its items.</p></dd>
+<dt><a name="5"><i class="arg">poolName</i> <b class="method">destroy</b> <span class="opt">?<b class="option">-force</b>?</span></a></dt>
+<dd><p>Destroys the pool data structure, all associated variables and the
+associated pool object command. By default, the command checks whether
+any items are still allocated and raises an error if such is the
+case. This behaviour may be modified through the argument
+<b class="option">-force</b>. If it is supplied on the command line, the pool data
+structure will be destroyed regardless allocation state of its items.</p></dd>
+<dt><a name="6"><i class="arg">poolName</i> <b class="method">info</b> <i class="arg">type</i> <span class="opt">?<i class="arg">arg</i>?</span></a></dt>
+<dd><p>Returns various information about the pool for further programmatic
+use. The <i class="arg">type</i> argument indicates the type of information
+requested. Only the type <b class="const">allocID</b> uses an additional argument.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">allocID</b> <i class="arg">itemName</i></dt>
+<dd><p>returns the allocID of the item whose name is <i class="arg">itemName</i>. Free
+items have an allocation id of <b class="const">-1</b>.</p></dd>
+<dt><b class="const">allitems</b></dt>
+<dd><p>returns a list of all items in the pool.</p></dd>
+<dt><b class="const">allocstate</b></dt>
+<dd><p>Returns a list of key-value pairs, where the keys are the items and
+the values are the corresponding allocation id's. Free items have an
+allocation id of <b class="const">-1</b>.</p></dd>
+<dt><b class="const">cursize</b></dt>
+<dd><p>returns the current pool size, i.e. the number of items in the pool.</p></dd>
+<dt><b class="const">freeitems</b></dt>
+<dd><p>returns a list of items that currently are not allocated.</p></dd>
+<dt><b class="const">maxsize</b></dt>
+<dd><p>returns the maximum size of the pool.</p></dd>
+</dl></dd>
+<dt><a name="7"><i class="arg">poolName</i> <b class="method">maxsize</b> <span class="opt">?<i class="arg">maxsize</i>?</span></a></dt>
+<dd><p>Sets or queries the maximum size of the pool, depending on whether the
+<i class="arg">maxsize</i> argument is supplied or not. If <i class="arg">maxsize</i> is
+supplied, the maximum size of the pool will be set to that value. If
+no argument is supplied, the current maximum size of the pool is
+returned. In this variant, the command is an alias for:</p>
+<p><b class="cmd">poolName info maxsize</b>.</p>
+<p>The <i class="arg">maxsize</i> argument has to be a positive integer.</p></dd>
+<dt><a name="8"><i class="arg">poolName</i> <b class="method">release</b> <i class="arg">itemName</i></a></dt>
+<dd><p>Releases the item whose name is <i class="arg">itemName</i> that was allocated
+previously. An error is raised if the item was not allocated at the
+time when the command was issued.</p></dd>
+<dt><a name="9"><i class="arg">poolName</i> <b class="method">remove</b> <i class="arg">itemName</i> <span class="opt">?<b class="option">-force</b>?</span></a></dt>
+<dd><p>Removes the item whose name is <i class="arg">itemName</i> from the pool. If the
+item was allocated at the time when the command was invoked, an error
+is raised. This behaviour may be modified through the optional
+argument <b class="option">-force</b>. If it is supplied on the command line, the
+item will be removed regardless its allocation state.</p></dd>
+<dt><a name="10"><i class="arg">poolName</i> <b class="method">request</b> itemVar <span class="opt">?options?</span></a></dt>
+<dd><p>Handles a request for an item, taking into account a possible
+preference for a particular item. There are two possible outcomes
+depending on the availability of items:</p>
+<ol class="doctools_enumerated">
+<li><p>The request is honoured, an item is allocated and the variable whose
+name is passed with the argument <i class="arg">itemVar</i> will be set to the name
+of the item that was allocated. The command returns 1.</p></li>
+<li><p>The request is denied. No item is allocated. The variable whose name
+is itemVar is not set.  Attempts to read <i class="arg">itemVar</i> may raise an
+error if the variable was not defined before issuing the request. The
+command returns 0.</p></li>
+</ol>
+<p>The return values from this command are meant to be inspected. The
+examples below show how to do this. Failure to check the return value
+may result in erroneous behaviour. If no preference for a particular
+item is supplied through the option <b class="option">-prefer</b> (see below), then
+all requests are honoured as long as items are available.</p>
+<p>The following options are supported:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-allocID</b> <i class="arg">allocID</i></dt>
+<dd><p>If the request is honoured, an item will be allocated to the entity
+identified by allocID. If the allocation state of an item is queried,
+it is this allocation ID that will be returned. If the option
+<b class="option">-allocID</b> is not supplied, the item will be given to and owned
+by <b class="const">dummyID</b>. Allocation id's may be anything except the value
+-1, which is reserved for free items.</p></dd>
+<dt><b class="option">-prefer</b> <i class="arg">preferredItem</i></dt>
+<dd><p>This option modifies the allocation strategy as follows: If the item
+whose name is <i class="arg">preferredItem</i> is not allocated at the time when
+the command is invoked, the request is honoured (return value is
+1). If the item was allocated at the time when the command was
+invoked, the request is denied (return value is 0).</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+<p>Two examples are provided. The first one mimics a step by step
+interactive tclsh session, where each step is explained. The second
+example shows the usage in a server application that talks to a
+back-end application.</p>
+<p><em>Example 1</em></p>
+<p>This example presents an interactive tclsh session which considers the
+case of a Car rental's collection of cars. Ten steps explain its usage
+in chronological order, from the creation of the pool, via the most
+important stages in the usage of a pool, to the final destruction.</p>
+<p><em>Note aside:</em></p>
+<p>In this example, brand names are used to label the various
+items. However, a brand name could be regarded as a property of an
+item. Because the pool command is not designed to manage properties of
+items, they need to be managed separately. In the latter case the
+items should be labeled with more neutral names such as: car1, car2,
+car3 , etc ... and a separate database or array should hold the brand
+names associated with the car labels.</p>
+<pre class="doctools_example">
+     1. Load the package into an interpreter
+     % package require pool
+     0.1
+     2. Create a pool object called `CarPool' with a maximum size of 55 items (cars):
+     % pool CarPool 55
+     CarPool
+     4. Add items to the pool:
+     % CarPool add Toyota Trabant Chrysler1 Chrysler2 Volkswagen
+     5. Somebody crashed the Toyota. Remove it from the pool as follows:
+     % CarPool remove Toyota
+     6. Acquired a new car for the pool. Add it as follows:
+     % CarPool add Nissan
+     7. Check whether the pool was adjusted correctly:
+     % CarPool info allitems
+     Trabant Chrysler1 Chrysler2 Volkswagen Nissan
+</pre>
+<p>Suspend the interactive session temporarily, and show the programmatic
+use of the request subcommand:</p>
+<pre class="doctools_example">
+     # Mrs. Swift needs a car. She doesn't have a preference for a
+     # particular car. We'll issue a request on her behalf as follows:
+     if { [CarPool request car -allocID &quot;Mrs. Swift&quot;] }  {
+         # request was honoured, process the variable `car'
+         puts &quot;$car has been allocated to [CarPool info allocID $car].&quot;
+     } else {
+         # request was denied
+          puts &quot;No car available.&quot;
+     }
+</pre>
+<p>Note how the <b class="cmd">if</b> command uses the value returned by the
+<b class="method">request</b> subcommand.</p>
+<pre class="doctools_example">
+     # Suppose Mr. Wiggly has a preference for the Trabant:
+     if { [CarPool request car -allocID &quot;Mr. Wiggly&quot; -prefer Trabant] }  {
+         # request was honoured, process the variable `car'
+         puts &quot;$car has been allocated to [CarPool info allocID $car].&quot;
+     } else {
+         # request was denied
+          puts &quot;The Trabant was not available.&quot;
+     }
+</pre>
+<p>Resume the interactive session:</p>
+<pre class="doctools_example">
+     8. When the car is returned then you can render it available by:
+     % CarPool release Trabant
+     9. When done, you delete the pool.
+     % CarPool destroy
+     Couldn't destroy `CarPool' because some items are still allocated.
+     Oops, forgot that Mrs. Swift still occupies a car.
+     10. We force the destruction of the pool as follows:
+     % CarPool destroy -force
+</pre>
+<p><em>Example 2</em></p>
+<p>This example describes the case from which the author's need for pool
+management originated. It is an example of a server application that
+receives requests from client applications. The client requests are
+dispatched onto a back-end application before being returned to the
+client application. In many cases there are a few equivalent instances
+of back-end applications to which a client request may be passed
+along. The file descriptors that identify the channels to these
+back-end instances make up a pool of connections. A particular
+connection may be allocated to just one client request at a time.</p>
+<pre class="doctools_example">
+     # Create the pool of connections (pipes)
+     set maxpipes 10
+     pool Pipes $maxpipes
+     for {set i 0} {$i &lt; $maxpipes} {incr i} {
+         set fd [open &quot;|backendApplication&quot; w+]
+         Pipes add $fd
+     }
+     # A client request comes in. The request is identified as `clientX'.
+     # Dispatch it onto an instance of a back-end application
+     if { [Pipes request fd -allocID clientX] } {
+         # a connection was allocated
+         # communicate to the back-end application via the variable `fd'
+         puts $fd &quot;someInstruction&quot;
+         # ...... etc.
+     } else {
+         # all connections are currently occupied
+         # store the client request in a queue for later processing,
+         # or return a 'Server busy' message to the client.
+     }
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>struct :: pool</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key786">discrete items</a>, <a href="../../../../index.html#key787">finite</a>, <a href="../../../../index.html#key304">pool</a>, <a href="../../../../index.html#key327">struct</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002, Erik Leunissen &lt;e.leunissen@hccnet.nl&gt;</p>
+</div>
+</div></body></html>

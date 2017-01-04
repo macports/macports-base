@@ -1,0 +1,349 @@
+<html><head>
+<title>pop3 - Tcl POP3 Client Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'pop3.man' by tcllib/doctools with format 'html'
+   -->
+<! -- pop3.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pop3(n) 1.9 tcllib &quot;Tcl POP3 Client Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pop3 - Tcl client for POP3 email protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section3">API</a></li>
+<li class="doctools_section"><a href="#section4">Secure mail transfer</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">pop3 <span class="opt">?1.9?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pop3::open</b> <span class="opt">?<b class="option">-msex</b> 0|1?</span> <span class="opt">?<b class="option">-retr-mode</b> retr|list|slow?</span> <span class="opt">?<b class="option">-socketcmd</b> cmdprefix?</span> <span class="opt">?<b class="option">-stls</b> 0|1?</span> <span class="opt">?<b class="option">-tls-callback</b> stls-callback-command?</span> <i class="arg">host username password</i> <span class="opt">?<i class="arg">port</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::pop3::config</b> <i class="arg">chan</i></a></li>
+<li><a href="#3"><b class="cmd">::pop3::status</b> <i class="arg">chan</i></a></li>
+<li><a href="#4"><b class="cmd">::pop3::last</b> <i class="arg">chan</i></a></li>
+<li><a href="#5"><b class="cmd">::pop3::retrieve</b> <i class="arg">chan startIndex</i> <span class="opt">?<i class="arg">endIndex</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::pop3::delete</b> <i class="arg">chan startIndex</i> <span class="opt">?<i class="arg">endIndex</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::pop3::list</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">msg</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::pop3::top</b> <i class="arg">chan</i> <i class="arg">msg</i> <i class="arg">n</i></a></li>
+<li><a href="#9"><b class="cmd">::pop3::uidl</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">msg</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">::pop3::capa</b> <i class="arg">chan</i></a></li>
+<li><a href="#11"><b class="cmd">::pop3::close</b> <i class="arg">chan</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">pop3</b> package provides a simple Tcl-only client library
+for the POP3 email protocol as specified in
+<a href="http://www.rfc-editor.org/rfc/rfc1939.txt">RFC 1939</a>.
+It works by opening the standard POP3 socket on the server,
+transmitting the username and password, then providing a Tcl API to
+access the POP3 protocol commands.  All server errors are returned as
+Tcl errors (thrown) which must be caught with the Tcl <b class="cmd">catch</b>
+command.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pop3::open</b> <span class="opt">?<b class="option">-msex</b> 0|1?</span> <span class="opt">?<b class="option">-retr-mode</b> retr|list|slow?</span> <span class="opt">?<b class="option">-socketcmd</b> cmdprefix?</span> <span class="opt">?<b class="option">-stls</b> 0|1?</span> <span class="opt">?<b class="option">-tls-callback</b> stls-callback-command?</span> <i class="arg">host username password</i> <span class="opt">?<i class="arg">port</i>?</span></a></dt>
+<dd><p>Open a socket connection to the server specified by <i class="arg">host</i>,
+transmit the <i class="arg">username</i> and <i class="arg">password</i> as login information to
+the server.  The default port number is <b class="const">110</b>, which can be
+overridden using the optional <i class="arg">port</i> argument.  The return value
+is a channel used by all of the other ::pop3 functions.</p>
+<p>The command recognizes three options</p>
+<dl class="doctools_options">
+<dt><b class="option">-msex</b> boolean</dt>
+<dd><p>Setting this option tells the package that the server we are talking
+to is an MS Exchange server (which has some oddities we have to work
+around). The default is <b class="const">False</b>.</p></dd>
+<dt><b class="option">-retr-mode</b> retr|list|slow</dt>
+<dd><p>The retrieval mode determines how exactly messages are read from the
+server.
+The allowed values are <b class="const">retr</b>, <b class="const">list</b> and <b class="const">slow</b>.
+The default is <b class="const">retr</b>. See <b class="cmd">::pop3::retrieve</b> for more
+information.</p></dd>
+<dt><b class="option">-socketcmd</b> cmdprefix</dt>
+<dd><p>This option allows the user to overide the use of the builtin
+<b class="cmd"><a href="../../../../index.html#key352">socket</a></b> command with any API-compatible command. The envisioned
+main use is the securing of the new connection via SSL, through the
+specification of the command <b class="cmd">tls::socket</b>. This command is
+specially recognized as well, changing the default port of the
+connection to <b class="const">995</b>.</p></dd>
+<dt><b class="option">-stls</b> boolean</dt>
+<dd><p>Setting this option tells the package to secure the connection using
+SSL or TLS. It performs STARTTLS as described in IETF RFC 2595, it
+first opens a normal, unencrypted connection and then negotiates a
+SSLv3 or TLSv1 connection. If the connection cannot be secured, the
+connection will be closed and an error will be returned</p></dd>
+<dt><b class="option">-tls-callback</b> stls-callback-command</dt>
+<dd><p>This option allows the user to overide the <b class="cmd">tls::callback</b> used during
+the <b class="const">-stls</b> SSL/TLS handshake. See the TLS manual for details on how
+to implement this callback.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::pop3::config</b> <i class="arg">chan</i></a></dt>
+<dd><p>Returns the configuration of the pop3 connection identified by the
+channel handle <i class="arg">chan</i> as a serialized array.</p></dd>
+<dt><a name="3"><b class="cmd">::pop3::status</b> <i class="arg">chan</i></a></dt>
+<dd><p>Query the server for the status of the mail spool.  The status is
+returned as a list containing two elements, the first is the number of
+email messages on the server and the second is the size (in octets, 8
+bit blocks) of the entire mail spool.</p></dd>
+<dt><a name="4"><b class="cmd">::pop3::last</b> <i class="arg">chan</i></a></dt>
+<dd><p>Query the server for the last email message read from the spool.  This
+value includes all messages read from all clients connecting to the
+login account.  This command may not be supported by the email server,
+in which case the server may return 0 or an error.</p></dd>
+<dt><a name="5"><b class="cmd">::pop3::retrieve</b> <i class="arg">chan startIndex</i> <span class="opt">?<i class="arg">endIndex</i>?</span></a></dt>
+<dd><p>Retrieve a range of messages from the server.  If the <i class="arg">endIndex</i>
+is not specified, only one message will be retrieved.  The return
+value is a list containing each message as a separate element.  See
+the <i class="arg">startIndex</i> and <i class="arg">endIndex</i> descriptions below.</p>
+<p>The retrieval mode determines how exactly messages are read from the
+server. The mode <b class="const">retr</b> assumes that the RETR command delivers
+the size of the message as part of the command status and uses this to
+read the message efficiently. In mode <b class="const">list</b> RETR does not
+deliver the size, but the LIST command does and we use this to
+retrieve the message size before the actual retrieval, which can then
+be done efficiently. In the last mode, <b class="const">slow</b>, the system is
+unable to obtain the size of the message to retrieve in any manner and
+falls back to reading the message from the server line by line.</p>
+<p>It should also be noted that the system checks upon the configured
+mode and falls back to the slower modes if the above assumptions are
+not true.</p></dd>
+<dt><a name="6"><b class="cmd">::pop3::delete</b> <i class="arg">chan startIndex</i> <span class="opt">?<i class="arg">endIndex</i>?</span></a></dt>
+<dd><p>Delete a range of messages from the server.  If the <i class="arg">endIndex</i> is
+not specified, only one message will be deleted.  Note, the indices
+are not reordered on the server, so if you delete message 1, then the
+first message in the queue is message 2 (message index 1 is no longer
+valid).  See the <i class="arg">startIndex</i> and <i class="arg">endIndex</i> descriptions
+below.</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">startIndex</i></dt>
+<dd><p>The <i class="arg">startIndex</i> may be an index of a specific message starting
+with the index 1, or it have any of the following values:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">start</b></dt>
+<dd><p>This is a logical value for the first message in the spool, equivalent
+to the value 1.</p></dd>
+<dt><b class="const">next</b></dt>
+<dd><p>The message immediately following the last message read, see
+<b class="cmd">::pop3::last</b>.</p></dd>
+<dt><b class="const">end</b></dt>
+<dd><p>The most recent message in the spool (the end of the spool).  This is
+useful to retrieve only the most recent message.</p></dd>
+</dl></dd>
+<dt><i class="arg">endIndex</i></dt>
+<dd><p>The <i class="arg">endIndex</i> is an optional parameter and defaults to the value
+&quot;-1&quot;, which indicates to only retrieve the one message specified by
+<i class="arg">startIndex</i>.  If specified, it may be an index of a specific
+message starting with the index &quot;1&quot;, or it may have any of the
+following values:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">last</b></dt>
+<dd><p>The message is the last message read by a POP3 client, see
+<b class="cmd">::pop3::last</b>.</p></dd>
+<dt><b class="const">end</b></dt>
+<dd><p>The most recent message in the spool (the end of the spool).</p></dd>
+</dl></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::pop3::list</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">msg</i>?</span></a></dt>
+<dd><p>Returns the scan listing of the mailbox. If parameter <i class="arg">msg</i> is
+given, then the listing only for that message is returned.</p></dd>
+<dt><a name="8"><b class="cmd">::pop3::top</b> <i class="arg">chan</i> <i class="arg">msg</i> <i class="arg">n</i></a></dt>
+<dd><p>Optional POP3 command, not all servers may support this.
+<b class="cmd">::pop3::top</b> retrieves headers of a message, specified by
+parameter <i class="arg">msg</i>, and number of <i class="arg">n</i> lines from the message
+body.</p></dd>
+<dt><a name="9"><b class="cmd">::pop3::uidl</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">msg</i>?</span></a></dt>
+<dd><p>Optional POP3 command, not all servers may support this.
+<b class="cmd">::pop3::uidl</b> returns the uid listing of the mailbox. If the
+parameter <i class="arg">msg</i> is specified, then the listing only for that
+message is returned.</p></dd>
+<dt><a name="10"><b class="cmd">::pop3::capa</b> <i class="arg">chan</i></a></dt>
+<dd><p>Optional POP3 command, not all servers may support this.
+<b class="cmd">::pop3::capa</b> returns a list of the capabilities of the server.
+TOP, SASL, UIDL, LOGIN-DELAY and STLS are typical capabilities.
+See IETF RFC 2449.</p></dd>
+<dt><a name="11"><b class="cmd">::pop3::close</b> <i class="arg">chan</i></a></dt>
+<dd><p>Gracefully close the connect after sending a POP3 QUIT command down
+the socket.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Secure mail transfer</a></h2>
+<p>A pop3 connection can be secured with SSL/TLS by requiring the package
+<b class="package"><a href="../../../../index.html#key331">TLS</a></b> and then using either the option <b class="option">-socketcmd</b> or
+the option <b class="option">-stls</b> of the command <b class="cmd">pop3::open</b>.
+The first method, option <b class="option">-socketcmd</b>, will force the use
+of the <b class="cmd">tls::socket</b> command when opening the connection. This is
+suitable for POP3 servers which expect SSL connections only. These will
+generally be listening on port 995.</p>
+<pre class="doctools_example">
+	package require tls
+	tls::init -cafile /path/to/ca/cert -keyfile ...
+	# Create secured pop3 channel
+	pop3::open -socketcmd tls::socket \\
+		$thehost $theuser $thepassword
+	...
+</pre>
+<p>The second method, option <b class="option">-stls</b>, will connect to the standard POP3
+port and then perform an STARTTLS handshake. This will only work for POP3
+servers which have this capability. The package will confirm that the
+server supports STARTTLS and the handshake was performed correctly before
+proceeding with authentication.</p>
+<pre class="doctools_example">
+	package require tls
+	tls::init -cafile /path/to/ca/cert -keyfile ...
+	# Create secured pop3 channel
+	pop3::open -stls 1 \\
+		$thehost $theuser $thepassword
+	...
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pop3</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key335">email</a>, <a href="../../../../index.html#key330">mail</a>, <a href="../../../../index.html#key444">pop</a>, <a href="../../../../index.html#key443">pop3</a>, <a href="../../../../index.html#key442">rfc 1939</a>, <a href="../../../../index.html#key356">secure</a>, <a href="../../../../index.html#key359">ssl</a>, <a href="../../../../index.html#key331">tls</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div></body></html>

@@ -1,0 +1,34 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+package require Tcl 8.5
+package require snit
+package require pt::peg::container
+
+snit::type TEMPLATE {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {n Expression}
+
+        $myg add   Expression
+        $myg mode  Expression value
+        $myg rule  Expression {n Function}
+
+        $myg add   Function
+        $myg mode  Function   value
+        $myg rule  Function   {n Sinus}
+
+        $myg add   Sinus
+        $myg mode  Sinus      value
+        $myg rule  Sinus      {x {t s} {t i} {t n} {t \50} {n Expression} {t \51}}
+
+        return
+    }
+
+    component myg
+    delegate method * to myg
+}
+
+package provide TEMPLATE
+return

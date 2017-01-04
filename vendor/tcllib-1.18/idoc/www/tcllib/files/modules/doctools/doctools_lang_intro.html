@@ -1,0 +1,646 @@
+
+<html><head>
+<title>doctools_lang_intro - Documentation tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'doctools_lang_intro.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- doctools_lang_intro.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools_lang_intro(n) 1.0 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools_lang_intro - doctools language introduction</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Fundamentals</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Basic structure</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Advanced structure</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Text structure</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Text markup</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Escapes</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Cross-references</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Examples</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Lists</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">FURTHER READING</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document is an informal introduction to version 1 of the doctools
+markup language based on a multitude of examples. After reading this a
+writer should be ready to understand the two parts of the formal
+specification, i.e. the <i class="term"><a href="doctools_lang_syntax.html">doctools language syntax</a></i> specification
+and the <i class="term"><a href="doctools_lang_cmdref.html">doctools language command reference</a></i>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Fundamentals</a></h3>
+<p>In the broadest terms possible the <i class="term">doctools markup language</i>
+is LaTeX-like, instead of like SGML and similar languages. A document
+written in this language consists primarily of text, with markup
+commands embedded into it.</p>
+<p>Each markup command is a Tcl command surrounded by a matching pair of
+<b class="const">[</b> and <b class="const">]</b>. Inside of these delimiters the usual
+rules for a Tcl command apply with regard to word quotation, nested
+commands, continuation lines, etc. I.e.</p>
+<pre class="doctools_example">
+  ... [list_begin enumerated] ...
+</pre>
+<pre class="doctools_example">
+  ... [call [cmd foo] \\
+          [arg bar]] ...
+</pre>
+<pre class="doctools_example">
+  ... [term {complex concept}] ...
+</pre>
+<pre class="doctools_example">
+  ... [opt &quot;[arg key] [arg value]&quot;] ...
+</pre>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Basic structure</a></h3>
+<p>The most simple document which can be written in doctools is</p>
+<pre class="doctools_example">
+    [manpage_begin NAME SECTION VERSION]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+    [description]
+    [vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]
+</pre>
+<p>This also shows us that all doctools documents are split into two
+parts, the <i class="term">header</i> and the <i class="term">body</i>. Everything coming before
+[<b class="cmd">description</b>] belongs to the header, and everything coming
+after belongs to the body, with the whole document bracketed by the
+two <b class="cmd">manpage_*</b> commands. Before and after these opening and
+closing commands we have only <i class="term">whitespace</i>.</p>
+<p>In the remainder of this section we will discuss only the contents of
+the header, the structure of the body will be discussed in the section
+<span class="sectref"><a href="#subsection4">Text structure</a></span>.</p>
+<p>The header section can be empty, and otherwise may contain only an
+arbitrary sequence of the four so-called <i class="term">header</i> commands, plus
+<i class="term">whitespace</i>. These commands are</p>
+<dl class="doctools_commands">
+<dt><b class="cmd">titledesc</b></dt>
+<dd></dd>
+<dt><b class="cmd">moddesc</b></dt>
+<dd></dd>
+<dt><b class="cmd">require</b></dt>
+<dd></dd>
+<dt><b class="cmd">copyright</b></dt>
+<dd></dd>
+</dl>
+<p>They provide, through their arguments, additional information about
+the document, like its title, the title of the larger group the
+document belongs to (if applicable), the requirements of the
+documented packages (if applicable), and copyright assignments. All of
+them can occur multiple times, including none, and they can be used in
+any order.
+However for <b class="cmd">titledesc</b> and <b class="cmd">moddesc</b> only the last occurrence
+is taken. For the other two the specified information is accumulated,
+in the given order. Regular text is not allowed within the header.</p>
+<p>Given the above a less minimal example of a document is</p>
+<pre class="doctools_example">
+[manpage_begin NAME SECTION VERSION]
+[<b class="cmd">copyright {YEAR AUTHOR}</b>]
+[<b class="cmd">titledesc TITLE</b>]
+[<b class="cmd">moddesc   MODULE_TITLE</b>]
+[<b class="cmd">require   PACKAGE VERSION</b>]
+[<b class="cmd">require   PACKAGE</b>]
+[description]
+[manpage_end]
+</pre>
+<p>Remember that the whitespace is optional. The document</p>
+<pre class="doctools_example">
+    [manpage_begin NAME SECTION VERSION]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+    [copyright {YEAR AUTHOR}][titledesc TITLE][moddesc MODULE_TITLE]
+    [require PACKAGE VERSION][require PACKAGE][description]
+    [vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]
+</pre>
+<p>has the same meaning as the example before.</p>
+<p>On the other hand, if <i class="term">whitespace</i> is present it consists not
+only of any sequence of characters containing the space character,
+horizontal and vertical tabs, carriage return, and newline, but it may
+contain comment markup as well, in the form of the <b class="cmd"><a href="../../../../index.html#key155">comment</a></b>
+command.</p>
+<pre class="doctools_example">
+[<b class="cmd">comment { ... }</b>]
+[manpage_begin NAME SECTION VERSION]
+[copyright {YEAR AUTHOR}]
+[titledesc TITLE]
+[moddesc   MODULE_TITLE][<b class="cmd">comment { ... }</b>]
+[require   PACKAGE VERSION]
+[require   PACKAGE]
+[description]
+[manpage_end]
+[<b class="cmd">comment { ... }</b>]
+</pre>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Advanced structure</a></h3>
+<p>In the simple examples of the last section we fudged a bit regarding
+the markup actually allowed to be used before the <b class="cmd">manpage_begin</b>
+command opening the document.</p>
+<p>Instead of only whitespace the two templating commands <b class="cmd">include</b>
+and <b class="cmd">vset</b> are also allowed, to enable the writer to either set
+and/or import configuration settings relevant to the document. I.e. it
+is possible to write</p>
+<pre class="doctools_example">
+[<b class="cmd">include FILE</b>]
+[<b class="cmd">vset VAR VALUE</b>]
+[manpage_begin NAME SECTION VERSION]
+[description]
+[manpage_end]
+</pre>
+<p>Even more important, these two commands are allowed anywhere where a
+markup command is allowed, without regard for any other
+structure. I.e. for example in the header as well.</p>
+<pre class="doctools_example">
+[manpage_begin NAME SECTION VERSION]
+[<b class="cmd">include FILE</b>]
+[<b class="cmd">vset VAR VALUE</b>]
+[description]
+[manpage_end]
+</pre>
+<p>The only restriction <b class="cmd">include</b> has to obey is that the contents of
+the included file must be valid at the place of the inclusion. I.e. a
+file included before <b class="cmd">manpage_begin</b> may contain only the
+templating commands <b class="cmd">vset</b> and <b class="cmd">include</b>, a file included in
+the header may contain only header commands, etc.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Text structure</a></h3>
+<p>The body of the document consists mainly of text, possibly split into
+sections, subsections, and paragraphs, with parts marked up to
+highlight various semantic categories of text, and additional
+structure through the use of examples and (nested) lists.</p>
+<p>This section explains the high-level structural commands, with
+everything else deferred to the following sections.</p>
+<p>The simplest way of structuring the body is through the introduction
+of paragraphs. The command for doing so is <b class="cmd">para</b>. Each occurrence
+of this command closes the previous paragraph and automatically opens
+the next. The first paragraph is automatically opened at the beginning
+of the body, by <b class="cmd">description</b>. In the same manner the last
+paragraph automatically ends at <b class="cmd">manpage_end</b>.</p>
+<pre class="doctools_example">
+[manpage_begin NAME SECTION VERSION]
+[description]
+ ...
+[<b class="cmd">para</b>]
+ ...
+[<b class="cmd">para</b>]
+ ...
+[manpage_end]
+</pre>
+<p>Empty paragraphs are ignored.</p>
+<p>A structure coarser than paragraphs are sections, which allow the
+writer to split a document into larger, and labeled, pieces. The
+command for doing so is <b class="cmd">section</b>. Each occurrence of this command
+closes the previous section and automatically opens the next,
+including its first paragraph. The first section is automatically
+opened at the beginning of the body, by <b class="cmd">description</b> (This
+section is labeled &quot;DESCRIPTION&quot;). In the same manner the last section
+automatically ends at <b class="cmd">manpage_end</b>.</p>
+<p>Empty sections are <em>not</em> ignored. We are free to (not) use
+paragraphs within sections.</p>
+<pre class="doctools_example">
+[manpage_begin NAME SECTION VERSION]
+[description]
+ ...
+[<b class="cmd">section {Section A}</b>]
+ ...
+[para]
+ ...
+[<b class="cmd">section {Section B}</b>]
+ ...
+[manpage_end]
+</pre>
+<p>Between sections and paragraphs we have subsections, to split sections.
+The command for doing so is <b class="cmd">subsection</b>. Each occurrence of this
+command closes the previous subsection and automatically opens the
+next, including its first paragraph. A subsection is automatically
+opened at the beginning of the body, by <b class="cmd">description</b>, and at the
+beginning of each section. In the same manner the last subsection
+automatically ends at <b class="cmd">manpage_end</b>.</p>
+<p>Empty subsections are <em>not</em> ignored. We are free to (not) use
+paragraphs within subsections.</p>
+<pre class="doctools_example">
+[manpage_begin NAME SECTION VERSION]
+[description]
+ ...
+[section {Section A}]
+ ...
+[<b class="cmd">subsection {Sub 1}</b>]
+ ...
+[para]
+ ...
+[<b class="cmd">subsection {Sub 2}</b>]
+ ...
+[section {Section B}]
+ ...
+[manpage_end]
+</pre>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Text markup</a></h3>
+<p>Having handled the overall structure a writer can impose on the
+document we now take a closer at the text in a paragraph.</p>
+<p>While most often this is just the unadorned content of the document we
+do have situations where we wish to highlight parts of it as some type
+of thing or other, like command arguments, command names, concepts,
+uris, etc.</p>
+<p>For this we have a series of markup commands which take the text to
+highlight as their single argument. It should be noted that while
+their predominant use is the highlighting of parts of a paragraph they
+can also be used to mark up the arguments of list item commands, and
+of other markup commands.</p>
+<p>The commands available to us are</p>
+<dl class="doctools_commands">
+<dt><b class="cmd">arg</b></dt>
+<dd><p>Its argument is a the name of a command argument.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key240">class</a></b></dt>
+<dd><p>Its argument is a class name.</p></dd>
+<dt><b class="cmd">cmd</b></dt>
+<dd><p>Its argument is a command name (Tcl command).</p></dd>
+<dt><b class="cmd">const</b></dt>
+<dd><p>Its argument is a constant.</p></dd>
+<dt><b class="cmd">emph</b></dt>
+<dd><p>General, non-semantic emphasis.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key31">file</a></b></dt>
+<dd><p>Its argument is a filename / path.</p></dd>
+<dt><b class="cmd">fun</b></dt>
+<dd><p>Its argument is a function name.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key371">method</a></b></dt>
+<dd><p>Its argument is a method name</p></dd>
+<dt><b class="cmd">namespace</b></dt>
+<dd><p>Its argument is namespace name.</p></dd>
+<dt><b class="cmd">opt</b></dt>
+<dd><p>Its argument is some optional syntax element.</p></dd>
+<dt><b class="cmd">option</b></dt>
+<dd><p>Its argument is a command line switch / widget option.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key48">package</a></b></dt>
+<dd><p>Its argument is a package name.</p></dd>
+<dt><b class="cmd">sectref</b></dt>
+<dd><p>Its argument is the title of a section or subsection,
+                    i.e. a section reference.</p></dd>
+<dt><b class="cmd">syscmd</b></dt>
+<dd><p>Its argument is a command name (external, system command).</p></dd>
+<dt><b class="cmd"><a href="../term/term.html">term</a></b></dt>
+<dd><p>Its argument is a concept, or general terminology.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key117">type</a></b></dt>
+<dd><p>Its argument is a type name.</p></dd>
+<dt><b class="cmd"><a href="../uri/uri.html">uri</a></b></dt>
+<dd><p>Its argument is a uniform resource identifier, i.e an
+                    external reference. A second argument can be used
+                    to specify an explicit label for the reference in
+                    question.</p></dd>
+<dt><b class="cmd">usage</b></dt>
+<dd><p>The arguments describe the syntax of a Tcl command.</p></dd>
+<dt><b class="cmd">var</b></dt>
+<dd><p>Its argument is a variable.</p></dd>
+<dt><b class="cmd"><a href="../../../../index.html#key235">widget</a></b></dt>
+<dd><p>Its argument is a widget name.</p></dd>
+</dl>
+<p>The example demonstrating the use of text markup is an excerpt from
+the <i class="term"><a href="doctools_lang_cmdref.html">doctools language command reference</a></i>, with some
+highlighting added.
+It shows their use within a block of text, as the arguments of a list
+item command (<b class="cmd">call</b>), and our ability to nest them.</p>
+<pre class="doctools_example">
+  ...
+  [call [<b class="cmd">cmd arg_def</b>] [<b class="cmd">arg type</b>] [<b class="cmd">arg name</b>]] [<b class="cmd">opt</b> [<b class="cmd">arg mode</b>]]]
+  Text structure. List element. Argument list. Automatically closes the
+  previous list element. Specifies the data-[<b class="cmd">arg type</b>] of the described
+  argument of a command, its [<b class="cmd">arg name</b>] and its i/o-[<b class="cmd">arg mode</b>]. The
+  latter is optional.
+  ...
+</pre>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Escapes</a></h3>
+<p>Beyond the 20 commands for simple markup shown in the previous section
+we have two more available which are technically simple markup.
+However their function is not the marking up of phrases as specific
+types of things, but the insertion of characters, namely <b class="const">[</b>
+and <b class="const">]</b>.
+These commands, <b class="cmd">lb</b> and <b class="cmd">rb</b> respectively, are required
+because our use of [ and ] to bracket markup commands makes it
+impossible to directly use [ and ] within the text.</p>
+<p>Our example of their use are the sources of the last sentence in the
+previous paragraph, with some highlighting added.</p>
+<pre class="doctools_example">
+  ...
+  These commands, [cmd lb] and [cmd lb] respectively, are required
+  because our use of [<b class="cmd">lb</b>] and [<b class="cmd">rb</b>] to bracket markup commands makes it
+  impossible to directly use [<b class="cmd">lb</b>] and [<b class="cmd">rb</b>] within the text.
+  ...
+</pre>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Cross-references</a></h3>
+<p>The last two commands we have to discuss are for the declaration of
+cross-references between documents, explicit and implicit. They are
+<b class="cmd"><a href="../../../../index.html#key778">keywords</a></b> and <b class="cmd">see_also</b>. Both take an arbitrary number of
+arguments, all of which have to be plain unmarked text. I.e. it is not
+allowed to use markup on them. Both commands can be used multiple
+times in a document. If that is done all arguments of all occurrences
+of one of them are put together into a single set.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd"><a href="../../../../index.html#key778">keywords</a></b></dt>
+<dd><p>The arguments of this command are interpreted as keywords describing
+the document. A processor can use this information to create an index
+indirectly linking the containing document to all documents with the
+same keywords.</p></dd>
+<dt><b class="cmd">see_also</b></dt>
+<dd><p>The arguments of this command are interpreted as references to other
+documents. A processor can format them as direct links to these
+documents.</p></dd>
+</dl>
+<p>All the cross-reference commands can occur anywhere in the document
+between <b class="cmd">manpage_begin</b> and <b class="cmd">manpage_end</b>. As such the writer
+can choose whether she wants to have them at the beginning of the
+body, or at its end, maybe near the place a keyword is actually
+defined by the main content, or considers them as meta data which
+should be in the header, etc.</p>
+<p>Our example shows the sources for the cross-references of this
+document, with some highlighting added. Incidentally they are found
+at the end of the body.</p>
+<pre class="doctools_example">
+  ...
+  [<b class="cmd">see_also doctools_intro</b>]
+  [<b class="cmd">see_also doctools_lang_syntax</b>]
+  [<b class="cmd">see_also doctools_lang_cmdref</b>]
+  [<b class="cmd">keywords markup {semantic markup}</b>]
+  [<b class="cmd">keywords {doctools markup} {doctools language}</b>]
+  [<b class="cmd">keywords {doctools syntax} {doctools commands}</b>]
+  [manpage_end]
+</pre>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Examples</a></h3>
+<p>Where ever we can write plain text we can write examples too. For
+simple examples we have the command <b class="cmd">example</b> which takes a single
+argument, the text of the argument. The example text must not contain
+markup. If we wish to have markup within an example we have to use the
+2-command combination <b class="cmd">example_begin</b> / <b class="cmd">example_end</b> instead.</p>
+<p>The first opens an example block, the other closes it, and in between
+we can write plain text and use all the regular text markup commands.
+Note that text structure commands are not allowed. This also means
+that it is not possible to embed examples and lists within an example.
+On the other hand, we <em>can</em> use templating commands within
+example blocks to read their contents from a file (Remember section
+<span class="sectref"><a href="#subsection3">Advanced structure</a></span>).</p>
+<p>The source for the very first example in this document (see section
+<span class="sectref"><a href="#subsection1">Fundamentals</a></span>), with some highlighting added, is</p>
+<pre class="doctools_example">
+  [<b class="cmd">example</b> {
+    ... [list_begin enumerated] ...
+  }]
+</pre>
+<p>Using <b class="cmd">example_begin</b> / <b class="cmd">example_end</b> this would look like</p>
+<pre class="doctools_example">
+  [<b class="cmd">example_begin</b>]
+    ... [list_begin enumerated] ...
+  [<b class="cmd">example_end</b>]
+</pre>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Lists</a></h3>
+<p>Where ever we can write plain text we can write lists too. The main
+commands are <b class="cmd">list_begin</b> to start a list, and <b class="cmd">list_end</b> to
+close one. The opening command takes an argument specifying the type
+of list started it, and this in turn determines which of the eight
+existing list item commands are allowed within the list to start list
+items.</p>
+<p>After the opening command only whitespace is allowed, until the first
+list item command opens the first item of the list. Each item is a
+regular series of paragraphs and is closed by either the next list
+item command, or the end of the list. If closed by a list item command
+this command automatically opens the next list item. A consequence of
+a list item being a series of paragraphs is that all regular text
+markup can be used within a list item, including examples and other
+lists.</p>
+<p>The list types recognized by <b class="cmd">list_begin</b> and their associated
+list item commands are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">arguments</b></dt>
+<dd><p>(<b class="cmd">arg_def</b>) This opens an <i class="term">argument (declaration) list</i>. It
+is a specialized form of a term definition list where the term is an
+argument name, with its type and i/o-mode.</p></dd>
+<dt><b class="const">commands</b></dt>
+<dd><p>(<b class="cmd">cmd_def</b>) This opens a <i class="term">command (declaration) list</i>. It
+is a specialized form of a term definition list where the term is a
+command name.</p></dd>
+<dt><b class="const">definitions</b></dt>
+<dd><p>(<b class="cmd">def</b> and <b class="cmd">call</b>) This opens a general
+<i class="term">term definition list</i>. The terms defined by the list items are
+specified through the argument(s) of the list item commands, either
+general terms, possibly with markup (<b class="cmd">def</b>), or Tcl commands with
+their syntax (<b class="cmd">call</b>).</p></dd>
+<dt><b class="const">enumerated</b></dt>
+<dd><p>(<b class="cmd">enum</b>) This opens a general <i class="term">enumerated list</i>.</p></dd>
+<dt><b class="const">itemized</b></dt>
+<dd><p>(<b class="cmd">item</b>)
+This opens a general <i class="term">itemized list</i>.</p></dd>
+<dt><b class="const">options</b></dt>
+<dd><p>(<b class="cmd">opt_def</b>) This opens an <i class="term">option (declaration) list</i>. It
+is a specialized form of a term definition list where the term is an
+option name, possibly with the option's arguments.</p></dd>
+<dt><b class="const">tkoptions</b></dt>
+<dd><p>(<b class="cmd">tkoption_def</b>) This opens a
+<i class="term">widget option (declaration) list</i>. It is a specialized form of
+a term definition list where the term is the name of a configuration
+option for a widget, with its name and class in the option database.</p></dd>
+</dl>
+<p>Our example is the source of the definition list in the previous
+paragraph, with most of the content in the middle removed.</p>
+<pre class="doctools_example">
+  ...
+  [<b class="cmd">list_begin</b> definitions]
+  [<b class="cmd">def</b> [const arg]]
+  ([cmd arg_def]) This opens an argument (declaration) list. It is a
+  specialized form of a definition list where the term is an argument
+  name, with its type and i/o-mode.
+  [<b class="cmd">def</b> [const itemized]]
+  ([cmd item])
+  This opens a general itemized list.
+  ...
+  [<b class="cmd">def</b> [const tkoption]]
+  ([cmd tkoption_def]) This opens a widget option (declaration) list. It
+  is a specialized form of a definition list where the term is the name
+  of a configuration option for a widget, with its name and class in the
+  option database.
+  [<b class="cmd">list_end</b>]
+  ...
+</pre>
+<p>Note that a list cannot begin in one (sub)section and end in
+another. Differently said, (sub)section breaks are not allowed within
+lists and list items. An example of this <em>illegal</em> construct is</p>
+<pre class="doctools_example">
+  ...
+  [list_begin itemized]
+  [item]
+  ...
+  [<b class="cmd">section {ILLEGAL WITHIN THE LIST}</b>]
+  ...
+  [list_end]
+  ...
+</pre>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">FURTHER READING</a></h2>
+<p>Now that this document has been digested the reader, assumed to be a
+<i class="term">writer</i> of documentation should be fortified enough to be able
+to understand the formal <i class="term"><a href="doctools_lang_syntax.html">doctools language syntax</a></i>
+specification as well. From here on out the
+<i class="term"><a href="doctools_lang_cmdref.html">doctools language command reference</a></i> will also serve as the
+detailed specification and cheat sheet for all available commands and
+their syntax.</p>
+<p>To be able to validate a document while writing it, it is also
+recommended to familiarize oneself with one of the applications for
+the processing and conversion of doctools documents, i.e. either
+Tcllib's easy and simple <b class="syscmd"><a href="../dtplite/pkg_dtplite.html">dtplite</a></b>, or Tclapps'
+ultra-configurable <b class="syscmd">dtp</b>.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="doctools_intro.html">doctools_intro</a>, <a href="doctools_lang_cmdref.html">doctools_lang_cmdref</a>, <a href="doctools_lang_faq.html">doctools_lang_faq</a>, <a href="doctools_lang_syntax.html">doctools_lang_syntax</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key137">doctools commands</a>, <a href="../../../../index.html#key140">doctools language</a>, <a href="../../../../index.html#key139">doctools markup</a>, <a href="../../../../index.html#key138">doctools syntax</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key136">semantic markup</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

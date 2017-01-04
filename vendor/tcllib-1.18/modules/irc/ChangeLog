@@ -1,0 +1,259 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-09  Andreas Kupries  <andreask@activestate.com>
+
+	* irc.man: Documented the callback for EOF as required.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-08-05  Andreas Kupries  <andreask@activestate.com>
+
+	* irc.tcl (::irc::connection): Fixed [Bug 2038217], a
+	* irc.man: creative-writing problem. Bumped the package
+	* pkgIndex.tcl: version to 0.6.1.
+
+2008-06-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* picoirc.tcl: Fixed ctcp responses (should use NOTICE).
+
+2008-03-14  Andreas Kupries  <andreask@activestate.com>
+
+	* picoirc.man: Cleaned up a bit, replaced deprecated [nl] usage
+	  with [para].
+
+2007-10-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* picoirc.man: Added an alternative that is somewhat simpler 
+	* picoirc.tcl: to embed in an application. Based upon the picoirc
+	               code posted to the wiki and as used in tkchat.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-04-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* irc.tcl: Applied patch #1349154 by Kristoffer Lawson to add
+	* irc.man: a command to retrieve the socket in use.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-24 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* irc.tcl: removed package require for logger and added config
+	option to use logger. removed backwards compatibility code from
+	connection and connect. added log and logname commands.
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.tcl: Fixed expr'essions without braces.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-01-24  Andreas Kupries  <andreask@activestate.com>
+
+	* irc.man: Small documentation cleanups.
+
+2004-01-20 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* irc.tcl Fixed incorrect usage of linsert in previous change.
+	Removed uneeded state variable.
+
+2003-10-22  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl (network): Fixed usage of eval - thanks to Jeff Hobbs.
+
+2003-07-27 Aaron Faupell <afaupell@users.sourceforge.net>
+	* irc.tcl removed catch around socket creation
+
+2003-07-02 Aaron Faupell <afaupell@users.sourceforge.net>
+	* irc.tcl fixed logger not being turned off if debug
+	was turned off prior to creating new connection.
+
+2003-07-02 Aaron Faupell
+	* irc.tcl moved cmd-reload to ::irc::reload. removed
+	unused nick variable.
+	* irc.man added all the recently created
+	commands to the man page.
+
+
+2003-06-30  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl (::irc::connection): connection no longer takes
+	host/port arguments.  This is done by connect now.  Added note
+	that compatibility code for older versions should be removed after
+	a release cycle or two.  (Aaron Faupell)
+	(cmd-connect): connect command now takes hostname and port
+	arguments. (Aaron Faupell)
+	(cmd-reload): New command reloads irc.tcl file, making it possible
+	to make changes in a running system without losing the connection.
+	(::irc::connection): The unique namespace for irc connections no
+	longer includes the hostname. (Aaron Faupell)
+	(::irc::connections): New command - return list of existing
+	connections (Aaron Faupell).
+	(cmd-config): Per connection configuration (Aaron Faupell).
+	(cmd-peername): New command - get socket peername.
+	(cmd-sockname): New command - get socket name.
+	(cmd-disconnect): New command - disconnect the connection without
+	destroying it.
+
+	* irc.man: Updated the man page to reflect the new connect and
+	connection commands.
+
+2003-05-28  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl (cmd-quit): Add default QUIT message.
+
+2003-05-25  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl: Several cleanups/improvements by Aaron Faupell.
+	(cmd-getevent) Fixed typo.
+	(cmd-user): Added backwards compatible cmd-user.
+	(cmd-connect): Minor improvements/cleanup.
+	(GetEvent): Changed parsing of $line components.
+
+2003-05-22  Andreas Kupries  <andreask@activestate.com>
+
+	* irc.man: Fixed some typos in the manpage which prevented
+	  conversion.
+
+2003-05-17  David N. Welton  <davidw@dedasys.com>
+
+	* irc.man: Add key option to channel join command.  Provided by
+	  Aaron Faupell.
+
+2003-05-16  David N. Welton  <davidw@dedasys.com>
+
+	* irc.man: Added Aaron's updated documentation, including the new
+	  commands.
+
+	* irc.tcl: Lots of improvements by Aaron Faupell, including: new
+	  commands, and a new method of dispatching events.  Server PINGs
+	  (as opposed to CTCP PINGS) automatically generate a reply, as a
+	  convenience.  Version number 0.4.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	*
+
+2003-04-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.tcl: Accepted the patch in report [#718985] for a more
+	  robust 'GetEvent' routine. Provided by Donal Fellows
+	  <dkf@users.sourceforge.net>.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* irc.man:
+	* irc.tcl:  Fixed bug #614591. Set version of the package to
+	  to 0.3 throughout. Was insonsistent.
+
+2003-01-25  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl: Added Tcl requirement to package itself.
+
+2003-01-24  David N. Welton  <davidw@dedasys.com>
+
+	* pkgIndex.tcl: Added dependency on Tcl 8.3 in the pkgIndex.tcl
+	  file.  I'm not sure that this code won't work with earlier
+	  versions of Tcl, but 8.3 is all I have to test against.  Please
+	  let me know if you successfully run it with earlier versions.
+	  Fixes [674331].
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.man: More semantic markup, less visual one.
+
+2003-01-08  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl: Make sure 'api' commands return strings, not lists.
+	  (DispatchServerEvent): Add a missing join, to keep
+
+2002-12-16  David N. Welton  <davidw@dedasys.com>
+
+	* irc.tcl: Use 'logger' package for error/debug reporting.
+	  Cleanups with regards to possible 'bgerror' situations (network
+	  input/output).  Bumped version number to 0.3.
+
+2002-04-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.man: Added doctools manpage.
+
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.tcl: Frink run.
+
+	* irc: Version is now 0.2 to distinguish this from the code in
+	  tcllib release 1.2
+
+2001-11-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc.n:
+	* irc.tcl: Applied patch #481477.

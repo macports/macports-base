@@ -1,0 +1,192 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql84.tcl: Replaced deprecated {expand} syntax in comments
+	  with {*}.
+
+2007-05-01  Andreas Kupries  <andreask@activestate.com>
+
+	* treeql85.tcl: Replaced deprecated {expand} syntax with {*}.
+	* docs/treeql-low.xml: [Bug 1710644].
+	* docs/treeql-int.xml:
+
+	* treeql.test: Updated accelerator handling.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* treeql.man: Bumped version 1.3.1
+	* treql.tcl:
+	* pkgIndex.tcl:
+
+2006-09-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.testsuite: Fixed generation of the tree used in the
+	  testsuite. The insert used the intended node names as
+	  positions. Adapted some tests influenced by the new structure of
+	  the tree.
+
+2006-08-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.man: Fixed small typo.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.testsuite: Fixed use of duplicate test names.
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.test: Hooked into the new common test support code.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Moved the selection of the implementation out of
+	  the package declaration into the runtime.
+
+	* treeql.tcl: Renamed to treeql85.tcl. Also a new file containing
+	  the selection of the implementation, basic dependency, and
+	  commong provide command.
+
+	* treeql85.tcl: New file. Was originally named
+	  'treeql.tcl'. Contains the Tcl 8.5 specific implementation of
+	  the package.
+
+	* treeql.test: Expanded to use all implementations of struct::tree
+	  which are available.
+
+	* treeql.testsuite: New file, now contains tests which depend on
+	  the implementation of struct::tree. For this package these are
+	  all.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-05-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.test: Typo fix, used wrong package name for snit when
+	  cleaning up.
+
+2005-04-05  Andreas Kupries <andreask@activestate.com>
+
+	* treeql.test:  Added tests for 'over', 'foreach', 'with', and
+	* treeql84.tcl: 'transform'. Also for the new 'map'. New method
+	* treeql.tcl:   'map', which is to 'transform' what 'over' is to
+	* treeql.man:   'foreach'. Added documentation for it as well,
+	* pkgIndex.tcl: bumped the version number to 1.3 and synchronized
+	  all places listing the version number. Added proper 'uplevel'
+	  calls for the correct scoping of the body of all iteration query
+	  operators. Made the scoping of the iterator body explicit in the
+	  documentation.
+
+2005-01-11  Andreas Kupries <andreask@activestate.com>
+
+	* treeql.man: Mini typo fix.
+
+2004-10-21  Colin McCormack <coldstore@users.sourceforge.net>
+
+	* treeql.tcl:   Fixed SF bug 1042987.
+	* treeql84.tcl: Extra list layers on output of get.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.man: Updated to deal with changes listed below.
+
+2004-10-03 Colin McCormack <coldstore@users.sourceforge.net>
+
+	* treeql.tcl,treeql84.tcl: bumped version to 1.2
+	* treeql.tcl: moved K operator into object (avoiding namespace conflict)
+	* treeql.tcl,treeql84.tcl: removed getvals - redundant with get.  Renamed do_getvals to do_get.
+	* treeql.tcl,treeql84.tcl: made all attribute string accessors terminate query.
+	* treeql.tcl,treeql84.tcl: removed args arg to give error if more query operators are present after a string accessor.
+	* treeql.tcl,treeql84.tcl: removed rootname operator - redundant
+	* treeql.tcl,treeql84.tcl: made earlier generate proper descendants & changed test case for proper semantics
+	* treeql.tcl,treeql84.tcl: removed sapply and all references to it - it was improperly implemented and redundant with apply.
+	* treeql.test: changed path to list.tcl and tree.tcl to use normalize, so you can run the test from the treeql directory
+	* treeql.test: changed usage of [getvals] to [get]
+	* treeql.tcl,treeql84.tcl: made all mapping commands consistently handle errors.
+	* treeql.tcl,treeql84.tcl: transform: removed some confusing local vars (using $query), changed arg order, fixed error.
+	* treeql.tcl,treeql84.tcl,treeql.test: foreach changed argument order
+	
+2004-09-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* treeql84.tcl: Bugfix in 'apply'. Wrong statement was
+	* treeql.tcl:   protected against errors.
+
+2004-09-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* treeql.tcl:    New module. TreeQL = Tree Query Language
+	* treeql84.tcl:  Donated by Colin McCormack.
+	* treeql.test:   <coldstore@users.sourceforge.net>
+	* pkgIndex.tcl:
+	* docs/api.css:    A CoST-like language for querying and editing
+	* docs/api.dtd:    trees structures. The trees are expected to
+	* docs/index.html: follow the API of "struct::tree".
+	* docs/treeql.xml:
+	* docs/treeapi.xml:    CoST:   http://wiki.tcl.tk/cost
+	* docs/treeql-int.xml: TreeQL: http://wiki.tcl.tk/treecl
+	* docs/treeql-low.xml: The 'cl' is not a typo. The old name
+	* docs/api+xhtml.dtd:  was "Tree Control Language".

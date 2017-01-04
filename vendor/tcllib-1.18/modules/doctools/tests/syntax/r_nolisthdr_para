@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[para]
+--> (FmtError) Manpage error (nolisthdr), "para" : Command not allowed between beginning of a list and its first item.

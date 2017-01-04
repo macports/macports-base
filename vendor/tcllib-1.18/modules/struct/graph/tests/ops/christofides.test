@@ -1,0 +1,58 @@
+# -*- tcl -*-
+#Christofides Algorithm - Tests
+#
+#Finding Hamilton Cycle in a graph satisfying triangle inequality
+
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+#Test 1.0 - Tight Example for Christofides algorithm
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Christofides-1.0 { Christofides, graph simulation } -setup {
+    SETUP_CHRISTO_1
+} -body {
+    toursort [struct::graph::op::Christofides mygraph]
+} -cleanup {
+    mygraph destroy
+} -result [tmE \
+	       {node1 node2 node3 node5 node7 node6 node4 node2 node1} \
+	       {node1 node2 node3 node4 node5 node7 node6 node4 node2 node1}]
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Christofides-2.0 { Christofides, wrong args, missing } {
+    catch {struct::graph::op::Christofides} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::Christofides {G} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Christofides-2.1 { Christofides, wrong args, too many} {
+    catch {struct::graph::op::Christofides G y x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::Christofides {G}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Christofides-3.0 {Christofides, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::Christofides mygraph} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.1 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Christofides-3.1 {Christofides, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::Christofides mygraph} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.2 - case when given graph is not a connected graph
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Christofides-3.2 { Christofides, unconnected graph } {
+    SETUP_NOEDGES_1
+    catch { struct::graph::op::Christofides mygraph } result
+    mygraph destroy
+    set result
+} [UnconnectedGraphOccurance {mygraph}]

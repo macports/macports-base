@@ -1,0 +1,204 @@
+[manpage_begin cmdline n 1.5]
+[keywords {argument processing}]
+[keywords argv]
+[keywords argv0]
+[keywords {cmdline processing}]
+[keywords {command line processing}]
+[moddesc   {Command line and option processing}]
+[titledesc {Procedures to process command lines and options.}]
+[category  {Programming tools}]
+[require Tcl 8.2]
+[require cmdline [opt 1.3.3]]
+[description]
+
+This package provides commands to parse command lines and options.
+
+[section {::argv handling}]
+
+One of the most common variables this package will be used with is
+[var ::argv], which holds the command line of the current
+application. This variable has a companion [var ::argc] which is
+initialized to the number of elements in [var ::argv] at the beginning
+of the application.
+
+[para]
+
+The commands in this package will [emph not] modify the [var ::argc]
+companion when called with [var ::argv]. Keeping the value consistent,
+if such is desired or required, is the responsibility of the caller.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::cmdline::getopt] [arg argvVar] [arg optstring] [arg optVar] [arg valVar]]
+
+This command works in a fashion like the standard C based [cmd getopt]
+function.  Given an option string and a pointer to an array of args
+this command will process the first argument and return info on how to
+proceed. The command returns 1 if an option was found, 0 if no more
+options were found, and -1 if an error occurred.
+
+[para]
+
+[arg argvVar] contains the name of the list of arguments to
+process. If options are found the list is modified and the processed
+arguments are removed from the start of the list.
+
+[para]
+
+[arg optstring] contains a list of command options that the
+application will accept.  If the option ends in ".arg" the command
+will use the next argument as an argument to the option, or extract it
+from the current argument, if it is of the form "option=value".
+Otherwise the option is a boolean that is set to 1 if present.
+
+[para]
+
+[arg optVar] refers to the variable the command will store the found
+option into (without the leading '-' and without the .arg extension).
+
+[para]
+
+[arg valVar] refers to the variable to store either the value for the
+specified option into upon success or an error message in the case of
+failure. The stored value comes from the command line for .arg
+options, otherwise the value is 1.
+
+[call [cmd ::cmdline::getKnownOpt] [arg argvVar] [arg optstring] [arg optVar] [arg valVar]]
+
+Like [cmd ::cmdline::getopt], but ignores any unknown options in the
+input.
+
+[call [cmd ::cmdline::getoptions] [arg arglistVar] [arg optlist] [opt [arg usage]]]
+
+Processes the set of command line options found in the list variable
+named by [arg arglistVar] and fills in defaults for those not
+specified.  This also generates an error message that lists the
+allowed flags if an incorrect flag is specified. The optional
+[arg usage]-argument contains a string to include in front of the
+generated message. If not present it defaults to "options:".
+
+[para]
+
+[arg optlist] contains a list of lists where each element specifies an
+option in the form: [arg flag] [arg default] [arg comment].
+
+[para]
+
+If [arg flag] ends in ".arg" then the value is taken from the command
+line. Otherwise it is a boolean and appears in the result if present
+on the command line. If [arg flag] ends in ".secret", it will not be
+displayed in the usage.
+
+[para]
+
+The options [option -?], [option -help], and [option --] are
+implicitly understood. The first two abort option processing by
+throwing an error and force the generation of the usage message,
+whereas the the last aborts option processing without an error,
+leaving all arguments coming after for regular processing, even if
+starting with a dash.
+
+[para]
+
+The result of the command is a dictionary mapping all options to their
+values, be they user-specified or defaults.
+
+[call [cmd ::cmdline::getKnownOptions] [arg arglistVar] [arg optlist] [opt [arg usage]]]
+
+Like [cmd ::cmdline::getoptions], but ignores any unknown options in the
+input.
+
+[call [cmd ::cmdline::usage] [arg optlist] [opt [arg usage]]]
+
+Generates and returns an error message that lists the allowed
+flags. [arg optlist] is defined as for
+[cmd ::cmdline::getoptions]. The optional [arg usage]-argument
+contains a string to include in front of the generated message. If not
+present it defaults to "options:".
+
+[call [cmd ::cmdline::getfiles] [arg patterns] [arg quiet]]
+
+Given a list of file [arg patterns] this command computes the set of
+valid files.  On windows, file globbing is performed on each argument.
+On Unix, only file existence is tested.  If a file argument produces
+no valid files, a warning is optionally generated (set [arg quiet] to
+true).
+
+[para]
+
+This code also uses the full path for each file.  If not given it
+prepends the current working directory to the filename. This ensures
+that these files will never conflict with files in a wrapped zip
+file. The last sentence refers to the pro-tools.
+
+[call [cmd ::cmdline::getArgv0]]
+
+This command returns the "sanitized" version of [arg argv0].  It will
+strip off the leading path and removes the extension ".bin". The
+latter is used by the pro-apps because they must be wrapped by a shell
+script.
+
+[list_end]
+
+[subsection {Error Codes}]
+
+Starting with version 1.5 all errors thrown by the package have a
+proper [var ::errorCode] for use with Tcl's [cmd try] command. This
+code always has the word [const CMDLINE] as its first element.
+
+[section {EXAMPLES}]
+
+[example {
+        package require Tcl 8.5
+        package require try         ;# Tcllib.
+        package require cmdline 1.5 ;# First version with proper error-codes.
+
+        # Notes:
+        # - Tcl 8.6+ has 'try' as a builtin command and therefore does not
+        #   need the 'try' package.
+        # - Before Tcl 8.5 we cannot support 'try' and have to use 'catch'.
+        #   This then requires a dedicated test (if) on the contents of
+        #   ::errorCode to separate the CMDLINE USAGE signal from actual errors.
+
+        set options {
+            {a          "set the atime only"}
+            {m          "set the mtime only"}
+            {c          "do not create non-existent files"}
+            {r.arg  ""  "use time from ref_file"}
+            {t.arg  -1  "use specified time"}
+        }
+        set usage ": MyCommandName\
+                      \[options] filename ...\noptions:"
+
+        try {
+            array set params [::cmdline::getoptions argv $options $usage]
+        } trap {CMDLINE USAGE} {msg o} {
+            # Trap the usage signal, print the message, and exit the application.
+            # Note: Other errors are not caught and passed through to higher levels!
+	    puts $msg
+	    exit 1
+        }
+
+        if {  $params(a) } { set set_atime "true" }
+        set has_t [expr {$params(t) != -1}]
+        set has_r [expr {[string length $params(r)] > 0}]
+        if {$has_t && $has_r} {
+            return -code error "Cannot specify both -r and -t"
+        } elseif {$has_t} {
+	    ...
+        }
+}]
+
+[para]
+
+This example, taken (and slightly modified) from the package
+[package fileutil], shows how to use cmdline.  First, a list of
+options is created, then the 'args' list is passed to cmdline for
+processing.  Subsequently, different options are checked to see if
+they have been passed to the script, and what their value is.
+
+[vset CATEGORY cmdline]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

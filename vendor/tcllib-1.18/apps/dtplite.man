@@ -1,0 +1,447 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin dtplite n 1.0.5]
+[see_also {docidx introduction}]
+[see_also {doctoc introduction}]
+[see_also {doctools introduction}]
+[keywords conversion]
+[keywords docidx]
+[keywords doctoc]
+[keywords doctools]
+[keywords HTML]
+[keywords manpage]
+[keywords markup]
+[keywords nroff]
+[keywords TMML]
+[copyright {2004-2013 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[titledesc {Lightweight DocTools Markup Processor}]
+[moddesc   {Documentation toolbox}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+The application described by this document, [syscmd dtplite], is the
+successor to the extremely simple [syscmd mpexpand]. Influenced in its
+functionality by the [syscmd dtp] doctools processor it is much more
+powerful than [syscmd mpexpand], yet still as easy to use; definitely
+easier than [syscmd dtp] with its myriad of subcommands and options.
+
+[para]
+
+[syscmd dtplite] is based upon the package [package doctools], like
+the other two processors.
+
+[subsection {USE CASES}]
+
+[syscmd dtplite] was written with the following three use cases in
+mind.
+
+[para]
+[list_begin enumerated]
+[enum]
+Validation of a single document, i.e. checking that it was written in
+valid doctools format. This mode can also be used to get a preliminary
+version of the formatted output for a single document, for display in
+a browser, nroff, etc., allowing proofreading of the formatting.
+
+[enum]
+Generation of the formatted documentation for a single package,
+i.e. all the manpages, plus a table of contents and an index of
+keywords.
+
+[enum]
+An extension of the previous mode of operation, a method for the easy
+generation of one documentation tree for several packages, and
+especially of a unified table of contents and keyword index.
+
+[list_end]
+
+[para]
+
+Beyond the above we also want to make use of the customization
+features provided by the HTML formatter. It is not the only format the
+application should be able to generate, but we anticipiate it to be
+the most commonly used, and it is one of the few which do provide
+customization hooks.
+
+[para]
+
+We allow the caller to specify a header string, footer string, a
+stylesheet, and data for a bar of navigation links at the top of the
+generated document.
+
+While all can be set as long as the formatting engine provides an
+appropriate engine parameter (See section [sectref OPTIONS]) the last
+two have internal processing which make them specific to HTML.
+
+[subsection {COMMAND LINE}]
+
+[list_begin definitions]
+
+[call [cmd dtplite] [option -o] [arg output] [opt options] [arg format] [arg inputfile]]
+
+This is the form for use case [lb]1[rb]. The [arg options] will be
+explained later, in section [sectref OPTIONS].
+
+[list_begin arguments]
+
+[arg_def path output in]
+
+This argument specifies where to write the generated document. It can
+be the path to a file or directory, or [const -].
+
+The last value causes the application to write the generated
+documented to [const stdout].
+
+[para]
+
+If the [arg output] does not exist then [lb]file dirname $output[rb]
+has to exist and must be a writable directory.
+
+The generated document will be written to a file in that directory,
+and the name of that file will be derived from the [arg inputfile],
+the [arg format], and the value given to option [option -ext] (if
+present).
+
+[arg_def (path|handle) format in]
+
+This argument specifies the formatting engine to use when processing
+the input, and thus the format of the generated document. See section
+[sectref FORMATS] for the possibilities recognized by the application.
+
+[arg_def path inputfile in]
+
+This argument specifies the path to the file to process. It has to
+exist, must be readable, and written in [term doctools] format.
+
+[list_end]
+[para]
+
+[call [cmd dtplite] [const validate] [arg inputfile]]
+
+This is a simpler form for use case [lb]1[rb]. The "validate" format
+generates no output at all, only syntax checks are performed. As such
+the specification of an output file or other options is not necessary
+and left out.
+
+[call [cmd dtplite] [option -o] [arg output] [opt options] [arg format] [arg inputdirectory]]
+
+This is the form for use case [lb]2[rb]. It differs from the form for
+use case [lb]1[rb] by having the input documents specified through a
+directory instead of a file. The other arguments are identical, except
+for [arg output], which now has to be the path to an existing and
+writable directory.
+
+[para]
+
+The input documents are all files in [arg inputdirectory] or any of
+its subdirectories which were recognized by [cmd fileutil::fileType]
+as containing text in [term doctools] format.
+
+[call [cmd dtplite] [option -merge] [option -o] [arg output] [opt options] [arg format] [arg inputdirectory]]
+
+This is the form for use case [lb]3[rb]. The only difference to the
+form for use case [lb]2[rb] is the additional option [option -merge].
+
+[para]
+
+Each such call will merge the generated documents coming from
+processing the input documents under [arg inputdirectory] or any of
+its subdirectories to the files under [arg output]. In this manner it
+is possible to incrementally build the unified documentation for any
+number of packages. Note that it is necessary to run through all the
+packages twice to get fully correct cross-references (for formats
+supporting them).
+
+[list_end]
+
+[subsection OPTIONS]
+
+This section describes all the options available to the user of the
+application, with
+
+the exception of the options [option -o] and [option -merge]. These
+two were described already, in section [sectref {COMMAND LINE}].
+
+[para]
+[list_begin options]
+[opt_def -exclude string]
+
+This option specifies an exclude (glob) pattern. Any files identified
+as manpages to process which match the exclude pattern are
+ignored. The option can be provided multiple times, each usage adding
+an additional pattern to the list of exclusions.
+
+[opt_def -ext string]
+
+If the name of an output file has to be derived from the name of an
+input file it will use the name of the [arg format] as the extension
+by default. This option here will override this however, forcing it to
+use [arg string] as the file extension. This option is ignored if the
+name of the output file is fully specified through option [option -o].
+
+[para]
+
+When used multiple times only the last definition is relevant.
+
+[opt_def -header file]
+
+This option can be used if and only if the selected [arg format]
+provides an engine parameter named "header". It takes the contents of
+the specified file and assign them to that parameter, for whatever use
+by the engine. The HTML engine will insert the text just after the tag
+[const <body>].
+
+If navigation buttons are present (see option [option -nav] below),
+then the HTML generated for them is appended to the header data
+originating here before the final assignment to the parameter.
+
+[para]
+
+When used multiple times only the last definition is relevant.
+
+[opt_def -footer file]
+
+Like [option -header], except that: Any navigation buttons are ignored,
+the corresponding required engine parameter is named "footer", and the
+data is inserted just before the tag [const </body>].
+
+[para]
+
+When used multiple times only the last definition is relevant.
+
+[opt_def -style file]
+
+This option can be used if and only if the selected [arg format]
+provides an engine parameter named "meta". When specified it will
+generate a piece of HTML code declaring the [arg file] as the
+stylesheet for the generated document and assign that to the
+parameter. The HTML engine will insert this inot the document, just
+after the tag [const <head>].
+
+[para]
+
+When processing an input directory the stylesheet file is copied into
+the output directory and the generated HTML will refer to the copy, to
+make the result more self-contained. When processing an input file we
+have no location to copy the stylesheet to and so just reference it as
+specified.
+
+[para]
+
+When used multiple times only the last definition is relevant.
+
+[opt_def -toc path]
+
+This option specifies a doctoc file to use for the table of contents
+instead of generating our own.
+
+[para]
+
+When used multiple times only the last definition is relevant.
+
+[opt_def -pre+toc "label path|text"]
+[opt_def -post+toc "label path|text"]
+
+This option specifies additional doctoc files (or texts) to use in
+the navigation bar.
+
+[para] Positioning and handling of multiple uses is like for options
+[option -prenav] and [option -postnav], see below.
+
+[opt_def -nav "label url"]
+[opt_def -prenav "label url"]
+
+Use this option to specify a navigation button with [arg label] to
+display and the [arg url] to link to. This option can be used if and
+only if the selected [arg format] provides an engine parameter named
+"header". The HTML generated for this is appended to whatever data we
+got from option [option -header] before it is inserted into the
+generated documents.
+
+[para]
+
+When used multiple times all definitions are collected and a
+navigation bar is created, with the first definition shown at the left
+edge and the last definition to the right.
+
+[para] The url can be relative. In that case it is assumed to be relative
+to the main files (TOC and Keyword index), and will be transformed for
+all others to still link properly.
+
+[opt_def -postnav "label url"]
+
+Use this option to specify a navigation button with [arg label] to
+display and the [arg url] to link to. This option can be used if and
+only if the selected [arg format] provides an engine parameter named
+"header". The HTML generated for this is appended to whatever data we
+got from option [option -header] before it is inserted into the
+generated documents.
+
+[para]
+
+When used multiple times all definitions are collected and a
+navigation bar is created, with the last definition shown at the right
+edge and the first definition to the left.
+
+[para] The url can be relative. In that case it is assumed to be relative
+to the main files (TOC and Keyword index), and will be transformed for
+all others to still link properly.
+
+[list_end]
+
+[subsection FORMATS]
+
+At first the [arg format] argument will be treated as a path to a tcl
+file containing the code for the requested formatting engine. The
+argument will be treated as the name of one of the predefined formats
+listed below if and only if the path does not exist.
+
+[para]
+
+[emph {Note a limitation}]: If treating the format as path to the tcl
+script implementing the engine was sucessful, then this script has to
+implement not only the engine API for doctools, i.e.
+
+[term doctools_api], but for [term doctoc_api] and [term docidx_api]
+as well. Otherwise the generation of a table of contents and of a
+keyword index will fail.
+
+[para]
+
+List of predefined formats, i.e. as provided by the
+package [package doctools]:
+
+[para]
+[list_begin definitions]
+
+[def [const nroff]]
+
+The processor generates *roff output, the standard format for unix
+manpages.
+
+[def [const html]]
+
+The processor generates HTML output, for usage in and display by web
+browsers. This engine is currently the only one providing the various
+engine parameters required for the additional customaization of the
+output.
+
+[def [const tmml]]
+
+The processor generates TMML output, the Tcl Manpage Markup Language,
+a derivative of XML.
+
+[def [const latex]]
+
+The processor generates LaTeX output.
+
+[def [const wiki]]
+
+The processor generates Wiki markup as understood by [syscmd wikit].
+
+[def [const list]]
+
+The processor extracts the information provided by [cmd manpage_begin].
+[see_also {docidx introduction}]
+[see_also {doctoc introduction}]
+[see_also {doctools introduction}]
+[keywords conversion]
+[keywords docidx]
+[keywords doctoc]
+[keywords doctools]
+[keywords HTML]
+[keywords manpage]
+[keywords markup]
+[keywords nroff]
+[keywords TMML]
+
+This format is used internally to extract the meta data from which
+both table of contents and keyword index are derived from.
+
+[def [const null]]
+
+The processor does not generate any output. This is equivalent to
+[const validate].
+
+[list_end]
+
+[subsection {DIRECTORY STRUCTURES}]
+
+In this section we describe the directory structures generated by the
+application under [arg output] when processing all documents in an
+[arg inputdirectory]. In other words, this is only relevant to the use
+cases [lb]2[rb] and [lb]3[rb].
+
+[list_begin definitions]
+
+[def "[lb]2[rb]"]
+
+The following directory structure is created when processing a single
+set of input documents.  The file extension used is for output in
+HTML, but that is not relevant to the structure and was just used to
+have proper file names.
+
+[example {
+    output/
+        toc.html
+        index.html
+        files/
+            path/to/FOO.html
+}]
+
+The last line in the example shows the document
+generated for a file FOO located at
+
+[example {
+    inputdirectory/path/to/FOO
+}]
+
+[def "[lb]3[rb]"]
+
+When merging many packages into a unified set of documents the
+generated directory structure is a bit deeper:
+
+[example {
+    output
+        .toc
+        .idx
+        .tocdoc
+        .idxdoc
+        .xrf
+        toc.html
+        index.html
+        FOO1/
+            ...
+        FOO2/
+            toc.html
+            files/
+                path/to/BAR.html
+}]
+
+Each of the directories FOO1, ... contains the documents generated for
+the package FOO1, ... and follows the structure shown for use case
+[lb]2[rb]. The only exception is that there is no per-package index.
+
+[para]
+
+The files [file .toc], [file .idx], and [file .xrf] contain the
+internal status of the whole output and will be read and updated by
+the next invokation. Their contents will not be documented. Remove
+these files when all packages wanted for the output have been
+processed, i.e. when the output is complete.
+
+[para]
+
+The files [file .tocdoc], and [file .idxdoc], are intermediate files
+in doctoc and docidx markup, respectively, containing the main table
+of contents and keyword index for the set of documents before their
+conversion to the chosen output format.
+
+They are left in place, i.e. not deleted, to serve as demonstrations
+of doctoc and docidx markup.
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include ../modules/doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,271 @@
+# ip.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib ip package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: ip.test,v 1.9 2010/08/16 17:35:18 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ip.tcl ip
+}
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+# version
+set Data {
+    127.0.0.1                  4
+    0.0.0.0                    4
+    192.168.0.4                4
+    255.255.255.255            4
+    127/8                      4
+    192/16                     4
+    ::                         6
+    ::1                        6
+    fec0::1                    6
+    ::192.168.0.4              6
+    fec0:0:0:0:0:0:0:1         6
+    fffe:0:0::2                6
+    2002:192.168.0.4::         6
+    2001:192.168.0.4::        -1
+    2002:127.0.0.1::1          6
+    hello                     -1
+    -1                        -1
+    1.2.3.4.example.com       -1
+    bogus.1.2.3.4.example.com -1
+    {}                        -1
+}
+set n 0
+foreach {addr result} $Data {
+    test ip-1.[incr n] [list ip version $addr] {
+        list [catch {ip::version $addr} msg] $addr $msg
+    } [list 0 $addr $result]
+}
+
+# is
+set n 0
+foreach {addr result} $Data {
+    if {$result != 4} {set result 0}
+    test ip-2.[incr n] [list ip::is ipv4 $addr] {
+        list [catch {expr {[ip::is ipv4 $addr] ? 4 : 0}} msg] $addr $msg
+    } [list 0 $addr $result]
+}
+
+set n 0
+foreach {addr result} $Data {
+    if {$result != 6} {set result 0}
+    test ip-3.[incr n] [list ip::is ipv6 $addr] {
+        list [catch {expr {[ip::is ipv6 $addr] ? 6 : 0}} msg] $addr $msg
+    } [list 0 $addr $result]
+}
+
+# normalize
+set Data {
+    192.168.0.4/32 192.168.0.4
+    192.168.0.4/24 192.168.0.4/24
+    192.168        192.168.0.0
+    192.168/24     192.168.0.0/24
+    192.168/255.255.0.0 192.168.0.0/255.255.0.0
+    ::             0000:0000:0000:0000:0000:0000:0000:0000
+    ::1            0000:0000:0000:0000:0000:0000:0000:0001
+    fec0::1        fec0:0000:0000:0000:0000:0000:0000:0001
+    fec0:0:0::1    fec0:0000:0000:0000:0000:0000:0000:0001
+    fec0:0::8:0:1  fec0:0000:0000:0000:0000:0008:0000:0001
+    ::192.168.0.4  0000:0000:0000:0000:0000:0000:c0a8:0004
+    ::ffff:192.168.0.4  0000:0000:0000:0000:0000:ffff:c0a8:0004
+    fec0::1/16     fec0:0000:0000:0000:0000:0000:0000:0001/16
+    fec0::1/128    fec0:0000:0000:0000:0000:0000:0000:0001
+    2002:127.0.0.1::1 2002:7f00:0001:0000:0000:0000:0000:0001
+}
+set n 0
+foreach {addr result} $Data {
+    test ip-4.[incr n] [list ip::normalize $addr] {
+        list [catch {ip::normalize $addr} msg] $msg
+    } [list 0 $result]
+}
+
+set Data {
+    192.168.1.4   8   192.0.0.0
+    192.168.1.4   1   128.0.0.0
+    192.168.1.4   16  192.168.0.0
+    192.169.1.4   15  192.168.0.0
+    192.168.1.4   24  192.168.1.0
+    192.168.1.4   32  192.168.1.4
+    fec0:fafa::1  64  fec0:fafa:0000:0000:0000:0000:0000:0000
+    fec0:fafa::1  8   fe00:0000:0000:0000:0000:0000:0000:0000
+    fec0:fafa::1  10  fec0:0000:0000:0000:0000:0000:0000:0000
+    fec0:fafa::1  128 fec0:fafa:0000:0000:0000:0000:0000:0001
+}
+
+# prefix
+set n 0
+foreach {addr mask prefix} $Data {
+    test ip-5.[incr n] [list ip::prefix $addr/$mask] {
+        list [catch {ip::prefix $addr/$mask} msg] $msg
+    } [list 0 $prefix]
+}
+
+# mask
+
+set n 0
+foreach {addr mask prefix} $Data {
+    test ip-6.[incr n] [list ip::mask $addr/$mask] {
+        list [catch {ip::mask $addr/$mask} msg] $msg
+    } [list 0 $mask]
+}
+
+# equal
+set Data {
+    192.168.0.4 ::1 1 "type mismatch: cannot compare different address types"
+    192.168.1.4/16 192.168.0.0/16 0 1
+    192.169.1.4/16 192.168.0.0/16 0 0
+    192.169.1.4/15 192.168.0.0/15 0 1
+    192.168.1.4/24 192.168.1.0/24 0 1
+    127/8          192/8          0 0
+    192.168.1.4/255.255.0.0 192.168.1.4/16 0 1
+    192.169.1.4/255.255.0.0 192.168.1.4/16 0 0
+    192.169.1.4/255.254.0.0 192.168.1.4/16 0 1
+
+    fec0::1/10     fec0::2/10    0 1
+    ::1/64         ::2/64        0 1
+    ::1/128        ::2/128       0 0
+    ::1/127        ::2/127       0 0
+    ::1/126        ::2/126       0 1
+    fec0:ffff::1/16 fec0:aaaa::2/16 0 1
+    fec0:ffff::1/17 fec0:aaaa::2/17 0 1
+    fec0:ffff::1/18 fec0:aaaa::2/18 0 0
+}
+set n 0
+foreach {lhs rhs err result} $Data {
+    test ip-7.[incr n] [list ip::equal $lhs $rhs] {
+        list [catch {ip::equal $lhs $rhs} msg] $msg
+    } [list $err $result]
+}
+
+# contract
+set Data {
+    127.0.0.1 127.0.0.1
+    127.0.0.0 127
+    0000:0000:0000:0000:0000:0000:0000:0000 ::
+    0000:0000:0000:0000:0000:0000:0000:0001 ::1
+    fec0:0000:0000:0000:0000:0000:0000:0000 fec0::
+    fec0:0000:0000:0000:0000:0000:0000:0001 fec0::1
+    fec0:0000:0001:0000:0000:0000:0000:0001 fec0:0:1::1
+    fec0:0001:0002:0003:0004:0005:0006:0001 fec0:1:2:3:4:5:6:1
+    fec0:0001:2002:0003:0004:0005:0006:0001 fec0:1:2002:3:4:5:6:1
+}
+set n 0
+foreach {addr result} $Data {
+    test ip-8.[incr n] [list ip::contract $addr] {
+        list [catch {ip::contract $addr} msg] $msg
+    } [list 0 $result]
+}
+
+# -------------------------------------------------------------------------
+
+test ip-9.0 {collapse} {
+    ip::collapse {1.2.2.0/24 1.2.3.0/24}
+} 1.2.2.0/23
+
+test ip-9.1 {collapse revers} {
+    ip::collapse {1.2.3.0/24 1.2.2.0/24}
+} 1.2.2.0/23
+
+test ip-9.2 {collapse} {
+    set l {}
+    for {set n 0} {$n < 256} {incr n} {
+        lappend l 1.2.$n.0/24
+    }
+    ip::collapse $l
+} {1.2.0.0/16}
+
+test ip-9.3 {collapse revers} {
+    set l {}
+    for {set n 255} {$n >= 0} {incr n -1} {
+        lappend l 1.2.$n.0/24
+    }
+    ip::collapse $l
+} {1.2.0.0/16}
+
+test ip-9.4 {collapse} {
+    ip::collapse {1.2.2.0/255.255.255.0 1.2.3.0/255.255.255.0}
+} 1.2.2.0/23
+
+test ip-9.5 {collapse revers} {
+    ip::collapse {1.2.3.0/255.255.255.0 1.2.2.0/255.255.255.0}
+} 1.2.2.0/23
+
+# -------------------------------------------------------------------------
+
+test ip-10.0 {subtract} {
+    ip::collapse [ip::subtract {1.2.0.0/16 1.3.0.0/16 -1.2.4.0/24}]
+} {1.2.0.0/22 1.2.5.0/24 1.2.6.0/23 1.2.8.0/21 1.2.16.0/20 1.2.32.0/19 1.2.64.0/18 1.2.128.0/17 1.3.0.0/16}
+
+# -------------------------------------------------------------------------
+
+foreach {i m e} {
+    0 255.255.255.255 32   5 0xffffffff 32
+    1 255.255.255.0   24   6 0xffffff00 24
+    2 255.255.0.0     16   7 0xffff0000 16
+    3 255.0.0.0        8   8 0xff000000  8
+    4 0.0.0.0          0   9 0x00000000  0
+} {
+    test ip-11.$i "maskToLength, $m" {
+        ip::maskToLength $m
+    } $e
+}
+
+# -------------------------------------------------------------------------
+
+foreach {i ip e} {
+    0 0.0.0.0                  0
+    1 0.0.0.1                  1
+    2 0.0.1.0                256
+    3 0.1.0.0              65536
+    4 1.0.0.0           16777216
+    5 0.0.0.255              255
+    6 0.0.255.0            65280
+    7 0.255.0.0         16711680
+    8 255.0.0.0       4278190080
+    9 255.255.255.255 4294967295
+} {
+    test ip-12.$i "toInteger $ip" {
+        ip::toInteger $ip
+    } $e
+}
+
+# -------------------------------------------------------------------------
+
+foreach {i pma e} {
+    0 {1.1.1.1 24}   1.1.2.1/0
+    1 {1.1.1.1 24 0} 1.1.1.1/0
+    2 {1.1.1.1 24 1} 1.1.2.1/0
+    3 {1.1.1.1 24 2} 1.1.3.1/0
+} {
+    test ip-13.$i "nextNet $pma" {
+        ip::nativeToPrefix [eval ip::nextNet $pma]
+    } $e
+}
+
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

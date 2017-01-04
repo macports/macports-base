@@ -1,0 +1,141 @@
+# -* text -*-
+## PE grammar for the grammar specification language accepted by the
+## LEMON parser generator.
+
+
+## Questions:
+## Are directives always at the beginning of a line ?
+## Or can they start within a line ?
+
+## The ifdef/ifndef/endif directives are not documented.
+## Nor are the cmdline options 
+
+
+PEG pg::peg::lemon (LemonGrammar)
+
+LemonGrammar <- SPACE Statement + EOF;
+
+Statement <- ( Directive
+	     / Rule
+	     ) SPACE;
+
+Rule       <- Identifier Label? ASSIGN Definition DOT Precedence? Codeblock? ;
+Definition <- (Identifier Label?)* ;
+Label      <- LPAREN Identifier RPAREN;
+Precedence <- LBRACKET Identifier RBRACKET;
+
+Directive <- DINTRO ( Code	      / DefaultDestructor
+		    / DefaultType     / Destructor        
+		    / ExtraArgument   / Include
+		    / Left	      / Name
+		    / Nonassoc	      / ParseAccept
+		    / ParseFailure    / Right
+		    / StackOverflow   / Stacksize
+		    / StartSymbol     / SyntaxError
+		    / TokenDestructor / TokenPrefix
+		    / TokenType	      / Type
+		    / Fallback
+		    );
+
+Code		  <- DCODE    Codeblock;
+DefaultDestructor <- DDEFDEST Identifier Codeblock;
+DefaultType       <- DDEFTYPE Codeblock;
+Destructor        <- DDEST    Identifier Codeblock;
+ExtraArgument     <- DEXTRA   Codeblock;
+Include		  <- DINCL    Codeblock;
+Left		  <- DLEFT    Identifier+ DOT;
+Name		  <- DNAME    Identifier     ;
+Nonassoc	  <- DNON     Identifier+ DOT;
+ParseAccept	  <- DPACC    Codeblock;
+ParseFailure	  <- DPFAIL   Codeblock;
+Right		  <- DRIGHT   Identifier+ DOT;
+StackOverflow	  <- DSTKOVER Codeblock;
+Stacksize	  <- DSTKSZ   NaturalNumber;
+StartSymbol	  <- DSTART   Identifier;
+SyntaxError	  <- DSYNERR  Codeblock;
+TokenDestructor	  <- DTOKDEST Identifier Codeblock;
+TokenPrefix	  <- DTOKPFX  Identifier;
+TokenType	  <- DTOKTYPE Codeblock;
+Type		  <- DTYPE    Identifier Codeblock;
+Fallback	  <- DFALLBK  Identifier+ DOT;
+
+
+# Lexical layer
+
+match: Codeblock  <- LBRACE ( Codeblock
+			    / C_COMMENT
+			    / Cplusplus_COMMENT
+			    / (!RBRACE .)
+		            )* RBRACE ;
+
+       Identifier <- Ident SPACE;
+match: Ident      <- (<alpha>/'_') (<alnum>/'_')*;
+
+       NaturalNumber <- NatNum SPACE;
+match: NatNum	     <- [0-9]+;
+
+void:  ASSIGN     <- '::='  SPACE;
+void:  DOT        <- '.'    SPACE;
+void:  LPAREN     <- '('    SPACE;
+void:  RPAREN     <- ')'    SPACE;
+void:  LBRACKET   <- '['    SPACE;
+void:  RBRACKET   <- ']'    SPACE;
+void:  LBRACE     <- '{';
+void:  RBRACE     <- '}';
+
+void:  DINTRO     <- '%';
+void:  DCODE      <- 'code'		  SPACE;
+void:  DDEFDEST	  <- 'default_destructor' SPACE;
+void:  DDEFTYPE	  <- 'default_type'	  SPACE;
+void:  DDEST	  <- 'destructor'	  SPACE;
+void:  DEXTRA	  <- 'extra_argument'	  SPACE;
+void:  DINCL	  <- 'include'		  SPACE;
+void:  DLEFT      <- 'left'		  SPACE;
+void:  DNAME	  <- 'name'		  SPACE;
+void:  DNON       <- 'nonassoc'		  SPACE;
+void:  DPACC	  <- 'parse_accept'	  SPACE;
+void:  DPFAIL	  <- 'parse_failure'	  SPACE;
+void:  DRIGHT     <- 'right'		  SPACE;
+void:  DSTKOVER	  <- 'stack_overflow'	  SPACE;
+void:  DSTKSZ	  <- 'stack_size'	  SPACE;
+void:  DSTART	  <- 'start_symbol'	  SPACE;
+void:  DSYNERR	  <- 'syntax_error'	  SPACE;
+void:  DTOKDEST	  <- 'token_destructor'	  SPACE;
+void:  DTOKPFX	  <- 'token_prefix'	  SPACE;
+void:  DTOKTYPE	  <- 'token_type'	  SPACE;
+void:  DTYPE	  <- 'type'		  SPACE;
+void:  DFALLBK	  <- 'fallback'		  SPACE;
+
+# These have % in their definition because they
+# are not part of the regular directives.
+void:  DIFDEF	  <- '%ifdef'		  SPACE;
+void:  DIFNDEF	  <- '%ifndef'		  SPACE;
+void:  DENDIF	  <- '%endif'		  SPACE;
+
+# Directives we do not really know about. They are in the SQLite
+# parse.y file, but are not documented for LEMON. We treat them as
+# whitespace for now, see below.
+
+Ifdef  <- DIFDEF  Identifier;
+Ifndef <- DIFNDEF Identifier;
+Endif  <- DENDIF;
+
+
+# Whitespace
+
+void: SPACE <- ( [ \t\n\r]
+	       / C_COMMENT
+	       / Cplusplus_COMMENT
+	       / Ifndef / Ifdef / Endif
+	       )*;
+
+C_COMMENT  <- CCOM_OPEN (!CCOM_CLOSE .)* CCOM_CLOSE;
+CCOM_OPEN  <- '/*';
+CCOM_CLOSE <- '*/';
+
+Cplusplus_COMMENT <- '//' (!EOL .)* EOL;
+EOL               <- '\r\n' / '\r' / '\n';
+
+EOF <- !.;
+
+END;

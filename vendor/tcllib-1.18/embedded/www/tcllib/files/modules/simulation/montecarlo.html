@@ -1,0 +1,289 @@
+
+<div class='fossil-doc' data-title='simulation::montecarlo - Tcl Simulation Tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">simulation::montecarlo(n) 0.1 tcllib &quot;Tcl Simulation Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>simulation::montecarlo - Monte Carlo simulations</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">TIPS</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.4?</span></b></li>
+<li>package require <b class="pkgname">simulation::montecarlo 0.1</b></li>
+<li>package require <b class="pkgname">simulation::random</b></li>
+<li>package require <b class="pkgname">math::statistics</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::simulation::montecarlo::getOption</b> <i class="arg">keyword</i></a></li>
+<li><a href="#2"><b class="cmd">::simulation::montecarlo::hasOption</b> <i class="arg">keyword</i></a></li>
+<li><a href="#3"><b class="cmd">::simulation::montecarlo::setOption</b> <i class="arg">keyword</i> <i class="arg">value</i></a></li>
+<li><a href="#4"><b class="cmd">::simulation::montecarlo::setTrialResult</b> <i class="arg">values</i></a></li>
+<li><a href="#5"><b class="cmd">::simulation::montecarlo::setExpResult</b> <i class="arg">values</i></a></li>
+<li><a href="#6"><b class="cmd">::simulation::montecarlo::getTrialResults</b></a></li>
+<li><a href="#7"><b class="cmd">::simulation::montecarlo::getExpResult</b></a></li>
+<li><a href="#8"><b class="cmd">::simulation::montecarlo::transposeData</b> <i class="arg">values</i></a></li>
+<li><a href="#9"><b class="cmd">::simulation::montecarlo::integral2D</b> <i class="arg">...</i></a></li>
+<li><a href="#10"><b class="cmd">::simulation::montecarlo::singleExperiment</b> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The technique of <em>Monte Carlo simulations</em> is basically simple:</p>
+<ul class="doctools_itemized">
+<li><p>generate random values for one or more parameters.</p></li>
+<li><p>evaluate the model of some system you are interested in and record the
+interesting results for each realisation of these parameters.</p></li>
+<li><p>after a suitable number of such trials, deduce an overall characteristic
+of the model.</p></li>
+</ul>
+<p>You can think of a model of a network of computers, an ecosystem of some
+kind or in fact anything that can be quantitatively described and has
+some stochastic element in it.</p>
+<p>The package <i class="term">simulation::montecarlo</i> offers a basic framework for
+such a modelling technique:</p>
+<pre class="doctools_example">
+#
+# MC experiments:
+# Determine the mean and median of a set of points and compare them
+#
+::simulation::montecarlo::singleExperiment -init {
+    package require math::statistics
+    set prng [::simulation::random::prng_Normal 0.0 1.0]
+} -loop {
+    set numbers {}
+    for { set i 0 } { $i &lt; [getOption samples] } { incr i } {
+        lappend numbers [$prng]
+    }
+    set mean   [::math::statistics::mean $numbers]
+    set median [::math::statistics::median $numbers] ;# ? Exists?
+    setTrialResult [list $mean $median]
+} -final {
+    set result [getTrialResults]
+    set means   {}
+    set medians {}
+    foreach r $result {
+        foreach {m M} $r break
+        lappend means   $m
+        lappend medians $M
+    }
+    puts [getOption reportfile] &quot;Correlation: [::math::statistics::corr $means $medians]&quot;
+} -trials 100 -samples 10 -verbose 1 -columns {Mean Median}
+</pre>
+<p>This example attemps to find out how well the median value and the mean
+value of a random set of numbers correlate. Sometimes a median value is
+a more robust characteristic than a mean value - especially if you have
+a statistical distribution with &quot;fat&quot; tails.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following auxiliary procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::simulation::montecarlo::getOption</b> <i class="arg">keyword</i></a></dt>
+<dd><p>Get the value of an option given as part of the <i class="term">singeExperiment</i> command.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">keyword</i></dt>
+<dd><p>Given keyword (without leading minus)</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::simulation::montecarlo::hasOption</b> <i class="arg">keyword</i></a></dt>
+<dd><p>Returns 1 if the option is available, 0 if not.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">keyword</i></dt>
+<dd><p>Given keyword (without leading minus)</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::simulation::montecarlo::setOption</b> <i class="arg">keyword</i> <i class="arg">value</i></a></dt>
+<dd><p>Set the value of the given option.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">keyword</i></dt>
+<dd><p>Given keyword (without leading minus)</p></dd>
+<dt>string <i class="arg">value</i></dt>
+<dd><p>(New) value for the option</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::simulation::montecarlo::setTrialResult</b> <i class="arg">values</i></a></dt>
+<dd><p>Store the results of the trial for later analysis</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">values</i></dt>
+<dd><p>List of values to be stored</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::simulation::montecarlo::setExpResult</b> <i class="arg">values</i></a></dt>
+<dd><p>Set the results of the entire experiment (typically used in the final
+phase).</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">values</i></dt>
+<dd><p>List of values to be stored</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::simulation::montecarlo::getTrialResults</b></a></dt>
+<dd><p>Get the results of all individual trials for analysis (typically used in
+the final phase or after completion of the command).</p></dd>
+<dt><a name="7"><b class="cmd">::simulation::montecarlo::getExpResult</b></a></dt>
+<dd><p>Get the results of the entire experiment (typically used in the final
+phase or even after completion of the <i class="term">singleExperiment</i> command).</p></dd>
+<dt><a name="8"><b class="cmd">::simulation::montecarlo::transposeData</b> <i class="arg">values</i></a></dt>
+<dd><p>Interchange columns and rows of a list of lists and return the result.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">values</i></dt>
+<dd><p>List of lists of values</p></dd>
+</dl></dd>
+</dl>
+<p>There are two main procedures: <i class="term">integral2D</i> and <i class="term">singleExperiment</i>.</p>
+<dl class="doctools_definitions">
+<dt><a name="9"><b class="cmd">::simulation::montecarlo::integral2D</b> <i class="arg">...</i></a></dt>
+<dd><p>Integrate a function over a two-dimensional region using a Monte Carlo
+approach.</p>
+<p>Arguments PM</p></dd>
+<dt><a name="10"><b class="cmd">::simulation::montecarlo::singleExperiment</b> <i class="arg">args</i></a></dt>
+<dd><p>Iterate code over a number of trials and store the results. The
+iteration is gouverned by parameters given via a list of
+keyword-value pairs.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>List of keyword-value pairs, all of which are available
+during the execution via the <i class="term">getOption</i> command.</p></dd>
+</dl></dd>
+</dl>
+<p>The <i class="term">singleExperiment</i> command predefines the following
+options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-init code</i>: code to be run at start up</p></li>
+<li><p><i class="term">-loop body</i>: body of code that defines the computation to
+be run time and again. The code should use <i class="term">setTrialResult</i>
+to store the results of each trial (typically a list of numbers,
+but the interpretation is up to the implementation). Note: Required keyword.</p></li>
+<li><p><i class="term">-final code</i>: code to be run at the end</p></li>
+<li><p><i class="term">-trials n</i>: number of trials in the experiment (required)</p></li>
+<li><p><i class="term">-reportfile file</i>: opened file to send the output to (default: stdout)</p></li>
+<li><p><i class="term">-verbose</i>: write the intermediate results (1) or not (0) (default: 0)</p></li>
+<li><p><i class="term">-analysis proc</i>: either &quot;none&quot; (no automatic analysis), standard
+(basic statistics of the trial results and a correlation matrix) or the
+name of a procedure that will take care of the analysis.</p></li>
+<li><p><i class="term">-columns list</i>: list of column names, useful for verbose output
+and the analysis</p></li>
+</ul>
+<p>Any other options can be used via the getOption procedure
+in the body.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">TIPS</a></h2>
+<p>The procedure <i class="term">singleExperiment</i> works by constructing a
+temporary procedure that does the actual work. It loops for the given
+number of trials.</p>
+<p>As it constructs a temporary procedure, local variables defined at the
+start continue to exist in the loop.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key747">montecarlo simulation</a>, <a href="../../../../index.html#key746">stochastic modelling</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;</p>
+</div>
+</div>

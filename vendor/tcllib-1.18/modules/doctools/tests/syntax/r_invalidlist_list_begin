@@ -1,0 +1,3 @@
+Doctools Error in macro at line 3, column 0:
+[list_begin bogus]
+--> (FmtError) Manpage error (invalidlist), "list_begin bogus" : Invalid list type "bogus".

@@ -1,0 +1,99 @@
+# scram.test - Copyright (c) 2013 Sergei Golovan <sgolovan@nes.ru>
+#
+# Tests for the Tcllib SASL::SCRAM package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+#package require tcltest
+#source [file join devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    useLocal sasl.tcl  SASL
+}
+testing {
+    useLocal scram.tcl SASL::SCRAM
+}
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+proc SASLCallback {clientblob context command args} {
+    upvar #0 $context ctx
+    switch -exact -- $command {
+	login    { return "" }
+	username { return "tester" }
+	password { return "secret" }
+	realm    { return "tcllib.sourceforge.net" }
+	hostname { return [info host] }
+	default {
+	    return -code error "oops: client needs to write $command"
+	}
+    }
+}
+
+# -------------------------------------------------------------------------
+
+test SASL-SCRAM-6.0 {Check basic SCRAM-SHA-1 operation} -setup {
+    set result {}
+} -body {
+    set stx [SASL::new -type server -service xmpp -mechanism SCRAM-SHA-1 -callback {SASLCallback 0}]
+    set ctx [SASL::new -type client -service xmpp -mechanism SCRAM-SHA-1 -callback {SASLCallback 0}]
+
+    set sv ""
+    while {1} {
+        set res [SASL::step $ctx $sv]
+        lappend result $res
+        if {!$res} break
+        set cl [SASL::response $ctx]
+        set res [SASL::step $stx $cl]
+        lappend result $res
+        set sv [SASL::response $stx]
+    }
+
+    SASL::cleanup $ctx
+    SASL::cleanup $stx
+    set result
+} -cleanup {
+    unset result sv res stx ctx cl
+} -result {1 1 1 0 0}
+
+test SASL-SCRAM-6.1 {Check main SCRAM-SHA-1 algorithm} -setup {
+} -body {
+    # Data is taken from http://www.ietf.org/mail-archive/web/xmpp/current/msg00887.html
+
+    foreach {p v} [SASL::SCRAM::Algo SASL::SCRAM::SHA-1:hash SASL::SCRAM::SHA-1:hmac \
+	r0m30myr0m30 [base64::decode NjhkYTM0MDgtNGY0Zi00NjdmLTkxMmUtNDlmNTNmNDNkMDMz] 4096 \
+	[join {n=juliet
+	       r=oMsTAAwAAAAMAAAANP0TAAAAAABPU0AA
+	       r=oMsTAAwAAAAMAAAANP0TAAAAAABPU0AAe124695b-69a9-4de6-9c30-b51b3808c59e
+	       s=NjhkYTM0MDgtNGY0Zi00NjdmLTkxMmUtNDlmNTNmNDNkMDMz
+	       i=4096
+	       c=biws
+	       r=oMsTAAwAAAAMAAAANP0TAAAAAABPU0AAe124695b-69a9-4de6-9c30-b51b3808c59e} ,]] break
+
+    list [base64::encode $p] [base64::encode $v]
+} -cleanup {
+    unset p
+    unset v
+} -result {UA57tM/SvpATBkH2FXs0WDXvJYw= pNNDFVEQxuXxCoSEiW8GEZ+1RSo=}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:
+# vim:ts=8:sw=4:sts=4:et

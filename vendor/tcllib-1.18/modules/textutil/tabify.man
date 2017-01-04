@@ -1,0 +1,72 @@
+[manpage_begin textutil::tabify n 0.7]
+[see_also regexp(n)]
+[see_also split(n)]
+[see_also string(n)]
+[keywords formatting]
+[keywords string]
+[keywords tabstops]
+[moddesc   {Text and string utilities, macro processing}]
+[titledesc {Procedures to (un)tabify strings}]
+[category  {Text processing}]
+[require Tcl 8.2]
+[require textutil::tabify [opt 0.7]]
+[description]
+
+The package [package textutil::tabify] provides commands that convert
+between tabulation and ordinary whitespace in strings.
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[call [cmd ::textutil::tabify::tabify] [arg string] [opt [arg num]]]
+
+Tabify the [arg string] by replacing any substring of [arg num] space
+chars by a tabulation and return the result as a new string. [arg num]
+defaults to 8.
+
+[call [cmd ::textutil::tabify::tabify2] [arg string] [opt [arg num]]]
+
+Similar to [cmd ::textutil::tabify] this command tabifies the
+
+[arg string] and returns the result as a new string. A different
+algorithm is used however. Instead of replacing any substring of
+[arg num] spaces this command works more like an editor. [arg num]
+defaults to 8.
+
+[para]
+
+Each line of the text in [arg string] is treated as if there are
+tabstops every [arg num] columns. Only sequences of space characters
+containing more than one space character and found immediately before
+a tabstop are replaced with tabs.
+
+[call [cmd ::textutil::tabify::untabify] [arg string] [opt [arg num]]]
+
+Untabify the [arg string] by replacing any tabulation char by a
+substring of [arg num] space chars and return the result as a new
+string. [arg num] defaults to 8.
+
+[call [cmd ::textutil::tabify::untabify2] [arg string] [opt [arg num]]]
+
+Untabify the [arg string] by replacing any tabulation char by a
+substring of at most [arg num] space chars and return the result as a
+new string. Unlike [cmd textutil::tabify::untabify] each tab is not
+replaced by a fixed number of space characters.  The command overlays
+each line in the [arg string] with tabstops every [arg num] columns
+instead and replaces tabs with just enough space characters to reach
+the next tabstop. This is the complement of the actions taken by
+[cmd ::textutil::tabify::tabify2]. [arg num] defaults to 8.
+
+[para]
+
+There is one asymmetry though: A tab can be replaced with a single
+space, but not the other way around.
+
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

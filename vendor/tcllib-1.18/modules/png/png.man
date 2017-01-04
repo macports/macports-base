@@ -1,0 +1,141 @@
+[manpage_begin png n 0.1.2]
+[keywords comment]
+[keywords image]
+[keywords png]
+[keywords timestamp]
+[copyright {2004, Code: Aaron Faupell <afaupell@users.sourceforge.net>}]
+[copyright {2004, Doc:  Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Image manipulation}]
+[titledesc {PNG querying and manipulation of meta data}]
+[category  {File formats}]
+[require Tcl 8.2]
+[require crc32]
+[require png [opt 0.1.2]]
+[description]
+[para]
+
+This package provides commands to query and modify PNG images. PNG
+stands for [term {Portable Network Graphics}] and is specified at
+[uri http://www.libpng.org/pub/png/spec/1.2].
+
+[section COMMANDS]
+[list_begin definitions]
+[call [cmd ::png::validate] [arg file]]
+
+Returns a value indicating if [arg file] is a valid PNG file. The file
+is checked for PNG signature, each chunks checksum is verified,
+existence of a data chunk is verified, first chunk is checked for
+header, last chunk is checked for ending. Things [emph not] checked
+for are: validity of values within a chunk, multiple header chunks,
+noncontiguous data chunks, end chunk before actual eof. This procedure
+can take lots of time.
+
+[para]
+Possible return values:
+
+[list_begin definitions]
+[def OK]
+File is a valid PNG file.
+[def SIG]
+no/broken PNG signature.
+[def BADLEN]
+corrupt chunk length.
+[def EOF]
+premature end of file.
+[def NOHDR]
+missing header chunk.
+[def CKSUM]
+crc mismatch.
+[def NODATA]
+missing data chunk(s).
+[def NOEND]
+missing end marker.
+[list_end]
+
+[call [cmd ::png::isPNG] [arg file]]
+
+Returns a boolean value indicating if the file [arg file] starts with
+a PNG signature. This is a much faster and less intensive check than
+[cmd ::png::validate] as it does not check if the PNG data is valid.
+
+[call [cmd ::png::imageInfo] [arg file]]
+
+Returns a dictionary with keys [const width], [const height],
+
+[const depth], [const color], [const compression], [const filter], and
+[const interlace]. The values are the associated properties of the PNG
+image in [arg file].
+
+Throws an error if file is not a PNG image, or if the checksum of the
+header is invalid. For information on interpreting the values for the
+returned properties see
+
+[uri http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html].
+
+[call [cmd ::png::getTimestamp] [arg file]]
+
+Returns the epoch time if a timestamp chunk is found in the PNG image
+contained in the [arg file], otherwise returns the empty string. Does
+not attempt to verify the checksum of the timestamp chunk.
+
+Throws an error if the [arg file] is not a valid PNG image.
+
+[call [cmd ::png::setTimestamp] [arg file] [arg time]]
+
+Writes a new timestamp to the [arg file], either replacing the old
+timestamp, or adding one just before the data chunks if there was no
+previous timestamp. [arg time] is the new time in the gmt epoch
+format.
+
+Throws an error if [arg file] is not a valid PNG image.
+
+[call [cmd ::png::getComments] [arg file]]
+
+Currently supports only uncompressed comments. Does not attempt to
+verify the checksums of the comment chunks. Returns a list where each
+element is a comment. Each comment is itself a list. The list for a
+plain text comment consists of 2 elements: the human readable keyword,
+and the text data. A unicode (international) comment consists of 4
+elements: the human readable keyword, the language identifier, the
+translated keyword, and the unicode text data.
+
+Throws an error if [arg file] is not a valid PNG image.
+
+[call [cmd ::png::removeComments] [arg file]]
+
+Removes all comments from the PNG image in [arg file]. Beware - This
+uses memory equal to the file size minus comments, to hold the
+intermediate result.
+
+Throws an error if [arg file] is not a valid PNG image.
+
+[call [cmd ::png::addComment] [arg file] [arg keyword] [arg text]]
+
+Adds a plain [arg text] comment to the PNG image in [arg file], just
+before the first data chunk. Will throw an error if no data chunk is
+found. [arg keyword] has to be less than 80 characters long to conform
+to the PNG specification.
+
+[call [cmd ::png::addComment] [arg file] [arg keyword] [arg lang] [arg keyword2] [arg text]]
+
+Adds a unicode (international) comment to the PNG image in [arg file],
+just before the first data chunk. Will throw an error if no data chunk
+is found. [arg keyword] has to be less than 80 characters long to
+conform to the PNG specification. [arg keyword2] is the translated
+[arg keyword], in the language specified by the language identifier
+[arg lang].
+
+[call [cmd ::png::image] [arg file]]
+
+Given a PNG file returns the image in the list of scanlines format used by Tk_GetColor.
+
+[call [cmd ::png::write] [arg file] [arg data]]
+
+Takes a list of scanlines in the Tk_GetColor format and writes the represented image
+to [arg file].
+
+[list_end]
+
+[vset CATEGORY png]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

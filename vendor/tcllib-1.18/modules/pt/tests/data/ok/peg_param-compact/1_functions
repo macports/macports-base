@@ -1,0 +1,189 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<MAIN>>:
+         call              sym_Expression
+         halt
+
+#
+# value Symbol 'Expression'
+#
+
+sym_Expression:
+# (Function)
+
+         symbol_restore    Expression
+  found! jump              found_3
+         loc_push
+         ast_push
+
+         call              sym_Function
+
+   fail! value_clear
+     ok! value_reduce      Expression
+         symbol_save       Expression
+         error_nonterminal Expression
+         ast_pop_rewind
+         loc_pop_discard
+
+found_3:
+     ok! ast_value_push
+         return
+#
+# value Symbol 'Function'
+#
+
+sym_Function:
+# (Sinus)
+
+         symbol_restore    Function
+  found! jump              found_6
+         loc_push
+         ast_push
+
+         call              sym_Sinus
+
+   fail! value_clear
+     ok! value_reduce      Function
+         symbol_save       Function
+         error_nonterminal Function
+         ast_pop_rewind
+         loc_pop_discard
+
+found_6:
+     ok! ast_value_push
+         return
+#
+# value Symbol 'Sinus'
+#
+
+sym_Sinus:
+# x
+#     's'
+#     'i'
+#     'n'
+#     '\('
+#     (Expression)
+#     '\)'
+
+         symbol_restore    Sinus
+  found! jump              found_23
+         loc_push
+         ast_push
+
+         call              sequence_19
+
+   fail! value_clear
+     ok! value_reduce      Sinus
+         symbol_save       Sinus
+         error_nonterminal Sinus
+         ast_pop_rewind
+         loc_pop_discard
+
+found_23:
+     ok! ast_value_push
+         return
+
+sequence_19:
+# x
+#     's'
+#     'i'
+#     'n'
+#     '\('
+#     (Expression)
+#     '\)'
+
+         loc_push
+         error_clear
+
+         error_push
+
+         call              char_8
+
+         error_pop_merge
+   fail! jump              failednoast_21
+         error_push
+
+         call              char_10
+
+         error_pop_merge
+   fail! jump              failednoast_21
+         error_push
+
+         call              char_12
+
+         error_pop_merge
+   fail! jump              failednoast_21
+         error_push
+
+         call              char_14
+
+         error_pop_merge
+   fail! jump              failednoast_21
+         ast_push
+         error_push
+
+         call              sym_Expression
+
+         error_pop_merge
+   fail! jump              failed_20
+         error_push
+
+         call              char_17
+
+         error_pop_merge
+   fail! jump              failed_20
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_20:
+         ast_pop_rewind
+
+failednoast_21:
+         loc_pop_rewind
+         return
+
+char_8:
+# 's'
+
+         input_next        "t s"
+     ok! test_char         "s"
+         return
+
+char_10:
+# 'i'
+
+         input_next        "t i"
+     ok! test_char         "i"
+         return
+
+char_12:
+# 'n'
+
+         input_next        "t n"
+     ok! test_char         "n"
+         return
+
+char_14:
+# '\('
+
+         input_next        "t ("
+     ok! test_char         "("
+         return
+
+char_17:
+# '\)'
+
+         input_next        "t )"
+     ok! test_char         ")"
+         return
+
+#
+#

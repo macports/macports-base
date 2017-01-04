@@ -1,0 +1,513 @@
+<html><head>
+<title>generator - Tcl Generator Commands</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'generator.man' by tcllib/doctools with format 'html'
+   -->
+<! -- generator.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">generator(n) 0.1 tcllib &quot;Tcl Generator Commands&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>generator - Procedures for creating and using generators.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">PRELUDE</a></li>
+<li class="doctools_section"><a href="#section4">BUGS, IDEAS, FEEDBACK</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">generator <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">generator</b> <b class="method">define</b> <i class="arg">name</i> <i class="arg">params</i> <i class="arg">body</i></a></li>
+<li><a href="#2"><b class="cmd">generator</b> <b class="method">yield</b> <i class="arg">arg</i> <span class="opt">?<i class="arg">args..</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">generator</b> <b class="method">foreach</b> <i class="arg">varList</i> <i class="arg">generator</i> <i class="arg">varList</i> <i class="arg">generator</i> <span class="opt">?...?</span> <i class="arg">body</i></a></li>
+<li><a href="#4"><b class="cmd">generator</b> <b class="method">next</b> <i class="arg">generator</i> <span class="opt">?<i class="arg">varName..</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">generator</b> <b class="method">exists</b> <i class="arg">generator</i></a></li>
+<li><a href="#6"><b class="cmd">generator</b> <b class="method">names</b></a></li>
+<li><a href="#7"><b class="cmd">generator</b> <b class="method">destroy</b> <span class="opt">?<i class="arg">generator..</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">generator</b> <b class="method">finally</b> <i class="arg">cmd</i> <span class="opt">?<i class="arg">arg..</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">generator</b> <b class="method">from</b> <i class="arg">format</i> <i class="arg">value</i></a></li>
+<li><a href="#10"><b class="cmd">generator</b> <b class="method">to</b> <i class="arg">format</i> <i class="arg">generator</i></a></li>
+<li><a href="#11"><b class="cmd">generator</b> <b class="method">map</b> <i class="arg">function</i> <i class="arg">generator</i></a></li>
+<li><a href="#12"><b class="cmd">generator</b> <b class="method">filter</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></li>
+<li><a href="#13"><b class="cmd">generator</b> <b class="method">reduce</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></li>
+<li><a href="#14"><b class="cmd">generator</b> <b class="method">foldl</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></li>
+<li><a href="#15"><b class="cmd">generator</b> <b class="method">foldr</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></li>
+<li><a href="#16"><b class="cmd">generator</b> <b class="method">all</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></li>
+<li><a href="#17"><b class="cmd">generator</b> <b class="method">and</b> <i class="arg">generator</i></a></li>
+<li><a href="#18"><b class="cmd">generator</b> <b class="method">any</b> <i class="arg">generator</i></a></li>
+<li><a href="#19"><b class="cmd">generator</b> <b class="method">concat</b> <i class="arg">generator</i> <span class="opt">?<i class="arg">generator..</i>?</span></a></li>
+<li><a href="#20"><b class="cmd">generator</b> <b class="method">concatMap</b> <i class="arg">function</i> <i class="arg">generator</i></a></li>
+<li><a href="#21"><b class="cmd">generator</b> <b class="method">drop</b> <i class="arg">n</i> <i class="arg">generator</i></a></li>
+<li><a href="#22"><b class="cmd">generator</b> <b class="method">dropWhile</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></li>
+<li><a href="#23"><b class="cmd">generator</b> <b class="method">contains</b> <i class="arg">element</i> <i class="arg">generator</i></a></li>
+<li><a href="#24"><b class="cmd">generator</b> <b class="method">foldl1</b> <i class="arg">function</i> <i class="arg">generator</i></a></li>
+<li><a href="#25"><b class="cmd">generator</b> <b class="method">foldli</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></li>
+<li><a href="#26"><b class="cmd">generator</b> <b class="method">foldri</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></li>
+<li><a href="#27"><b class="cmd">generator</b> <b class="method">head</b> <i class="arg">generator</i></a></li>
+<li><a href="#28"><b class="cmd">generator</b> <b class="method">tail</b> <i class="arg">generator</i></a></li>
+<li><a href="#29"><b class="cmd">generator</b> <b class="method">init</b> <i class="arg">generator</i></a></li>
+<li><a href="#30"><b class="cmd">generator</b> <b class="method">takeList</b> <i class="arg">n</i> <i class="arg">generator</i></a></li>
+<li><a href="#31"><b class="cmd">generator</b> <b class="method">take</b> <i class="arg">n</i> <i class="arg">generator</i></a></li>
+<li><a href="#32"><b class="cmd">generator</b> <b class="method">iterate</b> <i class="arg">function</i> <i class="arg">init</i></a></li>
+<li><a href="#33"><b class="cmd">generator</b> <b class="method">last</b> <i class="arg">generator</i></a></li>
+<li><a href="#34"><b class="cmd">generator</b> <b class="method">length</b> <i class="arg">generator</i></a></li>
+<li><a href="#35"><b class="cmd">generator</b> <b class="method">or</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></li>
+<li><a href="#36"><b class="cmd">generator</b> <b class="method">product</b> <i class="arg">generator</i></a></li>
+<li><a href="#37"><b class="cmd">generator</b> <b class="method">repeat</b> <i class="arg">n</i> <i class="arg">value..</i></a></li>
+<li><a href="#38"><b class="cmd">generator</b> <b class="method">sum</b> <i class="arg">generator</i></a></li>
+<li><a href="#39"><b class="cmd">generator</b> <b class="method">takeWhile</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></li>
+<li><a href="#40"><b class="cmd">generator</b> <b class="method">splitWhen</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></li>
+<li><a href="#41"><b class="cmd">generator</b> <b class="method">scanl</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">generator</b> package provides commands to define and iterate over
+generator expressions. A <em>generator</em> is a command that returns a sequence
+of values. However, unlike an ordinary command that returns a list, a
+generator <em>yields</em> each value and then suspends, allowing subsequent
+values to be fetched on-demand. As such, generators can be used to efficiently
+iterate over a set of values, without having to generate all answers in-memory.
+Generators can be used to iterate over elements of a data structure, or rows
+in the result set of a database query, or to decouple producer/consumer software
+designs such as parsers and tokenizers, or to implement sophisticated custom
+control strategies such as backtracking search. Generators reduce the need to
+implement custom control structures, as many such structures can be recast as
+generators, leading to both a simpler implementation and a more standardised
+interface. The generator mechanism is built on top of the Tcl 8.6 coroutine
+mechanism.</p>
+<p>The package exports a single ensemble command, <b class="cmd">generator</b>. All
+functionality is provided as subcommands of this command. The core subcommands
+of the package are <b class="method">define</b>, <b class="method">yield</b>, and <b class="method">foreach</b>. The
+<b class="method">define</b> command works like Tcl's <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> command, but creates a
+generator procedure; that is, a procedure that returns a generator when called.
+The generator itself is a command that can be called multiple times: each time
+it returns the next value in the generated series. When the
+series has been exhausted, the generator command returns an empty list and then
+destroys itself. Rather than manually call a generator, however, the package
+also provides a flexible <b class="method">foreach</b> command that loops through the values of
+one or more generators. This loop construct mimicks the functionality of the
+built-in Tcl <b class="cmd"><a href="../../../../index.html#key218">foreach</a></b> command, including handling multiple return values
+and looping over multiple generators at once. Writing a generator is also a
+simple task, much like writing a normal procedure: simply use the <b class="method">define</b>
+command to define the generator, and then call <b class="method">yield</b> instead of <b class="cmd"><a href="../../../../index.html#key187">return</a></b>.
+For example, we can define a generator for looping through the integers
+in a particular range:</p>
+<pre class="doctools_example">
+    generator define range {n m} {
+        for {set i $n} {$i &lt;= $m} {incr i} { generator yield $i }
+    }
+    generator foreach x [range 1 10] {
+        puts &quot;x = $x&quot;
+    }
+</pre>
+<p>The above example will print the numbers from 1 to 10 in sequence, as you would
+expect. The difference from a normal loop over a list is that the numbers are
+only generated as they are needed. If we insert a break into the loop then any
+remaining numbers in the sequence would never be generated. To illustrate, we
+can define a generator that produces the sequence of natural numbers: an
+infinite series. A normal procedure would never return trying to produce this
+series as a list. By using a generator we only have to generate those values
+which are actually used:</p>
+<pre class="doctools_example">
+    generator define nats {} {
+        while 1 { generator yield [incr nat] }
+    }
+    generator foreach n [nats] {
+        if {$n &gt; 100} { break }
+    }
+</pre>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">generator</b> <b class="method">define</b> <i class="arg">name</i> <i class="arg">params</i> <i class="arg">body</i></a></dt>
+<dd><p>Creates a new generator procedure. The arguments to the command are identical to
+those for <b class="cmd"><a href="../../../../index.html#key591">proc</a></b>: a <i class="arg">name</i>, a list of parameters, and a body. The
+parameter list format is identical to a procedure. In particular, default values
+and the <span class="opt">?args?</span> syntax can be used as usual. Each time the resulting
+generator procedure is called it creates a new generator command (coroutine)
+that will yield a list of values on each call. Each result from a generator is
+guaranteed to be a non-empty list of values. When a generator is exhausted it
+returns an empty list and then destroys itself to free up resources. It is an
+error to attempt to call an exhausted generator as the command no longer exists.</p></dd>
+<dt><a name="2"><b class="cmd">generator</b> <b class="method">yield</b> <i class="arg">arg</i> <span class="opt">?<i class="arg">args..</i>?</span></a></dt>
+<dd><p>Used in the definition of a generator, this command returns the next set of
+values to the consumer. Once the <b class="method">yield</b> command has been called the
+generator will suspend to allow the consumer to process that value. When the
+next value is requested, the generator will resume as if the yield command had
+just returned, and can continue processing to yield the next result. The
+<b class="method">yield</b> command must be called with at least one argument, but can be called with
+multiple arguments, in which case this is equivalent to calling <b class="method">yield</b>
+once for each argument.</p></dd>
+<dt><a name="3"><b class="cmd">generator</b> <b class="method">foreach</b> <i class="arg">varList</i> <i class="arg">generator</i> <i class="arg">varList</i> <i class="arg">generator</i> <span class="opt">?...?</span> <i class="arg">body</i></a></dt>
+<dd><p>Loops through one or more generators, assigning the next values to variables and
+then executing the loop body. Works much like the built-in <b class="cmd"><a href="../../../../index.html#key218">foreach</a></b>
+command, but working with generators rather than lists. Multiple generators can
+be iterated over in parallel, and multiple results can be retrieved from a
+single generator at once.  Like the built-in <b class="cmd"><a href="../../../../index.html#key218">foreach</a></b>, the loop will
+continue until all of the generators have been exhausted: variables for
+generators that are exhausted early will be set to the empty string.</p>
+<p>The <b class="method">foreach</b> command will automatically clean-up all of the generators
+at the end of the loop, regardless of whether the loop terminated early or not.
+This behaviour is provided as a convenience to avoid having to explicitly
+clean up a generator in the usual cases. Generators can however be destroyed
+before the end of the loop, in which case the loop will continue as normal until
+all the other generators have been destroyed or exhausted.</p>
+<p>The <b class="method">foreach</b> command does not take a snapshot of the generator. Any
+changes in the state of the generator made inside the loop or by other code will
+affect the state of the loop. In particular, if the code in the loop invokes the
+generator to manually retrieve the next element, this element will then be
+excluded from the loop, and the next iteration will continue from the element
+after that one. Care should be taken to avoid concurrent updates to generators
+unless this behaviour is required (e.g., in argument processing).</p></dd>
+<dt><a name="4"><b class="cmd">generator</b> <b class="method">next</b> <i class="arg">generator</i> <span class="opt">?<i class="arg">varName..</i>?</span></a></dt>
+<dd><p>Manually retrieves the next values from a generator. One value is retrieved for
+each variable supplied and assigned to the corresponding variable. If the
+generator becomes exhausted at any time then any remaining variables are set to
+the empty string.</p></dd>
+<dt><a name="5"><b class="cmd">generator</b> <b class="method">exists</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns 1 if the generator (still) exists, or 0 otherwise.</p></dd>
+<dt><a name="6"><b class="cmd">generator</b> <b class="method">names</b></a></dt>
+<dd><p>Returns a list of all currently existing generator commands.</p></dd>
+<dt><a name="7"><b class="cmd">generator</b> <b class="method">destroy</b> <span class="opt">?<i class="arg">generator..</i>?</span></a></dt>
+<dd><p>Destroys one or more generators, freeing any associated resources.</p></dd>
+<dt><a name="8"><b class="cmd">generator</b> <b class="method">finally</b> <i class="arg">cmd</i> <span class="opt">?<i class="arg">arg..</i>?</span></a></dt>
+<dd><p>Used in the definition of a generator procedure, this command arranges for a
+resource to be cleaned up whenever the generator is destroyed, either explicitly
+or implicitly when the generator is exhausted. This command can be used like a
+<b class="method">finally</b> block in the <b class="cmd"><a href="../try/tcllib_throw.html">try</a></b> command, except that it is tied to the
+life-cycle of the generator rather than to a particular scope. For example, if
+we create a generator to iterate over the lines in a text file, we can use
+<b class="method">finally</b> to ensure that the file is closed whenever the generator is
+destroyed:</p>
+<pre class="doctools_example">
+    generator define lines file {
+        set in [open $file]
+        # Ensure file is always closed
+        generator finally close $in
+        while {[gets $in line] &gt;= 0} {
+            generator yield $line
+        }
+    }
+    generator foreach line [lines /etc/passwd] {
+        puts &quot;[incr count]: $line&quot;
+        if {$count &gt; 10} { break }
+    }
+    # File will be closed even on early exit
+</pre>
+<p>If you create a generator that consumes another generator (such as the standard
+<b class="method">map</b> and <b class="method">filter</b> generators defined later), then you should use
+a <b class="method">finally</b> command to ensure that this generator is destroyed when its
+parent is. For example, the <b class="method">map</b> generator is defined as follows:</p>
+<pre class="doctools_example">
+    generator define map {f xs} {
+        generator finally generator destroy $xs
+        generator foreach x $xs { generator yield [{*}$f $x] }
+    }
+</pre>
+</dd>
+<dt><a name="9"><b class="cmd">generator</b> <b class="method">from</b> <i class="arg">format</i> <i class="arg">value</i></a></dt>
+<dd><p>Creates a generator from a data structure. Currently, supported formats are
+<b class="option">list</b>, <b class="option">dict</b>, or <b class="option">string</b>. The list format yields each
+element in turn. For dictionaries, each key and value are yielded separately.
+Finally, strings are yielded a character at a time.</p></dd>
+<dt><a name="10"><b class="cmd">generator</b> <b class="method">to</b> <i class="arg">format</i> <i class="arg">generator</i></a></dt>
+<dd><p>Converts a generator into a data structure. This is the reverse operation of the
+<b class="method">from</b> command, and supports the same data structures. The two operations
+obey the following identity laws (where <b class="method">=</b> is interpreted
+appropriately):</p>
+<pre class="doctools_example">
+    [generator to $fmt [generator from $fmt $value]] = $value
+    [generator from $fmt [generator to $fmt $gen]]   = $gen
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PRELUDE</a></h2>
+<p>The following commands are provided as a standard library of generator
+combinators and functions that perform convenience operations on generators. The
+functions in this section are loosely modelled on the equivalent functions from
+the Haskell Prelude. <em>Warning:</em> most of the functions in this prelude
+destroy any generator arguments they are passed as a side-effect. If you want to
+have persistent generators, see the streams library.</p>
+<dl class="doctools_definitions">
+<dt><a name="11"><b class="cmd">generator</b> <b class="method">map</b> <i class="arg">function</i> <i class="arg">generator</i></a></dt>
+<dd><p>Apply a function to every element of a generator, returning a new generator of
+the results. This is the classic map function from functional programming,
+applied to generators. For example, we can generate all the square numbers using
+the following code (where <b class="cmd">nats</b> is defined as earlier):</p>
+<pre class="doctools_example">
+    proc square x { expr {$x * $x} }
+    generator foreach n [generator map square [nats]] {
+        puts &quot;n = $n&quot;
+        if {$n &gt; 1000} { break }
+    }
+</pre>
+</dd>
+<dt><a name="12"><b class="cmd">generator</b> <b class="method">filter</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></dt>
+<dd><p>Another classic functional programming gem. This command returns a generator
+that yields only those items from the argument generator that satisfy the
+predicate (boolean function). For example, if we had a generator <b class="variable">employees</b>
+that returned a stream of dictionaries representing people, we could filter all
+those whose salaries are above 100,000 dollars (or whichever currency you prefer)
+using a simple filter:</p>
+<pre class="doctools_example">
+    proc salary&gt; {amount person} { expr {[dict get $person salary] &gt; $amount} }
+    set fat-cats [generator filter {salary&gt; 100000} $employees]
+</pre>
+</dd>
+<dt><a name="13"><b class="cmd">generator</b> <b class="method">reduce</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></dt>
+<dd><p>This is the classic left-fold operation. This command takes a function, an
+initial value, and a generator of values. For each element in the generator it
+applies the function to the current accumulator value (the <i class="arg">zero</i> argument
+initially) and that element, and then uses the result as the new accumulator
+value. This process is repeated through the entire generator (eagerly) and the
+final accumulator value is then returned. If we consider the function to be a
+binary operator, and the zero argument to be the left identity element of that
+operation, then we can consider the <b class="method">reduce</b> command as <em>folding</em>
+the operator between each successive pair of values in the generator in a
+left-associative fashion. For example, the sum of a sequence of numbers can be
+calculated by folding a <b class="cmd">+</b> operator between them, with 0 as the identity:</p>
+<pre class="doctools_example">
+    # sum xs          = reduce + 0 xs
+    # sum [range 1 5] = reduce + 0 [range 1 5]
+    #                 = reduce + [+ 0 1] [range 2 5]
+    #                 = reduce + [+ 1 2] [range 3 5]
+    #                 = ...
+    #                 = reduce + [+ 10 5] &lt;empty&gt;
+    #                 = ((((0+1)+2)+3)+4)+5
+    #                 = 15
+    proc + {a b} { expr {$a + $b} }
+    proc sum gen { generator reduce + 0 $gen }
+    puts [sum [range 1 10]]
+</pre>
+<p>The <b class="method">reduce</b> operation is an extremely useful one, and a great variety of
+different operations can be defined using it. For example, we can define a
+factorial function as the product of a range using generators. This definition
+is both very clear and also quite efficient (in both memory and running time):</p>
+<pre class="doctools_example">
+    proc * {x y} { expr {$x * $y} }
+    proc prod gen { generator reduce * 0 $gen }
+    proc fac n { prod [range 1 $n] }
+</pre>
+<p>However, while the <b class="method">reduce</b> operation is efficient for finite generators,
+care should be taken not to apply it to an infinite generator, as this will
+result in an infinite loop:</p>
+<pre class="doctools_example">
+    sum [nats]; # Never returns
+</pre>
+</dd>
+<dt><a name="14"><b class="cmd">generator</b> <b class="method">foldl</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></dt>
+<dd><p>This is an alias for the <b class="method">reduce</b> command.</p></dd>
+<dt><a name="15"><b class="cmd">generator</b> <b class="method">foldr</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></dt>
+<dd><p>This is the right-associative version of <b class="method">reduce</b>. This operation is
+generally inefficient, as the entire generator needs to be evaluated into memory
+(as a list) before the reduction can commence. In an eagerly evaluated language
+like Tcl, this operation has limited use, and should be avoided if possible.</p></dd>
+<dt><a name="16"><b class="cmd">generator</b> <b class="method">all</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></dt>
+<dd><p>Returns true if all elements of the generator satisfy the given predicate.</p></dd>
+<dt><a name="17"><b class="cmd">generator</b> <b class="method">and</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns true if all elements of the generator are true (i.e., takes the logical
+conjunction of the elements).</p></dd>
+<dt><a name="18"><b class="cmd">generator</b> <b class="method">any</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns true if any of the elements of the generator are true (i.e., logical
+disjunction).</p></dd>
+<dt><a name="19"><b class="cmd">generator</b> <b class="method">concat</b> <i class="arg">generator</i> <span class="opt">?<i class="arg">generator..</i>?</span></a></dt>
+<dd><p>Returns a generator which is the concatenation of each of the argument
+generators.</p></dd>
+<dt><a name="20"><b class="cmd">generator</b> <b class="method">concatMap</b> <i class="arg">function</i> <i class="arg">generator</i></a></dt>
+<dd><p>Given a function which maps a value to a series of values, and a generator of
+values of that type, returns a generator of all of the results in one flat
+series. Equivalent to <b class="method">concat</b> applied to the result of <b class="method">map</b>.</p></dd>
+<dt><a name="21"><b class="cmd">generator</b> <b class="method">drop</b> <i class="arg">n</i> <i class="arg">generator</i></a></dt>
+<dd><p>Removes the given number of elements from the front of the generator and returns
+the resulting generator with those elements removed.</p></dd>
+<dt><a name="22"><b class="cmd">generator</b> <b class="method">dropWhile</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></dt>
+<dd><p>Removes all elements from the front of the generator that satisfy the predicate.</p></dd>
+<dt><a name="23"><b class="cmd">generator</b> <b class="method">contains</b> <i class="arg">element</i> <i class="arg">generator</i></a></dt>
+<dd><p>Returns true if the generator contains the given element. Note that this will
+destroy the generator!</p></dd>
+<dt><a name="24"><b class="cmd">generator</b> <b class="method">foldl1</b> <i class="arg">function</i> <i class="arg">generator</i></a></dt>
+<dd><p>A version of <b class="method">foldl</b> that takes the <i class="arg">zero</i> argument from the first
+element of the generator. Therefore this function is only valid on non-empty
+generators.</p></dd>
+<dt><a name="25"><b class="cmd">generator</b> <b class="method">foldli</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></dt>
+<dd><p>A version of <b class="method">foldl</b> that supplies the integer index of each element as
+the first argument to the function. The first element in the generator at this
+point is given index 0.</p></dd>
+<dt><a name="26"><b class="cmd">generator</b> <b class="method">foldri</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></dt>
+<dd><p>Right-associative version of <b class="method">foldli</b>.</p></dd>
+<dt><a name="27"><b class="cmd">generator</b> <b class="method">head</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the first element of the generator.</p></dd>
+<dt><a name="28"><b class="cmd">generator</b> <b class="method">tail</b> <i class="arg">generator</i></a></dt>
+<dd><p>Removes the first element of the generator, returning the rest.</p></dd>
+<dt><a name="29"><b class="cmd">generator</b> <b class="method">init</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns a new generator consisting of all elements except the last of the
+argument generator.</p></dd>
+<dt><a name="30"><b class="cmd">generator</b> <b class="method">takeList</b> <i class="arg">n</i> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the next <i class="arg">n</i> elements of the generator as a list. If not enough
+elements are left in the generator, then just the remaining elements are
+returned.</p></dd>
+<dt><a name="31"><b class="cmd">generator</b> <b class="method">take</b> <i class="arg">n</i> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the next <i class="arg">n</i> elements of the generator as a new generator. The old
+generator is destroyed.</p></dd>
+<dt><a name="32"><b class="cmd">generator</b> <b class="method">iterate</b> <i class="arg">function</i> <i class="arg">init</i></a></dt>
+<dd><p>Returns an infinite generator formed by repeatedly applying the function to the
+initial argument. For example, the Fibonacci numbers can be defined as follows:</p>
+<pre class="doctools_example">
+    proc fst pair { lindex $pair 0 }
+    proc snd pair { lindex $pair 1 }
+    proc nextFib ab { list [snd $ab] [expr {[fst $ab] + [snd $ab]}] }
+    proc fibs {} { generator map fst [generator iterate nextFib {0 1}] }
+</pre>
+</dd>
+<dt><a name="33"><b class="cmd">generator</b> <b class="method">last</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the last element of the generator (if it exists).</p></dd>
+<dt><a name="34"><b class="cmd">generator</b> <b class="method">length</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the length of the generator, destroying it in the process.</p></dd>
+<dt><a name="35"><b class="cmd">generator</b> <b class="method">or</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></dt>
+<dd><p>Returns 1 if any of the elements of the generator satisfy the predicate.</p></dd>
+<dt><a name="36"><b class="cmd">generator</b> <b class="method">product</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the product of the numbers in a generator.</p></dd>
+<dt><a name="37"><b class="cmd">generator</b> <b class="method">repeat</b> <i class="arg">n</i> <i class="arg">value..</i></a></dt>
+<dd><p>Returns a generator that consists of <i class="arg">n</i> copies of the given elements. The
+special value <em>Inf</em> can be used to generate an infinite sequence.</p></dd>
+<dt><a name="38"><b class="cmd">generator</b> <b class="method">sum</b> <i class="arg">generator</i></a></dt>
+<dd><p>Returns the sum of the values in the generator.</p></dd>
+<dt><a name="39"><b class="cmd">generator</b> <b class="method">takeWhile</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></dt>
+<dd><p>Returns a generator of the first elements in the argument generator that satisfy
+the predicate.</p></dd>
+<dt><a name="40"><b class="cmd">generator</b> <b class="method">splitWhen</b> <i class="arg">predicate</i> <i class="arg">generator</i></a></dt>
+<dd><p>Splits the generator into lists of elements using the predicate to identify
+delimiters. The resulting lists are returned as a generator. Elements matching
+the delimiter predicate are discarded. For example, to split up a generator
+using the string &quot;|&quot; as a delimiter:</p>
+<pre class="doctools_example">
+    set xs [generator from list {a | b | c}]
+    generator split {string equal &quot;|&quot;} $xs ;# returns a then b then c
+</pre>
+</dd>
+<dt><a name="41"><b class="cmd">generator</b> <b class="method">scanl</b> <i class="arg">function</i> <i class="arg">zero</i> <i class="arg">generator</i></a></dt>
+<dd><p>Similar to <b class="method">foldl</b>, but returns a generator of all of the intermediate
+values for the accumulator argument. The final element of this generator is
+equivalent to <b class="method">foldl</b> called on the same arguments.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">BUGS, IDEAS, FEEDBACK</a></h2>
+<p>Please report any errors in this document, or in the package it describes, to
+<a href="mailto:nem@cs.nott.ac.uk">Neil Madden</a>.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key224">control structure</a>, <a href="../../../../index.html#key219">coroutine</a>, <a href="../../../../index.html#key223">filter</a>, <a href="../../../../index.html#key221">foldl</a>, <a href="../../../../index.html#key226">foldr</a>, <a href="../../../../index.html#key218">foreach</a>, <a href="../../../../index.html#key225">generator</a>, <a href="../../../../index.html#key222">iterator</a>, <a href="../../../../index.html#key201">map</a>, <a href="../../../../index.html#key217">reduce</a>, <a href="../../../../index.html#key220">scanl</a></p>
+</div>
+</div></body></html>

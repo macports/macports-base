@@ -1,0 +1,208 @@
+[vset VERSION 0.7.3]
+[manpage_begin textutil::adjust n [vset VERSION]]
+[see_also regexp(n)]
+[see_also split(n)]
+[see_also string(n)]
+[keywords adjusting]
+[keywords formatting]
+[keywords hyphenation]
+[keywords indenting]
+[keywords justification]
+[keywords paragraph]
+[keywords string]
+[keywords TeX]
+[keywords undenting]
+[moddesc   {Text and string utilities, macro processing}]
+[titledesc {Procedures to adjust, indent, and undent paragraphs}]
+[category  {Text processing}]
+[require Tcl 8.2]
+[require textutil::adjust [opt [vset VERSION]]]
+[description]
+
+The package [package textutil::adjust] provides commands that manipulate
+strings or texts (a.k.a. long strings or string with embedded newlines
+or paragraphs), adjusting, or indenting them.
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[call [cmd ::textutil::adjust::adjust] [arg string] [opt [arg "option value..."]]]
+
+Do a justification on the [arg string] according to the options.  The
+string is taken as one big paragraph, ignoring any newlines.  Then the
+line is formatted according to the options used, and the command
+returns a new string with enough lines to contain all the printable
+chars in the input string. A line is a set of characters between the
+beginning of the string and a newline, or between 2 newlines, or
+between a newline and the end of the string. If the input string is
+small enough, the returned string won't contain any newlines.
+
+[para]
+
+Together with [cmd ::textutil::adjust::indent] it is possible to
+create properly wrapped paragraphs with arbitrary indentations.
+
+[para]
+
+By default, any occurrence of space or tabulation characters are
+replaced by a single space so that each word in a line is separated
+from the next one by exactly one space character, and this forms a
+[emph real] line.
+
+Each [emph real] line is placed in a [emph logical] line, which has
+exactly a given length (see the option [option -length] below).
+
+The [emph real] line may be shorter. Again by default, trailing spaces
+are ignored before returning the string (see the option [option -full]
+below).
+
+[para]
+
+The following options may be used after the [arg string] parameter,
+and change the way the command places a [emph real] line in a
+[emph logical] line.
+
+[list_begin options]
+
+[opt_def -full [arg boolean]]
+
+If set to [const false] (default), trailing space characters are
+deleted before returning the string. If set to [const true], any
+trailing space characters are left in the string.
+
+[opt_def -hyphenate [arg boolean]]
+
+If set to [const false] (default), no hyphenation will be done. If set
+to [const true], the command will try to hyphenate the last word of a
+line. [emph Note]: Hyphenation patterns must be loaded prior, using
+the command [cmd ::textutil::adjust::readPatterns].
+
+[opt_def -justify [const center|left|plain|right]]
+
+Sets the justification of the returned string to either [const left]
+(default), [const center], [const plain] or [const right]. The
+justification means that any line in the returned string but the last
+one is build according to the value.
+
+If the justification is set to [const plain] and the number of
+printable chars in the last line is less than 90% of the length of a
+line (see the option [option -length]), then this line is justified
+with the [const left] value, avoiding the expansion of this line when
+it is too small. The meaning of each value is:
+
+[list_begin definitions]
+
+[def [const center]]
+
+The real line is centered in the logical line. If needed, a set of
+space characters are added at the beginning (half of the needed set)
+and at the end (half of the needed set) of the line if required (see
+the option [option -full]).
+
+[def [const left]]
+
+The real line is set on the left of the logical line. It means that
+there are no space chars at the beginning of this line. If required,
+all needed space chars are added at the end of the line (see the
+option [option -full]).
+
+[def [const plain]]
+
+The real line is exactly set in the logical line. It means that there
+are no leading or trailing space chars. All the needed space chars are
+added in the [emph real] line, between 2 (or more) words.
+
+[def [const right]]
+
+The real line is set on the right of the logical line. It means that
+there are no space chars at the end of this line, and there may be
+some space chars at the beginning, despite of the [option -full] option.
+
+[list_end]
+
+[opt_def  -length [arg integer]]
+
+Set the length of the [emph logical] line in the string to
+[arg integer].  [arg integer] must be a positive integer
+value. Defaults to [const 72].
+
+[opt_def -strictlength] [arg boolean]]
+
+If set to [const false] (default), a line can exceed the specified
+[option -length] if a single word is longer than [option -length]. If
+set to [const true], words that are longer than [option -length] are
+split so that no line exceeds the specified [option -length].
+
+[list_end]
+
+[call [cmd ::textutil::adjust::readPatterns] [arg filename]]
+
+Loads the internal storage for hyphenation patterns with the contents
+of the file [arg filename]. This has to be done prior to calling
+command [cmd ::textutil::adjust::adjust] with "[option -hyphenate]
+[const true]", or the hyphenation process will not work correctly.
+
+[para]
+
+The package comes with a number of predefined pattern files, and the
+command [cmd ::textutil::adjust::listPredefined] can be used to find
+out their names.
+
+[call [cmd ::textutil::adjust::listPredefined]]
+
+This command returns a list containing the names of the hyphenation
+files coming with this package.
+
+[call [cmd ::textutil::adjust::getPredefined] [arg filename]]
+
+Use this command to query the package for the full path name of the
+hyphenation file [arg filename] coming with the package. Only the
+filenames found in the list returned by
+
+[cmd ::textutil::adjust::listPredefined] are legal arguments for this
+command.
+
+[call [cmd ::textutil::adjust::indent] [arg string] [arg prefix] [opt [arg skip]]]
+
+Each line in the [arg string] is indented by adding the string
+[arg prefix] at its beginning. The modified string is returned
+as the result of the command.
+
+[para]
+
+If [arg skip] is specified the first [arg skip] lines are left
+untouched. The default for [arg skip] is [const 0], causing the
+modification of all lines. Negative values for [arg skip] are treated
+like [const 0]. In other words, [arg skip] > [const 0] creates a
+hanging indentation.
+
+[para]
+
+Together with [cmd ::textutil::adjust::adjust] it is possible to
+create properly wrapped paragraphs with arbitrary indentations.
+
+[call [cmd ::textutil::adjust::undent] [arg string]]
+
+The command computes the common prefix for all lines in [arg string]
+consisting solely out of whitespace, removes this from each line and
+returns the modified string.
+
+[para]
+
+Lines containing only whitespace are always reduced to completely
+empty lines. They and empty lines are also ignored when computing the
+prefix to remove.
+
+[para]
+
+Together with [cmd ::textutil::adjust::adjust] it is possible to
+create properly wrapped paragraphs with arbitrary indentations.
+
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

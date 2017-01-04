@@ -1,0 +1,127 @@
+# -------------------------------------------------------------------------
+# isbn.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+}
+testing {
+    useLocal isbn.tcl valtype::isbn
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-isbn-1.0 {isbn validation wrong\#args} -body {
+    valtype::isbn validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::isbn validate value"}
+
+test valtype-isbn-1.1 {isbn validation wrong\#args} -body {
+    valtype::isbn validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::isbn validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-isbn-2.0 {isbn validation failure, bad char} -body {
+    valtype::isbn validate A
+} -returnCodes error \
+    -result {Not an ISBN number, expected only digits, and possibly 'X' or 'x' as checkdigit}
+
+foreach {n in} {
+    1  030640615
+    2  978030640615
+} {
+    test valtype-isbn-2.1.$n {isbn validation failure, bad length} -body {
+    valtype::isbn validate $in
+    } -returnCodes error \
+        -result {Not an ISBN number, incorrect length, expected one of 10, or 13 characters}
+}
+
+foreach {n in} {
+    1  0306406150
+    2  978030640615x
+} {
+    test valtype-isbn-2.2.$n {isbn validation failure, bad check} -body {
+	valtype::isbn validate $in
+    } -returnCodes error \
+	-result {Not an ISBN number, the check digit is incorrect}
+}
+
+foreach {n in} {
+    1  9774444444444
+} {
+    test valtype-isbn-2.3.$n {isbn validation failure, bad prefix} -body {
+	valtype::isbn validate $in
+    } -returnCodes error \
+	-result {Not an ISBN number, incorrect prefix, expected one of 978, or 979}
+}
+
+test valtype-isbn-3.0 {isbn checkdigit wrong\#args} -body {
+    valtype::isbn checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::isbn checkdigit value"}
+
+test valtype-isbn-3.1 {isbn checkdigit wrong\#args} -body {
+    valtype::isbn checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::isbn checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-isbn-5.0 {isbn checkdigit calculation failure, bad char} -body {
+    valtype::isbn checkdigit A
+} -returnCodes error \
+    -result {Not an ISBN number (without checkdigit), expected only digits}
+
+test valtype-isbn-5.1 {isbn checkdigit calculation failure, bad length} -body {
+    valtype::isbn checkdigit 01234
+} -returnCodes error \
+    -result {Not an ISBN number (without checkdigit), incorrect length, expected one of 9, or 12 characters}
+
+
+test valtype-isbn-5.2 {isbn checkdigit calculation failure, bad char} -body {
+    valtype::isbn checkdigit 977444444444
+} -returnCodes error \
+    -result {Not an ISBN number (without checkdigit), incorrect prefix, expected one of 978, or 979}
+
+foreach {n in check out} {
+    1  030640615    2 9780306406157
+    2  978030640615 7 9780306406157
+} {
+    test valtype-isbn-4.$n {isbn validation} -body {
+	valtype::isbn validate $in$check
+    } -result $out
+
+    test valtype-isbn-6.$n {isbn checkdigit} -body {
+	valtype::isbn checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n in out} {
+    1  0306406152 9780306406157
+} {
+    test valtype-isbn-7.$n {isbn transformation isbn10 to isbn13} -body {
+	valtype::isbn 13of $in
+    } -result $out
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

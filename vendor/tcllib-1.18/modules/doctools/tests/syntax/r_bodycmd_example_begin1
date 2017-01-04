@@ -1,0 +1,3 @@
+Doctools Error in macro at line 1, column 0:
+[example_begin]
+--> (FmtError) Manpage error (bodycmd), "example_begin" : Command not allowed outside of the body of the manpage.

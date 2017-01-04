@@ -1,0 +1,60 @@
+/*
+ * -*- tcl -*-
+ * Parsing Expression Grammar 'TEMPLATE'.
+ * Generated for unknown, from file 'TEST'
+ */
+
+/*
+ * Declaring the parse functions
+ */
+
+<<attributes>> void <<ns>>choice_3 (<<STATE>> <<state>>);
+
+/*
+ * Precomputed table of strings (symbols, error messages, etc.).
+ */
+
+static char const* <<string-table>> [15] = {
+    /*        0 = */   "alnum",
+    /*        1 = */   "alpha",
+    /*        2 = */   "ascii",
+    /*        3 = */   "control",
+    /*        4 = */   "ddigit",
+    /*        5 = */   "digit",
+    /*        6 = */   "graph",
+    /*        7 = */   "lower",
+    /*        8 = */   "print",
+    /*        9 = */   "punct",
+    /*       10 = */   "space",
+    /*       11 = */   "upper",
+    /*       12 = */   "wordchar",
+    /*       13 = */   "xdigit",
+    /*       14 = */   "t a"
+};
+
+/*
+ * Grammar Start Expression
+ */
+
+<<attributes>> void <<ns>><<main>> (<<STATE>> <<state>>) { <<prelude>>
+    <<self>> <<ns>>choice_3 (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>choice_3 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * /
+    *     'a'
+    *     <epsilon>
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    rde_param_i_next_char (<<state>>, "a", 14);
+    if (rde_param_i_bra_void2void(<<state>>)) return;
+    rde_param_i_status_ok (<<state>>);
+    rde_param_i_state_merge_void (<<state>>);
+    return;
+}
+
+/*
+ */

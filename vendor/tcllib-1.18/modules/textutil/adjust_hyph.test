@@ -1,0 +1,132 @@
+# -*- tcl -*-
+# adjust.test:  tests for the adjust sub-package of the textutil package.
+
+##################################################################
+# Main programme to test adjust/hyphenation: shows some examples #
+# of hyphenated text                                             #
+#                                                                #
+# Note: the files dehypht.tex, eshyph_vo.tex and ithyph.tex must #
+# reside in the same directory as adjust_hyph.tcl               #
+##################################################################
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocal     string.tcl   textutil::string
+    useLocal     repeat.tcl   textutil::repeat
+}
+testing {
+    useLocal     adjust.tcl   textutil::adjust
+}
+
+# -------------------------------------------------------------------------
+
+##########
+# German #
+##########
+
+test adjust-tex-1.0 {German hyphenation} {
+    #puts "\nTest german hyphenation ...\n";
+
+    set str "Kurz berichtet: Theodor Holzkopf (Name frei erfunden) promovierte \
+zum Doktor der Rechte über das Thema 'Die Böllerschüsse im Völkerrecht'"
+    set wid 16
+
+    # Setup hyphenation patterns, then perform adjustment
+    textutil::adjust::readPatterns [file join $::tcltest::testsDirectory "dehypht.tex"]
+    textutil::adjust::adjust $str -hyphenate 1 -length $wid
+} {Kurz berichtet:
+Theodor Holzkopf
+(Name frei er-
+funden) promo-
+vierte zum Dok-
+tor der Rechte
+über das Thema
+'Die Böller-
+schüsse im Völ-
+kerrecht'}
+
+###########
+# italian #
+###########
+
+test adjust-tex-1.1 {Italian hyphenation} {
+    #puts "\nTest italian hyphenation ...\n"
+
+    set str "Non sappiamo con precisione quando a Roma furono \
+        institutite le prime scuole regolari, cioè 'statali'. \
+        Plutarcho dice che nacquero verso il 250 avanti Cristo, \
+        cioè circa cinquecent'anni dopo la fondazione della città. \
+        (Indro Montanelli)"
+    set wid 20;
+    textutil::adjust::readPatterns [file join $::tcltest::testsDirectory "ithyph.tex"]
+    textutil::adjust::adjust $str -hyphenate 1 -length $wid
+} {Non sappiamo con
+precisione quando a
+Roma furono institu-
+tite le prime scuole
+regolari, cioè 'sta-
+tali'. Plutarcho di-
+ce che nacquero ver-
+so il 250 avanti
+Cristo, cioè circa
+cinquecent'anni dopo
+la fondazione della
+città. (Indro Monta-
+nelli)}
+
+###########
+# spanish #
+###########
+
+test adjust-tex-1.2 {Spanish hyphenation} {
+    #puts "\nTest spanish hyphenation ...\n";
+
+    set str "El panorama politico estará convulsionado porque los emeneristas, \
+        además de no contar con el apoyo del NFR para gobernar en el periodo \
+        2002-2007, se proponen junto con los ucesistas a aprobar los \
+        cambios a la carta magna (Periodico La Razon, Bolivia)"
+    set wid 20;
+    textutil::adjust::readPatterns [file join $::tcltest::testsDirectory "eshyph_vo.tex"]
+    textutil::adjust::adjust $str -hyphenate 1 -length $wid
+} {El panorama politico
+estará convulsionado
+porque los
+emeneristas, además
+de no contar con el
+apoyo del NFR para
+gobernar en el peri-
+odo 2002-2007, se
+proponen junto con
+los ucesistas a a-
+probar los cambios a
+la carta magna (Pe-
+riodico La Razon,
+Bolivia)}
+
+##########
+
+test adjust-tex-sf-860753 {German hyphenation with plain justification} {
+
+    set str { ein test strin ein
+test string ein test string ein test string ein test
+string ein test string ein test string ein test
+string ein test string ein test string ein test
+string ein test string ein test string ein test
+string ein test string ein test string ein test
+string ein test string g ein test string
+}
+    textutil::adjust::readPatterns [file join $::tcltest::testsDirectory "dehypht.tex"]
+    textutil::adjust::adjust $str -length 76 -hyphenate 1 -strictlength 1 -justify plain
+} {ein  test strin  ein test string  ein test string  ein test string  ein test
+string  ein test string  ein test string ein test string ein test string ein
+test string  ein test string ein test string ein test string ein test string
+ein test string ein test string ein test string ein test string   g ein test
+string}
+
+testsuiteCleanup

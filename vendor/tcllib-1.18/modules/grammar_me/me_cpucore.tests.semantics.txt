@@ -1,0 +1,279 @@
+{ict_advance, no input, no eof -- suspend&wait}
+{} 0
+0 1 {{0 0} x {}}
+{}                                           
+
+{ict_advance, no input, at eof -- fail}
+{} 1
+0 1 {{0 0} x {}}
+{pc 2 at 0 er {0 x}}
+
+{ict_advance, has input, no eof -- consume}
+{{NUM 1 0 0}} 1
+0 1 {{0 0} x {}}
+{pc 2 at 0 cc NUM ok 1}
+
+{ict_advance, has input, at eof -- consume}
+{{NUM 1 0 0}} 1
+0 1 {{0 0} x {}}
+{pc 2 at 0 cc NUM ok 1}
+
+{icf_halt -- stop engine}
+{} 0
+0 2 {{14 14 14} {} {}}
+{pc 1 ht 1}
+
+{icf_halt -- stopped engine, no instruction advance}
+{} 0
+1 2 {{14 14 14} {} {}}
+{}
+
+{iok_ok -- always match}
+{} 0
+0 1 {8 {} {}}
+{pc 1 ok 1}
+
+{iok_fail -- never match}
+{} 0
+1 1 {{8 9} {} {}}
+{pc 2 ok 0}
+
+{iok_negate -- match negation}
+{} 0
+1 1 {{8 10} {} {}}
+{pc 2 ok 0}
+
+{iok_negate -- match negation}
+{} 0
+1 1 {{9 10} {} {}}
+{pc 2 ok 1}
+
+{icf_jalways -- jump always}
+{} 0
+0 1 {{11 5 8 8 8 8} {} {}}
+{pc 5}
+
+{icf_jok -- jump on ok, !ok -- no jump}
+{} 0
+0 1 {{12 5 8 8 8 8} {} {}}
+{pc 2}
+
+{icf_jok -- jump on ok, ok -- jump}
+{} 0
+1 1 {{8 12 5 8 8 8 8} {} {}}
+{pc 5}
+
+{icf_jfail -- jump on !ok, !ok -- jump}
+{} 0
+0 1 {{13 5 8 8 8 8} {} {}}
+{pc 5}
+
+{icf_jfail -- jump on !ok, ok -- no jump}
+{} 0
+1 1 {{8 13 5 8 8 8 8} {} {}}
+{pc 3}
+
+{icl_push, save current location}
+{{ID lalal 0 0} {NUM 1 0 5}} 0
+2 2 {{0 0 0 0 15 15} x {}}
+{pc 6 ls {1 1}}
+
+{icl_rewind, reset to last saved location}
+{{ID lalal 0 0} {NUM 1 0 5}} 0
+3 1 {{0 0 15 0 0 16} x {}}
+{pc 6 at 0 ls {}}
+
+{icl_pop, discard last saved location}
+{{ID lalal 0 0} {NUM 1 0 5}} 0
+4 1 {{0 0 15 0 0 15 17} x {}}
+{pc 7 ls 0}
+
+{isv_terminal -- semantic value, set for terminal}
+{{ID lalal 0 0} {NUM 1 0 5}} 0
+2 1 {{0 0 0 0 23} x {}}
+{pc 5 sv {{} 1 1} as {{{} 1 1}}}
+
+{isv_clear -- semantic value, clear}
+{{ID lalal 0 0} {NUM 1 0 5}} 0
+3 1 {{0 0 0 0 23 22} x {}}
+{pc 6 sv {}}
+
+{isv_nonterminal_leaf -- semantic value, set for leaf nonterminal}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+4 1 {{0 0 0 0 15 0 0 24 0} x {}}
+{pc 9 sv {0 1 2}}
+
+{isv_nonterminal_range -- semantic value, set for range nonterminal}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+4 1 {{0 0 0 0 15 0 0 25 0} x {}}
+{pc 9 sv {0 1 2 {{} 1 2}}}
+
+{ias_push -- save semantic value on ast stack}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+5 1 {{0 0 0 0 15 0 0 24 0 27} x {}}
+{pc 10 as {{0 1 2}}}
+
+{ias_mark -- remember location on ast stack}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+6 1 {{0 0 0 0 15 0 0 24 0 27 28} x {}}
+{pc 11 ms 0}
+
+{ias_mark -- remember location on ast stack, empty ast stack}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+0 1 {28 {} {}}
+{pc 1 ms -1}
+
+{ias_mrewind -- discard ast stack to last saved location}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+10 1 {{0 0 0 0 15 0 0 24 0 27 28 27 27 27 29} x {}}
+{pc 15 as {{0 1 2}} ms {}}
+
+{ias_mpop -- discard last saved ast location}
+{{ID lalal 0 0} {NUM 1 0 5} {NUM 1 0 5}} 0
+10 1 {{0 0 0 0 15 0 0 24 0 27 28 27 27 27 30} x {}}
+{pc 15 ms {}}
+
+{ict_match_token, no match}
+{{NUM 1 0 0}} 1
+1 1 {{0 0 1 0 1} {x bad} {}}
+{pc 5 ok 0 er {0 bad}}
+
+{ict_match_token, match}
+{{NUM 1 0 0}} 1
+1 1 {{0 0 1 0 1} {NUM bad} {}}
+{pc 5}
+
+{ict_match_token, no match, token map}
+{{NUM 1 0 0}} 1
+1 1 {{0 0 1 5 1} {x bad} {x 5 NUM 7}}
+{pc 5 ok 0 er {0 bad}}
+
+{ict_match_token, match, token map}
+{{NUM 1 0 0}} 1
+1 1 {{0 0 1 7 1} {NUM bad} {NUM 7}}
+{pc 5}
+
+{ict_match_tokrange, no match}
+{{NUM 1 0 0}} 1
+1 1 {{0 0 2 0 1 2} {a z bad} {}}
+{pc 6 ok 0 er {0 bad}}
+
+{ict_match_tokrange, match}
+{{f 1 0 0}} 1
+1 1 {{0 0 2 0 1 2} {a z bad} {}}
+{pc 6}
+
+{ict_match_tokrange, no match, token map}
+{{k 1 0 0}} 1
+1 1 {{0 0 2 5 7 0} {bad} {a 5 x 6 z 7 k 0}}
+{pc 6 ok 0 er {0 bad}}
+
+{ict_match_tokrange, match, token map}
+{{x 1 0 0}} 1
+1 1 {{0 0 2 5 7 0} {bad} {a 5 x 6 z 7 k 0}}
+{pc 6}
+
+{ict_match_tokclass, no match}
+{{NUM 1 0 0}} 1
+1 1 {{0 0 3 2 0} bad {}}
+{pc 5 ok 0 er {0 bad}}
+
+{ict_match_tokclass, match}
+{{8 1 0 0}} 1
+1 1 {{0 0 3 2 0} bad {}}
+{pc 5}
+
+{icf_ntcall -- subroutine invokation}
+{} 0
+0 1 {{6 5 8 8 8 8} {} {}}
+{pc 5 rs 2}
+
+{icf_ntcall -- nested subroutine invokation}
+{} 0
+0 2 {{6 3 8 6 8 8 8 8 8} {} {}}
+{pc 8 rs {2 5}}
+
+{icf_ntreturn -- subroutine return}
+{} 0
+1 1 {{6 5 8 8 8 7} {} {}}
+{pc 2 rs {}}
+
+{icf_ntreturn -- nested subroutine return}
+{} 0
+2 2 {{6 3 7 6 6 7 7} {} {}}
+{pc 2 rs {}}
+
+{inc_save - save match status for nonterminal}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+6 1 {{0 0 0 0 15 15  0 0 23 5 0} {NT} {}}
+{pc 11 ls 1 nc {1,NT {2 1 {} {{} 2 2}}}}
+
+{inc_restore - restore match status for nonterminal - wrong location for restore}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 1
+10 1 {{0 0 0 0 15 15  0 0 23 5 0 0 0 9 22 4 0 0} {NT} {}}
+{pc 18}
+
+{inc_restore - restore match status for nonterminal}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 1
+10 2 {{0 0 0 0 15 15 0 0 23 5 0 0 0 9 22    16 4 0 0} {NT} {}}
+{pc 0 at 2 ok 1 sv {{} 2 2} ls {}}
+
+{ier_push -- save error information}
+{} 0
+0 1 {18 {} {}}
+{pc 1 es {{}}}
+
+{ier_clear -- clear error information, nothing to clear}
+{} 0
+0 1 {19 {} {}}
+{pc 1}
+
+{ier_merge - merge current and pushed error - keep current, pushed is empty}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+3 1 {{18 0 0 1 0 0 21} {XX} {}}
+{pc 7 es {}}
+
+{ier_merge - merge current and pushed error - current is empty, keep pushed}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+5 1 {{18 0 0 1 0 0 18 19 21} {XX} {}}
+{pc 9 er {0 XX} es {{}}}
+
+{ier_merge - merge current and pushed error - old/new identical}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+4 1 {{18 0 0 1 0 0 18 21} {XX} {}}
+{pc 8 es {{}}}
+
+{ier_merge - merge current and pushed error - old/new sam location, merge messages}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+5 1 {{18 0 0 1 0 0 18 1 0 1 21} {XX YY} {}}
+{pc 11 er {0 {XX YY}} es {{}}}
+
+{ier_merge - merge current and pushed error - current further than pushed}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+5 1 {{0 0 1 0 0 18 0 0 1 0 0 21} {XX} {}}
+{pc 12 es {}}
+
+{ier_merge - merge current and pushed error - pushed further than current}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+7 1 {{0 0 15 0 0 1 0 0 18 16 1 0 0 21} {XX} {}}
+{pc 14 er {1 XX} es {}}
+
+{ier_nonterminal - replace token error against nt error}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+4 1 {{0 0 15 0 0 1 0 0   20 1} {X NT} {}}
+{pc 10 er {1 NT}}
+
+{isv_nonterminal_reduce - reduce to bottom}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+6 1 {{0 0 15 0 0 23 23 23 26 2} {NT XX YY} {}}
+{pc 10 sv {2 0 1 {{} 1 1} {{} 1 1} {{} 1 1}}}
+
+{isv_nonterminal_reduce - reduce to mark}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+7 1 {{0 0 15 0 0 23 28 23 23 26 2} {NT XX YY} {}}
+{pc 11 sv {2 0 1 {{} 1 1} {{} 1 1}}}
+
+{isv_nonterminal_reduce - reduce to mark and rewind}
+{{NUM 1 0 0} {SPACE { } 0 1} {ID ident 0 2}} 0
+7 2 {{0 0 15 0 0 23 28 23 23 26 2 29} {NT XX YY} {}}
+{pc 12 sv {2 0 1 {{} 1 1} {{} 1 1}} as {{{} 1 1}} ms {}}

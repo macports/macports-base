@@ -1,0 +1,36 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+# -------------------------------------------------------------------------
+
+# Testing the processing of PEG input in various forms.
+
+foreach {k section} {
+    0 {}
+    1 -fused
+    2 -templated
+    3 -templated-fused
+} {
+    TestFilesProcess $mytestdir ok peg_peg$section peg_peg-ast$section -> n label input data expected {
+	test pt-parse-peg-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-2.$k.$n "pt::parse::peg /text, $label$section, ok :- $input" -setup {
+	    set p [pt::parse::peg]
+	} -body {
+	    pt::ast print [$p parset $data]
+	} -cleanup {
+	    $p destroy
+	} -result $expected
+
+	test pt-parse-peg-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-3.$k.$n "pt::parse::peg /file, $label$section, ok :- $input" -setup {
+	    set p [pt::parse::peg]
+	    set chan [open $input]
+	} -body {
+	    pt::ast print [$p parse $chan]
+	} -cleanup {
+	    close $chan
+	    $p destroy
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

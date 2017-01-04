@@ -1,0 +1,205 @@
+<div class='fossil-doc' data-title='otp - RFC 2289 A One-Time Password System'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">otp(n) 1.0.0 tcllib &quot;RFC 2289 A One-Time Password System&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>otp - One-Time Passwords</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">otp <span class="opt">?1.0.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::otp::otp-md4</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></li>
+<li><a href="#2"><b class="cmd">::otp::otp-md5</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></li>
+<li><a href="#3"><b class="cmd">::otp::otp-sha1</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></li>
+<li><a href="#4"><b class="cmd">::otp::otp-rmd160</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package is an implementation in Tcl of the One-Time Password
+system as described in RFC 2289 (1). This system uses message-digest
+algorithms to sequentially hash a passphrase to create single-use
+passwords. The resulting data is then provided to the user as either
+hexadecimal digits or encoded using a dictionary of 2048 words. This
+system is used by OpenBSD for secure login and can be used as a SASL
+mechanism for authenticating users.</p>
+<p>In this implementation we provide support for four algorithms that are
+included in the tcllib distribution: MD5 (2), MD4 (3), RIPE-MD160 (4)
+and SHA-1 (5).</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::otp::otp-md4</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></dt>
+<dd></dd>
+<dt><a name="2"><b class="cmd">::otp::otp-md5</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></dt>
+<dd></dd>
+<dt><a name="3"><b class="cmd">::otp::otp-sha1</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></dt>
+<dd></dd>
+<dt><a name="4"><b class="cmd">::otp::otp-rmd160</b> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-words</i>?</span> <i class="arg">-seed seed</i> <i class="arg">-count count</i> <i class="arg">data</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% otp::otp-md5 -count 99 -seed host67821 &quot;My Secret Pass Phrase&quot;
+(binary gibberish)
+% otp::otp-md5 -words -count 99 -seed host67821 &quot;My Secret Pass Phrase&quot;
+SOON ARAB BURG LIMB FILE WAD
+% otp::otp-md5 -hex -count 99 -seed host67821 &quot;My Secret Pass Phrase&quot;
+e249b58257c80087
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>Haller, N. et al., &quot;A One-Time Password System&quot;, RFC 2289, February 1998.
+	<a href="http://www.rfc-editor.org/rfc/rfc2289.txt">http://www.rfc-editor.org/rfc/rfc2289.txt</a></p></li>
+<li><p>Rivest, R., &quot;The MD5 Message-Digest Algorithm&quot;, RFC 1321, MIT and
+       RSA Data Security, Inc, April 1992.
+	(<a href="http://www.rfc-editor.org/rfc/rfc1321.txt">http://www.rfc-editor.org/rfc/rfc1321.txt</a>)</p></li>
+<li><p>Rivest, R., &quot;The MD4 Message Digest Algorithm&quot;, RFC 1320, MIT,
+       April 1992. (<a href="http://www.rfc-editor.org/rfc/rfc1320.txt">http://www.rfc-editor.org/rfc/rfc1320.txt</a>)</p></li>
+<li><p>H. Dobbertin, A. Bosselaers, B. Preneel,
+        &quot;RIPEMD-160, a strengthened version of RIPEMD&quot;
+        <a href="http://www.esat.kuleuven.ac.be/~cosicart/pdf/AB-9601/AB-9601.pdf">http://www.esat.kuleuven.ac.be/~cosicart/pdf/AB-9601/AB-9601.pdf</a></p></li>
+<li><p>&quot;Secure Hash Standard&quot;, National Institute of Standards
+        and Technology, U.S. Department Of Commerce, April 1995.
+	(<a href="http://www.itl.nist.gov/fipspubs/fip180-1.htm">http://www.itl.nist.gov/fipspubs/fip180-1.htm</a>)</p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>otp</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../sasl/sasl.html">SASL</a>, <a href="../md4/md4.html">md4</a>, <a href="../md5/md5.html">md5</a>, <a href="../ripemd/ripemd160.html">ripemd160</a>, <a href="../sha1/sha1.html">sha1</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key216">hashing</a>, <a href="../../../../index.html#key215">message-digest</a>, <a href="../../../../index.html#key691">password</a>, <a href="../../../../index.html#key690">rfc 2289</a>, <a href="../../../../index.html#key122">security</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Hashes, checksums, and encryption</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;</p>
+</div>
+</div>

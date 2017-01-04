@@ -1,0 +1,202 @@
+
+<html><head>
+<title>json::write - JSON</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'json_write.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009-2013 Andreas Kupries &lt;andreas_kupries@sourceforge.net&gt;
+   -->
+<! -- json::write.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">json::write(n) 1.0.3 tcllib &quot;JSON&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>json::write - JSON generation</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">json::write <span class="opt">?1.0.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::json::write</b> <b class="method">indented</b></a></li>
+<li><a href="#2"><b class="cmd">::json::write</b> <b class="method">indented</b> <i class="arg">flag</i></a></li>
+<li><a href="#3"><b class="cmd">::json::write</b> <b class="method">aligned</b></a></li>
+<li><a href="#4"><b class="cmd">::json::write</b> <b class="method">aligned</b> <i class="arg">flag</i></a></li>
+<li><a href="#5"><b class="cmd">::json::write</b> <b class="method">string</b> <i class="arg">s</i></a></li>
+<li><a href="#6"><b class="cmd">::json::write</b> <b class="method">array</b> <i class="arg">arg</i>...</a></li>
+<li><a href="#7"><b class="cmd">::json::write</b> <b class="method">object</b> <i class="arg">key</i> <i class="arg">value</i>...</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">json::write</b> package provides a simple Tcl-only library
+for generation of text in the JSON <a href="http://www.json.org/">http://www.json.org/</a> data
+exchange format as specified in
+RFC 4627 <a href="http://www.ietf.org/rfc/rfc4627.txt">http://www.ietf.org/rfc/rfc4627.txt</a>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::json::write</b> <b class="method">indented</b></a></dt>
+<dd><p>This method returns the current state of the indentation setting.</p></dd>
+<dt><a name="2"><b class="cmd">::json::write</b> <b class="method">indented</b> <i class="arg">flag</i></a></dt>
+<dd><p>This and the method <b class="method">aligned</b> configure the layout of the JSON
+generated by the package.</p>
+<p>If this <i class="arg">flag</i> is set (default) the package will break the
+generated JSON code across lines and indent it according to its inner
+structure, with each key of an object on a separate line.</p>
+<p>If this flag is not set, the whole JSON object will be written on a
+single line, with minimum spacing between all elements.</p></dd>
+<dt><a name="3"><b class="cmd">::json::write</b> <b class="method">aligned</b></a></dt>
+<dd><p>This method returns the current state of the alignment setting.</p></dd>
+<dt><a name="4"><b class="cmd">::json::write</b> <b class="method">aligned</b> <i class="arg">flag</i></a></dt>
+<dd><p>This and the method <b class="method">indented</b> configure the layout of the JSON
+generated by the package.</p>
+<p>If this <i class="arg">flag</i> is set (default) the package ensures that the
+values for the keys in an object are vertically aligned with each
+other, for a nice table effect. To make this work this also implies
+that <b class="variable">indented</b> is set as well.</p>
+<p>If this flag is not set, the output is formatted as per the value of
+<b class="variable">indented</b>, without trying to align the values for object keys.</p></dd>
+<dt><a name="5"><b class="cmd">::json::write</b> <b class="method">string</b> <i class="arg">s</i></a></dt>
+<dd><p>This method takes the string <i class="arg">s</i> and returns it properly quoted
+for JSON as its result.</p></dd>
+<dt><a name="6"><b class="cmd">::json::write</b> <b class="method">array</b> <i class="arg">arg</i>...</a></dt>
+<dd><p>This method takes a series of JSON formatted arguments and returns
+them as a properly formatted JSON array as its result.</p></dd>
+<dt><a name="7"><b class="cmd">::json::write</b> <b class="method">object</b> <i class="arg">key</i> <i class="arg">value</i>...</a></dt>
+<dd><p>This method takes a series of key/value arguments, the values already
+formatted for JSON, and returns them as a properly formatted JSON
+object as its result, with the keys formatted as JSON strings.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>json</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key205">data exchange</a>, <a href="../../../../index.html#key204">exchange format</a>, <a href="../../../../index.html#key207">javascript</a>, <a href="../../../../index.html#key206">json</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>CGI programming</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009-2013 Andreas Kupries &lt;andreas_kupries@sourceforge.net&gt;</p>
+</div>
+</div></body></html>

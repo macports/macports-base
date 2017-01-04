@@ -1,0 +1,122 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin transfer::data::destination n 0.2]
+[keywords channel]
+[keywords copy]
+[keywords {data destination}]
+[keywords transfer]
+[copyright {2006-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Data transfer facilities}]
+[titledesc {Data destination}]
+[category  {Transfer module}]
+[require Tcl                         8.4]
+[require snit                        [opt 1.0]]
+[require transfer::data::destination [opt 0.2]]
+[description]
+[para]
+
+This package provides objects mainly describing the destination of a
+data transfer. They are also able to initiate the reception of
+information from a channel into the described destination.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd transfer::data::destination] \
+	[arg objectName] \
+	[opt [arg options]...]]
+
+This command creates a new data destination object with an associated
+Tcl command whose name is [arg objectName].
+
+This [term object] command is explained in full detail in the sections
+[sectref {Object command}] and [sectref {Object methods}]. The set of
+supported [arg options] is explained in section [sectref {Options}].
+
+[para]
+
+The object command will be created under the current namespace if the
+[arg objectName] is not fully qualified, and in the specified
+namespace otherwise.
+
+The fully qualified name of the object command is returned as the
+result of the command.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::transfer::data::destination] command
+have the following general form:
+
+[list_begin definitions]
+
+[call [arg objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object. Doing so while the object is busy
+with the reception of information from a channel will cause errors
+later on, when the reception completes and tries to access the now
+missing data structures of the destroyed object.
+
+[call [arg objectName] [method put] [arg chunk]]
+
+The main receptor method. Saves the received [arg chunk] of data into
+the configured destination. It has to be called for each piece of data
+received.
+
+[call [arg objectName] [method done]]
+
+The secondary receptor method. Finalizes the receiver. It has to be
+called when the receiving channel signals EOF. Afterward neither
+itself nor method [method put] can be called anymore.
+
+[call [arg objectName] [method valid] [arg msgvar]]
+
+This method checks the configuration of the object for validity. It
+returns a boolean flag as result, whose value is [const True] if the
+object is valid, and [const False] otherwise. In the latter case the
+variable whose name is stored in [arg msgvar] is set to an error
+message describing the problem found with the configuration. Otherwise
+this variable is not touched.
+
+[call [arg objectName] [method receive] [arg channel] [arg done]]
+
+This method initiates the reception of data from the specified
+[arg channel]. The received data will be stored into the configured
+destination, via calls to the methods [method put] and [method done].
+
+When the reception completes the command prefix [arg done] is invoked,
+with the number of received characters appended to it as the sole
+additional argument.
+
+[list_end]
+
+[subsection Options]
+
+All data destinations support the options listed below. It should be
+noted that all are semi-exclusive, each specifying a different type of
+destination and associated information. If these options are specified
+more than once then the last option specified is used to actually
+configure the object.
+
+[list_begin options]
+[include include/ddest_options.inc]
+[list_end]
+
+[vset CATEGORY transfer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

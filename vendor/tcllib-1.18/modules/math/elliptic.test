@@ -1,0 +1,78 @@
+# -*- tcl -*-
+# eliptic.test --
+#    Test cases for the ::math::special package (Elliptic integrals)
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2004 by Arjen Markus.  All rights reserved.
+#
+# RCS: @(#) $Id: elliptic.test,v 1.12 2007/08/21 17:33:00 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4;# statistics,linalg!
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl        math
+    useLocal constants.tcl   math::constants
+    useLocal linalg.tcl      math::linearalgebra ;# for statistics
+    useLocal statistics.tcl  math::statistics
+    useLocal polynomials.tcl math::polynomials
+}
+testing {
+    useLocal special.tcl math::special
+}
+
+# -------------------------------------------------------------------------
+
+# As the values were given with four digits, an absolute
+# error is most appropriate
+
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+	#puts "abs($a-$e) = [expr {abs($a-$e)}]"
+	if {abs($a-$e) > 0.1e-5} {
+	    set match 0
+	    break
+	}
+    }
+    return $match
+}
+
+::tcltest::customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+test "Elliptic-1.0" "Complete elliptic integral of the first kind" \
+    -match numbers -body {
+	set result {}
+	foreach k2 {0.0 0.1 0.2 0.4 0.5 0.7 0.8 0.95} {
+	    set k [expr {sqrt($k2)}]
+	    lappend result [::math::special::elliptic_K $k]
+	}
+	set result
+    } -result {1.570796 1.612441 1.659624 1.777519 1.854075
+	2.075363 2.257205 2.908337}
+
+test "Elliptic-2.0" "Complete elliptic integral of the second kind" \
+    -match numbers -body {
+	set result {}
+	foreach k2 {0.0 0.1 0.2 0.4 0.5 0.7 0.8 0.95} {
+	    set k [expr {sqrt($k2)}]
+	    lappend result [::math::special::elliptic_E $k]
+	}
+	set result
+    } -result {1.570796 1.530758 1.489035 1.399392 1.350644
+	1.241671 1.17849  1.060474}
+
+
+# End of test cases
+testsuiteCleanup

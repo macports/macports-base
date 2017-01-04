@@ -1,0 +1,201 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ntp.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* ntp_time.man: Bumped version to 1.2.1
+	* time.tcl:
+	* pkgIndex.tcl:
+
+2006-04-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl: bug #1409219: added missing hyphen.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* time.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* time.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-08-26  Andreas Kupries <andreask@activestate.com>
+
+	* time.tcl (::time::unixtime): Fixed the 64bit problems reported
+	  in [Tcllib SF Bug 899211] by forcefully restricting results to
+	  32bit (Masking with 0xffffffff).
+
+2005-08-26  Andreas Kupries <andreask@activestate.com>
+
+	* time.test (createServerProcess): Ensure that the actual socket
+	  is set to binary transport, not the listening socket. On 64bit
+	  machines this can cause the fake server to send more than 4
+	  bytes, causing data format errors in the client.
+
+2005-08-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl:  Deal with Andreas Kupries comment in bug #899211.
+	Keep trying to read data until the amount expected for the protocol
+	in use is received.
+	* time.test: Added some real remote using tests (with constraint).
+
+2005-08-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl: SNTP wasn't working (raised by Donal Fellows). 
+	Added support for ceptcl in addition to tcludp. Incremented
+	version.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-08-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl:    Tidied up error messages.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* time.tcl:     Updated version number to distinguish
+	* ntp_time.man: from the 1.6.1 release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* time.tcl: Rel. engineering. Updated version number 
+	* time.man: of time to reflect its changes, to 1.0.3.
+	* pkgIndex.tcl:
+
+2004-04-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl:     Added support for SNTP (RFC 2030).
+	* ntp_time.man:
+
+2004-02-28  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl: Fix the version as 1.0.2
+
+2004-02-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl: Applied patch #905132 to better handle socket errors.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl: Conform more closely to the RFC in response to 
+	bug #744391.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Resynced package version numbers for this module.
+
+2003-05-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl (unixtime): Applied patch from Andreas Kupries to
+	  ensure the result is always an integer. 
+	* time.test: Make sure the server returns integer values and check
+	the range is valid (rather than just checking for integer).
+
+2003-04-24  Andreas Kupries  <andreask@activestate.com>
+
+	* ntp_time.man: Cleanup of RFC referencing.
+
+	* time.tcl (unixtime): [SF Bug #723426] Added code to handle
+	  possibility of failure in "binary scan". (ClientReadEvent):
+	  Changed to append partial results, allow for empty reads.
+
+	* time.test: [SF Bug #723426]. Corrected non-unique test
+	  names. Handle a missing tcltest::interpreter and fall back to
+	  [info nameofexecutable].
+
+2003-04-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.man:      Renamed the man page to avoid clashing with
+	* ntp_time.man:  the tcl time.n manual page.
+
+2003-03-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.test: Added a test package.
+	* pkgIndex.tcl: Added a package index file.
+
+2003-03-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* time.tcl:
+	* time.man: Initial checkin of an RFC 868 client.
+	* examples/ntp/rdate.tcl: A demo using the time package to request
+	the current time from a remote host via tcp or udp.
+	

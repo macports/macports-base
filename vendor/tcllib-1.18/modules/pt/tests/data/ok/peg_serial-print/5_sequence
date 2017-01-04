@@ -1,0 +1,6 @@
+pt::grammar::peg
+    start := x
+                 'a'
+                 'b'
+                 'c'
+    rules

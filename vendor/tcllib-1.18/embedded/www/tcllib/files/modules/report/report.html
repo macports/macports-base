@@ -1,0 +1,470 @@
+
+<div class='fossil-doc' data-title='report - Matrix reports'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">report(n) 0.3.2 tcllib &quot;Matrix reports&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>report - Create and manipulate report objects</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">REGIONS</a></li>
+<li class="doctools_section"><a href="#section3">LINES</a></li>
+<li class="doctools_section"><a href="#section4">TEMPLATES</a></li>
+<li class="doctools_section"><a href="#section5">STYLES</a></li>
+<li class="doctools_section"><a href="#section6">REPORT METHODS</a></li>
+<li class="doctools_section"><a href="#section7">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section8">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">report <span class="opt">?0.3.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::report::report</b> <i class="arg">reportName</i> <i class="arg">columns</i> <span class="opt">?<b class="const">style</b> <i class="arg">style arg...</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">reportName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::report::defstyle</b> <i class="arg">styleName arguments script</i></a></li>
+<li><a href="#4"><b class="cmd">::report::rmstyle</b> <i class="arg">styleName</i></a></li>
+<li><a href="#5"><b class="cmd">::report::stylearguments</b> <i class="arg">styleName</i></a></li>
+<li><a href="#6"><b class="cmd">::report::stylebody</b> <i class="arg">styleName</i></a></li>
+<li><a href="#7"><b class="cmd">::report::styles</b></a></li>
+<li><a href="#8"><i class="arg">reportName</i> <b class="method">destroy</b></a></li>
+<li><a href="#9"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">disable</b>|<b class="method">enable</b></a></li>
+<li><a href="#10"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">enabled</b></a></li>
+<li><a href="#11"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">get</b></a></li>
+<li><a href="#12"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">set</b> <i class="arg">templatedata</i></a></li>
+<li><a href="#13"><i class="arg">reportName</i> <b class="method">tcaption</b> <span class="opt">?<i class="arg">size</i>?</span></a></li>
+<li><a href="#14"><i class="arg">reportName</i> <b class="method">bcaption</b> <i class="arg">size</i></a></li>
+<li><a href="#15"><i class="arg">reportName</i> <b class="cmd">size</b> <i class="arg">column</i> <span class="opt">?<i class="arg">number</i>|<b class="const">dyn</b>?</span></a></li>
+<li><a href="#16"><i class="arg">reportName</i> <b class="cmd">sizes</b> <span class="opt">?<i class="arg">size-list</i>?</span></a></li>
+<li><a href="#17"><i class="arg">reportName</i> <b class="cmd">pad</b> <i class="arg">column</i> <span class="opt">?<b class="const">left</b>|<b class="const">right</b>|<b class="const">both</b> <span class="opt">?<i class="arg">padstring</i>?</span>?</span></a></li>
+<li><a href="#18"><i class="arg">reportName</i> <b class="cmd">justify</b> <i class="arg">column</i> <span class="opt">?<b class="const">left</b>|<b class="const">right</b>|<b class="const">center</b>?</span></a></li>
+<li><a href="#19"><i class="arg">reportName</i> <b class="cmd">printmatrix</b> <i class="arg">matrix</i></a></li>
+<li><a href="#20"><i class="arg">reportName</i> <b class="cmd">printmatrix2channel</b> <i class="arg">matrix chan</i></a></li>
+<li><a href="#21"><i class="arg">reportName</i> <b class="cmd"><a href="../../../../index.html#key506">columns</a></b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides report objects which can be used by the
+formatting methods of matrix objects to generate tabular reports of
+the matrix in various forms. The report objects defined here break
+each report down into three <span class="sectref"><a href="#section2">REGIONS</a></span> and ten classes of
+<i class="term"><a href="../../../../index.html#key509">lines</a></i> (various separator- and data-lines). See the following
+section for more detailed explanations.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::report::report</b> <i class="arg">reportName</i> <i class="arg">columns</i> <span class="opt">?<b class="const">style</b> <i class="arg">style arg...</i>?</span></a></dt>
+<dd><p>Creates a new report object for a report having <i class="arg">columns</i> columns
+with an associated global Tcl command whose name is
+<i class="arg">reportName</i>. This command may be used to invoke various
+configuration operations on the report. It has the following general
+form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">reportName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command. See section <span class="sectref"><a href="#section6">REPORT METHODS</a></span> for more
+explanations. If no <b class="const">style</b> is specified the report will use
+the builtin style <b class="const">plain</b> as its default configuration.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::report::defstyle</b> <i class="arg">styleName arguments script</i></a></dt>
+<dd><p>Defines the new style <i class="arg">styleName</i>. See section <span class="sectref"><a href="#section5">STYLES</a></span>
+for more information.</p></dd>
+<dt><a name="4"><b class="cmd">::report::rmstyle</b> <i class="arg">styleName</i></a></dt>
+<dd><p>Deletes the style <i class="arg">styleName</i>. Trying to delete an unknown or
+builtin style will result in an error. Beware, this command will not
+check that there are no other styles depending on the deleted
+one. Deleting a style which is still used by another style FOO will
+result in a runtime error when FOO is applied to a newly instantiated
+report.</p></dd>
+<dt><a name="5"><b class="cmd">::report::stylearguments</b> <i class="arg">styleName</i></a></dt>
+<dd><p>This introspection command returns the list of arguments associated
+with the style <i class="arg">styleName</i>.</p></dd>
+<dt><a name="6"><b class="cmd">::report::stylebody</b> <i class="arg">styleName</i></a></dt>
+<dd><p>This introspection command returns the script associated with the
+style <i class="arg">styleName</i>.</p></dd>
+<dt><a name="7"><b class="cmd">::report::styles</b></a></dt>
+<dd><p>This introspection command returns a list containing the names of all
+styles known to the package at the time of the call. The order of the
+names in the list reflects the order in which the styles were
+created. In other words, the first item is the predefined style
+<b class="const">plain</b>, followed by the first style defined by the user, and
+so on.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">REGIONS</a></h2>
+<p>The three regions are the <i class="term">top caption</i>,
+<i class="term">data area</i> and <i class="term">bottom caption</i>. These are,
+roughly speaking, the title, the values to report and a title at the
+bottom. The size of the caption regions can be specified by the user
+as the number of rows they occupy in the matrix to format. The size of
+the data area is specified implicitly.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">LINES</a></h2>
+<p><span class="sectref"><a href="#section4">TEMPLATES</a></span> are associated with each of the ten line classes,
+defining the formatting for this kind of line. The user is able to
+enable and disable the separator lines at will, but not the data
+lines. Their usage is solely determined by the number of rows
+contained in the three regions. Data lines and all enabled separators
+must have a template associated with them.</p>
+<p>Note that the data-lines in a report and the rows in the matrix the
+report was generated from are <em>not</em> in a 1:1 relationship if
+any row in the matrix has a height greater than one.</p>
+<p>The different kinds of lines and the codes used by the report methods
+to address them are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">top</b></dt>
+<dd><p>The topmost line of a report. Separates the report from anything which
+came before it. The user can enable the usage of this line at will.</p></dd>
+<dt><b class="const">topdatasep</b></dt>
+<dd><p>This line is used to separate the data rows in the top caption region,
+if it contains more than one row and the user enabled its usage.</p></dd>
+<dt><b class="const">topcapsep</b></dt>
+<dd><p>This line is used to separate the top caption and data regions, if the
+top caption is not empty and the user enabled its usage.</p></dd>
+<dt><b class="const">datasep</b></dt>
+<dd><p>This line is used to separate the data rows in the data region, if it
+contains more than one row and the user enabled its usage.</p></dd>
+<dt><b class="const">botcapsep</b></dt>
+<dd><p>This line is used to separate the data and bottom caption regions, if
+the bottom caption is not empty and the user enabled its usage.</p></dd>
+<dt><b class="const">botdatasep</b></dt>
+<dd><p>This line is used to separate the data rows in the bottom caption
+region, if it contains more than one row and the user enabled its
+usage.</p></dd>
+<dt><b class="const">bottom</b></dt>
+<dd><p>The bottommost line of a report. Separates the report from anything
+which comes after it. The user can enable the usage of this line at
+will.</p></dd>
+<dt><b class="const">topdata</b></dt>
+<dd><p>This line defines the format of data lines in the top caption region
+of the report.</p></dd>
+<dt><b class="const">data</b></dt>
+<dd><p>This line defines the format of data lines in the data region of the
+report.</p></dd>
+<dt><b class="const">botdata</b></dt>
+<dd><p>This line defines the format of data lines in the bottom caption
+region of the report.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">TEMPLATES</a></h2>
+<p>Each template is a list of strings used to format the line it is
+associated with. For a report containing <b class="variable">n</b> columns a template
+for a data line has to contain &quot;<b class="variable">n</b>+1&quot; items and a template for a
+separator line &quot;2*<b class="variable">n</b>+1&quot; items.</p>
+<p>The items in a data template specify the strings used to separate the
+column information. Together with the corresponding items in the
+separator templates they form the vertical lines in the report.</p>
+<p><em>Note</em> that the corresponding items in all defined templates
+have to be of equal length. This will be checked by the report
+object. The first item defines the leftmost vertical line and the last
+item defines the rightmost vertical line. The item at index <b class="variable">k</b>
+(&quot;1&quot;,...,&quot;<b class="variable">n</b>-2&quot;) separates the information in the columns
+&quot;<b class="variable">k</b>-1&quot; and &quot;<b class="variable">k</b>&quot;.</p>
+<p>The items in a separator template having an even-numbered index
+(&quot;0&quot;,&quot;2&quot;,...)  specify the column separators. The item at index
+&quot;2*<b class="variable">k</b>&quot; (&quot;0&quot;,&quot;2&quot;,...,&quot;2*<b class="variable">n</b>&quot;) corresponds to the items at
+index &quot;<b class="variable">k</b>&quot; in the data templates.</p>
+<p>The items in a separator template having an odd-numbered index
+(&quot;1&quot;,&quot;3&quot;,...) specify the strings used to form the horizontal lines in
+the separator lines. The item at index &quot;2*<b class="variable">k</b>+1&quot;
+(&quot;1&quot;,&quot;3&quot;,...,&quot;2*<b class="variable">n</b>+1&quot;) corresponds to column &quot;<b class="variable">k</b>&quot;. When
+generating the horizontal lines the items are replicated to be at
+least as long as the size of their column and then cut to the exact
+size.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">STYLES</a></h2>
+<p>Styles are a way for the user of this package to define common
+configurations for report objects and then use them later during the
+actual instantiation of report objects. They are defined as tcl
+scripts which when executed configure the report object into the
+requested configuration.</p>
+<p>The command to define styles is <b class="cmd">::report::defstyle</b>. Its last
+argument is the tcl <b class="type">script</b> performing the actual
+reconfiguration of the report object to obtain the requested style.</p>
+<p>In this script the names of all previously defined styles are
+available as commands, as are all commands found in a safe interpreter
+and the configuration methods of report objects. The latter implicitly
+operate on the object currently executing the style script. The
+<b class="variable">arguments</b> declared here are available in the <b class="type">script</b> as
+variables. When calling the command of a previously declared style all
+the arguments expected by it have to be defined in the call.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">REPORT METHODS</a></h2>
+<p>The following commands are possible for report objects:</p>
+<dl class="doctools_definitions">
+<dt><a name="8"><i class="arg">reportName</i> <b class="method">destroy</b></a></dt>
+<dd><p>Destroys the report, including its storage space and associated
+command.</p></dd>
+<dt><a name="9"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">disable</b>|<b class="method">enable</b></a></dt>
+<dd><p>Enables or disables the usage of the template addressed by the
+<i class="arg">templatecode</i>. Only the codes for separator lines are allowed
+here. It is not possible to enable or disable data lines.</p>
+<p>Enabling a template causes the report to check all used templates for
+inconsistencies in the definition of the vertical lines (See section
+<span class="sectref"><a href="#section4">TEMPLATES</a></span>).</p></dd>
+<dt><a name="10"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">enabled</b></a></dt>
+<dd><p>Returns the whether the template addressed by the <i class="arg">templatecode</i>
+is currently enabled or not.</p></dd>
+<dt><a name="11"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">get</b></a></dt>
+<dd><p>Returns the template currently associated with the kind of line
+addressed by the <i class="arg">templatecode</i>. All known templatecodes are
+allowed here.</p></dd>
+<dt><a name="12"><i class="arg">reportName</i> <i class="arg">templatecode</i> <b class="method">set</b> <i class="arg">templatedata</i></a></dt>
+<dd><p>Sets the template associated with the kind of line addressed by the
+<i class="arg">templatecode</i> to the new value in <i class="arg">templatedata</i>. See section
+<span class="sectref"><a href="#section4">TEMPLATES</a></span> for constraints on the length of templates.</p></dd>
+<dt><a name="13"><i class="arg">reportName</i> <b class="method">tcaption</b> <span class="opt">?<i class="arg">size</i>?</span></a></dt>
+<dd><p>Specifies the <i class="arg">size</i> of the top caption region as the number rows
+it occupies in the matrix to be formatted. Only numbers greater than
+or equal to zero are allowed. If no <i class="arg">size</i> is specified the
+command will return the current size instead.</p>
+<p>Setting the size of the top caption to a value greater than zero
+enables the corresponding data template and causes the report to check
+all used templates for inconsistencies in the definition of the
+vertical lines (See section <span class="sectref"><a href="#section4">TEMPLATES</a></span>).</p></dd>
+<dt><a name="14"><i class="arg">reportName</i> <b class="method">bcaption</b> <i class="arg">size</i></a></dt>
+<dd><p>Specifies the <i class="arg">size</i> of the bottom caption region as the number
+rows it occupies in the matrix to be formatted. Only numbers greater
+than or equal to zero are allowed. If no <i class="arg">size</i> is specified the
+command will return the current size instead.</p>
+<p>Setting the size of the bottom caption to a value greater than zero
+enables the corresponding data template and causes the report to check
+all used templates for inconsistencies in the definition of the
+vertical lines (See section <span class="sectref"><a href="#section4">TEMPLATES</a></span>).</p></dd>
+<dt><a name="15"><i class="arg">reportName</i> <b class="cmd">size</b> <i class="arg">column</i> <span class="opt">?<i class="arg">number</i>|<b class="const">dyn</b>?</span></a></dt>
+<dd><p>Specifies the size of the <i class="arg">column</i> in the output. The value
+<b class="const">dyn</b> means that the columnwidth returned by the matrix to be
+formatted for the specified column shall be used. The formatting of
+the column is dynamic. If a fixed <i class="arg">number</i> is used instead of
+<b class="const">dyn</b> it means that the column has a width of that many
+characters (padding excluded). Only numbers greater than zero are
+allowed here.</p>
+<p>If no size specification is given the command will return the current
+size of the <i class="arg">column</i> instead.</p></dd>
+<dt><a name="16"><i class="arg">reportName</i> <b class="cmd">sizes</b> <span class="opt">?<i class="arg">size-list</i>?</span></a></dt>
+<dd><p>This method allows the user to specify the sizes of all columns in one
+call. Its argument is a list containing the sizes to associate with
+the columns. The first item is associated with column 0, the next with
+column 1, and so on.</p>
+<p>If no <i class="arg">size-list</i> is specified the command will return a list
+containing the currently set sizes instead.</p></dd>
+<dt><a name="17"><i class="arg">reportName</i> <b class="cmd">pad</b> <i class="arg">column</i> <span class="opt">?<b class="const">left</b>|<b class="const">right</b>|<b class="const">both</b> <span class="opt">?<i class="arg">padstring</i>?</span>?</span></a></dt>
+<dd><p>This method allows the user to specify padding on the left, right or
+both sides of a <i class="arg">column</i>. If the <i class="arg">padstring</i> is not specified
+it defaults to a single space character. <em>Note</em>: An alternative
+way of specifying the padding is to use vertical separator strings
+longer than one character in the templates (See section
+<span class="sectref"><a href="#section4">TEMPLATES</a></span>).</p>
+<p>If no pad specification is given at all the command will return the
+current state of padding for the column instead. This will be a list
+containing two elements, the first element the left padding, the
+second describing the right padding.</p></dd>
+<dt><a name="18"><i class="arg">reportName</i> <b class="cmd">justify</b> <i class="arg">column</i> <span class="opt">?<b class="const">left</b>|<b class="const">right</b>|<b class="const">center</b>?</span></a></dt>
+<dd><p>Declares how the cell values for a <i class="arg">column</i> are filled into the
+report given the specified size of a column in the report.</p>
+<p>For <b class="const">left</b> and <b class="const">right</b> justification a cell value
+shorter than the width of the column is bound with its named edge to
+the same edge of the column. The other side is filled with spaces. In
+the case of <b class="const">center</b> the spaces are placed to both sides of the
+value and the left number of spaces is at most one higher than the
+right number of spaces.</p>
+<p>For a value longer than the width of the column the value is cut at
+the named edge. This means for <b class="const">left</b> justification that the
+<em>tail</em> (i.e. the <b class="const">right</b> part) of the value is made
+visible in the output. For <b class="const">center</b> the value is cut at both
+sides to fit into the column and the number of characters cut at the
+left side of the value is at most one less than the number of
+characters cut from the right side.</p>
+<p>If no justification was specified the command will return the current
+justification for the column instead.</p></dd>
+<dt><a name="19"><i class="arg">reportName</i> <b class="cmd">printmatrix</b> <i class="arg">matrix</i></a></dt>
+<dd><p>Formats the <i class="arg">matrix</i> according to the configuration of the report
+and returns the resulting string. The matrix has to have the same
+number of columns as the report. The matrix also has to have enough
+rows so that the top and bottom caption regions do not overlap. The
+data region is allowed to be empty.</p></dd>
+<dt><a name="20"><i class="arg">reportName</i> <b class="cmd">printmatrix2channel</b> <i class="arg">matrix chan</i></a></dt>
+<dd><p>Formats the <i class="arg">matrix</i> according to the configuration of the report
+and writes the result into the channel <i class="arg">chan</i>. The matrix has to
+have the same number of columns as the report. The matrix also has to
+have enough rows so that the top and bottom caption regions do not
+overlap. The data region is allowed to be empty.</p></dd>
+<dt><a name="21"><i class="arg">reportName</i> <b class="cmd"><a href="../../../../index.html#key506">columns</a></b></a></dt>
+<dd><p>Returns the number of columns in the report.</p></dd>
+</dl>
+<p>The methods <b class="method">size</b>, <b class="method">pad</b> and <b class="method">justify</b> all take
+a column index as their first argument. This index is allowed to use
+all the forms of an index as accepted by the <b class="cmd">lindex</b> command. The
+allowed range for indices is
+	&quot;0,...,[<b class="variable">reportName</b> columns]-1&quot;.</p>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">EXAMPLES</a></h2>
+<p>Our examples define some generally useful report styles.</p>
+<p>A simple table with lines surrounding all information and vertical
+separators, but without internal horizontal separators.</p>
+<pre class="doctools_example">
+    ::report::defstyle simpletable {} {
+	data	set [split &quot;[string repeat &quot;| &quot;   [columns]]|&quot;]
+	top	set [split &quot;[string repeat &quot;+ - &quot; [columns]]+&quot;]
+	bottom	set [top get]
+	top	enable
+	bottom	enable
+    }
+</pre>
+<p>An extension of a <b class="cmd">simpletable</b>, see above, with a title area.</p>
+<pre class="doctools_example">
+    ::report::defstyle captionedtable {{n 1}} {
+	simpletable
+	topdata   set [data get]
+	topcapsep set [top get]
+	topcapsep enable
+	tcaption $n
+    }
+</pre>
+<p>Given the definitions above now an example which actually formats a
+matrix into a tabular report. It assumes that the matrix actually
+contains useful data.</p>
+<pre class="doctools_example">
+    % ::struct::matrix m
+    % # ... fill m with data, assume 5 columns
+    % ::report::report r 5 style captionedtable 1
+    % r printmatrix m
+    +---+-------------------+-------+-------+--------+
+    |000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
+    +---+-------------------+-------+-------+--------+
+    |001|CATCH return ok    |7      |13     |53.85   |
+    |002|CATCH return error |68     |91     |74.73   |
+    |003|CATCH no catch used|7      |14     |50.00   |
+    |004|IF if true numeric |12     |33     |36.36   |
+    |005|IF elseif          |15     |47     |31.91   |
+    |   |true numeric       |       |       |        |
+    +---+-------------------+-------+-------+--------+
+    %
+    % # alternate way of doing the above
+    % m format 2string r
+</pre>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>report</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key51">matrix</a>, <a href="../../../../index.html#key107">report</a>, <a href="../../../../index.html#key106">table</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002-2014 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

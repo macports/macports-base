@@ -1,0 +1,35 @@
+This file records outstanding actions for the math module
+
+dd. 26 april 2015, Arjen Markus
+Add:
+- additional linear algebra procedures by Federico Ferri
+- lognormal income library by Eric Benedict
+- empirical distribution
+- tukey-duckworth test
+
+
+
+dd. 18 january 2014, Arjen Markus
+test cases for kernel-density:
+One test case is troublesome - uniform kernel, checking the total density
+
+
+dd. 26 october 2005, Arjen Markus
+
+qcomplex.test: extend the tests for cos/sin .. to include
+               non-real results.
+
+dd. 28 september 2005, Arjen Markus
+
+optimize.tcl: linear programming algorithm ignores certain
+              constraints (of type x > 0). Needs to be
+              fixed
+
+dd. 22 june 2004, Arjen Markus
+
+interpolate.man: add examples
+interpolate.tcl: more consistency in the calling convention
+                 checks on arguments (add tests for them)
+optimize.man: example of a parametrized function (also a test case!)
+optimize.tcl: provide an alternative for maximum
+

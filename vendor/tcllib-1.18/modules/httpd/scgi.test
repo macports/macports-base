@@ -1,0 +1,330 @@
+###
+# scgi.test - Copyright (c) 2015 Sean Woods
+#
+# Author: Sean Woods, yoda@etoyoc.com
+# Unit tests of the SCGI server
+###
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+
+testsNeed TclOO 1
+
+support {
+  use cmdline/cmdline.tcl cmdline
+  use fileutil/fileutil.tcl fileutil
+
+  use md5/md5.tcl md5
+  use base64/base64.tcl base64
+  use mime/mime.tcl mime
+  
+  use uri/uri.tcl uri
+  use ncgi/ncgi.tcl ncgi
+
+  use dns/ip.tcl ip
+  use nettool/nettool.tcl nettool
+  use html/html.tcl html
+
+  use dicttool/dicttool.tcl dicttool
+  use cron/cron.tcl cron
+  use oodialect/oodialect.tcl oo::dialect
+  use oometa/oometa.tcl oo::meta
+  use sha1/sha1.tcl sha1
+  use tool/index.tcl tool
+}
+
+testing {
+  useLocal httpd.tcl httpd
+  useLocal scgi-app.tcl scgi::app
+}
+
+# -------------------------------------------------------------------------
+namespace eval ::scgi {}
+namespace eval ::scgi::test {}
+
+###
+# Minimal test harness for the .tests
+# Not intended for public consumption
+# (But if you find it handy, please steal!)
+namespace eval ::scgi::test {}
+
+proc ::scgi::encode_request {headers body info} {
+  variable server_block
+
+  dict set outdict CONTENT_LENGTH [string length $body]
+  set outdict [dict merge $outdict $server_block $info]
+  dict set outdict PWD [pwd]
+  foreach {key value} $headers {
+    switch $key {
+      SCRIPT_NAME -
+      REQUEST_METHOD -
+      REQUEST_URI {
+        dict set outdict $key $value
+      }
+      default {
+        dict set outdict HTTP_[string map {"-" "_"} [string toupper $key]] $value
+      }
+    }
+  }  
+  set result {}
+  foreach {name value} $outdict {
+    append result $name \x00 $value \x00
+  }
+  return "[string length $result]:$result,"
+}
+
+proc ::scgi::test::send {port text} {
+  set sock [socket localhost $port]
+  variable reply
+  set reply($sock) {}
+  chan configure $sock -translation binary -blocking 0 -buffering full -buffersize 4096
+  chan event $sock readable [list ::scgi::test::get_reply $sock]
+  
+  set headers {}
+  set body {}
+  set read_headers 1
+  foreach line [split $text \n] {
+    if {$read_headers} {
+      if { $line eq {} } {
+        set read_headers 0
+      } else {
+        append headers $line \n
+      }
+    } else {
+      append body $line \n
+    }
+  }
+  set block [::scgi::encode_request $headers $body {}]
+  puts -nonewline $sock $block
+  flush $sock
+  puts -nonewline $sock $body
+  flush $sock
+  while {$reply($sock) eq {}} {
+    update
+  }
+  #vwait [namespace current]::reply($sock)
+  return $reply($sock)
+}
+
+proc ::scgi::test::get_reply {sock} {
+  variable buffer
+  set data [read $sock]
+  append buffer($sock) $data
+  if {[eof $sock]} {
+    chan event $sock readable {}
+    set [namespace current]::reply($sock) $buffer($sock)
+    unset buffer($sock)
+  }
+}
+
+namespace eval ::scgi {
+  variable server_block {SCGI 1.0 SERVER_SOFTWARE {TclScgiServer/0.1}}
+}
+
+###
+# Build the reply class
+###
+tool::class create ::scgi::test::reply {  
+  superclass ::scgi::reply 
+  
+  method error {code {msg {}}} {
+    my reset
+    my variable data error_codes
+    if {![info exists data(url)]} {
+      set data(url) {}
+    }
+    if {![info exists error_codes($code)]} {
+      set errorstring "Unknown Error Code"
+    } else {
+      set errorstring $error_codes($code)
+    }
+    my reply_headers replace {}
+    my reply_headers set Status: "$code $errorstring"
+    my reply_headers set Content-Type: {text/plain}
+    my puts "
+$code $errorstring
+Got the error $code $errorstring
+
+while trying to obtain $data(url)
+"
+  }
+
+  method reset {} {
+    my variable reply_body
+    my reply_headers replace {Status: {200 OK} Content-Type: text/plain}
+    set reply_body {}
+  }
+  
+  method content {} {
+    my reset
+    switch [my query_headers get REQUEST_URI] {
+      /file {
+        my variable reply_file
+        set reply_file [file join $::here pkgIndex.tcl]
+      }
+      /time {
+	my puts [clock seconds]
+      }
+      /error {
+	error {
+The programmer asked me to die this way
+	}
+      }
+      /echo -
+      default {
+        my puts [my PostData]
+      }
+    }
+  }
+
+  ###
+  # Output the result or error to the channel
+  # and destroy this object
+  ###
+  method output {} {
+    my variable reply_body reply_file reply_chan chan
+    chan configure $chan  -translation {binary binary}
+
+    set headers [my reply_headers dump]
+    if {[dict exists $headers Status:]} {
+      set result "[my EncodeStatus [dict get $headers Status:]]\n"
+    } else {
+      set result "[my EncodeStatus {505 Internal Error}]\n"
+
+    }
+    foreach {key value} $headers {
+      # Ignore Status and Content-length, if given
+      if {$key in {Status: Content-length:}} continue
+      append result "$key $value" \n
+    }
+    if {![info exists reply_file] || [string length $reply_body]} {
+      ###
+      # Return dynamic content
+      ###
+      set reply_body [string trim $reply_body]
+      append result "Content-length: [string length $reply_body]" \n \n
+      append result $reply_body
+      puts -nonewline $chan $result
+    } else {
+      ###
+      # Return a stream of data from a file
+      ###
+      append result "Content-length: [file size $reply_file]" \n \n
+      puts -nonewline $chan $result
+      set reply_chan [open $reply_file r]
+      chan copy $reply_chan $chan
+      catch {close $reply_chan}
+    }
+    chan flush $chan    
+    my destroy
+  }
+}
+
+###
+# Build the server
+###
+tool::class create scgi::test::app {
+  superclass ::scgi::app
+  
+  property reply_class ::scgi::test::reply
+}
+
+scgi::test::app create TESTAPP port 10001
+
+test scgi-client-0001 {Do an echo request} {
+
+set reply [::scgi::test::send 10001 {REQUEST_METHOD POST
+REQUEST_URI /echo
+
+THIS IS MY CODE
+}]
+} {Status: 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 15
+
+THIS IS MY CODE}
+
+test scgi-client-0002 {Do another echo request} {
+set reply [::scgi::test::send 10001 {REQUEST_METHOD POST
+REQUEST_URI /echo
+
+THOUGH THERE ARE MANY LIKE IT
+}]
+} {Status: 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 29
+
+THOUGH THERE ARE MANY LIKE IT}
+
+test scgi-client-0003 {Do another echo request} {
+set reply [::scgi::test::send 10001 {REQUEST_METHOD POST
+REQUEST_URI /echo
+
+THIS ONE ALONE IS MINE
+}]
+} {Status: 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 22
+
+THIS ONE ALONE IS MINE}
+
+test scgi-client-0004 {URL Generates Error} {
+
+set reply [::scgi::test::send 10001 {REQUEST_METHOD POST
+REQUEST_URI /error
+
+THIS ONE ALONE IS MINE
+}] } {Status: 500 Server Internal Error
+Content-Type: text/plain
+Connection: close
+Content-length: 89
+
+500 Server Internal Error
+Got the error 500 Server Internal Error
+
+while trying to obtain}
+
+set checkreply [subst {Status: 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 10
+
+[clock seconds]}]
+
+test scgi-client-0005 {URL Different output with a different request} {
+set reply [::scgi::test::send 10001 {REQUEST_METHOD POST
+REQUEST_URI /time
+
+THIS ONE ALONE IS MINE
+}] } $checkreply
+
+set fin [open [file join $here pkgIndex.tcl] r]
+set checkreply [read $fin]
+close $fin
+test scgi-client-0006 {Return a file} {
+set reply [::scgi::test::send 10001 {REQUEST_METHOD POST
+REQUEST_URI /file
+}] } "Status: 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: [string length $checkreply]
+
+$checkreply"
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

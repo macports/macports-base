@@ -1,0 +1,180 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 0.6]
+[manpage_begin bibtex n [vset VERSION]]
+[keywords bibliography]
+[keywords bibtex]
+[keywords parsing]
+[keywords {text processing}]
+[copyright {2005 for documentation, Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {bibtex}]
+[titledesc {Parse bibtex files}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require bibtex [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides commands for the parsing of bibliographies in
+BibTeX format.
+
+[list_begin definitions]
+
+[call [cmd ::bibtex::parse] [opt [arg options]] [opt [arg text]]]
+
+This is the general form of the command for parsing a
+bibliography. Depending on the options used to invoke it it will
+either return a token for the parser, or the parsed entries of the
+input bibliography. Instead of performing an immediate parse returning
+a predefined format the command can also enter an event-based parsing
+style where all relevant entries in the input are reported through
+callback commands, in the style of SAX.
+
+[call [cmd ::bibtex::parse] [arg text]]
+
+In this form the command will assume that the specified [arg text] is
+a bibliography in BibTeX format, parse it, and then return a list
+containing one element per record found in the bibliography. Note that
+comments, string definitions, preambles, etc. will not show up in the
+result.  Each element will be a list containing record type,
+bibliography key and record data, in this order. The record data will
+be a dictionary, its keys the keys of the record, with the associated
+values.
+
+[call [cmd ::bibtex::parse] \
+	[opt "[option -command] [arg cmd]"] \
+	[option -channel] [arg chan]]
+
+In this form the command will reads the bibliography from the
+specified Tcl channel [arg chan] and then returns the same data
+structure as described above.
+
+[para]
+
+If however the option [option -command] is specified the result will be a
+handle for the parser instead and all processing will be incremental
+and happen in the background. When the input has been exhausted the
+callback [arg cmd] will be invoked with the result of the parse. The
+exact definition for the callback is
+
+[para]
+
+[list_begin definitions]
+[def "[cmd cmd] [arg token] [arg parseresult]"]
+
+The parse result will have the structure explained above, for the
+simpler forms of the parser.
+
+[list_end]
+[para]
+
+[emph Note] that the parser will [emph not] close the channel after it
+has exhausted it. This is still the responsibility of the user of the
+parser.
+
+[call [cmd ::bibtex::parse] \
+	[opt "[option -recordcommand]   [arg recordcmd]"] \
+	[opt "[option -preamblecommand] [arg preamblecmd]"] \
+	[opt "[option -stringcommand]   [arg stringcmd]"] \
+	[opt "[option -commentcommand]  [arg commentcmd]"] \
+	[opt "[option -progresscommand] [arg progresscmd]"] \
+	[opt "[option -casesensitivestrings] [arg bool]"] \
+	"([arg text] | [option -channel] [arg chan])"]
+
+This is the most low-level form for the parser. The returned result
+will be a handle for the parser. During processing it will invoke the
+invoke the specified callback commands for each type of data found in
+the bibliography.
+
+[para]
+
+The processing will be incremental and happen in the background if,
+and only if a Tcl channel [arg chan] is specified. For a [arg text]
+the processing will happen immediately and all callbacks will be
+invoked before the command itself returns.
+
+[para]
+
+The callbacks, i.e. [arg *cmd], are all command prefixes and will be
+invoked with additional arguments appended to them. The meaning of the
+arguments depends on the callback and is explained below. The first
+argument will however always be the handle of the parser invoking the
+callback.
+
+[list_begin definitions]
+
+[def "[option -casesensitivestrings]"]
+
+This option takes a boolean value. When set string macro processing
+becomes case-sensitive. The default is case-insensitive string macro
+processing.
+
+[def "[cmd recordcmd] [arg token] [arg type] [arg key] [arg recorddict]"]
+
+This callback is invoked whenever the parser detects a bibliography
+record in the input. Its arguments are the record type, the
+bibliography key for the record, and a dictionary containing the keys
+and values describing the record. Any string macros known to the
+parser have already been expanded.
+
+[def "[cmd preamblecmd] [arg token] [arg preambletext]"]
+
+This callback is invoked whenever the parser detects an @preamble
+block in the input. The only additional argument is the text found in
+the preamble block. By default such entries are ignored.
+
+[def "[cmd stringcmd] [arg token] [arg stringdict]"]
+
+This callback is invoked whenever the parser detects an @string-based
+macro definition in the input. The argument is a dictionary with the
+macro names as keys and their replacement strings as values. By
+default such definitions are added to the parser state for use in
+future bibliography records.
+
+[def "[cmd commentcmd] [arg token] [arg commenttext]"]
+
+This callback is invoked whenever the parser detects a comment in the
+input. The only additional argument is the comment text. By default
+such entries are ignored.
+
+[def "[cmd progresscmd] [arg token] [arg percent]"]
+
+This callback is invoked during processing to tell the user about the
+progress which has been made. Its argument is the percentage of data
+processed, as integer number between [const 0] and [const 100].
+
+In the case of incremental processing the perecentage will always be
+[const -1] as the total number of entries is not known beforehand.
+
+[list_end]
+[para]
+
+[call [cmd ::bibtex::wait] [arg token]]
+
+This command waits for the parser represented by the [arg token] to
+complete and then returns. The returned result is the empty string.
+
+[call [cmd ::bibtex::destroy] [arg token]]
+
+This command cleans up all internal state associated with the parser
+represented by the handle [arg token], effectively destroying it. This
+command can be called from within the parser callbacks to terminate
+processing.
+
+[call [cmd ::bibtex::addStrings] [arg token] [arg stringdict]]
+
+This command adds the macro definitions stored in the
+dictionary [arg stringdict] to the parser represented
+by the handle [arg token].
+
+[para]
+
+The dictionary keys are the macro names and the values their
+replacement strings. This command has the correct signature for use as
+a [option -stringcommand] callback in an invokation of the command
+[cmd ::bibtex::parse].
+
+[list_end]
+
+[vset CATEGORY bibtex]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

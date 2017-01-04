@@ -1,0 +1,16 @@
+[manpage_begin TEST z 3.14.15.926]
+[description]
+BEGINNE HIER
+[example {
+	 Example Block \
+	 More Lines
+}]
+[para]
+[para]
+[example_begin]
+Inlined Example \
+Next Line
+[example_end]
+FERTIG
+[manpage_end]
+

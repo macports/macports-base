@@ -1,0 +1,122 @@
+# -*- tcl -*- log.pcx
+# Syntax of the commands provided by package log.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register log
+pcx::tcldep   1.2 needs tcl 8.2
+
+namespace eval ::log {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.2 std ::log::levels \
+    {checkSimpleArgs 0 0 {}}
+pcx::check 1.2 std ::log::log \
+    {checkSimpleArgs 2 2 {
+	log::checkLogLevel
+	checkWord
+    }}
+pcx::check 1.2 std ::log::logError \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.2 std ::log::logMsg \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.2 std ::log::logarray \
+    {checkSimpleArgs 2 3 {
+	log::checkLogLevel
+	checkVarNameRdAll
+	checkWord
+    }}
+pcx::check 1.2 std ::log::loghex \
+    {checkSimpleArgs 3 3 {
+	log::checkLogLevel
+	checkWord
+	checkWord
+    }}
+pcx::check 1.2 std ::log::lv2channel \
+    {checkSimpleArgs 1 1 {
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lv2cmd \
+    {checkSimpleArgs 1 1 {
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lv2color \
+    {checkSimpleArgs 1 1 {
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lv2longform \
+    {checkSimpleArgs 1 1 {
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lv2priority \
+    {checkSimpleArgs 1 1 {
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lvChannel \
+    {checkSimpleArgs 2 2 {
+	log::checkLogLevel
+	checkChannelID
+    }}
+pcx::check 1.2 std ::log::lvChannelForall \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 1.2 std ::log::lvCmd \
+    {checkSimpleArgs 2 2 {
+	log::checkLogLevel
+	checkList
+    }}
+pcx::check 1.2 std ::log::lvCmdForall \
+    {checkSimpleArgs 1 1 {
+	checkList
+    }}
+pcx::check 1.2 std ::log::lvColor \
+    {checkSimpleArgs 2 2 {
+	log::checkLogLevel
+	checkWord
+    }}
+pcx::check 1.2 std ::log::lvColorForall \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.2 std ::log::lvCompare \
+    {checkSimpleArgs 2 2 {
+	log::checkLogLevel
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lvIsSuppressed \
+    {checkSimpleArgs 1 1 {
+	log::checkLogLevel
+    }}
+pcx::check 1.2 std ::log::lvSuppress \
+    {checkSimpleArgs 1 2 {
+	log::checkLogLevel
+	checkBoolean
+    }}
+pcx::check 1.2 std ::log::lvSuppressLE \
+    {checkSimpleArgs 1 2 {
+	log::checkLogLevel
+	checkBoolean
+    }}
+
+# Initialization via pcx::init.
+# Use a ::log::init procedure for non-standard initialization.
+
+proc log::checkLogLevel {t i} {
+    return [checkKeyword 0 \
+		{emergency alert critical error warning notice info debug} \
+		$t $i]
+}
+
+pcx::complete

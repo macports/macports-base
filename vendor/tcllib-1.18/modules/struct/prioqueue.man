@@ -1,0 +1,111 @@
+[manpage_begin struct::prioqueue n 1.4]
+[keywords {ordered list}]
+[keywords prioqueue]
+[keywords {priority queue}]
+[moddesc   {Tcl Data Structures}]
+[copyright {2003 Michael Schlenker <mic42@users.sourceforge.net>}]
+[titledesc {Create and manipulate prioqueue objects}]
+[category  {Data structures}]
+[require Tcl 8.2]
+[require struct::prioqueue [opt 1.4]]
+[description]
+
+This package implements a simple priority queue using nested tcl lists.
+
+[para]
+
+The command [cmd ::struct::prioqueue] creates a new priority queue
+with default priority key type [arg -integer]. This means that keys
+given to the [method put] subcommand must have this type.
+
+[para]
+
+This also sets the priority ordering. For key types [arg -ascii] and
+[arg -dictionary] the data is sorted in ascending order (as with
+[cmd lsort] [arg -increasing]), thereas for [arg -integer] and
+[arg -real] the data is sorted in descending order (as with
+[cmd lsort] [arg -decreasing]).
+
+[para]
+
+Prioqueue names are unrestricted, but may be recognized as options if
+no priority type is given.
+
+[list_begin definitions]
+
+[call [cmd ::struct::prioqueue] [opt [option {-ascii|-dictionary|-integer|-real}]] [opt [arg prioqueueName]] ]
+
+The [cmd ::struct::prioqueue] command creates a new prioqueue object
+with an associated global Tcl command whose name is
+
+[emph prioqueueName]. This command may be used to invoke various
+operations on the prioqueue.  It has the following general form:
+
+[call [arg prioqueueName] [cmd option] [opt [arg {arg arg ...}]]]
+
+[cmd option] and the [arg arg]s determine the exact behavior of the
+command.  The following commands are possible for prioqueue objects:
+
+[call [arg prioqueueName] [cmd clear]]
+
+Remove all items from the prioqueue.
+
+[call [arg prioqueueName] [cmd remove] [arg item]]
+
+Remove the selected item from this priority queue.
+
+[call [arg prioqueueName] [cmd destroy]]
+
+Destroy the prioqueue, including its storage space and associated
+command.
+
+[call [arg prioqueueName] [cmd get] [opt [arg count]]]
+
+Return the front [arg count] items of the prioqueue (but not their
+priorities) and remove them from the prioqueue.
+
+If [arg count] is not specified, it defaults to 1.  If [arg count] is
+1, the result is a simple string; otherwise, it is a list.  If
+specified, [arg count] must be greater than or equal to 1.  If there
+are no or too few items in the prioqueue, this command will throw an
+error.
+
+[call [arg prioqueueName] [cmd peek] [opt [arg count]]]
+
+Return the front [arg count] items of the prioqueue (but not their
+priorities), without removing them from the prioqueue.
+
+If [arg count] is not specified, it defaults to 1.  If [arg count] is
+1, the result is a simple string; otherwise, it is a list.  If
+specified, [arg count] must be greater than or equal to 1.  If there
+are no or too few items in the queue, this command will throw an
+error.
+
+[call [arg prioqueueName] [cmd peekpriority] [opt [arg count]]]
+
+Return the front [arg count] items priority keys, without removing
+them from the prioqueue.
+
+If [arg count] is not specified, it defaults to 1.  If [arg count] is
+1, the result is a simple string; otherwise, it is a list.  If
+specified, [arg count] must be greater than or equal to 1.  If there
+are no or too few items in the queue, this command will throw an
+error.
+
+[call [arg prioqueueName] [cmd put] [arg {item prio}] [opt [arg {item prio ...}]]]
+
+Put the [arg item] or items specified into the prioqueue. [arg prio]
+must be a valid priority key for this type of prioqueue, otherwise an
+error is thrown and no item is added.  Items are inserted at their
+priority ranking. Items with equal priority are added in the order
+they were added.
+
+[call [arg prioqueueName] [cmd size]]
+
+Return the number of items in the prioqueue.
+
+[list_end]
+
+[vset CATEGORY {struct :: prioqueue}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

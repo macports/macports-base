@@ -1,0 +1,141 @@
+[vset VERSION 1.2]
+[manpage_begin string::token::shell n [vset VERSION]]
+[keywords bash]
+[keywords lexing]
+[keywords parsing]
+[keywords shell]
+[keywords string]
+[keywords tokenization]
+[moddesc   {Text and string utilities}]
+[titledesc {Parsing of shell command line}]
+[category  {Text processing}]
+[require Tcl 8.5]
+[require string::token::shell [opt [vset VERSION]]]
+[require string::token [opt 1]]
+[require fileutil]
+[description]
+
+This package provides a command which parses a line of text using
+basic [syscmd sh]-syntax into a list of words.
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[call [cmd {::string token shell}] [opt [option -indices]] [opt [option -partial]] [opt --] [arg string]]
+
+This command parses the input [arg string] under the assumption of it
+following basic [syscmd sh]-syntax.
+
+The result of the command is a list of words in the [arg string].
+
+An error is thrown if the input does not follow the allowed syntax.
+
+The behaviour can be modified by specifying any of the two options
+[option -indices] and [option -partial].
+
+[list_begin options]
+[opt_def --]
+
+When specified option parsing stops at this point. This option is
+needed if the input [arg string] may start with dash. In other words,
+this is pretty much required if [arg string] is user input.
+
+[opt_def -indices]
+
+When specified the output is not a list of words, but a list of
+4-tuples describing the words. Each tuple contains the type of the
+word, its start- and end-indices in the input, and the actual text of
+the word.
+
+[para] Note that the length of the word as given by the indices can
+differ from the length of the word found in the last element of the
+tuple. The indices describe the words extent in the input, including
+delimiters, intra-word quoting, etc. whereas for the actual text of
+the word delimiters are stripped, intra-word quoting decoded, etc.
+
+[para] The possible token types are
+[list_begin definitions]
+[def [const PLAIN]]
+Plain word, not quoted.
+
+[def [const D:QUOTED]]
+Word is delimited by double-quotes.
+
+[def [const S:QUOTED]]
+Word is delimited by single-quotes.
+
+[def [const D:QUOTED:PART]]
+[def [const S:QUOTED:PART]]
+
+Like the previous types, but the word has no closing quote, i.e. is
+incomplete. These token types can occur if and only if the option
+[option -partial] was specified, and only for the last word of the
+result. If the option [option -partial] was not specified such
+incomplete words cause the command to thrown an error instead.
+
+[list_end]
+
+[opt_def -partial]
+
+When specified the parser will accept an incomplete quoted word
+(i.e. without closing quote) at the end of the line as valid instead
+of throwing an error.
+
+[list_end]
+
+[para] The basic shell syntax accepted here are unquoted, single- and
+double-quoted words, separated by whitespace. Leading and trailing
+whitespace are possible too, and stripped.
+
+Shell variables in their various forms are [emph not] recognized, nor
+are sub-shells.
+
+As for the recognized forms of words, see below for the detailed
+specification.
+
+[list_begin definitions]
+
+[def [const {single-quoted word}]]
+
+A single-quoted word begins with a single-quote character, i.e.
+[const '] (ASCII 39) followed by zero or more unicode characters not a
+single-quote, and then closed by a single-quote.
+
+[para] The word must be followed by either the end of the string, or
+whitespace. A word cannot directly follow the word.
+
+[def [const {double-quoted word}]]
+
+A double-quoted word begins with a double-quote character, i.e.
+[const {"}] (ASCII 34) followed by zero or more unicode characters not a
+double-quote, and then closed by a double-quote.
+
+[para] Contrary to single-quoted words a double-quote can be embedded
+into the word, by prefacing, i.e. escaping, i.e. quoting it with a
+backslash character [const \\] (ASCII 92). Similarly a backslash
+character must be quoted with itself to be inserted literally.
+
+[def [const {unquoted word}]]
+
+Unquoted words are not delimited by quotes and thus cannot contain
+whitespace or single-quote characters. Double-quote and backslash
+characters can be put into unquoted words, by quting them like for
+double-quoted words.
+
+[def [const whitespace]]
+
+Whitespace is any unicode space character.
+This is equivalent to [cmd {string is space}], or the regular
+expression \\s.
+
+[para] Whitespace may occur before the first word, or after the last word. Whitespace must occur between adjacent words.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,53 @@
+2013-03-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* zlib.man: Renamed, clashes with Tcl core manpage.
+	* tcllib_zlib.man: New name.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-02-21  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Removed the superfluous [list] command in the
+	  ifneeded script.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-08-04  Andreas Kupries  <andreask@activestate.com>
+
+	* adler32.man: New files, documentation for the packages in
+	* base64.man: this module.
+	* counter.man:
+	* crc32.man:
+	* hex.man:
+	* identity.man:
+	* limitsize.man:
+	* observe.man:
+	* otp.man:
+	* rot.man:
+	* spacer.man:
+	* zlib.man:
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-12-01  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'virtchannel_transform, providing classes implementing
+	  various channel transformation. TclOO based.

@@ -1,0 +1,27 @@
+[manpage_begin TEST z 3.14.15.926]
+[description]
+[comment {
+    nested lists, same and different types, examples have examples at
+    least three levels deep, for a proper inner level, i.e. not only
+    first/last level, but something truly in the middle. Also three
+    list items of the relevant on each level, see the proper handling
+    of indentations. For that we also need paragraphs in the items.
+
+    start: itemized/enumerated/definition
+}]
+[list_begin itemized]
+[item] 1 [para] 2 [para] 3
+[item]
+[list_begin enumerated]
+[enum] a [para] b [para] c
+[enum]
+[list_begin definitions]
+[def foo] snafu
+[def bar] barf
+[def roo] gork
+[list_end]
+[enum] a [para] b [para] c
+[list_end]
+[item] 4 [para] 5 [para] 6
+[list_end]
+[manpage_end]

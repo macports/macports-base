@@ -1,0 +1,286 @@
+
+<div class='fossil-doc' data-title='des - Data Encryption Standard (DES)'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">des(n) 1.1 tcllib &quot;Data Encryption Standard (DES)&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>des - Implementation of the DES and triple-DES ciphers</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">PROGRAMMING INTERFACE</a></li>
+<li class="doctools_section"><a href="#section4">MODES OF OPERATION</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section6">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section7">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section8">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">des 1.1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::DES::des</b> <span class="opt">?<i class="arg">-mode [ecb|cbc|cfb|ofb]</i>?</span> <span class="opt">?<i class="arg">-dir [encrypt|decrypt]</i>?</span> <i class="arg">-key keydata</i> <span class="opt">?<i class="arg">-iv vector</i>?</span> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-weak</i>?</span> <span class="opt">?<i class="arg">-out channel</i>?</span> <span class="opt">?<i class="arg">-chunksize size</i>?</span> [ <i class="arg">-in channel</i> | <i class="arg">data</i> ]</a></li>
+<li><a href="#2"><b class="cmd">::DES::Init</b> <i class="arg">mode</i> <i class="arg">keydata</i> <i class="arg">iv</i> <span class="opt">?<i class="arg">weak</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::DES::Encrypt</b> <i class="arg">Key</i> <i class="arg">data</i></a></li>
+<li><a href="#4"><b class="cmd">::DES::Decrypt</b> <i class="arg">Key</i> <i class="arg">data</i></a></li>
+<li><a href="#5"><b class="cmd">::DES::Reset</b> <i class="arg">Key</i> <i class="arg">iv</i></a></li>
+<li><a href="#6"><b class="cmd">::DES::Final</b> <i class="arg">Key</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This is an implementation in Tcl of the Data Encryption Standard (DES)
+as published by the U.S. National Institute of Standards and
+Technology (NIST) [1]. This implementation also supports triple
+DES (3DES) extension to DES. DES is a 64-bit block cipher that uses a
+56-bit key. 3DES uses a 168-bit key. DES has now officially been
+superceeded by AES but is in common use in many protocols.</p>
+<p>The tcllib implementation of DES and 3DES uses an implementation by
+Mac Cody and is available as a separate download from [2]. For
+anyone concerned about the details of exporting this code please see
+the TclDES web pages. The tcllib specific code is a wrapper to the
+TclDES API that presents same API for the DES cipher as for other
+ciphers in the library.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::DES::des</b> <span class="opt">?<i class="arg">-mode [ecb|cbc|cfb|ofb]</i>?</span> <span class="opt">?<i class="arg">-dir [encrypt|decrypt]</i>?</span> <i class="arg">-key keydata</i> <span class="opt">?<i class="arg">-iv vector</i>?</span> <span class="opt">?<i class="arg">-hex</i>?</span> <span class="opt">?<i class="arg">-weak</i>?</span> <span class="opt">?<i class="arg">-out channel</i>?</span> <span class="opt">?<i class="arg">-chunksize size</i>?</span> [ <i class="arg">-in channel</i> | <i class="arg">data</i> ]</a></dt>
+<dd><p>Perform the <b class="package"><a href="../../../../index.html#key296">DES</a></b> algorithm on either the data provided
+by the argument or on the data read from the <i class="arg">-in</i> channel. If
+an <i class="arg">-out</i> channel is given then the result will be written to
+this channel.</p>
+<p>The <i class="arg">-key</i> option must be given. This parameter takes a binary
+string of 8 bytes in length and is used to generate the key schedule.
+In DES only 56 bits of key data are used. The highest bit from each
+byte is discarded.</p>
+<p>The <i class="arg">-mode</i> and <i class="arg">-dir</i> options are optional and default to cbc
+mode and encrypt respectively. The initialization vector <i class="arg">-iv</i>
+takes an 8 byte binary argument. This defaults to all zeros. See
+<span class="sectref"><a href="#section4">MODES OF OPERATION</a></span> for more about <i class="arg">-mode</i> and the use
+of the initialization vector.</p>
+<p>DES is a 64-bit block cipher. This means that the data must be
+provided in units that are a multiple of 8 bytes.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PROGRAMMING INTERFACE</a></h2>
+<p>Internal state is maintained in an opaque structure that is returned
+from the <b class="cmd">Init</b> function. In ECB mode the state is not affected by
+the input but for other modes some input dependent state is maintained
+and may be reset by calling the <b class="cmd">Reset</b> function with a new
+initialization vector value.</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">::DES::Init</b> <i class="arg">mode</i> <i class="arg">keydata</i> <i class="arg">iv</i> <span class="opt">?<i class="arg">weak</i>?</span></a></dt>
+<dd><p>Construct a new DES key schedule using the specified key data and the
+given initialization vector. The initialization vector is not used
+with ECB mode but is important for other usage modes.
+See <span class="sectref"><a href="#section4">MODES OF OPERATION</a></span>.</p>
+<p>There are a small number of keys that are known to be weak when used
+with DES. By default if such a key is passed in then an error will be
+raised. If there is a need to accept such keys then the <i class="arg">weak</i>
+parameter can be set true to avoid the error being thrown.</p></dd>
+<dt><a name="3"><b class="cmd">::DES::Encrypt</b> <i class="arg">Key</i> <i class="arg">data</i></a></dt>
+<dd><p>Use a prepared key acquired by calling <b class="cmd">Init</b> to encrypt the
+provided data. The data argument should be a binary array that is a
+multiple of the DES block size of 8 bytes. The result is a binary
+array the same size as the input of encrypted data.</p></dd>
+<dt><a name="4"><b class="cmd">::DES::Decrypt</b> <i class="arg">Key</i> <i class="arg">data</i></a></dt>
+<dd><p>Decipher data using the key. Note that the same key may be used to
+encrypt and decrypt data provided that the initialization vector is
+reset appropriately for CBC mode.</p></dd>
+<dt><a name="5"><b class="cmd">::DES::Reset</b> <i class="arg">Key</i> <i class="arg">iv</i></a></dt>
+<dd><p>Reset the initialization vector. This permits the programmer to re-use
+a key and avoid the cost of re-generating the key schedule where the
+same key data is being used multiple times.</p></dd>
+<dt><a name="6"><b class="cmd">::DES::Final</b> <i class="arg">Key</i></a></dt>
+<dd><p>This should be called to clean up resources associated with <i class="arg">Key</i>.
+Once this function has been called the key may not be used again.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">MODES OF OPERATION</a></h2>
+<dl class="doctools_definitions">
+<dt>Electronic Code Book (ECB)</dt>
+<dd><p>ECB is the basic mode of all block ciphers. Each block is encrypted
+independently and so identical plain text will produce identical
+output when encrypted with the same key. Any encryption errors will
+only affect a single block however this is vulnerable to known
+plaintext attacks.</p></dd>
+<dt>Cipher Block Chaining (CBC)</dt>
+<dd><p>CBC mode uses the output of the last block encryption to affect the
+current block. An initialization vector of the same size as the cipher
+block size is used to handle the first block. The initialization
+vector should be chosen randomly and transmitted as the first block of
+the output. Errors in encryption affect the current block and the next
+block after which the cipher will correct itself. CBC is the most
+commonly used mode in software encryption.</p></dd>
+<dt>Cipher Feedback (CFB)</dt>
+<dd><p>CFB mode can be used to convert block ciphers into stream ciphers. In
+CFB mode the initialization vector is encrypted and the output is then
+xor'd with the plaintext stream. The result is then used as the
+initialization vector for the next round. Errors will affect the
+current block and the next block.</p></dd>
+<dt>Output Feedback (OFB)</dt>
+<dd><p>OFB is similar to CFB except that the output of the cipher is fed back
+into the next round and not the xor'd plain text. This means that
+errors only affect a single block but the cipher is more vulnerable to
+attack.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% set ciphertext [DES::des -mode cbc -dir encrypt -key $secret $plaintext]
+% set plaintext [DES::des -mode cbc -dir decrypt -key $secret $ciphertext]
+</pre>
+<pre class="doctools_example">
+set iv [string repeat \\0 8]
+set Key [DES::Init cbc \\0\\1\\2\\3\\4\\5\\6\\7 $iv]
+set ciphertext [DES::Encrypt $Key &quot;somedata&quot;]
+append ciphertext [DES::Encrypt $Key &quot;moredata&quot;]
+DES::Reset $Key $iv
+set plaintext [DES::Decrypt $Key $ciphertext]
+DES::Final $Key
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>&quot;Data Encryption Standard&quot;,
+    Federal Information Processing Standards Publication 46-3, 1999,
+    (<a href="http://csrc.nist.gov/publications/fips/fips46-3/fips46-3.pdf">http://csrc.nist.gov/publications/fips/fips46-3/fips46-3.pdf</a>)</p></li>
+<li><p>&quot;TclDES: munitions-grade Tcl scripting&quot;
+    <a href="http://tcldes.sourceforge.net/">http://tcldes.sourceforge.net/</a></p></li>
+</ol>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">AUTHORS</a></h2>
+<p>Jochen C Loewer,
+Mac Cody,
+Pat Thoyts</p>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>des</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../aes/aes.html">aes(n)</a>, <a href="../blowfish/blowfish.html">blowfish(n)</a>, <a href="../md5/md5.html">md5(n)</a>, <a href="../rc4/rc4.html">rc4(n)</a>, <a href="../sha1/sha1.html">sha1(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key298">3DES</a>, <a href="../../../../index.html#key296">DES</a>, <a href="../../../../index.html#key297">block cipher</a>, <a href="../../../../index.html#key124">data integrity</a>, <a href="../../../../index.html#key127">encryption</a>, <a href="../../../../index.html#key122">security</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Hashes, checksums, and encryption</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;</p>
+</div>
+</div>

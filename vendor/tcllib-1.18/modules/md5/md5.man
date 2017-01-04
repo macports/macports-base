@@ -1,0 +1,174 @@
+[manpage_begin md5 n 2.0.7]
+[see_also md4]
+[see_also sha1]
+[keywords hashing]
+[keywords md5]
+[keywords message-digest]
+[keywords {rfc 1320}]
+[keywords {rfc 1321}]
+[keywords {rfc 2104}]
+[keywords security]
+[moddesc {MD5 Message-Digest Algorithm}]
+[copyright {2003, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[titledesc {MD5 Message-Digest Algorithm}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require md5 [opt 2.0.7]]
+[description]
+[para]
+
+This package is an implementation in Tcl of the MD5 message-digest
+algorithm as described in RFC 1321 (1). This algorithm takes
+an arbitrary quantity of data and generates a 128-bit message digest
+from the input. The MD5 algorithm is related to the MD4 algorithm (2)
+but has been strengthened against certain types of potential
+attack. MD5 should be used in preference to MD4 for new applications.
+
+[para]
+
+If you have [package critcl] and have built the [package tcllibc]
+package then the implementation of the hashing function will be
+performed by compiled code. Alternatively if you have either
+[package cryptkit] or [package Trf] then either of these can be used to
+accelerate the digest computation. If no suitable compiled package is
+available then the pure-Tcl implementation wil be used. The
+programming interface remains the same in all cases.
+
+[para]
+
+[emph "Note"] the previous version of this package always returned a
+hex encoded string. This has been changed to simplify the programming
+interface and to make this version more compatible with other
+implementations. To obtain the previous usage, either explicitly
+specify package version 1 or use the [arg "-hex"] option to the
+[cmd "md5"] command.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::md5::md5"] \
+        [opt "[arg -hex]"] \
+        [lb] [arg "-channel channel"] | \
+        [arg "-file filename"] | [arg "string"] [rb]]
+
+Calculate the MD5 digest of the data given in string. This is returned
+as a binary string by default. Giving the [arg "-hex"] option will
+return a hexadecimal encoded version of the digest.
+
+[para]
+
+The data to be hashed can be specified either as a string argument to
+the [cmd "md5"] command, or as a filename or a pre-opened channel. If the
+[arg "-filename"] argument is given then the file is opened, the data read
+and hashed and the file is closed. If the [arg "-channel"] argument is
+given then data is read from the channel until the end of file. The
+channel is not closed.
+
+[para]
+
+Only one of [arg "-file"], [arg "-channel"] or [arg "string"] should be given.
+
+[call [cmd "::md5::hmac"] \
+        [opt "[arg -hex]"] \
+        [arg "-key key"]  \
+        [lb] [arg "-channel channel"] | \
+        [arg "-file filename"] | [arg "string"] [rb]]
+
+Calculate an Hashed Message Authentication digest (HMAC) using the MD5
+digest algorithm. HMACs are described in RFC 2104 (3) and provide an MD5
+digest that includes a key. All options other than [arg -key] are as
+for the [cmd "::md5::md5"] command.
+
+[list_end]
+
+[section {PROGRAMMING INTERFACE}]
+
+For the programmer, the MD5 hash can be viewed as a bucket into which
+one pours data. When you have finished, you extract a value that is
+derived from the data that was poured into the bucket. The programming
+interface to the MD5 hash operates on a token (equivalent to the
+bucket). You call [cmd "MD5Init"] to obtain a token and then call
+[cmd "MD5Update"] as many times as required to add data to the hash. To
+release any resources and obtain the hash value, you then call
+[cmd "MD5Final"]. An equivalent set of functions gives you a keyed digest
+(HMAC).
+
+[list_begin definitions]
+
+[call [cmd "::md5::MD5Init"]]
+
+Begins a new MD5 hash. Returns a token ID that must be used for the
+remaining functions.
+
+[call [cmd "::md5::MD5Update"] [arg "token"] [arg "data"]]
+
+Add data to the hash identified by token. Calling
+[emph {MD5Update $token "abcd"}] is equivalent to calling
+[emph {MD5Update $token "ab"}] followed by
+[emph {MD5Update $token "cb"}]. See [sectref {EXAMPLES}].
+
+[call [cmd "::md5::MD5Final"] [arg "token"]]
+
+Returns the hash value and releases any resources held by this
+token. Once this command completes the token will be invalid. The
+result is a binary string of 16 bytes representing the 128 bit MD5
+digest value.
+
+[call [cmd "::md5::HMACInit"] [arg "key"]]
+
+This is equivalent to the [cmd "::md5::MD5Init"] command except that
+it requires the key that will be included in the HMAC.
+
+[call [cmd "::md5::HMACUpdate"] [arg "token"] [arg "data"]]
+[call [cmd "::md5::HMACFinal"] [arg "token"]]
+
+These commands are identical to the MD5 equivalent commands.
+
+[list_end]
+
+[section {EXAMPLES}]
+
+[example {
+% md5::md5 -hex "Tcl does MD5"
+8AAC1EE01E20BB347104FABB90310433
+}]
+
+[example {
+% md5::hmac -hex -key Sekret "Tcl does MD5"
+35BBA244FD56D3EDF5F3C47474DACB5D
+}]
+
+[example {
+% set tok [md5::MD5Init]
+::md5::1
+% md5::MD5Update $tok "Tcl "
+% md5::MD5Update $tok "does "
+% md5::MD5Update $tok "MD5"
+% md5::Hex [md5::MD5Final $tok]
+8AAC1EE01E20BB347104FABB90310433
+}]
+
+[section {REFERENCES}]
+
+[list_begin enumerated]
+
+[enum]
+       Rivest, R., "The MD5 Message-Digest Algorithm", RFC 1321, MIT and
+       RSA Data Security, Inc, April 1992.
+	([uri http://www.rfc-editor.org/rfc/rfc1321.txt])
+
+[enum]
+       Rivest, R., "The MD4 Message Digest Algorithm", RFC 1320, MIT,
+       April 1992. ([uri http://www.rfc-editor.org/rfc/rfc1320.txt])
+
+[enum]
+      Krawczyk, H., Bellare, M. and Canetti, R. "HMAC: Keyed-Hashing for
+      Message Authentication", RFC 2104, February 1997.
+	([uri http://www.rfc-editor.org/rfc/rfc2104.txt])
+
+[list_end]
+
+[vset CATEGORY md5]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

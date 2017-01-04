@@ -1,0 +1,1367 @@
+# -*- tcl -*-
+# report.test:  tests for the report structure.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2001 by Andreas Kupries <a.kupries@westend.com>
+# All rights reserved.
+#
+# RCS: @(#) $Id: report.test,v 1.11 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    use struct/matrix.tcl struct::matrix
+}
+testing {
+    useLocal report.tcl report
+}
+
+# -------------------------------------------------------------------------
+
+namespace import ::report::report
+
+# styles .............................................................
+
+test report-1.0 {styles introspection} {
+    ::report::styles
+} {plain}
+
+test report-1.1 {styles introspection} {
+    set     result [list]
+    lappend result [::report::styles]
+    ::report::defstyle foo {a b} {bla}
+    lappend result [::report::styles]
+    ::report::rmstyle foo
+    lappend result [::report::styles]
+    set result
+} {plain {plain foo} plain}
+
+
+test report-2.0 {style definition errors} {
+    catch {::report::defstyle} result
+    set result
+} [tcltest::wrongNumArgs "::report::defstyle" "styleName arguments body" 0]
+
+test report-2.1 {style definition error} {
+    catch {::report::defstyle foo} result
+    set result
+} [tcltest::wrongNumArgs "::report::defstyle" "styleName arguments body" 1]
+
+test report-2.2 {style definition errors} {
+    catch {::report::defstyle foo {}} result
+    set result
+} [tcltest::wrongNumArgs "::report::defstyle" "styleName arguments body" 2]
+
+test report-2.3 {style definition errors} {
+    catch {::report::defstyle foo {} {} bla} result
+    set result
+} [if {[info tclversion] < 8.4} {
+    set msg {called "::report::defstyle" with too many arguments}
+} else {
+    set msg {wrong # args: should be "::report::defstyle styleName arguments body"}
+}]
+
+test report-2.4 {style definition errors} {
+    catch {::report::defstyle plain {} {}} result
+    set result
+} {Cannot create style "plain", already exists}
+
+test report-2.5 {style definition error} {
+    catch {::report::defstyle foo {{a default} b} {}} result
+    set result
+} {Found argument without default after arguments having defaults}
+
+test report-2.6 {style definition error} {
+    catch {::report::defstyle foo {a {a b c}} {}} result
+    set result
+} {Illegal length of value "a b c"}
+
+test report-2.7 {style definition error} {
+    catch {::report::defstyle foo {a {}} {}} result
+    set result
+} {Illegal length of value ""}
+
+
+test report-3.0 {style deletion errors} {
+    catch {::report::rmstyle} result
+    set result
+} [tcltest::wrongNumArgs "::report::rmstyle" "styleName" 0]
+
+test report-3.1 {style deletion errors} {
+    catch {::report::rmstyle plain} result
+    set result
+} {cannot delete builtin style "plain"}
+
+test report-3.2 {style deletion errors} {
+    catch {::report::rmstyle foo} result
+    set result
+} {cannot delete unknown style "foo"}
+
+
+test report-4.0 {style introspection error} {
+    catch {::report::stylearguments} result
+    set result
+} [tcltest::wrongNumArgs "::report::stylearguments" "styleName" 0]
+
+test report-4.1 {style introspection error} {
+    catch {::report::stylearguments foo} result
+    set result
+} {style "foo" is not known}
+
+test report-4.2 {style introspection error} {
+    catch {::report::stylebody} result
+    set result
+} [tcltest::wrongNumArgs "::report::stylebody" "styleName" 0]
+
+test report-4.3 {style introspection error} {
+    catch {::report::stylebody foo} result
+    set result
+} {style "foo" is not known}
+
+test report-4.4 {style introspection} {
+    ::report::defstyle foo {a b} {bar}
+    set     result [list]
+    lappend result [::report::stylearguments foo]
+    lappend result [::report::stylebody      foo]
+    ::report::rmstyle foo
+    set result
+} {{a b} bar}
+
+test report-4.5 {style introspection} {
+    ::report::defstyle foo {a args} {bar}
+    set     result [list]
+    lappend result [::report::stylearguments foo]
+    lappend result [::report::stylebody      foo]
+    ::report::rmstyle foo
+    set result
+} {{a args} bar}
+
+test report-4.6 {style introspection} {
+    set     result [list]
+    lappend result [::report::stylearguments plain]
+    lappend result [::report::stylebody      plain]
+    set result
+} {{} {}}
+
+# Define now two generally useful styles.
+# They are used in the following tests.
+# ---------------------------------------
+
+::report::defstyle simpletable {} {
+    data   set [split "[string repeat "| "   [columns]]|"]
+    top    set [split "[string repeat "+ - " [columns]]+"]
+    bottom set [top get]
+    top	   enable
+    bottom enable
+}
+::report::defstyle captionedtable {{n 1}} {
+    simpletable
+    topdata   set [data get]
+    topcapsep set [top  get]
+    topcapsep enable
+    tcaption $n
+}
+::report::defstyle bcaptionedtable {{n 1}} {
+    simpletable
+    topdata   set [data get]
+    topcapsep set [top  get]
+    topcapsep enable
+    tcaption $n
+    botdata   set [data   get]
+    botcapsep set [bottom get]
+    botcapsep enable
+    bcaption $n
+}
+::report::defstyle bdcaptionedtable {{n 1}} {
+    simpletable
+    topdata    set [data get]
+    topcapsep  set [top  get]
+    topdatasep set [top  get]
+    topcapsep  enable
+    topdatasep enable
+    tcaption $n
+    botdata    set [data   get]
+    botcapsep  set [bottom get]
+    botdatasep set [top  get]
+    botcapsep  enable
+    botdatasep enable
+    bcaption $n
+}
+
+# ---------------------------------------------------------------------
+
+test report-5.0 {style application errors} {
+    catch {report myreport 3 style} result
+    set result
+} {wrong # args: report name columns ?"style" styleName ?arg...??}
+
+test report-5.1 {style application errors} {
+    catch {report myreport 3 blarg foo ...} result
+    set result
+} {wrong # args: report name columns ?"style" styleName ?arg...??}
+
+test report-5.2 {style application errors} {
+    catch {report myreport 3 style foo} result
+    set result
+} {style "foo" is not known}
+
+test report-5.3 {style application errors} {
+    ::report::defstyle foo {a b} {}
+    catch {report myreport 3 style foo} result
+    ::report::rmstyle foo
+    set result
+} {no value given for parameter "a" to style "foo"}
+
+# [tcltest::wrongNumArgs "foo" "a b" 0]
+
+test report-5.4 {style application errors} {
+    ::report::defstyle foo {a b} {}
+    catch {report myreport 5 style foo a b c d e} result
+    ::report::rmstyle foo
+    set result
+} {called style "foo" with too many arguments}
+
+test report-5.5 {style application} {
+    report myreport 3 style simpletable
+
+    set     result [list]
+    lappend result [myreport data get]
+    lappend result [myreport top get]
+    lappend result [myreport bottom get]
+    lappend result [myreport topcapsep get]
+    lappend result [myreport top enabled]
+    lappend result [myreport bottom enabled]
+    lappend result [myreport topcapsep enabled]
+
+    myreport destroy
+    set result
+} {{| | | |} {+ - + - + - +} {+ - + - + - +} {{} {} {} {} {} {} {}} 1 1 0}
+
+test report-5.6 {style application} {
+
+    set result [list]
+    ::report::defstyle foo {a b args} {
+	# Hack to transfer information out of the safe interp to the
+	# test environment.
+	botcapsep set [list $a $b $args]
+    }
+    report mr 1 style foo A B       ; lappend result [mr botcapsep get]
+    mr destroy
+    report mr 1 style foo A B C     ; lappend result [mr botcapsep get]
+    mr destroy
+    report mr 1 style foo A B C D E ; lappend result [mr botcapsep get]
+    mr destroy
+    ::report::rmstyle foo
+
+    set result
+} {{A B {}} {A B C} {A B {C D E}}}
+
+
+# reports .............................................................
+
+test report-6.0 {report errors} {
+    catch {report myreport} msg
+    set msg
+} [tcltest::wrongNumArgs "report" "name columns args" 1]
+
+test report-6.1 {report errors} {
+    catch {report myreport -5} msg
+    set msg
+} {columns: expected integer greater than zero, got "-5"}
+
+test report-6.2 {report errors} {
+    catch {report myreport 0} msg
+    set msg
+} {columns: expected integer greater than zero, got "0"}
+
+test report-6.3 {report errors} {
+    catch {report myreport foo} msg
+    set msg
+} {columns: expected integer greater than zero, got "foo"}
+
+test report-6.4 {report errors} {
+    catch {report set 4} msg
+    set msg
+} "command \"set\" already exists, unable to create report"
+
+test report-6.5 {report errors} {
+    report myreport 3
+    catch {report myreport 3} msg
+    myreport destroy
+    set msg
+} "command \"myreport\" already exists, unable to create report"
+
+test report-6.6 {report errors} {
+    catch {report myreport 3 foo} msg
+    set msg
+} {wrong # args: report name columns ?"style" styleName ?arg...??}
+
+# report methods ......................................................
+
+test report-7.0 {report method errors} {
+    report myreport 3
+    catch {myreport} msg
+    myreport destroy
+    set msg
+} "wrong # args: should be \"myreport option ?arg arg ...?\""
+
+test report-7.1 {report errors} {
+    report myreport 3
+    catch {myreport foo} msg
+    myreport destroy
+    set msg
+} "bad option \"foo\": must be bcaption, botcapsep, botdata, botdatasep, bottom, columns, data, datasep, justify, pad, printmatrix, printmatrix2channel, size, sizes, tcaption, top, topcapsep, topdata, or topdatasep"
+
+foreach {n m} {
+    8 tcaption
+    9 bcaption
+} {
+    test report-$n.0 {captions} {
+	report myreport 3
+	set result [myreport $m]
+	myreport $m 5
+	lappend result [myreport $m]
+	myreport $m 0
+	lappend result [myreport $m]
+	myreport $m 0
+	lappend result [myreport $m]
+	myreport destroy
+	set result
+    } {0 5 0 0}
+
+    test report-$n.1 {captions} {
+	report myreport 3
+	catch [list myreport $m -1] result
+	myreport destroy
+	set result
+    } {size: expected integer greater than or equal to zero, got "-1"}
+
+    test report-$n.2 {captions} {
+	report myreport 3
+	catch [list myreport $m foo] result
+	myreport destroy
+	set result
+    } {size: expected integer greater than or equal to zero, got "foo"}
+}
+
+test report-10.0 {column sizes} {
+    report myreport 3
+    catch {myreport size} result
+    myreport destroy
+    set result
+} [tcltest::wrongNumArgs "::report::_size" "name column ?size?" 1]
+
+test report-10.1 {column sizes} {
+    report myreport 3
+    catch {myreport size -1} result
+    myreport destroy
+    set result
+} {column: index "-1" out of range}
+
+test report-10.2 {column sizes} {
+    report myreport 3
+    catch {myreport size foo} result
+    myreport destroy
+    set result
+} {column: syntax error in index "foo"}
+
+test report-10.3 {column sizes} {
+    report myreport 3
+    catch {myreport size 4} result
+    myreport destroy
+    set result
+} {column: index "4" out of range}
+
+test report-10.4 {column sizes} {
+    report myreport 3
+    catch {myreport size end-5} result
+    myreport destroy
+    set result
+} {column: index "end-5" out of range}
+
+test report-10.5 {column sizes} {
+    report myreport 3
+    catch {myreport size 0 foo} result
+    myreport destroy
+    set result
+} {expected integer greater than zero, got "foo"}
+
+test report-10.6 {column sizes} {
+    report myreport 3
+    catch {myreport size 0 0} result
+    myreport destroy
+    set result
+} {expected integer greater than zero, got "0"}
+
+test report-10.7 {column sizes} {
+    report myreport 3
+    catch {myreport size 0 -4} result
+    myreport destroy
+    set result
+} {expected integer greater than zero, got "-4"}
+
+test report-10.8 {column sizes} {
+    report myreport 3
+    set result [myreport size 0]
+    myreport size 0 5
+    lappend result [myreport size 0]
+    myreport destroy
+    set result
+} {dyn 5}
+
+test report-10.9 {column sizes} {
+    report myreport 3
+    set result [myreport size 0]
+    myreport size 0 5
+    lappend result [myreport size 0]
+    myreport size 0 dyn
+    lappend result [myreport size 0]
+    myreport destroy
+    set result
+} {dyn 5 dyn}
+
+
+test report-11.0 {column sizes} {
+    report myreport 3
+    catch {myreport sizes 1} result
+    myreport destroy
+    set result
+} {Wrong # number of column sizes}
+
+test report-11.1 {column sizes} {
+    report myreport 3
+    catch {myreport sizes {1 2 3 4}} result
+    myreport destroy
+    set result
+} {Wrong # number of column sizes}
+
+test report-11.2 {column sizes} {
+    report myreport 3
+    catch {myreport sizes {2 0 dyn}} result
+    myreport destroy
+    set result
+} {expected integer greater than zero, got "0"}
+
+test report-11.3 {column sizes} {
+    report myreport 3
+    catch {myreport sizes {2 foo dyn}} result
+    myreport destroy
+    set result
+} {expected integer greater than zero, got "foo"}
+
+test report-11.4 {column sizes} {
+    report myreport 3
+    catch {myreport sizes {2 -5 dyn}} result
+    myreport destroy
+    set result
+} {expected integer greater than zero, got "-5"}
+
+test report-11.5 {column sizes} {
+    report myreport 3
+    set result [list [myreport sizes]]
+    myreport sizes {2 dyn 5}
+    lappend result [myreport sizes]
+    myreport destroy
+    set result
+} {{dyn dyn dyn} {2 dyn 5}}
+
+
+test report-12.0 {padding} {
+    report myreport 3
+    catch {myreport pad} result
+    myreport destroy
+    set result
+} [tcltest::wrongNumArgs "::report::_pad" "name column ?where? ?string?" 1]
+
+test report-12.1 {padding} {
+    report myreport 3
+    catch {myreport pad -1} result
+    myreport destroy
+    set result
+} {column: index "-1" out of range}
+
+test report-12.2 {padding} {
+    report myreport 3
+    catch {myreport pad foo} result
+    myreport destroy
+    set result
+} {column: syntax error in index "foo"}
+
+test report-12.3 {padding} {
+    report myreport 3
+    catch {myreport pad 4} result
+    myreport destroy
+    set result
+} {column: index "4" out of range}
+
+test report-12.4 {padding} {
+    report myreport 3
+    catch {myreport pad end-5} result
+    myreport destroy
+    set result
+} {column: index "end-5" out of range}
+
+test report-12.5 {padding} {
+    report myreport 3
+    catch {myreport pad 0 foo} result
+    myreport destroy
+    set result
+} {where: expected left, right, or both, got "foo"}
+
+test report-12.6 {padding} {
+    report myreport 3
+    set result [list [myreport pad 0]]
+    myreport pad 0 left
+    myreport pad 0 right =
+    lappend result [myreport pad 0]
+    myreport pad 0 both _
+    lappend result [myreport pad 0]
+    myreport destroy
+    set result
+} {{{} {}} {{ } =} {_ _}}
+
+
+test report-13.0 {justification} {
+    report myreport 3
+    catch {myreport justify} result
+    myreport destroy
+    set result
+} [tcltest::wrongNumArgs "::report::_justify" "name column ?jvalue?" 1]
+
+test report-13.1 {justification} {
+    report myreport 3
+    catch {myreport justify -1} result
+    myreport destroy
+    set result
+} {column: index "-1" out of range}
+
+test report-13.2 {justification} {
+    report myreport 3
+    catch {myreport justify foo} result
+    myreport destroy
+    set result
+} {column: syntax error in index "foo"}
+
+test report-13.3 {justification} {
+    report myreport 3
+    catch {myreport justify 4} result
+    myreport destroy
+    set result
+} {column: index "4" out of range}
+
+test report-13.4 {justification} {
+    report myreport 3
+    catch {myreport justify end-5} result
+    myreport destroy
+    set result
+} {column: index "end-5" out of range}
+
+test report-13.5 {justification} {
+    report myreport 3
+    catch {myreport justify 0 bla} result
+    myreport destroy
+    set result
+} {justification: expected, left, right, or center, got "bla"}
+
+test report-13.6 {justification} {
+    report myreport 3
+    set result [myreport justify 0]
+    myreport justify 0 right
+    lappend result [myreport justify 0]
+    myreport justify 0 center
+    lappend result [myreport justify 0]
+    myreport destroy
+    set result
+} {left right center}
+
+
+test report-14.0 {columns} {
+    report myreport 3
+    set result [myreport columns]
+    myreport destroy
+    set result
+} 3
+
+foreach {n template} {
+    15 top
+    16 topdatasep
+    17 topcapsep
+    18 datasep
+    19 botcapsep
+    20 botdatasep
+    21 bottom
+} {
+    test report-$n.0 {separator templates} {
+	report myreport 1
+	catch [list myreport $template] result
+	myreport destroy
+	set result
+    } [tcltest::wrongNumArgs "::report::_tAction" "name template cmd args" 2]
+
+    test report-$n.1 {separator templates} {
+	report myreport 1
+	set result [myreport $template enabled]
+	myreport destroy
+	set result
+    } 0
+
+    test report-$n.2 {separator templates} {
+	report myreport 1
+	myreport $template enable
+	set result [myreport $template enabled]
+	myreport $template disable
+	lappend result [myreport $template enabled]
+	myreport destroy
+	set result
+    } {1 0}
+
+    test report-$n.3 {separator templates} {
+	report myreport 3
+	set result [list [myreport $template get]]
+	myreport $template set {+ = + = + = +}
+	lappend result [myreport $template get]
+	myreport destroy
+	set result
+    } {{{} {} {} {} {} {} {}} {+ = + = + = +}}
+
+    test report-$n.4 {consistency checking} {
+	report myreport 3
+	catch [list myreport $template set {}] result
+	myreport destroy
+	set result
+    } {template to short for number of columns in report}
+
+    test report-$n.5 {consistency checking} {
+	report myreport 3
+	catch [list myreport $template set {+ - + - + - + - +}] result
+	myreport destroy
+	set result
+    } {template to long for number of columns in report}
+
+    test report-$n.6 {templates} {
+	report myreport 3
+	catch [list myreport $template set] result
+	myreport destroy
+	set result
+    } [list Wrong # args: myreport $template set template]
+
+    test report-$n.7 {templates} {
+	report myreport 3
+	catch [list myreport $template get foo] result
+	myreport destroy
+	set result
+    } [list Wrong # args: myreport $template get]
+
+    test report-$n.8 {templates} {
+	report myreport 3
+	catch [list myreport $template bla] result
+	myreport destroy
+	set result
+    } {Unknown template command "bla"}
+
+    test report-$n.9 {consistency checking} {
+	report myreport 3
+	myreport top    set  {+ - + - + - +}
+	catch {myreport top enable} result
+	myreport destroy
+	set result
+    } {inconsistent verticals in report}
+}
+
+foreach {n template} {
+    22 topdata
+    23 data
+    24 botdata
+} {
+    test report-$n.0 {data templates} {
+	report myreport 1
+	catch [list myreport $template] result
+	myreport destroy
+	set result
+    } [tcltest::wrongNumArgs "::report::_tAction" "name template cmd args" 2]
+
+    test report-$n.1 {data templates} {
+	report myreport 1
+	catch [list myreport $template enabled] result
+	myreport destroy
+	set result
+    } "Cannot query state of data template \"$template\""
+
+    test report-$n.2 {data templates} {
+	report myreport 1
+	catch [list myreport $template enable] result
+	myreport destroy
+	set result
+    } "Cannot enable data template \"$template\""
+
+    test report-$n.3 {data templates} {
+	report myreport 1
+	catch [list myreport $template disable] result
+	myreport destroy
+	set result
+    } "Cannot disable data template \"$template\""
+
+    test report-$n.4 {data templates} {
+	report myreport 3
+	set result [list [myreport $template get]]
+	myreport $template set {+ + + +}
+	lappend result [myreport $template get]
+	myreport destroy
+	set result
+    } {{{} {} {} {}} {+ + + +}}
+
+    test report-$n.5 {consistency checking} {
+	report myreport 3
+	catch [list myreport $template set {}] result
+	myreport destroy
+	set result
+    } {template to short for number of columns in report}
+
+    test report-$n.6 {consistency checking} {
+	report myreport 3
+	catch [list myreport data set {+ + + + +}] result
+	myreport destroy
+	set result
+    } {template to long for number of columns in report}
+
+    test report-$n.7 {templates} {
+	report myreport 3
+	catch [list myreport $template set] result
+	myreport destroy
+	set result
+    } [list Wrong # args: myreport $template set template]
+
+    test report-$n.8 {templates} {
+	report myreport 3
+	catch [list myreport $template get foo] result
+	myreport destroy
+	set result
+    } [list Wrong # args: myreport $template get]
+
+    test report-$n.9 {templates} {
+	report myreport 3
+	catch [list myreport $template bla] result
+	myreport destroy
+	set result
+    } {Unknown template command "bla"}
+
+}
+
+foreach {n template cap} {
+    25 topdata tcaption
+    26 botdata bcaption
+} {
+    test report-$n.0 {consistency checking} {
+	report myreport 3
+	myreport $template set {-+ + + +-}
+	catch [list myreport $cap 1] result
+	myreport destroy
+	set result
+    } {inconsistent verticals in report}
+}
+
+# report execution, i.e. the actual formatting of a matrix ............
+
+test report-27.0 {formatting errors} {
+    report           myreport 5
+    catch {myreport printmatrix} result
+    myreport destroy
+    set result
+} [tcltest::wrongNumArgs "::report::_printmatrix" "name matrix" 1]
+
+test report-27.1 {formatting errors} {
+    report           myreport 5
+    ::struct::matrix mymatrix
+    mymatrix      add columns 3
+    catch {myreport printmatrix mymatrix} result
+    mymatrix destroy
+    myreport destroy
+    set result
+} {report/matrix mismatch in number of columns}
+
+test report-27.2 {formatting errors} {
+    report myreport 5
+    ::struct::matrix mymatrix
+    mymatrix add columns 8
+    catch {myreport printmatrix mymatrix} result
+    mymatrix destroy
+    myreport destroy
+    set result
+} {report/matrix mismatch in number of columns}
+
+test report-27.3 {formatting errors} {
+    report myreport 5
+    myreport tcaption 3
+    myreport bcaption 4
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add rows 6
+    catch {myreport printmatrix mymatrix} result
+    mymatrix destroy
+    myreport destroy
+    set result
+} {matrix too small, top and bottom captions overlap}
+
+test report-27.4 {formatting} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    report myreport 5 ; # style plain
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+    set result
+} {000VERSIONS:             2:8.4a31:8.4a31:8.4a3%
+001CATCH return ok       7      13     53.85   
+002CATCH return error    68     91     74.73   
+003CATCH no catch used   7      14     50.00   
+004IF if true numeric    12     33     36.36   
+005IF elseif true numeric15     47     31.91   
+}
+
+test report-27.5 {formatting} {
+
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    report myreport 5 style simpletable
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+    set result
+} {+---+----------------------+-------+-------+--------+
+|000|VERSIONS:             |2:8.4a3|1:8.4a3|1:8.4a3%|
+|001|CATCH return ok       |7      |13     |53.85   |
+|002|CATCH return error    |68     |91     |74.73   |
+|003|CATCH no catch used   |7      |14     |50.00   |
+|004|IF if true numeric    |12     |33     |36.36   |
+|005|IF elseif true numeric|15     |47     |31.91   |
++---+----------------------+-------+-------+--------+
+}
+
+test report-27.6 {formatting} {
+
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    report myreport 5 style captionedtable 1
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+
+    set result
+} {+---+----------------------+-------+-------+--------+
+|000|VERSIONS:             |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+----------------------+-------+-------+--------+
+|001|CATCH return ok       |7      |13     |53.85   |
+|002|CATCH return error    |68     |91     |74.73   |
+|003|CATCH no catch used   |7      |14     |50.00   |
+|004|IF if true numeric    |12     |33     |36.36   |
+|005|IF elseif true numeric|15     |47     |31.91   |
++---+----------------------+-------+-------+--------+
+}
+
+test report-27.7 {formatting} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    report myreport 5 ; # plain
+    myreport top       set  {-+ -/ + -/ + -/ + -/ + -/ +-}
+    myreport topdata   set {{ |}   |    |    |    |   {| }}
+    myreport topcapsep set  {=+ *= + *= + *= + *= + *= +=}
+    myreport data      set {{ |}   |    |    |    |   {| }}
+    myreport bottom    set  {-+ -  + -  + -  + -  + -  +-}
+    myreport top       enable
+    myreport topcapsep enable
+    myreport bottom    enable
+    myreport tcaption 1
+    myreport sizes {5 dyn 7 7 5}
+    myreport pad     0 right
+    myreport pad     1 both
+    myreport pad     2 both
+    myreport pad     3 both
+    myreport pad     4 both
+    myreport justify 0 center
+    myreport justify 1 right
+    myreport justify 2 right
+    myreport justify 3 right
+    myreport justify 3 right
+
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+    set result
+} {-+-/-/-/+-/-/-/-/-/-/-/-/-/-/-/-/+-/-/-/-/-+-/-/-/-/-+-/-/-/-+-
+ | 000  |              VERSIONS: | 2:8.4a3 | 1:8.4a3 | .4a3% | 
+=+*=*=*=+*=*=*=*=*=*=*=*=*=*=*=*=+*=*=*=*=*+*=*=*=*=*+*=*=*=*+=
+ | 001  |        CATCH return ok |       7 |      13 | 53.85 | 
+ | 002  |     CATCH return error |      68 |      91 | 74.73 | 
+ | 003  |    CATCH no catch used |       7 |      14 | 50.00 | 
+ | 004  |     IF if true numeric |      12 |      33 | 36.36 | 
+ | 005  | IF elseif true numeric |      15 |      47 | 31.91 | 
+-+------+------------------------+---------+---------+-------+-
+}
+
+test report-27.7.1 {formatting} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    report myreport 5 ; # plain
+    myreport top       set  {-+ -/ + -/ + -/ + -/ + -/ +-}
+    myreport topdata   set {{ |}   |    |    |    |   {| }}
+    myreport topcapsep set  {=+ *= + *= + *= + *= + *= +=}
+    myreport data      set {{ |}   |    |    |    |   {| }}
+    myreport bottom    set  {-+ -  + -  + -  + -  + -  +-}
+    myreport top       enable
+    myreport topcapsep enable
+    myreport bottom    enable
+    myreport tcaption 1
+    myreport sizes {2 5 7 7 5}
+    myreport pad     0 right
+    myreport pad     1 both
+    myreport pad     2 both
+    myreport pad     3 both
+    myreport pad     4 both
+    myreport justify 0 center
+    myreport justify 1 right
+    myreport justify 2 right
+    myreport justify 3 right
+    myreport justify 3 right
+
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+    set result
+} {-+-/-+-/-/-/-+-/-/-/-/-+-/-/-/-/-+-/-/-/-+-
+ |00 | VERSI | 2:8.4a3 | 1:8.4a3 | .4a3% | 
+=+*=*+*=*=*=*+*=*=*=*=*+*=*=*=*=*+*=*=*=*+=
+ |00 | CATCH |       7 |      13 | 53.85 | 
+ |00 | CATCH |      68 |      91 | 74.73 | 
+ |00 | CATCH |       7 |      14 | 50.00 | 
+ |00 | IF if |      12 |      33 | 36.36 | 
+ |00 | IF el |      15 |      47 | 31.91 | 
+-+---+-------+---------+---------+-------+-
+}
+
+test report-27.8 {formatting, rowheight > 1} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif
+true numeric}    15      47    31.91}
+
+    report myreport 5 style captionedtable 1
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+    set result
+} {+---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|001|CATCH return ok    |7      |13     |53.85   |
+|002|CATCH return error |68     |91     |74.73   |
+|003|CATCH no catch used|7      |14     |50.00   |
+|004|IF if true numeric |12     |33     |36.36   |
+|005|IF elseif          |15     |47     |31.91   |
+|   |true numeric       |       |       |        |
++---+-------------------+-------+-------+--------+
+}
+
+# And now all of above again, for printing into a channel.
+
+test report-28.0 {formatting errors} {
+    report           myreport 5
+    catch {myreport printmatrix2channel} result
+    myreport destroy
+    set result
+} [tcltest::wrongNumArgs "::report::_printmatrix2channel" "name matrix chan" 1]
+
+test report-28.1 {formatting errors} {
+    report           myreport 5
+    ::struct::matrix mymatrix
+    catch {myreport printmatrix2channel mymatrix} result
+    mymatrix destroy
+    myreport destroy
+    set result
+} [tcltest::wrongNumArgs "::report::_printmatrix2channel" "name matrix chan" 2]
+
+test report-28.2 {formatting errors} {
+    report           myreport 5
+    ::struct::matrix mymatrix
+    mymatrix      add columns 3
+
+    set f [open [makeFile {} dummy] w]
+    catch {myreport printmatrix2channel mymatrix $f} result
+    mymatrix destroy
+    myreport destroy
+    close $f
+    removeFile dummy
+    set result
+} {report/matrix mismatch in number of columns}
+
+test report-28.3 {formatting errors} {
+    report myreport 5
+    ::struct::matrix mymatrix
+    mymatrix add columns 8
+    set f [open [makeFile {} dummy] w]
+    catch {myreport printmatrix2channel mymatrix $f} result
+    mymatrix destroy
+    myreport destroy
+    close $f
+    removeFile dummy
+    set result
+} {report/matrix mismatch in number of columns}
+
+test report-28.4 {formatting errors} {
+    report myreport 5
+    myreport tcaption 3
+    myreport bcaption 4
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add rows 6
+    set f [open [makeFile {} dummy] w]
+    catch {myreport printmatrix2channel mymatrix $f} result
+    mymatrix destroy
+    myreport destroy
+    close $f
+    removeFile dummy
+    set result
+} {matrix too small, top and bottom captions overlap}
+
+test report-28.5 {formatting} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    set f [open [makeFile {} rep1] w]
+    report myreport 5 ; # style plain
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep1]
+    removeFile rep1
+    set res
+} {000VERSIONS:             2:8.4a31:8.4a31:8.4a3%
+001CATCH return ok       7      13     53.85   
+002CATCH return error    68     91     74.73   
+003CATCH no catch used   7      14     50.00   
+004IF if true numeric    12     33     36.36   
+005IF elseif true numeric15     47     31.91   }
+
+test report-28.6 {formatting} {
+
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    set f [open [makeFile {} rep2] w]
+    report myreport 5 style simpletable
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep2]
+    removeFile rep2
+    set res
+} {+---+----------------------+-------+-------+--------+
+|000|VERSIONS:             |2:8.4a3|1:8.4a3|1:8.4a3%|
+|001|CATCH return ok       |7      |13     |53.85   |
+|002|CATCH return error    |68     |91     |74.73   |
+|003|CATCH no catch used   |7      |14     |50.00   |
+|004|IF if true numeric    |12     |33     |36.36   |
+|005|IF elseif true numeric|15     |47     |31.91   |
++---+----------------------+-------+-------+--------+}
+
+test report-28.7 {formatting} {
+
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    set f [open [makeFile {} rep3] w]
+    report myreport 5 style captionedtable 1
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep3]
+    removeFile rep3
+    set res
+} {+---+----------------------+-------+-------+--------+
+|000|VERSIONS:             |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+----------------------+-------+-------+--------+
+|001|CATCH return ok       |7      |13     |53.85   |
+|002|CATCH return error    |68     |91     |74.73   |
+|003|CATCH no catch used   |7      |14     |50.00   |
+|004|IF if true numeric    |12     |33     |36.36   |
+|005|IF elseif true numeric|15     |47     |31.91   |
++---+----------------------+-------+-------+--------+}
+
+test report-28.8 {formatting} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif true numeric}    15      47    31.91}
+
+    set f [open [makeFile {} rep4] w]
+    report myreport 5 ; # plain
+    myreport top       set  {-+ -/ + -/ + -/ + -/ + -/ +-}
+    myreport topdata   set {{ |}   |    |    |    |   {| }}
+    myreport topcapsep set  {=+ *= + *= + *= + *= + *= +=}
+    myreport data      set {{ |}   |    |    |    |   {| }}
+    myreport bottom    set  {-+ -  + -  + -  + -  + -  +-}
+    myreport top       enable
+    myreport topcapsep enable
+    myreport bottom    enable
+    myreport tcaption 1
+    myreport sizes {5 dyn 7 7 5}
+    myreport pad     0 right
+    myreport pad     1 both
+    myreport pad     2 both
+    myreport pad     3 both
+    myreport pad     4 both
+    myreport justify 0 center
+    myreport justify 1 right
+    myreport justify 2 right
+    myreport justify 3 right
+    myreport justify 3 right
+
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep4]
+    removeFile rep4
+    set res
+} {-+-/-/-/+-/-/-/-/-/-/-/-/-/-/-/-/+-/-/-/-/-+-/-/-/-/-+-/-/-/-+-
+ | 000  |              VERSIONS: | 2:8.4a3 | 1:8.4a3 | .4a3% | 
+=+*=*=*=+*=*=*=*=*=*=*=*=*=*=*=*=+*=*=*=*=*+*=*=*=*=*+*=*=*=*+=
+ | 001  |        CATCH return ok |       7 |      13 | 53.85 | 
+ | 002  |     CATCH return error |      68 |      91 | 74.73 | 
+ | 003  |    CATCH no catch used |       7 |      14 | 50.00 | 
+ | 004  |     IF if true numeric |      12 |      33 | 36.36 | 
+ | 005  | IF elseif true numeric |      15 |      47 | 31.91 | 
+-+------+------------------------+---------+---------+-------+-}
+
+test report-28.9 {formatting, rowheight > 1} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif
+true numeric}    15      47    31.91}
+
+    set f [open [makeFile {} rep5] w]
+    report myreport 5 style captionedtable 1
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep5]
+    removeFile rep5
+    set res
+} {+---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|001|CATCH return ok    |7      |13     |53.85   |
+|002|CATCH return error |68     |91     |74.73   |
+|003|CATCH no catch used|7      |14     |50.00   |
+|004|IF if true numeric |12     |33     |36.36   |
+|005|IF elseif          |15     |47     |31.91   |
+|   |true numeric       |       |       |        |
++---+-------------------+-------+-------+--------+}
+
+
+
+test report-28.10 {formatting, rowheight > 1} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif
+true numeric}    15      47    31.91}
+
+    set f [open [makeFile {} rep5] w]
+    report myreport 5 style captionedtable 2
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep5]
+    removeFile rep5
+    set res
+} {+---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|001|CATCH return ok    |7      |13     |53.85   |
+|002|CATCH return error |68     |91     |74.73   |
+|003|CATCH no catch used|7      |14     |50.00   |
+|004|IF if true numeric |12     |33     |36.36   |
+|005|IF elseif          |15     |47     |31.91   |
+|   |true numeric       |       |       |        |
++---+-------------------+-------+-------+--------+}
+
+test report-28.11 {formatting, rowheight > 1} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif
+true numeric}    15      47    31.91}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+
+    set f [open [makeFile {} rep5] w]
+    report myreport 5 style bdcaptionedtable 2
+    myreport printmatrix2channel mymatrix $f
+    myreport destroy
+    mymatrix destroy
+    close $f
+
+    set res [viewFile rep5]
+    removeFile rep5
+    set res
+} {+---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|001|CATCH return ok    |7      |13     |53.85   |
+|002|CATCH return error |68     |91     |74.73   |
+|003|CATCH no catch used|7      |14     |50.00   |
+|004|IF if true numeric |12     |33     |36.36   |
+|005|IF elseif          |15     |47     |31.91   |
+|   |true numeric       |       |       |        |
++---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+}
+
+test report-28.12 {formatting, rowheight > 1} {
+    ::struct::matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {001 {CATCH return ok}            7      13    53.85}
+    mymatrix add row {002 {CATCH return error}        68      91    74.73}
+    mymatrix add row {003 {CATCH no catch used}        7      14    50.00}
+    mymatrix add row {004 {IF if true numeric}        12      33    36.36}
+    mymatrix add row {005 {IF elseif
+true numeric}    15      47    31.91}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+    mymatrix add row {000 VERSIONS:              2:8.4a3 1:8.4a3 1:8.4a3%}
+
+    report myreport 5 style bdcaptionedtable 2
+    set result [myreport printmatrix mymatrix]
+    myreport destroy
+    mymatrix destroy
+
+    set result
+} {+---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|001|CATCH return ok    |7      |13     |53.85   |
+|002|CATCH return error |68     |91     |74.73   |
+|003|CATCH no catch used|7      |14     |50.00   |
+|004|IF if true numeric |12     |33     |36.36   |
+|005|IF elseif          |15     |47     |31.91   |
+|   |true numeric       |       |       |        |
++---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+|000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
++---+-------------------+-------+-------+--------+
+}
+
+testsuiteCleanup

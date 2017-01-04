@@ -1,0 +1,19 @@
+package require rest
+
+set yweather(forecast) {
+   url http://weather.yahooapis.com/forecastrss
+   req_args { p: }
+   opt_args { u: }
+}
+
+set yweather(forecast_async) {
+   copy forecast
+   callback ::yweather::callback
+}
+
+rest::create_interface yweather
+
+proc yweather::callback {call status result} {
+    puts "callback from $call $status"
+    puts $result
+}

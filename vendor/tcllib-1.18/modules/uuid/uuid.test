@@ -1,0 +1,96 @@
+# uuid.test:  tests for the uuid package                       -*- tcl -*-
+#
+# $Id: uuid.test,v 1.6 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 1.0
+
+testing {
+    useLocal uuid.tcl uuid
+}
+
+# -------------------------------------------------------------------------
+# Handle multiple implementation testing
+#
+
+array set preserve [array get ::uuid::accel]
+
+proc implementations {} {
+    variable ::uuid::accel
+    foreach {a v} [array get accel] {if {$v} {lappend r $a}}
+    lappend r tcl; set r
+}
+
+proc select_implementation {impl} {
+    variable ::uuid::accel
+    foreach e [array names accel] { set accel($e) 0 }
+    if {[string compare "tcl" $impl] != 0} {
+        set accel($impl) 1
+    }
+}
+
+proc reset_implementation {} {
+    variable ::uuid::accel
+    array set accel [array get ::preserve]
+}
+
+# -------------------------------------------------------------------------
+# Setup any constraints
+#
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+# -------------------------------------------------------------------------
+
+if {[::uuid::LoadAccelerator critcl]} {
+    puts "> critcl based"
+}
+puts "> pure Tcl"
+
+# -------------------------------------------------------------------------
+
+foreach impl [implementations] {
+    select_implementation $impl
+
+    test uuid-1.0-$impl "uuid requires args" {
+        list [catch {uuid::uuid} msg]
+    } {1}
+    
+    test uuid-1.1-$impl "uuid generate should create a 36 char string uuid" {
+        list [catch {string length [uuid::uuid generate]} msg] $msg
+    } {0 36}
+    
+    test uuid-1.2-$impl "uuid comparison of uuid with self should be true" {
+        list [catch {
+            set a [uuid::uuid generate]
+            uuid::uuid equal $a $a
+        } msg] $msg
+    } {0 1}
+    
+    test uuid-1.3-$impl "uuid comparison of two different\
+        uuids should be false" {
+        list [catch {
+            set a [uuid::uuid generate]
+            set b [uuid::uuid generate]
+            uuid::uuid equal $a $b
+        } msg] $msg
+    } {0 0}
+    
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

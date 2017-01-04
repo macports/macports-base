@@ -1,0 +1,50 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::fifo2 n 1]
+[keywords {connected fifos}]
+[keywords fifo]
+[keywords {in-memory channel}]
+[keywords {inter-thread communication}]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {In-memory interconnected fifo channels}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::events [opt 1]]
+[require tcl::chan::halfpipe [opt 1]]
+[require tcl::chan::fifo2 [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::fifo2] package provides a command creating
+pairs of channels which live purely in memory and are connected to
+each other in a fifo manner. What is written to one half of the pair
+can be read from the other half, in the same order. One particular
+application for this is communication between threads, with one half
+of the pair moved to the thread to talk to.
+
+This is equivalent to the fifo2 channels provided by the package
+[package Mmechan], except that this is written in pure Tcl, not C. On
+the other hand, [package Memchan] is usable with Tcl 8.4 and before,
+whereas this package requires Tcl 8.5 or higher, and [package TclOO].
+
+[para] The internal [package TclOO] class implementing the channel
+handler is a sub-class of the [package tcl::chan::events] framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::fifo2]]
+
+This command creates a new connected pair of fifo channels and returns
+their handles, as a list containing two elements.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

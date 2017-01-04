@@ -1,0 +1,344 @@
+
+<html><head>
+<title>pop3d - Tcl POP3 Server Package</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'pop3d.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002-2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;   -- Copyright &copy; 2005 Reinhard Max  &lt;max@suse.de&gt;
+   -->
+<! -- pop3d.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pop3d(n) 1.1.0 tcllib &quot;Tcl POP3 Server Package&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pop3d - Tcl POP3 server implementation</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Options</a></li>
+<li class="doctools_section"><a href="#section3">Authentication</a></li>
+<li class="doctools_section"><a href="#section4">Mailboxes</a></li>
+<li class="doctools_section"><a href="#section5">Secure mail transfer</a></li>
+<li class="doctools_section"><a href="#section6">References</a></li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">pop3d <span class="opt">?1.1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pop3d::new</b> <span class="opt">?<i class="arg">serverName</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">serverName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">serverName</i> <b class="method">up</b></a></li>
+<li><a href="#4"><i class="arg">serverName</i> <b class="method">down</b></a></li>
+<li><a href="#5"><i class="arg">serverName</i> <b class="method">destroy</b> <span class="opt">?<i class="arg">mode</i>?</span></a></li>
+<li><a href="#6"><i class="arg">serverName</i> <b class="method">configure</b></a></li>
+<li><a href="#7"><i class="arg">serverName</i> <b class="method">configure</b> <i class="arg">-option</i></a></li>
+<li><a href="#8"><i class="arg">serverName</i> <b class="method">configure</b> <i class="arg">-option value</i>...</a></li>
+<li><a href="#9"><i class="arg">serverName</i> <b class="method">cget</b> <i class="arg">-option</i></a></li>
+<li><a href="#10"><i class="arg">serverName</i> <b class="method">conn</b> list</a></li>
+<li><a href="#11"><i class="arg">serverName</i> <b class="method">conn</b> state <i class="arg">id</i></a></li>
+<li><a href="#12"><i class="arg">authCmd</i> <b class="method">exists</b> <i class="arg">name</i></a></li>
+<li><a href="#13"><i class="arg">authCmd</i> <b class="method">lookup</b> <i class="arg">name</i></a></li>
+<li><a href="#14"><i class="arg">storageCmd</i> <b class="method">dele</b> <i class="arg">mbox</i> <i class="arg">msgList</i></a></li>
+<li><a href="#15"><i class="arg">storageCmd</i> <b class="method">lock</b> <i class="arg">mbox</i></a></li>
+<li><a href="#16"><i class="arg">storageCmd</i> <b class="method">unlock</b> <i class="arg">mbox</i></a></li>
+<li><a href="#17"><i class="arg">storageCmd</i> <b class="method">size</b> <i class="arg">mbox</i> <span class="opt">?<i class="arg">msgId</i>?</span></a></li>
+<li><a href="#18"><i class="arg">storageCmd</i> <b class="method">stat</b> <i class="arg">mbox</i></a></li>
+<li><a href="#19"><i class="arg">storageCmd</i> <b class="method">get</b> <i class="arg">mbox</i> <i class="arg">msgId</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pop3d::new</b> <span class="opt">?<i class="arg">serverName</i>?</span></a></dt>
+<dd><p>This command creates a new server object with an associated global Tcl
+command whose name is <i class="arg">serverName</i>.</p></dd>
+</dl>
+<p>The command <b class="cmd">serverName</b> may be used to invoke various operations
+on the server.  It has the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">serverName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command.</p></dd>
+</dl>
+<p>A pop3 server can be started on any port the caller has permission for
+from the operating system. The default port will be 110, which is the
+port defined by the standard specified in
+RFC 1939 (<a href="http://www.rfc-editor.org/rfc/rfc1939.txt">http://www.rfc-editor.org/rfc/rfc1939.txt</a>).
+After creating, configuring and starting a the server object will
+listen for and accept connections on that port and handle them
+according to the POP3 protocol.</p>
+<p><em>Note:</em> The server provided by this module will handle only the
+basic protocol by itself. For the higher levels of user authentication
+and handling of the actual mailbox contents callbacks will be invoked.</p>
+<p>The following commands are possible for server objects:</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">serverName</i> <b class="method">up</b></a></dt>
+<dd><p>After this call the server will listen for connections on its configured port.</p></dd>
+<dt><a name="4"><i class="arg">serverName</i> <b class="method">down</b></a></dt>
+<dd><p>After this call the server will stop listening for connections. This
+does not affect existing connections.</p></dd>
+<dt><a name="5"><i class="arg">serverName</i> <b class="method">destroy</b> <span class="opt">?<i class="arg">mode</i>?</span></a></dt>
+<dd><p>Destroys the server object. Currently open connections are handled
+depending on the chosen mode.
+The provided <i class="arg">mode</i>s are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">kill</b></dt>
+<dd><p>Destroys the server immediately, and forcefully closes all currently
+open connections. This is the default mode.</p></dd>
+<dt><b class="const">defer</b></dt>
+<dd><p>Stops the server from accepting new connections and will actually
+destroy it only after the last of the currently open connections for
+the server is closed.</p></dd>
+</dl></dd>
+<dt><a name="6"><i class="arg">serverName</i> <b class="method">configure</b></a></dt>
+<dd><p>Returns a list containing all options and their current values in a
+format suitable for use by the command <b class="cmd">array set</b>. The options
+themselves are described in section <span class="sectref"><a href="#section2">Options</a></span>.</p></dd>
+<dt><a name="7"><i class="arg">serverName</i> <b class="method">configure</b> <i class="arg">-option</i></a></dt>
+<dd><p>Returns the current value of the specified option. This is an alias
+for the method <b class="method">cget</b>. The options themselves are described in
+section <span class="sectref"><a href="#section2">Options</a></span>.</p></dd>
+<dt><a name="8"><i class="arg">serverName</i> <b class="method">configure</b> <i class="arg">-option value</i>...</a></dt>
+<dd><p>Sets the specified option to the provided value. The options
+themselves are described in section <span class="sectref"><a href="#section2">Options</a></span>.</p></dd>
+<dt><a name="9"><i class="arg">serverName</i> <b class="method">cget</b> <i class="arg">-option</i></a></dt>
+<dd><p>Returns the current value of the specified option. The options
+themselves are described in section <span class="sectref"><a href="#section2">Options</a></span>.</p></dd>
+<dt><a name="10"><i class="arg">serverName</i> <b class="method">conn</b> list</a></dt>
+<dd><p>Returns a list containing the ids of all connections currently open.</p></dd>
+<dt><a name="11"><i class="arg">serverName</i> <b class="method">conn</b> state <i class="arg">id</i></a></dt>
+<dd><p>Returns a list suitable for [<b class="cmd">array set</b>] containing the
+state of the connection referenced by <i class="arg">id</i>.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Options</a></h2>
+<p>The following options are available to pop3 server objects.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-port</b> <i class="arg">port</i></dt>
+<dd><p>Defines the <i class="arg">port</i> to listen on for new connections. Default is
+110. This option is a bit special. If <i class="arg">port</i> is set to &quot;0&quot; the
+server, or rather the operating system, will select a free port on its
+own. When querying <b class="option">-port</b> the id of this chosen port will be
+returned. Changing the port while the server is up will neither change
+the returned value, nor will it change on which port the server is
+listening on. Only after resetting the server via a call to
+<b class="method">down</b> followed by a call to <b class="method">up</b> will the new port take
+effect. It is at that time that the value returned when querying
+<b class="option">-port</b> will change too.</p></dd>
+<dt><b class="option">-auth</b> <i class="arg">command</i></dt>
+<dd><p>Defines a <i class="arg">command</i> prefix to call whenever the authentication of
+a user is required. If no such command is specified the server will
+reject all users. The interface which has to be provided by the
+command prefix is described in section <span class="sectref"><a href="#section3">Authentication</a></span>.</p></dd>
+<dt><b class="option">-storage</b> <i class="arg">command</i></dt>
+<dd><p>Defines a <i class="arg">command</i> prefix to call whenever the handling of
+mailbox contents is required. If no such command is specified the
+server will claim that all mailboxes are empty. The interface which
+has to be provided by the command prefix is described in section
+<span class="sectref"><a href="#section4">Mailboxes</a></span>.</p></dd>
+<dt><b class="option">-socket</b> <i class="arg">command</i></dt>
+<dd><p>Defines a <i class="arg">command</i> prefix to call for opening the listening socket.
+This can be used to make the pop3 server listen on a SSL socket
+as provided by the <b class="package"><a href="../../../../index.html#key331">tls</a></b> package, see the command <b class="cmd">tls::socket</b>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Authentication</a></h2>
+<p>Here we describe the interface which has to be provided by the
+authentication callback so that pop3 servers following the interface
+of this module are able to use it.</p>
+<dl class="doctools_definitions">
+<dt><a name="12"><i class="arg">authCmd</i> <b class="method">exists</b> <i class="arg">name</i></a></dt>
+<dd><p>This method is given a user<i class="arg">name</i> and has to return a boolean
+value telling whether or not the specified user exists.</p></dd>
+<dt><a name="13"><i class="arg">authCmd</i> <b class="method">lookup</b> <i class="arg">name</i></a></dt>
+<dd><p>This method is given a user<i class="arg">name</i> and has to return a two-element
+list containing the password for this user and a storage reference, in
+this order.</p>
+<p>The storage reference is passed unchanged to the storage callback, see
+sections <span class="sectref"><a href="#section2">Options</a></span> and <span class="sectref"><a href="#section4">Mailboxes</a></span> for either the
+option defining it and or the interface to provide, respectively.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Mailboxes</a></h2>
+<p>Here we describe the interface which has to be provided by the storage
+callback so that pop3 servers following the interface of this module
+are able to use it. The <i class="arg">mbox</i> argument is the storage reference
+as returned by the <b class="method">lookup</b> method of the authentication
+command, see section <span class="sectref"><a href="#section3">Authentication</a></span>.</p>
+<dl class="doctools_definitions">
+<dt><a name="14"><i class="arg">storageCmd</i> <b class="method">dele</b> <i class="arg">mbox</i> <i class="arg">msgList</i></a></dt>
+<dd><p>]
+Deletes the messages whose numeric ids are contained in the
+<i class="arg">msgList</i> from the mailbox specified via <i class="arg">mbox</i>.</p></dd>
+<dt><a name="15"><i class="arg">storageCmd</i> <b class="method">lock</b> <i class="arg">mbox</i></a></dt>
+<dd><p>This method locks the specified mailbox for use by a single connection
+to the server. This is necessary to prevent havoc if several
+connections to the same mailbox are open. The complementary method is
+<b class="method">unlock</b>. The command will return true if the lock could be set
+successfully or false if not.</p></dd>
+<dt><a name="16"><i class="arg">storageCmd</i> <b class="method">unlock</b> <i class="arg">mbox</i></a></dt>
+<dd><p>This is the complementary method to <b class="method">lock</b>, it revokes the lock
+on the specified mailbox.</p></dd>
+<dt><a name="17"><i class="arg">storageCmd</i> <b class="method">size</b> <i class="arg">mbox</i> <span class="opt">?<i class="arg">msgId</i>?</span></a></dt>
+<dd><p>Determines the size of the message specified through its id in
+<i class="arg">msgId</i>, in bytes, and returns this number. The command will
+return the size of the whole maildrop if no message id was specified.</p></dd>
+<dt><a name="18"><i class="arg">storageCmd</i> <b class="method">stat</b> <i class="arg">mbox</i></a></dt>
+<dd><p>Determines the number of messages in the specified mailbox and returns
+this number.</p></dd>
+<dt><a name="19"><i class="arg">storageCmd</i> <b class="method">get</b> <i class="arg">mbox</i> <i class="arg">msgId</i></a></dt>
+<dd><p>Returns a handle for the specified message. This handle is a mime
+token following the interface described in the documentation of
+package <b class="package"><a href="../mime/mime.html">mime</a></b>. The pop3 server will use the functionality of
+the mime token to send the mail to the requestor at the other end of a
+pop3 connection.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Secure mail transfer</a></h2>
+<p>The option <b class="option">-socket</b> (see <span class="sectref"><a href="#section2">Options</a></span>) enables users of
+the package to override how the server opens its listening socket.
+The envisioned main use is the specification of the <b class="cmd">tls::socket</b>
+command, see package <b class="package"><a href="../../../../index.html#key331">tls</a></b>, to secure the communication.</p>
+<pre class="doctools_example">
+	package require tls
+	tls::init \\
+		...
+	pop3d::new S -socket tls::socket
+	...
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http://www.rfc-editor.org/rfc/rfc1939.txt">RFC 1939</a></p></li>
+<li><p><a href="http://www.rfc-editor.org/rfc/rfc2449.txt">RFC 2449</a></p></li>
+</ol>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pop3d</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key671">network</a>, <a href="../../../../index.html#key443">pop3</a>, <a href="../../../../index.html#key133">protocol</a>, <a href="../../../../index.html#key442">rfc 1939</a>, <a href="../../../../index.html#key356">secure</a>, <a href="../../../../index.html#key359">ssl</a>, <a href="../../../../index.html#key331">tls</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002-2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2005 Reinhard Max  &lt;max@suse.de&gt;</p>
+</div>
+</div></body></html>

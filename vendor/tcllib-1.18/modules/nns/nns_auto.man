@@ -1,0 +1,119 @@
+[manpage_begin nameserv::auto n 0.3]
+[see_also nameserv(n)]
+[keywords automatic]
+[keywords client]
+[keywords {name service}]
+[keywords reconnect]
+[keywords restore]
+[copyright {2007-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Name service facility}]
+[titledesc {Name service facility, Client Extension}]
+[category  Networking]
+[require Tcl 8.4]
+[require nameserv::auto [opt 0.3]]
+[require nameserv]
+[description]
+
+Please read the document [term {Name service facility, introduction}]
+first.
+
+[para]
+
+This package provides the [emph exact] same API as is provided by
+package [package nameserv], i.e. the regular name service client. It
+differs from the former by taking measures to ensure that longer-lived
+data, i.e. bound names, continuous and unfullfilled async searches,
+survive the loss of the connection to the name server as much as is
+possible.
+
+[para]
+
+This means that the bound names and continuous and unfullfilled async
+searches are remembered client-side and automatically re-entered into
+the server when the connection comes back after its loss. For bound
+names there is one important limitation to such restoration: It is
+possible that a name of this client was bound by a different client
+while the connection was gone. Such names are fully lost, and the best
+the package can and will do is to inform the user of this.
+
+[section API]
+
+The user-visible API is mainly identical to the API of [package nameserv]
+and is therefore not described here. Please read the documentation of
+[package nameserv].
+
+[para]
+
+The differences are explained below, in the sections [sectref OPTIONS] and
+[sectref EVENTS].
+
+[section OPTIONS]
+
+This package supports all the options of package [package nameserv],
+plus one more. The additional option allows the user to specify the
+time interval between attempts to restore a lost connection.
+
+[list_begin options]
+[opt_def -delay [arg milliseconds]]
+
+The value of this option is an integer value > 0 which specifies the
+interval to wait between attempts to restore a lost connection, in
+milliseconds. The default value is [const 1000], i.e. one second.
+
+[list_end]
+
+[section EVENTS]
+
+This package generates all of the events of package [package nameserv],
+plus two more. Both events are generated for the tag [term nameserv].
+
+[list_begin definitions]
+[def [term lost-name]]
+
+This event is generated when a bound name is truly lost, i.e. could
+not be restored after the temporary loss of the connection to the name
+server. It indicates that a different client took ownership of the
+name while this client was out of contact.
+
+[para]
+
+The detail information of the event will be a Tcl dictionary
+containing two keys, [const name], and [const data]. Their values hold
+all the information about the lost name.
+
+[def [term re-connection]]
+
+This event is generated when the connection to the server is
+restored. The remembered data has been restored when the event is
+posted.
+
+[para]
+
+The event has no detail information.
+
+[list_end]
+
+[section DESIGN]
+
+The package is implemented on top of the regular nameservice client,
+i.e. package [package nameserv]. It detects the loss of the
+connection by listening for [term lost-connection] events, on the tag
+[term nameserv].
+
+[para]
+
+It reacts to such events by starting a periodic timer and trying to
+reconnect to the server whenver this timer triggers. On success the
+timer is canceled, a [term re-connection] event generated, and the
+package proceeds to re-enter the remembered bound names and continuous
+searches.
+
+[para]
+
+Another loss of the connection, be it during or after re-entering the
+remembered information simply restarts the timer and subsequent
+reconnection attempts.
+
+[vset CATEGORY nameserv]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

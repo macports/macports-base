@@ -1,0 +1,42 @@
+# -*- tcl -*-
+# peg_structure.test:  tests for the pt::peg package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_pegrammar.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use fileutil/fileutil.tcl   fileutil ; # For tests/common
+    use snit/snit.tcl           snit
+
+    useLocal pt_pexpression.tcl pt::pe
+
+    source [localPath tests/common]
+}
+testing {
+    useLocal pt_pegrammar.tcl   pt::peg
+}
+
+# -------------------------------------------------------------------------
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+source [localPath tests/pt_pegrammar.tests]
+
+#----------------------------------------------------------------------
+
+unset mytestdir
+testsuiteCleanup
+return

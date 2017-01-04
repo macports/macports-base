@@ -1,0 +1,408 @@
+# -*- tcl -*-
+# Commands covered:	DES (Data Encryption Standard)
+#
+# This file contains a collection of tests for one or more of the commands
+# the BLOB-X extension. Sourcing this file into Tcl runs the
+# tests and generates output for errors.  No output means no errors were
+# found.
+#
+# Original      Copyright (c) 1996 Andreas Kupries (a.kupries@westend.com)
+# Modifications Copyright (c) 2003 Patrick Thoyts <patthoyts@users.sf.net>
+#
+# Modified from TrfCrypt tests
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# $Id: des.test,v 1.7 2007/07/05 13:19:20 patthoyts Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    # Base implementation first, then the package for the public API
+    useLocal [expr {
+        [tcltest::testConstraint no3des] ?
+        "tcldesjr.tcl" :
+        "tcldes.tcl"}] tclDES ::des
+    useLocal des.tcl   des    ::DES
+}
+
+# -------------------------------------------------------------------------
+
+if {[llength [package provide tclDES]] != 0} {
+    puts "> pure Tcl : TclDES [package provide tclDES]"
+} elseif {[llength [package provide tclDESjr]] != 0} {
+    puts "> pure Tcl : TclDESjr [package provide tclDESjr]"
+} else {
+    puts "> unknown base implementation!"
+}
+
+# -------------------------------------------------------------------------
+# Setup any constraints
+#
+
+tcltest::testConstraint 3des \
+        [llength [package provide tclDES]]
+
+# -------------------------------------------------------------------------
+
+# These are the NBS test vectors for the S-box tests
+# See http://csrc.nist.gov/publications/nistpubs/800-20/800-20.pdf Table A.4
+#
+set vectors {
+    1	weak 0000000000000000 0000000000000000 8CA64DE9C1B123A7
+    2	weak FFFFFFFFFFFFFFFF FFFFFFFFFFFFFFFF 7359B2163E4EDC58
+    3	ok   3000000000000000 1000000000000001 958E6E627A05557B
+    4	ok   1111111111111111 1111111111111111 F40379AB9E0EC533
+    5 	ok   0123456789ABCDEF 1111111111111111 17668DFC7292532D
+    6	ok   1111111111111111 0123456789ABCDEF 8A5AE1F81AB8F2DD
+    7	weak 0000000000000000 0000000000000000 8CA64DE9C1B123A7
+    8	ok   FEDCBA9876543210 0123456789ABCDEF ED39D950FA74BCC4
+    9	ok   7CA110454A1A6E57 01A1D6D039776742 690F5B0D9A26939B
+    10	ok   0131D9619DC1376E 5CD54CA83DEF57DA 7A389D10354BD271
+    11	ok   07A1133E4A0B2686 0248D43806F67172 868EBB51CAB4599A
+    12	ok   3849674C2602319E 51454B582DDF440A 7178876E01F19B2A
+    13	ok   04B915BA43FEB5B6 42FD443059577FA2 AF37FB421F8C4095
+    14	ok   0113B970FD34F2CE 059B5E0851CF143A 86A560F10EC6D85B
+    15	ok   0170F175468FB5E6 0756D8E0774761D2 0CD3DA020021DC09
+    16	ok   43297FAD38E373FE 762514B829BF486A EA676B2CB7DB2B7A
+    17	ok   07A7137045DA2A16 3BDD119049372802 DFD64A815CAF1A0F
+    18	ok   04689104C2FD3B2F 26955F6835AF609A 5C513C9C4886C088
+    19	ok   37D06BB516CB7546 164D5E404F275232 0A2AEEAE3FF4AB77
+    20	ok   1F08260D1AC2465E 6B056E18759F5CCA EF1BF03E5DFA575A
+    21	ok   584023641ABA6176 004BD6EF09176062 88BF0DB6D70DEE56
+    22	ok   025816164629B007 480D39006EE762F2 A1F9915541020B56
+    23	ok   49793EBC79B3258F 437540C8698F3CFA 6FBF1CAFCFFD0556
+    24	ok   4FB05E1515AB73A7 072D43A077075292 2F22E49BAB7CA1AC
+    25	ok   49E95D6D4CA229BF 02FE55778117F12A 5A6B612CC26CCE4A
+    26	ok   018310DC409B26D6 1D9D5C5018F728C2 5F4C038ED12B2E41
+    27	ok   1C587F1C13924FEF 305532286D6F295A 63FAC0D034D9F793
+    28	weak 0101010101010101 0123456789ABCDEF 617B3A0CE8F07100
+    29	weak 1F1F1F1F0E0E0E0E 0123456789ABCDEF DB958605F8C8C606
+    30	ok   E0FEE0FEF1FEF1FE 0123456789ABCDEF EDBFD1C66C29CCC7
+    31	weak 0000000000000000 FFFFFFFFFFFFFFFF 355550B2150E2451
+    32	weak FFFFFFFFFFFFFFFF 0000000000000000 CAAAAF4DEAF1DBAE
+    33	ok   0123456789ABCDEF 0000000000000000 D5D44FF720683D0D
+    34	ok   FEDCBA9876543210 FFFFFFFFFFFFFFFF 2A2BB008DF97C2F2
+}
+
+foreach {N W K I O} $vectors {
+    if {[string equal $W "weak"]} {
+        if {[llength [package provide tclDES]] != 0} {
+            set Re {1 {Key 1 is weak!}}
+            set Rd {1 {Key 1 is weak!}}
+        } else {
+            set Re {1 {The key is weak!}}
+            set Rd {1 {The key is weak!}}
+        }
+        set Ro [list 0 $O]
+    } else {
+        set Re [list 0 $O]
+        set Rd [list 0 $I]
+        set Ro [list 0 $O]
+    }
+
+    test des-1.${N}-enc {des-ecb encryption} {
+        list [catch {
+            set k [binary format H* $K]
+            set p [binary format H* $I]
+            set s [DES::des -dir encrypt -mode ecb -key $k $p]
+            binary scan $s H* h
+            string toupper $h
+        } res] $res
+    } $Re
+
+    test des-1.${N}-dec {des-ecb decryption} {
+        list [catch {
+            set k [binary format H* $K]
+            set p [binary format H* $O]
+            set s [DES::des -dir decrypt -mode ecb -key $k $p]
+            binary scan $s H* h
+            string toupper $h
+        } res] $res
+    } $Rd
+
+    test des-1.${N}-old {backwards compat check (encryption)} {
+        list [catch {
+            set s [DES::des -mode encode -key [binary format H* $K] [binary format H* $I]]
+            binary scan $s H* h; string toupper $h
+        } res] $res
+    } $Ro
+}
+
+# DESTEST - see http://theory.lcs.mit.edu/~rivest/destest.txt
+test des-2.0 {destest} {
+    list [catch {
+        set X [binary format H* 9474B8E8C73BCA7D]
+        for {set n 0} {$n < 16} {incr n} {
+            set x [lindex $X $n]
+            if {$n & 1} {
+                lappend X [DES::des -mode ecb -dir decrypt -key $x $x]
+            } else {
+                lappend X [DES::des -mode ecb -dir encrypt -key $x $x]
+            }
+        }
+        DES::Hex [lindex $X end]
+    } res] $res
+} [list 0 1b1a2ddb4c642438]
+
+set vectors {
+0  8000000000000000 95F8A5E5DD31D900
+1  4000000000000000 DD7F121CA5015619
+2  2000000000000000 2E8653104F3834EA
+3  1000000000000000 4BD388FF6CD81D4F
+4  0800000000000000 20B9E767B2FB1456
+5  0400000000000000 55579380D77138EF
+6  0200000000000000 6CC5DEFAAF04512F
+7  0100000000000000 0D9F279BA5D87260
+8  0080000000000000 D9031B0271BD5A0A
+9  0040000000000000 424250B37C3DD951
+10 0020000000000000 B8061B7ECD9A21E5
+11 0010000000000000 F15D0F286B65BD28
+12 0008000000000000 ADD0CC8D6E5DEBA1
+13 0004000000000000 E6D5F82752AD63D1
+14 0002000000000000 ECBFE3BD3F591A5E
+15 0001000000000000 F356834379D165CD
+16 0000800000000000 2B9F982F20037FA9
+17 0000400000000000 889DE068A16F0BE6
+18 0000200000000000 E19E275D846A1298
+19 0000100000000000 329A8ED523D71AEC
+20 0000080000000000 E7FCE22557D23C97
+21 0000040000000000 12A9F5817FF2D65D
+22 0000020000000000 A484C3AD38DC9C19
+23 0000010000000000 FBE00A8A1EF8AD72
+24 0000008000000000 750D079407521363
+25 0000004000000000 64FEED9C724C2FAF
+26 0000002000000000 F02B263B328E2B60
+27 0000001000000000 9D64555A9A10B852
+28 0000000800000000 D106FF0BED5255D7
+29 0000000400000000 E1652C6B138C64A5
+30 0000000200000000 E428581186EC8F46
+31 0000000100000000 AEB5F5EDE22D1A36
+32 0000000080000000 E943D7568AEC0C5C
+33 0000000040000000 DF98C8276F54B04B
+34 0000000020000000 B160E4680F6C696F
+35 0000000010000000 FA0752B07D9C4AB8
+36 0000000008000000 CA3A2B036DBC8502
+37 0000000004000000 5E0905517BB59BCF
+38 0000000002000000 814EEB3B91D90726
+39 0000000001000000 4D49DB1532919C9F
+40 0000000000800000 25EB5FC3F8CF0621
+41 0000000000400000 AB6A20C0620D1C6F
+42 0000000000200000 79E90DBC98F92CCA
+43 0000000000100000 866ECEDD8072BB0E
+44 0000000000080000 8B54536F2F3E64A8
+45 0000000000040000 EA51D3975595B86B
+46 0000000000020000 CAFFC6AC4542DE31
+47 0000000000010000 8DD45A2DDF90796C
+48 0000000000008000 1029D55E880EC2D0
+49 0000000000004000 5D86CB23639DBEA9
+50 0000000000002000 1D1CA853AE7C0C5F
+51 0000000000001000 CE332329248F3228
+52 0000000000000800 8405D1ABE24FB942
+53 0000000000000400 E643D78090CA4207
+54 0000000000000200 48221B9937748A23
+55 0000000000000100 DD7C0BBD61FAFD54
+56 0000000000000080 2FBC291A570DB5C4
+57 0000000000000040 E07C30D7E4E26E12
+58 0000000000000020 0953E2258E8E90A1
+59 0000000000000010 5B711BC4CEEBF2EE
+60 0000000000000008 CC083F1E6D9E85F6
+61 0000000000000004 D2FD8867D50D2DFE
+62 0000000000000002 06E7EA22CE92708F
+63 0000000000000001 166B40B44ABA4BD6
+}
+
+foreach {N I O} $vectors {
+    test des-3.${N}-e {FIPS 800-20 Table A.1} {
+        list [catch {
+            set k [binary format H* 0101010101010101]
+            set i [binary format H* $I]
+            string toupper [DES::des -hex -weak -mode ecb -dir encrypt -key $k $i]
+        } res] $res
+    } [list 0 $O]
+    test des-3.${N}-d {FIPS 800-20 Table A.1} {
+        list [catch {
+            set k [binary format H* 0101010101010101]
+            set o [binary format H* $O]
+            string toupper [DES::des -hex -weak -mode ecb -dir decrypt -key $k $o]
+        } res] $res
+    } [list 0 $I]
+}
+
+# NBS PUB 800 Table A.5
+#ROUND INPUTBLOCK 1 CIPHERTEXT1 INPUTBLOCK 2 CIPHERTEXT2 INPUTBLOCK 3 CIPHERTEXT3
+set vectors {
+0 8000000000000000 95f8a5e5dd31d900 d555555555555555 f7552ab6cb21e2bc 2aaaaaaaaaaaaaaa 5a48d3de869557fd
+1 4000000000000000 dd7f121ca5015619 1555555555555555 e0c2af1ebd89a262 eaaaaaaaaaaaaaaa f15ee2019a5b547c
+2 2000000000000000 2e8653104f3834ea 7555555555555555 05b865a1e49ed109 8aaaaaaaaaaaaaaa 3bee595ef860316a
+3 1000000000000000 4bd388ff6cd81d4f 4555555555555555 b447313fc704d321 baaaaaaaaaaaaaaa f6089ca9b722765c
+4 0800000000000000 20b9e767b2fb1456 5d55555555555555 c39193d42381b313 a2aaaaaaaaaaaaaa af15a8e9b2c14de5
+5 0400000000000000 55579380d77138ef 5155555555555555 6a2afdae188494b8 aeaaaaaaaaaaaaaa 45089186180bd591
+6 0200000000000000 6cc5defaaf04512f 5755555555555555 1359f4d663a3209c a8aaaaaaaaaaaaaa 280d3ae3a00cfbc9
+7 0100000000000000 0d9f279ba5d87260 5455555555555555 4a035e6a81d1314b abaaaaaaaaaaaaaa d27eb94e56c3172a
+8 0080000000000000 d9031b0271bd5a0a 55d5555555555555 4334b5fe1b7f5320 aa2aaaaaaaaaaaaa b0555ab990b7e95c
+9 0040000000000000 424250b37c3dd951 5515555555555555 f41a29e0d31107b4 aaeaaaaaaaaaaaaa f54f2bd8e2eb2bc6
+10 0020000000000000 b8061b7ecd9a21e5 5575555555555555 c8eb2e340855325b aa8aaaaaaaaaaaaa d51175259c607fb4
+11 0010000000000000 f15d0f286b65bd28 5545555555555555 b75847a2f3f2458a aabaaaaaaaaaaaaa 72ea3aadb569af43
+12 0008000000000000 add0cc8d6e5deba1 555d555555555555 be433af4c5ae0f97 aaa2aaaaaaaaaaaa 9b003151e8602b7d
+13 0004000000000000 e6d5f82752ad63d1 5551555555555555 f68101d125e2e284 aaaeaaaaaaaaaaaa fc1463bb9bba9e11
+14 0002000000000000 ecbfe3bd3f591a5e 5557555555555555 fa510732fa871094 aaa8aaaaaaaaaaaa 65f94c59c59b06e1
+15 0001000000000000 f356834379d165cd 5554555555555555 458d97a8b6ebd0d7 aaabaaaaaaaaaaaa fbcfc086f8111572
+16 0000800000000000 2b9f982f20037fa9 5555d55555555555 f4169ca3fc6799ed aaaa2aaaaaaaaaaa 68c9e70b9de8db79
+17 0000400000000000 889de068a16f0be6 5555155555555555 f47b9f01a5ee74e9 aaaaeaaaaaaaaaaa 63fc8ec1421399b8
+18 0000200000000000 e19e275d846a1298 5555755555555555 ee26a403caca387d aaaa8aaaaaaaaaaa 3f1d10e9a1a44a92
+19 0000100000000000 329a8ed523d71aec 5555455555555555 af7e5ad1d9f4ecf8 aaaabaaaaaaaaaaa e3f663de44003f9b
+20 0000080000000000 e7fce22557d23c97 55555d5555555555 bb04e854f99f6352 aaaaa2aaaaaaaaaa bc2452fd13e00dcc
+21 0000040000000000 12a9f5817ff2d65d 5555515555555555 01f57b1e69290d90 aaaaaeaaaaaaaaaa 4432a11e1c320e7a
+22 0000020000000000 a484c3ad38dc9c19 5555575555555555 8ae9dee849b46527 aaaaa8aaaaaaaaaa a1e9e67f13f932b3
+23 0000010000000000 fbe00a8a1ef8ad72 5555545555555555 cb706efba6b5110e aaaaabaaaaaaaaaa 6fd1d0793c1b7af2
+24 0000008000000000 750d079407521363 555555d555555555 b8b27d1286bdbb26 aaaaaa2aaaaaaaaa 3d2c39f9d26b589e
+25 0000004000000000 64feed9c724c2faf 5555551555555555 9862c9d770558095 aaaaaaeaaaaaaaaa e3a7abc88132ad7d
+26 0000002000000000 f02b263b328e2b60 5555557555555555 a213c5c56fdca139 aaaaaa8aaaaaaaaa 08cd945738a222c8
+27 0000001000000000 9d64555a9a10b852 5555554555555555 a3bebc0e23ab87f2 aaaaaabaaaaaaaaa 568fa34d2fc7225e
+28 0000000800000000 d106ff0bed5255d7 5555555d55555555 c32c19229d84e2b4 aaaaaaa2aaaaaaaa 3771887d7266b49d
+29 0000000400000000 e1652c6b138c64a5 5555555155555555 e628ceae5cb3bb34 aaaaaaaeaaaaaaaa edd6029a6b80a442
+30 0000000200000000 e428581186ec8f46 5555555755555555 5924454953ad5732 aaaaaaa8aaaaaaaa 0313da097aec4a43
+31 0000000100000000 aeb5f5ede22d1a36 5555555455555555 7cc987f5fb33b813 aaaaaaabaaaaaaaa 91f5b30f015b4a54
+32 0000000080000000 e943d7568aec0c5c 55555555d5555555 88e3dd1448c4e0ff aaaaaaaa2aaaaaaa 1e60759f038beec1
+33 0000000040000000 df98c8276f54b04b 5555555515555555 a49d286e5dfc6143 aaaaaaaaeaaaaaaa 97061699383bbfe0
+34 0000000020000000 b160e4680f6c696f 5555555575555555 a5206a311e9c2515 aaaaaaaa8aaaaaaa 311f3c96e071f173
+35 0000000010000000 fa0752b07d9c4ab8 5555555545555555 b6e4686a8b957cf2 aaaaaaaabaaaaaaa 1a6849edcb701b07
+36 0000000008000000 ca3a2b036dbc8502 555555555d555555 af1200418fd37fdd aaaaaaaaa2aaaaaa fa5b2fa26d03558b
+37 0000000004000000 5e0905517bb59bcf 5555555551555555 487deccf0fde5b88 aaaaaaaaaeaaaaaa bcaa0b7b7b3464c5
+38 0000000002000000 814eeb3b91d90726 5555555557555555 456a1865905ed57d aaaaaaaaa8aaaaaa 3d245b501c6abb74
+39 0000000001000000 4d49db1532919c9f 5555555554555555 3e2601fa20895e62 aaaaaaaaabaaaaaa 62133d9330e2e86b
+40 0000000000800000 25eb5fc3f8cf0621 5555555555d55555 58da89972266a7e3 aaaaaaaaaa2aaaaa 5d7d6bd225890b4d
+41 0000000000400000 ab6a20c0620d1c6f 5555555555155555 feaca17e5dd05c87 aaaaaaaaaaeaaaaa db36baba70c3b9af
+42 0000000000200000 79e90dbc98f92cca 5555555555755555 88249b73e99c5ac0 aaaaaaaaaa8aaaaa a2f5ea90c2179ab4
+43 0000000000100000 866ecedd8072bb0e 5555555555455555 5f8add8784cc3174 aaaaaaaaaabaaaaa 70470a07cb34e109
+44 0000000000080000 8b54536f2f3e64a8 55555555555d5555 cd8dc942ae2bb175 aaaaaaaaaaa2aaaa 659610094ab3824e
+45 0000000000040000 ea51d3975595b86b 5555555555515555 cf8442863e68e644 aaaaaaaaaaaeaaaa 26e6223634c857a3
+46 0000000000020000 caffc6ac4542de31 5555555555575555 16952dc89c0acd65 aaaaaaaaaaa8aaaa ddd0a647be96041f
+47 0000000000010000 8dd45a2ddf90796c 5555555555545555 8a4fca2b00c49807 aaaaaaaaaaabaaaa 363219d8cec5a9f3
+48 0000000000008000 1029d55e880ec2d0 555555555555d555 b40225aea121c8d3 aaaaaaaaaaaa2aaa bb5710f9dc8dde46
+49 0000000000004000 5d86cb23639dbea9 5555555555551555 711c066c13222f1c aaaaaaaaaaaaeaaa ae527ed311a25ea2
+50 0000000000002000 1d1ca853ae7c0c5f 5555555555557555 4fb69c832db68026 aaaaaaaaaaaa8aaa af94496800a32656
+51 0000000000001000 ce332329248f3228 5555555555554555 f24c7444edf1c394 aaaaaaaaaaaabaaa c55d7544a1eae274
+52 0000000000000800 8405d1abe24fb942 5555555555555d55 6be457abc511e87c aaaaaaaaaaaaa2aa 9ba49db251748896
+53 0000000000000400 e643d78090ca4207 5555555555555155 6136fefebb0c8118 aaaaaaaaaaaaaeaa 3d19267de9c12e7b
+54 0000000000000200 48221b9937748a23 5555555555555755 d23a8dfe39c98883 aaaaaaaaaaaaa8aa 5ce84637532650c8
+55 0000000000000100 dd7c0bbd61fafd54 5555555555555455 afe2e34f009924e2 aaaaaaaaaaaaabaa d43941ab72932bb0
+56 0000000000000080 2fbc291a570db5c4 55555555555555d5 0adcf552ec1754c6 aaaaaaaaaaaaaa2a 816c454ba7894865
+57 0000000000000040 e07c30d7e4e26e12 5555555555555515 c06e80c5238135bb aaaaaaaaaaaaaaea 74bc744f10f63889
+58 0000000000000020 0953e2258e8e90a1 5555555555555575 0912754e7c42f637 aaaaaaaaaaaaaa8a 3d2565d9bf62cdbd
+59 0000000000000010 5b711bc4ceebf2ee 5555555555555545 b4f82967c658adb8 aaaaaaaaaaaaaaba a2e13c5701a60444
+60 0000000000000008 cc083f1e6d9e85f6 555555555555555d 006fa12a796ac4d3 aaaaaaaaaaaaaaa2 cbe2873fd6f63048
+61 0000000000000004 d2fd8867d50d2dfe 5555555555555551 1a4a364616460d44 aaaaaaaaaaaaaaae cc6adcef1be975ef
+62 0000000000000002 06e7ea22ce92708f 5555555555555557 f307b5bcd44f3d8d aaaaaaaaaaaaaaa8 991d770b2bf051dc
+63 0000000000000001 166b40b44aba4bd6 5555555555555554 9cb1c3932c005c49 aaaaaaaaaaaaaaab 17d8e9c374d14494
+}
+
+foreach {N I0 O0 I1 O1 I2 O2} $vectors {
+    test des-4.$N {} {
+        list [catch {
+            set K [string repeat \x01 8]
+            set v0 [string repeat \x00 8] ; set i0 [binary format H* $I0]
+            set v1 [string repeat \x55 8] ; set i1 [binary format H* $I1]
+            set v2 [string repeat \xaa 8] ; set i2 [binary format H* $I2]
+            set r0 [DES::des -weak -mode ecb -dir enc -key $K -iv $v0 $i0]
+            set r1 [DES::des -weak -mode ecb -dir enc -key $K -iv $v1 $i1]
+            set r2 [DES::des -weak -mode ecb -dir enc -key $K -iv $v2 $i2]
+            DES::Hex $r0$r1$r2
+        } res] $res
+    } [list 0 $O0$O1$O2]
+}
+
+# Old VNC support - DES 0.8 supported VNC by using an explicit mode.
+# In fact is is only necessary to revese the key bit order - use
+# ReverseBytes for this.
+#
+set vectors {
+    0 0000000000000000 0000000000000000 8ca64de9c1b123a7
+    1 0001020304050607 0000000000000000 77dad0b666306c37
+    2 0123456789abcdef 0000000000000000 acad343b2a0ac9e0
+    3 0123456789abcdef 0123456789abcdef 6e09a37726dd560c
+}
+foreach {N K I O} $vectors {
+    test des-5.${N}-e {Check VNC DES support (encrypt)} {
+        catch {unset k}
+        list [catch {
+            DES::GetKey -encryptVNC [binary format H* $K] k
+            set r [DES::DesBlock [binary format H* $I] k]
+            unset k
+            DES::Hex $r
+        } res] $res
+    } [list 0 $O]
+    
+    test des-5.${N}-d {Check VNC DES support (decrypt)} {
+        catch {unset k}
+        list [catch {
+            DES::GetKey -decryptVNC [binary format H* $K] k
+            set r [DES::DesBlock [binary format H* $O] k]
+            unset k
+            DES::Hex $r
+        } res] $res
+    } [list 0 $I]
+}
+foreach {N K I O} $vectors {
+    test des-6.${N}-e {Check reverse key} {
+        list [catch {
+            set Key [DES::Init ecb [DES::ReverseBytes [binary format H* $K]] [string repeat \0 8] 1]
+            set r [DES::Encrypt $Key [binary format H* $I]]
+            DES::Final $Key
+            DES::Hex $r
+        } res] $res
+    } [list 0 $O]
+}
+
+
+for {set N 0} {$N < 9} {incr N} {
+    if {$N == 0} {
+        set check [list 1 "invalid message size: the message may not be empty"]
+    } else {
+        set check [list 0 8ca64de9c1b123a7] 
+    }
+        
+    test des-7.${N} {Check block length} {
+        list [catch {
+            DES::des -hex -weak -mode ecb -dir decrypt \
+                -key [string repeat \0 8] \
+                [string repeat \0 ${N}]
+        } res] $res
+    } [list 0 8ca64de9c1b123a7]
+
+    test des-8.${N} {Check block length} {
+        list [catch {
+            set Key [DES::Init ecb [string repeat \0 8] [string repeat \0 8] 1]
+            set r [DES::Encrypt $Key [string repeat \0 ${N}]]
+            DES::Final $Key
+            DES::Hex $r
+        } res] $res
+    } $check
+}
+
+test des-9.1 {Backwards compatability - key padding} {
+    list [catch {
+        set key [DES::des -mode encode -key secret helloworld01]
+        binary scan $key H* r
+        set r
+    } res] $res
+} {0 7669422b7cce615fe4cae65c4e25eb36}
+
+# -------------------------------------------------------------------------
+
+#catch {unset in out key}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

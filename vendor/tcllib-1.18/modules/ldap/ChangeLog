@@ -1,0 +1,358 @@
+2016-01-02  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* ldapx.man: Fix wrong example [Ticket: 2886893fff]
+
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-11-24  Andreas Kupries  <andreask@activestate.com>
+
+	* ldap.man: Fixed syntax error in unvalidated documentation of
+	  last checkin.
+
+2008-11-22  Michael Schlenker  <mic42@users.sourceforge.net>
+	
+	* ldap.tcl: Added handling for search result references.
+	* ldap.man: Those are common for ActiveDirectory. 
+	* pkgIndex.tcl: Bumped version to 1.8.
+	* ldap.test:
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-10-02  Andreas Kupries  <andreask@activestate.com>
+
+	* ldapx.man: Redirected the reference to non-existing subsection
+	  'Data' to 'Entry Instance Data'. Fixed [SF Bug 2124523].
+
+2008-03-26  Michael Schlenker  <mic42@users.sourceforge.net>
+
+	* ldap.tcl: Applied Tcllib patch #2018141 with some changes,
+	* ldap.man: This fixes and enhances the ldap search 
+	* ldap.test: filter handling. Big thanks to Konstantin
+	* pkgIndex.tcl: Khomoutov for the patch and tests.
+	  This fixes Tcllib bugs #1751871 and #1852718.
+	  Additionally fixed the other ldap tests to use
+	  a more concise style.
+	  Bumped version to 1.7.
+
+2008-03-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ldap.tcl (ldap::buildSASLBindRequest): Fixed a bad continuation
+	* ldap.man: line, i.e. whitespace between the backslash and the
+	* pkgIndex.tcl: end-of-line. Generally removed all trailing
+	  whitespace from the whole file. Bumped version to 1.6.9.
+
+2008-02-07  Pierre David <pdav@users.sourceforge.net>
+
+	* ldapx.tcl:	Fixed a small bug when reading an LDIF modrdn.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-xx  Pierre David <pdav@users.sourceforge.net>
+
+	* ldapx.tcl:	Modified format for "change" entries
+	* ldapx.test:	Adapted tests
+	* ldapx.man:	Added a note about the format: for internal use only.
+
+          ***POTENTIAL INCOMPATIBILITY***
+	  Format of ldapx::entry "change" data was not sufficient
+	  to represent all modifications made on entries. So, the
+	  format has been modified to include several invidual
+	  changes. This should not be a problem since "change"
+	  format is intended to be used only by ldapx methods.
+
+2007-08-06  Pierre David <pdav@users.sourceforge.net>
+
+	* ldapx.tcl:	Saved dn was not restored during swap method.
+	  ldapx.test:	Added test for backuped dn.
+
+2007-08-03  Andreas Kupries  <andreask@activestate.com>
+
+	* ldapx.man: Fix class command which was broken across lines.
+
+2007-08-03  Pierre David <pdav@users.sourceforge.net>
+
+	* ldapx.tcl:	Fixed reading of LDIF change entries.
+			Fixed modification of an entry by replacing
+			values instead of removing and adding the minimal
+			set of changes, since LDAP schemas don't necessarily
+			include equality operator for each attribute.
+			Introduced a "-utf8" option in the LDIF class.
+			Fixed indentation for LDIF continuation lines
+			for Base64 encoded values.
+			Fixed set1 when given an empty value: it deletes
+			the attribute (as with set).
+	* ldapx.test:	Fixed test for the new replacement mode.
+	* ldapx.man:	Added documentation for "-utf8" option.
+
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ldap.man: Fixed all warnings due to use of now deprecated
+	* ldapx.man: commands. Added a section about how to give feedback.
+
+2006-11-15  Michael Schlenker <mic42@users.sourceforge.net>
+        
+        * ldap.tcl:      Removed a leftover debug output..
+        
+2006-11-08  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldapx.tcl:     Whitespace fixes. Tests for fixed bug 
+        * ldapx.test:    added.
+          
+2006-11-04  Michael Schlenker <mic42@users.sourceforge.net>
+        
+        * ldapx.tcl:     Fix for entry diff applied.
+        * ldap.man:      Thanks to Pierre David for providing it.
+        * pkgIndex.tcl:           
+        
+2006-10-26  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* ldap.man:     Some typo fixes, minor clarifications 
+	                and rewording.
+
+2006-10-09  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl:     The abandon operation was incorrectly encoded.
+                        This is now fixed and the operation works
+                        as expected.
+
+2006-10-09  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldapx.tcl:    Fixed incorrect utf-8 conversion and
+                        broken ldif::write method.
+                        Thanks to Pierre David for providing
+                        the fix.
+                        
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-28  Michael Schlenker <mic42@users.sourceforge.net>
+        
+        * ldap.tcl:     Nasty bug in ReceiveBytes, not detecting
+                        partial results correctly.
+        
+2006-09-27  Michael Schlenker <mic42@users.sourceforge.net>
+        
+        * ldapx.test:   New test file for the ldapx entry functions.
+                        Thanks to Pierre David for providing it.
+                        
+2006-09-26  Andreas Kupries  <andreask@activestate.com>
+
+	* ldapx.man: Fixed ambigous subsection titles reported by Larry
+	  Virden via [SF Tcllib Bug 1565836]. Additionally fixed a syntax
+	  error (missing closed double-apostroph) in an example.
+
+2006-09-24  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* ldap.tcl	Fixed bug in secure_connect. The
+			channel wasn't fconfigured correctly and
+			the fileevent handler was not installed
+			in the correct way.
+
+2006-09-22  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* ldap.test	Added some more smoketests for the public
+			API, so that at least some brokenness is
+			detected.
+
+2006-09-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl      Completly redone broken error handling in
+          pkgIndex.tcl  the fileevent handler, now it no
+          ldap.man      longer calls bgerror but cleans up
+                        the outstanding messages for the
+                        connection and delivers the error
+                        to those waiting handlers. More stupid
+                        typo fixes.
+
+        * ldapx.tcl     Some bugfixes for error handling
+          ldap.tcl      when searchInit is called with invalid
+          ldap.man      arguments. Thanks to Pierre David 
+          pkgIndex.tcl  <pdav@users.sourceforge.net> for finding
+                        them.
+
+2006-09-15  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldapx.tcl     Some more fixes in the ldif part.
+
+        * ldapx.tcl     Imported some bug fixes from a new
+          ldapx.man     version of ldapx by Pierre David.
+          pkgIndex.tcl  Fixed bug in modifyDN, fixed wrong start
+                        of SASL handshake, some mechanisms require
+                        the client to send first.
+
+        * ldap.tcl      Fixed broken length calculation in message receiver.
+          pkgIndex.tcl  This fixes bug [SF Tcllib Bug 1558564].
+                        Fixed various smaller bugs with upvaring handles
+                        in info functions.
+                        Fixed wrong debug setting.
+                        
+2006-09-11  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl      Fixed missing tlsHandshakeInProgress variable when
+          ldap.man      when using ldap::connect.
+          pkgIndex.tcl
+          
+2006-09-08  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldapx.tcl     New subpackage ldapx provides a snit
+          ldapx.man     based OO wrapper around the ldap package.
+          pkgIndex.tcl  Based on patch [SF Tcllib Patch 1545931]
+                        by Pierre David <pdav@users.sourceforge.net>.
+          
+2006-09-01  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl      Major changes to the implementation.
+          ldap.man      The package now uses a fileevent based
+          ldap.test     protocol handler instead of the older blocking
+          pkgIndex.tcl  calls.
+          SASL.txt
+          
+          ***POTENTIAL INCOMPATIBILITY***
+          Connection failures are no longer handled in the blocking
+          ldap::* commands, instead they appear in the fileevent handler
+          and have to be handled with a bgerror procedure.
+          
+          I will add a per handle -errorcallback to the package soon, 
+          which will allow user specified handlers, but those are not
+          yet done.
+          
+          Applied modified patches [SF Tcllib Patches 1542666, 1541828],
+          thanks to Pierre David for comments and code.
+          
+          In addition to this change experimental new (sub-)commands
+          were added:
+          
+          This change introduces new subcommands to ldap::info:
+          
+          saslmechanisms - show the supported SASL mechanisms
+          features       - show the supported server features
+          control        - show the supported server controls
+          extensions     - show the supported server extensions 
+          whoami         - show the current authzId
+          
+          In addition it introduces a new ldap::starttls command,
+          which allows to upgrade an existing connection to TLS,
+          if the tls extension is present and the server supports it.
+          This may be part of a fix for [Tcllib Bug # 1403369].
+          
+          There is also a new ldap::bindSASL command available,
+          which allows a SASL based bind with the help of the
+          tcllib SASL package. See the SASL.txt file for an example.
+          
+          The code has been tested a bit against OpenLDAP 2.3, but is
+          not entirely stable yet.
+          
+2006-08-03  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl    : Applied patch from [SF Tcllib Bug 1191326].
+	* pkgIndex.tcl: Thanks to Pierre David for comments.
+                        Version raised to 1.5
+			Removed the duplicated asn code from the
+			module, it now package requires asn 0.6 and
+			namespace imports the appropriate code.
+			
+2006-08-03  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl    : Applied patch from [SF Tcllib Bug 1533868].
+	* pkgIndex.tcl: Thanks to Pierre David for spotting this.
+                        Version raised to 1.4.1
+
+2006-06-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl    : Applied patch from [SF Tcllib RFE 1082061].
+	* ldap.man    : ldap needs Tcl 8.4, raised the level
+	* pkgIndex.tcl: in the docs. Version now 1.4.
+	
+2006-06-13  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * ldap.tcl    : Added ldap::info command for introspection.
+	* ldap.man    : Added documentation.
+	* ldap.test   : Testsuite for the new info command.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-07-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* ldap.tcl    :
+	  pkgIndex.tcl: Applied fix for [SF Tcllib Bug 1239915].
+	  Thanks to Pierre David for the patch. Version number now 1.2.1.
+	
+2005-03-16  Andreas Kupries <andreask@activestate.com>
+
+	* ldap.tcl (ldap::asnGetInteger): Fixed [SF Tcllib Bug 1164663], a
+	  copy/paste bug in the definition of this procedure. It belongs
+	  into the ldap namespace, not the asn namespace.
+
+2005-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ldap.tcl: Reformatted to get clean indentation, also trimmed
+	  trailing whitespace.
+
+2005-02-15  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* ldap.tcl: Fixed various issue with signed/unsigned integers in
+	  length and integer encoding/decoding, by crossporting the 64-bit
+	  aware integer and length code from the asn module.
+	
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ldap.tcl: Fixed expr'essions without braces.
+
+2004-04-27  Andreas Kupries  <andreask@activestate.com>
+
+	* ldap.man: small fixes in the docs, additional example for
+	  searches and search result processing.
+
+	* New module: Provided to us by Joechen Loewer <loewerj@web.de>.
+	* Added doctools documentation.

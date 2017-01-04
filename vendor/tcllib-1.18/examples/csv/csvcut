@@ -1,0 +1,104 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Cut and reorder fields in a CSV file.
+
+package require csv
+package require cmdline
+
+# ----------------------------------------------------
+# csvcut ?-sep sepchar? LIST file...
+#
+# Argument processing and checks.
+
+set sepChar ,
+set usage "Usage: $argv0 ?-sep sepchar? LIST file...\n\tLIST=idx,...\n\tidx in \{n, -m, n-, n-m\}"
+
+while {[set ok [cmdline::getopt argv {sep.arg} opt val]] > 0} {
+    #puts stderr "= $opt $val"
+    switch -exact -- $opt {
+	sep  {set sepChar $val}
+    }
+}
+if {($ok < 0) || ([llength $argv] < 2)} {
+    #puts stderr "A >>$ok<< >>[llength $argv]<<"
+    puts stderr $usage
+    exit -1
+}
+
+set indices [split [lindex $argv 0] ,]
+set files   [lrange $argv 1 end]
+
+if {[llength $indices] == 0} {
+    #puts stderr >>$indices<<
+    #puts stderr B
+    puts stderr $usage
+    exit -1    
+}
+
+set idx [list]
+foreach i $indices {
+    if {[regexp -- {[0-9]+-[0-9]+} $i]} {
+	foreach {f t} [split $i -] break
+	lappend idx [list $f $t]
+    } elseif {[regexp -- {[0-9]+-} $i]} {
+	foreach {f t} [split $i -] break
+	lappend idx [list $f end]
+    } elseif {[regexp -- {-[0-9]+} $i]} {
+	foreach {f t} [split $i -] break
+	lappend idx [list 0 $t]
+    } elseif {[regexp -- {[0-9]+} $i]} {
+	lappend idx [list $i $i]
+    } else {
+	#puts stderr >>$idx<<
+	#puts stderr C
+	puts stderr $usage
+	exit -1
+    }
+}
+set indices $idx
+
+if {[llength $files] == 0} {
+    set files -
+}
+
+# ----------------------------------------------------
+# Actual processing, uses the following information from the
+# commandline:
+#
+# files   - name of the files to read
+# indices - preprocessed indices
+# sepChar - separator character
+
+set stdin 1
+foreach f $files {
+    if {![string compare $f -]} {
+	if {!$stdin} {
+	    puts stderr "Cannot use - (stdin) more than once"
+	    exit -1
+	}
+	set in stdin
+	set stdin 0
+    } else {
+	set in [open $f r]
+    }
+
+    while {![eof $in]} {
+	if {[gets $in line] < 0} {
+	    continue
+	}
+	set data [::csv::split $line $sepChar]
+
+	set dataOut [list]
+
+	foreach i $indices {
+	    foreach {f t} $i break
+	    eval lappend dataOut [lrange $data $f $t]
+	}
+	puts stdout [::csv::join $dataOut $sepChar]
+    }
+    if {[string compare $f -]} {
+	close $in
+    }
+}
+
+exit

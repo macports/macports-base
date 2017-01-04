@@ -1,0 +1,377 @@
+# -*- tcl -*-
+# -- idx_import.test:
+# -- Tests for package "doctools::idx::import": Management of import plugins.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: import.test,v 1.1 2009/04/01 04:28:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    use struct/list.tcl         struct::list
+    use snit/snit.tcl           snit
+    use fileutil/fileutil.tcl   fileutil
+    use log/logger.tcl          logger
+    use pluginmgr/pluginmgr.tcl pluginmgr
+
+    use      doctools2base/config.tcl    doctools::config
+    use      doctools2base/paths.tcl     doctools::paths
+
+    source [tcllibPath doctools2base/tests/common]
+}
+testing {
+    useLocalKeep import.tcl doctools::idx::import
+}
+
+# -------------------------------------------------------------------------
+
+setup_plugins
+
+# -------------------------------------------------------------------------
+
+test doctools-idx-import-1.0 {import text, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import text
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_text type selfns win self text ?format?"}
+
+test doctools-idx-import-1.1 {import text, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import text T F XX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_text type selfns win self text ?format?"}
+
+test doctools-idx-import-2.0 {import file, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import file
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_file type selfns win self path ?format?"}
+
+test doctools-idx-import-2.1 {import file, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import file P F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_file type selfns win self path ?format?"}
+
+test doctools-idx-import-3.0 {import object text, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import object text
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_object_text type selfns win self obj text ?format?"}
+
+test doctools-idx-import-3.1 {import object text, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import object text O
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_object_text type selfns win self obj text ?format?"}
+
+test doctools-idx-import-3.2 {import object text, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import object text O T F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_object_text type selfns win self obj text ?format?"}
+
+test doctools-idx-import-4.0 {import object file, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import object file
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_object_file type selfns win self obj path ?format?"}
+
+test doctools-idx-import-4.1 {import object file, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import object file O
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_object_file type selfns win self obj path ?format?"}
+
+test doctools-idx-import-4.2 {import object file, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I import object file O P F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::import::Snit_hmethodimport_object_file type selfns win self obj path ?format?"}
+
+test doctools-idx-import-5.0 {config names, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I config names X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodnames type selfns win self"}
+
+test doctools-idx-import-6.0 {config get, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I config get X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodget type selfns win self"}
+
+test doctools-idx-import-7.0 {config set, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I config set
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodset type selfns win self name ?value?"}
+
+test doctools-idx-import-7.1 {config set, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I config set N V X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::config::Snit_methodset type selfns win self name ?value?"}
+
+# config unset - accepts any number of arguments.
+
+test doctools-idx-import-8.0 {include paths, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I include paths X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::paths::Snit_methodpaths type selfns win self"}
+
+test doctools-idx-import-9.0 {include clear, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I include clear X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::paths::Snit_methodclear type selfns win self"}
+
+test doctools-idx-import-10.0 {include add, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I include add
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::paths::Snit_methodadd type selfns win self path"}
+
+test doctools-idx-import-10.1 {include add, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I include add P X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::paths::Snit_methodadd type selfns win self path"}
+
+test doctools-idx-import-11.0 {include remove, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I include remove
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::paths::Snit_methodremove type selfns win self path"}
+
+test doctools-idx-import-11.1 {include remove, wrong#args} -setup {
+    doctools::idx::import I
+} -body {
+    I include remove P X
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::paths::Snit_methodremove type selfns win self path"}
+
+# -------------------------------------------------------------------------
+
+test doctools-idx-import-12.0 {config set, define single var} -setup {
+    doctools::idx::import I
+} -body {
+    I config set N V
+    I config get
+} -cleanup {
+    I destroy
+} -result {N V}
+
+test doctools-idx-import-12.1 {config set, define multiple vars} -setup {
+    doctools::idx::import I
+} -body {
+    I config set N V
+    I config set A B
+    dictsort [I config get]
+} -cleanup {
+    I destroy
+} -result {A B N V}
+
+test doctools-idx-import-12.2 {config set, as query} -setup {
+    doctools::idx::import I
+    I config set N V
+} -body {
+    I config set N
+} -cleanup {
+    I destroy
+} -result V
+
+test doctools-idx-import-13.0 {config unset, all} -setup {
+    doctools::idx::import I
+    I config set N V
+} -body {
+    I config unset
+    I config get
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-import-13.1 {config unset, by exact name} -setup {
+    doctools::idx::import I
+    I config set N V
+    I config set A B
+} -body {
+    I config unset N
+    I config get
+} -cleanup {
+    I destroy
+} -result {A B}
+
+test doctools-idx-import-13.2 {config unset, by glob pattern} -setup {
+    doctools::idx::import I
+    I config set N V
+    I config set N' V'
+    I config set A B
+} -body {
+    I config unset N*
+    I config get
+} -cleanup {
+    I destroy
+} -result {A B}
+
+test doctools-idx-import-14.0 {config names, empty} -setup {
+    doctools::idx::import I
+} -body {
+    I config names
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-import-14.1 {config names, with variables} -setup {
+    doctools::idx::import I
+    I config set N V
+    I config set A B
+} -body {
+    lsort -dict [I config names]
+} -cleanup {
+    I destroy
+} -result {A N}
+
+test doctools-idx-import-15.0 {config get, empty} -setup {
+    doctools::idx::import I
+} -body {
+    I config get
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-import-15.1 {config get, with variables} -setup {
+    doctools::idx::import I
+    I config set N V
+    I config set A B
+} -body {
+    dictsort [I config get]
+} -cleanup {
+    I destroy
+} -result {A B N V}
+
+test doctools-idx-import-16.0 {include paths, empty} -setup {
+    doctools::idx::import I
+} -body {
+    I include paths
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-import-16.1 {include paths, several paths, order} -setup {
+    doctools::idx::import I
+    I include add first
+    I include add second
+} -body {
+    I include paths
+} -cleanup {
+    I destroy
+} -result {first second}
+
+test doctools-idx-import-17.0 {include add, unknown} -setup {
+    doctools::idx::import I
+} -body {
+    I include add A
+    I include paths
+} -cleanup {
+    I destroy
+} -result A
+
+test doctools-idx-import-17.1 {include add, already known} -setup {
+    doctools::idx::import I
+} -body {
+    I include add A
+    I include add A
+    I include paths
+} -cleanup {
+    I destroy
+} -result A
+
+test doctools-idx-import-18.0 {include remove, unknown} -setup {
+    doctools::idx::import I
+} -body {
+    I include add A
+    I include remove B
+    I include paths
+} -cleanup {
+    I destroy
+} -result A
+
+test doctools-idx-import-18.1 {include remove, known} -setup {
+    doctools::idx::import I
+} -body {
+    I include add A
+    I include remove A
+    I include paths
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-import-19.0 {include clear} -setup {
+    doctools::idx::import I
+} -body {
+    I include add A
+    I include add B
+    I include clear
+    I include paths
+} -cleanup {
+    I destroy
+} -result {}
+
+# idx_import tests, numbering starts at 20
+# -------------------------------------------------------------------------
+
+source [localPath tests/import]
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+return

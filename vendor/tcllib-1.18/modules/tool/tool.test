@@ -1,0 +1,339 @@
+# tool.test - Copyright (c) 2015 Sean Woods
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+testsNeed        TclOO 1
+
+support {
+    use oodialect/oodialect.tcl oo::dialect
+    use dicttool/dicttool.tcl   dicttool
+    use oometa/oometa.tcl       oo::meta
+    use sha1/sha1.tcl           sha1
+}
+testing {
+    useLocal index.tcl tool
+}
+
+# -------------------------------------------------------------------------
+
+tool::class create OptionClass {
+  property color green
+  property mass  1200kg
+  option bodystyle {default: sedan}
+  option master {class organ default ::noop}
+}
+
+tool::class create OptionClass2 {
+  superclass OptionClass
+  property mass  1400kg
+  option color {default: blue}
+}
+
+OptionClass create ObjectOptionTest1 
+OptionClass create ObjectOptionTest2 bodystyle wagon transmission standard
+OptionClass2 create ObjectOptionTest3
+OptionClass2 create ObjectOptionTest4 bodystyle SUV transmission cvt color white
+
+###
+# Property ignores options
+###
+test tool-options-001 {Simple property queries} {
+  ObjectOptionTest1 property color
+} green
+
+test tool-options-002 {Simple property queries} {
+  ObjectOptionTest2 property color
+} green
+
+test tool-options-003 {Simple property queries} {
+  ObjectOptionTest3 property color
+} green
+
+test tool-options-004 {Simple property queries} {
+  ObjectOptionTest4 property color
+} green
+
+###
+# Cget consults the options
+###
+test tool-options-005 {Simple property queries} {
+  ObjectOptionTest1 cget color
+} green
+
+test tool-options-006 {Simple property queries} {
+  ObjectOptionTest2 cget color
+} green
+
+test tool-options-007 {Simple property queries} {
+  ObjectOptionTest3 cget color
+} blue
+
+test tool-options-008 {Simple property queries} {
+  ObjectOptionTest4 cget color
+} white
+
+###
+# Tests with options in an object changing class
+###
+test tool-options-009 {Simple property queries} {
+  ObjectOptionTest3 property mass
+} 1400kg
+
+ObjectOptionTest3 morph OptionClass
+# The option for color was already set. It should remain
+test tool-options-010 {Simple property queries} {
+  ObjectOptionTest3 cget color
+} blue
+# The "color" property on the other hand should revert
+test tool-options-011 {Simple property queries} {
+  ObjectOptionTest3 property color
+} green
+# The "mass" property on the other hand should revert
+test tool-options-012 {Simple property queries} {
+  ObjectOptionTest3 property mass
+} 1200kg
+
+# Change a OptionClass to a OptionClass2
+
+test tool-options-013 {Simple property queries} {
+  ObjectOptionTest2 property mass
+} 1200kg
+
+ObjectOptionTest2 morph OptionClass2
+# When entering OptionClass2, the object will get any new options
+test tool-options-014 {Simple property queries} {
+  ObjectOptionTest2 cget color
+} blue
+
+test tool-options-015 {Simple property queries} {
+  ObjectOptionTest2 property mass
+} 1400kg
+
+# When changing back, the set option remains
+ObjectOptionTest2 morph OptionClass
+test tool-options-016 {Simple property queries} {
+  ObjectOptionTest2 cget color
+} blue
+
+test tool-options-017 {Simple property queries} {
+  ObjectOptionTest2 property mass
+} 1200kg
+
+
+tool::class create ArrayEnsembleClass {
+  # Burned in defaults
+  meta branchset define {
+    color: pink
+  }
+
+  array_ensemble define define {
+    initialize {
+      foo bar
+    }
+    custom {
+      return custom
+    }
+    true {
+      return true
+    }
+    false {
+      return false
+    }
+  }
+}
+
+ArrayEnsembleClass create ArrayEnsembleObject
+
+test tool-ensemble-001 {Test Array Ensemble} {
+  ArrayEnsembleObject define true
+} true
+test tool-ensemble-002 {Test Array Ensemble} {
+  ArrayEnsembleObject define false
+} false
+test tool-ensemble-003 {Test Array Ensemble retrieve initial value} {
+  ArrayEnsembleObject define get foo
+} bar
+test tool-ensemble-004 {Test Array Ensemble Store a value} {
+  ArrayEnsembleObject define set cc /usr/bin/cc
+  ArrayEnsembleObject define get cc
+} /usr/bin/cc
+
+test tool-ensemble-005 {Test array add} {
+  ArrayEnsembleObject define add path /bin
+  ArrayEnsembleObject define get path
+} /bin
+
+test tool-ensemble-005 {Test array add} {
+  ArrayEnsembleObject define add path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin /usr/bin}
+
+test tool-ensemble-006 {Test array add (again)} {
+  ArrayEnsembleObject define add path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin /usr/bin}
+
+
+test tool-ensemble-007 {Test array lappend} {
+  ArrayEnsembleObject define lappend path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin /usr/bin /usr/bin}
+
+test tool-ensemble-008 {Test array remove} {
+  ArrayEnsembleObject define remove path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin}
+
+test tool-ensemble-009 {Test array exists} {
+  ArrayEnsembleObject define exists counter
+} 0
+
+test tool-ensemble-010 {Test array incr} {
+  ArrayEnsembleObject define incr counter
+  ArrayEnsembleObject define get counter
+} 1
+
+test tool-ensemble-011 {Test array incr} {
+  ArrayEnsembleObject define incr counter
+  ArrayEnsembleObject define get counter
+} 2
+
+test tool-ensemble-012 {Test array exists} {
+  ArrayEnsembleObject define exists counter
+} 1
+
+test tool-ensemble-013 {Test array reset} {
+  ArrayEnsembleObject define reset
+  lsort -stride 2 [ArrayEnsembleObject define dump]
+} {color pink foo bar}
+
+tool::class create DictEnsembleClass {
+  # Burned in defaults
+  meta branchset define {
+    color: pink
+  }
+
+  dict_ensemble define define {
+    initialize {
+      foo bar
+    }
+    custom {
+      return custom
+    }
+    true {
+      return true
+    }
+    false {
+      return false
+    }
+  }
+}
+
+DictEnsembleClass create DictEnsembleObject
+
+test tool-ensemble-001 {Test Array Ensemble} {
+  DictEnsembleObject define true
+} true
+test tool-ensemble-002 {Test Array Ensemble} {
+  DictEnsembleObject define false
+} false
+test tool-ensemble-003 {Test Array Ensemble retrieve initial value} {
+  DictEnsembleObject define get foo
+} bar
+test tool-ensemble-004 {Test Array Ensemble Store a value} {
+  DictEnsembleObject define set cc /usr/bin/cc
+  DictEnsembleObject define get cc
+} /usr/bin/cc
+
+test tool-ensemble-005 {Test array add} {
+  DictEnsembleObject define add path /bin
+  DictEnsembleObject define get path
+} /bin
+
+test tool-ensemble-005 {Test array add} {
+  DictEnsembleObject define add path /usr/bin
+  DictEnsembleObject define get path
+} {/bin /usr/bin}
+
+test tool-ensemble-006 {Test array add (again)} {
+  DictEnsembleObject define add path /usr/bin
+  DictEnsembleObject define get path
+} {/bin /usr/bin}
+
+
+test tool-ensemble-007 {Test array lappend} {
+  DictEnsembleObject define lappend path /usr/bin
+  DictEnsembleObject define get path
+} {/bin /usr/bin /usr/bin}
+
+test tool-ensemble-008 {Test array remove} {
+  DictEnsembleObject define remove path /usr/bin
+  DictEnsembleObject define get path
+} {/bin}
+
+test tool-ensemble-009 {Test array exists} {
+  DictEnsembleObject define exists counter
+} 0
+
+test tool-ensemble-010 {Test array incr} {
+  DictEnsembleObject define incr counter
+  DictEnsembleObject define get counter
+} 1
+
+test tool-ensemble-011 {Test array incr} {
+  DictEnsembleObject define incr counter
+  DictEnsembleObject define get counter
+} 2
+
+test tool-ensemble-012 {Test array exists} {
+  DictEnsembleObject define exists counter
+} 1
+
+test tool-ensemble-013 {Test array reset} {
+  DictEnsembleObject define reset
+  lsort -stride 2 [DictEnsembleObject define dump]
+} {color pink foo bar}
+
+
+
+
+test tool-option_class-001 {Test option class} {
+  ObjectOptionTest1 meta get option master
+} {default: ::noop class: organ widget: label set-command: {my graft %field% %value%} get-command: {my organ %field%}}
+
+proc GNDN args {
+  return $args
+}
+
+ObjectOptionTest1 configure master GNDN
+test tool-option_class-002 {Test option class} {
+  ObjectOptionTest1 organ master
+} GNDN
+
+test tool-option_class-003 {Test option class} {
+  ObjectOptionTest1 <master> puts FOO
+} {puts FOO}
+
+OptionClass2 create ObjectOptionTest5 bodystyle SUV transmission cvt color white master GNDN
+
+test tool-option_class-002 {Test option class} {
+  ObjectOptionTest5 organ master
+} GNDN
+
+test tool-option_class-003 {Test option class} {
+  ObjectOptionTest5 <master> puts FOO
+} {puts FOO}
+# -------------------------------------------------------------------------
+
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

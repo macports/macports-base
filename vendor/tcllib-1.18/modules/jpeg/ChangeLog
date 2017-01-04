@@ -1,0 +1,197 @@
+2013-11-07  Andreas Kupries <andreask@activestate.com>
+
+	* testimage/1000.JPG:  Ticket [1d2b62d10d] followup.
+	* testimage/1000.exif.txt: Extended testsuite with an
+	* testimage/1000.thumbexif.txt: example image missing the
+	  thumbnail and triggering the issue. With thanks to
+	  aldo.w.buratti@gmail.com for donating the image.
+
+2013-10-30  Andreas Kupries <andreask@activestate.com>
+
+	* testimage/IMG_7950_dt.JPG:  Ticket [1d2b62d10d] followup.
+	* testimage/IMG_7950_dt.exif.txt: Extended testsuite with
+	* testimage/IMG_7950_dt.thumbexif.txt: example image missing any
+	  embedded exif information (Not triggering the issue). Made
+	  testsuite 8.4+ and converted to tcltest 2 format.
+
+2013-10-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* jpeg.tcl: Ticket [1d2b62d10d]: Fixed unwanted double-close of
+	* jpeg.man: channel when accessing a non-existing thumbnail in a
+	* pkgIndex.tcl: file. Introduced by the refactoring. Bumped
+	  version to 0.5. Thanks to Aldo Buratti for the report.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-05-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* jpeg.tcl: Refactored the getExif function into two parts with
+	* pkgIndex.tcl: one that operates on a previously opened
+	* jpeg.man:  channel. This means it can be used with other channel
+	* jpeg.test: implementations such as memchan or embedded
+	streams. Updated the documentation and version.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-06-05  Andreas Kupries  <andreask@activestate.com>
+
+	* jpeg.tcl (::jpeg::exif): Accepted (with slight changes) and
+	* pkgIndex.tcl: applied patch by Matt Plumlee <mdplumlee@users.sourceforge.net>
+	* jpeg.man: to parse GPS data in the EXIF block. Bumped the
+	  package to version 0.3.5. This fixes [Bug 2801896].
+
+	* jpeg.man: Added binary settings to the thumbnail example. This
+	  fixes [Bug 2801587].
+
+2009-03-02  Andreas Kupries  <andreask@activestate.com>
+
+	* jpeg.tcl (::jpeg::imageInfo): Accepted and applied patch by
+	* pkgIndex.tcl: Mikhail Teterin <kot@users.sourceforge.net> to
+	* jpeg.man: have imageInfo open the image only for reading. Bumped
+	  to version 0.3.4. This fixes [Bug 2646568].
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* jpeg.pcx: New file. Syntax definitions for the public commands
+	  of the jpeg package.
+
+2008-03-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* jpeg.tcl (::jpeg::getExif): Added check to reject bad section
+	* jpeg.man: types outside of {main, thumbnail}. Bumped version to
+	* pkgIndex.tcl: 0.3.3
+
+	* jpeg.test: Added testsuite and example images for it.
+	* testimages/IMG_7898.JPG:
+	* testimages/IMG_7898.JPG.thumb:
+	* testimages/IMG_7898.exif.txt:
+	* testimages/IMG_7898.thumbexif.txt:
+	* testimages/IMG_7917.JPG:
+	* testimages/IMG_7917.JPG.thumb:
+	* testimages/IMG_7917.exif.txt:
+	* testimages/IMG_7917.thumbexif.txt:
+	* testimages/IMG_7950.JPG:
+	* testimages/IMG_7950.JPG.thumb:
+	* testimages/IMG_7950.exif.txt:
+	* testimages/IMG_7950.thumbexif.txt:
+
+2008-1-10  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* jpeg.tcl: fix for bug 1868088 "Integer value too large to
+	  represent" in MaxAperture arm of formatExif. Bumped version to
+	  0.3.2
+
+2007-11-20  Andreas Kupries   <andreask@activestate.com>
+
+	* jpeg.tcl (::jpeg::stripJPEG): Fixed encoding bug reported by
+	* pkgIndex.tcl: Martin Lemburg on news:clt, and solved by Ohtsuka
+	* jpeg.man: Yoshio. The output file was not set to binary,
+	  breaking the jpeg data written to it. Bumped version to 0.3.1.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* jpeg.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* jpeg.man: Bumped version to 0.3
+	* jpeg.tcl:
+	* pkgIndex.tcl:
+
+2005-12-15  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* jpeg.tcl fixed bug in removeComments and removeExif
+	  where file was opened and not configured as binary
+
+2005-11-10  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* Added support for non-baseline and progressive files by
+	accepting c0-3 for SOF marker
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-04-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* jpeg.man:     Synchronized indexed vs provided versions.
+	* pkgIndex.tcl:
+
+2005-04-01  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* jpeg.tcl: added comments, bumped version number because of
+	potential incompatibility due to inverting the return value
+	of isJPEG.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-10-05  Andreas Kupries <andreask@activestate.com>
+
+	* jpeg.tcl: Accepted last-minute fixes from Aaron in the exif
+	  decoder code.
+
+2004-08-16  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* jpeg.tcl: added commands isJPEG, stripJPEG, formatExif, exifKeys
+	* jpeg.man: updated for new commands, new examples
+
+2004-05-26  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* jpeg.tcl: rewritten/factored
+	* jpeg.man: updated
+
+2004-05-07  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module for querying JPEG images, and manipulating their
+	  comments.

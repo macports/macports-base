@@ -1,0 +1,236 @@
+# -*- tcl -*-
+# Testsuite for char.
+# Called by the ../char.test driver file.
+
+test char-1.0.0 {char, wrong#args} -constraints tcl8.5minus -body {
+    char
+} -returnCodes error \
+    -result {wrong # args: should be "char subcommand ?argument ...?"}
+
+test char-1.0.1 {char, wrong#args} -constraints tcl8.6plus -body {
+    char
+} -returnCodes error \
+    -result {wrong # args: should be "char subcommand ?arg ...?"}
+
+test char-1.1 {char, bogus method} -body {
+    char bogus
+} -returnCodes error \
+    -result {unknown or ambiguous subcommand "bogus": must be quote, or unquote}
+
+test char-1.2.0 {char, wrong#args} -constraints tcl8.5minus -body {
+    char quote
+} -returnCodes error \
+    -result {wrong # args: should be "char quote subcommand ?argument ...?"}
+
+test char-1.2.1 {char, wrong#args} -constraints tcl8.6plus -body {
+    char quote
+} -returnCodes error \
+    -result {wrong # args: should be "char quote subcommand ?arg ...?"}
+
+test char-1.3 {char, bogus method} -body {
+    char quote bogus
+} -returnCodes error \
+    -result {unknown or ambiguous subcommand "bogus": must be comment, cstring, string, or tcl}
+
+#----------------------------------------------------------------------
+
+test char-2.0.0 {char tcl, wrong#args} -constraints tcl8.5minus -body {
+    char quote tcl
+} -returnCodes error -result {wrong # args: should be "char quote tcl ch ..."}
+
+test char-2.0.1 {char tcl, wrong#args} -constraints tcl8.6plus -body {
+    char quote tcl
+} -returnCodes error -result {wrong # args: should be "char quote tcl ch ?arg ...?"}
+
+test char-2.1 {char tcl, single char} -body {
+    char quote tcl A
+} -result A
+
+test char-2.2 {char tcl, multi char} -body {
+    char quote tcl A B
+} -result {A B}
+
+foreach {n label input expected} {
+    0 obrace    \{     \\173
+    1 obrckt    \[     \\133
+    2 dquote    \"     \\42
+    3 escape    \033   \\33
+    4 lf        \n     \\n
+    5 space     { }    \\40
+    6 backslash \\     \\134
+    7 A         A      A
+    8 del       \177   \\177
+    9 circast   \u229b \\u229b
+} {
+    test char-2.3.$n "char tcl, map $label" -body {
+	char quote tcl $input
+    } -result $expected
+
+    # collect table columns for string and multi-arg tests.
+    lappend ll $label
+    lappend li $input
+    lappend le $expected
+}
+
+test char-2.4 "char tcl, map string" -body {
+    char quote tcl [join $li {}]
+} -result [join $le {}]
+
+test char-2.5 "char tcl, map multiple" -body {
+    char quote tcl {*}$li
+} -result $le
+
+unset -nocomplain n label input expected ll li le
+
+#----------------------------------------------------------------------
+
+test char-3.0.0 {char string, wrong#args} -constraints tcl8.5minus -body {
+    char quote string
+} -returnCodes error -result {wrong # args: should be "char quote string ch ..."}
+
+test char-3.0.1 {char string, wrong#args} -constraints tcl8.6plus -body {
+    char quote string
+} -returnCodes error -result {wrong # args: should be "char quote string ch ?arg ...?"}
+
+test char-3.1 {char string, single char} -body {
+    char quote string A
+} -result A
+
+test char-3.2 {char string, multi char} -body {
+    char quote string A B
+} -result {A B}
+
+foreach {n label input expected} {
+    0 obrace    \{     \{
+    1 obrckt    \[     \[
+    2 dquote    \"     \"
+    3 escape    \033   <ESC>
+    4 lf        \n     <LF>
+    5 space     { }    <SPACE>
+    6 backslash \\     \\
+    7 A         A      A
+    8 del       \177   <DEL>
+    9 circast   \u229b \u229b
+} {
+    test char-3.3.$n "char string, map $label" -body {
+	char quote string $input
+    } -result $expected
+
+    # collect table columns for string and multi-arg tests.
+    lappend ll $label
+    lappend li $input
+    lappend le $expected
+}
+
+test char-3.4 "char string, map string" -body {
+    char quote string [join $li {}]
+} -result [join $le {}]
+
+test char-3.5 "char string, map multiple" -body {
+    char quote string {*}$li
+} -result $le
+
+unset -nocomplain n label input expected ll li le
+
+#----------------------------------------------------------------------
+
+test char-4.0.0 {char cstring, wrong#args} -constraints tcl8.5minus -body {
+    char quote cstring
+} -returnCodes error -result {wrong # args: should be "char quote cstring ch ..."}
+
+test char-4.0.1 {char cstring, wrong#args} -constraints tcl8.6plus -body {
+    char quote cstring
+} -returnCodes error -result {wrong # args: should be "char quote cstring ch ?arg ...?"}
+
+test char-4.1 {char cstring, single char} -body {
+    char quote cstring A
+} -result A
+
+test char-4.2 {char cstring, multi char} -body {
+    char quote cstring A B
+} -result {A B}
+
+foreach {n label input expected} {
+    0 obrace    \{     \\173
+    1 obrckt    \[     \[
+    2 dquote    \"     \\\"
+    3 escape    \033   \\33
+    4 lf        \n     \\n
+    5 space     { }    { }
+    6 backslash \\     \\\\
+    7 A         A      A
+    8 del       \177   \\177
+    9 circast   \u229b \\342\\212\\233
+} {
+    test char-4.3.$n "char cstring, map $label" -body {
+	char quote cstring $input
+    } -result $expected
+
+    # collect table columns for string and multi-arg tests.
+    lappend ll $label
+    lappend li $input
+    lappend le $expected
+}
+
+test char-4.4 "char cstring, map string" -body {
+    char quote cstring [join $li {}]
+} -result [join $le {}]
+
+test char-4.5 "char cstring, map multiple" -body {
+    char quote cstring {*}$li
+} -result $le
+
+unset -nocomplain n label input expected ll li le
+
+#----------------------------------------------------------------------
+
+test char-5.0.0 {char comment, wrong#args} -constraints tcl8.5minus -body {
+    char quote comment
+} -returnCodes error -result {wrong # args: should be "char quote comment ch ..."}
+
+test char-5.0.1 {char comment, wrong#args} -constraints tcl8.6plus -body {
+    char quote comment
+} -returnCodes error -result {wrong # args: should be "char quote comment ch ?arg ...?"}
+
+test char-5.1 {char comment, single char} -body {
+    char quote comment A
+} -result A
+
+test char-5.2 {char comment, multi char} -body {
+    char quote comment A B
+} -result {A B}
+
+foreach {n label input expected} {
+    0 obrace    \{     \\\{
+    1 obrckt    \[     \[
+    2 dquote    \"     \\\"
+    3 escape    \033   \\33
+    4 lf        \n     \\n
+    5 space     { }    <blank>
+    6 backslash \\     \\
+    7 A         A      A
+    8 del       \177   \\177
+    9 circast   \u229b \\u229b
+} {
+    test char-5.3.$n "char comment, map $label" -body {
+	char quote comment $input
+    } -result $expected
+
+    # collect table columns for string and multi-arg tests.
+    lappend ll $label
+    lappend li $input
+    lappend le $expected
+}
+
+test char-5.4 "char comment, map string" -body {
+    char quote comment [join $li {}]
+} -result [join $le {}]
+
+test char-5.5 "char comment, map multiple" -body {
+    char quote comment {*}$li
+} -result $le
+
+unset -nocomplain n label input expected ll li le
+
+#----------------------------------------------------------------------
+return

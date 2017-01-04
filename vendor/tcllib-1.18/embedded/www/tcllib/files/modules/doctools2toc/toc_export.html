@@ -1,0 +1,469 @@
+
+<div class='fossil-doc' data-title='doctools::toc::export - Documentation tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools::toc::export(n) 0.1 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools::toc::export - Exporting tables of contents</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Concepts</a></li>
+<li class="doctools_section"><a href="#section3">API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Package commands</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Object command</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Object methods</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Export plugin API v2 reference</a></li>
+<li class="doctools_section"><a href="#section5">ToC serialization format</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">doctools::toc::export <span class="opt">?0.1?</span></b></li>
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">doctools::config</b></li>
+<li>package require <b class="pkgname">doctools::toc::structure</b></li>
+<li>package require <b class="pkgname">snit</b></li>
+<li>package require <b class="pkgname">pluginmgr</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::doctools::toc::export</b> <i class="arg">objectName</i></a></li>
+<li><a href="#2"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">objectName</i> <b class="method">destroy</b></a></li>
+<li><a href="#4"><i class="arg">objectName</i> <b class="method">export serial</b> <i class="arg">serial</i> <span class="opt">?<i class="arg">format</i>?</span></a></li>
+<li><a href="#5"><i class="arg">objectName</i> <b class="method">export object</b> <i class="arg">object</i> <span class="opt">?<i class="arg">format</i>?</span></a></li>
+<li><a href="#6"><i class="arg">objectName</i> <b class="method">config names</b></a></li>
+<li><a href="#7"><i class="arg">objectName</i> <b class="method">config get</b></a></li>
+<li><a href="#8"><i class="arg">objectName</i> <b class="method">config set</b> <i class="arg">name</i> <span class="opt">?<i class="arg">value</i>?</span></a></li>
+<li><a href="#9"><i class="arg">objectName</i> <b class="method">config unset</b> <i class="arg">pattern</i>...</a></li>
+<li><a href="#10"><b class="cmd"><a href="../../../../index.html#key260">export</a></b> <i class="arg">serial</i> <i class="arg">configuration</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a class to manage the plugins for the export of
+tables of contents to other formats, i.e. their conversion to, for
+example <i class="term"><a href="../../../../index.html#key258">doctoc</a></i>, <i class="term"><a href="../../../../index.html#key18">HTML</a></i>, etc.</p>
+<p>This is one of the three public pillars the management of tables of
+contents resides on. The other two pillars are</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term">Importing tables of contents</i>, and</p></li>
+<li><p><i class="term"><a href="toc_container.html">Holding tables of contents</a></i></p></li>
+</ol>
+<p>For information about the <span class="sectref"><a href="#section2">Concepts</a></span> of tables of contents,
+and their parts, see the same-named section.
+For information about the data structure which is the major input to
+the manager objects provided by this package see the section
+<span class="sectref"><a href="#section5">ToC serialization format</a></span>.</p>
+<p>The plugin system of our class is based on the package
+<b class="package"><a href="../pluginmgr/pluginmgr.html">pluginmgr</a></b>, and configured to look for plugins using</p>
+<ol class="doctools_enumerated">
+<li><p>the environment variable <b class="variable">DOCTOOLS_TOC_EXPORT_PLUGINS</b>,</p></li>
+<li><p>the environment variable <b class="variable">DOCTOOLS_TOC_PLUGINS</b>,</p></li>
+<li><p>the environment variable <b class="variable">DOCTOOLS_PLUGINS</b>,</p></li>
+<li><p>the path &quot;<b class="file">~/.doctools/toc/export/plugin</b>&quot;</p></li>
+<li><p>the path &quot;<b class="file">~/.doctools/toc/plugin</b>&quot;</p></li>
+<li><p>the path &quot;<b class="file">~/.doctools/plugin</b>&quot;</p></li>
+<li><p>the path &quot;<b class="file">~/.doctools/toc/export/plugins</b>&quot;</p></li>
+<li><p>the path &quot;<b class="file">~/.doctools/toc/plugins</b>&quot;</p></li>
+<li><p>the path &quot;<b class="file">~/.doctools/plugins</b>&quot;</p></li>
+<li><p>the registry entry &quot;HKEY_CURRENT_USER\SOFTWARE\DOCTOOLS\TOC\EXPORT\PLUGINS&quot;</p></li>
+<li><p>the registry entry &quot;HKEY_CURRENT_USER\SOFTWARE\DOCTOOLS\TOC\PLUGINS&quot;</p></li>
+<li><p>the registry entry &quot;HKEY_CURRENT_USER\SOFTWARE\DOCTOOLS\PLUGINS&quot;</p></li>
+</ol>
+<p>The last three are used only when the package is run on a machine
+using Windows(tm) operating system.</p>
+<p>The whole system is delivered with six predefined export plugins,
+namely</p>
+<dl class="doctools_definitions">
+<dt>doctoc</dt>
+<dd><p>See <i class="term"><a href="export_doctoc.html">doctoc export plugin</a></i> for details.</p></dd>
+<dt>html</dt>
+<dd><p>See <i class="term">html export plugin</i> for details.</p></dd>
+<dt>json</dt>
+<dd><p>See <i class="term">json export plugin</i> for details.</p></dd>
+<dt>nroff</dt>
+<dd><p>See <i class="term"><a href="../doctools2idx/idx_export_nroff.html">nroff export plugin</a></i> for details.</p></dd>
+<dt>text</dt>
+<dd><p>See <i class="term">text export plugin</i> for details.</p></dd>
+<dt>wiki</dt>
+<dd><p>See <i class="term"><a href="../doctools2idx/idx_export_wiki.html">wiki export plugin</a></i> for details.</p></dd>
+</dl>
+<p>Readers wishing to write their own export plugin for some format, i.e.
+<i class="term">plugin writer</i>s reading and understanding the section
+containing the <span class="sectref"><a href="#section4">Export plugin API v2 reference</a></span> is an
+absolute necessity, as it specifies the interaction between this
+package and its plugins in detail.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Concepts</a></h2>
+<ol class="doctools_enumerated">
+<li><p>A <i class="term"><a href="../../../../index.html#key157">table of contents</a></i> consists of a (possibly empty) list of
+<i class="term">elements</i>.</p></li>
+<li><p>Each element in the list is identified by its label.</p></li>
+<li><p>Each element is either a <i class="term"><a href="../../../../index.html#key251">reference</a></i>, or a <i class="term">division</i>.</p></li>
+<li><p>Each reference has an associated document, identified by a symbolic
+id, and a textual description.</p></li>
+<li><p>Each division may have an associated document, identified by a
+symbolic id.</p></li>
+<li><p>Each division consists consists of a (possibly empty) list of
+<i class="term">elements</i>, with each element following the rules as specified in
+item 2 and above.</p></li>
+</ol>
+<p>A few notes</p>
+<ol class="doctools_enumerated">
+<li><p>The above rules span up a tree of elements, with references as the
+leaf nodes, and divisions as the inner nodes, and each element
+representing an entry in the whole table of contents.</p></li>
+<li><p>The identifying labels of any element E are unique within their
+division (or toc), and the full label of any element E is the list of
+labels for all nodes on the unique path from the root of the tree to
+E, including E.</p></li>
+</ol>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Package commands</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::doctools::toc::export</b> <i class="arg">objectName</i></a></dt>
+<dd><p>This command creates a new export manager object with an associated
+Tcl command whose name is <i class="arg">objectName</i>. This <i class="term"><a href="../../../../index.html#key243">object</a></i> command
+is explained in full detail in the sections <span class="sectref"><a href="#subsection2">Object command</a></span>
+and <span class="sectref"><a href="#subsection3">Object methods</a></span>. The object command will be created
+under the current namespace if the <i class="arg">objectName</i> is not fully
+qualified, and in the specified namespace otherwise.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Object command</a></h3>
+<p>All objects created by the <b class="cmd">::doctools::toc::export</b> command have
+the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>The method <b class="method">method</b> and its <i class="arg">arg</i>'uments determine the
+exact behavior of the command.
+See section <span class="sectref"><a href="#subsection3">Object methods</a></span> for the detailed
+specifications.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Object methods</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">objectName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method destroys the object it is invoked for.</p></dd>
+<dt><a name="4"><i class="arg">objectName</i> <b class="method">export serial</b> <i class="arg">serial</i> <span class="opt">?<i class="arg">format</i>?</span></a></dt>
+<dd><p>This method takes the canonical serialization of a table of contents
+stored in <i class="arg">serial</i> and converts it to the specified <i class="arg">format</i>,
+using the export plugin for the format. An error is thrown if no
+plugin could be found for the format.
+The string generated by the conversion process is returned as
+the result of this method.</p>
+<p>If no format is specified the method defaults to <b class="const">doctoc</b>.</p>
+<p>The specification of what a <i class="term">canonical</i> serialization is can be
+found in the section <span class="sectref"><a href="#section5">ToC serialization format</a></span>.</p>
+<p>The plugin has to conform to the interface specified in section
+<span class="sectref"><a href="#section4">Export plugin API v2 reference</a></span>.</p></dd>
+<dt><a name="5"><i class="arg">objectName</i> <b class="method">export object</b> <i class="arg">object</i> <span class="opt">?<i class="arg">format</i>?</span></a></dt>
+<dd><p>This method is a convenient wrapper around the <b class="method">export serial</b>
+method described by the previous item.
+It expects that <i class="arg">object</i> is an object command supporting a
+<b class="method">serialize</b> method returning the canonical serialization of a
+table of contents. It invokes that method, feeds the result into
+<b class="method">export serial</b> and returns the resulting string as its own
+result.</p></dd>
+<dt><a name="6"><i class="arg">objectName</i> <b class="method">config names</b></a></dt>
+<dd><p>This method returns a list containing the names of all configuration
+variables currently known to the object.</p></dd>
+<dt><a name="7"><i class="arg">objectName</i> <b class="method">config get</b></a></dt>
+<dd><p>This method returns a dictionary containing the names and values of
+all configuration variables currently known to the object.</p></dd>
+<dt><a name="8"><i class="arg">objectName</i> <b class="method">config set</b> <i class="arg">name</i> <span class="opt">?<i class="arg">value</i>?</span></a></dt>
+<dd><p>This method sets the configuration variable <i class="arg">name</i> to the
+specified <i class="arg">value</i> and returns the new value of the variable.</p>
+<p>If no value is specified it simply returns the current value, without
+changing it.</p>
+<p>Note that while the user can set the predefined configuration
+variables <b class="const">user</b> and <b class="const">format</b> doing so will have no
+effect, these values will be internally overriden when invoking an
+import plugin.</p></dd>
+<dt><a name="9"><i class="arg">objectName</i> <b class="method">config unset</b> <i class="arg">pattern</i>...</a></dt>
+<dd><p>This method unsets all configuration variables matching the specified
+glob <i class="arg">pattern</i>s. If no pattern is specified it will unset all
+currently defined configuration variables.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Export plugin API v2 reference</a></h2>
+<p>Plugins are what this package uses to manage the support for any
+output format beyond the <span class="sectref"><a href="#section5">ToC serialization format</a></span>. Here we
+specify the API the objects created by this package use to interact
+with their plugins.</p>
+<p>A plugin for this package has to follow the rules listed below:</p>
+<ol class="doctools_enumerated">
+<li><p>A plugin is a package.</p></li>
+<li><p>The name of a plugin package has the form
+		doctools::toc::export::<b class="variable">FOO</b>,
+       where <b class="variable">FOO</b> is the name of the format the plugin will
+       generate output for. This name is also the argument to provide
+       to the various <b class="method">export</b> methods of export manager
+       objects to get a string encoding a table of contents in that
+       format.</p></li>
+<li><p>The plugin can expect that the package
+       <b class="package">doctools::toc::export::plugin</b> is present, as
+       indicator that it was invoked from a genuine plugin manager.</p></li>
+<li><p>A plugin has to provide one command, with the signature shown
+       below.</p>
+<dl class="doctools_definitions">
+<dt><a name="10"><b class="cmd"><a href="../../../../index.html#key260">export</a></b> <i class="arg">serial</i> <i class="arg">configuration</i></a></dt>
+<dd><p>Whenever an export manager of <b class="package"><a href="../doctools/doctoc.html">doctools::toc</a></b> has to generate
+output for a table of contents it will invoke this command.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">serial</i></dt>
+<dd><p>This argument will contain the <i class="term">canonical</i> serialization of the
+table of contents for which to generate the output.
+The specification of what a <i class="term">canonical</i> serialization is can be
+found in the section <span class="sectref"><a href="#section5">ToC serialization format</a></span>.</p></dd>
+<dt>dictionary <i class="arg">configuration</i></dt>
+<dd><p>This argument will contain the current configuration to apply to the
+generation, as a dictionary mapping from variable names to values.</p>
+<p>The following configuration variables have a predefined meaning all
+plugins have to obey, although they can ignore this information at
+their discretion. Any other other configuration variables recognized
+by a plugin will be described in the manpage for that plugin.</p>
+<dl class="doctools_definitions">
+<dt>user</dt>
+<dd><p>This variable is expected to contain the name of the user
+           owning the process invoking the plugin.</p></dd>
+<dt>format</dt>
+<dd><p>This variable is expected to contain the name of the
+             format whose plugin is invoked.</p></dd>
+<dt>file</dt>
+<dd><p>This variable, if defined by the user of the table object
+           is expected to contain the name of the input file for which
+           the plugin is generating its output for.</p></dd>
+<dt>map</dt>
+<dd><p>This variable, if defined by the user of the table object is
+          expected to contain a dictionary mapping from symbolic
+          document ids used in the table entries to actual paths (or
+          urls). A plugin has to be able to handle the possibility
+          that a document id is without entry in this mapping.</p></dd>
+</dl></dd>
+</dl></dd>
+</dl>
+</li>
+<li><p>A single usage cycle of a plugin consists of the invokations of
+       the command <b class="cmd"><a href="../../../../index.html#key260">export</a></b>. This call has to leave the plugin in
+       a state where another usage cycle can be run without problems.</p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">ToC serialization format</a></h2>
+<p>Here we specify the format used by the doctools v2 packages to
+serialize tables of contents as immutable values for transport,
+comparison, etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a table of contents may have more than one regular serialization
+only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any table of contents is a nested Tcl dictionary.</p></li>
+<li><p>This dictionary holds a single key, <b class="const">doctools::toc</b>, and its
+value. This value holds the contents of the table of contents.</p></li>
+<li><p>The contents of the table of contents are a Tcl dictionary holding the
+title of the table of contents, a label, and its elements. The
+relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">title</b></dt>
+<dd><p>The value is a string containing the title of the table of contents.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the table of contents.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the table, in the
+order they are to be shown.</p>
+<p>Each element is a Tcl list holding the type of the item, and its
+description, in this order. An alternative description would be that
+it is a Tcl dictionary holding a single key, the item type, mapped to
+the item description.</p>
+<p>The two legal item types and their descriptions are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">reference</b></dt>
+<dd><p>This item describes a single entry in the table of contents,
+referencing a single document.
+To this end its value is a Tcl dictionary containing an id for the
+referenced document, a label, and a longer textual description which
+can be associated with the entry.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the entry.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for this entry. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">desc</b></dt>
+<dd><p>The value is a string containing a longer description for this entry.</p></dd>
+</dl></dd>
+<dt><b class="const">division</b></dt>
+<dd><p>This item describes a group of entries in the table of contents,
+inducing a hierarchy of entries.
+To this end its value is a Tcl dictionary containing a label for the
+group, an optional id to a document for the whole group, and the list
+of entries in the group.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the whole group. This key is optional.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the group. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the group, in the
+order they are to be shown.
+This list has the same structure as the value for the keyword
+<b class="const">items</b> used to describe the whole table of contents, see
+above. This closes the recusrive definition of the structure, with
+divisions holding the same type of elements as the whole table of
+contents, including other divisions.</p></dd>
+</dl></dd>
+</dl></dd>
+</dl>
+</li>
+</ol></dd>
+<dt>canonical serialization</dt>
+<dd><p>The canonical serialization of a table of contents has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this table of contents.</p>
+<ol class="doctools_enumerated">
+<li><p>The keys found in all the nested Tcl dictionaries are sorted in
+ascending dictionary order, as generated by Tcl's builtin command
+<b class="cmd">lsort -increasing -dict</b>.</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key18">HTML</a>, <a href="../../../../index.html#key20">conversion</a>, <a href="../../../../index.html#key258">doctoc</a>, <a href="../../../../index.html#key185">documentation</a>, <a href="../../../../index.html#key260">export</a>, <a href="../../../../index.html#key247">formatting</a>, <a href="../../../../index.html#key250">generation</a>, <a href="../../../../index.html#key206">json</a>, <a href="../../../../index.html#key17">manpage</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key21">nroff</a>, <a href="../../../../index.html#key252">plugin</a>, <a href="../../../../index.html#key251">reference</a>, <a href="../../../../index.html#key106">table</a>, <a href="../../../../index.html#key157">table of contents</a>, <a href="../../../../index.html#key245">tcler's wiki</a>, <a href="../../../../index.html#key248">text</a>, <a href="../../../../index.html#key246">url</a>, <a href="../../../../index.html#key183">wiki</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

@@ -1,0 +1,103 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools_intro n 1.0]
+[see_also docidx_intro]
+[see_also doctoc_intro]
+[see_also doctools]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_intro]
+[see_also doctools_lang_syntax]
+[see_also doctools_plugin_apiref]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctools introduction}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+[term doctools] (short for [emph {documentation tools}]) stands for
+a set of related, yet different, entities which are working together
+for the easy creation and transformation of documentation. These are
+
+[list_begin enumerated]
+[enum]
+
+A tcl based language for the semantic markup of text. Markup is
+represented by Tcl commands interspersed with the actual text.
+
+[enum]
+
+A package providing the ability to read and transform texts written in
+that markup language. It is important to note that the actual
+transformation of the input text is delegated to plugins.
+
+[enum]
+
+An API describing the interface between the package above and a
+plugin.
+
+[list_end]
+
+[para]
+
+Which of the more detailed documents are relevant to the reader of
+this introduction depends on their role in the documentation process.
+
+[para]
+
+[list_begin enumerated]
+[enum]
+A [term writer] of documentation has to understand the markup language
+itself. A beginner to doctools should read the more informally written
+[term {doctools language introduction}] first. Having digested this
+the formal [term {doctools language syntax}] specification should
+become understandable. A writer experienced with doctools may only
+need the [term {doctools language command reference}] from time to
+time to refresh her memory.
+
+[para]
+
+While a document is written the [syscmd dtplite] application can be
+used to validate it, and after completion it also performs the
+conversion into the chosen system of visual markup, be it *roff, HTML,
+plain text, wiki, etc.
+
+[enum]
+A [term processor] of documentation written in the [term doctools]
+markup language has to know which tools are available for use.
+
+[para]
+
+The main tool is the aforementioned [syscmd dtplite] application
+provided by Tcllib. A more powerful one (in terms of options and
+ability to configure it) is the [syscmd dtp] application, provided by
+Tclapps.
+
+At the bottom level, common to both applications, however sits the
+package [package doctools], providing the basic facilities to read and
+process files containing text in the doctools format.
+
+[enum]
+
+At last, but not least, [term {plugin writers}] have to understand the
+interaction between the [package doctools] package and its plugins, as
+described in the [term {doctools plugin API reference}].
+
+[list_end]
+
+[section {RELATED FORMATS}]
+
+doctools does not stand alone, it has two companion formats. These are
+called [term docidx] and [term doctoc], and they are for the markup of
+[term {keyword indices}], and [term {tables of contents}],
+respectively.
+
+They are described in their own sets of documents, starting at the
+[term {docidx introduction}] and the [term {doctoc introduction}],
+respectively.
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

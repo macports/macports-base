@@ -1,0 +1,358 @@
+# aes.test - Copyright (c) 2005 Thorsten Schloermann
+#
+# the test-values are taken from:
+#     http://csrc.nist.gov/CryptoToolkit/aes/rijndael/rijndael-vals.zip
+#     where only the first 12 entries of Know Answer Test for variable key and
+#     variable text are used
+#     Unfortunately, only encryption is tested by this.
+#
+#
+# Monte Carlo Tests with 4 Million cycles through the algorithm will need too much time
+#
+# $Id: aes.test,v 1.8 2010/07/06 19:39:00 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+testing {
+    useLocal aes.tcl aes
+}
+
+# -------------------------------------------------------------------------
+
+# data for variable key KAT
+
+# Sample vectors from FIPS 197 specification document.
+#
+test aes-fips-C.1e {Test vector for AES-128 from FIPS-197 Appendix C.1} -setup {
+    set txt [binary format H* 00112233445566778899aabbccddeeff]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f]
+} -body {
+    set enc [aes::aes -mode ecb -dir enc -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 69c4e0d86a7b0430d8cdb78070b4c55a
+
+test aes-fips-C.1d {Test vector for AES-128 from FIPS-197 Appendix C.1} -setup {
+    set txt [binary format H* 69c4e0d86a7b0430d8cdb78070b4c55a]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f]
+} -body {
+    set enc [aes::aes -mode ecb -dir dec -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 00112233445566778899aabbccddeeff
+
+test aes-fips-C.2e {Test vector for AES-192 from FIPS-197 Appendix C.2} -setup {
+    set txt [binary format H* 00112233445566778899aabbccddeeff]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f1011121314151617]
+} -body {
+    set enc [aes::aes -mode ecb -dir enc -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result dda97ca4864cdfe06eaf70a0ec0d7191
+
+test aes-fips-C.2d {Test vector for AES-192 from FIPS-197 Appendix C.2} -setup {
+    set txt [binary format H* dda97ca4864cdfe06eaf70a0ec0d7191]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f1011121314151617]
+} -body {
+    set enc [aes::aes -mode ecb -dir dec -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 00112233445566778899aabbccddeeff
+
+test aes-fips-C.3e {Test vector for AES-256 from FIPS-197 Appendix C.3} -setup {
+    set txt [binary format H* 00112233445566778899aabbccddeeff]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f]
+} -body {
+    set enc [aes::aes -mode ecb -dir enc -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 8ea2b7ca516745bfeafc49904b496089
+
+test aes-fips-C.3d {Test vector for AES-256 from FIPS-197 Appendix C.3} -setup {
+    set txt [binary format H* 8ea2b7ca516745bfeafc49904b496089]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f]
+} -body {
+    set enc [aes::aes -mode ecb -dir dec -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 00112233445566778899aabbccddeeff
+
+test aes-kat-ecb-128e {Known answer tests - AES-128 ECB encryption} -setup {
+    set txt [binary format H* 000102030405060708090a0b0c0d0e0f]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f]
+} -body {
+    set enc [aes::aes -mode ecb -dir enc -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 0a940bb5416ef045f1c39458c653ea5a
+
+test aes-kat-ecb-128d {Known answer tests - AES-128 ECB decryption} -setup {
+    set txt [binary format H* 0a940bb5416ef045f1c39458c653ea5a]
+    set key [binary format H* 000102030405060708090a0b0c0d0e0f]
+} -body {
+    set enc [aes::aes -mode ecb -dir dec -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 000102030405060708090a0b0c0d0e0f
+
+test aes-kat-ecb-192e {Known answer tests - AES-192 ECB encryption} -setup {
+    set txt [binary format H* 000102030405060708090a0b0c0d0e0f]
+    set key [binary format H* 000102030405060708090A0B0C0D0E0F1011121314151617]
+} -body {
+    set enc [aes::aes -mode ecb -dir enc -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 0060bffe46834bb8da5cf9a61ff220ae
+
+test aes-kat-ecb-192d {Known answer tests - AES-192 ECB decryption} -setup {
+    set txt [binary format H* 0060bffe46834bb8da5cf9a61ff220ae]
+    set key [binary format H* 000102030405060708090A0B0C0D0E0F1011121314151617]
+} -body {
+    set enc [aes::aes -mode ecb -dir dec -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 000102030405060708090a0b0c0d0e0f
+
+test aes-kat-ecb-256e {Known answer tests - AES-256 ECB encryption} -setup {
+    set txt [binary format H* 000102030405060708090a0b0c0d0e0f]
+    set key [binary format H* 000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F]
+} -body {
+    set enc [aes::aes -mode ecb -dir enc -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 5a6e045708fb7196f02e553d02c3a692
+
+test aes-kat-ecb-256d {Known answer tests - AES-256 ECB decryption} -setup {
+    set txt [binary format H* 5a6e045708fb7196f02e553d02c3a692]
+    set key [binary format H* 000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F]
+} -body {
+    set enc [aes::aes -mode ecb -dir dec -key $key $txt]
+    binary scan $enc H* r
+    set r
+} -cleanup {
+    unset txt key enc r
+} -result 000102030405060708090a0b0c0d0e0f
+
+
+# N key ic plain cipher
+set vectors {
+    1 06a9214036b8a15b512e03d534120006 3dafba429d9eb430b422da802c9fac41
+      53696e676c6520626c6f636b206d7367 e353779c1079aeb82708942dbe77181a
+    2 c286696d887c9aa0611bbb3e2025a45a 562e17996d093d28ddb3ba695a2e6f58
+      000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
+      d296cd94c2cccf8a3a863028b5e1dc0a7586602d253cfff91b8266bea6d61ab1
+    3 6c3ea0477630ce21a2ce334aa746c2cd c782dc4c098c66cbd9cd27d825682c81
+      5468697320697320612034382d62797465206d657373616765202865786163746c7920332041455320626c6f636b7329
+      d0a02b3836451753d493665d33f0e8862dea54cdb293abc7506939276772f8d5021c19216bad525c8579695d83ba2684    
+    4 56e47a38c5598974bc46903dba290349 8ce82eefbea0da3c44699ed7db51b7d9
+      a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf
+      c30e32ffedc0774e6aff6af0869f71aa0f3af07a9a31a9c684db207eb0ef8e4e35907aa632c3ffdf868bb7b29d3d46ad83ce9f9a102ee99d49a53e87f4c3da55
+}
+
+foreach {n key iv pt ct} $vectors {
+    test aes-cbc-${n}e {RFC3602 AES-128 CBC mode encryption} -setup {
+        set K [binary format H* $key]
+        set I [binary format H* $iv]
+    } -body {
+        set aes [aes::aes -mode cbc -dir enc -key $K -iv $I [binary format H* $pt]]
+        binary scan $aes H* r
+        set r
+    } -cleanup {
+        unset r K I aes
+    } -result $ct
+    
+    test aes-cbc-${n}d {RFC3602 AES-128 CBC mode decryption} -setup {
+        set K [binary format H* $key]
+        set I [binary format H* $iv]
+    } -body {
+        set aes [aes::aes -mode cbc -dir dec -key $K -iv $I [binary format H* $ct]]
+        binary scan $aes H* r
+        set r
+    } -cleanup {
+        unset r K I aes
+    } -result $pt
+}
+
+# Known answer tests (CBC)
+#    0 00000000000000000000000000000000 00000000000000000000000000000000 
+#      00000000000000000000000000000000 8a05fc5e095af4848a08d328d3688e3d
+#    1 8a05fc5e095af4848a08d328d3688e3d 8a05fc5e095af4848a08d328d3688e3d
+#      204f17e2444381f6114ff53934c0bcd3 192d9b3aa10bb2f7846ccba0085c657a
+#    2 93286764a85146730e641888db34eb47 192d9b3aa10bb2f7846ccba0085c657a
+#      983bf6f5a6dfbcdaa19370666e83a99a 40d8daf6d1fda0a073b3bd18b7695d2e
+#    3 d3f0bd9279ace6d37dd7a5906c5db669 40d8daf6d1fda0a073b3bd18b7695d2e
+#      c48cd503a21c8ad0b2483ef15f79571d 3edbe80d69a1d2248ca55fc17c4ef3c5
+
+# Bugs
+
+# N key ic plain cipher
+set vectors {
+    1
+    3132333435363738393031323334353637383930313233343536373839303132
+    c3f0929f353c2fc78b9c6705397f22c8
+    005a0000003b00000000000000000000
+    97d94ab5d6a6bf3e9a126b67b8b3bc12
+}
+
+foreach {n key iv pt ct} $vectors {
+    test aes-cbc-x${n}e {RFC3602 AES-128 CBC mode encryption} -setup {
+        set K [binary format H* $key]
+        set I [binary format H* $iv]
+    } -body {
+        set aes [aes::aes -mode cbc -dir enc -key $K -iv $I [binary format H* $pt]]
+        binary scan $aes H* r
+        set r
+    } -cleanup {
+        unset r K I aes
+    } -result $ct
+    
+    test aes-cbc-x${n}d {RFC3602 AES-128 CBC mode decryption} -setup {
+        set K [binary format H* $key]
+        set I [binary format H* $iv]
+    } -body {
+        set aes [aes::aes -mode cbc -dir dec -key $K -iv $I [binary format H* $ct]]
+        binary scan $aes H* r
+        set r
+    } -cleanup {
+        unset r K I aes
+    } -result $pt
+}
+
+test aes-sf2993029 {aes decrypt, wide integer, sf bug 2993029} -body {
+    aes::aes -hex -mode ecb -dir decrypt \
+        -key [binary format H* FEDCBA98FEDCBA98FEDCBA98FEDCBA98] \
+        [binary format H* 2a666624a86d4c29de37b520781c1069]
+} -result 01000000000000003d5afbb584a29f57
+
+# -------------------------------------------------------------------------
+
+test aes-sf-3574004-a {aes use with data starting with a dash, auto-stop} -body {
+    aes::aes -hex -mode cbc -dir encrypt -key [string repeat \\0 16] -[string repeat \\0 15]
+} -result cc45117986e38ae95944f9eeaa7b700b240fdd169eacd2a20505ef4c6507c907
+
+test aes-sf-3574004-b {aes use with data starting with a dash, double-dash} -body {
+    aes::aes -hex -mode cbc -dir encrypt -key [string repeat \\0 16] -- -[string repeat \\0 15]
+} -result cc45117986e38ae95944f9eeaa7b700b240fdd169eacd2a20505ef4c6507c907
+
+# -------------------------------------------------------------------------
+## TODO: Go through the various possible options and combinations.
+
+test aes-sf-3612645-a0 {aes use of -in option, allura 1366} -setup {
+    set key     [binary format a32 0123456789012345678901234567890123456789]
+    set encfile [tcltest::makeFile {} aes.encrypt]
+    set decfile [tcltest::makeFile {} aes.decrypt]
+    set outchan [open $encfile w]
+    fconfigure $outchan -translation binary
+    aes::aes -key $key -out $outchan "Hello World Tcl"
+    close $outchan
+    unset outchan
+} -body {
+    set inchan  [open $encfile r]
+    fconfigure $inchan -translation binary
+    set outchan [open $decfile w+]
+    aes::aes -dir decrypt -key $key -in $inchan -out $outchan
+    close $inchan
+    close $outchan
+    viewFile $decfile
+} -cleanup {
+    file delete $encfile $decfile
+    unset key encfile decfile inchan outchan
+} -result "Hello World Tcl\000"
+
+test aes-sf-3612645-a1 {aes use of -in option, allura 1366} -setup {
+    set key     [binary format a32 0123456789012345678901234567890123456789]
+    set encfile [tcltest::makeFile {} aes.encrypt]
+    set outchan [open $encfile w]
+    fconfigure $outchan -translation binary
+    aes::aes -key $key -out $outchan "Hello World Tcl"
+    close $outchan
+    unset outchan
+} -body {
+    set inchan [open $encfile r]
+    fconfigure $inchan -translation binary
+    set out [aes::aes -dir decrypt -key $key -in $inchan]
+    close $inchan
+    set out
+} -cleanup {
+    file delete $encfile
+    unset out key encfile inchan
+} -result "Hello World Tcl\000"
+
+test aes-sf-3612645-b0 {aes non-use of -in option, allura 1366} -setup {
+    set key     [binary format a32 0123456789012345678901234567890123456789]
+    set encfile [tcltest::makeFile {} aes.encrypt]
+    set decfile [tcltest::makeFile {} aes.decrypt]
+    set outchan [open $encfile w]
+    fconfigure $outchan -translation binary
+    aes::aes -key $key -out $outchan "Hello World Tcl"
+    close $outchan
+    unset outchan
+} -body {
+    set inchan  [open $encfile r]
+    fconfigure $inchan -translation binary
+    set outchan [open $decfile w+]
+    aes::aes -dir decrypt -key $key -out $outchan [read $inchan]
+    close $inchan
+    close $outchan
+    viewFile $decfile
+} -cleanup {
+    file delete $encfile $decfile
+    unset key encfile decfile inchan outchan
+} -result "Hello World Tcl\000"
+
+test aes-sf-3612645-b1 {aes non-use of -in option, allura 1366} -setup {
+    set key     [binary format a32 0123456789012345678901234567890123456789]
+    set encfile [tcltest::makeFile {} aes.encrypt]
+    set outchan [open $encfile w]
+    fconfigure $outchan -translation binary
+    aes::aes -key $key -out $outchan "Hello World Tcl"
+    close $outchan
+    unset outchan
+} -body {
+    set inchan [open $encfile r]
+    fconfigure $inchan -translation binary
+    set out [aes::aes -dir decrypt -key $key [read $inchan]]
+    close $inchan
+    set out
+} -cleanup {
+    file delete $encfile
+    unset out key encfile inchan
+} -result "Hello World Tcl\000"
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

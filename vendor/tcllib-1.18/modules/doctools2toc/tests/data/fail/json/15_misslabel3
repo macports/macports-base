@@ -1,0 +1,10 @@
+{
+    "doctools::toc" : {
+        "label"    : ".",
+        "title"    : ".",
+        "items"    : [{ "division" : {
+	    "a" : ".",
+	    "b" : "."
+        }}]
+    }
+}

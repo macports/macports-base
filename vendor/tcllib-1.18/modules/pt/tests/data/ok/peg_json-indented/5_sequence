@@ -1,0 +1,6 @@
+{
+    "pt::grammar::peg" : {
+        "rules" : {},
+        "start" : "x {t a} {t b} {t c}"
+    }
+}

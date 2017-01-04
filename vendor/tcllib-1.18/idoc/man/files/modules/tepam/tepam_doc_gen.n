@@ -1,0 +1,625 @@
+'\"
+'\" Generated from file 'tepam_doc_gen\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2013, Andreas Drollinger
+'\"
+.TH "tepam::doc_gen" n 0\&.5\&.0 tcllib "Tcl's Enhanced Procedure and Argument Manager"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+tepam::doc_gen \- TEPAM DOC Generation, reference manual
+.SH SYNOPSIS
+package require \fBTcl  8\&.3\fR
+.sp
+package require \fBtepam  0\&.5\fR
+.sp
+package require \fBtepam::doc_gen  ?0\&.1?\fR
+.sp
+\fBtepam::doc_gen::generate\fR ?-format \fIformat\fR? ?-style \fIstyle\fR? ?-header_footer? ?-dest_file \fIdest_file\fR? \fIname\fR
+.sp
+\fBtepam::doc_gen::patch\fR ?-format \fIformat\fR? ?-style \fIstyle\fR? ?-search_pattern \fIsearch_pattern\fR? ?-src_string \fIsrc_string\fR | -src_file \fIsrc_file\fR? ?-dest_file \fIdest_file\fR? ?name?
+.sp
+.BE
+.SH DESCRIPTION
+This package generates documentations of TEPAM procedures (procedures that have been declared with \fBtepam::procedure\fR)\&. The documents are generated in the classic UNIX document style using the following document sections: Name, Synopsis, Description, Arguments and Example\&. \fBTEPAM Doc Gen\fR provides support for various document formats\&. Support for additional formats can be added if necessary\&.
+.PP
+The \fBTEPAM Doc Gen\fR package provides the following commands:
+.TP
+\fBtepam::doc_gen::generate\fR ?-format \fIformat\fR? ?-style \fIstyle\fR? ?-header_footer? ?-dest_file \fIdest_file\fR? \fIname\fR
+This command generates the documentation for a specified procedure (\fIname\fR) in one of the supported formats (TXT, HTML, POD (Perl Doc), DT (TclLib DocTool), or in a custom specific format\&. The format is specified via ?format?\&. The flag ?-header_footer? adds to the documentation file header and footer\&. If ?dest_file? is specified the documentation is stored in a file (the file header and footer are added automatically in this case) and the file name is returned\&. Otherwise the documentation string is returned by \fBgenerate\fR\&.
+.TP
+\fBtepam::doc_gen::patch\fR ?-format \fIformat\fR? ?-style \fIstyle\fR? ?-search_pattern \fIsearch_pattern\fR? ?-src_string \fIsrc_string\fR | -src_file \fIsrc_file\fR? ?-dest_file \fIdest_file\fR? ?name?
+This command inserts procedure documentations into an existing master document at the locations indicated by insertion placeholders which are matching the pattern of ?search_pattern?\&. The existing master document is either provided as data to the argument (?src_string?) or via a file (?src_file?)\&. The final document is returned by \fBpatch\fR if no destination file is defined (?dest_file?)\&. Otherwise, the document is stored in the specified file, and the number of insertion placeholders that could be handled successfully is returned\&.
+.sp
+Any insertion placeholders of the master document are handled by default\&. By defining the argument ?name? the documentation insertion will be restricted to a particular procedure\&.
+.PP
+.SH ARGUMENTS
+.TP
+?-format \fIformat\fR?
+Specifies the documentation format\&. \fBTEPAM Doc Gen\fR provides support for the following formats:
+.RS
+.IP \(bu
+TXT - Text format (default)
+.IP \(bu
+HTML
+.IP \(bu
+POD - Perl Plain Old Documentation format (PerlPOD)
+.IP \(bu
+DT - TclLib DocTool format
+.RE
+.IP
+Section \fBADDING SUPPORT FOR NEW DOCUMENT FORMATS\fR shows how support for additional formats can be added\&.
+.TP
+?-style \fIstyle\fR?
+The documentation is by default generated in Tcl style (e\&.g\&. \fBcommand arg1 arg2 \&.\&.\&.\fR)\&. C-style documentation can be generated by setting this argument to 'C' (e\&.g\&. \fBcommand(arg1,arg2,\&.\&.\&.)\fR)\&.
+.TP
+?-dest_file \fIdest_file\fR?
+If ?dest_file? is defined the documentation is written into the specified destination file\&. Otherwise the documentation string is returned by the commands \fBgenerate\fR and \fBpatch\fR\&.
+.TP
+\fIname\fR / ?name?
+This is the name of the procedure for which the documentation has to be generated\&. This is a mandatory argument for \fBgenerate\fR, but an optional argument for \fBpatch\fR\&.
+.TP
+?-header_footer?
+\fBGenerate\fR adds to the generated procedure documentation the file header and footer only if a file is generated\&. By selecting the flag ?-header_footer? the header and footer are also generated if the documentation is returned as string by \fBgenerate\fR\&.
+.TP
+?-src_string \fIsrc_string\fR | -src_file \fIsrc_file\fR?
+\fBPatch\fR inserts procedure documentations into an existing document that is either provided as string to the argument (?src_string?) or as a file (?src_file?)\&. One of these two arguments need to be specified\&.
+.TP
+?-search_pattern \fIsearch_pattern\fR?
+The argument ?search_pattern? defines the documentation insertion placeholder used in a document\&. It is a regular expression accepted by \fBregexp\fR and needs to contain a parenthesized sub-expression that contains the procedure name for which the documentation needs to be inserted\&.
+.sp
+The default insertion placeholder pattern is \fI\\{!(\&.*?)!\\}\fR, which means that the procedure name will be embedded between \fI{!\fR and \fI!}\fR\&. The section \fBEXAMPLES\fR contains a custom insertion placeholder pattern example\&.
+.PP
+.SH "PREDEFINED DOCUMENT FORMATS"
+\fBTEPAM Doc Gen\fR pre-defines the following document formats:
+.SS "TXT - TEXT FORMAT"
+The documentation will be generated in a simple text format if this format is selected\&. The format can be customized via the following variable:
+.TP
+\fBtepam::doc_gen::Option(TXT,MaxLineLength)\fR
+Default: 80
+.sp
+This variable defines the line wrapping limit (character position)\&.
+.PP
+.SS "HTML - HTML FORMAT"
+\fBTEPAM Doc Gen\fR generates CSS styled HTML files\&. The HTML documentation can be customized via the following variable:
+.TP
+\fBtepam::doc_gen::Option(HTML,CssFile)\fR
+Default: "\fItepam_doc_stylesheet\&.css\fR"
+.sp
+This variable specifies the CSS stylesheet file that is referred by the generated HTML files\&.
+.PP
+The CSS stylesheet can be customized to change the documentation formatting\&. A good starting point to create a customized CSS stylesheet is to use the CSS file provided by the \fBTEPAM Doc Gen\fR example/demo\&. The HTML documentation uses the following CSS class styles:
+.IP \(bu
+\fIh1\&.tepam_page_title\fR - Document page title\&. Only used by \fBgenerate\fR if a file is created or if the header and footer are built (flag ?-header_footer? selected)\&.
+.IP \(bu
+\fIdiv\&.tepam_command_help\fR - Documentation container\&. The entire procedure documentation is placed inside this container\&.
+.IP \(bu
+\fIp\&.tepam_section_title\fR - Section title (e\&.g\&. \fIName\fR, \fISynopsis\fR, \fIDescription\fR, \&.\&.\&.)
+.IP \(bu
+\fIp\&.tepam_sub_section_title\fR - Sub-section title (used to separate the documentation of multiple sub-procedures)
+.IP \(bu
+\fIp\&.tepam_name\fR - Name section
+.IP \(bu
+\fIp\&.tepam_synopsis\fR - Synopsis section
+.IP \(bu
+\fIp\&.tepam_description\fR - Single description paragraph
+.IP \(bu
+\fIul\&.tepam_description_list\fR - Item of a HTML bulleted/unordered list inside the description section
+.IP \(bu
+\fIdt\&.tepam_argument\fR - Item of a HTML description list used to list the procedure arguments
+.IP \(bu
+\fIp\&.tepam_argument_description\fR - Argument description paragraph
+.IP \(bu
+\fIp\&.tepam_argument_attribute\fR - Argument attribute line
+.IP \(bu
+\fIpre\&.tepam_example\fR - Example section
+.PP
+.SS "POD - PERL DOCUMENT FORMAT"
+The documentation is generated in the Perl Plain Old Documentation format (PerlPOD) if this format is selected\&.
+.SS "DT - TCLLIB DOCTOOLS FORMAT"
+The documentation is generated in the Tcllib DocTools format if this format is selected\&.
+.SH "ADDING SUPPORT FOR NEW DOCUMENT FORMATS"
+Support for a new document format can be added by defining in the \fBtepam::doc_gen\fR namespace a set of procedures that generate the different document components\&.
+.PP
+The following documentation listing contains tokens that refer to the different document generation procedures:
+.CS
+
+ \fI     <01>\fR
+ \fI<03> <20s>\fR   NAME\fI<20e>\fR
+ \fI     <30s>\fR       message_box - Displays text in a message box\fI<30e>\fR
+ \fI     <20s>\fR   SYNOPSYS\fI<20e>\fR
+ \fI     <40s>\fR       message_box [-mtype <mtype>] <text>\fI<40e>\fR
+ \fI     <20s>\fR   DESCRIPTION\fI<20e>\fR
+ \fI     <21s>     message_box<21e>\fR
+ \fI     <54s>       message_box [-mtype <mtype>] <text><54e>\fR
+ \fI     <50s>\fR       This procedure allows displaying a text in an message box\&. The following
+ \fI          \fR       message types are supported:\fI<50e>\fR
+ \fI<51> <53s>\fR       * Info\fI<53e>\fR
+ \fI     <53s>\fR       * Warning\fI<53e>\fR
+ \fI     <53s>\fR       * Error\fI<53e>\fR                                           \fI<52>\fR
+ \fI     <50s>\fR       If the text parameter is use multiple times the different texts are
+ \fI          \fR       concatenated to create the message text\&.\fI<50e>\fR
+ \fI     <20s>\fR   ARGUMENTS\fI<20e>\fR
+ \fI<60> <62s>\fR       [-mtype <mtype>]\fI<62e>\fR
+ \fI<63> <65s>\fR          Message type\fI<65e>\fR
+ \fI     <66s>\fR          Default: "Warning"\fI<66e>\fR
+ \fI     <66s>\fR          Multiple: yes\fI<66e>\fR
+ \fI     <66s>\fR          Choices: Info, Warning, Error\fI<66e>\fR                  \fI<64>\fR
+ \fI     <62s>\fR       <text>\fI<62e>\fR
+ \fI<63> <65s>\fR          One or multiple text lines to display\fI<65e>\fR
+ \fI     <66s>\fR          Type: string\fI<66e>\fR
+ \fI     <66s>\fR          Multiple: yes\fI<66e>\fR                                  \fI<64><61>\fR
+ \fI     <20s>\fR   EXAMPLE\fI<20e>\fR
+ \fI<70> <72s>\fR       message_box "Please save first the document"\fI<72e>\fR
+ \fI     <73s>\fR       -> 1\fI<73e>\fR                                              \fI<71><04>\fR
+ \fI     <02>\fR
+.CE
+There are 2 types of document generation procedures:
+.TP
+Content generation procedures (e\&.g\&. <40s>\&.\&.\&.<40e>)
+These procedures generate some document content based on the text that is provided as procedure argument\&. The listing above shows two tokens for these procedures to indicate the beginning and the end of the generated content\&.
+.TP
+Control generation procedures (e\&.g\&. <03>)
+These procedures generate control constructs, for example to generate the prolog code and epilog code for lists, sections, etc\&. These procedures have no argument\&.
+.PP
+The following set of procedures needs to be defined to provide support for a new document format:
+.TP
+\fI01\fR - \fBgen($Format,Header)\fR {\fIText\fR}
+Only called if \fBdoc_gen\fR generates a file or if it is called with the flag ?-header_footer?\&. The procedure creates the file header\&. The provided parameter is the procedure name for which the documentation has to be generated\&.
+.TP
+\fI02\fR - \fBgen($Format,Footer)\fR {\fIText\fR}
+Only called if \fBdoc_gen\fR generates a file or if it is called with the flag ?-header_footer?\&. The procedure creates the file footer\&.
+.TP
+\fI03\fR - \fBgen($Format,Begin)\fR {}
+Generates the documentation prolog (preamble)
+.TP
+\fI04\fR - \fBgen($Format,End)\fR {}
+Generates the documentation epilog
+.TP
+\fI20\fR - \fBgen($Format,SectionTitle)\fR {\fIText\fR}
+Generates a section title (e\&.g\&. \fIName\fR, \fISynopsis\fR, \fIDescription\fR, \&.\&.\&.)\&. The raw title text is provided as parameter
+.TP
+\fI21\fR - \fBgen($Format,SubSectionTitle)\fR {\fIText\fR}
+Generates a sub-section title\&. Sub-sections are used if a single documentation is generated for multiple sub-commands to make a separation between them\&. The raw title text is provided as parameter
+.TP
+\fI30\fR - \fBgen($Format,Name)\fR {\fIText\fR}
+Generates the name section (without title)\&. The raw section text is provided as parameter\&.
+.TP
+\fI40\fR - \fBgen($Format,Synopsis)\fR {\fIText\fR}
+Generates the synopsis section (without title)\&. The section text provided as parameter is pre-formatted (the argument strings are generated by \fBgen($Format,ArgumentString)\fR)\&.
+.TP
+\fI50\fR - \fBgen($Format,Description)\fR {\fIText\fR}
+Generates a description paragraph\&. The raw paragraph text is provided as parameter\&.
+.TP
+\fI51\fR - \fBgen($Format,DescriptionListBegin)\fR {}
+Generates the prolog of a bulleted/unordered list inside the description section\&. This prolog is usually the start code of a list structure\&.
+.TP
+\fI52\fR - \fBgen($Format,DescriptionListEnd)\fR {}
+Generates the epilog of a bulleted/unordered list inside the description section\&. This epilog is usually the end code of a list structure\&.
+.TP
+\fI53\fR - \fBgen($Format,DescriptionListItem)\fR {\fIText\fR}
+Generates a text item in a bulleted/unordered description list\&. The raw item text is provided as parameter\&.
+.TP
+\fI54\fR - \fBgen($Format,DescriptionSynopsis)\fR {\fIText\fR}
+Generates the synopsis line on the beginning of the description section\&. The command can return an empty string if no synopsys line is required at this place\&.
+.sp
+Some formats (e\&.g\&. Tcl DocTools) require that the synopsis line is defined in the description section, to build then automatically the synopsis section\&. The section text provided as parameter is pre-formatted (the argument strings are generated by \fBgen($Format,ArgumentString)\fR)\&.
+.TP
+\fI60\fR - \fBgen($Format,ArgumentListBegin)\fR {}
+Generates the prolog of argument list (definition/non-bulleted list)\&. This prolog is usually the start code of a definition list\&.
+.TP
+\fI61\fR - \fBgen($Format,ArgumentListEnd)\fR {}
+Generates the epilog of the argument list\&. This epilog is usually the end string of a list structure\&.
+.TP
+\fI62\fR - \fBgen($Format,ArgumentListItem)\fR {Name IsOptional IsNamed Type}
+Generates an argument item line inside the argument list\&. This command can rely on \fBgen($Format,ArgumentDetailBegin)\fR since the parameters are identical\&.
+.TP
+\fI63\fR - \fBgen($Format,ArgumentDetailBegin)\fR {}
+Generates the argument details prolog (preamble)\&.
+.TP
+\fI64\fR - \fBgen($Format,ArgumentDetailEnd)\fR {}
+Generates the argument details epilog
+.TP
+\fI65\fR - \fBgen($Format,ArgumentDescription)\fR {\fIText\fR}
+Generates the argument description (single paragraph)\&.
+.TP
+\fI66\fR - \fBgen($Format,ArgumentAttribute)\fR {\fIText\fR}
+Generates a single argument attribute string\&. The command is called individually for each attribute\&.
+.TP
+\fI70\fR - \fBgen($Format,ExampleBegin)\fR {}
+Generates the example section prolog (preamble)
+.TP
+\fI71\fR - \fBgen($Format,ExampleEnd)\fR {}
+Generates the example section epilog
+.TP
+\fI72\fR - \fBgen($Format,ExampleCommandLine)\fR {\fIText\fR}
+Generates a single command line in the example section\&. The command is called for each individual command line\&.
+.TP
+\fI73\fR - \fBgen($Format,ExampleResultLine)\fR {\fIText\fR}
+Generates a command result line
+.TP
+\fI80\fR - \fBgen($Format,ArgumentString)\fR {Name IsOptional IsNamed Type}
+Generates the part of the command line or the synopsis that is specific to an argument\&. The generated string has to indicate if an argument is optional, named and if it is a flag\&.
+.sp
+The following parameters are provided to this procedure:
+.RS
+.TP
+\fIName\fR
+Name of the argument
+.TP
+\fIIsOptional\fR
+If true (=\fB1\fR) the argument is optional which should be indicated by the generated string (for example by putting the argument into brackets {} or into question marks '?'):
+.CS
+
+gen(TXT,ArgumentString) mtype 1 0 string -> \fI"[mtype]"\fR
+.CE
+.TP
+\fIIsNamed\fR
+If true (=\fB1\fR) an argument is a named argument (option)\&. The generated string should in this case contain the argument/option name, followed by the argument itself:
+.CS
+
+gen(TXT,ArgumentString) mtype 0 1 string -> \fI"-mtype <mtype>"\fR
+.CE
+.IP
+Named arguments can also be optional:
+.CS
+
+gen(TXT,ArgumentString) mtype 1 1 string -> \fI"[-mtype <mtype>]"\fR
+.CE
+.TP
+\fIType\fR
+Indicates the type of the argument\&. If the type is set to \fBnone\fR the argument is a flag, which needs to be indicated by the generated string\&. Example:
+.CS
+
+gen(TXT,ArgumentString) close 1 1 none -> \fI"[-close]"\fR
+.CE
+.RE
+.PP
+.SH EXAMPLES
+.SS TEPAM::DOC_GEN::GENERATE
+The \fBTEPAM Doc Gen\fR package can be explored by generating the documentation of the command \fBtepam::doc_gen::generate\fR\&. The following example generates the document in text format (default format):
+.CS
+
+\fBtepam::doc_gen::generate\fR tepam::doc_gen::generate
+.CE
+The next example generates the documentation in HTML format:
+.CS
+
+\fBtepam::doc_gen::generate\fR -format HTML tepam::doc_gen::generate
+.CE
+The flag ?header_footer? adds also the file header and footer:
+.CS
+
+\fBtepam::doc_gen::generate\fR -format HTML -header_footer tepam::doc_gen::generate
+.CE
+The documentation can directly be stored in a file\&. The file header and footer are automatically generated in this way:
+.CS
+
+\fBtepam::doc_gen::generate\fR -format HTML -dest_file doc_gen\&.html tepam::doc_gen::generate
+.CE
+The generated HTML file refers a CSS stylesheet file (default: tepam_doc_stylesheet\&.css)\&. To display the HTML file correctly this CSS stylesheet file needs to be copied into the directory of the generated HTML file\&.
+.PP
+The Tcl DOC Tools format can be used as intermediate format to generate other formats, for example HTML:
+.CS
+
+
+\fI# Generate the documentation in Tcl Doc Tool format\fR
+set dt [\fBtepam::doc_gen::generate\fR -format DT -header_footer tepam::doc_gen::generate]
+\fI\fR
+\fI# Create a new doc tools object (HTML format)\fR
+package require doctools
+::doctools::new myDoc -format html
+\fI\fR
+\fI# Open the HTML file, and write the HTML formatted documentation\fR
+set fHtml [open doc_gen\&.dt\&.html w]
+puts $fHtml [myDoc format $dt]
+close $fHtml
+
+.CE
+.SS TEPAM::DOC_GEN::PATCH
+While \fBgenerate\fR provides a limited number of possibilities to vary the document structure, \fBpatch\fR offers more flexibility\&. Multiple documentations for different procedures and meta information can for example be added\&.
+.PP
+The following listing shows how the \fBpatch\fR command works\&. It defines first a HTML master document string that contains 2 procedure documentation placeholders (\fI{*<ProcedureName>*}\fR)\&. There placeholders are replaced by \fBpatch\fR with the generated documentation of the referred procedures\&. Since nonstandard placeholders are used, \fBpatch\fR is called with an explicit placeholder pattern definition (argument \fIsearch_pattern\fR)\&.
+.CS
+
+
+\fI# Define the HTML master document\fR
+set HtmlMasterDoc {\\
+<html>
+  <head>
+    <title>tepam::doc_gen</title>
+    <link rel="stylesheet" href="tepam_doc_stylesheet\&.css">
+    <meta content="documentation" name="keywords"></meta>
+  </head>
+  <body>
+    <h1>tepam::doc_gen</h1>
+      <h2>Generate</h2>
+\fB{*tepam::doc_gen::generate*}\fR
+      <h2>Patch</h2>
+\fB{*tepam::doc_gen::patch*}\fR
+  </body>
+<html>\\
+}
+\fI\fR
+\fI# Patch the master document: This will replace the placeholders by the
+# procedure documentation divisions:\fR
+\fBtepam::doc_gen::patch\fR -format HTML -search_pattern {\\{\\*(\&.*?)\\*\\}} \\
+                      -src_string $HtmlMasterDoc -dest_file tepam_doc_gen\&.html
+
+.CE
+.SH "SEE ALSO"
+tepam(n), tepam::procedure(n)
+.SH KEYWORDS
+automatic documentation, documentation, procedure documentation
+.SH CATEGORY
+Documentation tools
+.SH COPYRIGHT
+.nf
+Copyright (c) 2013, Andreas Drollinger
+
+.fi

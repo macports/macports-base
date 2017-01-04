@@ -1,0 +1,122 @@
+# -------------------------------------------------------------------------
+# ean13.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+}
+testing {
+    useLocal ean13.tcl valtype::gs1::ean13
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-ean13-1.0 {ean13 validation wrong\#args} -body {
+    valtype::gs1::ean13 validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::gs1::ean13 validate value"}
+
+test valtype-ean13-1.1 {ean13 validation wrong\#args} -body {
+    valtype::gs1::ean13 validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::gs1::ean13 validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-ean13-2.0 {ean13 validation failure, bad char} -body {
+    valtype::gs1::ean13 validate A
+} -returnCodes error \
+    -result {Not an EAN13 number, expected only digits, and possibly 'X' or 'x' as checkdigit}
+
+foreach {n in} {
+    1  978030640615
+} {
+    test valtype-ean13-2.1.$n {ean13 validation failure, bad length} -body {
+    valtype::gs1::ean13 validate $in
+    } -returnCodes error \
+        -result {Not an EAN13 number, incorrect length, expected 13 characters}
+}
+
+foreach {n in} {
+    1  978030640615x
+} {
+    test valtype-ean13-2.2.$n {ean13 validation failure, bad check} -body {
+	valtype::gs1::ean13 validate $in
+    } -returnCodes error \
+	-result {Not an EAN13 number, the check digit is incorrect}
+}
+
+if 0 {
+    ## FUTURE: Validate EAN country code in the number.
+    foreach {n in} {
+        1  9774444444444
+    } {
+        test valtype-ean13-2.3.$n {ean13 validation failure, bad prefix} -body {
+            valtype::gs1::ean13 validate $in
+        } -returnCodes error \
+            -result {Not an EAN13 number, incorrect prefix, expected one of 978, or 979}
+    }
+}
+
+test valtype-ean13-3.0 {ean13 checkdigit wrong\#args} -body {
+    valtype::gs1::ean13 checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::gs1::ean13 checkdigit value"}
+
+test valtype-ean13-3.1 {ean13 checkdigit wrong\#args} -body {
+    valtype::gs1::ean13 checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::gs1::ean13 checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-ean13-5.0 {ean13 checkdigit calculation failure, bad char} -body {
+    valtype::gs1::ean13 checkdigit A
+} -returnCodes error \
+    -result {Not an EAN13 number (without checkdigit), expected only digits}
+
+test valtype-ean13-5.1 {ean13 checkdigit calculation failure, bad length} -body {
+    valtype::gs1::ean13 checkdigit 01234
+} -returnCodes error \
+    -result {Not an EAN13 number (without checkdigit), incorrect length, expected 12 characters}
+
+if 0 {
+    ## FUTURE: Validate EAN country codes in the number.
+    test valtype-ean13-5.2 {ean13 checkdigit calculation failure, bad char} -body {
+        valtype::gs1::ean13 checkdigit 977444444444
+    } -returnCodes error \
+        -result {Not an EAN13 number (without checkdigit), incorrect prefix, expected one of 978, or 979}
+}
+
+foreach {n in check} {
+    1  978030640615 7
+    2  005717402011 2
+    3  005717402010 5
+    4  005717420121 4
+} {
+    test valtype-ean13-4.$n {ean13 validation} -body {
+	valtype::gs1::ean13 validate $in$check
+    } -result $in$check
+
+    test valtype-ean13-6.$n {ean13 checkdigit} -body {
+	valtype::gs1::ean13 checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

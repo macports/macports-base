@@ -1,0 +1,136 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 1.0.2]
+[manpage_begin math::constants n [vset VERSION]]
+[keywords constants]
+[keywords degrees]
+[keywords e]
+[keywords math]
+[keywords pi]
+[keywords radians]
+[copyright {2004 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Mathematical and numerical constants}]
+[category  Mathematics]
+[require Tcl [opt 8.3]]
+[require math::constants [opt [vset VERSION]]]
+
+[description]
+[para]
+This package defines some common mathematical and numerical constants.
+By using the package you get consistent values for numbers like pi and
+ln(10).
+
+[para]
+It defines two commands:
+
+[list_begin itemized]
+[item]
+One for importing the constants
+
+[item]
+One for reporting which constants are defined and what values they
+actually have.
+
+[list_end]
+
+[para]
+The motivation for this package is that quite often, with
+(mathematical) computations, you need a good approximation to, say,
+the ratio of degrees to radians. You can, of course, define this
+like:
+[example {
+    variable radtodeg [expr {180.0/(4.0*atan(1.0))}]
+}]
+and use the variable radtodeg whenever you need the conversion.
+
+[para]
+This has two drawbacks:
+
+[list_begin itemized]
+[item]
+You need to remember the proper formula or value and that is
+error-prone.
+
+[item]
+Especially with the use of mathematical functions like [emph atan]
+you assume that they have been accurately implemented. This is seldom or
+never the case and for each platform you can get subtle differences.
+
+[list_end]
+
+Here is the way you can do it with the [emph math::constants] package:
+[example {
+    package require math::constants
+    ::math::constants::constants radtodeg degtorad
+}]
+which creates two variables, radtodeg and (its reciprocal) degtorad
+in the calling namespace.
+
+[para]
+Constants that have been defined (their values are mostly taken
+from mathematical tables with more precision than usually can be
+handled) include:
+
+[list_begin itemized]
+[item]
+basic constants like pi, e, gamma (Euler's constant)
+
+[item]
+derived values like ln(10) and sqrt(2)
+
+[item]
+purely numerical values such as 1/3 that are included for convenience
+and for the fact that certain seemingly trivial computations like:
+[example {
+    set value [expr {3.0*$onethird}]
+}]
+give [emph exactly] the value you expect (if IEEE arithmetic is
+available).
+
+[list_end]
+
+The full set of named constants is listed in section [sectref Constants].
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures:
+
+[list_begin definitions]
+
+[call [cmd ::math::constants::constants] [arg args]]
+
+Import the constants whose names are given as arguments
+
+[para]
+
+[call [cmd ::math::constants::print-constants] [arg args]]
+
+Print the constants whose names are given as arguments on the screen
+(name, value and description) or, if no arguments are given, print all
+defined constants. This is mainly a convenience procedure.
+
+[list_end]
+
+[section "Constants"]
+[list_begin definitions]
+[def [const pi]]       Ratio of circle circumference to diameter
+[def [const e]]	       Base for natural logarithm
+[def [const ln10]]     Natural logarithm of 10
+[def [const phi]]      Golden ratio
+[def [const gamma]]    Euler's constant
+[def [const sqrt2]]    Square root of 2
+[def [const thirdrt2]] One-third power of 2
+[def [const sqrt3]]    Square root of 3
+[def [const radtodeg]] Conversion from radians to degrees
+[def [const degtorad]] Conversion from degrees to radians
+[def [const onethird]] One third (0.3333....)
+[def [const twothirds]]Two thirds (0.6666....)
+[def [const onesixth]] One sixth (0.1666....)
+[def [const huge]]     (Approximately) largest number
+[def [const tiny]]     (Approximately) smallest number not equal zero
+[def [const eps]]      Smallest number such that 1+eps != 1
+[list_end]
+
+[vset CATEGORY {math :: constants}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

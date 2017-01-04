@@ -1,0 +1,48 @@
+# -*- tcl -*-
+# Graph tests - arc nodes
+# Copyright (c) 2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: nodes.test,v 1.1 2009/09/24 16:23:47 andreas_kupries Exp $
+
+# Syntax: graph arc nodes ARC
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-nodes-1.0 {arc nodes, wrong#arcs, missing} {
+    SETUP
+    catch {mygraph arc nodes} msg
+    mygraph destroy
+    set msg
+} [tmWrong {arc nodes} arc 0]
+
+test graph-${impl}-${setimpl}-arc-nodes-1.1 {arc nodes, wrong#arcs, too many} {
+    SETUP
+    catch {mygraph arc nodes a b} msg
+    mygraph destroy
+    set msg
+} [tmTooMany {arc nodes} arc]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-nodes-2.0 {arc nodes, missing arc} {
+    SETUP
+    catch {mygraph arc nodes arc0} msg
+    mygraph destroy
+    set msg
+} [MissingArc $MY arc0]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-nodes-3.0 {arc nodes} {
+    SETUP
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+    set result [mygraph arc nodes arc0]
+    mygraph destroy
+    set result
+} {node0 node1}
+
+# ---------------------------------------------------

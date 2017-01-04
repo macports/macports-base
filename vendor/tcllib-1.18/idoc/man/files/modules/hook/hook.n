@@ -1,0 +1,624 @@
+'\"
+'\" Generated from file 'hook\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2010, by William H\&. Duquette
+'\"
+.TH "hook" n 0\&.1 tcllib "Hooks"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+hook \- Hooks
+.SH SYNOPSIS
+package require \fBTcl  8\&.5\fR
+.sp
+package require \fBhook  ?0\&.1?\fR
+.sp
+\fBhook\fR \fBbind\fR ?\fIsubject\fR? ?\fIhook\fR? ?\fIobserver\fR? ?\fIcmdPrefix\fR?
+.sp
+\fBhook\fR \fBcall\fR \fIsubject\fR \fIhook\fR ?\fIargs\fR\&.\&.\&.?
+.sp
+\fBhook\fR \fBforget\fR \fIobject\fR
+.sp
+\fBhook\fR \fBcget\fR \fIoption\fR
+.sp
+\fBhook\fR \fBconfigure\fR \fBoption\fR \fIvalue\fR \&.\&.\&.
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+This package provides the \fBhook\fR ensemble command, which
+implements the Subject/Observer pattern\&. It allows \fIsubjects\fR,
+which may be \fImodules\fR, \fIobjects\fR, \fIwidgets\fR, and so
+forth, to synchronously call \fIhooks\fR which may be bound to an
+arbitrary number of subscribers, called \fIobservers\fR\&. A subject
+may call any number of distinct hooks, and any number of observers can
+bind callbacks to a particular hook called by a particular
+subject\&. Hook bindings can be queried and deleted\&.
+.PP
+This man page is intended to be a reference only\&.
+.SH CONCEPTS
+.SS INTRODUCTION
+Tcl modules usually send notifications to other modules in two ways:
+via Tk events, and via callback options like the text widget's
+\fB-yscrollcommand\fR option\&. Tk events are available only in Tk,
+and callback options require tight coupling between the modules
+sending and receiving the notification\&.
+.PP
+Loose coupling between sender and receiver is often desirable,
+however\&.  In Model/View/Controller terms, a View can send a command
+(stemming from user input) to the Controller, which updates the
+Model\&. The Model can then call a hook \fIto which all relevant
+Views subscribe\&.\fR The Model is decoupled from the Views, and indeed
+need not know whether any Views actually exist\&.
+At present, Tcl/Tk has no standard mechanism for implementing loose
+coupling of this kind\&. This package defines a new command, \fBhook\fR,
+which implements just such a mechanism\&.
+.SS BINDINGS
+The \fBhook\fR command manages a collection of hook bindings\&. A hook
+binding has four elements:
+.IP [1]
+A \fIsubject\fR: the name of the entity that will be calling the
+hook\&.
+.IP [2]
+The \fIhook\fR itself\&. A hook usually reflects some occurrence in the
+life of the \fIsubject\fR that other entities might care to know
+about\&. A \fIhook\fR has a name, and may also have arguments\&. Hook
+names are arbitrary strings\&. Each \fIsubject\fR must document the
+names and arguments of the hooks it can call\&.
+.IP [3]
+The name of the \fIobserver\fR that wishes to receive the \fIhook\fR
+from the \fIsubject\fR\&.
+.IP [4]
+A command prefix to which the \fIhook\fR arguments will be appended
+when the binding is executed\&.
+.PP
+.SS "SUBJECTS AND OBSERVERS"
+For convenience, this document collectively refers to subjects and
+observers as \fIobjects\fR, while placing no requirements on how
+these \fIobjects\fR are actually implemented\&. An object can be a
+\fBTclOO\fR or \fBSnit\fR or \fBXOTcl\fR object, a Tcl
+command, a namespace, a module, a pseudo-object managed by some other
+object (as tags are managed by the Tk text widget) or simply a
+well-known name\&.
+.PP
+Subject and observer names are arbitrary strings; however, as
+\fBhook\fR might be used at the package level, it's necessary to have
+conventions that avoid name collisions between packages written by
+different people\&.
+.PP
+Therefore, any subject or observer name used in core or package level
+code should look like a Tcl command name, and should be defined in a
+namespace owned by the package\&. Consider, for example, an ensemble
+command \fB::foo\fR that creates a set of pseudo-objects and uses
+\fBhook\fR to send notifications\&. The pseudo-objects have names
+that are not commands and exist in their own namespace, rather like
+file handles do\&. To avoid name collisions with subjects defined by
+other packages, users of \fBhook\fR, these \fB::foo\fR handles
+should have names like \fB::foo::1\fR, \fB::foo::2\fR, and so on\&.
+.PP
+Because object names are arbitrary strings, application code can use
+whatever additional conventions are dictated by the needs of the
+application\&.
+.SH REFERENCE
+Hook provides the following commands:
+.TP
+\fBhook\fR \fBbind\fR ?\fIsubject\fR? ?\fIhook\fR? ?\fIobserver\fR? ?\fIcmdPrefix\fR?
+This subcommand is used to create, update, delete, and query hook
+bindings\&.
+.sp
+Called with no arguments it returns a list of the subjects with
+hooks to which observers are currently bound\&.
+.sp
+Called with one argument, a \fIsubject\fR, it returns a list of
+the subject's hooks to which observers are currently bound\&.
+.sp
+Called with two arguments, a \fIsubject\fR and a \fIhook\fR, it
+returns a list of the observers which are currently bound to this
+\fIsubject\fR and \fIhook\fR\&.
+.sp
+Called with three arguments, a \fIsubject\fR, a \fIhook\fR, and
+an \fIobserver\fR, it returns the binding proper, the command prefix
+to be called when the hook is called, or the empty string if there is
+no such binding\&.
+.sp
+Called with four arguments, it creates, updates, or deletes a
+binding\&. If \fIcmdPrefix\fR is the empty string, it deletes any
+existing binding for the \fIsubject\fR, \fIhook\fR, and
+\fIobserver\fR; nothing is returned\&. Otherwise, \fIcmdPrefix\fR must
+be a command prefix taking as many additional arguments as are
+documented for the \fIsubject\fR and \fIhook\fR\&. The binding is added
+or updated, and the observer is returned\&.
+.sp
+If the \fIobserver\fR is the empty string, "", it will create a
+new binding using an automatically generated observer name of the form
+\fB::hook::ob\fR<\fBnumber\fR>\&. The automatically generated name
+will be returned, and can be used to query, update, and delete the
+binding as usual\&. If automated observer names are always used, the
+observer name effectively becomes a unique binding ID\&.
+.sp
+It is possible to call \fBhook bind\fR to create or delete a
+binding to a \fIsubject\fR and \fIhook\fR while in an observer binding
+for that same \fIsubject\fR and \fIhook\fR\&. The following rules
+determine what happens when
+.CS
+
+
+    hook bind $s $h $o $binding
+
+.CE
+.IP
+is called during the execution of
+.CS
+
+
+    hook call $s $h
+
+.CE
+.RS
+.IP [1]
+No binding is ever called after it is deleted\&.
+.IP [2]
+When a binding is called, the most recently given command prefix is
+always used\&.
+.IP [3]
+The set of observers whose bindings are to be called is determined
+when this method begins to execute, and does not change thereafter,
+except that deleted bindings are not called\&.
+.RE
+.IP
+In particular:
+.RS
+.IP [1]
+If \fB$o\fRs binding to \fB$s\fR and \fB$h\fR is deleted, and
+\fB$o\fRs binding has not yet been called during this execution of
+.CS
+
+
+    hook call $s $h
+
+.CE
+.IP
+it will not be called\&. (Note that it might already have been called;
+and in all likelihood, it is probably deleting itself\&.)
+.IP [2]
+If \fB$o\fR changes the command prefix that's bound to \fB$s\fR and
+\fB$h\fR, and if \fB$o\fRs binding has not yet been called during
+this execution of
+.CS
+
+
+    hook call $s $h
+
+.CE
+.IP
+the new binding will be called when the time comes\&. (But again, it is
+probably \fB$o\fRs binding that is is making the change\&.)
+.IP [3]
+If a new observer is bound to \fB$s\fR and \fB$h\fR, its binding will
+not be called until the next invocation of
+.CS
+
+
+    hook call $s $h
+
+.CE
+.RE
+.TP
+\fBhook\fR \fBcall\fR \fIsubject\fR \fIhook\fR ?\fIargs\fR\&.\&.\&.?
+This command is called when the named \fIsubject\fR wishes to call the
+named \fIhook\fR\&. All relevant bindings are called with the specified
+arguments in the global namespace\&. Note that the bindings are called
+synchronously, before the command returns; this allows the \fIargs\fR
+to include references to entities that will be cleaned up as soon as
+the hook has been called\&.
+.sp
+The order in which the bindings are called is not guaranteed\&. If
+sequence among observers must be preserved, define one observer and
+have its bindings call the other callbacks directly in the proper
+sequence\&.
+.sp
+Because the \fBhook\fR mechanism is intended to support loose
+coupling, it is presumed that the \fIsubject\fR has no knowledge of
+the observers, nor any expectation regarding return values\&. This has a
+number of implications:
+.RS
+.IP [1]
+\fBhook call\fR returns the empty string\&.
+.IP [2]
+Normal return values from observer bindings are ignored\&.
+.IP [3]
+Errors and other exceptional returns propagate normally by
+default\&. This will rarely be what is wanted, because the subjects
+usually have no knowledge of the observers and will therefore have no
+particular competence at handling their errors\&. That makes it an
+application issue, and so applications will usually want to define an
+\fB-errorcommand\fR\&.
+.RE
+.IP
+If the \fB-errorcommand\fR configuration option has a non-empty
+value, its value will be invoked for all errors and other exceptional
+returns in observer bindings\&. See \fBhook configure\fR, below, for
+more information on configuration options\&.
+.TP
+\fBhook\fR \fBforget\fR \fIobject\fR
+This command deletes any existing bindings in which the named
+\fIobject\fR appears as either the \fIsubject\fR or the
+\fIobserver\fR\&.
+Bindings deleted by this method will never be called again\&. In
+particular,
+.RS
+.IP [1]
+If an observer is forgotten during a call to \fBhook call\fR, any
+uncalled binding it might have had to the relevant subject and hook
+will \fInot\fR be called subsequently\&.
+.IP [2]
+If a subject \fB$s\fR is forgotten during a call to
+.CS
+
+hook call $s $h
+.CE
+.IP
+then \fBhook call\fR will return as soon as the current binding
+returns\&.  No further bindings will be called\&.
+.RE
+.TP
+\fBhook\fR \fBcget\fR \fIoption\fR
+This command returns the value of one of the \fBhook\fR command's
+configuration options\&.
+.TP
+\fBhook\fR \fBconfigure\fR \fBoption\fR \fIvalue\fR \&.\&.\&.
+This command sets the value of one or more of the \fBhook\fR command's
+configuration options:
+.RS
+.TP
+\fB-errorcommand\fR \fIcmdPrefix\fR
+If the value of this option is the empty string, "", then errors
+and other exception returns in binding scripts are propagated
+normally\&. Otherwise, it must be a command prefix taking three
+additional arguments:
+.RS
+.IP [1]
+a 4-element list {subject hook arglist observer},
+.IP [2]
+the result string, and
+.IP [3]
+the return options dictionary\&.
+.RE
+.IP
+Given this information, the \fB-errorcommand\fR can choose to log
+the error, call \fBinterp bgerror\fR, delete the errant binding
+(thus preventing the error from arising a second time) and so forth\&.
+.TP
+\fB-tracecommand\fR \fIcmdPrefix\fR
+The option's value should be a command prefix taking four
+arguments:
+.RS
+.IP [1]
+a \fIsubject\fR,
+.IP [2]
+a \fIhook\fR,
+.IP [3]
+a list of the hook's argument values, and
+.IP [4]
+a list of \fIobjects\fR the hook was called for\&.
+.RE
+.IP
+The command will be called for each hook that is called\&. This allows
+the application to trace hook execution for debugging purposes\&.
+.RE
+.PP
+.SH EXAMPLE
+The \fB::model\fR module calls the <Update> hook in response to
+commands that change the model's data:
+.CS
+
+
+     hook call ::model <Update>
+
+.CE
+The \fB\&.view\fR megawidget displays the model state, and needs to
+know about model updates\&. Consequently, it subscribes to the ::model's
+<Update> hook\&.
+.CS
+
+
+     hook bind ::model <Update> \&.view [list \&.view ModelUpdate]
+
+.CE
+When the \fB::model\fR calls the hook, the \fB\&.view\fRs
+ModelUpdate subcommand will be called\&.
+.PP
+Later the \fB\&.view\fR megawidget is destroyed\&. In its destructor,
+it tells the \fIhook\fR that it no longer exists:
+.CS
+
+
+     hook forget \&.view
+
+.CE
+All bindings involving \fB\&.view\fR are deleted\&.
+.SH CREDITS
+Hook has been designed and implemented by William H\&. Duquette\&.
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIhook\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.SH "SEE ALSO"
+uevent(n)
+.SH KEYWORDS
+callback, event, hook, observer, producer, publisher, subject, subscriber, uevent
+.SH CATEGORY
+Programming tools
+.SH COPYRIGHT
+.nf
+Copyright (c) 2010, by William H\&. Duquette
+
+.fi

@@ -1,0 +1,121 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin profiler n 0.3]
+[keywords performance]
+[keywords profile]
+[keywords speed]
+[moddesc   {Tcl Profiler}]
+[titledesc {Tcl source code profiler}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require profiler [opt 0.3]]
+[description]
+[para]
+
+The [package profiler] package provides a simple Tcl source code
+profiler.  It is a function-level profiler; that is, it collects only
+function-level information, not the more detailed line-level
+information.  It operates by redefining the Tcl [cmd proc] command.
+Profiling is initiated via the [cmd ::profiler::init] command.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::profiler::init]]
+
+Initiate profiling.  All procedures created after this command is
+called will be profiled.  To profile an entire application, this
+command must be called before any other commands.
+
+[call [cmd ::profiler::dump] [arg pattern]]
+
+Dump profiling information for the all functions matching
+
+[arg pattern].  If no pattern is specified, information for all
+functions will be returned.  The result is a list of key/value pairs
+that maps function names to information about that function.  The
+information about each function is in turn a list of key/value pairs.
+The keys used and their values are:
+
+[list_begin definitions]
+
+[def [const totalCalls]]
+
+The total number of times [arg functionName] was called.
+
+[def [const callerDist]]
+
+A list of key/value pairs mapping each calling function that called
+[arg functionName] to the number of times it called
+
+[arg functionName].
+
+[def [const compileTime]]
+
+The runtime, in clock clicks, of [arg functionName] the first time
+that it was called.
+
+[def [const totalRuntime]]
+
+The sum of the runtimes of all calls of [arg functionName].
+
+[def [const averageRuntime]]
+
+Average runtime of [arg functionName].
+
+[def [const descendantTime]]
+
+Sum of the time spent in descendants of [arg functionName].
+
+[def [const averageDescendantTime]]
+
+Average time spent in descendants of [arg functionName].
+
+[list_end]
+
+[call [cmd ::profiler::print] [opt [arg pattern]]]
+
+Print profiling information for all functions matching [arg pattern].
+If no pattern is specified, information about all functions will be
+displayed.  The return result is a human readable display of the
+profiling information.
+
+[call [cmd ::profiler::reset] [opt [arg pattern]]]
+
+Reset profiling information for all functions matching [arg pattern].
+If no pattern is specified, information will be reset for all
+functions.
+
+[call [cmd ::profiler::suspend] [opt [arg pattern]]]
+
+Suspend profiling for all functions matching [arg pattern].  If no
+pattern is specified, profiling will be suspended for all
+functions. It stops gathering profiling information after this command
+is issued. However, it does not erase any profiling information that
+has been gathered previously.  Use resume command to re-enable
+profiling.
+
+[call [cmd ::profiler::resume] [opt [arg pattern]]]
+
+Resume profiling for all functions matching [arg pattern].  If no
+pattern is specified, profiling will be resumed for all functions.
+This command should be invoked after suspending the profiler in the
+code.
+
+[call [cmd ::profiler::sortFunctions] [arg key]]
+
+Return a list of functions sorted by a particular profiling statistic.
+Supported values for [arg key] are: [const calls],
+
+[const exclusiveTime], [const compileTime], [const nonCompileTime],
+[const totalRuntime], [const avgExclusiveTime], and
+
+[const avgRuntime].  The return result is a list of lists, where each
+sublist consists of a function name and the value of [arg key] for
+that function.
+
+[list_end]
+
+[vset CATEGORY profiler]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,88 @@
+# -*- tcl -*-
+#
+# $Id: toc.text,v 1.8 2010/06/08 19:13:53 andreas_kupries Exp $
+#
+# Engine to convert a doctoc document into plain text.
+#
+# Copyright (c) 2003 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _toc_common.tcl
+dt_source _text.tcl
+
+######################################################################
+# Conversion specification.
+# One-pass processing.
+
+rename toc_postprocess {}
+rename text_postprocess toc_postprocess
+
+proc fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for TMML markup
+
+global seclist ; set seclist {}
+global max     ; set max 0
+
+proc fmt_comment       {text}        {return}
+proc fmt_toc_end       {}            {return}
+proc fmt_toc_begin     {label title} {
+    TextInitialize
+
+    set     title "$label -- $title"
+    set     hdr ""
+    append  hdr "Table of contents [textutil::string::uncap [c_provenance]]\n"
+    append  hdr \n
+    append  hdr $title \n
+    append  hdr [textutil::repeat::strRepeat = [string length $title]]
+    Text   $hdr
+    CloseParagraph [Verbatim]
+}
+proc fmt_division_start {title symfile} {
+    global lmarginIncrement currentEnv
+    global seclist ; set seclist {}
+    global max     ; set max 0
+
+    Text $title\n
+    Text [textutil::repeat::strRepeat - [string length $title]]
+    CloseParagraph [Verbatim]
+    SaveContext
+    NewEnv Division {
+	incr currentEnv(lmargin) $lmarginIncrement
+    }
+    return
+}
+proc fmt_division_end   {}      {
+    global seclist max
+
+    if {[llength $seclist] > 0} {
+	set break 0
+	incr max 2
+	set  rmargin [expr {80 - $max}]
+	if {$rmargin < 20} {set rmargin 20}
+	set pfx [textutil::blank $max]
+	incr max -1
+	set fpfx "[textutil::repeat::strRepeat . $max] "
+
+	foreach {file desc} $seclist {
+	    set   opfx "$file [string range $fpfx [string length $file] end]"
+	    Text $opfx[textutil::adjust::indent [textutil::adjust::adjust $desc -length $rmargin] $pfx 1]
+	    CloseParagraph [Verbatim]
+	}
+	set seclist {}
+    }
+
+    RestoreContext
+    return
+}
+proc fmt_item {file label desc} {
+    global seclist max
+    lappend seclist $file $desc
+    if {[string length $file] > $max} {set max [string length $file]}
+    return
+}
+
+################################################################

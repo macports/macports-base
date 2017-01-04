@@ -1,0 +1,63 @@
+# -*- tcl -*-
+#
+# $Id: idx.wiki,v 1.2 2004/01/15 06:36:12 andreas_kupries Exp $
+#
+# Engine to convert a docidx document into Wiki markup.
+#
+# Copyright (c) 2003 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _idx_common.tcl   ; # Shared code
+
+######################################################################
+
+proc idx_postprocess {wiki} {
+    # Strip empty lines out of the generated wiki source
+    # and trim leading blanks, except in code samples.
+    #
+    set lines [list]
+    foreach line [split $wiki \n] {
+	if {[string match " |*" $line]} {
+	    # Verbatim / example
+	    lappend lines [string trimright $line]
+	} elseif {[string match ". *" $line]} {
+	    # Verbatim / regular
+	    lappend lines [string range [string trimright $line] 1 end]
+	} elseif {[string match "   \* *" $line]} {
+	    # Itemized lists.
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	} elseif {[string match "   1. *" $line]} {
+	    # Enumerated lists
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	} elseif {[regexp "^   (\[^:\]): " $line]} {
+	    # Definition list
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	} elseif {[string match " *" $line]} {
+	    # Unwanted indentation
+	    lappend lines [string map {[ [[ ] ]]} [string trim $line]]
+	} else {
+	    # Everything else
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	}
+    }
+    set wiki [join $lines \n]\n
+
+    regsub {^[ ]+} $wiki {} wiki
+    return $wiki
+}
+
+proc fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for wiki markup
+
+proc fmt_index_begin      {label title} {return "Index '''$label'''\n'''[string trim $title]'''\n"}
+proc fmt_index_end        {}            {return {}}
+proc fmt_key              {text}        {return "\n   '''[string trim $text]''':   "}
+proc fmt_manpage          {file label}  {return "$file "}
+proc fmt_url              {url label}   {return "$url "}
+proc fmt_comment          {text}        {return {}}
+
+################################################################

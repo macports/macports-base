@@ -1,0 +1,476 @@
+
+<html><head>
+<title>page - Development Tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'page.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- page.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../home">Tcllib Home</a>
+| <a href="../../../toc.html">Main Table Of Contents</a>
+| <a href="../../toc.html">Table Of Contents</a>
+| <a href="../../../index.html">Keyword Index</a>
+| <a href="../../../toc0.html">Categories</a>
+| <a href="../../../toc1.html">Modules</a>
+| <a href="../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">page(n) 1.0 tcllib &quot;Development Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>page - Parser Generator</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">COMMAND LINE</a></li>
+<li class="doctools_subsection"><a href="#subsection2">OPERATION</a></li>
+<li class="doctools_subsection"><a href="#subsection3">OPTIONS</a></li>
+<li class="doctools_subsection"><a href="#subsection4">PLUGINS</a></li>
+<li class="doctools_subsection"><a href="#subsection5">PLUGIN LOCATIONS</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">page</b> <span class="opt">?<i class="arg">options</i>...?</span> <span class="opt">?<i class="arg">input</i> <span class="opt">?<i class="arg">output</i>?</span>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The application described by this document, <b class="syscmd">page</b>, is actually
+not just a parser generator, as the name implies, but a generic tool
+for the execution of arbitrary transformations on texts.</p>
+<p>Its genericity comes through the use of <i class="term">plugins</i> for reading,
+transforming, and writing data, and the predefined set of plugins
+provided by Tcllib is for the generation of memoizing recursive
+descent parsers (aka <i class="term">packrat parsers</i>) from grammar
+specifications (<i class="term">Parsing Expression Grammars</i>).</p>
+<p><b class="syscmd">page</b> is written on top of the package
+<b class="package">page::pluginmgr</b>, wrapping its functionality into a command
+line based application. All the other <b class="package">page::*</b> packages are
+plugin and/or supporting packages for the generation of parsers. The
+parsers themselves are based on the packages <b class="package"><a href="../modules/grammar_peg/peg.html">grammar::peg</a></b>,
+<b class="package"><a href="../modules/grammar_peg/peg_interp.html">grammar::peg::interp</a></b>, and <b class="package">grammar::mengine</b>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">COMMAND LINE</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">page</b> <span class="opt">?<i class="arg">options</i>...?</span> <span class="opt">?<i class="arg">input</i> <span class="opt">?<i class="arg">output</i>?</span>?</span></a></dt>
+<dd><p>This is general form for calling <b class="syscmd">page</b>. The application will
+read the contents of the file <i class="arg">input</i>, process them under the
+control of the specified <i class="arg">options</i>, and then write the result to
+the file <i class="arg">output</i>.</p>
+<p>If <i class="arg">input</i> is the string <b class="const">-</b> the data to process will be
+read from <b class="const">stdin</b> instead of a file. Analogously the result will
+be written to <b class="const">stdout</b> instead of a file if <i class="arg">output</i> is the
+string <b class="const">-</b>. A missing output or input specification causes the
+application to assume <b class="const">-</b>.</p>
+<p>The detailed specifications of the recognized <i class="arg">options</i> are
+provided in section <span class="sectref"><a href="#subsection3">OPTIONS</a></span>.</p>
+<dl class="doctools_arguments">
+<dt>path <i class="arg">input</i> (in)</dt>
+<dd><p>This argument specifies the path to the file to be processed by the
+application, or <b class="const">-</b>. The last value causes the application to
+read the text from <b class="const">stdin</b>. Otherwise it has to exist, and be
+readable. If the argument is missing <b class="const">-</b> is assumed.</p></dd>
+<dt>path <i class="arg">output</i> (in)</dt>
+<dd><p>This argument specifies where to write the generated text. It can be
+the path to a file, or <b class="const">-</b>. The last value causes the
+application to write the generated documented to <b class="const">stdout</b>.</p>
+<p>If the file <i class="arg">output</i> does not exist then
+[file dirname $output] has to exist and must be a writable
+directory, as the application will create the fileto write to.</p>
+<p>If the argument is missing <b class="const">-</b> is assumed.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">OPERATION</a></h3>
+<p>... reading ... transforming ... writing - plugins - pipeline ...</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">OPTIONS</a></h3>
+<p>This section describes all the options available to the user of the
+application. Options are always processed in order. I.e. of both
+<b class="option">--help</b> and <b class="option">--version</b> are specified the option
+encountered first has precedence.</p>
+<p>Unknown options specified before any of the options <b class="option">-rd</b>,
+<b class="option">-wr</b>, or <b class="option">-tr</b> will cause processing to abort with an
+error. Unknown options coming in between these options, or after the
+last of them are assumed to always take a single argument and are
+associated with the last plugin option coming before them. They will
+be checked after all the relevant plugins, and thus the options they
+understand, are known. I.e. such unknown options cause error if and
+only if the plugin option they are associated with does not understand
+them, and was not superceded by a plugin option coming after.</p>
+<p>Default options are used if and only if the command line did not
+contain any options at all. They will set the application up as a
+PEG-based parser generator. The exact list of options is</p>
+<pre class="doctools_example">-c peg</pre>
+<p>And now the recognized options and their arguments, if they have any:</p>
+<dl class="doctools_options">
+<dt><b class="option">--help</b></dt>
+<dd></dd>
+<dt><b class="option">-h</b></dt>
+<dd></dd>
+<dt><b class="option">-?</b></dt>
+<dd><p>When one of these options is found on the command line all arguments
+coming before or after are ignored. The application will print a short
+description of the recognized options and exit.</p></dd>
+<dt><b class="option">--version</b></dt>
+<dd></dd>
+<dt><b class="option">-V</b></dt>
+<dd><p>When one of these options is found on the command line all arguments
+coming before or after are ignored. The application will print its
+own revision and exit.</p></dd>
+<dt><b class="option">-P</b></dt>
+<dd><p>This option signals the application to activate visual feedback while
+reading the input.</p></dd>
+<dt><b class="option">-T</b></dt>
+<dd><p>This option signals the application to collect statistics while
+reading the input and to print them after reading has completed,
+before processing started.</p></dd>
+<dt><b class="option">-D</b></dt>
+<dd><p>This option signals the application to activate logging in the Safe
+base, for the debugging of problems with plugins.</p></dd>
+<dt><b class="option">-r</b> parser</dt>
+<dd></dd>
+<dt><b class="option">-rd</b> parser</dt>
+<dd></dd>
+<dt><b class="option">--reader</b> parser</dt>
+<dd><p>These options specify the plugin the application has to use for
+reading the <i class="arg">input</i>. If the options are used multiple times the
+last one will be used.</p></dd>
+<dt><b class="option">-w</b> generator</dt>
+<dd></dd>
+<dt><b class="option">-wr</b> generator</dt>
+<dd></dd>
+<dt><b class="option">--writer</b> generator</dt>
+<dd><p>These options specify the plugin the application has to use for
+generating and writing the final <i class="arg">output</i>. If the options are used
+multiple times the last one will be used.</p></dd>
+<dt><b class="option">-t</b> process</dt>
+<dd></dd>
+<dt><b class="option">-tr</b> process</dt>
+<dd></dd>
+<dt><b class="option">--transform</b> process</dt>
+<dd><p>These options specify a plugin to run on the input. In contrast to
+readers and writers each use will <em>not</em> supersede previous
+uses, but add each chosen plugin to a list of transformations, either
+at the front, or the end, per the last seen use of either option
+<b class="option">-p</b> or <b class="option">-a</b>. The initial default is to append the new
+transformations.</p></dd>
+<dt><b class="option">-a</b></dt>
+<dd></dd>
+<dt><b class="option">--append</b></dt>
+<dd><p>These options signal the application that all following
+transformations should be added at the end of the list of
+transformations.</p></dd>
+<dt><b class="option">-p</b></dt>
+<dd></dd>
+<dt><b class="option">--prepend</b></dt>
+<dd><p>These options signal the application that all following
+transformations should be added at the beginning of the list of
+transformations.</p></dd>
+<dt><b class="option">--reset</b></dt>
+<dd><p>This option signals the application to clear the list of
+transformations. This is necessary to wipe out the default
+transformations used.</p></dd>
+<dt><b class="option">-c</b> file</dt>
+<dd></dd>
+<dt><b class="option">--configuration</b> file</dt>
+<dd><p>This option causes the application to load a configuration file and/or
+plugin. This is a plugin which in essence provides a pre-defined set
+of commandline options. They are processed exactly as if they have
+been specified in place of the option and its arguments. This means
+that unknown options found at the beginning of the configuration file
+are associated with the last plugin, even if that plugin was specified
+before the configuration file itself. Conversely, unknown options
+coming after the configuration file can be associated with a plugin
+specified in the file.</p>
+<p>If the argument is a file which cannot be loaded as a plugin the
+application will assume that its contents are a list of options and
+their arguments, separated by space, tabs, and newlines. Options and
+argumentes containing spaces can be quoted via double-quotes (&quot;) and
+quotes ('). The quote character can be specified within in a quoted
+string by doubling it. Newlines in a quoted string are accepted as is.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">PLUGINS</a></h3>
+<p><b class="syscmd">page</b> makes use of four different types of plugins, namely:
+readers, writers, transformations, and configurations. Here we provide
+only a basic introduction on how to use them from <b class="syscmd">page</b>. The
+exact APIs provided to and expected from the plugins can be found in
+the documentation for <b class="package">page::pluginmgr</b>, for those who wish to
+write their own plugins.</p>
+<p>Plugins are specified as arguments to the options <b class="option">-r</b>,
+<b class="option">-w</b>, <b class="option">-t</b>, <b class="option">-c</b>, and their equivalent longer
+forms. See the section <span class="sectref"><a href="#subsection3">OPTIONS</a></span> for reference.</p>
+<p>Each such argument will be first treated as the name of a file and
+this file is loaded as the plugin. If however there is no file with
+that name, then it will be translated into the name of a package, and
+this package is then loaded. For each type of plugins the package
+management searches not only the regular paths, but a set application-
+and type-specific paths as well. Please see the section
+<span class="sectref"><a href="#subsection5">PLUGIN LOCATIONS</a></span> for a listing of all paths and their
+sources.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-c</b> <i class="arg">name</i></dt>
+<dd><p>Configurations. The name of the package for the plugin <i class="arg">name</i> is
+&quot;page::config::<i class="arg">name</i>&quot;.</p>
+<p>We have one predefined plugin:</p>
+<dl class="doctools_definitions">
+<dt><em>peg</em></dt>
+<dd><p>It sets the application up as a parser generator accepting parsing
+expression grammars and writing a packrat parser in Tcl. The actual
+arguments it specifies are:</p>
+<pre class="doctools_example">
+	--reset
+	--append
+	--reader    peg
+	--transform reach
+	--transform use
+	--writer    me
+</pre>
+</dd>
+</dl></dd>
+<dt><b class="option">-r</b> <i class="arg">name</i></dt>
+<dd><p>Readers. The name of the package for the plugin <i class="arg">name</i> is
+&quot;page::reader::<i class="arg">name</i>&quot;.</p>
+<p>We have five predefined plugins:</p>
+<dl class="doctools_definitions">
+<dt><em>peg</em></dt>
+<dd><p>Interprets the input as a parsing expression grammar (<i class="term"><a href="../../../index.html#key6">PEG</a></i>) and
+generates a tree representation for it. Both the syntax of PEGs and
+the structure of the tree representation are explained in their own
+manpages.</p></dd>
+<dt><em>hb</em></dt>
+<dd><p>Interprets the input as Tcl code as generated by the writer plugin
+<em>hb</em> and generates its tree representation.</p></dd>
+<dt><em>ser</em></dt>
+<dd><p>Interprets the input as the serialization of a PEG, as generated by
+the writer plugin <em>ser</em>, using the package
+<b class="package"><a href="../modules/grammar_peg/peg.html">grammar::peg</a></b>.</p></dd>
+<dt><em>lemon</em></dt>
+<dd><p>Interprets the input as a grammar specification as understood by
+Richard Hipp's <i class="term"><a href="../../../index.html#key193">LEMON</a></i> parser generator and generates a tree
+representation for it. Both the input syntax and the structure of the
+tree representation are explained in their own manpages.</p></dd>
+<dt><em>treeser</em></dt>
+<dd><p>Interprets the input as the serialization of a
+<b class="package"><a href="../modules/struct/struct_tree.html">struct::tree</a></b>. It is validated as such,
+but nothing else. It is <em>not</em> assumed to
+be the tree representation of a grammar.</p></dd>
+</dl></dd>
+<dt><b class="option">-w</b> <i class="arg">name</i></dt>
+<dd><p>Writers. The name of the package for the plugin <i class="arg">name</i> is
+&quot;page::writer::<i class="arg">name</i>&quot;.</p>
+<p>We have eight predefined plugins:</p>
+<dl class="doctools_definitions">
+<dt><em>identity</em></dt>
+<dd><p>Simply writes the incoming data as it is, without making any
+changes. This is good for inspecting the raw result of a reader or
+transformation.</p></dd>
+<dt><em>null</em></dt>
+<dd><p>Generates nothing, and ignores the incoming data structure.</p></dd>
+<dt><em>tree</em></dt>
+<dd><p>Assumes that the incoming data structure is a <b class="package"><a href="../modules/struct/struct_tree.html">struct::tree</a></b>
+and generates an indented textual representation of all nodes, their
+parental relationships, and their attribute information.</p></dd>
+<dt><em>peg</em></dt>
+<dd><p>Assumes that the incoming data structure is a tree representation of a
+<i class="term"><a href="../../../index.html#key6">PEG</a></i> or other other grammar and writes it out as a PEG. The
+result is nicely formatted and partially simplified (strings as
+sequences of characters). A pretty printer in essence, but can also be
+used to obtain a canonical representation of the input grammar.</p></dd>
+<dt><em>tpc</em></dt>
+<dd><p>Assumes that the incoming data structure is a tree representation of a
+<i class="term"><a href="../../../index.html#key6">PEG</a></i> or other other grammar and writes out Tcl code defining a
+package which defines a <b class="package"><a href="../modules/grammar_peg/peg.html">grammar::peg</a></b> object containing the
+grammar when it is loaded into an interpreter.</p></dd>
+<dt><em>hb</em></dt>
+<dd><p>This is like the writer plugin <em>tpc</em>, but it writes only the
+statements which define stat expression and grammar rules. The code
+making the result a package is left out.</p></dd>
+<dt><em>ser</em></dt>
+<dd><p>Assumes that the incoming data structure is a tree representation of a
+<i class="term"><a href="../../../index.html#key6">PEG</a></i> or other other grammar, transforms it internally into a
+<b class="package"><a href="../modules/grammar_peg/peg.html">grammar::peg</a></b> object and writes out its serialization.</p></dd>
+<dt><em>me</em></dt>
+<dd><p>Assumes that the incoming data structure is a tree representation of a
+<i class="term"><a href="../../../index.html#key6">PEG</a></i> or other other grammar and writes out Tcl code defining a
+package which implements a memoizing recursive descent parser based on
+the match engine (ME) provided by the package <b class="package">grammar::mengine</b>.</p></dd>
+</dl></dd>
+<dt><b class="option">-t</b> <i class="arg">name</i></dt>
+<dd><p>Transformers. The name of the package for the plugin <i class="arg">name</i> is
+&quot;page::transform::<i class="arg">name</i>&quot;.</p>
+<p>We have two predefined plugins:</p>
+<dl class="doctools_definitions">
+<dt><em>reach</em></dt>
+<dd><p>Assumes that the incoming data structure is a tree representation of a
+<i class="term"><a href="../../../index.html#key6">PEG</a></i> or other other grammar. It determines which nonterminal
+symbols and rules are reachable from start-symbol/expression. All
+nonterminal symbols which were not reached are removed.</p></dd>
+<dt><em>use</em></dt>
+<dd><p>Assumes that the incoming data structure is a tree representation of a
+<i class="term"><a href="../../../index.html#key6">PEG</a></i> or other other grammar. It determines which nonterminal
+symbols and rules are able to generate a <em>finite</em> sequences of
+terminal symbols (in the sense for a Context Free Grammar). All
+nonterminal symbols which were not deemed useful in this sense are
+removed.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">PLUGIN LOCATIONS</a></h3>
+<p>The application-specific paths searched by <b class="syscmd">page</b> either are,
+or come from:</p>
+<ol class="doctools_enumerated">
+<li><p>The directory            &quot;<b class="file">~/.page/plugin</b>&quot;</p></li>
+<li><p>The environment variable <i class="term">PAGE_PLUGINS</i></p></li>
+<li><p>The registry entry       <i class="term">HKEY_LOCAL_MACHINE\SOFTWARE\PAGE\PLUGINS</i></p></li>
+<li><p>The registry entry       <i class="term">HKEY_CURRENT_USER\SOFTWARE\PAGE\PLUGINS</i></p></li>
+</ol>
+<p>The type-specific paths searched by <b class="syscmd">page</b> either are, or come
+from:</p>
+<ol class="doctools_enumerated">
+<li><p>The directory            &quot;<b class="file">~/.page/plugin/&lt;TYPE&gt;</b>&quot;</p></li>
+<li><p>The environment variable <i class="term">PAGE_&lt;TYPE&gt;_PLUGINS</i></p></li>
+<li><p>The registry entry       <i class="term">HKEY_LOCAL_MACHINE\SOFTWARE\PAGE\&lt;TYPE&gt;\PLUGINS</i></p></li>
+<li><p>The registry entry       <i class="term">HKEY_CURRENT_USER\SOFTWARE\PAGE\&lt;TYPE&gt;\PLUGINS</i></p></li>
+</ol>
+<p>Where the placeholder <i class="term">&lt;TYPE&gt;</i> is always one of the values below,
+properly capitalized.</p>
+<ol class="doctools_enumerated">
+<li><p>reader</p></li>
+<li><p>writer</p></li>
+<li><p>transform</p></li>
+<li><p>config</p></li>
+</ol>
+<p>The registry entries are specific to the Windows(tm) platform, all
+other platforms will ignore them.</p>
+<p>The contents of both environment variables and registry entries are
+interpreted as a list of paths, with the elements separated by either
+colon (Unix), or semicolon (Windows).</p>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>page</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>page::pluginmgr</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../index.html#key189">parser generator</a>, <a href="../../../index.html#key192">text processing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Page Parser Generator</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

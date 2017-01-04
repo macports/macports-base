@@ -1,0 +1,62 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-export-peg-set:${setimpl}-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test pt-peg-export-peg-set:${setimpl}-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test pt-peg-export-peg-set:${setimpl}-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of peg output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+foreach {k fused section} {
+    0 0 {}
+    1 1 -fused
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_peg$section -> n label input data expected {
+	test pt-peg-export-peg-set:${setimpl}-2.$k.$n "pt::peg::export::peg, $label$section, ok :- $input" -setup {
+	    set configuration [list -fused $fused]
+	} -body {
+	    export $data $configuration
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_peg-templated$section -> n label input data expected {
+	test pt-peg-export-peg-set:${setimpl}-3.$k.$n "pt::peg::export::peg, $label$section, ok :- $input" -setup {
+
+	    text::write reset
+	    text::write field   # -*- text -*-                              ; text::write /line
+	    text::write field   # Parsing Expression Grammar '@name@'.      ; text::write /line
+	    text::write field   # Generated for @user@, from file '@file@'  ; text::write /line
+	    text::write /line
+	    text::write field   @code@                                      ; text::write /line
+	    text::write /line
+	    text::write field   #                                           ; text::write /line
+	    text::write field   #                                           ; text::write /line
+	    set configuration [list \
+				   -name     TEMPLATE \
+				   -file     TEST \
+				   -template [text::write get] \
+				   -fused    $fused]
+	    text::write reset
+	} -body {
+	    export $data $configuration
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

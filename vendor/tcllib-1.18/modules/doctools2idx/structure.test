@@ -1,0 +1,163 @@
+# -*- tcl -*-
+# docidx_structure.test:  tests for the doctools::idx::structure package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: structure.test,v 1.1 2009/04/01 04:28:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use fileutil/fileutil.tcl  fileutil ; # For tests/common
+    use snit/snit.tcl          snit
+}
+testing {
+    useLocal structure.tcl doctools::idx::structure
+}
+
+# -------------------------------------------------------------------------
+
+source [tcllibPath doctools2base/tests/common]
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+test doctools-idx-structure-1.0 {structure verify, wrong#args} -body {
+    doctools::idx::structure verify
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodverify type serial ?canonvar?"}
+
+test doctools-idx-structure-1.1 {structure verify, wrong#args} -body {
+    doctools::idx::structure verify S V XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodverify type serial ?canonvar?"}
+
+test doctools-idx-structure-2.0 {structure verify, wrong#args} -body {
+    doctools::idx::structure verify-as-canonical
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodverify-as-canonical type serial"}
+
+test doctools-idx-structure-2.1 {structure verify, wrong#args} -body {
+    doctools::idx::structure verify-as-canonical S XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodverify-as-canonical type serial"}
+
+test doctools-idx-structure-3.0 {structure print, wrong#args} -body {
+    doctools::idx::structure print
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodprint type serial"}
+
+test doctools-idx-structure-3.1 {structure print, wrong#args} -body {
+    doctools::idx::structure print S XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodprint type serial"}
+
+test doctools-idx-structure-4.0 {structure merge, wrong#args} -body {
+    doctools::idx::structure merge
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodmerge type seriala serialb"}
+
+test doctools-idx-structure-4.1 {structure merge, wrong#args} -body {
+    doctools::idx::structure merge SA
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodmerge type seriala serialb"}
+
+test doctools-idx-structure-4.2 {structure merge, wrong#args} -body {
+    doctools::idx::structure merge SA SB XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::structure::Snit_typemethodmerge type seriala serialb"}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok serial text -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test doctools-idx-structure-5.$n "doctools::idx::structure verify, $label, ok" -body {
+	doctools::idx::structure verify $data
+    } -result {}
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n badserial expected} {
+    0 {}
+    {error in serialization: dictionary too short, expected exactly one key}
+    1 {FOO {}}
+    {error in serialization: bad type tag "FOO"}
+    2 {doctools::idx {}}
+    {error in serialization: dictionary too short, expected exactly four keys}
+    3 {doctools::idx {a . b . c . d .}}
+    {error in serialization: missing expected key "label"}
+    4 {doctools::idx {label . b . c . d .}}
+    {error in serialization: missing expected key "title"}
+    5 {doctools::idx {label . title . c . d .}}
+    {error in serialization: missing expected key "keywords"}
+    6 {doctools::idx {label . title . keywords . d .}}
+    {error in serialization: missing expected key "references"}
+    7 {doctools::idx {label . title . keywords {} references {}}}
+    {error in serialization: duplicate and/or unsorted keywords/identifiers}
+    8 {doctools::idx {label . keywords {k {} k {}} references {} title .}}
+    {error in serialization: duplicate keywords}
+    9 {doctools::idx {label . keywords {b {} a {}} references {} title .}}
+    {error in serialization: duplicate and/or unsorted keywords/identifiers}
+    10 {doctools::idx {label . keywords {} references {a {url x}} title .}}
+    {error in serialization: use and declaration of references not matching}
+    11 {doctools::idx {label . keywords {a {b c}} references {} title .}}
+    {error in serialization: use and declaration of references not matching}
+    12 {doctools::idx {label . keywords {a {b}} references {b {url}} title .}}
+    {error in serialization: reference list wrong, need exactly 2}
+    13 {doctools::idx {label . keywords {a {b}} references {b {foo B}} title .}}
+    {error in serialization: bad reference tag "foo"}
+    14 {doctools::idx {label . keywords {a {b}} references {b {url B} b {url A}} title .}}
+    {error in serialization: duplicate reference identifiers}
+    15 {doctools::idx {label . keywords {a {b c}} references {c {url C} b {url B}} title .}}
+    {error in serialization: duplicate and/or unsorted keywords/identifiers}
+} {
+    test doctools-idx-structure-6.$n "doctools::idx::structure verify-as-canonical, error" -body {
+	doctools::idx::structure verify-as-canonical $badserial
+    } -returnCodes error -result $expected
+}
+
+#----------------------------------------------------------------------
+
+foreach {n badserial expected} {
+    0 {}
+    {error in serialization: dictionary too short, expected exactly one key}
+    1 {FOO {}}
+    {error in serialization: bad type tag "FOO"}
+    2 {doctools::idx {}}
+    {error in serialization: dictionary too short, expected exactly four keys}
+    3 {doctools::idx {a . b . c . d .}}
+    {error in serialization: missing expected key "label"}
+    4 {doctools::idx {label . b . c . d .}}
+    {error in serialization: missing expected key "title"}
+    5 {doctools::idx {label . title . c . d .}}
+    {error in serialization: missing expected key "keywords"}
+    6 {doctools::idx {label . title . keywords . d .}}
+    {error in serialization: missing expected key "references"}
+    8 {doctools::idx {label . keywords {k {} k {}} references {} title .}}
+    {error in serialization: duplicate keywords}
+    10 {doctools::idx {label . keywords {} references {a {url x}} title .}}
+    {error in serialization: use and declaration of references not matching}
+    11 {doctools::idx {label . keywords {a {b c}} references {} title .}}
+    {error in serialization: use and declaration of references not matching}
+    12 {doctools::idx {label . keywords {a {b}} references {b {url}} title .}}
+    {error in serialization: reference list wrong, need exactly 2}
+    13 {doctools::idx {label . keywords {a {b}} references {b {foo B}} title .}}
+    {error in serialization: bad reference tag "foo"}
+    14 {doctools::idx {label . keywords {a {b}} references {b {url B} b {url A}} title .}}
+    {error in serialization: duplicate reference identifiers}
+} {
+    test doctools-idx-structure-7.$n "doctools::idx::structure verify, error" -body {
+	doctools::idx::structure verify $badserial
+    } -returnCodes error -result $expected
+}
+
+#----------------------------------------------------------------------
+
+# TODO merge ... also test cases for doctools::idx
+
+#----------------------------------------------------------------------
+
+unset mytestdir n badserial expected label input data
+testsuiteCleanup
+return

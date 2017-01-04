@@ -1,0 +1,301 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<self>> sym_Expression
+    return
+}
+
+#
+# value Symbol 'AddOp'
+#
+
+<<def>> <<ns>>sym_AddOp {} {
+    # [-+]
+
+    <<runtime>> si:void_symbol_start AddOp
+    <<runtime>> si:next_class -+
+    <<runtime>> si:void_leaf_symbol_end AddOp
+    return
+}
+
+#
+# value Symbol 'Digit'
+#
+
+<<def>> <<ns>>sym_Digit {} {
+    # [0123456789]
+
+    <<runtime>> si:void_symbol_start Digit
+    <<runtime>> si:next_class 0123456789
+    <<runtime>> si:void_leaf_symbol_end Digit
+    return
+}
+
+#
+# value Symbol 'Expression'
+#
+
+<<def>> <<ns>>sym_Expression {} {
+    # /
+    #     x
+    #         '\('
+    #         (Expression)
+    #         '\)'
+    #     x
+    #         (Factor)
+    #         *
+    #             x
+    #                 (MulOp)
+    #                 (Factor)
+
+    <<runtime>> si:value_symbol_start Expression
+    <<self>> choice_20
+    <<runtime>> si:reduce_symbol_end Expression
+    return
+}
+
+<<def>> <<ns>>choice_20 {} {
+    # /
+    #     x
+    #         '\('
+    #         (Expression)
+    #         '\)'
+    #     x
+    #         (Factor)
+    #         *
+    #             x
+    #                 (MulOp)
+    #                 (Factor)
+
+    <<runtime>> si:value_state_push
+    <<self>> sequence_9
+    <<runtime>> si:valuevalue_branch
+    <<self>> sequence_18
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>sequence_9 {} {
+    # x
+    #     '\('
+    #     (Expression)
+    #     '\)'
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char \50
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Expression
+    <<runtime>> si:valuevalue_part
+    <<runtime>> si:next_char \51
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>sequence_18 {} {
+    # x
+    #     (Factor)
+    #     *
+    #         x
+    #             (MulOp)
+    #             (Factor)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_Factor
+    <<runtime>> si:valuevalue_part
+    <<self>> kleene_16
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_16 {} {
+    # *
+    #     x
+    #         (MulOp)
+    #         (Factor)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_14
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_14 {} {
+    # x
+    #     (MulOp)
+    #     (Factor)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_MulOp
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Factor
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# value Symbol 'Factor'
+#
+
+<<def>> <<ns>>sym_Factor {} {
+    # x
+    #     (Term)
+    #     *
+    #         x
+    #             (AddOp)
+    #             (Term)
+
+    <<runtime>> si:value_symbol_start Factor
+    <<self>> sequence_30
+    <<runtime>> si:reduce_symbol_end Factor
+    return
+}
+
+<<def>> <<ns>>sequence_30 {} {
+    # x
+    #     (Term)
+    #     *
+    #         x
+    #             (AddOp)
+    #             (Term)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_Term
+    <<runtime>> si:valuevalue_part
+    <<self>> kleene_28
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_28 {} {
+    # *
+    #     x
+    #         (AddOp)
+    #         (Term)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_26
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_26 {} {
+    # x
+    #     (AddOp)
+    #     (Term)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_AddOp
+    <<runtime>> si:valuevalue_part
+    <<self>> sym_Term
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+# value Symbol 'MulOp'
+#
+
+<<def>> <<ns>>sym_MulOp {} {
+    # [*/]
+
+    <<runtime>> si:void_symbol_start MulOp
+    <<runtime>> si:next_class */
+    <<runtime>> si:void_leaf_symbol_end MulOp
+    return
+}
+
+#
+# value Symbol 'Number'
+#
+
+<<def>> <<ns>>sym_Number {} {
+    # x
+    #     ?
+    #         (Sign)
+    #     +
+    #         (Digit)
+
+    <<runtime>> si:value_symbol_start Number
+    <<self>> sequence_41
+    <<runtime>> si:reduce_symbol_end Number
+    return
+}
+
+<<def>> <<ns>>sequence_41 {} {
+    # x
+    #     ?
+    #         (Sign)
+    #     +
+    #         (Digit)
+
+    <<runtime>> si:value_state_push
+    <<self>> optional_36
+    <<runtime>> si:valuevalue_part
+    <<self>> poskleene_39
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>optional_36 {} {
+    # ?
+    #     (Sign)
+
+    <<runtime>> si:void2_state_push
+    <<self>> sym_Sign
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+<<def>> <<ns>>poskleene_39 {} {
+    # +
+    #     (Digit)
+
+    <<runtime>> i_loc_push
+    <<self>> sym_Digit
+    <<runtime>> si:kleene_abort
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sym_Digit
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+#
+# value Symbol 'Sign'
+#
+
+<<def>> <<ns>>sym_Sign {} {
+    # [-+]
+
+    <<runtime>> si:void_symbol_start Sign
+    <<runtime>> si:next_class -+
+    <<runtime>> si:void_leaf_symbol_end Sign
+    return
+}
+
+#
+# value Symbol 'Term'
+#
+
+<<def>> <<ns>>sym_Term {} {
+    # (Number)
+
+    <<runtime>> si:value_symbol_start Term
+    <<self>> sym_Number
+    <<runtime>> si:reduce_symbol_end Term
+    return
+}
+
+#
+#

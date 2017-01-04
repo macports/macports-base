@@ -1,0 +1,61 @@
+# -*- tcl -*- png.pcx
+# Syntax of the commands provided by package png.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register png
+pcx::tcldep   0.1.2 needs tcl 8.2
+
+namespace eval ::png {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.1.2 std ::png::addComment \
+    {checkSimpleArgs 3 5 {
+	checkFileName
+	checkWord
+	checkWord
+	{checkSimpleArgs 2 2 {
+	    checkWord
+	    checkWord
+	}}
+    }}
+pcx::check 0.1.2 std ::png::getComments \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.1.2 std ::png::getTimestamp \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.1.2 std ::png::imageInfo \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.1.2 std ::png::isPNG \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.1.2 std ::png::removeComments \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.1.2 std ::png::setTimestamp \
+    {checkSimpleArgs 2 2 {
+	checkFileName
+	checkWholeNum
+    }}
+pcx::check 0.1.2 std ::png::validate \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+
+# Initialization via pcx::init.
+# Use a ::png::init procedure for non-standard initialization.
+pcx::complete

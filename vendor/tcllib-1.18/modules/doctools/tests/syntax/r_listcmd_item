@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[item]
+--> (FmtError) Manpage error (listcmd), "item" : Command not allowed outside of a list.

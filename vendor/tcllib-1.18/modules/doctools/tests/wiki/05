@@ -1,0 +1,66 @@
+'''BASIC 5''' '''.MODULE.'''
+
+
+
+
+**SYNOPSIS**
+
+
+   * a-command
+
+
+
+
+**DESCRIPTION**
+
+OK
+
+
++++
+''argument-1'' integer    verification
+''argument-2'' string (out)    mogrification
++++
+
+
+
+
+   '''command-a''':   explanation 
+
+   '''command-b''':   elucidation  
+
+
+   term:    definition 
+
+   a-command :    semantic  
+
+
+   1.  A
+
+   1.  B  C  D
+
+
+   *  1
+
+   *  2  2a  2b
+
+
+   '''option-1''':    meaning 
+
+   '''option-2''' value:    elaboration  
+
+
+Command-Line Switch:	'''background'''
+Database Name:	'''Background'''
+Database Class:	'''Color'''
+   *  candy
+
+Command-Line Switch:	'''foreground'''
+Database Name:	'''Foreground'''
+Database Class:	'''Color'''
+   *  caramel
+KO
+
+**COPYRIGHT**
+
+ Copyright (c) .COPYRIGHT.
+

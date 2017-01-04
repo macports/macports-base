@@ -1,0 +1,407 @@
+/*
+ * -*- tcl -*-
+ * Parsing Expression Grammar 'TEMPLATE'.
+ * Generated for unknown, from file 'TEST'
+ */
+
+/*
+ * Declaring the parse functions
+ */
+
+<<attributes>> void <<ns>>sym_AddOp (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Digit (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_9 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_14 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>kleene_16 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_18 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>choice_20 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Expression (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_26 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>kleene_28 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_30 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Factor (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_MulOp (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>optional_36 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>poskleene_39 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_41 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Number (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Sign (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Term (<<STATE>> <<state>>);
+
+/*
+ * Precomputed table of strings (symbols, error messages, etc.).
+ */
+
+static char const* <<string-table>> [35] = {
+    /*        0 = */   "alnum",
+    /*        1 = */   "alpha",
+    /*        2 = */   "ascii",
+    /*        3 = */   "control",
+    /*        4 = */   "ddigit",
+    /*        5 = */   "digit",
+    /*        6 = */   "graph",
+    /*        7 = */   "lower",
+    /*        8 = */   "print",
+    /*        9 = */   "punct",
+    /*       10 = */   "space",
+    /*       11 = */   "upper",
+    /*       12 = */   "wordchar",
+    /*       13 = */   "xdigit",
+    /*       14 = */   "cl -+",
+    /*       15 = */   "n AddOp",
+    /*       16 = */   "AddOp",
+    /*       17 = */   "cl 0123456789",
+    /*       18 = */   "n Digit",
+    /*       19 = */   "Digit",
+    /*       20 = */   "t (",
+    /*       21 = */   "t )",
+    /*       22 = */   "n Expression",
+    /*       23 = */   "Expression",
+    /*       24 = */   "n Factor",
+    /*       25 = */   "Factor",
+    /*       26 = */   "cl */",
+    /*       27 = */   "n MulOp",
+    /*       28 = */   "MulOp",
+    /*       29 = */   "n Number",
+    /*       30 = */   "Number",
+    /*       31 = */   "n Sign",
+    /*       32 = */   "Sign",
+    /*       33 = */   "n Term",
+    /*       34 = */   "Term"
+};
+
+/*
+ * Grammar Start Expression
+ */
+
+<<attributes>> void <<ns>><<main>> (<<STATE>> <<state>>) { <<prelude>>
+    <<self>> <<ns>>sym_Expression (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'AddOp'
+ */
+
+<<attributes>> void <<ns>>sym_AddOp (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * [-+]
+    */
+
+    if (rde_param_i_symbol_start (<<state>>, 16)) return ;
+    rde_param_i_next_class (<<state>>, "-+", 14);
+    rde_param_i_symbol_done_leaf (<<state>>, 16, 15);
+    return;
+}
+
+/*
+ * value Symbol 'Digit'
+ */
+
+<<attributes>> void <<ns>>sym_Digit (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * [0123456789]
+    */
+
+    if (rde_param_i_symbol_start (<<state>>, 19)) return ;
+    rde_param_i_next_class (<<state>>, "0123456789", 17);
+    rde_param_i_symbol_done_leaf (<<state>>, 19, 18);
+    return;
+}
+
+/*
+ * value Symbol 'Expression'
+ */
+
+<<attributes>> void <<ns>>sym_Expression (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * /
+    *     x
+    *         '\('
+    *         (Expression)
+    *         '\)'
+    *     x
+    *         (Factor)
+    *         *
+    *             x
+    *                 (MulOp)
+    *                 (Factor)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 23)) return ;
+    <<self>> <<ns>>choice_20 (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 23, 22);
+    return;
+}
+
+<<attributes>> void <<ns>>choice_20 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * /
+    *     x
+    *         '\('
+    *         (Expression)
+    *         '\)'
+    *     x
+    *         (Factor)
+    *         *
+    *             x
+    *                 (MulOp)
+    *                 (Factor)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>sequence_9 (<<state>>);
+    if (rde_param_i_bra_value2value(<<state>>)) return;
+    <<self>> <<ns>>sequence_18 (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_9 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     '\('
+    *     (Expression)
+    *     '\)'
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    rde_param_i_next_char (<<state>>, "(", 20);
+    if (rde_param_i_seq_void2value(<<state>>)) return;
+    <<self>> <<ns>>sym_Expression (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    rde_param_i_next_char (<<state>>, ")", 21);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_18 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (Factor)
+    *     *
+    *         x
+    *             (MulOp)
+    *             (Factor)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>sym_Factor (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    <<self>> <<ns>>kleene_16 (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>kleene_16 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * *
+    *     x
+    *         (MulOp)
+    *         (Factor)
+    */
+
+    while (1) {
+        rde_param_i_state_push_2 (<<state>>);
+        <<self>> <<ns>>sequence_14 (<<state>>);
+        if (rde_param_i_kleene_close(<<state>>)) return;
+    }
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_14 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (MulOp)
+    *     (Factor)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>sym_MulOp (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    <<self>> <<ns>>sym_Factor (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'Factor'
+ */
+
+<<attributes>> void <<ns>>sym_Factor (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (Term)
+    *     *
+    *         x
+    *             (AddOp)
+    *             (Term)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 25)) return ;
+    <<self>> <<ns>>sequence_30 (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 25, 24);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_30 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (Term)
+    *     *
+    *         x
+    *             (AddOp)
+    *             (Term)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>sym_Term (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    <<self>> <<ns>>kleene_28 (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>kleene_28 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * *
+    *     x
+    *         (AddOp)
+    *         (Term)
+    */
+
+    while (1) {
+        rde_param_i_state_push_2 (<<state>>);
+        <<self>> <<ns>>sequence_26 (<<state>>);
+        if (rde_param_i_kleene_close(<<state>>)) return;
+    }
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_26 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     (AddOp)
+    *     (Term)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>sym_AddOp (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    <<self>> <<ns>>sym_Term (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'MulOp'
+ */
+
+<<attributes>> void <<ns>>sym_MulOp (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * [\u002a\u002f]
+    */
+
+    if (rde_param_i_symbol_start (<<state>>, 28)) return ;
+    rde_param_i_next_class (<<state>>, "*/", 26);
+    rde_param_i_symbol_done_leaf (<<state>>, 28, 27);
+    return;
+}
+
+/*
+ * value Symbol 'Number'
+ */
+
+<<attributes>> void <<ns>>sym_Number (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     ?
+    *         (Sign)
+    *     +
+    *         (Digit)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 30)) return ;
+    <<self>> <<ns>>sequence_41 (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 30, 29);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_41 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     ?
+    *         (Sign)
+    *     +
+    *         (Digit)
+    */
+
+    rde_param_i_state_push_value (<<state>>);
+    <<self>> <<ns>>optional_36 (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    <<self>> <<ns>>poskleene_39 (<<state>>);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>optional_36 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * ?
+    *     (Sign)
+    */
+
+    rde_param_i_state_push_2 (<<state>>);
+    <<self>> <<ns>>sym_Sign (<<state>>);
+    rde_param_i_state_merge_ok (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>poskleene_39 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * +
+    *     (Digit)
+    */
+
+    rde_param_i_loc_push (<<state>>);
+    <<self>> <<ns>>sym_Digit (<<state>>);
+    if (rde_param_i_kleene_abort(<<state>>)) return;
+    while (1) {
+        rde_param_i_state_push_2 (<<state>>);
+        <<self>> <<ns>>sym_Digit (<<state>>);
+        if (rde_param_i_kleene_close(<<state>>)) return;
+    }
+    return;
+}
+
+/*
+ * value Symbol 'Sign'
+ */
+
+<<attributes>> void <<ns>>sym_Sign (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * [-+]
+    */
+
+    if (rde_param_i_symbol_start (<<state>>, 32)) return ;
+    rde_param_i_next_class (<<state>>, "-+", 14);
+    rde_param_i_symbol_done_leaf (<<state>>, 32, 31);
+    return;
+}
+
+/*
+ * value Symbol 'Term'
+ */
+
+<<attributes>> void <<ns>>sym_Term (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * (Number)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 34)) return ;
+    <<self>> <<ns>>sym_Number (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 34, 33);
+    return;
+}
+
+/*
+ */

@@ -1,0 +1,4 @@
+pt::grammar::peg {
+    rules {}
+    start {? {t a}}
+}

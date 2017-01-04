@@ -1,0 +1,99 @@
+
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% CVS: @ID@ BASIC.a
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / BASIC --  : }
+\maketitle
+\section{Synopsis}\label{synopsis}
+\begin{itemize}
+\item[] a-command 
+\end{itemize}
+\section{Description}\label{section1}
+OK
+\begin{itemize}
+%
+\item[] \underline{argument-1} integer
+%
+verification
+%
+\item[] \underline{argument-2} string (out)
+%
+ mogrification
+\end{itemize}
+\begin{itemize}
+%
+\item[] {\bf command-a}
+%
+ explanation
+%
+\item[] {\bf command-b}
+%
+elucidation
+\end{itemize}
+\begin{itemize}
+%
+\item[] term
+%
+ definition
+%
+\item[] a-command 
+%
+semantic
+\end{itemize}
+\begin{enumerate}
+%
+\item
+%
+A
+%
+\item
+%
+ B
+C
+D
+\end{enumerate}
+\begin{itemize}
+%
+\item
+%
+1
+%
+\item
+%
+ 2
+2a
+2b
+\end{itemize}
+\begin{itemize}
+%
+\item[] {\bf option-1}
+%
+ meaning
+%
+\item[] {\bf option-2} value
+%
+elaboration
+\end{itemize}
+\begin{itemize}
+%
+\item[] Command-Line Switch:	{\bf background}\\
+Database Name:	{\bf Background}\\
+Database Class:	{\bf Color}\\
+%
+ candy
+%
+\item[] Command-Line Switch:	{\bf foreground}\\
+Database Name:	{\bf Foreground}\\
+Database Class:	{\bf Color}\\
+%
+caramel
+\end{itemize}
+KO
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

@@ -1,0 +1,343 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::me::tcl n 0.1]
+[keywords grammar]
+[keywords parsing]
+[keywords {virtual machine}]
+[copyright {2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Grammar operations and usage}]
+[titledesc {Virtual machine implementation I for parsing token streams}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require grammar::me::tcl [opt 0.1]]
+[description]
+[para]
+
+This package provides an implementation of the ME virtual machine.
+Please go and read the document [syscmd grammar::me_intro] first if
+you do not know what a ME virtual machine is.
+
+[para]
+
+This implementation is tied very strongly to Tcl. All the stacks in
+the machine state are handled through the Tcl stack, all control flow
+is handled by Tcl commands, and the remaining machine instructions are
+directly mapped to Tcl commands. Especially the matching of
+nonterminal symbols is handled by Tcl procedures as well, essentially
+extending the machine implementation with custom instructions.
+
+[para]
+
+Further on the implementation handles only a single machine which is
+uninteruptible during execution and hardwired for pull operation. I.e.
+it explicitly requests each new token through a callback, pulling them
+into its state.
+
+[para]
+
+A related package is [package grammar::peg::interp] which provides a
+generic interpreter / parser for parsing expression grammars (PEGs),
+implemented on top of this implementation of the ME virtual machine.
+
+[section {API}]
+
+The commands documented in this section do not implement any of the
+instructions of the ME virtual machine. They provide the facilities
+for the initialization of the machine and the retrieval of important
+information.
+
+[list_begin definitions]
+
+[call [cmd ::grammar::me::tcl] [method cmd] [arg ...]]
+
+This is an ensemble command providing access to the commands listed in
+this section. See the methods themselves for detailed specifications.
+
+[call [cmd ::grammar::me::tcl] [method init] [arg nextcmd] [opt [arg tokmap]]]
+
+This command (re)initializes the machine. It returns the empty
+string. This command has to be invoked before any other command of
+this package.
+
+[para]
+
+The command prefix [arg nextcmd] represents the input stream of
+characters and is invoked by the machine whenever the a new character
+from the stream is required. The instruction for handling this is
+[term ict_advance].
+
+The callback has to return either the empty list, or a list of 4
+elements containing the token, its lexeme attribute, and its location
+as line number and column index, in this order.
+
+The empty list is the signal that the end of the input stream has been
+reached. The lexeme attribute is stored in the terminal cache, but
+otherwise not used by the machine.
+
+[para]
+
+The optional dictionary [arg tokmap] maps from tokens to integer
+numbers. If present the numbers impose an order on the tokens, which
+is subsequently used by [term ict_match_tokrange] to determine if a
+token is in the specified range or not. If no token map is specified
+the lexicographic order of th token names will be used instead. This
+choice is especially asensible when using characters as tokens.
+
+[call [cmd ::grammar::me::tcl] [method lc] [arg location]]
+
+This command converts the location of a token given as offset in the
+input stream into the associated line number and column index. The
+result of the command is a 2-element list containing the two values,
+in the order mentioned in the previous sentence.
+
+This allows higher levels to convert the location information found in
+the error status and the generated AST into more human readable data.
+
+[para]
+
+[emph Note] that the command is not able to convert locations which
+have not been reached by the machine yet. In other words, if the
+machine has read 7 tokens the command is able to convert the offsets
+[const 0] to [const 6], but nothing beyond that. This also shows that
+it is not possible to convert offsets which refer to locations before
+the beginning of the stream.
+
+[para]
+
+After a call of [method init] the state used for the conversion is
+cleared, making further conversions impossible until the machine has
+read tokens again.
+
+[call [cmd ::grammar::me::tcl] [method tok] [arg from] [opt [arg to]]]
+
+This command returns a Tcl list containing the part of the input
+stream between the locations [arg from] and [arg to] (both
+inclusive). If [arg to] is not specified it will default to the value
+of [arg from].
+
+[para]
+
+Each element of the returned list is a list of four elements, the
+token, its associated lexeme, line number, and column index, in this
+order.
+
+In other words, each element has the same structure as the result of
+the [arg nextcmd] callback given to [cmd ::grammar::me::tcl::init]
+
+[para]
+
+This command places the same restrictions on its location arguments as
+[cmd ::grammar::me::tcl::lc].
+
+[call [cmd ::grammar::me::tcl] [method tokens]]
+
+This command returns the number of tokens currently known to the ME
+virtual machine.
+
+[call [cmd ::grammar::me::tcl] [method sv]]
+
+This command returns the current semantic value [term SV] stored in
+the machine. This is an abstract syntax tree as specified in the
+document [syscmd grammar::me_ast], section [sectref-external {AST VALUES}].
+
+[call [cmd ::grammar::me::tcl] [method ast]]
+
+This method returns the abstract syntax tree currently at the top of
+the AST stack of the ME virtual machine. This is an abstract syntax
+tree as specified in the document [syscmd grammar::me_ast], section
+[sectref-external {AST VALUES}].
+
+[call [cmd ::grammar::me::tcl] [method astall]]
+
+This method returns the whole stack of abstract syntax trees currently
+known to the ME virtual machine. Each element of the returned list is
+an abstract syntax tree as specified in the document
+
+[syscmd grammar::me_ast], section [sectref-external {AST VALUES}].
+The top of the stack resides at the end of the list.
+
+[call [cmd ::grammar::me::tcl] [method ctok]]
+
+This method returns the current token considered by the ME virtual
+machine.
+
+[call [cmd ::grammar::me::tcl] [method nc]]
+
+This method returns the contents of the nonterminal cache as a
+dictionary mapping from "[var symbol],[var location]" to match
+information.
+
+[call [cmd ::grammar::me::tcl] [method next]]
+
+This method returns the next token callback as specified during
+initialization of the ME virtual machine.
+
+[call [cmd ::grammar::me::tcl] [method ord]]
+
+This method returns a dictionary containing the [arg tokmap] specified
+during initialization of the ME virtual machine.
+
+[var [cmd ::grammar::me::tcl::ok]]
+
+This variable contains the current match status [term OK]. It is
+provided as variable instead of a command because that makes access to
+this information faster, and the speed of access is considered very
+important here as this information is used constantly to determine the
+control flow.
+
+[list_end]
+[para]
+
+[section {MACHINE STATE}]
+
+Please go and read the document [syscmd grammar::me_vm] first for a
+specification of the basic ME virtual machine and its state.
+
+[para]
+
+This implementation manages the state described in that document,
+except for the stacks minus the AST stack. In other words, location
+stack, error stack, return stack, and ast marker stack are implicitly
+managed through standard Tcl scoping, i.e. Tcl variables in
+procedures, outside of this implementation.
+
+[section {MACHINE INSTRUCTIONS}]
+
+Please go and read the document [syscmd grammar::me_vm] first for a
+specification of the basic ME virtual machine and its instruction set.
+
+[para]
+
+This implementation maps all instructions to Tcl commands in the
+namespace "::grammar::me::tcl", except for the stack related commands,
+nonterminal symbols and control flow.
+
+Here we simply list the commands and explain the differences to the
+specified instructions, if there are any. For their semantics see the
+aforementioned specification. The machine commands are [emph not]
+reachable through the ensemble command [cmd ::grammar::me::tcl].
+
+[para]
+[list_begin definitions]
+
+[call [cmd ::grammar::me::tcl::ict_advance] [arg message]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::ict_match_token] [arg tok] [arg message]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::ict_match_tokrange] [arg tokbegin] [arg tokend] [arg message]]
+
+If, and only if a token map was specified during initialization then
+the arguments are the numeric representations of the smallest and
+largest tokens in the range. Otherwise they are the relevant tokens
+themselves and lexicographic comparison is used.
+
+[call [cmd ::grammar::me::tcl::ict_match_tokclass] [arg code] [arg message]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::inc_restore] [arg nt]]
+
+Instead of taking a branchlabel the command returns a boolean value.
+The result will be [const true] if and only if cached information was
+found. The caller has to perform the appropriate branching.
+
+[call [cmd ::grammar::me::tcl::inc_save] [arg nt] [arg startlocation]]
+
+The command takes the start location as additional argument, as it is
+managed on the Tcl stack, and not in the machine state.
+
+[def "[cmd icf_ntcall] [arg branchlabel]"]
+[def [cmd icf_ntreturn]]
+
+These two instructions are not mapped to commands. They are control
+flow instructions and handled in Tcl.
+
+[call [cmd ::grammar::me::tcl::iok_ok]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::iok_fail]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::iok_negate]]
+No changes.
+
+[def "[cmd icf_jalways] [arg branchlabel]"]
+[def "[cmd icf_jok] [arg branchlabel]"]
+[def "[cmd icf_jfail] [arg branchlabel]"]
+[def [cmd icf_halt]]
+
+These four instructions are not mapped to commands. They are control
+flow instructions and handled in Tcl.
+
+[call [cmd ::grammar::me::tcl::icl_get]]
+
+This command returns the current location [term CL] in the input.
+It replaces [term icl_push].
+
+[call [cmd ::grammar::me::tcl::icl_rewind] [arg oldlocation]]
+
+The command takes the location as argument as it comes from the
+Tcl stack, not the machine state.
+
+[def [cmd icl_pop]]
+
+Not mapped, the stacks are not managed by the package.
+
+[call [cmd ::grammar::me::tcl::ier_get]]
+
+This command returns the current error state [term ER].
+It replaces [term ier_push].
+
+[call [cmd ::grammar::me::tcl::ier_clear]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::ier_nonterminal] [arg message] [arg location]]
+
+The command takes the location as argument as it comes from the
+Tcl stack, not the machine state.
+
+[call [cmd ::grammar::me::tcl::ier_merge] [arg olderror]]
+
+The command takes the second error state to merge as argument as it
+comes from the Tcl stack, not the machine state.
+
+[call [cmd ::grammar::me::tcl::isv_clear]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::isv_terminal]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::isv_nonterminal_leaf] [arg nt] [arg startlocation]]
+
+The command takes the start location as argument as it comes from the
+Tcl stack, not the machine state.
+
+[call [cmd ::grammar::me::tcl::isv_nonterminal_range] [arg nt] [arg startlocation]]
+
+The command takes the start location as argument as it comes from the
+Tcl stack, not the machine state.
+
+[call [cmd ::grammar::me::tcl::isv_nonterminal_reduce] [arg nt] [arg startlocation] [opt [arg marker]]]
+
+The command takes start location and marker as argument as it comes
+from the Tcl stack, not the machine state.
+
+[call [cmd ::grammar::me::tcl::ias_push]]
+No changes.
+
+[call [cmd ::grammar::me::tcl::ias_mark]]
+
+This command returns a marker for the current state of the AST stack
+[term AS]. The marker stack is not managed by the machine.
+
+[call [cmd ::grammar::me::tcl::ias_pop2mark] [arg marker]]
+
+The command takes the marker as argument as it comes from the
+Tcl stack, not the machine state. It replaces [term ias_mpop].
+
+[list_end]
+[para]
+
+[vset CATEGORY grammar_me]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

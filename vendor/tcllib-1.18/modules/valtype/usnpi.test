@@ -1,0 +1,102 @@
+# -------------------------------------------------------------------------
+# usnpi.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+    useLocal luhn.tcl       valtype::luhn
+}
+testing {
+    useLocal usnpi.tcl valtype::usnpi
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-usnpi-1.0 {usnpi validation wrong\#args} -body {
+    valtype::usnpi validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::usnpi validate value"}
+
+test valtype-usnpi-1.1 {usnpi validation wrong\#args} -body {
+    valtype::usnpi validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::usnpi validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-usnpi-2.0 {usnpi validation failure, bad char} -body {
+    valtype::usnpi validate A000000000
+} -returnCodes error \
+    -result {Not an US-NPI number, expected only digits}
+
+test valtype-usnpi-2.1 {usnpi validation failure, bad char} -body {
+    valtype::usnpi validate 32
+} -returnCodes error \
+    -result {Not an US-NPI number, incorrect length, expected 10 characters}
+
+foreach {n in} {
+    1  4999999932
+    2  3747589238
+    3  4992739871
+    4  0123456789
+} {
+    test valtype-usnpi-2.2.$n {usnpi validation failure, bad check} -body {
+	valtype::usnpi validate $in
+    } -returnCodes error \
+	-result {Not an US-NPI number, the check digit is incorrect}
+}
+
+test valtype-usnpi-3.0 {usnpi checkdigit wrong\#args} -body {
+    valtype::usnpi checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::usnpi checkdigit value"}
+
+test valtype-usnpi-3.1 {usnpi checkdigit wrong\#args} -body {
+    valtype::usnpi checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::usnpi checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-usnpi-5.0 {usnpi checkdigit calculation failure, bad char} -body {
+    valtype::usnpi checkdigit A00000000
+} -returnCodes error \
+    -result {Not an US-NPI number, expected only digits}
+
+test valtype-usnpi-5.1 {usnpi validation failure, bad char} -body {
+    valtype::usnpi checkdigit 32
+} -returnCodes error \
+    -result {Not an US-NPI number (without checkdigit), incorrect length, expected 9 characters}
+
+foreach {n in check} {
+    1  499999993 4
+    2  374758923 7
+    3  499273987 3
+    4  012345678 3
+} {
+    test valtype-usnpi-4.$n {usnpi validation} -body {
+	valtype::usnpi validate $in$check
+    } -result $in$check
+
+    test valtype-usnpi-6.$n {usnpi checkdigit} -body {
+	valtype::usnpi checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

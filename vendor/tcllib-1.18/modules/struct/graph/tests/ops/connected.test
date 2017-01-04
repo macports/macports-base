@@ -1,0 +1,120 @@
+# -*- tcl -*-
+# Graph ops tests - Connected components.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: connected.test,v 1.3 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::isConnected? G
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-1.0 {isConnected?, wrong args, missing} {
+    catch {struct::graph::op::isConnected?} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::isConnected? {g} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-1.1 {isConnected?, wrong args, too many} {
+    catch {struct::graph::op::isConnected? g x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::isConnected? {g}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.0 {isConnected?, empty graph} {
+    SETUP
+    set result [struct::graph::op::isConnected? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.1 {isConnected?, nodes, no arcs} {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.2 {isConnected?, single CC} {
+    SETUP_A
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.3 {isConnected?, single CC} {
+    SETUP_B
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.4 {isConnected?, single CC} {
+    SETUP_C
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.5 {isConnected?, single CC} {
+    SETUP_D
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.6 {isConnected?, single CC} {
+    SETUP_E
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.7 {isConnected?, single CC} {
+    SETUP_F
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.8 {isConnected?, single CC} {
+    SETUP_G
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.9 {isConnected?, single CC} {
+    SETUP_H
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.10 {isConnected?, single CC} {
+    SETUP_I
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.11 {isConnected?, multiple CC} {
+    SETUP_J
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isConnected?-3.12 {isConnected?, multiple CC} {
+    SETUP_K
+    set result [setsetcanon [struct::graph::op::isConnected? mygraph]]
+    mygraph destroy
+    set result
+} 0
+
+# ---------------------------------------------------

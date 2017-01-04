@@ -1,0 +1,168 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset AES_VERSION 1.2.1]
+[manpage_begin aes n [vset AES_VERSION]]
+[see_also blowfish(n)]
+[see_also des(n)]
+[see_also md5(n)]
+[see_also sha1(n)]
+[keywords aes]
+[keywords {block cipher}]
+[keywords {data integrity}]
+[keywords encryption]
+[keywords security]
+[copyright {2005, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[copyright {2012-2014, Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc {Advanced Encryption Standard (AES)}]
+[titledesc {Implementation of the AES block cipher}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.5]
+[require aes [opt [vset AES_VERSION]]]
+[description]
+[para]
+
+This is an implementation in Tcl of the Advanced Encryption Standard
+(AES) as published by the U.S. National Institute of Standards and
+Technology [lb]1[rb]. AES is a 128-bit block cipher with a variable
+key size of 128, 192 or 256 bits. This implementation supports ECB and
+CBC modes.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::aes::aes"] \
+        [opt [arg "-mode [lb]ecb|cbc[rb]"]] \
+        [opt [arg "-dir [lb]encrypt|decrypt[rb]"]] \
+        [arg "-key keydata"] \
+        [opt [arg "-iv vector"]] \
+        [opt [arg "-hex"]] \
+        [opt [arg "-out channel"]] \
+        [opt [arg "-chunksize size"]] \
+        [lb] [arg "-in channel"] | \
+        [opt [option --]] [arg "data"] [rb]]
+
+Perform the [package aes] algorithm on either the data provided
+by the argument or on the data read from the [arg "-in"] channel. If
+an [arg "-out"] channel is given then the result will be written to
+this channel.
+
+[para]
+
+The [arg -key] option must be given. This parameter takes a binary
+string of either 16, 24 or 32 bytes in length and is used to generate the
+key schedule.
+
+[para]
+
+The [arg -mode] and [arg -dir] options are optional and default to cbc
+mode and encrypt respectively. The initialization vector [arg -iv]
+takes a 16 byte binary argument which defaults to all zeros.
+See [sectref "MODES OF OPERATION"] for more about available modes and
+their uses.
+
+[para]
+
+AES is a 128-bit block cipher. This means that the data must be
+provided in units that are a multiple of 16 bytes.
+
+[list_end]
+
+[section "PROGRAMMING INTERFACE"]
+
+Internal state is maintained in an opaque structure that is returned
+from the [cmd Init] function. In ECB mode the state is not affected by
+the input but for CBC mode some input dependent state is maintained
+and may be reset by calling the [cmd Reset] function with a new
+initialization vector value.
+
+[list_begin definitions]
+
+[call [cmd "::aes::Init"] [arg "mode"] [arg "keydata"] [arg "iv"]]
+
+Construct a new AES key schedule using the specified key data and the
+given initialization vector. The initialization vector is not used
+with ECB mode but is important for CBC mode.
+See [sectref "MODES OF OPERATION"] for details about cipher modes.
+
+[call [cmd "::aes::Encrypt"] [arg "Key"] [arg "data"]]
+
+Use a prepared key acquired by calling [cmd Init] to encrypt the
+provided data. The data argument should be a binary array that is a
+multiple of the AES block size of 16 bytes. The result is a binary
+array the same size as the input of encrypted data.
+
+[call [cmd "::aes::Decrypt"] [arg "Key"] [arg "data"]]
+
+Decipher data using the key. Note that the same key may be used to
+encrypt and decrypt data provided that the initialization vector is
+reset appropriately for CBC mode.
+
+[call [cmd "::aes::Reset"] [arg "Key"] [arg "iv"]]
+
+Reset the initialization vector. This permits the programmer to re-use
+a key and avoid the cost of re-generating the key schedule where the
+same key data is being used multiple times.
+
+[call [cmd "::aes::Final"] [arg "Key"]]
+
+This should be called to clean up resources associated with [arg Key].
+Once this function has been called the key may not be used again.
+
+[list_end]
+
+[section "MODES OF OPERATION"]
+
+[list_begin definitions]
+
+[def "Electronic Code Book (ECB)"]
+ECB is the basic mode of all block ciphers. Each block is encrypted
+independently and so identical plain text will produce identical
+output when encrypted with the same key. Any encryption errors will
+only affect a single block however this is vulnerable to known
+plaintext attacks.
+
+[def "Cipher Block Chaining (CBC)"]
+
+CBC mode uses the output of the last block encryption to affect the
+current block. An initialization vector of the same size as the cipher
+block size is used to handle the first block. The initialization
+vector should be chosen randomly and transmitted as the first block of
+the output. Errors in encryption affect the current block and the next
+block after which the cipher will correct itself. CBC is the most
+commonly used mode in software encryption. This is the default mode
+of operation for this module.
+
+[list_end]
+
+[section "EXAMPLES"]
+
+[example {
+% set nil_block [string repeat \\0 16]
+% aes::aes -hex -mode cbc -dir encrypt -key $nil_block $nil_block
+66e94bd4ef8a2c3b884cfa59ca342b2e
+}]
+
+[example {
+set Key [aes::Init cbc $sixteen_bytes_key_data $sixteen_byte_iv]
+append ciphertext [aes::Encrypt $Key $plaintext]
+append ciphertext [aes::Encrypt $Key $additional_plaintext]
+aes::Final $Key
+}]
+
+[section "REFERENCES"]
+
+[list_begin enumerated]
+
+[enum]
+    "Advanced Encryption Standard",
+    Federal Information Processing Standards Publication 197, 2001
+    ([uri http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf])
+
+[list_end]
+
+[section AUTHORS]
+Thorsten Schloermann, Pat Thoyts
+
+[vset CATEGORY aes]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

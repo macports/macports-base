@@ -1,0 +1,527 @@
+<html><head>
+<title>docstrip - Literate programming tool</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'docstrip.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2003–2010 Lars Hellstr&ouml;m &lt;Lars dot Hellstrom at residenset dot net&gt;
+   -->
+<! -- docstrip.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">docstrip(n) 1.2 tcllib &quot;Literate programming tool&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>docstrip - Docstrip style source code extraction</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">File format</a></li>
+<li class="doctools_section"><a href="#section3">Commands</a></li>
+<li class="doctools_section"><a href="#section4">Document structure</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">docstrip <span class="opt">?1.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">docstrip::extract</b> <i class="arg">text</i> <i class="arg">terminals</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#2"><b class="cmd">docstrip::sourcefrom</b> <i class="arg">filename</i> <i class="arg">terminals</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p><b class="syscmd">Docstrip</b> is a tool created to support a brand of Literate
+Programming. It is most common in the (La)TeX community, where it
+is being used for pretty much everything from the LaTeX core and up,
+but there is nothing about <b class="syscmd">docstrip</b> which prevents using it
+for other types of software.</p>
+<p>In short, the basic principle of literate programming is that program
+source should primarily be written and structured to suit the
+developers (and advanced users who want to peek &quot;under the hood&quot;), not
+to suit the whims of a compiler or corresponding source code consumer.
+This means literate sources often need some kind of &quot;translation&quot; to an
+illiterate form that dumb software can understand.
+The <b class="package">docstrip</b> Tcl package handles this translation.</p>
+<p>Even for those who do not whole-hartedly subscribe to the philosophy
+behind literate programming, <b class="syscmd">docstrip</b> can bring greater
+clarity to in particular:</p>
+<ul class="doctools_itemized">
+  
+<li><p>programs employing non-obvious mathematics</p></li>
+<li><p>projects where separate pieces of code, perhaps in
+    different languages, need to be closely coordinated.</p></li>
+</ul>
+<p>The first is by providing access to much more powerful typographical
+features for source code comments than are possible in plain text.
+The second is because all the separate pieces of code can be kept
+next to each other in the same source file.</p>
+<p>The way it works is that the programmer edits directly only one or
+several &quot;master&quot; source code files, from which <b class="syscmd">docstrip</b>
+generates the more traditional &quot;source&quot; files compilers or the like
+would expect. The master sources typically contain a large amount of
+documentation of the code, sometimes even in places where the code
+consumers would not allow any comments. The etymology of &quot;docstrip&quot;
+is that this <em>doc</em>umentation was <em>strip</em>ped away (although
+&quot;code extraction&quot; might be a better description, as it has always
+been a matter of copying selected pieces of the master source rather
+than deleting text from it).
+The <b class="package">docstrip</b> Tcl package contains a reimplementation of
+the basic extraction functionality from the <b class="syscmd">docstrip</b>
+program, and thus makes it possible for a Tcl interpreter to read
+and interpret the master source files directly.</p>
+<p>Readers who are not previously familiar with <b class="syscmd">docstrip</b> but
+want to know more about it may consult the following sources.</p>
+<ol class="doctools_enumerated">
+<li><p><em>The tclldoc package and class</em>,
+  <a href="http://ctan.org/tex-archive/macros/latex/contrib/tclldoc/">http://ctan.org/tex-archive/macros/latex/contrib/tclldoc/</a>.</p></li>
+<li><p><em>The DocStrip utility</em>,
+  <a href="http://ctan.org/tex-archive/macros/latex/base/docstrip.dtx">http://ctan.org/tex-archive/macros/latex/base/docstrip.dtx</a>.</p></li>
+<li><p><em>The doc and shortvrb Packages</em>,
+  <a href="http://ctan.org/tex-archive/macros/latex/base/doc.dtx">http://ctan.org/tex-archive/macros/latex/base/doc.dtx</a>.</p></li>
+<li><p>Chapter 14 of
+  <em>The LaTeX Companion</em> (second edition),
+  Addison-Wesley, 2004; ISBN 0-201-36299-6.</p></li>
+</ol>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">File format</a></h2>
+<p>The basic unit <b class="syscmd">docstrip</b> operates on are the <em>lines</em> of
+a master source file. Extraction consists of selecting some of these
+lines to be copied from input text to output text. The basic
+distinction is that between <em>code lines</em> (which are copied and
+do not begin with a percent character) and <em>comment lines</em>
+(which begin with a percent character and are not copied).</p>
+<pre class="doctools_example">
+   docstrip::extract [join {
+     {% comment}
+     {% more comment !&quot;#$%&amp;/(}
+     {some command}
+     { % blah $blah &quot;Not a comment.&quot;}
+     {% abc; this is comment}
+     {# def; this is code}
+     {ghi}
+     {% jkl}
+   } \n] {}
+</pre>
+<p>returns the same sequence of lines as</p>
+<pre class="doctools_example">
+   join {
+     {some command}
+     { % blah $blah &quot;Not a comment.&quot;}
+     {# def; this is code}
+     {ghi} &quot;&quot;
+   } \n
+</pre>
+<p>It does not matter to <b class="syscmd">docstrip</b> what format is used for the
+documentation in the comment lines, but in order to do better than
+plain text comments, one typically uses some markup language. Most
+commonly LaTeX is used, as that is a very established standard and
+also provides the best support for mathematical formulae, but the
+<b class="package">docstrip::util</b> package also gives some support for
+<i class="term"><a href="../../../../index.html#key179">doctools</a></i>-like markup.</p>
+<p>Besides the basic code and comment lines, there are also
+<em>guard lines</em>, which begin with the two characters '%&lt;', and
+<em>meta-comment lines</em>, which begin with the two characters
+'%%'. Within guard lines there is furthermore the distinction between
+<em>verbatim guard lines</em>, which begin with '%&lt;&lt;', and ordinary
+guard lines, where the '%&lt;' is not followed by another '&lt;'. The last
+category is by far the most common.</p>
+<p>Ordinary guard lines conditions extraction of the code line(s) they
+guard by the value of a boolean expression; the guarded block of
+code lines will only be included if the expression evaluates to true.
+The syntax of an ordinary guard line is one of</p>
+<pre class="doctools_example">
+    '%' '&lt;' STARSLASH EXPRESSION '&gt;'
+    '%' '&lt;' PLUSMINUS EXPRESSION '&gt;' CODE
+</pre>
+<p>where</p>
+<pre class="doctools_example">
+    STARSLASH  ::=  '*' | '/'
+    PLUSMINUS  ::=  | '+' | '-'
+    EXPRESSION ::= SECONDARY | SECONDARY ',' EXPRESSION
+                 | SECONDARY '|' EXPRESSION
+    SECONDARY  ::= PRIMARY | PRIMARY '&amp;' SECONDARY
+    PRIMARY    ::= TERMINAL | '!' PRIMARY | '(' EXPRESSION ')'
+    CODE       ::= { any character except end-of-line }
+</pre>
+<p>Comma and vertical bar both denote 'or'. Ampersand denotes 'and'.
+Exclamation mark denotes 'not'. A TERMINAL can be any nonempty string
+of characters not containing '&gt;', '&amp;', '|', comma, '(', or ')',
+although the <b class="syscmd">docstrip</b> manual is a bit restrictive and only
+guarantees proper operation for strings of letters (although even
+the LaTeX core sources make heavy use also of digits in TERMINALs).
+The second argument of <b class="cmd">docstrip::extract</b> is the list of those
+TERMINALs that should count as having the value 'true'; all other
+TERMINALs count as being 'false' when guard expressions are evaluated.</p>
+<p>In the case of a '%&lt;*<em>EXPRESSION</em>&gt;' guard, the lines guarded are
+all lines up to the next '%&lt;/<em>EXPRESSION</em>&gt;' guard with the same
+<em>EXPRESSION</em> (compared as strings). The blocks of code delimited
+by such '*' and '/' guard lines must be properly nested.</p>
+<pre class="doctools_example">
+   set text [join {
+      {begin}
+      {%&lt;*foo&gt;}
+      {1}
+      {%&lt;*bar&gt;}
+      {2}
+      {%&lt;/bar&gt;}
+      {%&lt;*!bar&gt;}
+      {3}
+      {%&lt;/!bar&gt;}
+      {4}
+      {%&lt;/foo&gt;}
+      {5}
+      {%&lt;*bar&gt;}
+      {6}
+      {%&lt;/bar&gt;}
+      {end}
+   } \n]
+   set res [docstrip::extract $text foo]
+   append res [docstrip::extract $text {foo bar}]
+   append res [docstrip::extract $text bar]
+</pre>
+<p>sets $res to the result of</p>
+<pre class="doctools_example">
+   join {
+      {begin}
+      {1}
+      {3}
+      {4}
+      {5}
+      {end}
+      {begin}
+      {1}
+      {2}
+      {4}
+      {5}
+      {6}
+      {end}
+      {begin}
+      {5}
+      {6}
+      {end} &quot;&quot;
+   } \n
+</pre>
+<p>In guard lines without a '*', '/', '+', or '-' modifier after the
+'%&lt;', the guard applies only to the CODE following the '&gt;' on that
+single line. A '+' modifier is equivalent to no modifier. A '-'
+modifier is like the case with no modifier, but the expression is
+implicitly negated, i.e., the CODE of a '%&lt;-' guard line is only
+included if the expression evaluates to false.</p>
+<p>Metacomment lines are &quot;comment lines which should not be stripped
+away&quot;, but be extracted like code lines; these are sometimes used for
+copyright notices and similar material. The '%%' prefix is however
+not kept, but substituted by the current <b class="option">-metaprefix</b>, which
+is customarily set to some &quot;comment until end of line&quot; character (or
+character sequence) of the language of the code being extracted.</p>
+<pre class="doctools_example">
+   set text [join {
+      {begin}
+      {%&lt;foo&gt; foo}
+      {%&lt;+foo&gt;plusfoo}
+      {%&lt;-foo&gt;minusfoo}
+      {middle}
+      {%% some metacomment}
+      {%&lt;*foo&gt;}
+      {%%another metacomment}
+      {%&lt;/foo&gt;}
+      {end}
+   } \n]
+   set res [docstrip::extract $text foo -metaprefix {# }]
+   append res [docstrip::extract $text bar -metaprefix {#}]
+</pre>
+<p>sets $res to the result of</p>
+<pre class="doctools_example">
+   join {
+      {begin}
+      { foo}
+      {plusfoo}
+      {middle}
+      {#  some metacomment}
+      {# another metacomment}
+      {end}
+      {begin}
+      {minusfoo}
+      {middle}
+      {# some metacomment}
+      {end} &quot;&quot;
+   } \n
+</pre>
+<p>Verbatim guards can be used to force code line
+interpretation of a block of lines even if some of them happen to look
+like any other type of lines to docstrip. A verbatim guard has the
+form '%&lt;&lt;<em>END-TAG</em>' and the verbatim block is terminated by the
+first line that is exactly '%<em>END-TAG</em>'.</p>
+<pre class="doctools_example">
+   set text [join {
+      {begin}
+      {%&lt;*myblock&gt;}
+      {some stupid()}
+      {   #computer&lt;program&gt;}
+      {%&lt;&lt;QQQ-98765}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%&lt;/myblock&gt;}
+      {%QQQ-98765}
+      {   using*strange@programming&lt;language&gt;}
+      {%&lt;/myblock&gt;}
+      {end}
+   } \n]
+   set res [docstrip::extract $text myblock -metaprefix {# }]
+   append res [docstrip::extract $text {}]
+</pre>
+<p>sets $res to the result of</p>
+<pre class="doctools_example">
+   join {
+      {begin}
+      {some stupid()}
+      {   #computer&lt;program&gt;}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%&lt;/myblock&gt;}
+      {   using*strange@programming&lt;language&gt;}
+      {end}
+      {begin}
+      {end} &quot;&quot;
+   } \n
+</pre>
+<p>The processing of verbatim guards takes place also inside blocks of
+lines which due to some outer block guard will not be copied.</p>
+<p>The final piece of <b class="syscmd">docstrip</b> syntax is that extraction
+stops at a line that is exactly &quot;\endinput&quot;; this is often used to
+avoid copying random whitespace at the end of a file. In the unlikely
+case that one wants such a code line, one can protect it with a
+verbatim guard.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Commands</a></h2>
+<p>The package defines two commands.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">docstrip::extract</b> <i class="arg">text</i> <i class="arg">terminals</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>The <b class="cmd">extract</b> command docstrips the <i class="arg">text</i> and returns the
+  extracted lines of code, as a string with each line terminated with
+  a newline. The <i class="arg">terminals</i> is the list of those guard
+  expression terminals which should evaluate to true.
+  The available options are:</p>
+<dl class="doctools_options">
+  
+<dt><b class="option">-annotate</b> <i class="arg">lines</i></dt>
+<dd><p>Requests the specified number of lines of annotation to follow
+    each extracted line in the result. Defaults to 0. Annotation lines
+    are mostly useful when the extracted lines are to undergo some
+    further transformation. A first annotation line is a list of three
+    elements: line type, prefix removed in extraction, and prefix
+    inserted in extraction. The line type is one of: 'V' (verbatim),
+    'M' (metacomment), '+' (+ or no modifier guard line), '-' (-
+    modifier guard line), '.' (normal line). A second annotation line
+    is the source line number. A third annotation line is the current
+    stack of block guards. Requesting more than three lines of
+    annotation is currently not supported.</p></dd>
+<dt><b class="option">-metaprefix</b> <i class="arg">string</i></dt>
+<dd><p>The string by which the '%%' prefix of a metacomment line will
+    be replaced. Defaults to '%%'. For Tcl code this would typically
+    be '#'.</p></dd>
+<dt><b class="option">-onerror</b> <i class="arg">keyword</i></dt>
+<dd><p>Controls what will be done when a format error in the <i class="arg">text</i>
+    being processed is detected. The settings are:</p>
+<dl class="doctools_definitions">
+    
+<dt><b class="const">ignore</b></dt>
+<dd><p>Just ignore the error; continue as if nothing happened.</p></dd>
+<dt><b class="const">puts</b></dt>
+<dd><p>Write an error message to <b class="const">stderr</b>, then continue
+      processing.</p></dd>
+<dt><b class="const">throw</b></dt>
+<dd><p>Throw an error. The <b class="option">-errorcode</b> is set to a list whose
+      first element is <b class="const">DOCSTRIP</b>, second element is the
+      type of error, and third element is the line number where
+      the error is detected. This is the default.</p></dd>
+</dl></dd>
+<dt><b class="option">-trimlines</b> <i class="arg">boolean</i></dt>
+<dd><p>Controls whether <em>spaces</em> at the end of a line should be
+    trimmed away before the line is processed. Defaults to true.</p></dd>
+</dl>
+<p>It should be remarked that the <i class="arg">terminals</i> are often called
+  &quot;options&quot; in the context of the <b class="syscmd">docstrip</b> program, since
+  these specify which optional code fragments should be included.</p></dd>
+<dt><a name="2"><b class="cmd">docstrip::sourcefrom</b> <i class="arg">filename</i> <i class="arg">terminals</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>The <b class="cmd">sourcefrom</b> command is a docstripping emulation of
+  <b class="cmd"><a href="../../../../index.html#key435">source</a></b>. It opens the file <i class="arg">filename</i>, reads it, closes it,
+  docstrips the contents as specified by the <i class="arg">terminals</i>, and
+  evaluates the result in the local context of the caller, during
+  which time the <b class="cmd"><a href="../../../../index.html#key83">info</a></b> <b class="method">script</b> value will be the
+  <i class="arg">filename</i>. The options are passed on to <b class="cmd">fconfigure</b> to
+  configure the file before its contents are read. The
+  <b class="option">-metaprefix</b> is set to '#', all other <b class="cmd">extract</b>
+  options have their default values.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Document structure</a></h2>
+<p>The file format (as described above) determines whether a master
+source code file can be processed correctly by <b class="syscmd">docstrip</b>,
+but the usefulness of the format is to no little part also dependent
+on that the code and comment lines together constitute a well-formed
+document.</p>
+<p>For a document format that does not require any non-Tcl software, see
+the <b class="cmd">ddt2man</b> command in the <b class="package">docstrip::util</b> package. It
+is suggested that files employing that document format are given the
+suffix &quot;<b class="file">.ddt</b>&quot;, to distinguish them from the more traditional
+LaTeX-based &quot;<b class="file">.dtx</b>&quot; files.</p>
+<p>Master source files with &quot;<b class="file">.dtx</b>&quot; extension are usually set up so
+that they can be typeset directly by <b class="syscmd"><a href="../../../../index.html#key186">latex</a></b> without any
+support from other files. This is achieved by beginning the file
+with the lines</p>
+<pre class="doctools_example">
+   % \iffalse
+   %&lt;*driver&gt;
+   \documentclass{tclldoc}
+   \begin{document}
+   \DocInput{<em>filename.dtx</em>}
+   \end{document}
+   %&lt;/driver&gt;
+   % \fi
+</pre>
+<p>or some variation thereof. The trick is that the file gets read twice.
+With normal LaTeX reading rules, the first two lines are comments and
+therefore ignored. The third line is the document preamble, the fourth
+line begins the document body, and the sixth line ends the document,
+so LaTeX stops there — non-comments below that point in
+the file are never subjected to the normal LaTeX reading rules. Before
+that, however, the \DocInput command on the fifth line is processed,
+and that does two things: it changes the interpretation of '%' from
+&quot;comment&quot; to &quot;ignored&quot;, and it inputs the file specified in the
+argument (which is normally the name of the file the command is in).
+It is this second time that the file is being read that the comments
+and code in it are typeset.</p>
+<p>The function of the \iffalse ... \fi is to skip lines two to seven
+on this second time through; this is similar to the &quot;if 0 { ... }&quot;
+idiom for block comments in Tcl code, and it is needed here because
+(amongst other things) the \documentclass command may only be
+executed once. The function of the &lt;driver&gt; guards is to prevent this
+short piece of LaTeX code from being extracted by <b class="syscmd">docstrip</b>.
+The total effect is that the file can function both as a LaTeX
+document and as a <b class="syscmd">docstrip</b> master source code file.</p>
+<p>It is not necessary to use the tclldoc document class, but that does
+provide a number of features that are convenient for &quot;<b class="file">.dtx</b>&quot;
+files containing Tcl code. More information on this matter can be
+found in the references above.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="docstrip_util.html">docstrip_util</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key438">.dtx</a>, <a href="../../../../index.html#key437">LaTeX</a>, <a href="../../../../index.html#key434">docstrip</a>, <a href="../../../../index.html#key185">documentation</a>, <a href="../../../../index.html#key436">literate programming</a>, <a href="../../../../index.html#key435">source</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2003–2010 Lars Hellstr&ouml;m &lt;Lars dot Hellstrom at residenset dot net&gt;</p>
+</div>
+</div></body></html>

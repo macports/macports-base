@@ -1,0 +1,121 @@
+# Tests for the 'set' module in the 'struct' library. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2004-2008 by Andreas Kupries
+#
+# RCS: @(#) $Id: sets.test,v 1.18 2008/03/07 06:51:36 andreas_kupries Exp $
+
+#----------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+}
+
+# -------------------------------------------------------------------------
+
+set sempty {}
+set smultiples {a::foo b::foo c::foo a::foo d::foo f::foo a::foo f::foo c::foo h::foo j::foo}
+set sa {a::foo b::foo c::foo d::foo}
+set sb {e::foo f::foo g::foo h::foo}
+set sc {c::foo d::foo e::foo f::foo}
+set sd {a::foo b::foo c::foo d::foo e::foo f::foo}               ; # a + c
+set se {c::foo d::foo e::foo f::foo g::foo h::foo}               ; # b + c
+set sf {a::foo b::foo c::foo d::foo e::foo f::foo g::foo h::foo} ; # a + b
+set sg {a::foo b::foo c::foo d::foo f::foo h::foo j::foo}
+set sh {c::foo d::foo}
+set si {a::foo b::foo}
+set sj {e::foo f::foo}
+set sk {a::foo b::foo e::foo f::foo}
+set sl {b::foo c::foo d::foo}
+
+interp alias {} setop {} ::struct::set
+
+proc luniq {list} {
+    set x() {} ; unset x()
+    foreach l $list {set x($l) .}
+    return [lsort [array names x]]
+}
+
+############################################################
+## Iterate over all loaded implementations, activate
+## them in turn, and run the tests for the active
+## implementation.
+
+TestAccelDo struct::set impl {
+    # The global variable 'impl' is part of the public
+    # API the testsuite (in set.testsuite) can expect
+    # from the environment.
+
+    switch -exact -- $impl {
+	critcl {
+	    if {[package vsatisfies [package present Tcl] 8.5]} {
+		proc tmWrong {m loarg n} {
+		    return [tcltest::wrongNumArgs "setop $m" $loarg $n]
+		}
+
+		proc tmTooMany {m loarg} {
+		    return [tcltest::tooManyArgs "setop $m" $loarg]
+		}
+
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {setop} {cmd ?arg ...?} 0]
+		}
+	    } else {
+		proc tmWrong {m loarg n} {
+		    return [tcltest::wrongNumArgs "::struct::set $m" $loarg $n]
+		}
+
+		proc tmTooMany {m loarg} {
+		    return [tcltest::tooManyArgs "::struct::set $m" $loarg]
+		}
+
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {::struct::set} {cmd ?arg ...?} 0]
+		}
+	    }
+	}
+	tcl {
+	    if {[package vsatisfies [package present Tcl] 8.6]} {
+		# In 8.6 head Tcl again reports what the alias resolved to
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {::struct::set} {cmd args} 0]
+		}
+	    } elseif {[package vsatisfies [package present Tcl] 8.5]} {
+		# In 8.5 head the alias itself is reported, not what it
+		# resolved to.
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs setop {cmd args} 0]
+		}
+	    } else {
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {::struct::set} {cmd args} 0]
+		}
+	    }
+
+	    proc tmWrong {m loarg n} {
+		return [tcltest::wrongNumArgs "::struct::set::S_$m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg} {
+		return [tcltest::tooManyArgs "::struct::set::S_$m" $loarg]
+	    }
+	}
+    }
+
+    source [localPath sets.testsuite]
+}
+
+############################################################
+TestAccelExit struct::set
+testsuiteCleanup

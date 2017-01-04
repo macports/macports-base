@@ -1,0 +1,279 @@
+
+<html><head>
+<title>tcldocstrip - Textprocessing toolbox</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'tcldocstrip.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- tcldocstrip.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../home">Tcllib Home</a>
+| <a href="../../../toc.html">Main Table Of Contents</a>
+| <a href="../../toc.html">Table Of Contents</a>
+| <a href="../../../index.html">Keyword Index</a>
+| <a href="../../../toc0.html">Categories</a>
+| <a href="../../../toc1.html">Modules</a>
+| <a href="../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tcldocstrip(n) 1.0 tcllib &quot;Textprocessing toolbox&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tcldocstrip - Tcl-based Docstrip Processor</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">USE CASES</a></li>
+<li class="doctools_subsection"><a href="#subsection2">COMMAND LINE</a></li>
+<li class="doctools_subsection"><a href="#subsection3">OPTIONS</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">tcldocstrip</b> <i class="arg">output</i> <span class="opt">?options?</span> <i class="arg">input</i> <span class="opt">?<i class="arg">guards</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">tcldocstrip</b> <span class="opt">?options?</span> <i class="arg">output</i> (<span class="opt">?options?</span> <i class="arg">input</i> <i class="arg">guards</i>)...</a></li>
+<li><a href="#3"><b class="cmd">tcldocstrip</b> <b class="option">-guards</b> <i class="arg">input</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The application described by this document, <b class="syscmd">tcldocstrip</b>, is a
+relative of <b class="syscmd"><a href="../modules/docstrip/docstrip.html">docstrip</a></b>, a simple literate programming tool for
+LaTeX.</p>
+<p><b class="syscmd">tcldocstrip</b> is based upon the package <b class="package"><a href="../modules/docstrip/docstrip.html">docstrip</a></b>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">USE CASES</a></h3>
+<p><b class="syscmd">tcldocstrip</b> was written with the following three use cases in
+mind.</p>
+<ol class="doctools_enumerated">
+<li><p>Conversion of a single input file according to the listed guards into
+the stripped output. This handles the most simple case of a set of
+guards specifying a single document found in a single input file.</p></li>
+<li><p>Stitching, or the assembly of an output from several sets of guards,
+in a specific order, and possibly from different files. This is the
+second common case. One document spread over several inputs, and/or
+spread over different guard sets.</p></li>
+<li><p>Extraction and listing of all the unique guard expressions and guards
+used within a document to help a person which did not author the
+document in question in familiarizing itself with it.</p></li>
+</ol>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">COMMAND LINE</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">tcldocstrip</b> <i class="arg">output</i> <span class="opt">?options?</span> <i class="arg">input</i> <span class="opt">?<i class="arg">guards</i>?</span></a></dt>
+<dd><p>This is the form for use case [1]. It converts the <i class="arg">input</i>
+file according to the specified <i class="arg">guards</i> and options. The result
+is written to the named <i class="arg">output</i> file.
+Usage of the string <b class="const">-</b> as the name of the output signals that
+the result should be written to <b class="const">stdout</b>. The guards are
+document-specific and have to be known to the caller. The
+<i class="arg">options</i> will be explained later, in section <span class="sectref"><a href="#subsection3">OPTIONS</a></span>.</p>
+<dl class="doctools_arguments">
+<dt>path <i class="arg">output</i> (in)</dt>
+<dd><p>This argument specifies where to write the generated document. It can
+be the path to a file or directory, or <b class="const">-</b>.
+The last value causes the application to write the generated
+documented to <b class="const">stdout</b>.</p>
+<p>If the <i class="arg">output</i> does not exist then [file dirname $output]
+has to exist and must be a writable directory.</p></dd>
+<dt>path <i class="arg">inputfile</i> (in)</dt>
+<dd><p>This argument specifies the path to the file to process. It has to
+exist, must be readable, and written in <i class="term"><a href="../../../index.html#key434">docstrip</a></i> format.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">tcldocstrip</b> <span class="opt">?options?</span> <i class="arg">output</i> (<span class="opt">?options?</span> <i class="arg">input</i> <i class="arg">guards</i>)...</a></dt>
+<dd><p>This is the form for use case [2]. It differs from the form for
+use case [1] by the possibility of having options before the
+output file, which apply in general, and specifying more than one
+inputfile, each with its own set of input specific options and guards.</p>
+<p>It extracts data from the various <i class="arg">input</i> files, according to the
+specified <i class="arg">options</i> and <i class="arg">guards</i>, and writes the result to the
+given <i class="arg">output</i>, in the order of their specification on the command
+line. Options specified before the output are global settings, whereas
+the options specified before each input are valid only just for this
+input file. Unspecified values are taken from the global settings, or
+defaults. As for form [1] using the string <b class="const">-</b> as output
+causes the application to write to stdout.
+Using the string <b class="const">.</b> for an input file signals that the last
+input file should be used again. This enables the assembly of the
+output from one input file using multiple and different sets of
+guards, without having to specify the full name of the file every
+time.</p></dd>
+<dt><a name="3"><b class="cmd">tcldocstrip</b> <b class="option">-guards</b> <i class="arg">input</i></a></dt>
+<dd><p>This is the form for use case [3].
+It determines the guards, and unique guard expressions used within the
+provided <i class="arg">input</i> document. The found strings are written to
+stdout, one string per line.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">OPTIONS</a></h3>
+<p>This section describes all the options available to the user of the
+application, with the exception of the option <b class="option">-guards</b>. This
+option was described already, in section <span class="sectref"><a href="#subsection2">COMMAND LINE</a></span>.</p>
+<dl class="doctools_options">
+<dt><b class="option">-metaprefix</b> string</dt>
+<dd><p>This option is inherited from the command <b class="cmd">docstrip::extract</b>
+provided by the package <b class="package"><a href="../modules/docstrip/docstrip.html">docstrip</a></b>.</p>
+<p>It specifies the string by which the '%%' prefix of a metacomment line
+will be replaced. Defaults to '%%'. For Tcl code this would typically
+be '#'.</p></dd>
+<dt><b class="option">-onerror</b> mode</dt>
+<dd><p>This option is inherited from the command <b class="cmd">docstrip::extract</b>
+provided by the package <b class="package"><a href="../modules/docstrip/docstrip.html">docstrip</a></b>.</p>
+<p>It controls what will be done when a format error in the <i class="arg">text</i>
+being processed is detected. The settings are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">ignore</b></dt>
+<dd><p>Just ignore the error; continue as if nothing happened.</p></dd>
+<dt><b class="const">puts</b></dt>
+<dd><p>Write an error message to <b class="const">stderr</b>, then continue processing.</p></dd>
+<dt><b class="const">throw</b></dt>
+<dd><p>Throw an error. <b class="variable">::errorCode</b> is set to a list whose first element
+is <b class="const">DOCSTRIP</b>, second element is the type of error, and third
+element is the line number where the error is detected. This is the
+default.</p></dd>
+</dl></dd>
+<dt><b class="option">-trimlines</b> bool</dt>
+<dd><p>This option is inherited from the command <b class="cmd">docstrip::extract</b>
+provided by the package <b class="package"><a href="../modules/docstrip/docstrip.html">docstrip</a></b>.</p>
+<p>Controls whether <em>spaces</em> at the end of a line should be trimmed
+away before the line is processed. Defaults to <b class="const">true</b>.</p></dd>
+<dt><b class="option">-preamble</b> text</dt>
+<dd></dd>
+<dt><b class="option">-postamble</b> text</dt>
+<dd></dd>
+<dt><b class="option">-nopreamble</b></dt>
+<dd></dd>
+<dt><b class="option">-nopostamble</b></dt>
+<dd><p>The -no*amble options deactivate file pre- and postambles altogether,
+whereas the -*amble options specify the <em>user</em> part of the file
+pre- and postambles. This part can be empty, in that case only the
+standard parts are shown. This is the default.</p>
+<p>Preambles, when active, are written before the actual content of a
+generated file. In the same manner postambles are, when active,
+written after the actual content of a generated file.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>docstrip</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../modules/docstrip/docstrip.html">docstrip</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../index.html#key438">.dtx</a>, <a href="../../../index.html#key437">LaTeX</a>, <a href="../../../index.html#key20">conversion</a>, <a href="../../../index.html#key434">docstrip</a>, <a href="../../../index.html#key185">documentation</a>, <a href="../../../index.html#key436">literate programming</a>, <a href="../../../index.html#key16">markup</a>, <a href="../../../index.html#key435">source</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

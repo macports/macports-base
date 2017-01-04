@@ -1,0 +1,9 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+PEG TEMPLATE ('abc')
+END;
+
+#
+#

@@ -1,0 +1,261 @@
+<div class='fossil-doc' data-title='nameserv::protocol - Name service facility'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">nameserv::protocol(n) 0.1 tcllib &quot;Name service facility&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>nameserv::protocol - Name service facility, client/server protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Nano Name Service Protocol Version 1</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Basic Layer</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Message Layer</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Nano Name Service Protocol Extension: Continuous Search</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="method">Bind</b> <i class="arg">name</i> <i class="arg">data</i></a></li>
+<li><a href="#2"><b class="method">Release</b></a></li>
+<li><a href="#3"><b class="method">Search</b> <i class="arg">pattern</i></a></li>
+<li><a href="#4"><b class="method">ProtocolVersion</b></a></li>
+<li><a href="#5"><b class="method">ProtocolFeatures</b></a></li>
+<li><a href="#6"><b class="method">Search/Continuous/Start</b> <i class="arg">tag</i> <i class="arg">pattern</i></a></li>
+<li><a href="#7"><b class="method">Search/Continuous/Stop</b> <i class="arg">tag</i></a></li>
+<li><a href="#8"><b class="method">Search/Continuous/Change</b> <i class="arg">tag</i> <b class="method">add</b>|<b class="method">remove</b> <i class="arg">response</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The packages <b class="package"><a href="nns_server.html">nameserv::server</a></b>, <b class="package"><a href="nns_client.html">nameserv</a></b>, and
+<b class="package"><a href="nns_common.html">nameserv::common</a></b> provide a simple unprotected name service
+facility for use in small trusted environments.</p>
+<p>Please read <i class="term"><a href="nns_intro.html">Name service facility, introduction</a></i> first.</p>
+<p>This document contains the specification of the network protocol which
+is used by client and server to talk to each other, enabling
+implementations of the same protocol in other languages.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Nano Name Service Protocol Version 1</a></h2>
+<p>This protocol defines the basic set of messages to be supported by a
+name service, also called the <i class="term">Core</i> feature.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Basic Layer</a></h3>
+<p>The basic communication between client and server is done using the
+remote-execution protocol specified by the Tcl package <b class="package"><a href="../comm/comm.html">comm</a></b>.
+The relevant document specifying its on-the-wire protocol can be found
+in <i class="term"><a href="../comm/comm_wire.html">comm_wire</a></i>.</p>
+<p>All the scripts exchanged via this protocol are single commands in
+list form and thus can be interpreted as plain messages instead of as
+Tcl commands. The commands/messages specified in the next section are
+the only commands understood by the server-side. Command and variable
+substitutions are not allowed within the messages, i.e. arguments have
+to be literal values.</p>
+<p>The protocol is synchronous. I.e. for each message sent a response is
+expected, and has to be generated. All messages are sent by the client.
+The server does not sent messages, only responses to messages.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Message Layer</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="method">Bind</b> <i class="arg">name</i> <i class="arg">data</i></a></dt>
+<dd><p>The client sends this message when it registers itself at the service
+with a <i class="arg">name</i> and some associated <i class="arg">data</i>. The server has to
+send an error response if the <i class="arg">name</i> is already in use. Otherwise
+the response has to be an empty string.</p>
+<p>The server has to accept multiple names for the same client.</p></dd>
+<dt><a name="2"><b class="method">Release</b></a></dt>
+<dd><p>The client sends this message to unregister all names it is known
+under at the service. The response has to be an empty string, always.</p></dd>
+<dt><a name="3"><b class="method">Search</b> <i class="arg">pattern</i></a></dt>
+<dd><p>The client sends this message to search the service for names matching
+the glob-<i class="arg">pattern</i>. The response has to be a dictionary containing
+the matching names as keys, and mapping them to the data associated
+with it at <b class="method">Bind</b>-time.</p></dd>
+<dt><a name="4"><b class="method">ProtocolVersion</b></a></dt>
+<dd><p>The client sends this message to query the service for the highest
+version of the name service protocol it supports. The response has to
+be a positive integer number.</p>
+<p>Servers supporting only <i class="term">Nano Name Service Protocol Version 1</i>
+have to return <b class="const">1</b>.</p></dd>
+<dt><a name="5"><b class="method">ProtocolFeatures</b></a></dt>
+<dd><p>The client sends this message to query the service for the features of
+the name service protocol it supports. The response has to be a
+list containing feature names.</p>
+<p>Servers supporting only <i class="term">Nano Name Service Protocol Version 1</i>
+have to return <b class="const">{Core}</b>.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Nano Name Service Protocol Extension: Continuous Search</a></h2>
+<p>This protocol defines an extended set of messages to be supported by a
+name service, also called the <i class="term">Search/Continuous</i> feature. This
+feature defines additional messages between client and server, and is
+otherwise identical to version 1 of the protocol. See the last section
+for the details of our foundation.</p>
+<p>A service supporting this feature has to put the feature name
+<b class="const">Search/Continuous</b> into the list of features returned by the
+message <i class="term">ProtocolFeatures</i>.</p>
+<p>For this extension the protocol is asynchronous. No direct response is
+expected for any of the messages in the extension. Furthermore the
+server will start sending messages on its own, instead of only
+responses to messages, and the client has to be able to handle these
+notifications.</p>
+<dl class="doctools_definitions">
+<dt><a name="6"><b class="method">Search/Continuous/Start</b> <i class="arg">tag</i> <i class="arg">pattern</i></a></dt>
+<dd><p>The client sends this message to start searching the service for names
+matching the glob-<i class="arg">pattern</i>.
+In contrast to the regular <i class="term">Search</i> request this one asks the
+server to continuously monitor the database for the addition and
+removal of matching entries and to notify the client of all such
+changes. The particular search is identified by the <i class="arg">tag</i>.</p>
+<p>No direct response is expected, rather the clients expect to be
+notified of changes via explicit <i class="term">Search/Continuous/Result</i>
+messages generated by the service.</p>
+<p>It is further expected that the <i class="arg">tag</i> information is passed
+unchanged to the <i class="term">Search/Continuous/Result</i> messages. This
+tagging of the results enables clients to start multiple searches and
+distinguish between the different results.</p></dd>
+<dt><a name="7"><b class="method">Search/Continuous/Stop</b> <i class="arg">tag</i></a></dt>
+<dd><p>The client sends this message to stop the continuous search identified
+by the <i class="arg">tag</i>.</p></dd>
+<dt><a name="8"><b class="method">Search/Continuous/Change</b> <i class="arg">tag</i> <b class="method">add</b>|<b class="method">remove</b> <i class="arg">response</i></a></dt>
+<dd><p>This message is sent by the service to clients with active continuous
+searches to transfer found changes. The first such message for a new
+continuous search has to contains the current set of matching entries.</p>
+<p>To ensure this a service has to generate an <b class="method">add</b>-message with
+an empty <i class="arg">response</i> if there were no matching entries at the time.</p>
+<p>The <i class="arg">response</i> has to be a dictionary containing the matching
+names as keys, and mapping them to the data associated with it at
+<b class="method">Bind</b>-time.
+The argument coming before the response tells the client whether the
+names in the response were added or removed from the service.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>nameserv</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../comm/comm_wire.html">comm_wire(n)</a>, <a href="nns_client.html">nameserv(n)</a>, <a href="nns_server.html">nameserv::server(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key40">comm</a>, <a href="../../../../index.html#key29">name service</a>, <a href="../../../../index.html#key133">protocol</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007-2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

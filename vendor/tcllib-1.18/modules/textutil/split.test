@@ -1,0 +1,158 @@
+# -*- tcl -*-
+# split.test:  tests for the split sub-package of the textutil package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal     split.tcl    textutil::split
+}
+
+# -------------------------------------------------------------------------
+
+test splitn-0.1 {split empty string} {
+    ::textutil::split::splitn ""
+} [list]
+
+test splitn-0.2 {split empty string with explicit lenght 1} {
+    ::textutil::split::splitn "" 1
+} [list]
+
+test splitn-0.3 {split empty string with explicit lenght 2} {
+    ::textutil::split::splitn "" 2
+} [list]
+
+test splitn-1.1 {split simple string} {
+    ::textutil::split::splitn "abc"
+} [list a b c]
+
+test splitn-1.2 {split simple string with explicit length 1} {
+    ::textutil::split::splitn "abc" 1
+} [list a b c]
+
+test splitn-1.3 {split simple string with explicit length 2} {
+    ::textutil::split::splitn "abc" 2
+} [list ab c]
+
+test splitn-2.1 {split with nonpositive lenght ->error!} {
+    catch {::textutil::split::splitn "abc" 0} msg
+    set msg
+} {len must be > 0}
+
+###################################################
+
+test splitx-0.1 {split simple string} {
+    ::textutil::split::splitx "Hello, Word"
+} [ list Hello, Word ]
+
+test splitx-0.2 {split simple string with spaces} {
+    ::textutil::split::splitx "Hello,     Word"
+} [ list Hello, Word ]
+
+test splitx-0.3 {split simple string with tabs} {
+    ::textutil::split::splitx "Hello,\tWord"
+} [ list Hello, Word ]
+
+test splitx-0.4 {split simple string with tabs and spaces ...} {
+    ::textutil::split::splitx "Hello,\t  \r   \n\n\n  \r \r \t\t  Word"
+} [ list Hello, Word ]
+
+test splitx-0.5 {split simple string with beginning and ending tabs} {
+    ::textutil::split::splitx "\t  \r   \n\Hello, \t   Word \t  \r   \n\n"
+} [ list {} Hello, Word {} ]
+
+test splitx-1.1 {split simple string with regexp} {
+    ::textutil::split::splitx "Hello,\t,\n, Word" "\[ ,\t\r\n\]+"
+} [ list Hello Word ]
+
+test splitx-1.2 {split simple string with buggy regexp} {
+    ::textutil::split::splitx "Hello, Word,\t,\n" "\[ ,\t\r\n\]"
+} [ list Hello {} Word {} {} {} {} ]
+
+test splitx-2.1 {split text} {
+    ::textutil::split::splitx "
+Determines whether the regular expression exp matches part or all of
+string and returns 1 if it does, 0 if it doesn't, unless -inline is
+specified (see below). (Regular expression matching is described in the
+re_syntax reference page.) If additional arguments are specified after
+string then they are treated as the names of variables in which to
+return information about which part(s) of string matched exp. MatchVar
+will be set to the range of string that matched all of exp. The first
+subMatchVar will contain the characters in string that matched the
+leftmost parenthesized subexpression within exp, the next subMatchVar
+will contain the characters that matched the next parenthesized
+subexpression to the right in exp , and so on.
+"
+} [ list {} Determines whether the regular expression exp matches part or all of string and returns 1 if it does, 0 if it doesn't, unless -inline is specified (see below). (Regular expression matching is described in the re_syntax reference page.) If additional arguments are specified after string then they are treated as the names of variables in which to return information about which part(s) of string matched exp. MatchVar will be set to the range of string that matched all of exp. The first subMatchVar will contain the characters in string that matched the leftmost parenthesized subexpression within exp, the next subMatchVar will contain the characters that matched the next parenthesized subexpression to the right in exp , and so on. {} ]
+
+test splitx-2.2 {split text with regexp} {
+    ::textutil::split::splitx "
+Determines whether the regular expression exp matches part or all of
+string and returns 1 if it does, 0 if it doesn't, unless -inline is
+specified (see below). (Regular expression matching is described in the
+re_syntax reference page.) If additional arguments are specified after
+string then they are treated as the names of variables in which to
+return information about which part(s) of string matched exp. MatchVar
+will be set to the range of string that matched all of exp. The first
+subMatchVar will contain the characters in string that matched the
+leftmost parenthesized subexpression within exp, the next subMatchVar
+will contain the characters that matched the next parenthesized
+subexpression to the right in exp , and so on.
+" "\[ ,()\.\t\r\n\]+"
+} [ list {} Determines whether the regular expression exp matches part or all of string and returns 1 if it does 0 if it doesn't unless -inline is specified see below Regular expression matching is described in the re_syntax reference page If additional arguments are specified after string then they are treated as the names of variables in which to return information about which part s of string matched exp MatchVar will be set to the range of string that matched all of exp The first subMatchVar will contain the characters in string that matched the leftmost parenthesized subexpression within exp the next subMatchVar will contain the characters that matched the next parenthesized subexpression to the right in exp and so on {} ]
+
+# these tests show the effect inducted by the usage of parenthesed in
+# the regexp Basically, the parenthesed operator is returned with the
+# splitted list The 3.5 and 3.6 show complex cases. Try to understand.
+
+test splitx-3.1 {split string with simple regexp} {
+    ::textutil::split::splitx "Nobody is perfect" "\[oe\]+"
+} [ list N b [ list dy is p ] rf  ct ]
+
+test splitx-3.2 {split string with the same simple regexp but parenthesed} {
+    ::textutil::split::splitx "Nobody is perfect" "(\[oe\]+)"
+} [ list N o b o [ list dy is p ] e rf e ct ]
+
+test splitx-3.3 {split string with a not so simple parenthesed regexp} {
+    ::textutil::split::splitx "Nobody is perfect" "o+|(rf)"
+} [ list N b [ list dy is pe ] rf  ect ]
+
+test splitx-3.4 {split string with a more complexe parenthesed regexp} {
+    ::textutil::split::splitx "Nobody is perfect" "\[oe\]+|(rf)"
+} [ list N b [ list dy is p ] {} rf {} ct ]
+
+test splitx-3.5 {split string with an even more complexe parenthesed regexp} {
+    ::textutil::split::splitx "Nobody is perfect" "(\[oe\]+)|(rf)"
+} [ list N o b o [ list dy is p ] e {} {} e ct ]
+
+test splitx-3.6 {split string with a totally parenthesed regexp} {
+    ::textutil::split::splitx "Nobody is perfect" "(\[oe\]+|rf)"
+} [ list N o b o [ list dy is p ] e {} rf {} e ct ]
+
+
+test splitx-4.0 {splitting of empty strings} {
+    ::textutil::split::splitx "" "f"
+} {}
+
+test splitx-4.1 {splitting of empty strings} {
+    ::textutil::split::splitx ""
+} {}
+
+test splitx-4.2 {splitting of empty strings} {
+    ::textutil::split::splitx "" ""
+} {}
+
+test splitx-5.0 {splitting using an empty regexp} {
+    ::textutil::split::splitx "fooo bar bas" ""
+} {f o o o { } b a r { } b a s}

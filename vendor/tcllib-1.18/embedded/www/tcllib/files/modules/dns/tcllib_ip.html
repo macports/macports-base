@@ -1,0 +1,472 @@
+
+<div class='fossil-doc' data-title='tcllib_ip - Domain Name Service'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tcllib_ip(n) 1.3 tcllib &quot;Domain Name Service&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tcllib_ip - IPv4 and IPv6 address manipulation</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section5">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">ip <span class="opt">?1.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::ip::version</b> <i class="arg">address</i></a></li>
+<li><a href="#2"><b class="cmd">::ip::is</b> <i class="arg">class</i> <i class="arg">address</i></a></li>
+<li><a href="#3"><b class="cmd">::ip::equal</b> <i class="arg">address</i> <i class="arg">address</i></a></li>
+<li><a href="#4"><b class="cmd">::ip::normalize</b> <i class="arg">address</i></a></li>
+<li><a href="#5"><b class="cmd">::ip::contract</b> <i class="arg">address</i></a></li>
+<li><a href="#6"><b class="cmd">::ip::distance</b> <i class="arg">ipaddr1</i> <i class="arg">ipaddr2</i></a></li>
+<li><a href="#7"><b class="cmd">::ip::nextIp</b> <i class="arg">ipaddr</i> <span class="opt">?<i class="arg">offset</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::ip::prefix</b> <i class="arg">address</i></a></li>
+<li><a href="#9"><b class="cmd">::ip::type</b> <i class="arg">address</i></a></li>
+<li><a href="#10"><b class="cmd">::ip::mask</b> <i class="arg">address</i></a></li>
+<li><a href="#11"><b class="cmd">::ip::prefixToNative</b> <i class="arg">prefix</i></a></li>
+<li><a href="#12"><b class="cmd">::ip::nativeToPrefix</b> <i class="arg">nativeList</i>|<i class="arg">native</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#13"><b class="cmd">::ip::intToString</b> <i class="arg">number</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#14"><b class="cmd">::ip::toInteger</b> <i class="arg">ipaddr</i></a></li>
+<li><a href="#15"><b class="cmd">::ip::toHex</b> <i class="arg">ipaddr</i></a></li>
+<li><a href="#16"><b class="cmd">::ip::maskToInt</b> <i class="arg">ipmask</i></a></li>
+<li><a href="#17"><b class="cmd">::ip::broadcastAddress</b> <i class="arg">prefix</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#18"><b class="cmd">::ip::maskToLength</b> <i class="arg">dottedMask</i>|<i class="arg">integerMask</i>|<i class="arg">hexMask</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#19"><b class="cmd">::ip::lengthToMask</b> <i class="arg">maskLength</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#20"><b class="cmd">::ip::nextNet</b> <i class="arg">ipaddr</i> <i class="arg">ipmask</i> <span class="opt">?<i class="arg">count</i>?</span> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#21"><b class="cmd">::ip::isOverlap</b> <i class="arg">prefix</i> <i class="arg">prefix</i>...</a></li>
+<li><a href="#22"><b class="cmd">::ip::isOverlapNative</b> <span class="opt">?<b class="option">-all</b>?</span> <span class="opt">?<b class="option">-inline</b>?</span> <span class="opt">?<b class="option">-ipv4</b>?</span> <i class="arg">hexipaddr</i> <i class="arg">hexipmask</i> <i class="arg">hexiplist</i></a></li>
+<li><a href="#23"><b class="cmd">::ip::ipToLayer2Multicast</b> <i class="arg">ipaddr</i></a></li>
+<li><a href="#24"><b class="cmd">::ip::ipHostFromPrefix</b> <i class="arg">prefix</i> <span class="opt">?<b class="option">-exclude</b> <i class="arg">prefixExcludeList</i>?</span></a></li>
+<li><a href="#25"><b class="cmd">::ip::reduceToAggregates</b> <i class="arg">prefixlist</i></a></li>
+<li><a href="#26"><b class="cmd">::ip::longestPrefixMatch</b> <i class="arg">ipaddr</i> <i class="arg">prefixlist</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></li>
+<li><a href="#27"><b class="cmd">::ip::collapse</b> <i class="arg">prefixlist</i></a></li>
+<li><a href="#28"><b class="cmd">::ip::subtract</b> <i class="arg">prefixlist</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a set of commands to help in parsing, displaying
+and comparing internet addresses. The package can handle both IPv4 (1)
+and IPv6 (2) address types.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::ip::version</b> <i class="arg">address</i></a></dt>
+<dd><p>Returns the protocol version of the address (4 or 6) or 0 if the
+address is neither IPv4 or IPv6.</p></dd>
+<dt><a name="2"><b class="cmd">::ip::is</b> <i class="arg">class</i> <i class="arg">address</i></a></dt>
+<dd><p>Returns true if the address is a member of the given protocol
+class. The class parameter may be either <i class="arg">ipv4</i> or <i class="arg">ipv6</i>
+This is effectively a boolean equivalent of the <b class="cmd">version</b>
+command. The <i class="arg">class</i> argument may be shortened to <i class="arg">4</i> or
+<i class="arg">6</i>.</p></dd>
+<dt><a name="3"><b class="cmd">::ip::equal</b> <i class="arg">address</i> <i class="arg">address</i></a></dt>
+<dd><p>Compare two address specifications for equivalence. The arguments are
+normalized and the address prefix determined (if a mask is
+supplied). The normalized addresses are then compared bit-by-bit and
+the procedure returns true if they match.</p></dd>
+<dt><a name="4"><b class="cmd">::ip::normalize</b> <i class="arg">address</i></a></dt>
+<dd><p>Convert an IPv4 or IPv6 address into a fully expanded version. There
+are various shorthand ways to write internet addresses, missing out
+redundant parts or digts.. This procedure is the opposite of
+<b class="cmd">contract</b>.</p></dd>
+<dt><a name="5"><b class="cmd">::ip::contract</b> <i class="arg">address</i></a></dt>
+<dd><p>Convert a <b class="cmd">normalize</b>d internet address into a more compact form
+suitable for displaying to users.</p></dd>
+<dt><a name="6"><b class="cmd">::ip::distance</b> <i class="arg">ipaddr1</i> <i class="arg">ipaddr2</i></a></dt>
+<dd><p>This command computes the (integer) distance from IPv4 address 
+<i class="arg">ipaddr1</i> to IPv4 address <i class="arg">ipaddr2</i>, i.e. &quot;ipaddr2 - ipaddr1&quot;</p>
+<pre class="doctools_example">
+   % ::ip::distance 1.1.1.1  1.1.1.5
+   4
+</pre>
+</dd>
+<dt><a name="7"><b class="cmd">::ip::nextIp</b> <i class="arg">ipaddr</i> <span class="opt">?<i class="arg">offset</i>?</span></a></dt>
+<dd><p>This command adds the integer <i class="arg">offset</i> to the IPv4 address <i class="arg">ipaddr</i>
+and returns the new IPv4 address.</p>
+<pre class="doctools_example">
+   % ::ip::distance 1.1.1.1  4
+   1.1.1.5
+</pre>
+</dd>
+<dt><a name="8"><b class="cmd">::ip::prefix</b> <i class="arg">address</i></a></dt>
+<dd><p>Returns the address prefix generated by masking the address part with
+the mask if provided. If there is no mask then it is equivalent to
+calling <b class="cmd">normalize</b></p></dd>
+<dt><a name="9"><b class="cmd">::ip::type</b> <i class="arg">address</i></a></dt>
+<dd></dd>
+<dt><a name="10"><b class="cmd">::ip::mask</b> <i class="arg">address</i></a></dt>
+<dd><p>If the address supplied includes a mask then this is returned
+otherwise returns an empty string.</p></dd>
+<dt><a name="11"><b class="cmd">::ip::prefixToNative</b> <i class="arg">prefix</i></a></dt>
+<dd><p>This command converts the string <i class="arg">prefix</i> from dotted form
+(&lt;ipaddr&gt;/&lt;mask&gt; format) to native (hex) form. Returns a list
+containing two elements, ipaddress and mask, in this order, in
+hexadecimal notation.</p>
+<pre class="doctools_example">
+   % ip::prefixToNative 1.1.1.0/24
+   0x01010100 0xffffff00
+</pre>
+</dd>
+<dt><a name="12"><b class="cmd">::ip::nativeToPrefix</b> <i class="arg">nativeList</i>|<i class="arg">native</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This command converts from native (hex) form to dotted form.
+It is the complement of <b class="cmd">::ip::prefixToNative</b>.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">nativeList</i> (in)</dt>
+<dd><p>List of several ip addresses in native form. The native form is a list
+as returned by <b class="cmd">::ip::prefixToNative</b>.</p></dd>
+<dt>list <i class="arg">native</i> (in)</dt>
+<dd><p>A list as returned by <b class="cmd">::ip::prefixToNative</b>.</p></dd>
+</dl>
+<p>The command returns a list of addresses in dotted form if it was
+called with a list of addresses. Otherwise a single address in dotted
+form is returned.</p>
+<pre class="doctools_example">
+   % ip::nativeToPrefix {0x01010100 0xffffff00} -ipv4
+   1.1.1.0/24
+</pre>
+</dd>
+<dt><a name="13"><b class="cmd">::ip::intToString</b> <i class="arg">number</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This command converts from an ip address specified as integer number
+to dotted form.</p>
+<pre class="doctools_example">
+       ip::intToString 4294967295
+       255.255.255.255
+</pre>
+</dd>
+<dt><a name="14"><b class="cmd">::ip::toInteger</b> <i class="arg">ipaddr</i></a></dt>
+<dd><p>This command converts a dotted form ip into an integer number.</p>
+<pre class="doctools_example">
+   % ::ip::toInteger 1.1.1.0
+   16843008
+</pre>
+</dd>
+<dt><a name="15"><b class="cmd">::ip::toHex</b> <i class="arg">ipaddr</i></a></dt>
+<dd><p>This command converts dotted form ip into a hexadecimal number.</p>
+<pre class="doctools_example">
+   % ::ip::toHex 1.1.1.0
+   0x01010100
+</pre>
+</dd>
+<dt><a name="16"><b class="cmd">::ip::maskToInt</b> <i class="arg">ipmask</i></a></dt>
+<dd><p>This command convert an ipmask in either dotted (255.255.255.0) form
+or mask length form (24) into an integer number.</p>
+<pre class="doctools_example">
+   ::ip::maskToInt 24
+   4294967040
+</pre>
+</dd>
+<dt><a name="17"><b class="cmd">::ip::broadcastAddress</b> <i class="arg">prefix</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This commands returns a broadcast address in dotted form for the given
+route <i class="arg">prefix</i>, either in the form &quot;addr/mask&quot;, or in native
+form. The result is in dotted form.</p>
+<pre class="doctools_example">
+   ::ip::broadcastAddress 1.1.1.0/24
+   1.1.1.255
+   ::ip::broadcastAddress {0x01010100 0xffffff00}
+   0x010101ff
+</pre>
+</dd>
+<dt><a name="18"><b class="cmd">::ip::maskToLength</b> <i class="arg">dottedMask</i>|<i class="arg">integerMask</i>|<i class="arg">hexMask</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This command converts the dotted or integer form of an ipmask to
+the mask length form.</p>
+<pre class="doctools_example">
+   ::ip::maskToLength 0xffffff00 -ipv4
+   24
+   % ::ip::maskToLength 255.255.255.0
+   24
+</pre>
+</dd>
+<dt><a name="19"><b class="cmd">::ip::lengthToMask</b> <i class="arg">maskLength</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This command converts an ipmask in mask length form to its dotted
+form.</p>
+<pre class="doctools_example">
+   ::ip::lengthToMask 24
+   255.255.255.0
+</pre>
+</dd>
+<dt><a name="20"><b class="cmd">::ip::nextNet</b> <i class="arg">ipaddr</i> <i class="arg">ipmask</i> <span class="opt">?<i class="arg">count</i>?</span> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This command returns an ipaddress in the same position in the
+<i class="arg">count</i> next network. The default value for <i class="arg">count</i> is
+<b class="const">1</b>.</p>
+<p>The address can be specified as either integer number or in dotted
+form. The mask can be specified as either integer number, dotted form,
+or mask length form.</p>
+<p>The result is in hex form.</p></dd>
+<dt><a name="21"><b class="cmd">::ip::isOverlap</b> <i class="arg">prefix</i> <i class="arg">prefix</i>...</a></dt>
+<dd><p>This command checks if the given ip prefixes overlap.  All arguments
+are in dotted &quot;addr/mask&quot; form. All arguments after the first prefix
+are compared against the first prefix. The result is a boolean
+value. It is true if an overlap was found for any of the prefixes.</p>
+<pre class="doctools_example">
+  % ::ip::isOverlap 1.1.1.0/24 2.1.0.1/32
+  0
+  ::ip::isOverlap 1.1.1.0/24 2.1.0.1/32 1.1.1.1/32
+  1
+</pre>
+</dd>
+<dt><a name="22"><b class="cmd">::ip::isOverlapNative</b> <span class="opt">?<b class="option">-all</b>?</span> <span class="opt">?<b class="option">-inline</b>?</span> <span class="opt">?<b class="option">-ipv4</b>?</span> <i class="arg">hexipaddr</i> <i class="arg">hexipmask</i> <i class="arg">hexiplist</i></a></dt>
+<dd><p>This command is similar to <b class="cmd">::ip::isOverlap</b>, however the
+arguments are in the native form, and the form of the result is under
+greater control of the caller.
+If the option <b class="option">-all</b> is specified it checks all addresses for
+overlap, not only until the first one is found.
+If the option <b class="option">-inline</b> is specified the command returns the
+overlapping prefix instead of index values.</p>
+<p>The result of the command is, depending on the specified options,</p>
+<dl class="doctools_definitions">
+<dt>no options</dt>
+<dd><p>The index of the first overlap found, or 0 if there is none.</p></dd>
+<dt>-all</dt>
+<dd><p>A list containing the indices of all overlaps found, or an empty list
+if there are none.</p></dd>
+<dt>-inline</dt>
+<dd><p>The first overlapping prefix, or an empoty string if there is none.</p></dd>
+<dt>-all -inline</dt>
+<dd><p>A list containing the prefixes of all overlaps found, or an empty list
+if there are none.</p></dd>
+</dl>
+<pre class="doctools_example">
+  % ::ip::isOverlapNative 0x01010100 0xffffff00 {{0x02010001 0xffffffff}}
+  0
+  % ::ip::isOverlapNative 0x01010100 0xffffff00 {{0x02010001 0xffffffff} {0x01010101 0xffffffff}}
+  2
+</pre>
+</dd>
+<dt><a name="23"><b class="cmd">::ip::ipToLayer2Multicast</b> <i class="arg">ipaddr</i></a></dt>
+<dd><p>This command an converts ipv4 address in dotted form into a layer 2
+multicast address, also in dotted form.</p>
+<pre class="doctools_example">
+  % ::ip::ipToLayer2Multicast 224.0.0.2
+  01.00.5e.00.00.02
+</pre>
+</dd>
+<dt><a name="24"><b class="cmd">::ip::ipHostFromPrefix</b> <i class="arg">prefix</i> <span class="opt">?<b class="option">-exclude</b> <i class="arg">prefixExcludeList</i>?</span></a></dt>
+<dd><p>This command returns a host address from a prefix in the form
+&quot;ipaddr/masklen&quot;, also making sure that the result is not an address
+found in the <i class="arg">prefixExcludeList</i>.
+The result is an ip address in dotted form.</p>
+<pre class="doctools_example">
+  %::ip::ipHostFromPrefix  1.1.1.5/24
+  1.1.1.1
+  %::ip::ipHostFromPrefix  1.1.1.1/32
+  1.1.1.1
+</pre>
+</dd>
+<dt><a name="25"><b class="cmd">::ip::reduceToAggregates</b> <i class="arg">prefixlist</i></a></dt>
+<dd><p>This command finds nets that overlap and filters out the more specific
+nets. The prefixes are in either addr/mask form or in native format.
+The result is a list containing the non-overlapping ip prefixes from
+the input.</p>
+<pre class="doctools_example">
+  % ::ip::reduceToAggregates {1.1.1.0/24 1.1.0.0/8  2.1.1.0/24 1.1.1.1/32 }
+  1.0.0.0/8 2.1.1.0/24
+</pre>
+</dd>
+<dt><a name="26"><b class="cmd">::ip::longestPrefixMatch</b> <i class="arg">ipaddr</i> <i class="arg">prefixlist</i> <span class="opt">?<b class="option">-ipv4</b>?</span></a></dt>
+<dd><p>This command finds longest prefix match from set of prefixes, given a
+specific host address. The prefixes in the list are in either native
+or dotted form, whereas the host address is in either ipprefix format,
+dotted form, or integer form.
+The result is the prefix which is the most specific match to the host
+address.</p>
+<pre class="doctools_example">
+  % ::ip::longestPrefixMatch 1.1.1.1 {1.1.1.0/24 1.0.0.0/8  2.1.1.0/24 1.1.1.0/28 }
+  1.1.1.0/28
+</pre>
+</dd>
+<dt><a name="27"><b class="cmd">::ip::collapse</b> <i class="arg">prefixlist</i></a></dt>
+<dd><p>This commands takes a list of prefixes and returns a list prefixes
+with the largest possible subnet masks covering the input, in this
+manner collapsing adjacent prefixes into larger ranges.</p>
+<p>This is different from <b class="cmd">::ip::reduceToAggregates</b> in that
+the latter only removes specific nets from a list when they are
+covered by other elements of the input whereas this command actively
+merges nets into larger ranges when they are adjacent to each other.</p>
+<pre class="doctools_example">
+% ::ip::collapse {1.2.2.0/24 1.2.3.0/24}
+1.2.2.0/23
+</pre>
+</dd>
+<dt><a name="28"><b class="cmd">::ip::subtract</b> <i class="arg">prefixlist</i></a></dt>
+<dd><p>This command takes a list of prefixes, some of which are prefixed by a
+dash. These latter <i class="term">negative</i> prefixes are used to punch holes
+into the ranges described by the other, <i class="term">positive</i>,
+prefixes. I.e. the negative prefixes are subtracted frrom the positive
+ones, resulting in a larger list of describes describing the covered
+ranges only as positives.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% ip::version ::1
+6
+% ip::version 127.0.0.1
+4
+</pre>
+<pre class="doctools_example">
+% ip::normalize 127/8
+127.0.0.0/8
+% ip::contract 192.168.0.0
+192.168
+%
+% ip::normalize fec0::1
+fec0:0000:0000:0000:0000:0000:0000:0001
+% ip::contract fec0:0000:0000:0000:0000:0000:0000:0001
+fec0::1
+</pre>
+<pre class="doctools_example">
+% ip::equal 192.168.0.4/16 192.168.0.0/16
+1
+% ip::equal fec0::1/10 fec0::fe01/10
+1
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>Postel, J. &quot;Internet Protocol.&quot; RFC 791,  September 1981,
+    (<a href="http://www.ietf.org/rfc/rfc791.txt">http://www.ietf.org/rfc/rfc791.txt</a>)</p></li>
+<li><p>Hinden, R. and Deering, S.,
+    &quot;Internet Protocol Version 6 (IPv6) Addressing Architecture&quot;,
+    RFC 3513, April 2003
+    (<a href="http://www.ietf.org/rfc/rfc3513.txt">http://www.ietf.org/rfc/rfc3513.txt</a>)</p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">AUTHORS</a></h2>
+<p>Pat Thoyts</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>dns</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>inet(3), ip(7), ipv6(7)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key453">internet address</a>, <a href="../../../../index.html#key450">ip</a>, <a href="../../../../index.html#key452">ipv4</a>, <a href="../../../../index.html#key449">ipv6</a>, <a href="../../../../index.html#key451">rfc 3513</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004, Pat Thoyts<br>
+Copyright &copy; 2005 Aamer Akhter &lt;aakhter@cisco.com&gt;</p>
+</div>
+</div>

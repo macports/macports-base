@@ -1,0 +1,6 @@
+023,EVAL cmd eval in list obj var,26,45,57.78
+024,EVAL cmd eval as list,23,42,54.76
+025,EVAL cmd eval as string,53,92,57.61
+026,EVAL cmd and mixed lists,3805,11276,33.74
+027,EVAL list cmd and mixed lists,3812,11325,33.66
+028,EVAL list cmd and pure lists,592,1598,37.05

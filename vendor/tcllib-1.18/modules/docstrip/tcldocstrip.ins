@@ -1,0 +1,46 @@
+% tcldocstrip.ins --- DOCSTRIP installation script for 
+% the docstrip Tcl package
+\input docstrip
+
+% Redefine the \MetaPrefix; it should be something which starts a
+% until-end-of-line comment:
+\edef\MetaPrefix{\string#\string#}
+
+
+% Redefine the file preamble and postamble; this is necessary because 
+% otherwise the old \metaPrefix is inserted at the beginning of these 
+% lines.
+\preamble
+
+In other words:
+**************************************
+* This Source is not the True Source *
+**************************************
+the true source is the file from which this one was generated.
+
+\endpreamble
+
+\postamble
+\endpostamble
+
+\askforoverwritefalse
+
+% Actually make docstrip.tcl et al.:
+\generate{
+   \file{docstrip.tcl}      {\from{tcldocstrip.dtx}{pkg}}
+   \file{docstrip_util.tcl} {\from{tcldocstrip.dtx}{utilpkg}}
+   \file{pkgIndex.tcl}      {\from{tcldocstrip.dtx}{idx}}
+   \file{docstrip.test}     {\from{tcldocstrip.dtx}{test}}
+   \file{docstrip_util.test}{\from{tcldocstrip.dtx}{utiltest}}
+   % The .test files are generated with an extra option tcllibtest 
+   % by tcldocstrip.stitch. This causes them to make use of code 
+   % that is unlikely to be present outside the tcllib test 
+   % environment.
+   \usepreamble\empty
+   \usepostamble\empty
+   \file{docstrip.man}      {\from{tcldocstrip.dtx}{man}}
+   \file{docstrip_util.man} {\from{tcldocstrip.dtx}{utilman}}
+}
+
+
+\end

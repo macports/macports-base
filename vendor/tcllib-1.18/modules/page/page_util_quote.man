@@ -1,0 +1,62 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin page_util_quote n 1.0]
+[keywords page]
+[keywords {parser generator}]
+[keywords quoting]
+[keywords {text processing}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Parser generator tools}]
+[titledesc {page character quoting utilities}]
+[category  {Page Parser Generator}]
+[require page::util::quote [opt 0.1]]
+[require snit]
+[description]
+[para]
+
+This package provides a few utility commands to convert characters
+into various forms.
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::page::util::quote::unquote] [arg char]]
+
+A character, as stored in an abstract syntax tree by a PEG processor
+(See the packages [package grammar::peg::interpreter],
+[package grammar::me], and their relations), i.e. in some quoted form,
+is converted into the equivalent Tcl character. The character is returned
+as the result of the command.
+
+[call [cmd ::page::util::quote::quote'tcl] [arg char]]
+
+This command takes a Tcl character (internal representation) and
+converts it into a string which is accepted by the Tcl parser, will
+regenerate the character in question and is 7bit ASCII. The string is
+returned as the result of this command.
+
+[call [cmd ::page::util::quote::quote'tclstr] [arg char]]
+
+This command takes a Tcl character (internal representation) and
+converts it into a string which is accepted by the Tcl parser and will
+generate a human readable representation of the character in question.
+The string is returned as the result of this command.
+
+[para]
+
+The string does not use any unprintable characters. It may use
+backslash-quoting. High UTF characters are quoted to avoid problems
+with the still prevalent ascii terminals. It is assumed that the
+string will be used in a double-quoted environment.
+
+[call [cmd ::page::util::quote::quote'tclcom] [arg char]]
+
+This command takes a Tcl character (internal representation) and
+converts it into a string which is accepted by the Tcl parser when
+used within a Tcl comment. The string is returned as the result of
+this command.
+
+[list_end]
+
+[vset CATEGORY page]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

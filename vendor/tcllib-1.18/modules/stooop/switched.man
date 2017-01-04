@@ -1,0 +1,328 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin switched n 2.2.1]
+[keywords C++]
+[keywords class]
+[keywords object]
+[keywords {object oriented}]
+[moddesc   {Simple Tcl Only Object Oriented Programming}]
+[titledesc {switch/option management.}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require switched [opt 2.2.1]]
+[description]
+[para]
+
+The [class switched] class serves as base class for user classes with
+switch / option configuration procedures. It provides facilities for
+managing options through a simple interface.
+
+[para] For example:
+
+[example {
+set vehicle [new car -length 4.5 -width 2 -power 100 -fuel diesel]
+puts "my car was running on [switched::cget $vehicle -fuel]"
+switched::configure $vehicle -power 40 -fuel electricity
+puts "but is now running on clean [switched::cget $vehicle -fuel]"
+}]
+
+[para] Of course, as you might have guessed, the [class car] class is
+derived from the [class switched] class. Let us see how it works:
+
+[example {
+class car {
+    proc car {this args} switched {$args} {
+        # car specific initialization code here
+        switched::complete $this
+    }
+    ...
+}
+}]
+
+[para] The switched class constructor takes the optional configuration
+option / value pairs as parameters.
+
+The switched class layer then completely manages the switched options:
+it checks their validity, stores their values and provides a clean
+interface to the user layer configuration setting procedures.
+
+[para] The switched class members available to the programmer are:
+
+[list_begin definitions]
+
+[comment ---------------------------------------------------------------------]
+[call [cmd <switched>] [method complete] [arg this]]
+
+This procedure is used to tell the switched layer that the derived
+class object (a car in the examples) is completely built.
+
+At that time, the initial configuration of the switched object occurs,
+using default option values (see procedure [method options])
+eventually overridden by construction time values, passed at the time
+of the [method new] operator invocation.
+
+This procedure must be called only once, usually around or at the end
+of the derived class constructor.
+
+([emph Note]: Also check the [var complete] data member later in this
+chapter).
+
+[comment ---------------------------------------------------------------------]
+[call [cmd <switched>] [method options] [arg this]]
+
+This procedure must return the configuration description for
+[emph all] options that the switched object will accept.
+
+It is a pure virtual member procedure and therefore its implementation
+is [emph mandatory] in the derived class layer.
+
+The procedure must return a list of lists.
+
+Each list pertains to a single option and is composed of the switch
+name, the default value for the option and an optional initial value.
+
+For example:
+
+[para][example {
+class car {
+    ...
+    proc options {this} {
+        return [list\
+            [list -fuel petrol petrol]\
+            [list -length {} {}]\
+            [list -power {} {}]\
+            [list -width {} {}]\
+        ]
+    }
+    proc set-fuel {this value} {
+        ...
+    }
+    ...
+}
+}]
+
+[para] In this case, 4 options are specified:
+[option fuel], [option length], [option power] and [option width].
+
+The default and initial values for the [option fuel] option are
+identical and set to [option petrol].
+
+For the other options, values are all empty.
+
+[para] For each option, there must be a corresponding
+[method set-[option option]] procedure defined in the derived class
+layer.
+
+For example, since we defined a [option fuel] option, there is a
+[method set-fuel] procedure in the car class.
+
+The parameters always are the object identifier (since this is not a
+static procedure, but rather a dynamically defined virtual one),
+followed by the new value for the option.
+
+A [method set-[option option]] procedure is only invoked if the new
+value differs from the current one (a caching scheme for improving
+performance), or if there is no initial value set in the
+[method options] procedure for that option.
+
+[para] In this procedure, if the initial value differs from the
+default value or is omitted, then initial configuration is forced and
+the corresponding [method set-[option option]] procedure is invoked by
+the switched [method complete] procedure located at the end of the
+derived class constructor.
+
+For example:
+
+[example {
+class car {
+    ...
+    proc options {this} {
+        return [list\
+            [list -fuel petrol]\
+            [list -length {} {}]\
+            [list -power 100 50]\
+            [list -width {} {}]\
+        ]
+    }
+    ...
+}
+}]
+
+In this case, configuration is forced on the [option fuel] and
+[option power] options, that is the corresponding
+
+[method set-[option option]] procedures will be invoked when the
+switched object is constructed (see [method set-[option option]]
+procedures documentation below).
+
+[para] For the [option fuel] option, since there is no initial value,
+the [method set-[option fuel]] procedure is called with the default
+value ([const petrol]) as argument.
+
+For the [option power] option, since the initial value differs from
+the default value, the [method set-[option power]] procedure is called
+with the initial value as argument ([const 50]).
+
+[para] For the other options, since the initial values (last elements
+of the option lists) are identical to their default values, the
+corresponding [method set-[option option]] procedures will not be
+invoked. It is the programmer's responsibility to insure that the
+initial option values are correct.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd <switched>] [method set-[option option]] [arg this] [arg value]]
+
+These procedures may be viewed as dynamic virtual functions.
+
+There must be one implementation per supported option, as returned by
+the [method options] procedure.
+
+For example:
+
+[example {
+class car {
+    ...
+    proc options {this} {
+        return [list\
+            ...
+            [list -width {} {}]\
+        ]
+    }
+    ...
+    proc set-width {this value} {
+        ...
+    }
+    ...
+}
+}]
+
+Since the [option -width] option was listed in the [method options]
+procedure, a [method set-width] procedure implementation is provided, which
+of course would proceed to set the width of the car (and would modify
+the looks of a graphical representation, for example).
+
+[para] As you add a supported [option option] in the list returned by
+the [method options] procedure, the corresponding
+
+[method set-[option option]] procedure may be called as soon as the
+switched object is complete, which occurs when the switched level
+[method complete] procedure is invoked.
+
+For example:
+
+[para][example {
+class car {
+    proc car {this args} switched {args} {
+        ...
+        switched::complete $this
+   }
+    ...
+    proc options {this} {
+        return [list\
+            [list -fuel petrol]\
+            [list -length 4.5]\
+            [list -power 350]\
+            [list -width 1.8]\
+        ]
+    }
+    proc set-fuel {this value} {
+        ...
+    }
+    proc set-length {this value} {
+        ...
+    }
+    proc set-power {this value} {
+        ...
+    }
+    proc set-width {this value} {
+        ...
+    }
+}
+
+new car
+}]
+
+[para] In this case, a new car is created with no options, which
+causes the car constructor to be called, which in turns calls the
+switched level [method complete] procedure after the car object layer
+is completely initialized.
+
+At this point, since there are no initial values in any option list in
+the options procedure, the [method set-fuel] procedure is called with
+its default value of [const petrol] as parameter, followed by the
+[method set-length] call with [const 4.5] value, [method set-power]
+with [const 350] value and finally with [method set-width] with
+[const 1.8] as parameter.
+
+This is a good way to test the [method set-[option option]] procedures
+when debugging, and when done, just fill-in the initial option values.
+
+[para] The switched layer checks that an option is valid (that is,
+listed in the [method options] procedure) but obviously does not check
+the validity of the value passed to the [method set-[option option]]
+procedure, which should throw an error (for example by using the Tcl
+error command) if the value is invalid.
+
+[para] The switched layer also keeps track of the options current
+values, so that a [method set-[option option]] procedure is called
+only when the corresponding option value passed as parameter is
+different from the current value (see [variable -option] data members
+description).
+
+[def [variable -option]]
+
+[para] The [variable -option] data member is an options current value.
+
+There is one for each option listed in the options procedure. It is a
+read-only value which the switched layer checks against when an option
+is changed.
+
+It is rarely used at the layer derived from switched, except in the
+few cases, such as in the following example:
+
+[para][example {
+...
+proc car::options {this} {
+    return {
+        ...
+        {-manufacturer {} {}}
+        ...
+    }
+}
+
+proc car::set-manufacturer {this value} {}
+
+proc car::printData {this} {
+    puts "manufacturer: $switched::($this,-manufacturer)"
+    ...
+}
+}]
+
+[para] In this case, the manufacturer's name is stored at the switched
+layer level (this is why the set-manufacturer procedure has nothing to
+do) and later retrieved in the printData procedure.
+
+[def [variable complete]]
+
+[para] The [variable complete] data member (not to be confused with
+the [method complete] procedure) is a boolean.
+
+Its initial value is [const false] and it is set to [const true] at
+the very end of the switched [method complete] procedure.
+
+It becomes useful when some options should be set at construction time
+only and not dynamically, as the following example shows:
+
+[para][example {
+proc car::set-width {this value} {
+    if {$switched::($this,complete)} {
+        error {option -width cannot be set dynamically}
+    }
+    ...
+}
+}]
+
+[list_end]
+
+[vset CATEGORY stooop]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

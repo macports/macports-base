@@ -1,0 +1,385 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::peg::container n 1]
+[include include/module.inc]
+[titledesc {PEG Storage}]
+[require snit]
+[require pt::peg::container [opt 1]]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a container class for parsing expression
+grammars, with each instance storing a single grammar and allowing the
+user to manipulate and query its definition.
+
+[para]
+
+It resides in the Storage section of the Core Layer of Parser Tools,
+and is one of the three pillars the management of parsing expression
+grammars resides on.
+
+[para][image arch_core_container][para]
+
+The other two pillars are, as shown above
+
+[list_begin enum]
+[enum] [manpage {PEG Import}], and
+[enum] [manpage {PEG Export}]
+[list_end]
+
+[para]
+
+Packages related to this are:
+
+[list_begin definitions]
+[def [package pt::rde]]
+
+This package provides an implementation of PARAM, a virtual machine
+for the parsing of a channel, geared towards the needs of handling
+PEGs.
+
+[def [package pt::peg::interp]]
+
+This package implements an interpreter for PEGs on top of the virtual
+machine provided by [package pt::peg::rde]
+
+[list_end]
+
+[subsection {Class API}]
+
+The package exports the API described here.
+
+[list_begin definitions]
+
+[call [cmd ::pt::peg] [arg objectName] \
+	[opt "[const =]|[const :=]|[const <--]|[const as]|[const deserialize] [arg src]"]]
+
+The command creates a new container object for a parsing expression
+grammar and returns the fully qualified name of the object command as
+its result. The API of this object command is described in the section
+[sectref {Object API}]. It may be used to invoke various operations on
+the object.
+
+[para]
+
+The new container will be empty if no [arg src] is specified. Otherwise
+it will contain a copy of the grammar contained in the [arg src].
+
+All operators except [const deserialize] interpret [arg src] as a
+container object command. The [const deserialize] operator interprets
+[arg src] as the serialization of a parsing expression grammar
+instead, as specified in section [sectref {PEG serialization format}].
+
+[para]
+
+An empty grammar has no nonterminal symbols, and the start expression
+is the empty expression, i.e. epsilon. It is [term valid], but not
+[term useful].
+
+[list_end]
+
+[subsection {Object API}]
+[para]
+
+All objects created by this package provide the following methods for
+the manipulation and querying of their contents:
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object, releasing all claimed memory, and
+deleting the associated object command.
+
+[call [arg objectName] [method clear]]
+
+This method resets the object to contain the empty grammar. It does
+[emph not] destroy the object itself.
+
+[call [arg objectName] [method importer]]
+
+This method returns the import manager object currently attached to
+the container, if any.
+
+[call [arg objectName] [method importer] [arg object]]
+
+This method attaches the [arg object] as import manager to the
+container, and returns it as the result of the command.
+
+Note that the [arg object] is [emph not] put into ownership of the
+container. I.e., destruction of the container will [emph not] destroy
+the [arg object].
+
+[para]
+
+It is expected that [arg object] provides a method named
+[method {import text}] which takes a text and a format name, and
+returns the canonical serialization of the table of contents contained in
+the text, assuming the given format.
+
+[call [arg objectName] [method exporter]]
+
+This method returns the export manager object currently attached to
+the container, if any.
+
+[call [arg objectName] [method exporter] [arg object]]
+
+This method attaches the [arg object] as export manager to the
+container, and returns it as the result of the command.
+
+Note that the [arg object] is [emph not] put into ownership of the
+container. I.e., destruction of the container will [emph not] destroy
+the [arg object].
+
+[para]
+
+It is expected that [arg object] provides a method named
+[method {export object}] which takes the container and a format name,
+and returns a text encoding table of contents stored in the container, in
+the given format. It is further expected that the [arg object] will
+use the container's method [method serialize] to obtain the
+serialization of the table of contents from which to generate the text.
+
+[call [arg objectName] [method =] [arg source]]
+
+This method assigns the contents of the PEG object [arg source] to
+ourselves, overwriting the existing definition. This is the assignment
+operator for grammars.
+
+[para]
+
+This operation is in effect equivalent to
+[para]
+[example_begin]
+    [arg objectName] [method {deserialize =}] [lb][arg source] [method serialize][rb]
+[example_end]
+
+[call [arg objectName] [method -->] [arg destination]]
+
+This method assigns our contents to the PEG object [arg destination],
+overwriting the existing definition. This is the reverse assignment
+operator for grammars.
+
+[para]
+
+This operation is in effect equivalent to
+[para]
+[example_begin]
+    [arg destination] [method {deserialize =}] [lb][arg objectName] [method serialize][rb]
+[example_end]
+
+[call [arg objectName] [method serialize] [opt [arg format]]]
+
+This method returns our grammar in some textual form usable for
+transfer, persistent storage, etc. If no [arg format] is not specified
+the returned result is the canonical serialization of the grammar, as
+specified in the section [sectref {PEG serialization format}].
+
+[para]
+
+Otherwise the object will use the attached export manager to convert
+the data to the specified format. In that case the method will fail
+with an error if the container has no export manager attached to it.
+
+[call [arg objectName] [method {deserialize =}] [arg data] [opt [arg format]]]
+
+This is the complementary method to [method serialize].
+
+It replaces the current definition with the grammar contained in the
+[arg data]. If no [arg format] was specified it is assumed to be the
+regular serialization of a grammar, as specified in the section
+[sectref {PEG serialization format}]
+
+[para]
+
+Otherwise the object will use the attached import manager to convert
+the data from the specified format to a serialization it can handle.
+In that case the method will fail with an error if the container has
+no import manager attached to it.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method {deserialize +=}] [arg data] [opt [arg format]]]
+
+This method behaves like [method {deserialize =}] in its essentials,
+except that it merges the grammar in the [arg data] to its
+contents instead of replacing it.
+
+The method will fail with an error and leave the grammar unchanged if
+merging is not possible, i.e. would produce an invalid grammar.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method start]]
+
+This method returns the current start expression of the grammar.
+
+[call [arg objectName] [method start] [arg pe]]
+
+This method defines the [term {start expression}] of the grammar. It
+replaces the current start expression with the parsing expression
+[arg pe], and returns the new start expression.
+
+[para]
+
+The method will fail with an error and leave the grammar unchanged if
+[arg pe] does not contain a valid parsing expression as specified in
+the section [sectref {PE serialization format}].
+
+[call [arg objectName] [method nonterminals]]
+
+This method returns the set of all nonterminal symbols known to the
+grammar.
+
+[call [arg objectName] [method modes]]
+
+This method returns a dictionary mapping the set of all nonterminal
+symbols known to the grammar to their semantic modes.
+
+[call [arg objectName] [method modes] [arg dict]]
+
+This method takes a dictionary mapping a set of nonterminal symbols
+known to the grammar to their semantic modes, and returns the new full
+mapping of nonterminal symbols to semantic modes.
+
+[para]
+
+The method will fail with an error if any of the nonterminal symbols
+in the dictionary is not known to the grammar, or the empty string,
+i.e. an invalid nonterminal symbol, or if any the chosen [arg mode]s
+is not one of the legal values.
+
+[call [arg objectName] [method rules]]
+
+This method returns a dictionary mapping the set of all nonterminal
+symbols known to the grammar to their parsing expressions (right-hand
+sides).
+
+[call [arg objectName] [method rules] [arg dict]]
+
+This method takes a dictionary mapping a set of nonterminal symbols
+known to the grammar to their parsing expressions (right-hand sides),
+and returns the new full mapping of nonterminal symbols to parsing
+expressions.
+
+[para]
+
+The method will fail with an error any of the nonterminal symbols in
+the dictionary is not known to the grammar, or the empty string,
+i.e. an invalid nonterminal symbol, or any of the chosen parsing
+expressions is not a valid parsing expression as specified in the
+section [sectref {PE serialization format}].
+
+[call [arg objectName] [method add] [opt [arg nt]...]]
+
+This method adds the nonterminal symbols [arg nt], etc. to the
+grammar, and defines default semantic mode and expression for it
+([const value] and [const epsilon] respectively).
+
+The method returns the empty string as its result.
+
+[para]
+
+The method will fail with an error and leaves the grammar unchanged if
+any of the nonterminal symbols are either already defined in our
+grammar, or are the empty string (an invalid nonterminal symbol).
+
+[para]
+
+The method does nothing if no symbol was specified as argument.
+
+[call [arg objectName] [method remove] [opt [arg nt]...]]
+
+This method removes the named nonterminal symbols [arg nt], etc. from
+the set of nonterminal symbols known to our grammar.
+
+The method returns the empty string as its result.
+
+[para]
+
+The method will fail with an error and leave the grammar unchanged if
+any of the nonterminal symbols is not known to the grammar, or is the
+empty string, i.e. an invalid nonterminal symbol.
+
+[call [arg objectName] [method exists] [arg nt]]
+
+This method tests whether the nonterminal symbol [arg nt] is known
+to our grammar or not.
+
+The result is a boolean value. It will be set to [const true] if
+[arg nt] is known, and [const false] otherwise.
+
+[para]
+
+The method will fail with an error if [arg nt] is the empty string,
+i.e. an invalid nonterminal symbol.
+
+[call [arg objectName] [method rename] [arg ntold] [arg ntnew]]
+
+This method renames the nonterminal symbol [arg ntold] to [arg ntnew].
+The method returns the empty string as its result.
+
+[para]
+
+The method will fail with an error and leave the grammar unchanged if
+either [arg ntold] is not known to the grammar, or [arg ntnew] is
+already known, or any of them is the empty string, i.e. an invalid
+nonterminal symbol.
+
+[call [arg objectName] [method mode] [arg nt]]
+
+This method returns the current semantic mode for the nonterminal
+symbol [arg nt].
+
+[para]
+
+The method will fail with an error if [arg nt] is not known to the
+grammar, or the empty string, i.e. an invalid nonterminal symbol.
+
+[call [arg objectName] [method mode] [arg nt] [arg mode]]
+
+This mode sets the semantic mode for the nonterminal symbol [arg nt],
+and returns the new mode.
+
+The method will fail with an error if [arg nt] is not known to the
+grammar, or the empty string, i.e. an invalid nonterminal symbol, or
+the chosen [arg mode] is not one of the legal values.
+
+[para]
+
+The following modes are legal:
+[include include/modes.inc]
+
+[call [arg objectName] [method rule] [arg nt]]
+
+This method returns the current parsing expression (right-hand side)
+for the nonterminal symbol [arg nt].
+
+[para]
+
+The method will fail with an error if [arg nt] is not known to the
+grammar, or the empty string, i.e. an invalid nonterminal symbol.
+
+[call [arg objectName] [method rule] [arg nt] [arg pe]]
+
+This method set the parsing expression (right-hand side) of the
+nonterminal [arg nt] to [arg pe], and returns the new parsing
+expression.
+
+[para]
+
+The method will fail with an error if [arg nt] is not known to the
+grammar, or the empty string, i.e. an invalid nonterminal symbol, or
+[arg pe] does not contain a valid parsing expression as specified in
+the section [sectref {PE serialization format}].
+
+[list_end]
+[para]
+
+[include include/serial/pegrammar.inc]
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

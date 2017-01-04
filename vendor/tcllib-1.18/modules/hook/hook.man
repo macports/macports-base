@@ -1,0 +1,375 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin hook n 0.1]
+[see_also uevent(n)]
+[keywords callback]
+[keywords event]
+[keywords hook]
+[keywords observer]
+[keywords producer]
+[keywords publisher]
+[keywords subject]
+[keywords subscriber]
+[keywords uevent]
+[copyright {2010, by William H. Duquette}]
+[moddesc {Hooks}]
+[titledesc  {Hooks}]
+[category  {Programming tools}]
+[require Tcl 8.5]
+[require hook [opt 0.1]]
+[description]
+[para]
+
+This package provides the [cmd hook] ensemble command, which
+implements the Subject/Observer pattern. It allows [term subjects],
+which may be [term modules], [term objects], [term widgets], and so
+forth, to synchronously call [term hooks] which may be bound to an
+arbitrary number of subscribers, called [term observers]. A subject
+may call any number of distinct hooks, and any number of observers can
+bind callbacks to a particular hook called by a particular
+subject. Hook bindings can be queried and deleted.
+
+[para]
+
+This man page is intended to be a reference only.
+
+[section Concepts]
+[subsection Introduction]
+
+Tcl modules usually send notifications to other modules in two ways:
+via Tk events, and via callback options like the text widget's
+
+[option -yscrollcommand] option. Tk events are available only in Tk,
+and callback options require tight coupling between the modules
+sending and receiving the notification.
+
+[para]
+
+Loose coupling between sender and receiver is often desirable,
+however.  In Model/View/Controller terms, a View can send a command
+(stemming from user input) to the Controller, which updates the
+Model. The Model can then call a hook [emph {to which all relevant
+Views subscribe.}] The Model is decoupled from the Views, and indeed
+need not know whether any Views actually exist.
+
+At present, Tcl/Tk has no standard mechanism for implementing loose
+coupling of this kind. This package defines a new command, [cmd hook],
+which implements just such a mechanism.
+
+[subsection Bindings]
+
+The [cmd hook] command manages a collection of hook bindings. A hook
+binding has four elements:
+
+[list_begin enumerated]
+[enum]
+A [term subject]: the name of the entity that will be calling the
+hook.
+
+[enum]
+The [term hook] itself. A hook usually reflects some occurrence in the
+life of the [term subject] that other entities might care to know
+about. A [term hook] has a name, and may also have arguments. Hook
+names are arbitrary strings. Each [term subject] must document the
+names and arguments of the hooks it can call.
+
+[enum]
+The name of the [term observer] that wishes to receive the [term hook]
+from the [term subject].
+
+[enum]
+A command prefix to which the [term hook] arguments will be appended
+when the binding is executed.
+
+[list_end]
+
+[subsection {Subjects and observers}]
+
+For convenience, this document collectively refers to subjects and
+observers as [term objects], while placing no requirements on how
+these [term objects] are actually implemented. An object can be a
+[package TclOO] or [package Snit] or [package XOTcl] object, a Tcl
+command, a namespace, a module, a pseudo-object managed by some other
+object (as tags are managed by the Tk text widget) or simply a
+well-known name.
+
+[para]
+Subject and observer names are arbitrary strings; however, as
+[cmd hook] might be used at the package level, it's necessary to have
+conventions that avoid name collisions between packages written by
+different people.
+
+[para]
+Therefore, any subject or observer name used in core or package level
+code should look like a Tcl command name, and should be defined in a
+namespace owned by the package. Consider, for example, an ensemble
+command [cmd ::foo] that creates a set of pseudo-objects and uses
+[package hook] to send notifications. The pseudo-objects have names
+that are not commands and exist in their own namespace, rather like
+file handles do. To avoid name collisions with subjects defined by
+other packages, users of [package hook], these [cmd ::foo] handles
+should have names like [const ::foo::1], [const ::foo::2], and so on.
+
+[para]
+Because object names are arbitrary strings, application code can use
+whatever additional conventions are dictated by the needs of the
+application.
+
+[section Reference]
+
+Hook provides the following commands:
+
+[list_begin definitions]
+
+[call [cmd hook] [method bind] [opt [arg subject]] [opt [arg hook]] [opt [arg observer]] [opt [arg cmdPrefix]]]
+
+This subcommand is used to create, update, delete, and query hook
+bindings.
+
+[para] Called with no arguments it returns a list of the subjects with
+hooks to which observers are currently bound.
+
+[para] Called with one argument, a [arg subject], it returns a list of
+the subject's hooks to which observers are currently bound.
+
+[para] Called with two arguments, a [arg subject] and a [arg hook], it
+returns a list of the observers which are currently bound to this
+[arg subject] and [arg hook].
+
+[para] Called with three arguments, a [arg subject], a [arg hook], and
+an [arg observer], it returns the binding proper, the command prefix
+to be called when the hook is called, or the empty string if there is
+no such binding.
+
+[para] Called with four arguments, it creates, updates, or deletes a
+binding. If [arg cmdPrefix] is the empty string, it deletes any
+existing binding for the [arg subject], [arg hook], and
+[arg observer]; nothing is returned. Otherwise, [arg cmdPrefix] must
+be a command prefix taking as many additional arguments as are
+documented for the [arg subject] and [arg hook]. The binding is added
+or updated, and the observer is returned.
+
+[para] If the [arg observer] is the empty string, "", it will create a
+new binding using an automatically generated observer name of the form
+[const ::hook::ob]<[var number]>. The automatically generated name
+will be returned, and can be used to query, update, and delete the
+binding as usual. If automated observer names are always used, the
+observer name effectively becomes a unique binding ID.
+
+[para] It is possible to call [cmd {hook bind}] to create or delete a
+binding to a [arg subject] and [arg hook] while in an observer binding
+for that same [arg subject] and [arg hook]. The following rules
+determine what happens when
+
+[example {
+    hook bind $s $h $o $binding
+}]
+
+is called during the execution of
+
+[example {
+    hook call $s $h
+}]
+
+[list_begin enumerated]
+[enum]
+No binding is ever called after it is deleted.
+
+[enum]
+When a binding is called, the most recently given command prefix is
+always used.
+
+[enum]
+The set of observers whose bindings are to be called is determined
+when this method begins to execute, and does not change thereafter,
+except that deleted bindings are not called.
+
+[list_end]
+
+In particular:
+
+[list_begin enumerated]
+[enum]
+
+If [var \$o]s binding to [var \$s] and [var \$h] is deleted, and
+[var \$o]s binding has not yet been called during this execution of
+
+[example {
+    hook call $s $h
+}]
+
+it will not be called. (Note that it might already have been called;
+and in all likelihood, it is probably deleting itself.)
+
+[enum]
+If [var \$o] changes the command prefix that's bound to [var \$s] and
+[var \$h], and if [var \$o]s binding has not yet been called during
+this execution of
+
+[example {
+    hook call $s $h
+}]
+
+the new binding will be called when the time comes. (But again, it is
+probably [var \$o]s binding that is is making the change.)
+
+[enum]
+If a new observer is bound to [var \$s] and [var \$h], its binding will
+not be called until the next invocation of
+
+[example {
+    hook call $s $h
+}]
+
+[list_end]
+
+[call [cmd hook] [method call] [arg subject] [arg hook] [opt [arg args]...]]
+
+This command is called when the named [arg subject] wishes to call the
+named [arg hook]. All relevant bindings are called with the specified
+arguments in the global namespace. Note that the bindings are called
+synchronously, before the command returns; this allows the [arg args]
+to include references to entities that will be cleaned up as soon as
+the hook has been called.
+
+[para]
+The order in which the bindings are called is not guaranteed. If
+sequence among observers must be preserved, define one observer and
+have its bindings call the other callbacks directly in the proper
+sequence.
+
+[para]
+Because the [cmd hook] mechanism is intended to support loose
+coupling, it is presumed that the [arg subject] has no knowledge of
+the observers, nor any expectation regarding return values. This has a
+number of implications:
+
+[list_begin enumerated]
+[enum]
+[cmd {hook call}] returns the empty string.
+
+[enum]
+Normal return values from observer bindings are ignored.
+
+[enum]
+Errors and other exceptional returns propagate normally by
+default. This will rarely be what is wanted, because the subjects
+usually have no knowledge of the observers and will therefore have no
+particular competence at handling their errors. That makes it an
+application issue, and so applications will usually want to define an
+[option -errorcommand].
+
+[list_end]
+
+If the [option -errorcommand] configuration option has a non-empty
+value, its value will be invoked for all errors and other exceptional
+returns in observer bindings. See [cmd {hook configure}], below, for
+more information on configuration options.
+
+[call [cmd hook] [method forget] [arg object]]
+
+This command deletes any existing bindings in which the named
+[arg object] appears as either the [term subject] or the
+[term observer].
+
+Bindings deleted by this method will never be called again. In
+particular,
+
+[list_begin enumerated]
+[enum]
+If an observer is forgotten during a call to [cmd {hook call}], any
+uncalled binding it might have had to the relevant subject and hook
+will [emph not] be called subsequently.
+
+[enum]
+If a subject [var \$s] is forgotten during a call to
+
+[example {hook call $s $h}]
+
+then [cmd {hook call}] will return as soon as the current binding
+returns.  No further bindings will be called.
+
+[list_end]
+
+[call [cmd hook] [method cget] [arg option]]
+
+This command returns the value of one of the [cmd hook] command's
+configuration options.
+
+[call [cmd hook] [method configure] [option option] [arg value] ...]
+
+This command sets the value of one or more of the [cmd hook] command's
+configuration options:
+
+[list_begin options]
+
+[opt_def -errorcommand [arg cmdPrefix]]
+If the value of this option is the empty string, "", then errors
+and other exception returns in binding scripts are propagated
+normally. Otherwise, it must be a command prefix taking three
+additional arguments:
+
+[list_begin enumerated]
+[enum] a 4-element list {subject hook arglist observer},
+[enum] the result string, and
+[enum] the return options dictionary.
+[list_end]
+
+Given this information, the [option -errorcommand] can choose to log
+the error, call [cmd {interp bgerror}], delete the errant binding
+(thus preventing the error from arising a second time) and so forth.
+
+[opt_def -tracecommand [arg cmdPrefix]]
+The option's value should be a command prefix taking four
+arguments:
+
+[list_begin enumerated]
+[enum] a [term subject],
+[enum] a [term hook],
+[enum] a list of the hook's argument values, and
+[enum] a list of [term objects] the hook was called for.
+[list_end]
+
+The command will be called for each hook that is called. This allows
+the application to trace hook execution for debugging purposes.
+
+[list_end]
+[list_end]
+
+[section Example]
+
+The [cmd ::model] module calls the <Update> hook in response to
+commands that change the model's data:
+
+[example {
+     hook call ::model <Update>
+}]
+
+The [widget .view] megawidget displays the model state, and needs to
+know about model updates. Consequently, it subscribes to the ::model's
+<Update> hook.
+
+[example {
+     hook bind ::model <Update> .view [list .view ModelUpdate]
+}]
+
+When the [cmd ::model] calls the hook, the [widget .view]s
+ModelUpdate subcommand will be called.
+
+[para]
+
+Later the [widget .view] megawidget is destroyed. In its destructor,
+it tells the [term hook] that it no longer exists:
+
+[example {
+     hook forget .view
+}]
+
+All bindings involving [widget .view] are deleted.
+
+[section Credits]
+
+Hook has been designed and implemented by William H. Duquette.
+
+[vset CATEGORY hook]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

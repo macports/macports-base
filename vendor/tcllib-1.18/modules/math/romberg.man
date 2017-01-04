@@ -1,0 +1,340 @@
+[manpage_begin math::calculus::romberg n 0.6]
+[see_also math::calculus]
+[see_also math::interpolate]
+[copyright "2004 Kevin B. Kenny <kennykb@acm.org>. All rights\
+reserved. Redistribution permitted under the terms of the Open\
+Publication License <http://www.opencontent.org/openpub/>"]
+[moddesc {Tcl Math Library}]
+[titledesc {Romberg integration}]
+[category  Mathematics]
+[require Tcl 8.2]
+[require math::calculus 0.6]
+[description]
+[para]
+The [cmd romberg] procedures in the [cmd math::calculus] package
+perform numerical integration of a function of one variable.  They
+are intended to be of "production quality" in that they are robust,
+precise, and reasonably efficient in terms of the number of function
+evaluations.
+[section "PROCEDURES"]
+
+The following procedures are available for Romberg integration:
+
+[list_begin definitions]
+[call [cmd ::math::calculus::romberg] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates an analytic function over a given interval.
+
+[call [cmd ::math::calculus::romberg_infinity] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates an analytic function over a half-infinite interval.
+
+[call [cmd ::math::calculus::romberg_sqrtSingLower] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates a function that is expected to be analytic over an interval
+except for the presence of an inverse square root singularity at the
+lower limit.
+
+[call [cmd ::math::calculus::romberg_sqrtSingUpper] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates a function that is expected to be analytic over an interval
+except for the presence of an inverse square root singularity at the
+upper limit.
+
+[call [cmd ::math::calculus::romberg_powerLawLower] [arg gamma] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates a function that is expected to be analytic over an interval
+except for the presence of a power law singularity at the
+lower limit.
+
+[call [cmd ::math::calculus::romberg_powerLawUpper] [arg gamma] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates a function that is expected to be analytic over an interval
+except for the presence of a power law singularity at the
+upper limit.
+
+[call [cmd ::math::calculus::romberg_expLower] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates an exponentially growing function; the lower limit of the
+region of integration may be arbitrarily large and negative.
+
+[call [cmd ::math::calculus::romberg_expUpper] [arg f] [arg a] [arg b] [opt [arg "-option value"]...]]
+
+Integrates an exponentially decaying function; the upper limit of the
+region of integration may be arbitrarily large.
+
+[list_end]
+
+[section PARAMETERS]
+
+[list_begin definitions]
+
+[def [arg f]]
+
+Function to integrate.  Must be expressed as a single Tcl command,
+to which will be appended a single argument, specifically, the
+abscissa at which the function is to be evaluated. The first word
+of the command will be processed with [cmd "namespace which"] in the
+caller's scope prior to any evaluation. Given this processing, the
+command may local to the calling namespace rather than needing to be
+global.
+
+[def [arg a]]
+
+Lower limit of the region of integration.
+
+[def [arg b]]
+
+Upper limit of the region of integration.  For the
+[cmd romberg_sqrtSingLower], [cmd romberg_sqrtSingUpper],
+[cmd romberg_powerLawLower], [cmd romberg_powerLawUpper],
+[cmd romberg_expLower], and [cmd romberg_expUpper] procedures,
+the lower limit must be strictly less than the upper.  For
+the other procedures, the limits may appear in either order.
+
+[def [arg gamma]]
+
+Power to use for a power law singularity; see section
+[sectref "IMPROPER INTEGRALS"] for details.
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "[option -abserror] [arg epsilon]"]
+
+Requests that the integration machinery proceed at most until
+the estimated absolute error of the integral is less than
+[arg epsilon]. The error may be seriously over- or underestimated
+if the function (or any of its derivatives) contains singularities;
+see section [sectref "IMPROPER INTEGRALS"] for details. Default
+is 1.0e-08.
+
+[def "[option -relerror] [arg epsilon]"]
+
+Requests that the integration machinery proceed at most until
+the estimated relative error of the integral is less than
+[arg epsilon]. The error may be seriously over- or underestimated
+if the function (or any of its derivatives) contains singularities;
+see section [sectref "IMPROPER INTEGRALS"] for details.  Default is
+1.0e-06.
+
+[def "[option -maxiter] [arg m]"]
+
+Requests that integration terminate after at most [arg n] triplings of
+the number of evaluations performed.  In other words, given [arg n]
+for [option -maxiter], the integration machinery will make at most
+3**[arg n] evaluations of the function.  Default is 14, corresponding
+to a limit approximately 4.8 million evaluations. (Well-behaved
+functions will seldom require more than a few hundred evaluations.)
+
+[def "[option -degree] [arg d]"]
+
+Requests that an extrapolating polynomial of degree [arg d] be used
+in Romberg integration; see section [sectref "DESCRIPTION"] for
+details. Default is 4.  Can be at most [arg m]-1.
+
+[list_end]
+
+[section DESCRIPTION]
+
+The [cmd romberg] procedure performs Romberg integration using
+the modified midpoint rule. Romberg integration is an iterative
+process.  At the first step, the function is evaluated at the
+midpoint of the region of integration, and the value is multiplied by
+the width of the interval for the coarsest possible estimate.
+At the second step, the interval is divided into three parts,
+and the function is evaluated at the midpoint of each part; the
+sum of the values is multiplied by three.  At the third step,
+nine parts are used, at the fourth twenty-seven, and so on,
+tripling the number of subdivisions at each step.
+
+[para]
+
+Once the interval has been divided at least [arg d] times,
+a polynomial is fitted to the integrals estimated in the last
+[arg d]+1 divisions.  The integrals are considered to be a
+function of the square of the width of the subintervals
+(any good numerical analysis text will discuss this process
+under "Romberg integration").  The polynomial is extrapolated
+to a step size of zero, computing a value for the integral and
+an estimate of the error.
+
+[para]
+
+This process will be well-behaved only if the function is analytic
+over the region of integration; there may be removable singularities
+at either end of the region provided that the limit of the function
+(and of all its derivatives) exists as the ends are approached.
+Thus, [cmd romberg] may be used to integrate a function like
+f(x)=sin(x)/x over an interval beginning or ending at zero.
+
+[para]
+
+Note that [cmd romberg] will either fail to converge or else return
+incorrect error estimates if the function, or any of its derivatives,
+has a singularity anywhere in the region of integration (except for
+the case mentioned above).  Care must be used, therefore, in
+integrating a function like 1/(1-x**2) to avoid the places
+where the derivative is singular.
+
+[section "IMPROPER INTEGRALS"]
+
+Romberg integration is also useful for integrating functions over
+half-infinite intervals or functions that have singularities.
+The trick is to make a change of variable to eliminate the
+singularity, and to put the singularity at one end or the other
+of the region of integration.  The [cmd math::calculus] package
+supplies a number of [cmd romberg] procedures to deal with the
+commoner cases.
+
+[list_begin definitions]
+
+[def [cmd romberg_infinity]]
+
+Integrates a function over a half-infinite interval; either
+[arg a] or [arg b] may be infinite.  [arg a] and [arg b] must be
+of the same sign; if you need to integrate across the axis,
+say, from a negative value to positive infinity,
+use [cmd romberg] to integrate from the negative
+value to a small positive value, and then [cmd romberg_infinity]
+to integrate from the positive value to positive infinity.  The
+[cmd romberg_infinity] procedure works by making the change of
+variable u=1/x, so that the integral from a to b of f(x) is
+evaluated as the integral from 1/a to 1/b of f(1/u)/u**2.
+
+[def "[cmd romberg_powerLawLower] and [cmd romberg_powerLawUpper]"]
+
+Integrate a function that has an integrable power law singularity
+at either the lower or upper bound of the region of integration
+(or has a derivative with a power law singularity there).
+These procedures take a first parameter, [arg gamma], which gives
+the power law.  The function or its first derivative are presumed to diverge as
+(x-[arg a])**(-[arg gamma]) or ([arg b]-x)**(-[arg gamma]).  [arg gamma]
+must be greater than zero and less than 1.
+
+[para]
+
+These procedures are useful not only in integrating functions
+that go to infinity at one end of the region of integration, but
+also functions whose derivatives do not exist at the end of
+the region.  For instance, integrating f(x)=pow(x,0.25) with the
+origin as one end of the region will result in the [cmd romberg]
+procedure greatly underestimating the error in the integral.
+The problem can be fixed by observing that the first derivative
+of f(x), f'(x)=x**(-3/4)/4, goes to infinity at the origin.  Integrating
+using [cmd romberg_powerLawLower] with [arg gamma] set to 0.75
+gives much more orderly convergence.
+
+[para]
+
+These procedures operate by making the change of variable
+u=(x-a)**(1-gamma) ([cmd romberg_powerLawLower]) or
+u=(b-x)**(1-gamma) ([cmd romberg_powerLawUpper]).
+
+[para]
+
+To summarize the meaning of gamma:
+
+[list_begin itemized]
+[item]
+If f(x) ~ x**(-a) (0 < a < 1), use gamma = a
+[item]
+If f'(x) ~ x**(-b) (0 < b < 1), use gamma = b
+[list_end]
+
+[def "[cmd romberg_sqrtSingLower] and [cmd romberg_sqrtSingUpper]"]
+
+These procedures behave identically to [cmd romberg_powerLawLower] and
+[cmd romberg_powerLawUpper] for the common case of [arg gamma]=0.5;
+that is, they integrate a function with an inverse square root
+singularity at one end of the interval.  They have a simpler
+implementation involving square roots rather than arbitrary powers.
+
+[def "[cmd romberg_expLower] and [cmd romberg_expUpper]"]
+
+These procedures are for integrating a function that grows or
+decreases exponentially over a half-infinite interval.
+[cmd romberg_expLower] handles exponentially growing functions, and
+allows the lower limit of integration to be an arbitrarily large
+negative number.  [cmd romberg_expUpper] handles exponentially
+decaying functions and allows the upper limit of integration to
+be an arbitrary large positive number.  The functions make the
+change of variable u=exp(-x) and u=exp(x) respectively.
+
+[list_end]
+
+[section "OTHER CHANGES OF VARIABLE"]
+
+If you need an improper integral other than the ones listed here,
+a change of variable can be written in very few lines of Tcl.
+Because the Tcl coding that does it is somewhat arcane,
+we offer a worked example here.
+
+[para]
+
+Let's say that the function that we want to integrate is
+f(x)=exp(x)/sqrt(1-x*x) (not a very natural
+function, but a good example), and we want to integrate
+it over the interval (-1,1).  The denominator falls to zero
+at both ends of the interval. We wish to make a change of variable
+from x to u
+so that dx/sqrt(1-x**2) maps to du.  Choosing x=sin(u), we can
+find that dx=cos(u)*du, and sqrt(1-x**2)=cos(u).  The integral
+from a to b of f(x) is the integral from asin(a) to asin(b)
+of f(sin(u))*cos(u).
+
+[para]
+
+We can make a function [cmd g] that accepts an arbitrary function
+[cmd f] and the parameter u, and computes this new integrand.
+
+[example {
+proc g { f u } {
+    set x [expr { sin($u) }]
+    set cmd $f; lappend cmd $x; set y [eval $cmd]
+    return [expr { $y / cos($u) }]
+}
+}]
+
+Now integrating [cmd f] from [arg a] to [arg b] is the same
+as integrating [cmd g] from [arg asin(a)] to [arg asin(b)].
+It's a little tricky to get [cmd f] consistently evaluated in
+the caller's scope; the following procedure does it.
+
+[example {
+proc romberg_sine { f a b args } {
+    set f [lreplace $f 0 0\
+               [uplevel 1 [list namespace which [lindex $f 0]]]]
+    set f [list g $f]
+    return [eval [linsert $args 0\
+                      romberg $f\
+                      [expr { asin($a) }] [expr { asin($b) }]]]
+}
+}]
+
+This [cmd romberg_sine] procedure will do any function with
+sqrt(1-x*x) in the denominator. Our sample function is
+f(x)=exp(x)/sqrt(1-x*x):
+
+[example {
+proc f { x } {
+    expr { exp($x) / sqrt( 1. - $x*$x ) }
+}
+}]
+
+Integrating it is a matter of applying [cmd romberg_sine]
+as we would any of the other [cmd romberg] procedures:
+
+[example {
+foreach { value error } [romberg_sine f -1.0 1.0] break
+puts [format "integral is %.6g +/- %.6g" $value $error]
+
+integral is 3.97746 +/- 2.3557e-010
+}]
+
+[vset CATEGORY {math :: calculus}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

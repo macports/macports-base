@@ -1,0 +1,43 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::randomseed n 1]
+[keywords /dev/random]
+[keywords merge]
+[keywords random]
+[keywords {reflected channel}]
+[keywords seed]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Utilities for random channels}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::randomseed [opt 1]]
+[description]
+[para]
+
+The [package tcl::randomseed] package provides a a few utility commands
+to help with the seeding of [package tcl::chan::random] channels.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::randomseed]]
+
+This command creates returns a list of seed integers suitable as seed
+argument for random channels. The numbers are derived from the process
+id, current time, and Tcl random number generator.
+
+[call [cmd ::tcl::combine] [arg seed1] [arg seed2]]
+
+This command takes to seed lists and combines them into a single list
+by XORing them elementwise, modulo 256. If the lists are not of equial
+length the shorter of the two is padded with 0s before merging.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

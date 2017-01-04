@@ -1,0 +1,189 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset YAML_VERSION 0.3.9]
+[manpage_begin yaml n [vset YAML_VERSION]]
+[see_also base64]
+[see_also huddle]
+[see_also json]
+[keywords {data exchange}]
+[keywords huddle]
+[keywords parsing]
+[keywords {text processing}]
+[keywords yaml]
+[copyright {2008 KATO Kanryu <kanryu6@users.sourceforge.net>}]
+[moddesc   {YAML processing}]
+[titledesc {YAML Format Encoder/Decoder}]
+[require Tcl 8.4]
+[require yaml [opt [vset YAML_VERSION]]]
+[description]
+[para]
+
+The [package yaml] package provides a simple Tcl-only library for parsing the
+YAML [uri http://www.yaml.org/] data exchange format as specified in
+[uri http://www.yaml.org/spec/1.1/].
+
+[para]
+The [package yaml] package returns
+data as a Tcl [cmd dict].  Either the [package dict] package or Tcl 8.5 is
+required for use.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::yaml::yaml2dict] [opt [arg options]] [arg txt]]
+[call [cmd ::yaml::yaml2huddle] [opt [arg options]] [arg txt]]
+
+Parse yaml formatted text [arg txt] into a Tcl dict/huddle and return the value.
+
+[list_begin options]
+[opt_def [const -file]]
+
+[arg txt] is a filename of YAML-stream.
+
+[opt_def [const -stream]]
+
+[arg txt] is just a YAML-stream.
+
+[opt_def "[const -types] [arg list]"]
+
+The [arg list] is a type list for the yaml-scalar types.(e.g. !!str !!timestamp !!integer !!true ...)
+
+[example { -types {timestamp integer null true false}}
+]
+In this case, if a string matched "timestamp", converted to the TCL internal timestamp.(e.g. "2001-12-15T02:59:43.1Z" => 1008385183)
+
+[opt_def "[const -m:true] [arg param]"]
+
+The [arg param] is two elements of list for the value of true, and considered strings.
+
+[example { -m:true {1 {true on + yes y}}}
+]
+In this case, the string "yes" found in YAML Stream, automatically converted 1.
+
+[opt_def "[const -m:false] [arg param]"]
+
+The [arg param] is two elements of list for the value of false, and considered strings.
+
+[example { -m:false {0 {false off - no n}}}
+]
+
+[opt_def "[const -m:null] [arg param]"]
+
+The [arg param] is two elements of list for the value of null, and considered strings.
+
+[example { -m:null {"" {null nil "" ~}}}
+]
+
+[opt_def [const -validate]]
+
+Experiment,old: Output stream contains YAML's-tag, each node.
+
+[example {% puts [::yaml::load -validate {[aaa, bbb]}]
+=>
+!!seq {{!!str aaa} {!!str bbb}}
+}]
+[list_end]
+
+[call [cmd ::yaml::setOption] [opt [arg options]]]
+Change implicit options for the library.
+Now, the params are the same as [cmd ::yaml::yaml2dict].
+Arguments of[cmd ::yaml::yaml2dict] is more priority than this setting.
+
+[call [cmd ::yaml::dict2yaml] [arg dict] [opt [arg indent]] [opt [arg wordwrap]]]
+[call [cmd ::yaml::list2yaml] [arg list] [opt [arg indent]] [opt [arg wordwrap]]]
+[call [cmd ::yaml::huddle2yaml] [arg huddle] [opt [arg indent]] [opt [arg wordwrap]]]
+Convert a dict/list/huddle object into YAML stream.
+
+[list_begin definitions]
+[def indent]
+spaces indent of each block node.
+currently default is 2.
+
+[def wordwrap]
+word wrap for YAML stream.
+currently default is 40.
+[list_end]
+
+[list_end]
+[para]
+
+[section EXAMPLES]
+[para]
+
+An example of a yaml stream converted to Tcl.  A yaml stream is returned as a
+single item with multiple elements.
+
+[para]
+[example {{
+--- !<tag:clarkevans.com,2002:invoice>
+invoice: 34843
+date   : 2001-01-23
+bill-to: &id001
+    given  : Chris
+    family : Dumars
+    address:
+        lines: |
+            458 Walkman Dr.
+            Suite #292
+        city    : Royal Oak
+        state   : MI
+        postal  : 48046
+ship-to: *id001
+product:
+    - sku         : BL394D
+      quantity    : 4
+      description : Basketball
+      price       : 450.00
+    - sku         : BL4438H
+      quantity    : 1
+      description : Super Hoop
+      price       : 2392.00
+tax  : 251.42
+total: 4443.52
+comments:
+    Late afternoon is best.
+    Backup contact is Nancy
+    Billsmer @ 338-4338.
+}
+=>
+invoice 34843 date 2001-01-23 bill-to {given Chris family Dumars address {lines {458 Walkman Dr.
+Suite #292
+} city {Royal Oak} state MI postal 48046}} ship-to {given Chris family Dumars address {lines {458 Walkman Dr.
+Suite #292
+} city {Royal Oak} state MI postal 48046}} product {{sku BL394D quantity 4 description Basketball price 450.00} {sku BL4438H quantity 1 description {Super Hoop} price 2392.00}} tax 251.42 total 4443.52 comments {Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.}}]
+[para]
+
+An example of a yaml object converted to Tcl.  A yaml object is returned as a
+multi-element list (a dict).
+
+[para]
+[example {{
+---
+- [name        , hr, avg  ]
+- [Mark McGwire, 65, 0.278]
+- [Sammy Sosa  , 63, 0.288]
+-
+  Mark McGwire: {hr: 65, avg: 0.278}
+  Sammy Sosa: { hr: 63, avg: 0.288}
+}
+=>
+{name hr avg} {{Mark McGwire} 65 0.278} {{Sammy Sosa} 63 0.288} {{Mark McGwire} {hr 65 avg 0.278} {Sammy Sosa} {hr 63 avg 0.288}}
+}]
+
+[section LIMITATIONS]
+
+[para]
+tag parser not implemented. currentry, tags are merely ignored.
+
+[para]
+Only Anchor => Aliases ordering. back alias-referring is not supported.
+
+[para]
+Too many braces, or too few braces.
+
+[para]
+Not enough character set of line feeds. Please use only "\n" as line breaks.
+
+[vset CATEGORY yaml]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

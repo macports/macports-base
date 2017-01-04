@@ -1,0 +1,199 @@
+[manpage_begin autoproxy n 1.5.3]
+[see_also http(n)]
+[keywords authentication]
+[keywords http]
+[keywords proxy]
+[moddesc   {HTTP protocol helper modules}]
+[titledesc {Automatic HTTP proxy usage and authentication}]
+[category  Networking]
+[require Tcl 8.2]
+[require http [opt 2.0]]
+[require autoproxy [opt 1.5.3]]
+[description]
+[para]
+
+This package attempts to automate the use of HTTP proxy servers in Tcl
+HTTP client code. It tries to initialize the web access settings from
+system standard locations and can be configured to negotiate
+authentication with the proxy if required.
+
+[para]
+
+On Unix the standard for identifying the local HTTP proxy server
+seems to be to use the environment variable http_proxy or ftp_proxy and
+no_proxy to list those domains to be excluded from proxying.
+On Windows we can retrieve the Internet Settings values from the registry
+to obtain pretty much the same information.
+With this information we can setup a suitable filter procedure for the
+Tcl http package and arrange for automatic use of the proxy.
+
+[para]
+
+There seem to be a number of ways that the http_proxy environment
+variable may be set up. Either a plain host:port or more commonly a
+URL and sometimes the URL may contain authentication parameters or
+these may be requested from the user or provided via http_proxy_user
+and http_proxy_pass. This package attempts to deal with all these
+schemes. It will do it's best to get the required parameters from the
+environment or registry and if it fails can be reconfigured.
+
+[include ../common-text/tls-security-notes.inc]
+
+[section "COMMANDS"]
+
+[list_begin definitions]
+
+[call [cmd ::autoproxy::init]]
+
+Initialize the autoproxy package from system resources. Under unix
+this means we look for environment variables. Under windows we look
+for the same environment variables but also look at the registry
+settings used by Internet Explorer.
+
+[call [cmd ::autoproxy::cget] [arg "-option"]]
+
+Retrieve individual package configuration options. See [sectref OPTIONS].
+
+[call [cmd ::autoproxy::configure] [opt "-option [arg value]"]]
+
+Configure the autoproxy package. Calling [cmd configure] with no
+options will return a list of all option names and values.
+See [sectref OPTIONS].
+
+[call [cmd ::autoproxy::tls_connect] [arg args]]
+
+Connect to a secure socket through a proxy. HTTP proxy servers permit
+the use of the CONNECT HTTP command to open a link through the proxy
+to the target machine. This function hides the details. For use with
+the http package see [cmd tls_socket].
+[para]
+The [arg args] list may contain any of the [package tls] package options but
+must end with the host and port as the last two items.
+
+[call [cmd ::autoproxy::tunnel_connect] [arg args]]
+
+Connect to a target host throught a proxy. This uses the same CONNECT
+HTTP command as the [cmd tls_connect] but does not promote the link
+security once the connection is established.
+[para]
+The [arg args] list may contain any of the [package tls] package options but
+must end with the host and port as the last two items.
+[para]
+Note that many proxy servers will permit CONNECT calls to a limited
+set of ports - typically only port 443 (the secure HTTP port).
+
+[call [cmd ::autoproxy::tls_socket] [arg args]]
+
+This function is to be used to register a proxy-aware secure socket
+handler for the https protocol. It may only be used with the Tcl http
+package and should be registered using the http::register command (see
+the examples below). The job of actually creating the tunnelled
+connection is done by the tls_connect command and this may be used
+when not registering with the http package.
+
+[list_end]
+
+[section {OPTIONS}]
+
+[list_begin options]
+
+[opt_def -host hostname]
+[opt_def -proxy_host hostname]
+Set the proxy hostname. This is normally set up by [cmd init] but may
+be configured here as well.
+
+[opt_def -port number]
+[opt_def -proxy_port number]
+Set the proxy port number. This is normally set up by [cmd init].
+e.g. [cmd configure] [option -port] [arg 3128]
+
+[opt_def -no_proxy list]
+You may manipulate the [option no_proxy] list that was setup by
+[cmd init]. The value of this option is a tcl list of
+strings that are matched against the http request host using the tcl
+[cmd "string match"] command. Therefore glob patterns are permitted.
+For instance, [cmd configure] [option -no_proxy] [arg "*.localdomain"]
+
+[opt_def -authProc procedure]
+This option may be used to set an application defined procedure to be
+called when [cmd configure] [option -basic] is called with either no or
+insufficient authentication details. This can be used to present a
+dialog to the user to request the additional information.
+
+[opt_def -basic]
+Following options are for configuring the Basic authentication
+scheme parameters. See [sectref "Basic Authentication"].
+
+[list_end]
+
+[section "Basic Authentication"]
+
+Basic is the simplest and most commonly use HTTP proxy authentication
+scheme. It is described in (1 section 11) and also in (2). It offers
+no privacy whatsoever and its use should be discouraged in favour of
+more secure alternatives like Digest. To perform Basic authentication
+the client base64 encodes the username and plaintext password
+separated by a colon. This encoded text is prefixed with the word
+"Basic" and a space.
+
+[para]
+
+The following options exists for this scheme:
+[list_begin options]
+[opt_def "-username" "name"]
+The username required to authenticate with the configured proxy.
+[opt_def "-password" "password"]
+The password required for the username specified.
+[opt_def "-realm" "realm"]
+This option is not used.
+[list_end]
+
+[section "EXAMPLES"]
+
+[para]
+[example {
+package require autoproxy
+autoproxy::init
+autoproxy::configure -basic -username ME -password SEKRET
+set tok [http::geturl http://wiki.tcl.tk/]
+http::data $tok
+}]
+
+[example {
+package require http
+package require tls
+package require autoproxy
+autoproxy::init
+http::register https 443 autoproxy::tls_socket
+set tok [http::geturl https://www.example.com/]
+}]
+
+[section {REFERENCES}]
+
+[list_begin enumerated]
+
+[enum]
+      Berners-Lee, T., Fielding R. and Frystyk, H.
+      "Hypertext Transfer Protocol -- HTTP/1.0",
+      RFC 1945, May 1996,
+      ([uri http://www.rfc-editor.org/rfc/rfc1945.txt])
+
+[enum]
+      Franks, J. et al.
+      "HTTP Authentication: Basic and Digest Access Authentication",
+      RFC 2617, June 1999
+      ([uri http://www.rfc-editor.org/rfc/rfc2617.txt])
+
+[list_end]
+
+[section {BUGS}]
+
+At this time only Basic authentication (1) (2) is supported. It is
+planned to add support for Digest (2) and NTLM in the future.
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY {http :: autoproxy}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

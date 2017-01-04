@@ -1,0 +1,53 @@
+
+    validate -- Validate modules and packages
+
+    sak validate            ?-v? ?-l|--log STEM? ?MODULE ...?
+    sak validate manpages   ?-v? ?-l|--log STEM? ?MODULE ...?
+    sak validate versions   ?-v? ?-l|--log STEM? ?MODULE ...?
+    sak validate testsuites ?-v? ?-l|--log STEM? ?MODULE ...?
+    sak validate syntax     ?-v? ?-l|--log STEM? ?MODULE ...?
+
+    	Validate one or more aspects of the specified modules and the
+    	packages they contain. If no module is specified all modules
+    	are validated. If no aspect was specified all possible aspects
+    	are validated.
+
+        By default the output from a validation run is animated
+        feedback of the progress made, plus summarized color-coded
+        results. If -v is specified the actual log is returned
+        instead.
+
+        If a log STEM is specified the extended log normally activated
+        via -v is written to STEM.log while the user is provided with
+        the regular feedback during execution. Usage of the -l switch
+        overides -v.
+
+	The system is currently able to validate the following aspects
+	of the module and package sources:
+
+	manpages
+		Reports modules/packages without documentation, and
+		modules/packages which have syntactically flawed
+		documentation. The second part is identical to
+
+			sak doc validate
+			
+	versions
+		Reports modules and packages with mismatches between
+		'package ifneeded' and 'package provided' commands.
+
+	testsuites
+		Report modules and packages without testsuites.
+
+		Note that this command is _not_ actually executing the
+		testsuites. That is done via
+
+			sak test run ...
+
+		See its documentation (sak help test) for more
+		information.
+
+	syntax
+		Scan modules and packages using various tools
+		statically checking Tcl syntax, and report their
+		outputs.

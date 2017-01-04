@@ -1,0 +1,233 @@
+
+<html><head>
+<title>rc4 - RC4 Stream Cipher</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'rc4.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2003, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;
+   -->
+<! -- rc4.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">rc4(n) 1.1.0 tcllib &quot;RC4 Stream Cipher&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>rc4 - Implementation of the RC4 stream cipher</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">PROGRAMMING INTERFACE</a></li>
+<li class="doctools_section"><a href="#section4">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section5">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">rc4 <span class="opt">?1.1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::rc4::rc4</b> <span class="opt">?<i class="arg">-hex</i>?</span> <i class="arg">-key keyvalue</i> <span class="opt">?<i class="arg">-command lst</i>?</span> <span class="opt">?<i class="arg">-out channel</i>?</span> [ <i class="arg">-in channel</i> | <i class="arg">-infile filename</i> | <i class="arg">string</i> ]</a></li>
+<li><a href="#2"><b class="cmd">::rc4::RC4Init</b> <i class="arg">keydata</i></a></li>
+<li><a href="#3"><b class="cmd">::rc4::RC4</b> <i class="arg">Key</i> <i class="arg">data</i></a></li>
+<li><a href="#4"><b class="cmd">::rc4::RC4Final</b> <i class="arg">Key</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package is an implementation in Tcl of the RC4 stream cipher
+developed by Ron Rivest of RSA Data Security Inc. The cipher was a
+trade secret of RSA but was reverse-engineered and published to the
+internet in 1994. It is used in a number of network protocols for
+securing communications. To evade trademark restrictions this cipher
+is sometimes known as ARCFOUR.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::rc4::rc4</b> <span class="opt">?<i class="arg">-hex</i>?</span> <i class="arg">-key keyvalue</i> <span class="opt">?<i class="arg">-command lst</i>?</span> <span class="opt">?<i class="arg">-out channel</i>?</span> [ <i class="arg">-in channel</i> | <i class="arg">-infile filename</i> | <i class="arg">string</i> ]</a></dt>
+<dd><p>Perform the RC4 algorithm on either the data provided by the argument
+or on the data read from the <i class="arg">-in</i> channel. If an <i class="arg">-out</i>
+channel is given then the result will be written to this channel.
+Giving the <i class="arg">-hex</i> option will return a hexadecimal encoded
+version of the result if not using an <i class="arg">-out</i> channel.</p>
+<p>The data to be processes can be specified either as a string argument to
+the rc4 command, or as a filename or a pre-opened channel. If the
+<i class="arg">-infile</i> argument is given then the file is opened, the data read
+and processed and the file is closed. If the <i class="arg">-in</i> argument is
+given then data is read from the channel until the end of file. The
+channel is not closed. If the <i class="arg">-out</i> argument is given then the
+processing result is written to this channel.</p>
+<p>If <i class="arg">-command</i> is provided then the rc4 command does not return
+anything. Instead the command provided is called with the rc4 result data
+appended as the final parameter. This is most useful when reading from Tcl
+channels as a fileevent is setup on the channel and the data processed in
+chunks</p>
+<p>Only one of <i class="arg">-infile</i>, <i class="arg">-in</i> or <i class="arg">string</i> should be given.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PROGRAMMING INTERFACE</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">::rc4::RC4Init</b> <i class="arg">keydata</i></a></dt>
+<dd><p>Initialize a new RC4 key. The <i class="arg">keydata</i> is any amount of binary
+data and is used to initialize the cipher internal state.</p></dd>
+<dt><a name="3"><b class="cmd">::rc4::RC4</b> <i class="arg">Key</i> <i class="arg">data</i></a></dt>
+<dd><p>Encrypt or decrypt the input data using the key obtained by calling
+<b class="cmd">RC4Init</b>.</p></dd>
+<dt><a name="4"><b class="cmd">::rc4::RC4Final</b> <i class="arg">Key</i></a></dt>
+<dd><p>This should be called to clean up resources associated with
+<i class="arg">Key</i>. Once this function has been called the key is destroyed.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% set keydata [binary format H* 0123456789abcdef]
+% rc4::rc4 -hex -key $keydata HelloWorld
+3cf1ae8b7f1c670b612f
+% rc4::rc4 -hex -key $keydata [binary format H* 3cf1ae8b7f1c670b612f]
+HelloWorld
+</pre>
+<pre class="doctools_example">
+ set Key [rc4::RC4Init &quot;key data&quot;]
+ append ciphertext [rc4::RC4 $Key $plaintext]
+ append ciphertext [rc4::RC4 $Key $additional_plaintext]
+ rc4::RC4Final $Key
+</pre>
+<pre class="doctools_example">
+ proc ::Finish {myState data} {
+     DoStuffWith $myState $data
+ }
+ rc4::rc4 -in $socket -command [list ::Finish $ApplicationState]
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">AUTHORS</a></h2>
+<p>Pat Thoyts</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>rc4</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../aes/aes.html">aes(n)</a>, <a href="../blowfish/blowfish.html">blowfish(n)</a>, <a href="../des/des.html">des(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key125">arcfour</a>, <a href="../../../../index.html#key124">data integrity</a>, <a href="../../../../index.html#key127">encryption</a>, <a href="../../../../index.html#key123">rc4</a>, <a href="../../../../index.html#key122">security</a>, <a href="../../../../index.html#key126">stream cipher</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Hashes, checksums, and encryption</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2003, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,371 @@
+# -*- tcl -*-
+# Testsuite for pt::pe.
+# Called by the ../pe_structure.test driver file.
+
+test pt-pe-1.0 {verify, wrong#args} -body {
+    pt::pe verify
+} -returnCodes error -result {wrong # args: should be "pt::pe verify serial ?canonvar?"}
+
+test pt-pe-1.1 {verify, wrong#args} -body {
+    pt::pe verify PE PFX XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe verify serial ?canonvar?"}
+
+test pt-pe-2.0 {print, wrong#args} -body {
+    pt::pe print
+} -returnCodes error -result {wrong # args: should be "pt::pe print serial"}
+
+test pt-pe-2.1 {print, wrong#args} -body {
+    pt::pe print PE XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe print serial"}
+
+test pt-pe-5.1 {equal, wrong#args} -body {
+    pt::pe equal
+} -returnCodes error -result {wrong # args: should be "pt::pe equal seriala serialb"}
+
+test pt-pe-5.2 {equal, wrong#args} -body {
+    pt::pe equal PE
+} -returnCodes error -result {wrong # args: should be "pt::pe equal seriala serialb"}
+
+test pt-pe-5.3 {equal, wrong#args} -body {
+    pt::pe equal PE PEB XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe equal seriala serialb"}
+
+# -------------------------------------------------------------------------
+# Various bad serials. Mainly testing the arity checks.
+set n 0
+
+# Non-arity errors
+foreach {badserial expected} {
+    {}			{got empty string}
+    {x {t A} {}}	{got empty string}
+    {foo}		{invalid operator "foo"}
+} {
+    test pt-pe-6.$n "pt::pe verify, error" -body {
+	pt::pe verify $badserial
+    } -returnCodes error -result "error in serialization: $expected"
+    incr n
+}
+
+# Arity 0/0
+foreach {op} {
+    epsilon  
+    alpha    
+    alnum    
+    ascii    
+    digit    
+    graph    
+    lower    
+    print    
+    punct    
+    space    
+    upper    
+    wordchar 
+    xdigit   
+    ddigit   
+    dot      
+} {
+    test pt-pe-6.$n "pt::pe verify, arity 0/0 error, $op" -body {
+	pt::pe verify [list $op xxx]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+}
+
+# Arity 1/1
+foreach {op} {
+    n
+    t
+    &
+    !
+    *
+    +
+    ?
+} {
+    test pt-pe-6.$n "pt::pe verify, arity 1/1 error, $op" -body {
+	pt::pe verify [list $op]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+    test pt-pe-6.$n "pt::pe verify, arity 1/1 error, $op" -body {
+	pt::pe verify [list $op xxx yyy]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+}
+
+# Arity 2/2
+foreach {op} {
+    ..
+} {
+    test pt-pe-6.$n "pt::pe verify, arity 2/2 error, $op" -body {
+	pt::pe verify [list $op]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+    test pt-pe-6.$n "pt::pe verify, arity 2/2 error, $op" -body {
+	pt::pe verify [list $op xxx]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+    test pt-pe-6.$n "pt::pe verify, arity 2/2 error, $op" -body {
+	pt::pe verify [list $op xxx yyy zzz]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+}
+
+# Arity 1/oo
+foreach {op} {
+    x /
+} {
+    test pt-pe-6.$n "pt::pe verify, arity 1/oo error, $op" -body {
+	pt::pe verify [list $op]
+    } -returnCodes error -result "error in serialization: wrong#args for \"$op\""
+    incr n
+}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok pe_serial pe_serial-print -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-pe-7.$n "pt::pe verify, $label, ok :- $input" -body {
+	pt::pe verify $data
+    } -result {}
+
+    test pt-pe-7.$n "pt::pe verify, $label, ok :- $input" -body {
+	pt::pe verify $data IGNORED
+    } -result {}
+}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok pe_serial pe_serial-print -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-pe-8.$n "pt::pe print, $label :- $input" -body {
+	pt::pe print $data
+    } -result $expected
+}
+
+#----------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok pe_serial pe_serial-tddump -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-pe-11.$n "pt::pe topdown, $label :- $input" -setup {
+	proc DUMP {pe args} { global res ; lappend res $pe }
+	set res {}
+    } -body {
+	pt::pe topdown DUMP $data
+	join $res \n
+    } -cleanup {
+	rename DUMP {}
+	unset res
+    } -result $expected
+}
+
+#----------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok pe_serial pe_serial-budump -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-pe-12.$n "pt::pe bottomup, $label :- $input" -setup {
+	proc DUMP {pe args} { global res ; lappend res $pe ; return $pe }
+	set res {}
+    } -body {
+	pt::pe bottomup DUMP $data
+	join $res \n
+    } -cleanup {
+	rename DUMP {}
+	unset res
+    } -result $expected
+}
+
+#----------------------------------------------------------------------
+
+test pt-pe-13.0 {equal, yes} -body {
+    pt::pe equal {n X} {n X}
+} -result 1
+
+test pt-pe-13.1 {equal, nested, yes} -body {
+    pt::pe equal {x {n X}} {x {n X}}
+} -result 1
+
+test pt-pe-13.2 {equal, no} -body {
+    pt::pe equal {t a} {n X}
+} -result 0
+
+test pt-pe-13.3 {equal, nested, no} -body {
+    pt::pe equal {x {t a}} {x {n X}}
+} -result 0
+
+test pt-pe-13.4 {equal, nested, no} -body {
+    pt::pe equal {x {n X}} {x {n X} {t a}}
+} -result 0
+
+# -------------------------------------------------------------------------
+
+test pt-pe-14.0 {verify-as-canonical, wrong#args} -body {
+    pt::pe verify-as-canonical
+} -returnCodes error -result {wrong # args: should be "pt::pe verify-as-canonical serial"}
+
+test pt-pe-14.1 {verify-as-canonical, wrong#args} -body {
+    pt::pe verify-as-canonical PE XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe verify-as-canonical serial"}
+
+test pt-pe-15.0 {canonicalize, wrong#args} -body {
+    pt::pe canonicalize
+} -returnCodes error -result {wrong # args: should be "pt::pe canonicalize serial"}
+
+test pt-pe-15.1 {canonicalize, wrong#args} -body {
+    pt::pe canonicalize PE XXX
+} -returnCodes error -result {wrong # args: should be "pt::pe canonicalize serial"}
+
+#----------------------------------------------------------------------
+
+test pt-pe-16.0 {verify-as-canonical, ok} -body {
+    pt::pe verify-as-canonical {x {n X} {t a}}
+} -result {}
+
+test pt-pe-16.1 {verify-as-canonical, ok} -body {
+    pt::pe verify-as-canonical {x {/ {n F} {.. a z}} {t a}}
+} -result {}
+
+test pt-pe-16.2 {verify-as-canonical, bad} -body {
+    pt::pe verify-as-canonical {x {n X } {t a}}
+} -returnCodes error -result {error in serialization: has irrelevant whitespace or (.. X X)}
+
+test pt-pe-16.3 {verify-as-canonical, bad} -body {
+    pt::pe verify-as-canonical {x {n 
+X } {t a}}
+} -returnCodes error -result {error in serialization: has irrelevant whitespace or (.. X X)}
+
+test pt-pe-16.4 {verify-as-canonical, bad} -body {
+    pt::pe verify-as-canonical {
+	x
+	{
+	    /
+	    {n F}
+	    {.. a z}
+	}
+	{t a}
+    }
+} -returnCodes error -result {error in serialization: has irrelevant whitespace or (.. X X)}
+
+test pt-pe-16.5 {verify-as-canonical, bad} -body {
+    pt::pe verify-as-canonical {x {.. X X} {t a}}
+} -returnCodes error -result {error in serialization: has irrelevant whitespace or (.. X X)}
+
+#----------------------------------------------------------------------
+
+test pt-pe-17.0 {canonicalize} -body {
+    pt::pe canonicalize {x {n X} {t a}}
+} -result {x {n X} {t a}}
+
+test pt-pe-17.1 {canonicalize} -body {
+    pt::pe canonicalize {x {/ {n F} {.. a z}} {t a}}
+} -result {x {/ {n F} {.. a z}} {t a}}
+
+test pt-pe-17.2 {canonicalize} -body {
+    pt::pe canonicalize {x {n X } {t a}}
+} -result {x {n X} {t a}}
+
+test pt-pe-17.3 {canonicalize} -body {
+    pt::pe canonicalize {x {n 
+X } {t a}}
+} -result {x {n X} {t a}}
+
+test pt-pe-17.4 {canonicalize} -body {
+    pt::pe canonicalize {
+	x
+	{
+	    /
+	    {n F}
+	    {.. a z}
+	}
+	{t a}
+    }
+} -result {x {/ {n F} {.. a z}} {t a}}
+
+test pt-pe-17.5 {canonicalize} -body {
+    pt::pe canonicalize {x {.. X X} {t a}}
+} -result {x {t X} {t a}}
+
+#----------------------------------------------------------------------
+
+test pt-pe-18.0 {equal} -body {
+    pt::pe equal \
+	{x {n X} {t a}} \
+	{x {n X} {t a}}
+} -result 1
+
+test pt-pe-18.1 {equal} -body {
+    pt::pe equal \
+	{x {/ {n F} {.. a z}} {t a}} \
+	{x {/ {n F} {.. a z}} {t a}}
+} -result 1
+
+test pt-pe-18.2 {equal} -body {
+    pt::pe equal \
+	{x {n X } {t a}} \
+	{x {n X} {t a}}
+} -result 1
+
+test pt-pe-18.3 {equal} -body {
+    pt::pe equal \
+	{x {n X} {t a}} \
+	{x {n 
+X } {t a}}
+} -result 1
+
+test pt-pe-18.4 {equal} -body {
+    pt::pe equal \
+	{x {/ {n F} {.. a z}} {t a}} \
+	{
+	x
+	{
+	    /
+	    {n F}
+	    {.. a z}
+	}
+	{t a}
+    }
+} -result 1
+
+test pt-pe-18.5 {equal} -body {
+    pt::pe equal \
+	{x {n X} {t a}} \
+	{x {n X} {t -}}
+} -result 0
+
+test pt-pe-18.6 {equal} -body {
+    pt::pe equal \
+	{x {/ {n F} {.. a z}} {t a}} \
+	{x {/ {n F} {.. a d}} {t a}}
+} -result 0
+
+test pt-pe-18.7 {equal} -body {
+    pt::pe equal \
+	{x {n X } {t a}} \
+	{x {n Z} {t a}}
+} -result 0
+
+test pt-pe-18.8 {equal} -body {
+    pt::pe equal \
+	{x {n X} {t a}} \
+	{/ {n 
+X } {t a}}
+} -result 0
+
+test pt-pe-18.9 {equal} -body {
+    pt::pe equal \
+	{x {/ {n F} {.. a z}} {t a}} \
+	{
+	x
+	{
+	    /
+	    {* {n F}}
+	    {.. a z}
+	}
+	{t a}
+    }
+} -result 0
+
+#----------------------------------------------------------------------
+
+unset n badserial expected label input data

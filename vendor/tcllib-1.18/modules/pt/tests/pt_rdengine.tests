@@ -1,0 +1,1978 @@
+# -*- tcl -*-
+# Testsuite for pt::rde
+# Called by the ../pt_rdengine.test driver file.
+
+# -------------------------------------------------------------------------
+
+::tcltest::testConstraint rde_critcl [string equal $rdeimpl critcl]
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-0.1 {rde errors} -setup {
+    pt::rde myrde
+} -body {
+    pt::rde myrde
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result {command "::myrde" already exists}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-0.2 {rde errors} -setup {
+    pt::rde myrde
+} -body {
+    myrde foo
+} -cleanup {
+    myrde destroy
+} -returnCodes error \
+    -match glob \
+    -result [take \
+		 {unknown subcommand "foo": namespace ::pt::rde_tcl::Snit_inst* does not export any commands} \
+		 {bad option "foo": must be amarked, ast, asts, chan, complete, current, data, destroy, emarked, error, lmarked, location, ok, reset, scached, symbols, tokens, value, i:fail_continue, i:fail_return, i:ok_continue, i:ok_return, i_status_fail, i_status_negate, i_status_ok, i_error_clear, i_error_nonterminal, i_error_pop_merge, i_error_push, i:fail_loc_pop_rewind, i_loc_pop_discard, i_loc_pop_rewind/discard, i_loc_pop_rewind, i_loc_push, i:fail_ast_pop_rewind, i_ast_pop_discard, i_ast_pop_discard/rewind, i_ast_pop_rewind/discard, i_ast_pop_rewind, i_ast_push, i:ok_ast_value_push, i_symbol_restore, i_symbol_save, i_value_clear/leaf, i_value_clear, i_value_clear/reduce, i_input_next, i_test_alnum, i_test_alpha, i_test_ascii, i_test_char, i_test_control, i_test_ddigit, i_test_digit, i_test_graph, i_test_lower, i_test_print, i_test_punct, i_test_range, i_test_space, i_test_upper, i_test_wordchar, i_test_xdigit, i:ok_ast_pop_discard, i_ast_rewind, i:ok_loc_pop_discard, i_loc_rewind, i_error_clear_push, si:void_state_push, si:value_state_push, si:void_state_merge, si:value_state_merge, si:voidvoid_branch, si:voidvalue_branch, si:valuevoid_branch, si:valuevalue_branch, si:voidvoid_part, si:voidvalue_part, si:valuevalue_part, si:next_char, si:next_range, si:next_alnum, si:next_alpha, si:next_ascii, si:next_control, si:next_ddigit, si:next_digit, si:next_graph, si:next_lower, si:next_print, si:next_punct, si:next_space, si:next_upper, si:next_wordchar, si:next_xdigit, si:void2_state_push, si:void_state_merge_ok, si:value_notahead_start, si:void_notahead_exit, si:value_notahead_exit, si:kleene_abort, si:kleene_close, si:value_symbol_start, si:value_void_symbol_start, si:void_symbol_start, si:void_void_symbol_start, si:reduce_symbol_end, si:void_leaf_symbol_end, si:value_leaf_symbol_end, si:value_clear_symbol_end, si:void_clear_symbol_end, si:next_str, or si:next_class}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-0.3 {rde errors} -body {
+    pt::rde set
+} -returnCodes error -result {command "::set" already exists}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-1.1 {rde creation} -body {
+    set foo [pt::rde myrde]
+    set cmd [info commands ::myrde]
+    list $foo $cmd
+} -cleanup {
+    myrde destroy
+    unset foo cmd
+} -result {::myrde ::myrde}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-1.2 {rde creation} -body {
+    set foo [pt::rde]
+    set cmd [info commands ::$foo]
+    list $foo $cmd
+} -cleanup {
+    $foo destroy
+    unset foo cmd
+} -match glob -result {::rde* ::rde*}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-1.3 {rde creation, base state} -setup {
+    pt::rde myrde
+} -body {
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-2.1 {rde destroy} {
+    pt::rde myrde
+    myrde destroy
+    info commands ::myrde
+} {}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-2.0 {data, preloading TC, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde data
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitWrongNumArgs myrde data {data} 0]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-2.1 {data, preloading TC, ok} -setup {
+    pt::rde myrde
+} -body {
+    myrde data HELLO\nWORLD
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {HELLO
+WORLD}
+    NC {}
+    AR {}
+    AS {}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.0 {control flow, on ok continue, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:ok_continue XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:ok_continue {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.1 {control flow, on ok continue, no} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:ok_continue
+} -cleanup {
+    myrde destroy
+} -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.2 {control flow, on ok continue, yes} -setup {
+    pt::rde myrde
+    myrde i_status_ok
+} -body {
+    myrde i:ok_continue
+} -cleanup {
+    myrde destroy
+} -returnCodes continue -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.3 {control flow, on fail continue, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:fail_continue XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:fail_continue {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.4 {control flow, on fail continue, yes} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:fail_continue
+} -cleanup {
+    myrde destroy
+} -returnCodes continue -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.5 {control flow, on fail continue, no} -setup {
+    pt::rde myrde
+    myrde i_status_ok
+} -body {
+    myrde i:fail_continue
+} -cleanup {
+    myrde destroy
+} -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.6 {control flow, on ok return, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:ok_return XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:ok_return {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.7 {control flow, on ok return, no} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:ok_return
+} -cleanup {
+    myrde destroy
+} -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.8 {control flow, on ok return, yes} -setup {
+    pt::rde myrde
+    myrde i_status_ok
+} -body {
+    myrde i:ok_return
+} -cleanup {
+    myrde destroy
+} -returnCodes return -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.9 {control flow, on fail return, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:fail_return XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:fail_return {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.10 {control flow, on fail return, yes} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:fail_return
+} -cleanup {
+    myrde destroy
+} -returnCodes return -result {}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-3.11 {control flow, on fail return, no} -setup {
+    pt::rde myrde
+    myrde i_status_ok
+} -body {
+    myrde i:fail_return
+} -cleanup {
+    myrde destroy
+} -result {}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.0 {i_status, ok, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_status_ok XX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_status_ok {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.1 {i_status, ok} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_status_ok
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.2 {i_status, fail, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_status_fail XX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_status_fail {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.3 {i_status, fail} -setup {
+    pt::rde myrde
+    myrde i_status_ok
+} -body {
+    myrde i_status_fail
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.3 {i_status, negate, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_status_negate XX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_status_negate {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.4 {i_status, negate fail} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_status_negate
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-4.4 {i_status, negate ok} -setup {
+    pt::rde myrde
+    myrde i_status_ok
+} -body {
+    myrde i_status_negate
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.0 {i_error, clear, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_clear XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_error_clear {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.1 {i_error, clear, ok} -setup {
+    pt::rde myrde
+    myrde data H
+    myrde i_input_next {t X}
+    myrde i_test_char X
+} -body {
+    myrde i_error_clear
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC H
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.2 {i_error, push, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_push XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_error_push {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.3 {i_error, push, no error} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {{}}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.4 {i_error, push, some error} -setup {
+    pt::rde myrde
+    myrde data H
+    myrde i_input_next {t X}
+    myrde i_test_char X
+} -body {
+    myrde i_error_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {0 {{t X}}}
+    ES {{0 {{t X}}}}
+    TC H
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.4 {i_error, push, some and none error} -setup {
+    pt::rde myrde
+    myrde data H
+    myrde i_input_next {t X}
+    myrde i_test_char X
+} -body {
+    myrde i_error_push
+    myrde i_error_clear
+    myrde i_error_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {{0 {{t X}}} {}}
+    TC H
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.5 {i_error, pop & merge, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_pop_merge XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_error_pop_merge {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.6 {i_error, pop & merge, last/current = some/none} -setup {
+    pt::rde myrde
+    myrde data H
+    myrde i_input_next {t X}
+    myrde i_test_char X
+    myrde i_error_push  ; # old error = something |
+    myrde i_error_clear ; # current   = nothing   | Take old error
+} -body {
+    myrde i_error_pop_merge
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {0 {{t X}}}
+    ES {}
+    TC H
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.7 {i_error, pop & merge, last/current = none/some} -setup {
+    pt::rde myrde
+    myrde i_error_push  ; # old error = nothing
+    myrde data H
+    myrde i_input_next {t X}
+    myrde i_test_char X ; # current   = something   | Take current error
+} -body {
+    myrde i_error_pop_merge
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {0 {{t X}}}
+    ES {}
+    TC H
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.8 {i_error, pop & merge, last/current = far/near} -setup {
+    pt::rde myrde              ; # CL
+    myrde data HE              ; # -1
+    myrde i_input_next {t X}   ; #  0
+    myrde i_test_char X        ; # -1
+    myrde i_error_push         ; # -1 old error @ 0
+    myrde i_input_next {t X}   ; #  0
+    myrde i_input_next {t Y}   ; #  1
+    myrde i_test_char Y        ; #  0 current error @ 1 | Take current
+} -body {
+    myrde i_error_pop_merge
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 0
+    LS {}
+    ST fail
+    SV {}
+    ER {1 {{t Y}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.9 {i_error, pop & merge, last/current = near/far} -setup {
+    pt::rde myrde              ; # CL
+    myrde data HE              ; # -1
+    myrde i_input_next {t X}   ; #  0
+    myrde i_input_next {t Y}   ; #  1
+    myrde i_test_char Y        ; #  0 old error     @ 1 |
+    myrde i_error_push         ; #  0
+    myrde i_test_char X        ; # -1 current error @ 0 | Take old
+} -body {
+    myrde i_error_pop_merge
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {1 {{t Y}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.10 {i_error, pop & merge, last/current = same location} -setup {
+    pt::rde myrde              ; # CL
+    myrde data HE              ; # -1
+    myrde i_input_next {t X}   ; #  0
+    myrde i_test_char X        ; # -1
+    myrde i_error_push         ; # -1 old error     @ 0
+    myrde i_input_next {t Y}   ; #  0
+    myrde i_test_char Y        ; # -1 current error @ 0 | Merge messages
+} -body {
+    myrde i_error_pop_merge
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {0 {{t X} {t Y}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.12 {i_error, nonterminal, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_nonterminal
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitWrongNumArgs myrde i_error_nonterminal {symbol} 0]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.13 {i_error, nonterminal, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_nonterminal XXX YYY
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_error_nonterminal {symbol}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.14 {i_error, nonterminal, no error, nothing} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_error_nonterminal X
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.14 {i_error, nonterminal, error, different location} -setup {
+    pt::rde myrde
+
+    myrde data HE              ; # -1
+    myrde i_loc_push
+    myrde i_input_next {t X}   ; #  0
+    myrde i_input_next {t Y}   ; #  1
+    myrde i_test_char Y        ; #  0 current error @ 1
+} -body {
+    myrde i_error_nonterminal X
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 0
+    LS -1
+    ST fail
+    SV {}
+    ER {1 {{t Y}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-5.15 {i_error, nonterminal, error, same location} -setup {
+    pt::rde myrde
+
+    myrde data HE              ; # -1
+    myrde i_loc_push
+    myrde i_input_next {t X}   ; #  0
+    myrde i_test_char Y        ; # -1 current error @ 0
+} -body {
+    myrde i_error_nonterminal X
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC H
+    CL -1
+    LS -1
+    ST fail
+    SV {}
+    ER {0 {{t Y}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.0 {i_loc, push, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_loc_push XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_loc_push {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.1 {i_loc, push} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_loc_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS -1
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.2 {i_loc, push, multiple} -setup {
+    pt::rde myrde
+    myrde data HE
+} -body {
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS {-1 1}
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.3 {i_loc, pop & rewind, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_loc_pop_rewind XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_loc_pop_rewind {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.4 {i_loc, pop & rewind} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_test_char X
+} -body {
+    myrde i_loc_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS -1
+    ST fail
+    SV {}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.5 {i_loc, pop & discard, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_loc_pop_discard XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_loc_pop_discard {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.6 {i_loc, pop & discard} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_test_char X
+} -body {
+    myrde i_loc_pop_discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 0
+    LS -1
+    ST fail
+    SV {}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.7 {i_loc, on fail pop & rewind, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:fail_loc_pop_rewind XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:fail_loc_pop_rewind {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.8 {i_loc, on fail pop & rewind, yes} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_test_char X
+} -body {
+    myrde i:fail_loc_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS -1
+    ST fail
+    SV {}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.9 {i_loc, on fail pop & rewind, no} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_test_char X
+    myrde i_status_ok
+} -body {
+    myrde i:fail_loc_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 0
+    LS {-1 1}
+    ST ok
+    SV {}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.10 {i_loc, pop, rewind or discard, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_loc_pop_rewind/discard XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_loc_pop_rewind/discard {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.11 {i_loc, pop rewind or discard, fail = rewind} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_test_char X
+} -body {
+    myrde i_loc_pop_rewind/discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS -1
+    ST fail
+    SV {}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-6.12 {i_loc, pop, rewind or discard, ok = discard} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_test_char X
+    myrde i_status_ok
+} -body {
+    myrde i_loc_pop_rewind/discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 0
+    LS -1
+    ST ok
+    SV {}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.0 {i_ast, on ok value push, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:ok_ast_value_push XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:ok_ast_value_push {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.1 {i_ast, on ok value push, yes} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+} -body {
+    myrde i:ok_ast_value_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.2 {i_ast, on ok value push, no} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_status_fail
+} -body {
+    myrde i:ok_ast_value_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST fail
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.3 {i_ast, push, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_ast_push XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_ast_push {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.4 {i_ast, push} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_ast_push
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS 0}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.5 {i_ast, pop & rewind, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_ast_pop_rewind XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_ast_pop_rewind {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.6 {i_ast, pop & rewind, nothing} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+} -body {
+    myrde i_ast_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.7 {i_ast, pop & rewind, some} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+} -body {
+    myrde i_ast_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.8 {i_ast, pop & discard, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_ast_pop_discard XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_ast_pop_discard {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.9 {i_ast, pop & discard, nothing} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+} -body {
+    myrde i_ast_pop_discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.10 {i_ast, pop & discard, some} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+} -body {
+    myrde i_ast_pop_discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.11 {i_ast, on fail pop & rewind, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i:fail_ast_pop_rewind XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i:fail_ast_pop_rewind {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.12 {i_ast, on fail pop & rewind, fail, nothing} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+} -body {
+    myrde i:fail_ast_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.13 {i_ast, on fail pop & rewind, fail, some} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+    myrde i_status_fail
+} -body {
+    myrde i:fail_ast_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST fail
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.14 {i_ast, on fail pop & rewind, ok, nothing} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+    myrde i_status_ok
+} -body {
+    myrde i:fail_ast_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS 0}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.15 {i_ast, on fail pop & rewind, ok, some} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+    myrde i_status_ok
+} -body {
+    myrde i:fail_ast_pop_rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS 0}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.16 {i_ast, pop, rewind or discard, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_ast_pop_rewind/discard XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_ast_pop_rewind/discard {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.17 {i_ast, pop, rewind or discard, nothing, fail = rewind} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+} -body {
+    myrde i_ast_pop_rewind/discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.18 {i_ast, pop, rewind or discard, some, fail = rewind} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+    myrde i_status_fail
+} -body {
+    myrde i_ast_pop_rewind/discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST fail
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.19 {i_ast, pop, rewind or discard, nothing, ok = discard} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+    myrde i_status_ok
+} -body {
+    myrde i_ast_pop_rewind/discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.20 {i_ast, pop, rewind or discard, some, ok = discard} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+} -body {
+    myrde i_ast_pop_rewind/discard
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.21 {i_ast, pop, discard or rewind, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_ast_pop_discard/rewind XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_ast_pop_discard/rewind {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.22 {i_ast, pop, discard or rewind, nothing, fail = discard} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+} -body {
+    myrde i_ast_pop_discard/rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.23 {i_ast, pop, discard or rewind, some, fail = discard} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+    myrde i_status_fail
+} -body {
+    myrde i_ast_pop_discard/rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST fail
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.24 {i_ast, pop, discard or rewind, nothing, ok = rewind} -setup {
+    pt::rde myrde
+    myrde i_ast_push
+    myrde i_status_ok
+} -body {
+    myrde i_ast_pop_discard/rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-7.25 {i_ast, pop, discard or rewind, some, ok = rewind} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+} -body {
+    myrde i_ast_pop_discard/rewind
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.0 {i_symbol, save, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_symbol_save
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitWrongNumArgs myrde i_symbol_save {symbol} 0]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.1 {i_symbol, save, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_symbol_save XXX YYY
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_symbol_save {symbol}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.2 {i_symbol, save, new entry} -setup {
+    pt::rde myrde
+    myrde i_loc_push
+} -body {
+    myrde i_symbol_save SYMBOL
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS -1
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {{-1 SYMBOL} {-1 0 {} {}}}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.3 {i_symbol, save, overwrite entry} -setup {
+    pt::rde myrde
+    myrde i_loc_push
+    myrde i_symbol_save SYMBOL
+} -body {
+    myrde i_symbol_save SYMBOL
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS -1
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {{-1 SYMBOL} {-1 0 {} {}}}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.4 {i_symbol, restore, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_symbol_restore
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitWrongNumArgs myrde i_symbol_restore {symbol} 0]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.5 {i_symbol, restore, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_symbol_restore XXX YYY
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_symbol_restore {symbol}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.6 {i_symbol, restore, found} -setup {
+    pt::rde myrde
+    myrde i_loc_push
+    myrde i_symbol_save SYMBOL
+    myrde i_status_ok
+    myrde i_loc_push
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_test_char X
+    myrde i_status_ok
+    myrde i_loc_pop_discard
+    myrde i_loc_pop_rewind
+} -body {
+    list \
+	[myrde i_symbol_restore SYMBOL] \
+	[rde_state myrde]
+} -cleanup {
+    myrde destroy
+} -result {1 {
+    IN {}
+    CC E
+    CL -1
+    LS -1
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC HE
+    NC {{-1 SYMBOL} {-1 0 {} {}}}
+    AR {}
+    AS {}}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-8.7 {i_symbol, restore, not found} -setup {
+    pt::rde myrde
+    myrde i_loc_push
+    myrde i_symbol_save SYMBOL
+    myrde i_status_ok
+    myrde i_loc_push
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_test_char X
+    myrde i_status_ok
+    myrde i_loc_pop_discard
+    myrde i_loc_pop_rewind
+} -body {
+    list \
+	[myrde i_symbol_restore DUMMY] \
+	[rde_state myrde]
+} -cleanup {
+    myrde destroy
+} -result {0 {
+    IN {}
+    CC E
+    CL -1
+    LS -1
+    ST ok
+    SV {SYM 1 1}
+    ER {1 {{t X}}}
+    ES {}
+    TC HE
+    NC {{-1 SYMBOL} {-1 0 {} {}}}
+    AR {}
+    AS {}}}
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.0 {i_value, clear, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_value_clear XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_value_clear {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.1 {i_value, clear, basic} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_value_clear
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC {}
+    CL -1
+    LS {}
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC {}
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.2 {i_value, clear, set SV, then clear} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_value_clear/leaf SYM
+} -body {
+    myrde i_value_clear
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.3 {i_value, clear or leaf, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_value_clear/leaf
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitWrongNumArgs myrde i_value_clear/leaf {symbol} 0]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.4 {i_value, clear or leaf, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_value_clear/leaf XXX YYY
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_value_clear/leaf {symbol}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.5 {i_value, clear or leaf, ok = leaf} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+} -body {
+    myrde i_value_clear/leaf SYM
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {SYM 1 1}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.6 {i_value, clear or leaf, fail = clear} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_fail
+} -body {
+    myrde i_value_clear/leaf SYM
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {}
+    AS {}}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.7 {i_value, clear or reduce, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_value_clear/reduce
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitWrongNumArgs myrde i_value_clear/reduce {symbol} 0]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.8 {i_value, clear or reduce, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde i_value_clear/reduce XXX ZZZ
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde i_value_clear/reduce {symbol}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.9 {i_value, clear or reduce, ok = reduce} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+} -body {
+    myrde i_value_clear/reduce UP
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST ok
+    SV {UP 1 1 {SYM 1 1}}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS 0}
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-9.10 {i_value, clear or reduce, fail = clear} -setup {
+    pt::rde myrde
+    myrde data HE
+    myrde i_input_next .
+    myrde i_loc_push
+    myrde i_input_next .
+    myrde i_status_ok
+    myrde i_value_clear/leaf SYM
+    myrde i_ast_push
+    myrde i:ok_ast_value_push
+    myrde i_status_fail
+} -body {
+    myrde i_value_clear/reduce UP
+    rde_state myrde
+} -cleanup {
+    myrde destroy
+} -result {
+    IN {}
+    CC E
+    CL 1
+    LS 0
+    ST fail
+    SV {}
+    ER {}
+    ES {}
+    TC HE
+    NC {}
+    AR {{SYM 1 1}}
+    AS 0}
+
+#----------------------------------------------------------------------
+
+# TODO :: tests for all i_test_ instructions. / serial number 27+
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-10.0 {chan, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde chan XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde chan {}]
+
+# 11.0, 12.0 removed
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-13.0 {current, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde current XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde current {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-14.0 {location, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde location XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde location {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-15.0 {lmarked, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde lmarked XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde lmarked {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-16.0 {ok, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde ok XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde ok {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-17.0 {value, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde value XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde value {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-18.0 {error, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde error XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde error {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-19.0 {emarked, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde emarked XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde emarked {}]
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-20.0 {tokens, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde tokens XXX YYY ZZZ
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde tokens {?from? ?to?}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-20.1 {tokens, specific location} -setup {
+    pt::rde myrde
+    myrde data HELLO
+} -body {
+    myrde tokens 1
+} -cleanup {
+    myrde destroy
+} -result E
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-20.2 {tokens, range} -setup {
+    pt::rde myrde
+    myrde data HELLO
+} -body {
+    myrde tokens 2 4
+} -cleanup {
+    myrde destroy
+} -result LLO
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-20.3 {tokens, all} -setup {
+    pt::rde myrde
+    myrde data HELLO
+} -body {
+    myrde tokens
+} -cleanup {
+    myrde destroy
+} -result HELLO
+
+#----------------------------------------------------------------------
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-21.0 {symbols, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde symbols XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde symbols {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-22.0 {scached, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde scached XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde scached {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-23.0 {asts, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde asts XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde asts {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-24.0 {amarked, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde amarked XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde amarked {}]
+
+test pt-rdengine-rde:${rdeimpl}-stack:${stkimpl}-25.0 {ast, wrong args} -setup {
+    pt::rde myrde
+} -body {
+    myrde ast XXX
+} -cleanup {
+    myrde destroy
+} -returnCodes error -result [snitTooManyArgs myrde ast {}]
+
+#----------------------------------------------------------------------
+return

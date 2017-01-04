@@ -1,0 +1,391 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_final.test,v 1.6 2009/10/27 21:17:23 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-final-${setimpl}-1.0 {final states, error} {
+    grammar::fa a
+    catch {a finalstates x} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodfinalstates type selfns win self"}
+
+
+test fa-final-${setimpl}-1.1 {final query, error} {
+    grammar::fa a
+    catch {a final?} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodfinal? type selfns win self s"}
+
+
+test fa-final-${setimpl}-1.2 {final query, error} {
+    grammar::fa a
+    catch {a final? x y} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodfinal? type selfns win self s"}
+
+
+test fa-final-${setimpl}-1.3 {final query, error} {
+    grammar::fa a
+    catch {a final? x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-final-${setimpl}-1.4 {final query set, error} {
+    grammar::fa a
+    catch {a final?set} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodfinal?set type selfns win self states"}
+
+
+test fa-final-${setimpl}-1.5 {final query set, error} {
+    grammar::fa a
+    catch {a final?set x y} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodfinal?set type selfns win self states"}
+
+
+test fa-final-${setimpl}-1.6 {final query set, error} {
+    grammar::fa a
+    catch {a final?set x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-final-${setimpl}-1.7 {final query set, error} {
+    grammar::fa a
+    a state add x
+    catch {a final?set {x y}} res
+    a destroy
+    set res
+} {Illegal state "y"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-final-${setimpl}-2.0 {final, error} {
+    grammar::fa a
+    catch {a final} res
+    a destroy
+    set res
+} {wrong number args: should be "::a final method args"}
+# [tcltest::wrongNumArgs {::a final method} {args} 0]
+
+
+test fa-final-${setimpl}-2.1 {final, error} {
+    grammar::fa a
+    catch {a final foo} res
+    a destroy
+    set res
+} {"::a final foo" is not defined}
+
+
+test fa-final-${setimpl}-2.2 {final, error} {
+    grammar::fa a
+    catch {a final add} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs {::grammar::fa::Snit_hmethodfinal_add} {type selfns win self state args} 0]
+# [snitWrongNumArgs a {final add} {state args} 0]
+# {wrong # args: should be "::grammar::fa::Snit_hmethodfinal_add type selfns win self state args"}
+
+
+test fa-final-${setimpl}-2.3 {final, error} {
+    grammar::fa a
+    catch {a final add x y} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-final-${setimpl}-2.4 {final, error} {
+    grammar::fa a
+    catch {a final add x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-final-${setimpl}-2.5 {final states} {
+    grammar::fa a
+    catch {a final remove} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs {::grammar::fa::Snit_hmethodfinal_remove} {type selfns win self state args} 0]
+# {wrong # args: should be "::grammar::fa::Snit_hmethodfinal_remove type selfns win self state args"}
+
+
+test fa-final-${setimpl}-2.6 {final states} {
+    grammar::fa a
+    catch {a final remove x y} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-final-${setimpl}-2.7 {final states} {
+    grammar::fa a
+    catch {a final remove x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-final-${setimpl}-2.8 {final states} {
+    grammar::fa a
+    catch {a final set} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_hmethodfinal_set type selfns win self states"}
+
+
+test fa-final-${setimpl}-2.9 {final states} {
+    grammar::fa a
+    a state add x
+    catch {a final set {x y}} res
+    a destroy
+    set res
+} {Illegal state "y"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-final-${setimpl}-3.0 {final states, empty fa} {
+    grammar::fa a
+    set res [a finalstates]
+    a destroy
+    set res
+} {}
+
+
+test fa-final-${setimpl}-3.1 {final states, plain state} {
+    grammar::fa a
+    a state add x
+    set res [a finalstates]
+    a destroy
+    set res
+} {}
+
+
+test fa-final-${setimpl}-3.2 {final states, state addition} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set res [a finalstates]
+    a destroy
+    set res
+} x
+
+
+test fa-final-${setimpl}-3.3 {final states, state addition} {
+    grammar::fa a
+    a state add x y
+    a final add x y
+    set res [lsort [a finalstates]]
+    a destroy
+    set res
+} {x y}
+
+
+test fa-final-${setimpl}-3.4 {final states, state addition, and remova;} {
+    grammar::fa a
+    a state add x y
+    a final add x y
+    set     res {}
+    lappend res [a finalstates]
+    a final remove y
+    lappend res [a finalstates]
+    a final remove x
+    lappend res [a finalstates]
+    a destroy
+    set res
+} {{x y} x {}}
+
+
+test fa-final-${setimpl}-3.5 {final states, state addition, and remova;} {
+    grammar::fa a
+    a state add x y
+    a final add x y
+    set     res {}
+    lappend res [a finalstates]
+    a state delete y
+    lappend res [a finalstates]
+    a state delete x
+    lappend res [a finalstates]
+    a destroy
+    set res
+} {{x y} x {}}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-final-${setimpl}-4.0 {final?} {
+    grammar::fa a
+    a state add x
+    set res [a final? x]
+    a destroy
+    set res
+} 0
+
+
+test fa-final-${setimpl}-4.1 {final?} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set res [a final? x]
+    a destroy
+    set res
+} 1
+
+
+test fa-final-${setimpl}-4.2 {final?} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set     res [a final? x]
+    a final remove x
+    lappend res [a final? x]
+    a destroy
+    set res
+} {1 0}
+
+
+test fa-final-${setimpl}-4.3 {final?} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set     res [a final? x]
+    a state delete x
+    catch {a final? x} msg
+    lappend res $msg
+    a destroy
+    set res
+} {1 {Illegal state "x"}}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-final-${setimpl}-5.0 {final?set} {
+    grammar::fa a
+    a state add x
+    set res [a final?set x]
+    a destroy
+    set res
+} 0
+
+
+test fa-final-${setimpl}-5.1 {final?set} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set res [a final?set x]
+    a destroy
+    set res
+} 1
+
+
+test fa-final-${setimpl}-5.2 {final?set} {
+    grammar::fa a
+    set res {}
+    a state add x
+    a final add x
+    lappend res [a final?set x]
+    a final remove x
+    lappend res [a final?set x]
+    a destroy
+    set res
+} {1 0}
+
+
+test fa-final-${setimpl}-5.3 {final?set} {
+    grammar::fa a
+    set res {}
+    a state add x y
+    a final add x
+    lappend res [a final?set y]
+    lappend res [a final?set {x y}]
+    a destroy
+    set res
+} {0 1}
+
+
+test fa-final-${setimpl}-5.4 {final?set} {
+    grammar::fa a
+    a state add x
+    set     res {}
+    lappend res [a final?  x]
+    lappend res [a final remove x]
+    lappend res [a final?  x]
+    a destroy
+    set res
+} {0 {} 0}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+test fa-final-${setimpl}-6.0 {final clear} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set     res {}
+    lappend res [a finalstates]
+    a final clear
+    lappend res [a finalstates]
+    a destroy
+    set res
+} {x {}}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-final-${setimpl}-7.0 {final set} {
+    grammar::fa a
+    a state add x
+    a final set x
+    set res [a finalstates]
+    a destroy
+    set res
+} x
+
+
+test fa-final-${setimpl}-7.1 {final set} {
+    grammar::fa a
+    a state add x y
+    a final set {x y}
+    set res [lsort [a finalstates]]
+    a destroy
+    set res
+} {x y}
+
+
+test fa-final-${setimpl}-7.2 {final set} {
+    grammar::fa a
+    set res {}
+    a state add x y z
+    a final add z
+    lappend res [a finalstates]
+    a final set {x y}
+    lappend res [lsort [a finalstates]]
+    a destroy
+    set res
+} {z {x y}}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

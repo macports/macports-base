@@ -1,0 +1,216 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin simulation::random n 0.1]
+[keywords math]
+[keywords {random numbers}]
+[keywords simulation]
+[keywords {statistical distribution}]
+[copyright {2004 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Tcl Simulation Tools}]
+[titledesc {Pseudo-random number generators}]
+[category  Mathematics]
+[require Tcl [opt 8.4]]
+[require simulation::random 0.1]
+
+[description]
+[para]
+This package consists of commands to generate pseudo-random number
+generators. These new commands deliver
+
+[list_begin itemized]
+[item]
+numbers that are distributed normally, uniformly, according to a
+Pareto or Gumbel distribution and so on
+[item]
+coordinates of points uniformly spread inside a sphere or a rectangle
+[list_end]
+
+For example:
+[example {
+    set p [::simulation::random::prng_Normal -1.0 10.0]
+}]
+produces a new command (whose name is stored in the variable "p") that
+generates normally distributed numbers with a mean of -1.0 and a
+standard deviation of 10.0.
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures for [emph discrete]
+distributions:
+
+[list_begin definitions]
+
+[call [cmd ::simulation::random::prng_Bernoulli] [arg p]]
+
+Create a command (PRNG) that generates numbers with a Bernoulli
+distribution: the value is either 1 or 0, with a chance p to be 1
+
+[list_begin arguments]
+[arg_def float p] Chance the outcome is 1
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Discrete] [arg n]]
+
+Create a command (PRNG) that generates numbers 0 to n-1 with equal
+probability.
+
+[list_begin arguments]
+[arg_def int n] Number of different values (ranging from 0 to n-1)
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Poisson] [arg lambda]]
+
+Create a command (PRNG) that generates numbers according to the Poisson
+distribution.
+
+[list_begin arguments]
+[arg_def float lambda] Mean number per time interval
+[list_end]
+
+[list_end]
+
+The package defines the following public procedures for [emph continuous] distributions:
+
+[list_begin definitions]
+
+[call [cmd ::simulation::random::prng_Uniform] [arg min ] [arg max]]
+
+Create a command (PRNG) that generates uniformly distributed numbers
+between "min" and "max".
+
+[list_begin arguments]
+[arg_def float min] Minimum number that will be generated
+[arg_def float max] Maximum number that will be generated
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Exponential] [arg min] [arg mean]]
+
+Create a command (PRNG) that generates exponentially distributed numbers
+with a given minimum value and a given mean value.
+
+[list_begin arguments]
+[arg_def float min] Minimum number that will be generated
+[arg_def float mean] Mean value for the numbers
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Normal] [arg mean] [arg stdev]]
+
+Create a command (PRNG) that generates normally distributed numbers
+with a given mean value and a given standard deviation.
+
+[list_begin arguments]
+[arg_def float mean] Mean value for the numbers
+[arg_def float stdev] Standard deviation
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Pareto] [arg min] [arg steep]]
+
+Create a command (PRNG) that generates numbers distributed according to
+Pareto with a given minimum value and a given distribution steepness.
+
+[list_begin arguments]
+[arg_def float min] Minimum number that will be generated
+[arg_def float steep] Steepness of the distribution
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Gumbel] [arg min] [arg f]]
+
+Create a command (PRNG) that generates numbers distributed according to
+Gumbel with a given minimum value and a given scale factor. The
+probability density function is:
+[example {
+     P(v) = exp( -exp(f*(v-min)))
+}]
+
+[list_begin arguments]
+[arg_def float min] Minimum number that will be generated
+[arg_def float f] Scale factor for the values
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_chiSquared] [arg df]]
+
+Create a command (PRNG) that generates numbers distributed according to
+the chi-squared distribution with df degrees of freedom. The mean is 0
+and the standard deviation is 1.
+
+[list_begin arguments]
+[arg_def float df] Degrees of freedom
+[list_end]
+
+[list_end]
+
+The package defines the following public procedures for random point sets:
+
+[list_begin definitions]
+
+[call [cmd ::simulation::random::prng_Disk] [arg rad]]
+
+Create a command (PRNG) that generates (x,y)-coordinates for points
+uniformly spread over a disk of given radius.
+
+[list_begin arguments]
+[arg_def float rad] Radius of the disk
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Sphere] [arg rad]]
+
+Create a command (PRNG) that generates (x,y,z)-coordinates for points
+uniformly spread over the surface of a sphere of given radius.
+
+[list_begin arguments]
+[arg_def float rad] Radius of the disk
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Ball] [arg rad]]
+
+Create a command (PRNG) that generates (x,y,z)-coordinates for points
+uniformly spread within a ball of given radius.
+
+[list_begin arguments]
+[arg_def float rad] Radius of the ball
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Rectangle] [arg length] [arg width]]
+
+Create a command (PRNG) that generates (x,y)-coordinates for points
+uniformly spread over a rectangle.
+
+[list_begin arguments]
+[arg_def float length] Length of the rectangle (x-direction)
+[arg_def float width] Width of the rectangle (y-direction)
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::random::prng_Block] [arg length] [arg width] [arg depth]]
+
+Create a command (PRNG) that generates (x,y,z)-coordinates for points
+uniformly spread over a block
+
+[list_begin arguments]
+[arg_def float length] Length of the block (x-direction)
+[arg_def float width] Width of the block (y-direction)
+[arg_def float depth] Depth of the block (z-direction)
+[list_end]
+
+[list_end]
+[manpage_end]

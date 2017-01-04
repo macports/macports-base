@@ -1,0 +1,11 @@
+/ {x {t (} {n Expression} {t )}} {x {n Factor} {* {x {n MulOp} {n Factor}}}}
+x {t (} {n Expression} {t )}
+t (
+n Expression
+t )
+x {n Factor} {* {x {n MulOp} {n Factor}}}
+n Factor
+* {x {n MulOp} {n Factor}}
+x {n MulOp} {n Factor}
+n MulOp
+n Factor

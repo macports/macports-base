@@ -1,0 +1,855 @@
+# -*- tcl -*-
+# linalg.test --
+#    Tests for the linear algebra package
+#
+# NOTE:
+#    Comparison by numbers, not strings, needed!
+#
+# TODO:
+#    Tests for:
+#    - show, angle
+#    - solveGaussBand, solveTriangularBand
+#    - mkHilbert and so on
+#    - matmul
+
+# -------------------------------------------------------------------------
+
+set regular 1
+
+if {$regular==1} then {
+    source [file join \
+                [file dirname [file dirname [file join [pwd] [info script]]]] \
+                devtools testutilities.tcl]
+
+    testsNeedTcl     8.4
+    testsNeedTcltest 2.1
+
+    support {
+        useLocal math.tcl math
+    }
+    testing {
+        useLocal linalg.tcl math::linearalgebra
+    }
+
+} else {
+    package require tcltest
+    tcltest::configure -verbose {start body error pass}
+    #tcltest::configure -match largesteigen-*
+    namespace import tcltest::test
+    namespace import tcltest::customMatch
+    set basedir [file normalize [file dirname [info script]]]
+    set ::auto_path [linsert $::auto_path 0 $basedir]
+    package require -exact math::linearalgebra 1.1.3
+}
+# -------------------------------------------------------------------------
+
+namespace import -force ::math::linearalgebra::*
+
+set prec $::tcl_precision
+if {![package vsatisfies [package provide Tcl] 8.5]} {
+    set ::tcl_precision 17
+} else {
+    set ::tcl_precision 0
+}
+
+#
+# Returns 1 if the expected value is close to the actual value,
+# that is their relative difference is small with respect to the
+# given epsilon.
+# If the expected value is zero, use an absolute error instead.
+#
+proc areClose {expected actual epsilon} {
+    if {$actual=="" && $expected!=""} then {
+        return 0
+    }
+    if {$actual!="" && $expected==""} then {
+        return 0
+    }
+    set match 1
+    if { [llength [lindex $expected 0]] > 1 } {
+        foreach a $actual e $expected {
+            set match [matchNumbers $e $a]
+            if { $match == 0 } {
+                break
+            }
+        }
+    } else {
+
+        foreach a $actual e $expected {
+            if {[string is double $a]==0  || [string is double $e]==0} then {
+                return 0
+            }
+            if {$e!=0.0} then {
+              set shift [expr {abs($a-$e)/abs($e)}]
+            } else {
+              set shift [expr {abs($a-$e)}]
+            }
+            #puts "a=$a, e=$e, shift = $shift"
+            if {$shift > $epsilon} {
+                set match 0
+                break
+            }
+        }
+    }
+    return $match
+}
+#
+# Matching procedure - flatten the lists
+#
+proc matchNumbers {expected actual} {
+    if {$actual=="" && $expected!=""} then {
+        return 0
+    }
+    if {$actual!="" && $expected==""} then {
+        return 0
+    }
+    set match 1
+    if { [llength [lindex $expected 0]] > 1 } {
+        foreach a $actual e $expected {
+            set match [matchNumbers $e $a]
+            if { $match == 0 } {
+                break
+            }
+        }
+    } else {
+
+        foreach a $actual e $expected {
+            if {[string is double $a]==0  || [string is double $e]==0} then {
+                return 0
+            }
+            if {abs($a-$e) > 0.1e-6} {
+                set match 0
+                break
+            }
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchNumbers
+
+test dimshape-1.0 "dimension of scalar" -body {
+    dim 1
+} -result 0
+
+test dimshape-1.1 "dimension of vector" -body {
+    dim {1 2 3}
+} -result 1
+
+test dimshape-1.2 "dimension of matrix" -body {
+    dim { {1 2 3} {4 5 6} }
+} -result 2
+
+test dimshape-2.0 "shape of scalar" -body {
+    shape 1
+} -result {1}
+
+test dimshape-2.1 "shape of vector" -body {
+    shape {1 2 3}
+} -result 3
+
+test dimshape-2.2 "shape of matrix" -body {
+    shape { {1 2 3} {4 5 6} }
+} -result {2 3}
+
+test symmetric-1.0 "non-symmetric matrix" -body {
+    symmetric { {1 2 3} {4 5 6} {7 8 9}}
+} -result 0
+
+test symmetric-1.1 "symmetric matrix" -body {
+    symmetric { {1 2 3} {2 1 4} {3 4 1}}
+} -result 1
+
+test symmetric-1.2 "non-square matrix" -body {
+    symmetric { {1 2 3} {2 1 4}}
+} -result 0
+
+test norm-1.0 "one-norm - 5 components" -match numbers -body {
+    norm {1 2 3 0 -1} 1
+} -result 7.0
+
+test norm-1.1 "one-norm - 2 components" -match numbers -body {
+    norm {1 -1} 1
+} -result 2.0
+
+test norm-1.2 "two-norm - 5 components" -match numbers -body {
+    norm {1 2 3 0 -1} 2
+} -result [expr {sqrt(15)}]
+
+test norm-1.3 "two-norm - 2 components" -match numbers -body {
+    norm {1 -1} 2
+} -result [expr {sqrt(2)}]
+
+test norm-1.4 "two-norm - no underflow" -match numbers -body {
+    norm {3.0e-140 -4.0e-140} 2
+} -result 5.0e-140
+
+test norm-1.5 "two-norm - no overflow" -match numbers -body {
+    norm {3.0e140 -4.0e140} 2
+} -result 5.0e140
+
+test norm-1.6 "max-norm - 5 components" -match numbers -body {
+    norm {1 2 3 0 -4} max
+} -result 4
+
+test norm-1.7 "max-norm - 2 components" -match numbers -body {
+    norm {1 -1} max
+} -result 1
+
+test norm-2.0 "matrix-norm - 2x2 - max" -match numbers -body {
+    normMatrix {{1 -1} {1 1}} max
+} -result 1
+
+test norm-2.1 "matrix-norm - 2x2 - 1" -match numbers -body {
+    normMatrix {{1 -1} {1 1}} 1
+} -result 4
+
+test norm-2.2 "matrix-norm - 2x2 - 2" -match numbers -body {
+    normMatrix {{1 -1} {1 1}} 2
+} -result 2
+
+test norm-3.0 "statistical normalisation - vector" -match numbers -body {
+    normalizeStat {1 0 0 0}
+} -result {1.5 -0.5 -0.5 -0.5}
+
+test norm-3.1 "statistical normalisation - matrix" -match numbers -body {
+    normalizeStat {{1 0 0 0} {0 0 0 1} {0 1 1 0} {0 0 0 0}}
+} -result {{ 1.5 -0.5 -0.5 -0.5}
+           {-0.5 -0.5 -0.5  1.5}
+           {-0.5  1.5  1.5 -0.5}
+           {-0.5 -0.5 -0.5 -0.5}}
+
+test dotproduct-1.0" "dot-product - 2 components" -match numbers -body {
+    dotproduct {1 -1} {1 -1}
+} -result 2.0
+
+test dotproduct-1.1" "dot-product - 5 components" -match numbers -body {
+    dotproduct {1 2 3 4 5} {5 4 3 2 1}
+} -result [expr {5.0+8+9+8+5}]
+
+test unitlength-1.0" "unitlength - 2 components" -match numbers -body {
+    unitLengthVector {3 4}
+} -result {0.6 0.8}
+
+test unitlength-1.1" "unitlength - 4 components" -match numbers -body {
+    unitLengthVector {1 1 1 1}
+} -result {0.5 0.5 0.5 0.5}
+
+test axpy-1.0 "axpy - vectors" -body {
+    axpy 2 {1 -1} {2 -2}
+} -result {4 -4}
+
+test axpy-1.1 "axpy - matrices" -body {
+    axpy 2 { {1 -1} {2 -2} {3 4} {-3 4} } \
+           { {5 -5} {5 -5} {6 6} {-6 6} }
+} -result {{7 -7} {9 -9} {12 14} {-12 14}}
+
+test add-1.0 "add - vectors" -body {
+    add {1 -1} {2 -2}
+} -result {3 -3}
+
+test add-1.1 "add - matrices" -body {
+    add { {1 -1} {2 -2} {3 4} {-3 4} } \
+        { {5 -5} {5 -5} {6 6} {-6 6} }
+} -result {{6 -6} {7 -7} {9 10} {-9 10}}
+
+test sub-1.0 "sub - vectors" -body {
+    sub {1 -1} {2 -2}
+} -result {-1 1}
+
+test sub-1.1 "sub - matrices" -body {
+    sub { {1 -1} {2 -2} {3 4} {-3 4} } \
+        { {5 -5} {5 -5} {6 6} {-6 6} }
+} -result {{-4 4} {-3 3} {-3 -2} {3 -2}}
+
+test scale-1.0 "scale - vectors" -body {
+    scale 3 {2 -2}
+} -result {6 -6}
+
+test scale-1.1 "scale - matrices" -body {
+    scale 3 { {5 -5} {5 -5} {6 6} {-6 6} }
+} -result {{15 -15} {15 -15} {18 18} {-18 18}}
+
+test make-1.0 "mkVector - create a null vector" -body {
+    mkVector 3
+} -result {0.0 0.0 0.0}
+
+test make-1.1 "mkVector - create a vector with values 1" -body {
+    mkVector 3 1.0
+} -result {1.0 1.0 1.0}
+
+test make-2.0 "mkMatrix - create a matrix with 3 rows, 2 columns" -body {
+    mkMatrix 3 2 2.0
+} -result {{2.0 2.0} {2.0 2.0} {2.0 2.0}}
+
+test make-2.1 "mkMatrix - create a matrix with 2 rows, 3 columns" -body {
+    mkMatrix 2 3 1.0
+} -result {{1.0 1.0 1.0} {1.0 1.0 1.0}}
+
+test make-3.0 "mkIdentity - create an identity matrix 2x2" -body {
+    mkIdentity 2
+} -result {{1.0 0.0} {0.0 1.0}}
+
+test make-3.1 "mkIdentity - create an identity matrix 3x3" -body {
+    mkIdentity 3
+} -result {{1.0 0.0 0.0} {0.0 1.0 0.0} {0.0 0.0 1.0}}
+
+test make-4.0 "mkDiagonal - create a diagonal matrix 2x2" -body {
+    mkDiagonal {2.0 3.0}
+} -result {{2.0 0.0} {0.0 3.0}}
+
+test make-4.1 "mkDiagonal - create a diagonal matrix 3x3" -body {
+    mkDiagonal {2.0 3.0 4.0}
+} -result {{2.0 0.0 0.0} {0.0 3.0 0.0} {0.0 0.0 4.0}}
+
+test getset-1.0 "getrow - get first row from a matrix" -body {
+    getrow {{1 2 3} {4 5 6} {7 8 9} {10 11 12}} 0
+} -result {1 2 3}
+
+test getset-1.1 "getrow - get last row from a matrix" -body {
+    getrow {{1 2 3} {4 5 6} {7 8 9} {10 11 12}} 3
+} -result {10 11 12}
+
+test getset-1.1b "getrow - get row of a vector" -body {
+    getrow {1 2 3} 1
+} -result {2}
+test getset-1.1c "getrow - get row #1, for columns #2 to #3" -body {
+    getrow {{1 2 3 4 5 6} {7 8 9 10 11 12} {13 14 15 16 17 18}} 1 2 3
+} -result {9 10}
+
+test getset-1.2 "getcol - get first column from a matrix" -body {
+    getcol {{1 2 3} {4 5 6} {7 8 9} {10 11 12}} 0
+} -result {1 4 7 10}
+
+test getset-1.3 "getcol - get last column from a matrix" -body {
+    getcol {{1 2 3} {4 5 6} {7 8 9} {10 11 12}} 2
+} -result {3 6 9 12}
+test getset-1.4 "getcol - get column #1 from lines #2 to #3" -body {
+    getcol {{1 2 3} {4 5 6} {7 8 9} {10 11 12} {13 14 15}} 1 2 3
+} -result {8 11}
+
+test getset-2.0 "setrow - set first row in a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    setrow M 0 {3 2 1}
+} -result {{3 2 1} {4 5 6} {7 8 9} {10 11 12}}
+
+test getset-2.1 "setrow - set last row in a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    setrow M 3 {3 2 1}
+} -result {{1 2 3} {4 5 6} {7 8 9} {3 2 1}}
+
+test getset-2.1b "setrow - set row #1 from column #2 to column #3" -body {
+    set M {{1 2 3 4 5} {6 7 8 9 10} {11 12 13 14 15}}
+    setrow M 1 {99 100} 2 3
+} -result {{1 2 3 4 5} {6 7 99 100 10} {11 12 13 14 15}}
+
+test getset-2.2 "setcol - set first column in a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    setcol M 0 {3 2 1 0}
+} -result {{3 2 3} {2 5 6} {1 8 9} {0 11 12}}
+
+test getset-2.3 "setcol - set last column in a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    setcol M 2 {3 2 1 0}
+} -result {{1 2 3} {4 5 2} {7 8 1} {10 11 0}}
+
+test getset-2.4 "setcol - set column #1 from lines #2 to #3" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12} {13 14 15}}
+    setcol M 1 {99 100} 2 3
+} -result {{1 2 3} {4 5 6} {7 99 9} {10 100 12} {13 14 15}}
+
+test getset-3.0 "getelem - get element (0,0) in a matrix" -body {
+    getelem {{1 2 3} {4 5 6} {7 8 9} {10 11 12}} 0 0
+} -result 1
+
+test getset-3.1 "getelem - set element (1,2) in a matrix" -body {
+    getelem {{1 2 3} {4 5 6} {7 8 9} {10 11 12}} 1 2
+} -result 6
+
+test getset-3.2 "setelem - set element (0,0) in a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    setelem M 0 0 100
+} -result {{100 2 3} {4 5 6} {7 8 9} {10 11 12}}
+
+test getset-3.3 "setelem - set element (1,2) in a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    setelem M 1 2 100
+} -result {{1 2 3} {4 5 100} {7 8 9} {10 11 12}}
+
+test getset-4.0 "getelem - get element 1 from a vector" -body {
+    set V {1 2 3}
+    getelem $V 1
+} -result 2
+
+test getset-4.1 "setelem - set element 1 in a vector" -body {
+    set V {1 2 3}
+    setelem V 1 4
+} -result {1 4 3}
+
+test swaprows-1 "swap two rows of a matrix" -body {
+    set M {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    swaprows M 1 2
+} -result {{1 2 3} {7 8 9} {4 5 6} {10 11 12}}
+
+test swaprows-2 "swap rows #1 and #2 from columns #2 to #3" -body {
+    set M {{1 2 3 4 5} {6 7 8 9 10} {11 12 13 14 15} {16 17 18 19 20}}
+    swaprows M 1 2 2 3
+} -result {{1 2 3 4 5} {6 7 13 14 10} {11 12 8 9 15} {16 17 18 19 20}}
+
+test swapcols-1 "swap two columns of a matrix" -body {
+    set M {{1 2 3 4 5} {6 7 8 9 10} {11 12 13 14 15} {16 17 18 19 20}}
+    swapcols M 1 2
+} -result {{1 3 2 4 5} {6 8 7 9 10} {11 13 12 14 15} {16 18 17 19 20}}
+
+test swapcols-2 "swap columns #1 and #2 from lines #1 to #2" -body {
+    set M {{1 2 3 4 5} {6 7 8 9 10} {11 12 13 14 15} {16 17 18 19 20}}
+    swapcols M 1 2 1 2
+} -result {{1 2 3 4 5} {6 8 7 9 10} {11 13 12 14 15} {16 17 18 19 20}}
+
+test rotate-1.0 "rotate - over 90 degrees" -body {
+    set v1 {1 2 3}
+    set v2 {4 5 6}
+    rotate 0 1 $v1 $v2
+} -result {{-4 -5 -6} {1 2 3}}
+
+test rotate-1.1 "rotate - over 180 degrees" -body {
+    set v1 {1 2 3 4 5 6}
+    set v2 {7 8 9 10 11 12}
+    rotate -1 0 $v1 $v2
+} -result {{-1 -2 -3 -4 -5 -6} {-7 -8 -9 -10 -11 -12}}
+
+test matmul-1.0 "multiply matrix - vector" -match numbers -body {
+    set v1 {1 2 3}
+    set m  {{0 0 1} {0 5 0} {-1 0 0}}
+    matmul $m $v1
+} -result {3 10 -1}
+
+test matmul-1.1 "multiply vector - matrix" -match numbers -body {
+    set v1 {{1 2 3}} ;# Row vector
+    set m  {{0 0 1} {0 5 0} {-1 0 0}}
+    matmul $v1 $m
+} -result {{-3 10 1}}
+
+test matmul-1.2 "multiply matrix - matrix" -match numbers -body {
+    set m1 {{0 0 1} {0 5 0} {-1 0 0}}
+    set m2 {{0 0 1} {1 5 1} {-1 0 0}}
+    matmul $m1 $m2
+} -result {{-1 0 0} {5 25 5} {0 0 -1}}
+
+test matmul-1.3 "multiply vector - vector" -match numbers -body {
+    set v1 {1 2 3}
+    set v2 {4 5 6}
+    matmul $v1 $v2
+} -result {{4 5 6} {8 10 12} {12 15 18}}
+
+test matmul-1.4 "multiply row vector - column vector" -match numbers -body {
+    set v1 [transpose {1 2 3}]
+    set v2 {4 5 6}
+    matmul $v1 $v2
+} -result 32
+
+test matmul-1.5 "multiply column vector - row vector" -match numbers -body {
+    set v1 {1 2 3}
+    set v2 [transpose {4 5 6}]
+    matmul $v1 $v2
+} -result {{4 5 6} {8 10 12} {12 15 18}}
+
+test matmul-1.6 "multiply scalar - scalar" -match numbers -body {
+    set v1 {1}
+    set v2 {1}
+    matmul $v1 $v2
+} -result {1}
+
+test solve-1.1 "solveGauss - 2x2 matrix" -match numbers -body {
+    set b {{2 3} {-2 3}}
+    set M {{2 3} {-2 3}}
+    solveGauss $M $b
+} -result {{1 0} {0 1}}
+
+test solve-1.2 "solveGauss - 3x3 matrix" -match numbers -body {
+    set b {{2 3 4} {-2 3 4} {1 1 1}}
+    set M {{2 3 4} {-2 3 4} {1 1 1}}
+    solveGauss $M $b
+} -result {{1 0 0} {0 1 0} {0 0 1}}
+
+test solve-1.3 "solveGauss - 3x3 matrix - less trivial" -match numbers -body {
+    set b {{6 -3 6} {2 -3 2} {2 -1 2}}
+    set M {{2 3 4} {-2 3 4} {1 1 1}}
+    solveGauss $M $b
+} -result {{1 0 1} {0 -1 0} {1 0 1}}
+#
+# MB
+#
+test solve-1.4 "solveGauss - 3x3 matrix - but better pivots may be found" -match numbers -body {
+    set b {{67 67} {4 4} {6 6}}
+    set M {{3 17 10} {2 4 -2} {6 18 -12}}
+    solveGauss $M $b
+} -result {{1 1} {2 2} {3 3}}
+
+test solve-1.5 "solveGauss - Hilbert matrix" -match numbers -body {
+    set expected [mkVector 10 1.0]
+    set M [mkHilbert 10]
+    # b is expected as a list of colums
+    set b [mkMatrix 10 1]
+    setcol b 0 [matmul $M $expected]
+    set computed [solveGauss $M $b]
+    set diff [sub $computed $expected]
+    set norm [normMatrix $diff max]
+    # Computed norm : 0.00043691152972824554
+    set result [expr {$norm<1.e-3}]
+} -result {1}
+
+test solvepgauss-1.6 "solveGauss - 2x2 difficult matrix with necessary permutations" -match numbers -body {
+    set M {{1.e-8 1} {1 1}}
+    set b [list [expr {1.+1.e-8}] 2.]
+    set computed [solveGauss $M $b]
+    set expected {1. 1.}
+    set diff [sub $computed $expected]
+    set norm [norm $diff max]
+    # Computed norm : 5.0247592753294157e-09
+    set result [expr {$norm<1.e-8}]
+} -result {1}
+
+test solvepgauss-1 "solvePGauss - 3x3 matrix with two permutations" -match numbers -body {
+    set b {{67} {4} {6}}
+    set M {{3 17 10} {2 4 -2} {6 18 -12}}
+    solvePGauss $M $b
+} -result {{1} {2} {3}}
+
+test solvepgauss-2 "solvePGauss - 3x3 matrix" -match numbers -body {
+    set b {{6 -3 6} {2 -3 2} {2 -1 2}}
+    set M {{2 3 4} {-2 3 4} {1 1 1}}
+    solvePGauss $M $b
+} -result {{1 0 1} {0 -1 0} {1 0 1}}
+
+test solvepgauss-3 "solvePGauss - 10x10 Hilbert matrix" -match numbers -body {
+    set expected [mkVector 10 1.0]
+    set M [mkHilbert 10]
+    # b is expected as a list of colums
+    set b [mkMatrix 10 1]
+    setcol b 0 [matmul $M $expected]
+    set computed [solvePGauss $M $b]
+    set diff [sub $computed $expected]
+    set norm [normMatrix $diff max]
+    # Computed norm : 0.00031339500191851499
+    set result [expr {$norm<1.e-3}]
+} -result {1}
+
+test solvepgauss-4 "solvePGauss - 2x2 difficult matrix with necessary permutations" -match numbers -body {
+    set M {{1.e-8 1} {1 1}}
+    set b [list [expr {1.+1.e-8}] 2.]
+    set computed [solvePGauss $M $b]
+    set expected {1. 1.}
+    set diff [sub $computed $expected]
+    set norm [norm $diff max]
+    # Computed norm : 0.
+    set result [expr {$norm<1.e-15}]
+} -result {1}
+
+
+test orthon-1.0 "orthonormalize columns - 3x3" -match numbers -body {
+    set M {{1 1 1}
+           {0 1 1}
+           {0 0 1}}
+    orthonormalizeColumns $M
+} -result {{1 0 0}
+           {0 1 0}
+           {0 0 1}}
+
+test orthon-1.1 "orthonormalize rows - 3x3" -match numbers -body {
+    set M {{1 0 0}
+           {1 1 0}
+           {1 1 1}}
+    orthonormalizeRows $M
+} -result {{1 0 0}
+           {0 1 0}
+           {0 0 1}}
+
+test orthon-1.2 "orthonormalize rows - 3x4" -match numbers -body {
+    set M {{1 0 0 0}
+           {1 1 0 0}
+           {1 1 1 0}}
+    orthonormalizeRows $M
+} -result {{1 0 0 0}
+           {0 1 0 0}
+           {0 0 1 0}}
+
+#
+# The results from the original LA package have been used
+# as a benchmark:
+#
+#
+test svd-1.0 "singular value decomposition - 2x2" -match numbers -body {
+    set M {{1.0 2.0} {2.0 1.0}}
+    determineSVD $M
+} -result {
+{{0.70710678118654757  0.70710678118654746}
+ {0.70710678118654746 -0.70710678118654757}}
+ {3.0 1.0}
+{{0.70710678118654757 -0.70710678118654746}
+ {0.70710678118654746  0.70710678118654757}}
+}
+
+test svd-1.1 "singular value decomposition - 10x10" -match numbers -body {
+    set M [mkDingdong 10]
+    show [lindex [determineSVD $M] 1] %6.4f
+} -result {1.5708 1.5708 1.5708 1.5708 1.5708 1.5707 1.5695 1.5521 1.3935 0.6505}
+
+
+
+
+test LA-1.0 "to_LA - vector" -match numbers -body {
+    set vector {1 2 3}
+    to_LA $vector
+} -result {2 3 0 1 2 3}
+
+test LA-1.1 "to_LA - matrix" -match numbers -body {
+    set matrix {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+    to_LA $matrix
+} -result {2 4 3 1 2 3 4 5 6 7 8 9 10 11 12}
+
+test LA-2.0 "from_LA - vector" -match numbers -body {
+    set vector {2 3 0 1 2 3}
+    from_LA $vector
+} -result {1 2 3}
+
+test LA-2.1 "from_LA - matrix" -match numbers -body {
+    set matrix {2 4 3 1 2 3 4 5 6 7 8 9 10 11 12}
+    from_LA $matrix
+} -result {{1 2 3} {4 5 6} {7 8 9} {10 11 12}}
+
+test choleski-1.0 "choleski decomposition of Moler matrix" -match numbers -body {
+    set matrix [mkMoler 5]
+    choleski $matrix
+} -result {{1 0 0 0 0} {-1 1 0 0 0} {-1 -1 1 0 0} {-1 -1 -1 1 0} {-1 -1 -1 -1 1}}
+
+test leastsquares-1.0 "Least-squares solution" -match numbers -body {
+    #
+    # Known relation: z = 1.0 + x + 0.1*y
+    # Model this as: z = z0 + x + 0.1*y
+    # (The column of 1s allows us to use a non-zero intercept)
+    #
+    #          z0   x   y     z
+    set Ab { {  1  1.0  1.0} 2.1
+             {  1  2.0  1.0} 3.1
+             {  1  2.0  2.0} 3.2
+             {  1  4.0  2.0} 5.2
+             {  1  4.0 22.0} 7.2
+             {  1  5.0 -2.0} 5.8 }
+
+    set A {}
+    set b {}
+    foreach {Ar br} $Ab {
+        lappend A $Ar
+        lappend b $br
+    }
+    set x [::math::linearalgebra::leastSquaresSVD $A $b]
+} -result {1.0 1.0 0.1}
+
+
+test eigenvectors-1.0 "Eigenvectors solution" -match numbers -body {
+    #
+    # Matrix:
+    #    /2   1\
+    #    \1   2/
+    # has eigenvalues 3 and 1 with eigenvectors:
+    #    / 1\      /1\
+    #    \-1/  and \1/
+    # (so include a factor 1/sqrt(2) in the answer)
+    #
+    set A  { {2 1}
+             {1 2} } ;# Note: integer coefficients!
+
+    ::math::linearalgebra::eigenvectorsSVD $A
+} -cleanup {
+    unset A
+} -result {{{0.7071068 -0.7071068} {0.7071068 0.7071068}} {3.0 1.0}}
+
+test eigenvectors-1.1-tkt7f082f8667 {Eigenvector signs} -setup {
+    # Test case derived from the example code found in ticket [7f082f8667].
+    set A {
+	{2.7563361585555084  0.02600440980933252 0.0}
+	{0.02600440980933252 2.785766824118953   0.0}
+	{0.0                 0.0                -5.542102982674461}
+    }
+} -body {
+    lindex [::math::linearalgebra::eigenvectorsSVD $A] 1
+} -cleanup {
+    unset A
+} -match numbers -result {2.80093075418638 2.7411722284880806 -5.542102982674461}
+
+
+test mkHilbert-1.0 "Hilbert matrix" -match numbers -body {
+    set computed [mkHilbert 3]
+    set expected {{1.0 0.5 0.333333333333} {0.5 0.333333333333 0.25} {0.333333333333 0.25 0.2}}
+    set diff [sub $computed $expected]
+    set norm [normMatrix $diff max]
+    set result [expr {$norm<1.e-10}]
+} -result {1}
+
+test dger-1 "dger" -match numbers -body {
+    set M {{1 2 3} {4 5 6} {7 8 9}}
+    set x {1 2 3}
+    set y {4 5 6}
+    set alpha -1.
+    dger M $alpha $x $y
+} -result {{-3 -3 -3} {-4 -5 -6} {-5 -7 -9}}
+
+test dger-2 "dger" -match numbers -body {
+    set M {{1 2 3 4 5} {6 7 8 9 10} {11 12 13 14 15} {16 17 18 19 20}}
+    set x {1 2 3}
+    set y {4 5 6}
+    set alpha -1.
+    set imin 1
+    set imax 3
+    set jmin 2
+    set jmax 4
+    set scope [list $imin $imax $jmin $jmax]
+    dger M $alpha $x $y $scope
+} -result {{1 2 3 4 5} {6 7 4 4 4} {11 12 5 4 3} {16 17 6 4 2}}
+
+test dgetrf-1 "dgetrf" -body {
+    set M {{3 17 10} {2 4 -2} {6 18 -12}}
+    set ipiv [dgetrf M]
+    # Check matrix
+    set expectedmat {{6 18 -12} {0.5 8.0 16.0} {0.33333333333333331 -0.25 6.0}}
+    set diff [sub $M $expectedmat]
+    set norm [normMatrix $diff max]
+    set expectation1 [expr {$norm<1.e-10}]
+    # Check pivots
+    set expectedpivots {2 2}
+    set diff [sub $ipiv $expectedpivots]
+    set norm [normMatrix $diff max]
+    set expectation2 [expr {$norm<1.e-10}]
+    set result [list $expectation1 $expectation2]
+} -result {1 1}
+
+test solvetriangular-1 "upper triangular matrix" -match numbers -body {
+    set M {{3 17 10} {0 4 -2} {0 0 -12}}
+    set b {{67 30} {2 2} {-36 -12}}
+    set computed [solveTriangular $M $b]
+} -result {{1 1} {2 1} {3 1}}
+
+test solvetriangular-2 "lower triangular matrix" -match numbers -body {
+    set M {{3 0 0} {2 4 0} {6 18 -12}}
+    set b {{3 3} {10 6} {6 12}}
+    set computed [solveTriangular $M $b "L"]
+} -result {{1 1} {2 1} {3 1}}
+
+test solvetriangular-3 "lower triangular random matrix" -match numbers -body {
+    set M [mkTriangular 10 "L" 1.]
+    set xexpected [mkVector 10 1.]
+    set b [matmul $M $xexpected]
+    set computed [solveTriangular $M $b "L"]
+} -result {1 1 1 1 1 1 1 1 1 1}
+
+test solvetriangular-4 "upper triangular random matrix" -match numbers -body {
+    set M [mkTriangular 10 "U" 1.]
+    set xexpected [mkVector 10 1.]
+    set b [matmul $M $xexpected]
+    set computed [solveTriangular $M $b "U"]
+} -result {1 1 1 1 1 1 1 1 1 1}
+
+
+test mkTriangular-1 "make triangular matrix" -match numbers -body {
+    mkTriangular 3
+} -result {{1.0 1.0 1.0} {0. 1.0 1.0} {0. 0. 1.0}}
+
+test mkTriangular-2 "make triangular matrix" -match numbers -body {
+    mkTriangular 3 "L" 2.
+} -result {{2. 0. 0.} {2. 2. 0.} {2. 2. 2.}}
+
+test mkBorder "make border matrix" -match numbers -body {
+    mkBorder 5
+} -result {
+{1.0 0.0 0.0 0.0 1.0}
+{0.0 1.0 0.0 0.0 0.5}
+{0.0 0.0 1.0 0.0 0.25}
+{0.0 0.0 0.0 1.0 0.125}
+{1.0 0.5 0.25 0.125 1.0}}
+
+test mkWilkinsonW- "make Wilkinson W- matrix" -match numbers -body {
+    mkWilkinsonW- 5
+} -result {
+{2.0 1.0 0.0 0.0 0.0}
+{1.0 1.0 1.0 0.0 0.0}
+{0.0 1.0 0.0 1.0 0.0}
+{0.0 0.0 1.0 -1.0 1.0}
+{0.0 0.0 0.0 1.0 -2.0}}
+
+test mkWilkinsonW+ "make Wilkinson W+ matrix" -match numbers -body {
+    mkWilkinsonW+ 7
+} -result {
+{3.0 1.0 0.0 0.0 0.0 0.0 0.0}
+{1.0 2.0 1.0 0.0 0.0 0.0 0.0}
+{0.0 1.0 1.0 1.0 0.0 0.0 0.0}
+{0.0 0.0 1.0 0.0 1.0 0.0 0.0}
+{0.0 0.0 0.0 1.0 1.0 1.0 0.0}
+{0.0 0.0 0.0 0.0 1.0 2.0 1.0}
+{0.0 0.0 0.0 0.0 0.0 1.0 3.0}}
+
+test det-1 "determinant" -match numbers -body {
+    set a [mkBorder 5]
+    set det [det $a]
+} -result {-0.328125}
+
+test det-2 "determinant" -match numbers -body {
+    set a [mkWilkinsonW+ 5]
+    set det [det $a]
+} -result {-4.0}
+test det-3 "determinant" -match numbers -body {
+    set a [mkWilkinsonW- 5]
+    set det [det $a]
+} -result {0.0}
+test det-4 "determinant with pre-computed decomposition" -match numbers -body {
+    set a [mkWilkinsonW- 5]
+    set ipiv [dgetrf a]
+    set det [det $a $ipiv]
+} -result {0.0}
+
+#set ::tcl_precision 17
+test largesteigen-1 "power method" -body {
+    set a {{-261 209 -49}
+      {-530 422 -98}
+      {-800 631 -144}}
+    set pm [largesteigen $a 1.e-8 200]
+    set eigval [lindex $pm 0]
+    set eigvec [lindex $pm 1]
+    set res {}
+    set expected {-0.2672612419124256177838 -0.5345224838248414656050 -0.8017837257372776305075}
+    lappend res -eigvec [areClose $expected $eigvec 1.e-8]
+    lappend res -eigval [areClose 10.0 $eigval 1.e-8]
+} -result {-eigvec 1 -eigval 1}
+test largesteigen-2 "power method" -body {
+    set a {{-261 209 -49}
+      {-530 422 -98}
+      {-800 631 -144}}
+    set pm [largesteigen $a]
+    set eigval [lindex $pm 0]
+    set eigvec [lindex $pm 1]
+    set res {}
+    set expected {-0.2672612419124256177838 -0.5345224838248414656050 -0.8017837257372776305075}
+    lappend res -eigvec [areClose $expected $eigvec 1.e-5]
+    lappend res -eigval [areClose 10.0 $eigval 1.e-5]
+} -result {-eigvec 1 -eigval 1}
+test largesteigen-3 "power method" -body {
+    set a {{0.0 0.0 0.0}
+      {0.0 0.0 0.0}
+      {0.0 0.0 0.0}}
+      catch {
+        set pm [largesteigen $a]
+      } errmsg
+    set errmsg
+} -result {Cannot continue power method : matrix is singular}
+
+# Additional tests: procedures by Federico Ferri
+#source ferri/ferri.test
+
+set ::tcl_precision $prec
+
+if {$regular==1} then {
+    testsuiteCleanup
+} else {
+    tcltest::cleanupTests
+}
+

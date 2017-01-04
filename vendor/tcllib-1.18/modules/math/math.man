@@ -1,0 +1,126 @@
+[manpage_begin math n 1.2.5]
+[keywords math]
+[keywords statistics]
+[comment {-*- tcl -*- doctools manpage}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Tcl Math Library}]
+[category  Mathematics]
+[require Tcl 8.2]
+[require math [opt 1.2.5]]
+[description]
+[para]
+
+The [package math] package provides utility math functions.
+[para]
+Besides a set of basic commands, available via the package [emph math],
+there are more specialised packages:
+
+[list_begin itemized]
+[item]
+[package math::bigfloat] - Arbitrary-precision floating-point
+arithmetic
+[item]
+[package math::bignum] - Arbitrary-precision integer arithmetic
+[item]
+[package math::calculus::romberg] - Robust integration methods for
+functions of one variable, using Romberg integration
+[item]
+[package math::calculus] - Integration of functions, solving ordinary
+differential equations
+[item]
+[package math::combinatorics] - Procedures for various combinatorial
+functions (for instance the Gamma function and "k out of n")
+[item]
+[package math::complexnumbers] - Complex number arithmetic
+[item]
+[package math::constants] - A set of well-known mathematical
+constants, such as Pi, E, and the golden ratio
+[item]
+[package math::fourier] - Discrete Fourier transforms
+[item]
+[package math::fuzzy] - Fuzzy comparisons of floating-point numbers
+[item]
+[package math::geometry] - 2D geometrical computations
+[item]
+[package math::interpolate] - Various interpolation methods
+[item]
+[package math::linearalgebra] - Linear algebra package
+[item]
+[package math::optimize] - Optimization methods
+[item]
+[package math::polynomials] - Polynomial arithmetic (includes families
+of classical polynomials)
+[item]
+[package math::rationalfunctions] - Arithmetic of rational functions
+[item]
+[package math::roman] - Manipulation (including arithmetic) of Roman
+numerals
+[item]
+[package math::special] - Approximations of special functions from
+mathematical physics
+[item]
+[package math::statistics] - Statistical operations and tests
+[list_end]
+
+[section "BASIC COMMANDS"]
+
+[list_begin definitions]
+
+[call [cmd ::math::cov] [arg value] [arg value] [opt [arg {value ...}]]]
+
+Return the coefficient of variation expressed as percent of two or
+more numeric values.
+
+[call [cmd ::math::integrate] [arg {list of xy value pairs}]]
+
+Return the area under a "curve" defined by a set of x,y pairs and the
+error bound as a list.
+
+[call [cmd ::math::fibonacci] [arg n]]
+
+Return the [arg n]'th Fibonacci number.
+
+[call [cmd ::math::max] [arg value] [opt [arg {value ...}]]]
+
+Return the maximum of one or more numeric values.
+
+[call [cmd ::math::mean] [arg value] [opt [arg {value ...}]]]
+
+Return the mean, or "average" of one or more numeric values.
+
+[call [cmd ::math::min] [arg value] [opt [arg {value ...}]]]
+
+Return the minimum of one or more numeric values.
+
+[call [cmd ::math::product] [arg value] [opt [arg {value ...}]]]
+
+Return the product of one or more numeric values.
+
+[call [cmd ::math::random] [opt [arg value1]] [opt [arg value2]]]
+
+Return a random number.  If no arguments are given, the number is a
+floating point value between 0 and 1.  If one argument is given, the
+number is an integer value between 0 and [arg value1].  If two
+arguments are given, the number is an integer value between
+
+[arg value1] and [arg value2].
+
+[call [cmd ::math::sigma] [arg value] [arg value] [opt [arg {value ...}]]]
+
+Return the population standard deviation of two or more numeric
+values.
+
+[call [cmd ::math::stats] [arg value] [arg value] [opt [arg {value ...}]]]
+
+Return the mean, standard deviation, and coefficient of variation (as
+percent) as a list.
+
+[call [cmd ::math::sum] [arg value] [opt [arg {value ...}]]]
+
+Return the sum of one or more numeric values.
+
+[list_end]
+
+[vset CATEGORY math]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

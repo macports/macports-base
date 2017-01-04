@@ -1,0 +1,52 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+########################################################################
+#
+# Load and print an ldif file
+#
+########################################################################
+
+package require ldapx
+
+if {![llength $argv]} {
+    puts stderr "Usage: [info script] file ?file ... file?"
+    exit 1
+}
+set entries [list]
+
+proc loadLDIF {fd} {
+    global entries
+    
+    ldapx::ldif ld
+    ld channel $fd
+    
+    set e [ldapx::entry %AUTO%]
+    while {[ld read $e]} {
+       lappend entries $e
+       set e [ldapx::entry %AUTO%]
+    }
+    $e destroy
+    
+}
+
+proc displayLDIF {} {
+    global entries
+    set sort [list]
+    foreach e $entries {
+        lappend sort [list [$e dn] $e]
+    }
+    set sort [lsort -index 0 $sort]
+    foreach key $sort {
+        set e [lindex $key 1]
+        puts "[$e print] \n"
+    }
+    
+}
+
+foreach file $argv {
+    set fd [open $file]
+    loadLDIF $fd
+    close $fd
+}
+displayLDIF
+exit

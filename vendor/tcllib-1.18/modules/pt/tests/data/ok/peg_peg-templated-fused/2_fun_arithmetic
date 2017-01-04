@@ -1,0 +1,21 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+PEG TEMPLATE (Expression)
+
+ AddOp      <- [-+] ;
+ Digit      <- [0123456789] ;
+ Expression <- Function / '(' Expression ')' / Factor (MulOp Factor)* ;
+ Factor     <- Term (AddOp Term)* ;
+ Function   <- Sinus ;
+ MulOp      <- [*/] ;
+ Number     <- Sign? Digit+ ;
+ Sign       <- [-+] ;
+ Sinus      <- 'sin(' Expression ')' ;
+ Term       <- Number ;
+
+END;
+
+#
+#

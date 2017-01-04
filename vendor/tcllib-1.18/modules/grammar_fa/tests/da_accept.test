@@ -1,0 +1,84 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa::dacceptor engine
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: da_accept.test,v 1.5 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+# Regular expression for C comments (Extended notation, using the 'not' operator).
+#
+#       '/' . '*' . (! (ALL* . '*' . '/' . ALL*)) . '*' . '/'
+# ALL = '/' | '*' | 'any'
+#
+# Generated minimal DFA
+#
+#               any/   *
+#               |      |
+# 0 -/-> 1 -*-> 2 -*-> 3 -/-> 4
+#               \<-any-/
+
+#puts -nonewline "    RE compile, " ; flush stdout
+
+grammar::fa ccomments fromRegex {. {S /}
+                                   {S *}
+				   {! {. {* {| {S *} {S /} {S any}}}
+				         {S *}
+					 {S /}
+					 {* {| {S *} {S /} {S any}}}}}
+				   {S *}
+				   {S /}
+			       } {/ * any}
+
+#puts -nonewline {FA, } ; flush stdout
+
+ccomments determinize ; #puts -nonewline {deterministic, } ; flush stdout
+ccomments minimize    ; #puts minimal                      ; flush stdout
+
+
+# -------------------------------------------------------------------------
+
+test da-accept-${setimpl}-1.0 {accept? error} {
+    grammar::fa::dacceptor da ccomments
+    catch {da accept?} msg
+    da destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::dacceptor::Snit_methodaccept? type selfns win self symbolstring"}
+
+
+test da-accept-${setimpl}-1.1 {accept? error} {
+    grammar::fa::dacceptor da ccomments
+    catch {da accept? x y} msg
+    da destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::dacceptor::Snit_methodaccept? type selfns win self symbolstring"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+foreach {n acceptany accept string} {
+    0 0 0 {x y}
+    1 1 1 {/ * * /}
+    2 1 0 {/ * x * /}
+    3 0 0 {/ * * / * /}
+    4 0 0 {/ * x * / x * /}
+    5 0 0 {/ * * * / * * /}
+} {
+    test da-accept-${setimpl}-2.$n {accept?, -any any} {
+	grammar::fa::dacceptor da ccomments -any any
+	set res [da accept? $string]
+	da destroy
+	set res
+    } $acceptany ; # {}
+
+    test da-accept-${setimpl}-3.$n {accept?} {
+	grammar::fa::dacceptor da ccomments
+	set res [da accept? $string]
+	da destroy
+	set res
+    } $accept ; # {}
+}
+
+# -------------------------------------------------------------------------
+ccomments destroy
+::tcltest::cleanupTests

@@ -1,0 +1,114 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base32.pcx: New file. Syntax definitions for the public commands
+	* base32_core.pcx: of the bibtex package.
+	* base32_hex.pcx:
+
+2008-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base32hex.tcl: Added missing implementation of 'Names' for use
+	  by TestAccelInit.
+	* base32hex.test: Cleaned up to use the standard TestAccel*
+	  commands for handling of accelerators in a testsuite. Moved
+	  loading of base32::core to testing section, as that internal
+	  package is implicitly tested as well.	
+	* base32.test: Moved loading of base32::core to testing section,
+	  as that internal package is implicitly tested as well.
+
+2008-01-28  Andreas Kupries  <andreask@activestate.com>
+
+	* base32hex_c.tcl: Disabled the critcl::debug and critcl::cheaders
+	* base32_c.tcl: -g definitions
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-23  Andreas Kupries <andreask@activestate.com>
+
+	* base32hex.tcl: Added MD hints.
+
+2007-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base32.man: Fixed all warnings due to use of now deprecated
+	* base32core.man: commands. Added a section about how to give
+	* base32hex.man: feedback.
+
+2006-10-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base32.test: Rewritten to make use of the new facilities for
+	* base32.tcl:  testing of multiple implementations put into the
+	  test utilities.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-05-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base32_c.tcl (critcl_decode):    Simplified the decoder.
+	* base32hex_c.tcl (critcl_decode): Use ByteArray, avoids
+	  complex UniChar -> Utf8 conversion on our part. Also moves
+	  the handling of padding out of the decoder loop.
+
+2006-05-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base32.bench:     base32 standard encoding, extended hex
+	* base32.man:       encoding. Tcl implementation, Critcl
+	* base32.tcl:       implementation. Switch management.
+	* base32.test:      Support package for Tcl implementation.
+	* base32.testsuite: Documentation. Benchmarks. Testsuites.
+	* base32_c.tcl: 
+	* base32_tcl.tcl: 
+	* base32core.man: 
+	* base32core.tcl: 
+	* base32hex.bench: 
+	* base32hex.man: 
+	* base32hex.tcl: 
+	* base32hex.test: 
+	* base32hex.testsuite: 
+	* base32hex_c.tcl: 
+	* base32hex_tcl.tcl: 
+	* pkgIndex.tcl: 
+
+	* New module 'base32'.

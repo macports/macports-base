@@ -1,0 +1,27 @@
+# -*- tcl -*- 
+# Syntax of the commands provided by package valtype::imei.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register valtype::imei
+pcx::tcldep   1 needs tcl 8.5
+
+pcx::check 1 std ::valtype::imei \
+    {checkSimpleArgs 1 -1 {
+	{checkOption {
+	    {validate {checkSimpleArgs 1 1 {
+		checkWord
+	    }}}
+	    {checkdigit {checkSimpleArgs 1 1 {
+		checkWord
+	    }}}
+	} {}}}}
+
+# Initialization via pcx::init.
+# Use a ::XXX::init procedure for non-standard initialization.
+pcx::complete

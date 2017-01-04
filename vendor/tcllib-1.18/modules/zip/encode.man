@@ -1,0 +1,92 @@
+[vset VERSION 0.4]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin zipfile::encode n [vset VERSION]]
+[keywords compression zip]
+[copyright {2008-2009 Andreas Kupries}]
+[moddesc {Zip archive handling}]
+[titledesc {Generation of zip archives}]
+[category  File]
+[require Tcl 8.4]
+[require logger]
+[require Trf]
+[require crc32]
+[require snit]
+[require zlibtcl]
+[require fileutil]
+[require zipfile::encode [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides a class for the generation of zip archives.
+
+[section {Class API}]
+
+[list_begin definitions]
+[call [cmd ::zipfile::encode] [opt [arg objectName]]]
+
+The class command constructs encoder instances, i.e. objects. The
+result of the command is the fully-qualified name of the instance
+command.
+
+[para]
+
+If no [arg objectName] is specified the class will generate and use an
+automatic name. If the [arg objectName] was specified, but is not
+fully qualified the command will be created in the current namespace.
+
+[list_end]
+
+[section {Instance API}]
+
+[list_begin definitions]
+
+[comment ---------------------------------------------------------------------]
+[call [cmd <encoder>] [method comment:] [arg text]]
+
+This method specifies the text of the global comment for the archive.
+
+The result of the method is the empty string.
+
+In case of multiple calls to this method for the same encoder the data
+from the last call prevails over all previous texts.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd <encoder>] [method file:] [arg dst] [arg owned] [arg src] \
+     [opt [arg noCompress]]]
+
+This method adds a new file to the archive.
+
+The contents of the file are found in the filesystem at [arg src], and
+will be stored in the archive under path [arg dst].
+
+If the file is declared as [arg owned] by the archive the original
+file will be deleted when the archive is constructed and written.
+
+If [arg noCompress] is set to [const true] the file will not be
+compressed on writing. Otherwise (the default) the file is compressed
+if it is advantageous.
+
+The result of the method is an empty string.
+
+[comment ---------------------------------------------------------------------]
+[call [cmd <encoder>] [method write] [arg archive]]
+
+This method takes the global comment and all added files, encodes them
+as a zip archive and stores the result at path [arg archive] in the
+filesystem.
+
+All added files which were owned by the archive are deleted at this
+point.
+
+On the issue of ordering, the files are added to the archive in the
+same order as they were specified via [method file:]. [emph Note] that
+this behaviour is new for version 0.4 and higher. Before 0.4 no
+specific order was documented. It was lexicographically sorted. The
+change was made to support [cmd zip]-based file formats which require
+a specific order of files in the archive, for example [file .epub].
+
+[list_end]
+
+[vset CATEGORY zipfile]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

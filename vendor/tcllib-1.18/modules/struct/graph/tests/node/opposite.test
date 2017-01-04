@@ -1,0 +1,88 @@
+# -*- tcl -*-
+# Graph tests - node opposite
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: opposite.test,v 1.2 2007/04/12 03:01:56 andreas_kupries Exp $
+
+# Syntax: graph node opposite NODE ARC
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-node-opposite-1.0 {node opposite, wrong#args, missing} {
+    SETUP
+    catch {mygraph node opposite} msg
+    mygraph destroy
+    set msg
+} [tmWrong {node opposite} {node arc} 0]
+
+test graph-${impl}-${setimpl}-node-opposite-1.1 {node opposite, wrong#args, missing} {
+    SETUP
+    catch {mygraph node opposite 0} msg
+    mygraph destroy
+    set msg
+} [tmWrong {node opposite} {node arc} 1]
+
+test graph-${impl}-${setimpl}-node-opposite-1.2 {node opposite, wrong#args, too many} {
+    SETUP
+    catch {mygraph node opposite 0 1 2} msg
+    mygraph destroy
+    set msg
+} [tmTooMany {node opposite} {node arc}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-node-opposite-2.1 {node opposite, missing node} {
+    SETUP
+    catch {mygraph node opposite node0 arc0} msg
+    mygraph destroy
+    set msg
+} [MissingNode $MY node0]
+
+test graph-${impl}-${setimpl}-node-opposite-2.2 {node opposite, missing arc} {
+    SETUP
+    mygraph node insert node0
+    catch {mygraph node opposite node0 arc0} msg
+    mygraph destroy
+    set msg
+} [MissingArc $MY arc0]
+
+test graph-${impl}-${setimpl}-node-opposite-2.3 {node opposite, !adjacent node/arc} {
+    SETUP
+    mygraph node insert node0 node1 node2
+    mygraph arc  insert node1 node2 arc0
+
+    catch {mygraph node opposite node0 arc0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" and arc \"arc0\" are not connected in graph \"$MY\""
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-node-opposite-3.0 {node opposite, source|target} {
+    SETUP
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+
+    set     result {}
+    lappend result [mygraph node opposite node0 arc0]
+    lappend result [mygraph node opposite node1 arc0]
+
+    mygraph destroy
+    set result
+} {node1 node0}
+
+test graph-${impl}-${setimpl}-node-opposite-3.1 {node opposite, loop} {
+    SETUP
+    mygraph node insert node0
+    mygraph arc  insert node0 node0 arc0
+
+    set result [mygraph node opposite node0 arc0]
+
+    mygraph destroy
+    set result
+} {node0}
+
+# ---------------------------------------------------

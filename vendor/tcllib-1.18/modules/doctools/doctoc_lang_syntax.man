@@ -1,0 +1,105 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctoc_lang_syntax n 1.0]
+[see_also doctoc_intro]
+[see_also doctoc_lang_cmdref]
+[see_also doctoc_lang_faq]
+[see_also doctoc_lang_intro]
+[keywords {doctoc commands}]
+[keywords {doctoc language}]
+[keywords {doctoc markup}]
+[keywords {doctoc syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctoc language syntax}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document contains the formal specification of the syntax of the
+doctoc markup language, version 1.1 in Backus-Naur-Form. This document
+is intended to be a reference, complementing the
+[term {doctoc language command reference}].
+
+A beginner should read the much more informally written
+[term {doctoc language introduction}] first before trying to
+understand either this document or the command reference.
+
+[section Fundamentals]
+
+In the broadest terms possible the [term {doctoc markup language}] is
+like SGML and similar languages. A document written in this language
+consists primarily of markup commands, with text embedded into it at
+some places.
+
+[para]
+
+Each markup command is a just Tcl command surrounded by a matching
+pair of [const [lb]] and [const [rb]]. Which commands are available,
+and their arguments, i.e. syntax is specified in the
+[term {doctoc language command reference}].
+
+[para]
+
+In this document we specify first the lexeme, and then the syntax,
+i.e. how we can mix text and markup commands with each other.
+
+[section {Lexical definitions}]
+
+In the syntax rules listed in the next section
+
+[list_begin enumerated]
+[enum]
+<TEXT> stands for all text except markup commands.
+
+[enum]
+Any XXX stands for the markup command [lb]xxx[rb] including its
+arguments. Each markup command is a Tcl command surrounded by a
+matching pair of [const [lb]] and [const [rb]]. Inside of these
+delimiters the usual rules for a Tcl command apply with regard to word
+quotation, nested commands, continuation lines, etc.
+
+[enum]
+<WHITE> stands for all text consisting only of spaces, newlines,
+tabulators and the [cmd comment] markup command.
+[list_end]
+
+[section Syntax]
+
+The rules listed here specify only the syntax of doctoc documents. The
+lexical level of the language was covered in the previous section.
+
+[para]
+
+Regarding the syntax of the (E)BNF itself
+
+[list_begin enumerated]
+[enum]
+The construct { X } stands for zero or more occurrences of X.
+[enum]
+The construct [lb] X [rb] stands for zero or one occurrence of X.
+[list_end]
+
+The syntax:
+
+[example {
+toc       = defs
+            TOC_BEGIN
+            contents
+            TOC_END
+            { <WHITE> }
+
+defs      = { INCLUDE | VSET | <WHITE> }
+contents  = { defs entry } [ defs ]
+
+entry     = ITEM | division
+
+division  = DIVISION_START
+            contents
+            DIVISION_END
+}]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

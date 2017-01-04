@@ -32,8 +32,18 @@ tests/test.tcl
 tests/test/library.tcl
 tests/test/trace/test.tcl
 
-vendor/*/
+vendor/vendor-destroot/
 vendor/tclsh
+vendor/**/*.o
+vendor/**/*.a
+vendor/**/*.dylib
+vendor/**/config.log
+vendor/**/config.status
+vendor/tcl8.*/unix/Tcl-Info.plist
+vendor/tcl8.*/unix/Tclsh-Info.plist
+vendor/tcl8.*/unix/tcl.pc
+vendor/tcl8.*/unix/tclConfig.sh
+vendor/tcl8.*/unix/tclsh
 
 !*.in
 

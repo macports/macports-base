@@ -1,0 +1,538 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 1.0.2]
+[manpage_begin rest n [vset VERSION]]
+[moddesc   {A framework for RESTful web services}]
+[titledesc {define REST web APIs and call them inline or asychronously}]
+[require Tcl 8.5]
+[require rest [opt [vset VERSION]]]
+[description]
+
+There are two types of usage this package supports: [term {simple calls}],
+and complete [term interfaces].
+
+In an [term interface] you specify a set of rules and then the package
+builds the commands which correspond to the REST methods. These
+commands can have many options such as input and output
+transformations and data type specific formatting. This results in a
+cleaner and simpler script.
+
+On the other hand, while a [term {simple call}] is easier and quicker
+to implement it is also less featureful. It takes the url and a few
+options about the command and returns the result directly. Any
+formatting or checking is up to rest of the script.
+
+[section {Simple usage}]
+
+In simple usage you make calls using the http method procedures and
+then check or process the returned data yourself
+
+[comment {= = == === ===== ======== ============= =====================}]
+[comment {= = == === ===== ======== ============= =====================}]
+[list_begin definitions]
+[call [cmd ::rest::simple] [arg url] [arg query] [opt [arg config]] [opt [arg body]]]
+[call [cmd ::rest::get]    [arg url] [arg query] [opt [arg config]] [opt [arg body]]]
+[call [cmd ::rest::post]   [arg url] [arg query] [opt [arg config]] [opt [arg body]]]
+[call [cmd ::rest::head]   [arg url] [arg query] [opt [arg config]] [opt [arg body]]]
+[call [cmd ::rest::put]    [arg url] [arg query] [opt [arg config]] [opt [arg body]]]
+[call [cmd ::rest::delete] [arg url] [arg query] [opt [arg config]] [opt [arg body]]]
+
+[para] These commands are all equivalent except for the http method
+used.
+
+If you use [cmd simple] then the method should be specified as an
+option in the [arg config] dictionary. If that is not done it defaults
+to [const get]. If a [arg body] is needed then the [arg config]
+dictionary must be present, however it is allowed to be empty.
+
+[para] The [arg config] dictionary supports the following keys
+
+[list_begin definitions]
+[def [const auth]]
+[def [const content-type]]
+[def [const cookie]]
+[def [const format]]
+[def [const headers]]
+[def [const method]]
+
+[comment {-- TODO -- describe the meaning of the various keys -- }]
+[list_end]
+
+[para] Two quick examples:
+
+[para] Example 1, Yahoo Boss:
+[comment {--- --- --- --- -- ---- --- --- ---}][example {
+    set appid APPID
+    set search tcl
+    set res [rest::get http://boss.yahooapis.com/ysearch/web/v1/$search [list appid $appid]]
+    set res [rest::format_json $res]
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[para] Example 2, Twitter:
+[comment {--- --- --- --- -- ---- --- --- ---}][example {
+    set url   http://twitter.com/statuses/update.json
+    set query [list status $text]
+    set res [rest::simple $url $query {
+        method post
+        auth   {basic user password}
+        format json
+    }]
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[list_end]
+
+[section {Interface usage}]
+
+An interface to a REST API consists of a series of definitions of REST
+calls contained in an array.
+
+The name of that array becomes a namespace containing the defined
+commands. Each key of the array specifies the name of the call, with
+the associated configuration a dictionary, i.e. key/value pairs.
+
+The acceptable keys, i.e. legal configuration options are described
+below.
+
+After creating the definitions in the array simply calling
+[cmd rest::create_interface] with the array as argument will then
+create the desired commands.
+
+[para] Example, Yahoo Weather:
+[comment {--- --- --- --- --- --- --- --- ---}][example {
+    package require rest
+
+    set yweather(forecast) {
+       url      http://weather.yahooapis.com/forecastrss
+       req_args { p: }
+       opt_args { u: }
+    }
+    rest::create_interface yweather
+    puts [yweather::forecast -p 94089]
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[comment { -- TODO -- figure out what these are ! standard methods ?
+::${name}::set_static_args [opt args]]
+}]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[comment {= = == === ===== ======== ============= =====================}]
+[list_begin definitions]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::rest::save] [arg name] [arg file]]
+
+This command saves a copy of the dynamically created procedures for
+all the API calls specified in the array variable [arg name] to the
+[arg file], for later loading.
+
+[para] The result of the command is the empty string
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::rest::describe] [arg name]]
+
+This command prints a description of all API calls specified in the array
+variable [arg name] to the channel [const stdout].
+
+[para] The result of the command is the empty string.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::rest::parameters] [arg url] [opt [arg key]]]
+
+This command parses an [arg url] query string into a dictionary and
+returns said dictionary as its result.
+
+[para] If [arg key] is specified the command will not return the
+entire dictionary, but only the value of that [arg key].
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::rest::parse_opts] [arg static] [arg required] [arg optional] [arg words]]
+
+This command implements a custom parserfor command options.
+
+[list_begin arguments]
+[arg_def dict static]
+A dictionary of options and their values that are always present in
+the output.
+
+[arg_def list required]
+A list of options that must be supplied by [arg words]
+
+[arg_def list optional]
+A list of options that may appear in the [arg words], but are not required.
+The elements must be in one of three forms:
+
+[list_begin definitions]
+[def name]       The option may be present or not, no default.
+[def name:]      When present the option requires an argument.
+[def name:value] When not present use [const value] as default.
+[list_end]
+
+[arg_def list words]
+The words to parse into options and values.
+
+[list_end]
+
+[para] The result of the command is a list containing two elements.
+The first element is a dictionary containing the parsed options and
+their values.  The second element is a list of the remaining words.
+
+[call [cmd ::rest::substitute] [arg string] [arg var]]
+
+This command takes a [arg string], substitutes values for any option
+identifiers found inside and returns the modified string as its
+results.
+
+[para] The values to substitute are found in the variable [arg var],
+which is expected to contain a dictionary mapping from the option
+identifiers to replace to their values.
+
+[emph Note] that option identifiers which have no key in [arg var] are
+replaced with the empty string.
+
+[para] The option identifiers in [arg string] have to follow the
+syntax [const %...%] where [var ...] may contain any combination of
+lower-case alphanumeric characters, plus underscore, colon and dash.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::rest::create_interface] [arg name]]
+
+This command creates procedures for all the API calls specified in the
+array variable [arg name].
+
+[para] The name of that array becomes a namespace containing the defined
+commands. Each key of the array specifies the name of the call, with
+the associated configuration a dictionary, i.e. key/value pairs.
+
+The legal keys and their meanings are:
+
+[list_begin definitions]
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const url]]
+
+The value of this [emph required] option must be the target of the
+http request.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const description]]
+
+The value of this option must be a short string describing the call.
+Default to the empty string, if not specified.
+Used only by [cmd ::rest::describe].
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const body]]
+
+The value of this option indicates if arguments are required for the
+call's request body or not. The acceptable values are listed below.
+
+Defaults to [const optional] if not specified.
+
+[list_begin definitions]
+[def [const none]]
+The call has no request body, none must be supplied.
+[def [const optional]]
+A request body can be supplied, but is not required.
+
+[def [const required]]
+A request body must be supplied.
+
+[def [const argument]]
+
+This value must be followed by the name of an option, treating the
+entire string as a list. The request body will be used as the value of
+that option.
+
+[def [const mime_multipart]]
+
+A request body must be supplied and will be interpreted as each
+argument representing one part of a mime/multipart document.
+
+Arguments must be lists containing 2 elements, a list of header keys
+and values, and the mime part body, in this order.
+
+[list_end]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const method]]
+
+The value of this option must be the name of the HTTP method to call
+on the url.
+
+Defaults to GET, if not specified.
+
+The acceptable values are [const GET], [const POST], and [const PUT],
+regardless of letter-case.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const copy]]
+
+When present the value of this option specifies the name of a
+previously defined call. The definition of that call is copied to the
+current call, except for the options specified by the current call
+itself.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const unset]]
+
+When present the value of this option names an option in the current
+call. This option is removed from the definition. Use this after
+[const copy]ing an existing definition to remove options, instead of
+overriding their value.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const headers]]
+
+Specification of additional header fields. The value of this option
+must be a dictionary, interpreted to contain the new header fields and
+their values. The default is to not add any additional headers.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const content-type]]
+
+The value of this option specifies the content type for the request data.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const req_args]]
+
+The value of this option is a list naming the required arguments of
+the call.  Names ending in a colon will require a value.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const opt_args]]
+
+The value of this option a list naming the arguments that may be
+present for a call but are not required.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const static_args]]
+
+The value of this option a list naming the arguments that are always
+the same.  No sense in troubling the user with these.  A leading dash
+([const -]) is allowed but not required to maintain consistency with
+the command line.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const auth]]
+
+The value of this option specifies how to authenticate the calls.
+No authentication is done if the option is not specified.
+
+[list_begin definitions]
+[def [const basic]]
+
+The user may configure the [term {basic authentication}] by overriding
+the procedure [cmd basic_auth] in the namespace of interface. This
+procedure takes two arguments, the username and password, in this
+order.
+
+[def [const sign]]
+
+The value must actually be a list with the second element the name of
+a procedure which will be called to perform request signing.
+
+[list_end]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const callback]]
+
+If this option is present then the method will be created as an
+[term async] call. Such calls will return immediately with the value
+of the associated http token instead of the call's result. The event
+loop must be active to use this option.
+
+[para] The value of this option is the name of a procedure which is
+invoked when the HTTP call is complete. The procedure will receive
+three arguments, the name of the calling procedure, the status of the
+result (one of [const OK] or [const ERROR]), and the data associated
+with the result, in this order.
+
+The http request header will be available in that procedure via
+[cmd {upvar token token}].
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const cookie]]
+
+The value of this option is a list of cookies to be passed in the http
+header. This is a shortcut to the [const headers] option.
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const input_transform]]
+
+The value of this option is a command prefix or script to perform a
+transformation on the query before invoking the call. A script
+transform is wrapped into an automatically generated internal
+procedure.
+
+[para] If not specified no transformation is done.
+
+[para] The command (prefix) must accept a single argument, the query
+(a dictionary) to transform, and must return the modified query (again
+as dictionary) as its result.
+
+The request body is accessible in the transform command via
+[cmd {upvar body body}].
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const format]]
+[def [const result]]
+
+The value of this option specifies the format of the returned
+data.
+
+Defaults to [const auto] if not specified.
+
+The acceptable values are:
+[list_begin definitions]
+[def [const auto]]
+Auto detect between [const xml] and [const json].
+[def [const discard]]
+[def [const json]]
+[def [const raw]]
+[def [const rss]]
+This is formatted as a special case of [const xml].
+[def [const tdom]]
+[def [const xml]]
+[list_end]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const pre_transform]]
+
+The value of this option is a command prefix or script to perform a
+transformation on the result of a call ([emph before] the application
+of the output transform as per [const format]). A script transform is
+wrapped into an automatically generated internal procedure.
+
+[para] If not specified no transformation is done.
+
+[para] The command (prefix) must accept a single argument, the result
+to transform, and must return the modified result as its result.
+
+[para] The http request header is accessible in the transform command
+via [cmd {upvar token token}]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const post_transform]]
+
+The value of this option is a command prefix or script to perform a
+transformation on the result of a call ([emph after] the application
+of the output transform as per [const format]). A script transform is
+wrapped into an automatically generated internal procedure.
+
+[para] If not specified no transformation is done.
+
+[para] The command (prefix) must accept a single argument, the result
+to transform, and must return the modified result as its result.
+
+[para] The http request header is accessible in the transform command
+via [cmd {upvar token token}]
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[def [const check_result]]
+
+The value of this option must be list of two expressions, either of
+which may be empty.
+
+[para] The first expression is checks the OK condition, it must return
+[const true] when the result is satisfactory, and [const false]
+otherwise.
+
+[para] The second expression is the ERROR condition, it must return
+[const false] unless there is an error, then it has to return
+[const true].
+
+[comment @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@]
+[list_end]
+
+[list_end][comment {-- end of command list --}]
+
+[section Examples]
+
+[para] Yahoo Geo:
+[comment {--- --- --- --- -- ---- --- --- ---}][example {
+set ygeo(parse) {
+    url http://wherein.yahooapis.com/v1/document
+    method post
+    body { arg documentContent }
+}
+ygeo::parse "san jose ca"
+# "san jose ca" will be interpreted as if it were specified as the -documentContent option
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[para] Google Docs:
+[comment {--- --- --- --- -- ---- --- --- ---}][example {
+set gdocs(upload) {
+    url http://docs.google.com/feeds/default/private/full
+    body mime_multipart
+}
+gdocs::upload [list {Content-Type application/atom+xml} $xml] [list {Content-Type image/jpeg} $filedata]
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[para] Delicious:
+[comment {--- --- --- --- -- ---- --- --- ---}][example {
+set delicious(updated) {
+    url https://api.del.icio.us/v1/posts/update
+    auth basic
+}
+
+rest::create_interface flickr
+
+flickr::basic_auth username password
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[para] Flickr:
+[comment {--- --- --- --- -- ---- --- --- ---}][example {
+set flickr(auth.getToken) {
+   url http://api.flickr.com/services/rest/
+   req_args { api_key: secret: }
+   auth { sign do_signature }
+}
+
+rest::create_interface flickr
+
+proc ::flickr::do_signature {query} {
+    # perform some operations on the query here
+    return $query
+}
+}][comment {--- --- --- --- -- ---- --- --- ---}]
+
+[section INCLUDED]
+
+The package provides functional but incomplete implementations for the following services:
+
+[list_begin definitions]
+[def [const del.icio.us]]
+[def [const facebook]]
+[def [const flickr]]
+[def [const twitter]]
+[def [const {google calendar}]]
+[def [const {yahoo boss}]]
+ [def [const {yahoo weather}]]
+[list_end]
+
+Please either read the package's implementation, or use
+[cmd rest::describe] after loading it for their details.
+
+[para] Do not forget developers' documentation on the respective sites either.
+
+[section TLS]
+
+The [package rest] package can be used with [term https]-secured
+services, by requiring the [package TLS] package and then registering
+it with the [package http] package it is sitting on top of.
+
+Example
+[example {
+    package require tls
+    http::register https 443 ::tls::socket
+}]
+
+[include ../common-text/tls-security-notes.inc]
+
+[vset CATEGORY rest]
+[include ../doctools2base/include/feedback.inc]
+[comment {
+TOKENS
+     the value is substituted into the url at call time.
+     tokens in the form of %name:default_value% will be
+     an optional argument with a default value.
+}]
+[manpage_end]

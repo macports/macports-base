@@ -1,0 +1,569 @@
+<div class='fossil-doc' data-title='math::bigfloat - Tcl Math Library'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::bigfloat(n) 2.0.1 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::bigfloat - Arbitrary precision floating-point numbers</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">INTRODUCTION</a></li>
+<li class="doctools_section"><a href="#section3">ARITHMETICS</a></li>
+<li class="doctools_section"><a href="#section4">COMPARISONS</a></li>
+<li class="doctools_section"><a href="#section5">ANALYSIS</a></li>
+<li class="doctools_section"><a href="#section6">ROUNDING</a></li>
+<li class="doctools_section"><a href="#section7">PRECISION</a></li>
+<li class="doctools_section"><a href="#section8">WHAT ABOUT TCL 8.4 ?</a></li>
+<li class="doctools_section"><a href="#section9">NAMESPACES AND OTHER PACKAGES</a></li>
+<li class="doctools_section"><a href="#section10">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section11">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">math::bigfloat <span class="opt">?2.0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">fromstr</b> <i class="arg">number</i> <span class="opt">?<i class="arg">trailingZeros</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">tostr</b> <span class="opt">?<b class="option">-nosci</b>?</span> <i class="arg">number</i></a></li>
+<li><a href="#3"><b class="cmd">fromdouble</b> <i class="arg">double</i> <span class="opt">?<i class="arg">decimals</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">todouble</b> <i class="arg">number</i></a></li>
+<li><a href="#5"><b class="cmd">isInt</b> <i class="arg">number</i></a></li>
+<li><a href="#6"><b class="cmd">isFloat</b> <i class="arg">number</i></a></li>
+<li><a href="#7"><b class="cmd">int2float</b> <i class="arg">integer</i> <span class="opt">?<i class="arg">decimals</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">add</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#9"><b class="cmd">sub</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#10"><b class="cmd">mul</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#11"><b class="cmd">div</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#12"><b class="cmd">mod</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#13"><b class="cmd">abs</b> <i class="arg">x</i></a></li>
+<li><a href="#14"><b class="cmd">opp</b> <i class="arg">x</i></a></li>
+<li><a href="#15"><b class="cmd">pow</b> <i class="arg">x</i> <i class="arg">n</i></a></li>
+<li><a href="#16"><b class="cmd">iszero</b> <i class="arg">x</i></a></li>
+<li><a href="#17"><b class="cmd"><a href="../../../../index.html#key559">equal</a></b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#18"><b class="cmd">compare</b> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#19"><b class="cmd">sqrt</b> <i class="arg">x</i></a></li>
+<li><a href="#20"><b class="cmd"><a href="../log/log.html">log</a></b> <i class="arg">x</i></a></li>
+<li><a href="#21"><b class="cmd">exp</b> <i class="arg">x</i></a></li>
+<li><a href="#22"><b class="cmd">cos</b> <i class="arg">x</i></a></li>
+<li><a href="#23"><b class="cmd">sin</b> <i class="arg">x</i></a></li>
+<li><a href="#24"><b class="cmd">tan</b> <i class="arg">x</i></a></li>
+<li><a href="#25"><b class="cmd">cotan</b> <i class="arg">x</i></a></li>
+<li><a href="#26"><b class="cmd">acos</b> <i class="arg">x</i></a></li>
+<li><a href="#27"><b class="cmd">asin</b> <i class="arg">x</i></a></li>
+<li><a href="#28"><b class="cmd">atan</b> <i class="arg">x</i></a></li>
+<li><a href="#29"><b class="cmd">cosh</b> <i class="arg">x</i></a></li>
+<li><a href="#30"><b class="cmd">sinh</b> <i class="arg">x</i></a></li>
+<li><a href="#31"><b class="cmd">tanh</b> <i class="arg">x</i></a></li>
+<li><a href="#32"><b class="cmd"><a href="../../../../index.html#key805">pi</a></b> <i class="arg">n</i></a></li>
+<li><a href="#33"><b class="cmd">rad2deg</b> <i class="arg">radians</i></a></li>
+<li><a href="#34"><b class="cmd">deg2rad</b> <i class="arg">degrees</i></a></li>
+<li><a href="#35"><b class="cmd">round</b> <i class="arg">x</i></a></li>
+<li><a href="#36"><b class="cmd">ceil</b> <i class="arg">x</i></a></li>
+<li><a href="#37"><b class="cmd">floor</b> <i class="arg">x</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The bigfloat package provides arbitrary precision floating-point math
+capabilities to the Tcl language. It is designed to work with Tcl 8.5,
+but for Tcl 8.4 is provided an earlier version of this package.
+See <span class="sectref"><a href="#section8">WHAT ABOUT TCL 8.4 ?</a></span> for more explanations.
+By convention, we will talk about the numbers treated in this library as :</p>
+<ul class="doctools_itemized">
+<li><p>BigFloat for floating-point numbers of arbitrary length.</p></li>
+<li><p>integers for arbitrary length signed integers, just as basic integers since Tcl 8.5.</p></li>
+</ul>
+<p>Each BigFloat is an interval, namely [<em>m-d, m+d</em>],
+where <em>m</em> is the mantissa and <em>d</em> the uncertainty, representing the
+limitation of that number's precision.
+This is why we call such mathematics <em>interval computations</em>.
+Just take an example in physics : when you measure a temperature, not all
+digits you read are <em>significant</em>. Sometimes you just cannot trust all digits - not to mention if doubles (f.p. numbers) can handle all these digits.
+BigFloat can handle this problem - trusting the digits you get - plus the ability to store numbers with an arbitrary precision.
+BigFloats are internally represented at Tcl lists: this
+package provides a set of procedures operating against
+the internal representation in order to :</p>
+<ul class="doctools_itemized">
+<li><p>perform math operations on BigFloats and (optionnaly) with integers.</p></li>
+<li><p>convert BigFloats from their internal representations to strings, and vice versa.</p></li>
+</ul>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">INTRODUCTION</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">fromstr</b> <i class="arg">number</i> <span class="opt">?<i class="arg">trailingZeros</i>?</span></a></dt>
+<dd><p>Converts <em>number</em> into a BigFloat. Its precision
+is at least the number of digits provided by <em>number</em>.
+If the <i class="arg">number</i> contains only digits and eventually a minus sign, it is considered as
+an integer. Subsequently, no conversion is done at all.</p>
+<p><i class="arg">trailingZeros</i> - the number of zeros to append at the end of the floating-point number
+to get more precision. It cannot be applied to an integer.</p>
+<pre class="doctools_example">
+# x and y are BigFloats : the first string contained a dot, and the second an e sign
+set x [fromstr -1.000000]
+set y [fromstr 2000e30]
+# let's see how we get integers
+set t 20000000000000
+# the old way (package 1.2) is still supported for backwards compatibility :
+set m [fromstr 10000000000]
+# but we do not need fromstr for integers anymore
+set n -39
+# t, m and n are integers
+</pre>
+<p>The <em>number</em>'s last digit is considered by the procedure to be true at +/-1,
+For example, 1.00 is the interval [0.99, 1.01],
+and 0.43 the interval [0.42, 0.44].
+The Pi constant may be approximated by the number &quot;3.1415&quot;.
+This string could be considered as the interval [3.1414 , 3.1416] by <b class="cmd">fromstr</b>.
+So, when you mean 1.0 as a double, you may have to write 1.000000 to get enough precision.
+To learn more about this subject, see <span class="sectref"><a href="#section7">PRECISION</a></span>.</p>
+<p>For example :</p>
+<pre class="doctools_example">
+set x [fromstr 1.0000000000]
+# the next line does the same, but smarter
+set y [fromstr 1. 10]
+</pre>
+</dd>
+<dt><a name="2"><b class="cmd">tostr</b> <span class="opt">?<b class="option">-nosci</b>?</span> <i class="arg">number</i></a></dt>
+<dd><p>Returns a string form of a BigFloat, in which all digits are exacts.
+<em>All exact digits</em> means a rounding may occur, for example to zero,
+if the uncertainty interval does not clearly show the true digits.
+<em>number</em> may be an integer, causing the command to return exactly the input argument.
+With the <b class="option">-nosci</b> option, the number returned is never shown in scientific
+notation, i.e. not like '3.4523e+5' but like '345230.'.</p>
+<pre class="doctools_example">
+puts [tostr [fromstr 0.99999]] ;# 1.0000
+puts [tostr [fromstr 1.00001]] ;# 1.0000
+puts [tostr [fromstr 0.002]] ;# 0.e-2
+</pre>
+<p>See <span class="sectref"><a href="#section7">PRECISION</a></span> for that matter.
+See also <b class="cmd">iszero</b> for how to detect zeros, which is useful when performing a division.</p></dd>
+<dt><a name="3"><b class="cmd">fromdouble</b> <i class="arg">double</i> <span class="opt">?<i class="arg">decimals</i>?</span></a></dt>
+<dd><p>Converts a double (a simple floating-point value) to a BigFloat, with
+exactly <i class="arg">decimals</i> digits.  Without the <i class="arg">decimals</i> argument,
+it behaves like <b class="cmd">fromstr</b>.
+Here, the only important feature you might care of is the ability
+to create BigFloats with a fixed number of <i class="arg">decimals</i>.</p>
+<pre class="doctools_example">
+tostr [fromstr 1.111 4]
+# returns : 1.111000 (3 zeros)
+tostr [fromdouble 1.111 4]
+# returns : 1.111
+</pre>
+</dd>
+<dt><a name="4"><b class="cmd">todouble</b> <i class="arg">number</i></a></dt>
+<dd><p>Returns a double, that may be used in <em>expr</em>,
+from a BigFloat.</p></dd>
+<dt><a name="5"><b class="cmd">isInt</b> <i class="arg">number</i></a></dt>
+<dd><p>Returns 1 if <em>number</em> is an integer, 0 otherwise.</p></dd>
+<dt><a name="6"><b class="cmd">isFloat</b> <i class="arg">number</i></a></dt>
+<dd><p>Returns 1 if <em>number</em> is a BigFloat, 0 otherwise.</p></dd>
+<dt><a name="7"><b class="cmd">int2float</b> <i class="arg">integer</i> <span class="opt">?<i class="arg">decimals</i>?</span></a></dt>
+<dd><p>Converts an integer to a BigFloat with <em>decimals</em> trailing zeros.
+The default, and minimal, number of <em>decimals</em> is 1.
+When converting back to string, one decimal is lost:</p>
+<pre class="doctools_example">
+set n 10
+set x [int2float $n]; # like fromstr 10.0
+puts [tostr $x]; # prints &quot;10.&quot;
+set x [int2float $n 3]; # like fromstr 10.000
+puts [tostr $x]; # prints &quot;10.00&quot;
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">ARITHMETICS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="8"><b class="cmd">add</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd></dd>
+<dt><a name="9"><b class="cmd">sub</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd></dd>
+<dt><a name="10"><b class="cmd">mul</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Return the sum, difference and product of <em>x</em> by <em>y</em>.
+<i class="arg">x</i> - may be either a BigFloat or an integer
+<i class="arg">y</i> - may be either a BigFloat or an integer
+When both are integers, these commands behave like <b class="cmd">expr</b>.</p></dd>
+<dt><a name="11"><b class="cmd">div</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd></dd>
+<dt><a name="12"><b class="cmd">mod</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Return the quotient and the rest of <em>x</em> divided by <em>y</em>.
+Each argument (<em>x</em> and <em>y</em>) can be either a BigFloat or an integer,
+but you cannot divide an integer by a BigFloat
+Divide by zero throws an error.</p></dd>
+<dt><a name="13"><b class="cmd">abs</b> <i class="arg">x</i></a></dt>
+<dd><p>Returns the absolute value of <em>x</em></p></dd>
+<dt><a name="14"><b class="cmd">opp</b> <i class="arg">x</i></a></dt>
+<dd><p>Returns the opposite of <em>x</em></p></dd>
+<dt><a name="15"><b class="cmd">pow</b> <i class="arg">x</i> <i class="arg">n</i></a></dt>
+<dd><p>Returns <em>x</em> taken to the <em>n</em>th power.
+It only works if <em>n</em> is an integer.
+<em>x</em> might be a BigFloat or an integer.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">COMPARISONS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="16"><b class="cmd">iszero</b> <i class="arg">x</i></a></dt>
+<dd><p>Returns 1 if <em>x</em> is :</p>
+<ul class="doctools_itemized">
+<li><p>a BigFloat close enough to zero to raise &quot;divide by zero&quot;.</p></li>
+<li><p>the integer 0.</p></li>
+</ul>
+<p>See here how numbers that are close to zero are converted to strings:</p>
+<pre class="doctools_example">
+tostr [fromstr 0.001] ; # -&gt; 0.e-2
+tostr [fromstr 0.000000] ; # -&gt; 0.e-5
+tostr [fromstr -0.000001] ; # -&gt; 0.e-5
+tostr [fromstr 0.0] ; # -&gt; 0.
+tostr [fromstr 0.002] ; # -&gt; 0.e-2
+set a [fromstr 0.002] ; # uncertainty interval : 0.001, 0.003
+tostr  $a ; # 0.e-2
+iszero $a ; # false
+set a [fromstr 0.001] ; # uncertainty interval : 0.000, 0.002
+tostr  $a ; # 0.e-2
+iszero $a ; # true
+</pre>
+</dd>
+<dt><a name="17"><b class="cmd"><a href="../../../../index.html#key559">equal</a></b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Returns 1 if <em>x</em> and <em>y</em> are equal, 0 elsewhere.</p></dd>
+<dt><a name="18"><b class="cmd">compare</b> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Returns 0 if both BigFloat arguments are equal,
+1 if <em>x</em> is greater than <em>y</em>,
+and -1 if <em>x</em> is lower than <em>y</em>.
+You would not be able to compare an integer to a BigFloat :
+the operands should be both BigFloats, or both integers.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">ANALYSIS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="19"><b class="cmd">sqrt</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="20"><b class="cmd"><a href="../log/log.html">log</a></b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="21"><b class="cmd">exp</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="22"><b class="cmd">cos</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="23"><b class="cmd">sin</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="24"><b class="cmd">tan</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="25"><b class="cmd">cotan</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="26"><b class="cmd">acos</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="27"><b class="cmd">asin</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="28"><b class="cmd">atan</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="29"><b class="cmd">cosh</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="30"><b class="cmd">sinh</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="31"><b class="cmd">tanh</b> <i class="arg">x</i></a></dt>
+<dd><p>The above functions return, respectively, the following :
+square root, logarithm, exponential, cosine, sine,
+tangent, cotangent, arc cosine, arc sine, arc tangent, hyperbolic
+cosine, hyperbolic sine, hyperbolic tangent, of a BigFloat named <em>x</em>.</p></dd>
+<dt><a name="32"><b class="cmd"><a href="../../../../index.html#key805">pi</a></b> <i class="arg">n</i></a></dt>
+<dd><p>Returns a BigFloat representing the Pi constant with <em>n</em> digits after the dot.
+<em>n</em> is a positive integer.</p></dd>
+<dt><a name="33"><b class="cmd">rad2deg</b> <i class="arg">radians</i></a></dt>
+<dd></dd>
+<dt><a name="34"><b class="cmd">deg2rad</b> <i class="arg">degrees</i></a></dt>
+<dd><p><i class="arg">radians</i> - angle expressed in radians (BigFloat)</p>
+<p><i class="arg">degrees</i> - angle expressed in degrees (BigFloat)</p>
+<p>Convert an angle from radians to degrees, and <em>vice versa</em>.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">ROUNDING</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="35"><b class="cmd">round</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="36"><b class="cmd">ceil</b> <i class="arg">x</i></a></dt>
+<dd></dd>
+<dt><a name="37"><b class="cmd">floor</b> <i class="arg">x</i></a></dt>
+<dd><p>The above functions return the <em>x</em> BigFloat,
+rounded like with the same mathematical function in <em>expr</em>,
+and returns it as an integer.</p></dd>
+</dl>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">PRECISION</a></h2>
+<p>How do conversions work with precision ?</p>
+<ul class="doctools_itemized">
+<li><p>When a BigFloat is converted from string, the internal representation
+holds its uncertainty as 1 at the level of the last digit.</p></li>
+<li><p>During computations, the uncertainty of each result
+is internally computed the closest to the reality, thus saving the memory used.</p></li>
+<li><p>When converting back to string, the digits that are printed
+are not subject to uncertainty. However, some rounding is done, as not doing so
+causes severe problems.</p></li>
+</ul>
+<p>Uncertainties are kept in the internal representation of the number ;
+it is recommended to use <b class="cmd">tostr</b> only for outputting data (on the screen or in a file),
+and NEVER call <b class="cmd">fromstr</b> with the result of <b class="cmd">tostr</b>.
+It is better to always keep operands in their internal representation.
+Due to the internals of this library, the uncertainty interval may be slightly
+wider than expected, but this should not cause false digits.</p>
+<p>Now you may ask this question : What precision am I going to get
+after calling add, sub, mul or div?
+First you set a number from the string representation and,
+by the way, its uncertainty is set:</p>
+<pre class="doctools_example">
+set a [fromstr 1.230]
+# $a belongs to [1.229, 1.231]
+set a [fromstr 1.000]
+# $a belongs to [0.999, 1.001]
+# $a has a relative uncertainty of 0.1% : 0.001(the uncertainty)/1.000(the medium value)
+</pre>
+<p>The uncertainty of the sum, or the difference, of two numbers, is the sum
+of their respective uncertainties.</p>
+<pre class="doctools_example">
+set a [fromstr 1.230]
+set b [fromstr 2.340]
+set sum [add $a $b]]
+# the result is : [3.568, 3.572] (the last digit is known with an uncertainty of 2)
+tostr $sum ; # 3.57
+</pre>
+<p>But when, for example, we add or substract an integer to a BigFloat,
+the relative uncertainty of the result is unchanged. So it is desirable
+not to convert integers to BigFloats:</p>
+<pre class="doctools_example">
+set a [fromstr 0.999999999]
+# now something dangerous
+set b [fromstr 2.000]
+# the result has only 3 digits
+tostr [add $a $b]
+# how to keep precision at its maximum
+puts [tostr [add $a 2]]
+</pre>
+<p>For multiplication and division, the relative uncertainties of the product
+or the quotient, is the sum of the relative uncertainties of the operands.
+Take care of division by zero : check each divider with <b class="cmd">iszero</b>.</p>
+<pre class="doctools_example">
+set num [fromstr 4.00]
+set denom [fromstr 0.01]
+puts [iszero $denom];# true
+set quotient [div $num $denom];# error : divide by zero
+# opposites of our operands
+puts [compare $num [opp $num]]; # 1
+puts [compare $denom [opp $denom]]; # 0 !!!
+# No suprise ! 0 and its opposite are the same...
+</pre>
+<p>Effects of the precision of a number considered equal to zero
+to the cos function:</p>
+<pre class="doctools_example">
+puts [tostr [cos [fromstr 0. 10]]]; # -&gt; 1.000000000
+puts [tostr [cos [fromstr 0. 5]]]; # -&gt; 1.0000
+puts [tostr [cos [fromstr 0e-10]]]; # -&gt; 1.000000000
+puts [tostr [cos [fromstr 1e-10]]]; # -&gt; 1.000000000
+</pre>
+<p>BigFloats with different internal representations may be converted
+to the same string.</p>
+<p>For most analysis functions (cosine, square root, logarithm, etc.), determining the precision
+of the result is difficult.
+It seems however that in many cases, the loss of precision in the result
+is of one or two digits.
+There are some exceptions : for example,</p>
+<pre class="doctools_example">
+tostr [exp [fromstr 100.0 10]]
+# returns : 2.688117142e+43 which has only 10 digits of precision, although the entry
+# has 14 digits of precision.
+</pre>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">WHAT ABOUT TCL 8.4 ?</a></h2>
+<p>If your setup do not provide Tcl 8.5 but supports 8.4, the package can still be loaded,
+switching back to <em>math::bigfloat</em> 1.2. Indeed, an important function introduced in Tcl 8.5
+is required - the ability to handle bignums, that we can do with <b class="cmd">expr</b>.
+Before 8.5, this ability was provided by several packages,
+including the pure-Tcl <em>math::bignum</em> package provided by <em>tcllib</em>.
+In this case, all you need to know, is that arguments to the commands explained here,
+are expected to be in their internal representation.
+So even with integers, you will need to call <b class="cmd">fromstr</b>
+and <b class="cmd">tostr</b> in order to convert them between string and internal representations.</p>
+<pre class="doctools_example">
+#
+# with Tcl 8.5
+# ============
+set a [pi 20]
+# round returns an integer and 'everything is a string' applies to integers
+# whatever big they are
+puts [round [mul $a 10000000000]]
+#
+# the same with Tcl 8.4
+# =====================
+set a [pi 20]
+# bignums (arbitrary length integers) need a conversion hook
+set b [fromstr 10000000000]
+# round returns a bignum:
+# before printing it, we need to convert it with 'tostr'
+puts [tostr [round [mul $a $b]]]
+</pre>
+</div>
+<div id="section9" class="doctools_section"><h2><a name="section9">NAMESPACES AND OTHER PACKAGES</a></h2>
+<p>We have not yet discussed about namespaces
+because we assumed that you had imported public commands into the global namespace,
+like this:</p>
+<pre class="doctools_example">
+namespace import ::math::bigfloat::*
+</pre>
+<p>If you matter much about avoiding names conflicts,
+I considere it should be resolved by the following :</p>
+<pre class="doctools_example">
+package require math::bigfloat
+# beware: namespace ensembles are not available in Tcl 8.4
+namespace eval ::math::bigfloat {namespace ensemble create -command ::bigfloat}
+# from now, the bigfloat command takes as subcommands all original math::bigfloat::* commands
+set a [bigfloat sub [bigfloat fromstr 2.000] [bigfloat fromstr 0.530]]
+puts [bigfloat tostr $a]
+</pre>
+</div>
+<div id="section10" class="doctools_section"><h2><a name="section10">EXAMPLES</a></h2>
+<p>Guess what happens when you are doing some astronomy. Here is an example :</p>
+<pre class="doctools_example">
+# convert acurrate angles with a millisecond-rated accuracy
+proc degree-angle {degrees minutes seconds milliseconds} {
+    set result 0
+    set div 1
+    foreach factor {1 1000 60 60} var [list $milliseconds $seconds $minutes $degrees] {
+        # we convert each entry var into milliseconds
+        set div [expr {$div*$factor}]
+        incr result [expr {$var*$div}]
+    }
+    return [div [int2float $result] $div]
+}
+# load the package
+package require math::bigfloat
+namespace import ::math::bigfloat::*
+# work with angles : a standard formula for navigation (taking bearings)
+set angle1 [deg2rad [degree-angle 20 30 40   0]]
+set angle2 [deg2rad [degree-angle 21  0 50 500]]
+set opposite3 [deg2rad [degree-angle 51  0 50 500]]
+set sinProduct [mul [sin $angle1] [sin $angle2]]
+set cosProduct [mul [cos $angle1] [cos $angle2]]
+set angle3 [asin [add [mul $sinProduct [cos $opposite3]] $cosProduct]]
+puts &quot;angle3 : [tostr [rad2deg $angle3]]&quot;
+</pre>
+</div>
+<div id="section11" class="doctools_section"><h2><a name="section11">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: bignum :: float</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key750">computations</a>, <a href="../../../../index.html#key392">floating-point</a>, <a href="../../../../index.html#key749">interval</a>, <a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key289">multiprecision</a>, <a href="../../../../index.html#key288">tcl</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004-2008, by Stephane Arnold &lt;stephanearnold at yahoo dot fr&gt;</p>
+</div>
+</div>

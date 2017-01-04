@@ -1,0 +1,206 @@
+
+<div class='fossil-doc' data-title='math::calculus::symdiff - Symbolic differentiation for Tcl'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::calculus::symdiff(n) 1.0.1 tcllib &quot;Symbolic differentiation for Tcl&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::calculus::symdiff - Symbolic differentiation for Tcl</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Procedures</a></li>
+<li class="doctools_section"><a href="#section3">Expressions</a></li>
+<li class="doctools_section"><a href="#section4">Examples</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">grammar::aycock 1.0</b></li>
+<li>package require <b class="pkgname">math::calculus::symdiff 1.0.1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">math::calculus::symdiff::symdiff</b> <i class="arg">expression</i> <i class="arg">variable</i></a></li>
+<li><a href="#2"><b class="cmd">math::calculus::jacobian</b> <i class="arg">variableDict</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">math::calculus::symdiff</b> package provides a symbolic differentiation
+facility for Tcl math expressions. It is useful for providing derivatives
+to packages that either require the Jacobian of a set of functions or else
+are more efficient or stable when the Jacobian is provided.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Procedures</a></h2>
+<p>The <b class="cmd">math::calculus::symdiff</b> package exports the two procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">math::calculus::symdiff::symdiff</b> <i class="arg">expression</i> <i class="arg">variable</i></a></dt>
+<dd><p>Differentiates the given <i class="arg">expression</i> with respect to the specified
+<i class="arg">variable</i>. (See <span class="sectref"><a href="#section3">Expressions</a></span> below for a discussion of the
+subset of Tcl math expressions that are acceptable to
+<b class="cmd">math::calculus::symdiff</b>.)
+The result is a Tcl expression that evaluates the derivative. Returns an
+error if <i class="arg">expression</i> is not a well-formed expression or is not
+differentiable.</p></dd>
+<dt><a name="2"><b class="cmd">math::calculus::jacobian</b> <i class="arg">variableDict</i></a></dt>
+<dd><p>Computes the Jacobian of a system of equations.
+The system is given by the dictionary <i class="arg">variableDict</i>, whose keys
+are the names of variables in the system, and whose values are Tcl expressions
+giving the values of those variables. (See <span class="sectref"><a href="#section3">Expressions</a></span> below
+for a discussion of the subset of Tcl math expressions that are acceptable
+to <b class="cmd">math::calculus::symdiff</b>. The result is a list of lists:
+the i'th element of the j'th sublist is the partial derivative of
+the i'th variable with respect to the j'th variable. Returns an error if
+any of the expressions cannot be differentiated, or if <i class="arg">variableDict</i>
+is not a well-formed dictionary.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Expressions</a></h2>
+<p>The <b class="cmd">math::calculus::symdiff</b> package accepts only a small subset of the expressions
+that are acceptable to Tcl commands such as <b class="cmd">expr</b> or <b class="cmd">if</b>.
+Specifically, the only constructs accepted are:</p>
+<ul class="doctools_itemized">
+<li><p>Floating-point constants such as <b class="const">5</b> or <b class="const">3.14159e+00</b>.</p></li>
+<li><p>References to Tcl variable using $-substitution. The variable names
+must consist of alphanumerics and underscores: the <b class="const">${...}</b> notation
+is not accepted.</p></li>
+<li><p>Parentheses.</p></li>
+<li><p>The <b class="const">+</b>, <b class="const">-</b>, <b class="const">*</b>, <b class="const">/</b>. and <b class="const">**</b>
+operators.</p></li>
+<li><p>Calls to the functions <b class="cmd">acos</b>, <b class="cmd">asin</b>, <b class="cmd">atan</b>,
+<b class="cmd">atan2</b>, <b class="cmd">cos</b>, <b class="cmd">cosh</b>, <b class="cmd">exp</b>, <b class="cmd">hypot</b>, <b class="cmd"><a href="../log/log.html">log</a></b>,
+<b class="cmd">log10</b>, <b class="cmd">pow</b>, <b class="cmd">sin</b>, <b class="cmd">sinh</b>. <b class="cmd">sqrt</b>, <b class="cmd">tan</b>,
+and <b class="cmd">tanh</b>.</p></li>
+</ul>
+<p>Command substitution, backslash substitution, and argument expansion are
+not accepted.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Examples</a></h2>
+<pre class="doctools_example">
+math::calculus::symdiff::symdiff {($a*$x+$b)*($c*$x+$d)} x
+==&gt; (($c * (($a * $x) + $b)) + ($a * (($c * $x) + $d)))
+math::calculus::symdiff::jacobian {x {$a * $x + $b * $y}
+                         y {$c * $x + $d * $y}}
+==&gt; {{$a} {$b}} {{$c} {$d}}
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: calculus</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="calculus.html">math::calculus</a>, <a href="interpolate.html">math::interpolate</a></p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2010 by Kevin B. Kenny &lt;kennykb@acm.org&gt;<br>
+Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;</p>
+</div>
+</div>

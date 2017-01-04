@@ -1,0 +1,303 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 2a_argument_dialogbox_all_widgets.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 2a_argument_dialogbox_all_widgets.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo contains an example for each of the available entry widgets of the 
+# argument_dialogbox.
+
+   package require Tk
+   package require tepam
+
+#### Entry ####
+
+DemoControl(IsExecutable) {1}
+
+# The -entry item generates the simplest but most universal data entry widget. It allows entering 
+# any kind of data.
+
+if {[tepam::argument_dialogbox \
+        -entry {-label Name -variable Entry}]=="ok"} {
+   puts "Entry: $Entry"
+} else {
+   puts "(Cancel)"
+}
+
+#### Text (multi line) ####
+
+DemoControl(IsExecutable) {1}
+
+# The -text item generates a multi line text entry widget. The default text wrapping at the 
+# word limit can be disabled via -wrap none.
+
+if {[tepam::argument_dialogbox \
+        -text {-label "Wrapped text" -variable WText -height 6 -default "Your text: "} \
+        -text {-label "Non wrapped text" -variable NWText -wrap none}]=="ok"} {
+   puts "WText: $WText"
+   puts "NWText: $NWText"
+} else {
+   puts "(Cancel)"
+}
+
+#### Checkbox ####
+
+DemoControl(IsExecutable) {1}
+
+# A group of check boxes is created with the -checkbox item. The number of check boxes and their 
+# option values are specified with a list assigned to the -choices attribute or via a variable 
+# declared with the -choicevariable attribute.
+# If the check boxes' texts should differ from the option values, they can be defined with the 
+# -choicelabels attribute:
+# In contrast to a radio box group, a check box group allows selecting simultaneously several 
+# choice options. The selection is stored for this reason inside the defined variable in form of 
+# a list, even if only one choice option has been selected.
+
+if {[tepam::argument_dialogbox \
+        -checkbox {-label "Font sytle" -variable FontStyle \
+           -choices {bold italic underline} \
+           -choicelabels {Bold Italic Underline} \
+           -default italic}]=="ok"} {
+   puts "FontStyle: $FontStyle"
+} else {
+   puts "(Cancel)"
+}
+
+#### Radiobox ####
+
+DemoControl(IsExecutable) {1}
+
+# A group of radio boxes is created with the -radiobox item. The number of radio boxes and their 
+# option values are specified with a list assigned to the -choices attribute or via a variable 
+# declared with the -choicevariable attribute.
+# In contrast to a check box group, a radio box group allows selecting simultaneously only one 
+# choice option. The selected option value is stored directly, and not in form of a list, inside 
+# the defined variable.
+
+if {[tepam::argument_dialogbox \
+        -radiobox {-label "Text adjustment" -variable Adjustment \
+           -choices {left center right} \
+           -choicelabels {Left Center Right} -default left}]=="ok"} {
+   puts "Adjustment: $Adjustment"
+} else {
+   puts "(Cancel)"
+}
+
+
+#### Checkbutton ####
+
+DemoControl(IsExecutable) {1}
+
+# The -checkbutton entry widget allows activating or deactivating a single choice option. The 
+# result written into the variable will either be 0 when the check button was not activated, or 
+# 1 if it was activated. An eventually provided default value has also to be either 0 or 1.
+
+if {[tepam::argument_dialogbox \
+        -checkbutton {-label Capitalize -variable Capitalize -default 1}]=="ok"} {
+   puts "Capitalize: $Capitalize"
+} else {
+   puts "(Cancel)"
+}
+
+
+#### Combobox ####
+
+DemoControl(IsExecutable) {1}
+
+# The combobox is a combination of a normal entry widget together with a drop-down list box. The 
+# combobox allows selecting from this drop-down list box a single element. The list of the 
+# available elements can be provided either as a list to the -choices attribute, or via a 
+# variable that is specified with the -choicevariable attribute.
+
+if {[tepam::argument_dialogbox \
+        -combobox {-label "Text size" -variable Size \
+                   -choices {8 9 10 12 15 18} -default 12}]=="ok"} {
+   puts "Size: $Size"
+} else {
+   puts "(Cancel)"
+}
+
+
+#### Listbox ####
+
+DemoControl(IsExecutable) {1}
+
+# In contrast to the combo box, the list box is always displayed by the listbox entry widget. 
+# Only one element is selectable unless the -multiple_selection attribute is set. The list box 
+# height can be selected with the -height attribute. If the height is not explicitly defined, 
+# the list box height is automatically adapted to the argument dialog box' size.
+# The following example can select multiple elements. Please note that also the default 
+# selection can contain multiple elements:
+
+if {[tepam::argument_dialogbox \
+   -listbox {-label "Text styles" -variable Styles \
+             -choices {bold italic underline overstrike} \
+             -choicelabels {Bold Italic Underline Overstrike} \
+             -default {bold underline} -multiple_selection 1 \
+             -height 3}]=="ok"} {
+   puts "Styles: $Styles"
+} else {
+   puts "(Cancel)"
+}
+
+#### Disjoint listbox ####
+
+DemoControl(IsExecutable) {1}
+
+# A disjoint list box has to be used instead of a normal list box if the selection order is 
+# important. The disjoint list box entry widget is in fact displaying two list boxes, one for 
+# the selected elements and one for the unselected elements.
+# Disjoint listboxes allow always selecting multiple elements. With the exception of the 
+# -multiple_selection attribute, disjointed list boxes are accepting the same attributes as the 
+# normal listbox, e.g. -height, -choices, -choicevariable, -default.
+
+if {[tepam::argument_dialogbox \
+   -disjointlistbox {-label "Preferred scripting languages" -variable Languages \
+             -comment "Please select your preferred languages in the order" \
+             -choices {JavaScript Lisp Lua Octave PHP Perl Python Ruby Scheme Tcl} \
+             -default {Tcl Perl Python}}]=="ok"} {
+   puts "Languages: $Languages"
+} else {
+   puts "(Cancel)"
+}
+
+#### File ####
+
+DemoControl(IsExecutable) {1}
+
+# The item -file creates a group composed by an entry widget together with a button that allows 
+# opening a file browser. The data type file is automatically selected for this entry if no data 
+# type has been explicitly defined with the -type attribute.
+
+if {[tepam::argument_dialogbox \
+   -file {-label "Image file" -variable ImageF \
+          -filetypes {{"GIF" {*.gif}} {"JPG" {*.jpg}}} \
+          -initialfile "picture.gif"}]=="ok"} {
+   puts "ImageF: $ImageF"
+} else {
+   puts "(Cancel)"
+}
+
+#### Existing file ####
+
+DemoControl(IsExecutable) {1}
+
+# The item -existingfile creates a group composed by an entry widget together with a button that 
+# allows opening a browser to select an existing file. The data type existingfile is 
+# automatically selected for this entry if no data type has been explicitly defined with the 
+# -type attribute.
+
+if {[tepam::argument_dialogbox \
+   -existingfile {-label "Image file" -variable ImageF \
+                  -filetypes {{"GIF" {*.gif}} {"JPG" {*.jpg}}} \
+                  -initialfile "picture.gif"}]=="ok"} {
+   puts "ImageF: $ImageF"
+} else {
+   puts "(Cancel)"
+}
+
+#### Directory ####
+
+DemoControl(IsExecutable) {1}
+
+# The item -directory creates a group composed by an entry widget together with a button that 
+# allows opening a directory browser. The data type directory is automatically selected for this 
+# entry if no data type has been explicitly defined with the -type attribute.
+
+if {[tepam::argument_dialogbox \
+   -directory {-label "Report directory" -variable ReportDir}]=="ok"} {
+   puts "ReportDir: $ReportDir"
+} else {
+   puts "(Cancel)"
+}
+
+#### Existing directory ####
+
+DemoControl(IsExecutable) {1}
+
+# The item -existingdirectory creates a group composed by an entry widget together with a button 
+# that allows opening a browser to select an existing directory. The data type existingdirectory 
+# is automatically selected for this entry if no data type has been explicitly defined with the 
+# -type attribute.
+
+if {[tepam::argument_dialogbox \
+   -existingdirectory {-label "Report directory" -variable ReportDir}]=="ok"} {
+   puts "ReportDir: $ReportDir"
+} else {
+   puts "(Cancel)"
+}
+
+#### Color ####
+
+DemoControl(IsExecutable) {1}
+
+# The color selector is composed by an entry widget together with a button that allows opening a 
+# color browser. The data type color is automatically selected for this entry widget type if no 
+# data type has been explicitly defined with the -type attribute.
+
+if {[tepam::argument_dialogbox \
+   -color {-label "Background color" -variable Color -default red}]=="ok"} {
+   puts "Color: $Color"
+} else {
+   puts "(Cancel)"
+}
+
+#### Font ####
+
+DemoControl(IsExecutable) {1}
+
+# The font selector is composed by an entry widget together with a button that allows opening a 
+# font browser. The data type font is automatically selected for this entry widget type if no 
+# data type has been explicitly defined with the -type attribute. The entry widget display an 
+# example text using the selected font.
+
+# The font browser allows selecting by default the font families provided by the font families 
+# command as well as a reasonable set of different font sizes between 6 points and 40 points. 
+# Different sets of font families and font sizes can be specified respectively via the 
+# -font_families or -font_sizes attributes.
+
+# If no default font is provided via the -default attribute, the font of the label widget to 
+# display the selected font will be used as default selected font. If the font family of this 
+# label widget is not part of the available families the first available family is used as 
+# default. If the font size of this label widget is not part of the available sizes the next 
+# close available size is selected as default.
+
+if {[tepam::argument_dialogbox \
+   -font {-label "Font" -variable Font \
+      -font_sizes {8 10 12 16} \
+      -default {Arial 20 italic}} ]=="ok"} {
+   puts "Font: $Font"
+} else {
+   puts "(Cancel)"
+}
+
+##########################################################################
+# Id: 2a_argument_dialogbox_all_widgets.demo
+# Modifications:
+#
+# Revision 1.4  2012/05/07 20:27:26  droll
+# * TEPAM version 0.4.0
+# * Add the new text procedure argument type and the text multi line data
+#   entry widget.
+#
+# Revision 1.3  2012/03/26 20:58:15  droll
+#
+# Revision 1.2  2011/01/21 16:00:49  droll
+# * TEPAM version 0.2.0
+#
+# Revision 1.1  2010/02/11 21:54:38  droll
+# * TEPAM module checkin
+##########################################################################

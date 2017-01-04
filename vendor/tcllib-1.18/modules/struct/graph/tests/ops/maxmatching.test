@@ -1,0 +1,137 @@
+# -*- tcl -*-
+# Graph ops tests - Maximal matchings from bi-partitions.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: maxmatching.test,v 1.3 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::isBipartite? G ?partitionvar?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-1.0 {max matching, wrong args, missing} {
+    catch {struct::graph::op::maxMatching} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::maxMatching {g X Y} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-1.1 {max matching, wrong args, missing} {
+    catch {struct::graph::op::maxMatching g} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::maxMatching {g X Y} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-1.2 {max matching, wrong args, missing} {
+    catch {struct::graph::op::maxMatching g x} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::maxMatching {g X Y} 2]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-1.3 {max matching, wrong args, too many} {
+    catch {struct::graph::op::maxMatching g x y z} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::maxMatching {g X Y}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-2.0 {max matching, bad bi-partition} knownBug {
+    SETUP_E
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    foreach {A B} $result break
+    lappend A [lindex $B 0] ; # force intersection
+    catch {struct::graph::op::maxMatching mygraph $A $B} result
+    mygraph destroy
+    set result
+} {Not a bi-partition}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-2.1 {max matching, bad bi-partition} knownBug {
+    SETUP_E
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    foreach {A B} $result break
+    set A [lreplace $A end end] ; # force partial coverage
+    catch {struct::graph::op::maxMatching mygraph $A $B} result
+    mygraph destroy
+    set result
+} {Not a bi-partition}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-2.2 {max matching, bad bi-partition} knownBug {
+    SETUP_E
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    foreach {A B} $result break
+    lappend A bogus ; # force bogus node outside of graph
+    catch {struct::graph::op::maxMatching mygraph $A $B} result
+    mygraph destroy
+    set result
+} {Not a bi-partition}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-2.3 {max matching, bad bi-partition} knownBug {
+    SETUP_E
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    foreach {A B} $result break
+    mygraph arc insert [lindex $A 0] [lindex $A 1] ; # force arc violating bipart condition
+    catch {struct::graph::op::maxMatching mygraph $A $B} result
+    mygraph destroy
+    set result
+} {Not a bi-partition}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-3.0 {max matching, empty graph} knownBug {
+    SETUP
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    set result [lsort -dict [struct::graph::op::maxMatching mygraph [lindex $result 0] [lindex $result 1]]]
+    mygraph destroy
+    set result
+} {}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-3.1 {max matching, nodes, no arcs} knownBug {
+    SETUP
+    set result {}
+    mygraph node insert 0 1 2 3 4 5
+    struct::graph::op::isBipartite? mygraph result
+    set result [lsort -dict [struct::graph::op::maxMatching mygraph [lindex $result 0] [lindex $result 1]]]
+    mygraph destroy
+    set result
+} {}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-3.3 {max matching} knownBug {
+    SETUP_E
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    set result [lsort -dict [struct::graph::op::maxMatching mygraph [lindex $result 0] [lindex $result 1]]]
+    mygraph destroy
+    set result
+} {}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-3.4 {max matching} knownBug {
+    SETUP_F
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    set result [lsort -dict [struct::graph::op::maxMatching mygraph [lindex $result 0] [lindex $result 1]]]
+    mygraph destroy
+    set result
+} {}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-3.5 {max matching} knownBug {
+    SETUP_G
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    set result [lsort -dict [struct::graph::op::maxMatching mygraph [lindex $result 0] [lindex $result 1]]]
+    mygraph destroy
+    set result
+} {}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-maxmatch-3.6 {max matching} knownBug {
+    SETUP_C
+    set result {}
+    struct::graph::op::isBipartite? mygraph result
+    set result [lsort -dict [struct::graph::op::maxMatching mygraph [lindex $result 0] [lindex $result 1]]]
+    mygraph destroy
+    set result
+} {}
+
+# ---------------------------------------------------

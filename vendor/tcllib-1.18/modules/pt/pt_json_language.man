@@ -1,0 +1,13 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin pt::json_language n 1]
+[include include/module.inc]
+[titledesc {The JSON Grammar Exchange Format}]
+[description]
+[include include/ref_intro.inc]
+
+[include include/format/json_core.inc]
+
+[include include/serial/pegrammar.inc]
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

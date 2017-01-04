@@ -1,0 +1,803 @@
+# ip.test -*- tcl -*-
+#
+# Tests for the Tcllib ip package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: ipMore.test,v 1.4 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 2.2
+
+testing {
+    useLocal ip.tcl ip
+}
+
+# -------------------------------------------------------------------------
+
+::tcltest::testConstraint Cextension \
+    [llength [info commands ::ip::prefixToNativec]]
+
+# -------------------------------------------------------------------------
+
+logger::setlevel critical
+
+namespace eval ::ip::test {
+
+    ::tcltest::test load-1 {} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+    } -result {}
+
+    ::tcltest::test ip::prefixToNativeTcl-1 {} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::prefixToNativeTcl 1.1.1.0/24
+    } -result {0x01010100 0xffffff00}
+
+    ::tcltest::test ip::prefixToNativeTcl-2 {} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::prefixToNativeTcl {1.1.1.0/24 1.0.0.0/8  2.1.1.0/24 1.1.1.1/32}
+    } -result {{0x01010100 0xffffff00} {0x01000000 0xff000000} {0x02010100 0xffffff00} {0x01010101 0xffffffff}}
+
+    ::tcltest::test ip::prefixToNativeTcl-3 {} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::prefixToNativeTcl ""
+    } -result {}
+
+    ::tcltest::test ip::prefixToNativec-1 {} -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        ip::prefixToNativec 1.1.1.0/24
+    } -result {0x01010100 0xFFFFFF00}
+
+    ::tcltest::test ip::prefixToNativec-2 {} -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        ip::prefixToNativec 1.1.1.0/255.255.255.0
+    } -result {0x01010100 0xFFFFFF00}
+
+    ::tcltest::test ip::prefixToNativec-3 {} -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        ip::prefixToNativec 1.1.1.0
+    } -result {0x01010100 0xFFFFFFFF}
+
+    ::tcltest::test ip::prefixToNativec-4 {} -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        ip::prefixToNativec {1.1.1.0/24 1.0.0.0/8  2.1.1.0/24 1.1.1.1/32}
+    } -result {{0x01010100 0xFFFFFF00} {0x01000000 0xFF000000} {0x02010100 0xFFFFFF00} {0x01010101 0xFFFFFFFF}}
+
+    ::tcltest::test ip::prefixToNativec-5 {} -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        ip::prefixToNativec {1.1.1.0/24 1.0AAF0/8  2.1.1.0/24 1.1.1.1/32}
+    } -result {} -returnCodes error
+
+    ::tcltest::test ip::prefixToNativec-6 {} -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+        unset y
+    } -body {
+        set y {1.1.1.0/24 1.0.0.0/8  2.1.1.0/24 1.1.1.1/32}
+        ip::prefixToNativec $y
+        lindex $y 0
+    } -result {1.1.1.0/24}
+
+    ::tcltest::test ip::nativeToPrefix-1 {
+        single address test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+         ip::nativeToPrefix {0x01010100 0xffffff00} -ipv4
+    } -result {1.1.1.0/24}
+
+    ::tcltest::test ip::nativeToPrefix-2 {
+                multi list test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nativeToPrefix {{0x01010100 0xffffff00} {0x01000000 0xff000000} {0x02010100 0xffffff00} {0x01010101 0xffffffff}} -ipv4
+    } -result {1.1.1.0/24 1.0.0.0/8 2.1.1.0/24 1.1.1.1/32}
+
+    ::tcltest::test ip::nativeToPrefix-3 {
+        0 test 
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nativeToPrefix {0x0 0x0} -ipv4
+    } -result {0.0.0.0/0}
+
+    ::tcltest::test ip::nativeToPrefix-4 {
+        0 test, check default is ipv4
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nativeToPrefix {0x0 0x0}
+    } -result {0.0.0.0/0}
+
+    ::tcltest::test ip::toInteger-1 {} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::toInteger 1.1.1.0
+    } -result {16843008}
+
+    ::tcltest::test ::ip::toHex-1 {} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::toHex 1.1.1.0
+    } -result {0x01010100}
+
+
+
+
+
+    ::tcltest::test ::ip:broadcastAddress-1 {
+        dotted form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::broadcastAddress 1.1.1.0/24
+    } -result {1.1.1.255}
+
+    ::tcltest::test ::ip:broadcastAddress-2 {
+        native form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::broadcastAddress {0x01010100 0xffffff00}
+    } -result {0x010101ff}
+
+
+    ::tcltest::test ::ip:maskToLength-1 {
+        hexform
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToLength 0xffffff00 -ipv4
+    } -result {24}
+
+    ::tcltest::test ::ip:maskToLength-2 {
+        dotted form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToLength 255.255.255.0
+    } -result {24}
+
+
+    ::tcltest::test ::ip:maskToLength-3 {
+        zero form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToLength 0.0.0.0
+    } -result {0}
+
+    ::tcltest::test ::ip:maskToLength-4 {
+        zero form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToLength 0x0 -ipv4
+    } -result {0}
+
+    ::tcltest::test ::ip:maskToLength-5 {
+        zero form, defualt is ipv4
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToLength 0x0
+    } -result {0}
+
+
+    ::tcltest::test ::ip::lengthToMask-1 {
+        dotted form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::lengthToMask 24 -ipv4
+    } -result {255.255.255.0}
+
+    ::tcltest::test ::ip::lengthToMask-2 {
+        dotted form, default is ipv4
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::lengthToMask 24 
+    } -result {255.255.255.0}
+
+    ::tcltest::test ::ip:maskToInt-1 {
+        integer form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToInt 32
+    } -result {4294967295}
+
+
+    ::tcltest::test ::ip:maskToInt-2 {
+        dotted form
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::maskToInt 255.255.255.255
+    } -result {4294967295}
+
+    ::tcltest::test ::ip:intToString-1 {
+        convert 255.255.255.255
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::intToString 4294967295 -ipv4
+    } -result {255.255.255.255}
+
+    ::tcltest::test ::ip:intToString-2 {
+        convert hex to string
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::intToString 0x01010101 -ipv4
+    } -result {1.1.1.1}
+
+    ::tcltest::test ::ip:intToString-3 {
+        convert hex to string, default is ipv4
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::intToString 0x01010101
+    } -result {1.1.1.1}
+
+    ::tcltest::test ::ip:nextNet-1 {
+        255.255.255.0/32 -> 255.255.255.1
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::nextNet 0xffffff00 0xffffffff -ipv4
+    } -result {0xffffff01}
+
+    ::tcltest::test ::ip:nextNet-2 {
+        1.0.0.0/24 -> 1.0.1.0/24
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 0x01000000 0xffffff00 -ipv4
+    } -result {0x01000100}
+
+
+    ::tcltest::test ::ip:nextNet-3 {
+        1.1.28.0/24 -> 1.1.29.0
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 0x01011c00 0xffffff00 -ipv4
+    } -result {0x01011d00}
+
+    ::tcltest::test ::ip:nextNet-4 {
+        1.1.28.0/24 -> 1.1.29.0 by 1
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 0x01011c00 0xffffff00 1 -ipv4
+    } -result {0x01011d00}
+
+
+    ::tcltest::test ::ip:nextNet-5 {
+        1.1.1.1/32 -> 1.1.29.0 by 2
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 0x01010101 [ip::maskToInt 32] 2 -ipv4
+    } -result {0x01010103}
+
+    ::tcltest::test ::ip:nextNet-6 {
+        1.1.1.1/32 -> 1.1.29.0 by 2
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 1.1.1.1 32 2
+    } -result {0x01010103}
+
+    ::tcltest::test ::ip:nextNet-7 {
+        1.1.1.1/32 -> 1.1.29.0 by 2
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 1.1.1.1 255.255.255.255 2
+    } -result {0x01010103}
+
+    ::tcltest::test ::ip:nextNet-8 {
+        1.1.1.1/32 -> 1.1.29.0 by 2, default is ipv4
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ip::nextNet 0x01010101 [ip::maskToInt 32] 2 
+    } -result {0x01010103}
+
+    ::tcltest::test ::ip:isOverlap-1 {
+        no overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::isOverlap 1.1.1.0/24 2.1.0.1/32
+    } -result {0}
+
+
+    ::tcltest::test ::ip:isOverlap-2 {
+        yes overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::isOverlap 1.1.1.0/24 2.1.0.1/32 1.1.1.1/32
+    } -result {1}
+
+
+    ::tcltest::test ::ip:isOverlapNative-1 {
+        no overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::isOverlapNative  -ipv4 0x01010100 0xffffff00 {{0x02010001 0xffffffff}}
+    } -result {0}
+
+
+    ::tcltest::test ::ip:isOverlapNative-2 {
+        yes overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNative  -ipv4 0x01010100 0xffffff00 {{0x02010001 0xffffffff} {0x01010101 0xffffffff}} ]
+        expr $a > 0
+    } -result {1}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-1 {
+        no overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::isOverlapNativeTcl  -ipv4 0x01010100 0xffffff00 {{0x02010001 0xffffffff}}
+    } -result {0}
+
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-2 {
+        yes overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl  -ipv4 0x01010100 0xffffff00 {{0x02010001 0xffffffff} {0x01010101 0xffffffff}}]
+        expr $a > 0 
+    } -result {1}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-3 {
+        yes overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl  -ipv4 0x01010100 0xffffff00 {{0x02010001 0xffffffff} {0x01010101 0xffffffff}}]
+    } -result {2}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-4 {
+        -all overlap test
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl  -ipv4 -all 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+            {0x01010102 0xffffffff}
+        }]
+    } -result {2 3}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-5 {
+        -all overlap test with -inline
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl  -ipv4 -all -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+            {0x01010102 0xffffffff}
+        }]
+    } -result {{0x01010101 0xffffffff} {0x01010102 0xffffffff}}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-6 {
+        test with -inline
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl -ipv4 -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+            {0x01010102 0xffffffff}
+        }]
+    } -result {{0x01010101 0xffffffff}}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-7 {
+        test with -all -inline one element return
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl -ipv4 -all -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+        }]
+    } -result {{0x01010101 0xffffffff}}
+
+    ::tcltest::test ::ip:isOverlapNativeTcl-8 {
+        test with -inline
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativeTcl -ipv4 -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+        }]
+    } -result {}
+
+    ::tcltest::test ::ip:isOverlapNativec-1 {
+        no overlap test
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        ::ip::isOverlapNativec -ipv4  0x01010100 0xffffff00 {{0x02010001 0xffffffff}}
+    } -result {0}
+
+
+    ::tcltest::test ::ip:isOverlapNativec-2 {
+        yes overlap test
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4 0x01010100 0xffffff00 {{0x02010001 0xffffffff} {0x01010101 0xffffffff}}]
+        expr $a > 0
+    } -result {1}
+
+    ::tcltest::test ::ip:isOverlapNativec-3 {
+        yes overlap test
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4  0x01010100 0xffffff00 {{0x02010001 0xffffffff} {0x01010101 0xffffffff}}]
+    } -result {2}
+
+    ::tcltest::test ::ip:isOverlapNativec-4 {
+        -all overlap test
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4  -all 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+            {0x01010102 0xffffffff}
+        }]
+    } -result {2 3}
+
+    ::tcltest::test ::ip:isOverlapNativec-5 {
+        -all overlap test with -inline
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4 -all -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+            {0x01010102 0xffffffff}
+        }]
+    } -result {{0x01010101 0xffffffff} {0x01010102 0xffffffff}}
+
+    ::tcltest::test ::ip:isOverlapNativec-6 {
+        test with -inline
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4 -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+            {0x01010102 0xffffffff}
+        }]
+    } -result {{0x01010101 0xffffffff}}
+
+    ::tcltest::test ::ip:isOverlapNativec-7 {
+        test with -all -inline one element return
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4 -all -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+            {0x01010101 0xffffffff}
+        }]
+    } -result {{0x01010101 0xffffffff}}
+
+    ::tcltest::test ::ip:isOverlapNativec-8 {
+        test with -inline with not overlaps, returns nothing
+    } -setup {
+    } -constraints {
+        Cextension
+    } -cleanup {
+    } -body {
+        set a [::ip::isOverlapNativec -ipv4  -inline 0x01010100 0xffffff00 {
+            {0x02010001 0xffffffff} 
+        }]
+    } -result {}
+
+
+
+    ::tcltest::test ::ip:ipToLayer2Multicast-1 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::ipToLayer2Multicast 224.0.0.2
+    } -result {01.00.5e.00.00.02}
+
+    ::tcltest::test ::ip:ipHostFromPrefix-1 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::ipHostFromPrefix  1.1.1.1/32
+    } -result {1.1.1.1}
+
+    ::tcltest::test ::ip:ipHostFromPrefix-2 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::ipHostFromPrefix  1.1.1.0/24
+    } -result {1.1.1.1}
+
+    ::tcltest::test ::ip:ipHostFromPrefix-3 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+        unset x
+        unset exlList
+        unset testPrefix
+    } -body {
+        set testPrefix 1.1.1.0/24
+        set exlList {
+            1.1.1.18/32
+            1.1.1.13/32
+            1.1.1.17/32
+            2.1.1.0/24 
+            1.1.0.0/16 
+            1.1.1.12/30
+            1.1.1.4/30 
+        }
+        set x [::ip::ipHostFromPrefix  $testPrefix -exclude $exlList ]
+        ip::longestPrefixMatch $x [concat $exlList [list $testPrefix]] -ipv4
+    } -result {1.1.1.0/24}
+
+    ::tcltest::test ::ip:reduceToAggregates {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::reduceToAggregates {1.1.1.0/24 1.1.0.0/8  2.1.1.0/24 1.1.1.1/32 }
+    } -result {1.0.0.0/8 2.1.1.0/24}
+
+    ::tcltest::test ::ip:longestPrefixMatch-1 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::longestPrefixMatch 1.1.1.1/32 {1.1.1.0/24 1.1.0.0/8  2.1.1.0/24 1.1.1.1/32 } -ipv4
+    } -result {1.1.1.1/32}
+
+    ::tcltest::test ::ip:longestPrefixMatch-2 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::longestPrefixMatch 1.1.1.1 {1.1.1.0/24 1.0.0.0/8  2.1.1.0/24 1.1.1.0/28 } -ipv4
+    } -result {1.1.1.0/28}
+
+    ::tcltest::test ::ip:longestPrefixMatch-3 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::longestPrefixMatch 1.1.1.1 {2.1.1.0/24 2.0.0.0/8} -ipv4
+    } -result {}
+
+    ::tcltest::test ::ip:longestPrefixMatch-4 {
+    } -setup {
+    } -constraints {
+    } -cleanup {
+        unset x
+        unset y
+    } -body {
+        set x 128.0.0.2
+        set y {1.0.0.0/8 2.2.0.0/16 128.0.0.0/16 3.3.3.3/32}
+        ::ip::longestPrefixMatch $x $y -ipv4
+        # there was a problem when using varibles, it looked like
+        # tcl was modifying the original variables in an 
+        # upvar fashion
+        ::ip::longestPrefixMatch $x $y -ipv4
+    } -result {128.0.0.0/16}
+
+    ::tcltest::test ::ip:longestPrefixMatch-5 {
+        check where the match list is only a single prefix (non-match case)
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::longestPrefixMatch 128.0.0.2 {1.0.0.0/8} -ipv4
+    } -result {}
+
+    ::tcltest::test ::ip:longestPrefixMatch-6 {
+        check where the match list is only a single prefix (match case)
+    } -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::longestPrefixMatch 128.0.0.2 {128.0.0.0/8} -ipv4
+    } -result {128.0.0.0/8}
+
+    ::tcltest::test ::ip:cmpDotIP-1 {
+        test sorting of cmpDotIP 
+    } -setup {
+        set iplist {1.0.0.0 2.2.0.0 128.0.0.0 3.3.3.3}
+    } -constraints {
+    } -cleanup {
+        unset iplist
+    } -body {
+        set a [lsort -command ip::cmpDotIP $iplist]
+    } -result {1.0.0.0 2.2.0.0 3.3.3.3 128.0.0.0}
+
+
+    ::tcltest::test ip::distance-1 {basic distance} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::distance 1.1.1.0 1.1.1.5
+    } -result 5
+
+    ::tcltest::test ip::distance-2 {distance, not enough args} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::distance
+    } -returnCodes error -result {wrong # args: should be "::ip::distance ip1 ip2"}
+
+    ::tcltest::test ip::distance-3 {distance, too many args} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::distance 1.1.1.1 1.1.1.5 1.1.1.19
+    } -returnCodes error -result {wrong # args: should be "::ip::distance ip1 ip2"}
+
+
+    ::tcltest::test ip::nextIp-1 {basic nextIp} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::nextIp 1.1.1.0 5
+    } -result 1.1.1.5
+
+    ::tcltest::test ip::nextIp-2 {nextIp, not enough args} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::nextIp
+    } -returnCodes error -result {wrong # args: should be "::ip::nextIp ip ?offset?"}
+
+    ::tcltest::test ip::nextIp-3 {nextIp, too many args} -setup {
+    } -constraints {
+    } -cleanup {
+    } -body {
+        ::ip::nextIp 1.1.1.1 1.1.1.5 1.1.1.19
+    } -returnCodes error -result {wrong # args: should be "::ip::nextIp ip ?offset?"}
+
+    foreach {n delta ip1 ip2} {
+        0 4294967295  0.0.0.0         255.255.255.255
+        1 -4294967295 255.255.255.255 0.0.0.0
+        2 7709        10.11.12.13     10.11.42.42
+        3 -7709       10.11.42.42     10.11.12.13
+        4 1994195353  54.229.115.42   173.194.116.195
+        5 -1994195353 173.194.116.195 54.229.115.42
+    } {
+        ::tcltest::test ip::distance-4.$n {basic distance} -setup {
+        } -constraints {
+        } -cleanup {
+        } -body {
+            ::ip::distance $ip1 $ip2
+        } -result $delta
+
+        ::tcltest::test ip::nextIp-4.$n {basic nextIp} -setup {
+        } -constraints {
+        } -cleanup {
+        } -body {
+            ::ip::nextIp $ip1 $delta
+        } -result $ip2
+    }
+
+}
+
+namespace delete ::ip::test
+
+testsuiteCleanup
+
+#
+# ;;; Local Variables:
+# ;;; mode: tcl
+# ;;; indent-tabs-mode:nil
+# ;;; End:

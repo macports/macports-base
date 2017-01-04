@@ -1,0 +1,94 @@
+# json.test - Copyright (C) 2006 ActiveState Software Inc.
+#
+# Tests for the Tcllib json package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: json.test,v 1.8 2011/11/10 21:05:58 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     [expr {[catch {package require dict}] ? "8.5" : "8.4"}]
+testsNeedTcltest 2.0
+
+support {
+    useLocalFile tests/support.tcl
+}
+
+testing {
+    useAccel [useTcllibC] json/json.tcl json
+    TestAccelInit                       json
+}
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+TestAccelDo json impl {
+    switch -exact -- $impl {
+	critcl {
+	    set MY myjson
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		return [tcltest::wrongNumArgs "myjson $m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		return [tcltest::tooManyArgs "myjson $m" $loarg]
+	    }
+
+	    proc tmTake {tcl c} { return $c }
+	}
+	tcl {
+	    set MY ::myjson
+
+	    if {[package vsatisfies [package provide Tcl] 8.5]} {
+                proc tmWrong {m loarg n {xarg {}}} {
+                    if {$xarg == {}} {set xarg $loarg}
+                    if {$xarg != {}} {set xarg " $xarg"}
+                    incr n
+                    return [tcltest::wrongNumArgs "I $m" "name$xarg" $n]
+                }
+
+                proc tmTooMany {m loarg {xarg {}}} {
+                    if {$xarg == {}} {set xarg $loarg}
+                    if {$xarg != {}} {set xarg " $xarg"}
+                    return [tcltest::tooManyArgs "I $m" "name$xarg"]
+                }
+	    } else {
+		proc tmWrong {m loarg n {xarg {}}} {
+		    if {$xarg == {}} {set xarg $loarg}
+		    if {$xarg != {}} {set xarg " $xarg"}
+		    incr n
+		    return [tcltest::wrongNumArgs "::struct::json::I::$m" "name$xarg" $n]
+		}
+
+		proc tmTooMany {m loarg {xarg {}}} {
+		    if {$xarg == {}} {set xarg $loarg}
+		    if {$xarg != {}} {set xarg " $xarg"}
+		    return [tcltest::tooManyArgs "::struct::json::I::$m" "name$xarg"]
+		}
+	    }
+
+	    proc tmTake {tcl c} { return $tcl }
+	}
+    }
+    source [localPath json.testsuite]
+}
+
+# -------------------------------------------------------------------------
+catch {unset JSON}
+catch {unset TCL}
+catch {unset DICTSORT}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

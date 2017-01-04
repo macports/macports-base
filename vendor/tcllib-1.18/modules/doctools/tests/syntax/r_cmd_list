@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[cmd_def .command.]
+--> (FmtError) Manpage error (cmd_list), "cmd_def .command." : Command restricted to usage in command lists.

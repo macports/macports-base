@@ -1,0 +1,97 @@
+# -*- tcl -*-
+# Graph ops tests - Connected components II.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: cutvertex.test,v 1.3 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::isCutVertex? G N
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-1.0 {isCutVertex?, wrong args, missing} {
+    catch {struct::graph::op::isCutVertex?} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::isCutVertex? {g n} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-1.1 {isCutVertex?, wrong args, missing} {
+    catch {struct::graph::op::isCutVertex? g} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::isCutVertex? {g n} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-1.2 {isCutVertex?, wrong args, too many} {
+    catch {struct::graph::op::isCutVertex? g x y} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::isCutVertex? {g n}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-2.0 {isCutVertex?, bad node} {
+    SETUP
+    catch {struct::graph::op::isCutVertex? mygraph foo} result
+    mygraph destroy
+    set result
+} {node "foo" does not exist in graph "mygraph"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.1 {isCutVertex?, nodes, no arcs} {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 0]]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.2 {isCutVertex?} {
+    SETUP_A
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 'node0']]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.3 {isCutVertex?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 4w]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.3 {isCutVertex?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 4b]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.3 {isCutVertex?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 5w]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.3 {isCutVertex?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 5b]]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.3 {isCutVertex?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 2w]]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isCutVertex?-3.3 {isCutVertex?} {
+    SETUP_G
+    set result [lsort -dict [struct::graph::op::isCutVertex? mygraph 3b]]
+    mygraph destroy
+    set result
+} 0
+
+# ---------------------------------------------------

@@ -1,0 +1,4 @@
+doctools::toc {Table of Contents} {}
+....structure.man doctools::toc::structure {doctoc serialization utilities}
+....parse.man doctools::toc::parse {Parsing text in doctoc format}
+....introduction.man doctools::toc::introduction {DocTools - Tables of Contents}

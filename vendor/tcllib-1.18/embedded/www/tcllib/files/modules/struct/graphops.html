@@ -1,0 +1,1036 @@
+
+<div class='fossil-doc' data-title='struct::graph::op - Tcl Data Structures'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">struct::graph::op(n) 0.11.3 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>struct::graph::op - Operation for (un)directed graph objects</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Operations</a></li>
+<li class="doctools_section"><a href="#section3">Background theory and terms</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Shortest Path Problem</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Travelling Salesman Problem</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Matching Problem</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Cut Problems</a></li>
+<li class="doctools_subsection"><a href="#subsection5">K-Center Problem</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Flow Problems</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Approximation algorithm</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">References</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">struct::graph::op <span class="opt">?0.11.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">struct::graph::op::toAdjacencyMatrix</b> <i class="arg">g</i></a></li>
+<li><a href="#2"><b class="cmd">struct::graph::op::toAdjacencyList</b> <i class="arg">G</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#3"><b class="cmd">struct::graph::op::kruskal</b> <i class="arg">g</i></a></li>
+<li><a href="#4"><b class="cmd">struct::graph::op::prim</b> <i class="arg">g</i></a></li>
+<li><a href="#5"><b class="cmd">struct::graph::op::isBipartite?</b> <i class="arg">g</i> <span class="opt">?<i class="arg">bipartvar</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">struct::graph::op::tarjan</b> <i class="arg">g</i></a></li>
+<li><a href="#7"><b class="cmd">struct::graph::op::connectedComponents</b> <i class="arg">g</i></a></li>
+<li><a href="#8"><b class="cmd">struct::graph::op::connectedComponentOf</b> <i class="arg">g</i> <i class="arg">n</i></a></li>
+<li><a href="#9"><b class="cmd">struct::graph::op::isConnected?</b> <i class="arg">g</i></a></li>
+<li><a href="#10"><b class="cmd">struct::graph::op::isCutVertex?</b> <i class="arg">g</i> <i class="arg">n</i></a></li>
+<li><a href="#11"><b class="cmd">struct::graph::op::isBridge?</b> <i class="arg">g</i> <i class="arg">a</i></a></li>
+<li><a href="#12"><b class="cmd">struct::graph::op::isEulerian?</b> <i class="arg">g</i> <span class="opt">?<i class="arg">tourvar</i>?</span></a></li>
+<li><a href="#13"><b class="cmd">struct::graph::op::isSemiEulerian?</b> <i class="arg">g</i> <span class="opt">?<i class="arg">pathvar</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">struct::graph::op::dijkstra</b> <i class="arg">g</i> <i class="arg">start</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#15"><b class="cmd">struct::graph::op::distance</b> <i class="arg">g</i> <i class="arg">origin</i> <i class="arg">destination</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#16"><b class="cmd">struct::graph::op::eccentricity</b> <i class="arg">g</i> <i class="arg">n</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#17"><b class="cmd">struct::graph::op::radius</b> <i class="arg">g</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#18"><b class="cmd">struct::graph::op::diameter</b> <i class="arg">g</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#19"><b class="cmd">struct::graph::op::BellmanFord</b> <i class="arg">G</i> <i class="arg">startnode</i></a></li>
+<li><a href="#20"><b class="cmd">struct::graph::op::Johnsons</b> <i class="arg">G</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#21"><b class="cmd">struct::graph::op::FloydWarshall</b> <i class="arg">G</i></a></li>
+<li><a href="#22"><b class="cmd">struct::graph::op::MetricTravellingSalesman</b> <i class="arg">G</i></a></li>
+<li><a href="#23"><b class="cmd">struct::graph::op::Christofides</b> <i class="arg">G</i></a></li>
+<li><a href="#24"><b class="cmd">struct::graph::op::GreedyMaxMatching</b> <i class="arg">G</i></a></li>
+<li><a href="#25"><b class="cmd">struct::graph::op::MaxCut</b> <i class="arg">G</i> <i class="arg">U</i> <i class="arg">V</i></a></li>
+<li><a href="#26"><b class="cmd">struct::graph::op::UnweightedKCenter</b> <i class="arg">G</i> <i class="arg">k</i></a></li>
+<li><a href="#27"><b class="cmd">struct::graph::op::WeightedKCenter</b> <i class="arg">G</i> <i class="arg">nodeWeights</i> <i class="arg">W</i></a></li>
+<li><a href="#28"><b class="cmd">struct::graph::op::GreedyMaxIndependentSet</b> <i class="arg">G</i></a></li>
+<li><a href="#29"><b class="cmd">struct::graph::op::GreedyWeightedMaxIndependentSet</b> <i class="arg">G</i> <i class="arg">nodeWeights</i></a></li>
+<li><a href="#30"><b class="cmd">struct::graph::op::VerticesCover</b> <i class="arg">G</i></a></li>
+<li><a href="#31"><b class="cmd">struct::graph::op::EdmondsKarp</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i></a></li>
+<li><a href="#32"><b class="cmd">struct::graph::op::BusackerGowen</b> <i class="arg">G</i> <i class="arg">desiredFlow</i> <i class="arg">s</i> <i class="arg">t</i></a></li>
+<li><a href="#33"><b class="cmd">struct::graph::op::ShortestsPathsByBFS</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">outputFormat</i></a></li>
+<li><a href="#34"><b class="cmd">struct::graph::op::BFS</b> <i class="arg">G</i> <i class="arg">s</i> <span class="opt">?<i class="arg">outputFormat</i>...?</span></a></li>
+<li><a href="#35"><b class="cmd">struct::graph::op::MinimumDiameterSpanningTree</b> <i class="arg">G</i></a></li>
+<li><a href="#36"><b class="cmd">struct::graph::op::MinimumDegreeSpanningTree</b> <i class="arg">G</i></a></li>
+<li><a href="#37"><b class="cmd">struct::graph::op::MaximumFlowByDinic</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i> <i class="arg">blockingFlowAlg</i></a></li>
+<li><a href="#38"><b class="cmd">struct::graph::op::BlockingFlowByDinic</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i></a></li>
+<li><a href="#39"><b class="cmd">struct::graph::op::BlockingFlowByMKM</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i></a></li>
+<li><a href="#40"><b class="cmd">struct::graph::op::createResidualGraph</b> <i class="arg">G</i> <i class="arg">f</i></a></li>
+<li><a href="#41"><b class="cmd">struct::graph::op::createAugmentingNetwork</b> <i class="arg">G</i> <i class="arg">f</i> <i class="arg">path</i></a></li>
+<li><a href="#42"><b class="cmd">struct::graph::op::createLevelGraph</b> <i class="arg">Gf</i> <i class="arg">s</i></a></li>
+<li><a href="#43"><b class="cmd">struct::graph::op::TSPLocalSearching</b> <i class="arg">G</i> <i class="arg">C</i></a></li>
+<li><a href="#44"><b class="cmd">struct::graph::op::TSPLocalSearching3Approx</b> <i class="arg">G</i> <i class="arg">C</i></a></li>
+<li><a href="#45"><b class="cmd">struct::graph::op::createSquaredGraph</b> <i class="arg">G</i></a></li>
+<li><a href="#46"><b class="cmd">struct::graph::op::createCompleteGraph</b> <i class="arg">G</i> <i class="arg">originalEdges</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The package described by this document, <b class="package">struct::graph::op</b>,
+is a companion to the package <b class="package"><a href="graph.html">struct::graph</a></b>. It provides a
+series of common operations and algorithms applicable to (un)directed
+graphs.</p>
+<p>Despite being a companion the package is not directly dependent on
+<b class="package"><a href="graph.html">struct::graph</a></b>, only on the API defined by that
+package. I.e. the operations of this package can be applied to any and
+all graph objects which provide the same API as the objects created
+through <b class="package"><a href="graph.html">struct::graph</a></b>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Operations</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">struct::graph::op::toAdjacencyMatrix</b> <i class="arg">g</i></a></dt>
+<dd><p>This command takes the graph <i class="arg">g</i> and returns a nested list
+containing the adjacency matrix of <i class="arg">g</i>.</p>
+<p>The elements of the outer list are the rows of the matrix, the inner
+elements are the column values in each row. The matrix has &quot;<b class="variable">n</b>+1&quot;
+rows and columns, with the first row and column (index 0) containing
+the name of the node the row/column is for. All other elements are
+boolean values, <b class="const">True</b> if there is an arc between the 2 nodes
+of the respective row and column, and <b class="const">False</b> otherwise.</p>
+<p>Note that the matrix is symmetric. It does not represent the
+directionality of arcs, only their presence between nodes. It is also
+unable to represent parallel arcs in <i class="arg">g</i>.</p></dd>
+<dt><a name="2"><b class="cmd">struct::graph::op::toAdjacencyList</b> <i class="arg">G</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>Procedure creates for input graph <i class="arg">G</i>, it's representation as <i class="term"><a href="../../../../index.html#key467">Adjacency List</a></i>.
+It handles both directed and undirected graphs (default is undirected).
+It returns dictionary that for each node (key) returns list of nodes adjacent
+to it. When considering weighted version, for each adjacent node there is also
+weight of the edge included.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph object <i class="arg">G</i> (input)</dt>
+<dd><p>A graph to convert into an <i class="term"><a href="../../../../index.html#key467">Adjacency List</a></i>.</p></dd>
+</dl></dd>
+<dt>Options:</dt>
+<dd><dl class="doctools_options">
+<dt><b class="option">-directed</b></dt>
+<dd><p>By default <i class="arg">G</i> is operated as if it were an <i class="term">Undirected graph</i>.
+Using this option tells the command to handle <i class="arg">G</i> as the directed graph it is.</p></dd>
+<dt><b class="option">-weights</b></dt>
+<dd><p>By default any weight information the graph <i class="arg">G</i> may have is ignored.
+Using this option tells the command to put weight information into the result.
+In that case it is expected that all arcs have a proper weight, and an error
+is thrown if that is not the case.</p></dd>
+</dl></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">struct::graph::op::kruskal</b> <i class="arg">g</i></a></dt>
+<dd><p>This command takes the graph <i class="arg">g</i> and returns a list containing the
+names of the arcs in <i class="arg">g</i> which span up a minimum weight spanning tree
+(MST), or, in the case of an un-connected graph, a minimum weight spanning
+forest (except for the 1-vertex components). Kruskal's algorithm is used
+to compute the tree or forest.
+This algorithm has a time complexity of <i class="term">O(E*log E)</i> or <i class="term">O(E* log V)</i>,
+where <i class="term">V</i> is the number of vertices and <i class="term"><a href="../../../../index.html#key806">E</a></i> is the number of edges
+in graph <i class="arg">g</i>.</p>
+<p>The command will throw an error if one or more arcs in <i class="arg">g</i> have no
+weight associated with them.</p>
+<p>A note regarding the result, the command refrains from explicitly
+listing the nodes of the MST as this information is implicitly
+provided in the arcs already.</p></dd>
+<dt><a name="4"><b class="cmd">struct::graph::op::prim</b> <i class="arg">g</i></a></dt>
+<dd><p>This command takes the graph <i class="arg">g</i> and returns a list containing the
+names of the arcs in <i class="arg">g</i> which span up a minimum weight spanning tree
+(MST), or, in the case of an un-connected graph, a minimum weight spanning
+forest (except for the 1-vertex components). Prim's algorithm is used to
+compute the tree or forest.
+This algorithm has a time complexity between <i class="term">O(E+V*log V)</i> and <i class="term">O(V*V)</i>,
+depending on the implementation (Fibonacci heap + Adjacency list versus
+Adjacency Matrix).  As usual <i class="term">V</i> is the number of vertices and
+<i class="term"><a href="../../../../index.html#key806">E</a></i> the number of edges in graph <i class="arg">g</i>.</p>
+<p>The command will throw an error if one or more arcs in <i class="arg">g</i> have no
+weight associated with them.</p>
+<p>A note regarding the result, the command refrains from explicitly
+listing the nodes of the MST as this information is implicitly
+provided in the arcs already.</p></dd>
+<dt><a name="5"><b class="cmd">struct::graph::op::isBipartite?</b> <i class="arg">g</i> <span class="opt">?<i class="arg">bipartvar</i>?</span></a></dt>
+<dd><p>This command takes the graph <i class="arg">g</i> and returns a boolean value
+indicating whether it is bipartite (<b class="const">true</b>) or not
+(<b class="const">false</b>). If the variable <i class="arg">bipartvar</i> is specified the two
+partitions of the graph are there as a list, if, and only if the graph
+is bipartit. If it is not the variable, if specified, is not touched.</p></dd>
+<dt><a name="6"><b class="cmd">struct::graph::op::tarjan</b> <i class="arg">g</i></a></dt>
+<dd><p>This command computes the set of <em>strongly connected</em>
+components (SCCs) of the graph <i class="arg">g</i>. The result of the command is a
+list of sets, each of which contains the nodes for one of the SCCs of
+<i class="arg">g</i>. The union of all SCCs covers the whole graph, and no two SCCs
+intersect with each other.</p>
+<p>The graph <i class="arg">g</i> is <i class="term">acyclic</i> if all SCCs in the result contain
+only a single node. The graph <i class="arg">g</i> is <i class="term">strongly connected</i>
+if the result contains only a single SCC containing all nodes of
+<i class="arg">g</i>.</p></dd>
+<dt><a name="7"><b class="cmd">struct::graph::op::connectedComponents</b> <i class="arg">g</i></a></dt>
+<dd><p>This command computes the set of <em>connected</em> components (CCs) of
+the graph <i class="arg">g</i>. The result of the command is a list of sets, each
+of which contains the nodes for one of the CCs of <i class="arg">g</i>. The union
+of all CCs covers the whole graph, and no two CCs intersect with each
+other.</p>
+<p>The graph <i class="arg">g</i> is <i class="term">connected</i> if the result contains only a
+single SCC containing all nodes of <i class="arg">g</i>.</p></dd>
+<dt><a name="8"><b class="cmd">struct::graph::op::connectedComponentOf</b> <i class="arg">g</i> <i class="arg">n</i></a></dt>
+<dd><p>This command computes the <em>connected</em> component (CC) of the graph
+<i class="arg">g</i> containing the node <i class="arg">n</i>. The result of the command is a
+sets which contains the nodes for the CC of <i class="arg">n</i> in <i class="arg">g</i>.</p>
+<p>The command will throw an error if <i class="arg">n</i> is not a node of the graph
+<i class="arg">g</i>.</p></dd>
+<dt><a name="9"><b class="cmd">struct::graph::op::isConnected?</b> <i class="arg">g</i></a></dt>
+<dd><p>This is a convenience command determining whether the graph <i class="arg">g</i> is
+<i class="term">connected</i> or not.  The result is a boolean value, <b class="const">true</b>
+if the graph is connected, and <b class="const">false</b> otherwise.</p></dd>
+<dt><a name="10"><b class="cmd">struct::graph::op::isCutVertex?</b> <i class="arg">g</i> <i class="arg">n</i></a></dt>
+<dd><p>This command determines whether the node <i class="arg">n</i> in the graph <i class="arg">g</i>
+is a <i class="term"><a href="../../../../index.html#key485">cut vertex</a></i> (aka <i class="term"><a href="../../../../index.html#key482">articulation point</a></i>). The result
+is a boolean value, <b class="const">true</b> if the node is a cut vertex, and
+<b class="const">false</b> otherwise.</p>
+<p>The command will throw an error if <i class="arg">n</i> is not a node of the graph
+<i class="arg">g</i>.</p></dd>
+<dt><a name="11"><b class="cmd">struct::graph::op::isBridge?</b> <i class="arg">g</i> <i class="arg">a</i></a></dt>
+<dd><p>This command determines whether the arc <i class="arg">a</i> in the graph <i class="arg">g</i>
+is a <i class="term"><a href="../../../../index.html#key466">bridge</a></i> (aka <i class="term"><a href="../../../../index.html#key483">cut edge</a></i>, or <i class="term"><a href="../../../../index.html#key490">isthmus</a></i>). The
+result is a boolean value, <b class="const">true</b> if the arc is a bridge, and
+<b class="const">false</b> otherwise.</p>
+<p>The command will throw an error if <i class="arg">a</i> is not an arc of the graph
+<i class="arg">g</i>.</p></dd>
+<dt><a name="12"><b class="cmd">struct::graph::op::isEulerian?</b> <i class="arg">g</i> <span class="opt">?<i class="arg">tourvar</i>?</span></a></dt>
+<dd><p>This command determines whether the graph <i class="arg">g</i> is <i class="term">eulerian</i>
+or not.  The result is a boolean value, <b class="const">true</b> if the graph is
+eulerian, and <b class="const">false</b> otherwise.</p>
+<p>If the graph is eulerian and <i class="arg">tourvar</i> is specified then an euler
+tour is computed as well and stored in the named variable. The tour is
+represented by the list of arcs traversed, in the order of traversal.</p></dd>
+<dt><a name="13"><b class="cmd">struct::graph::op::isSemiEulerian?</b> <i class="arg">g</i> <span class="opt">?<i class="arg">pathvar</i>?</span></a></dt>
+<dd><p>This command determines whether the graph <i class="arg">g</i> is
+<i class="term">semi-eulerian</i> or not.  The result is a boolean value, <b class="const">true</b>
+if the graph is semi-eulerian, and <b class="const">false</b> otherwise.</p>
+<p>If the graph is semi-eulerian and <i class="arg">pathvar</i> is specified then an
+euler path is computed as well and stored in the named variable. The
+path is represented by the list of arcs traversed, in the order of
+traversal.</p></dd>
+<dt><a name="14"><b class="cmd">struct::graph::op::dijkstra</b> <i class="arg">g</i> <i class="arg">start</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command determines distances in the weighted <i class="arg">g</i> from the
+node <i class="arg">start</i> to all other nodes in the graph. The options specify
+how to traverse graphs, and the format of the result.</p>
+<p>Two options are recognized</p>
+<dl class="doctools_options">
+<dt><b class="option">-arcmode</b> mode</dt>
+<dd><p>The accepted mode values are <b class="const">directed</b> and <b class="const">undirected</b>.
+For directed traversal all arcs are traversed from source to
+target. For undirected traversal all arcs are traversed in the
+opposite direction as well. Undirected traversal is the default.</p></dd>
+<dt><b class="option">-outputformat</b> format</dt>
+<dd><p>The accepted format values are <b class="const">distances</b> and <b class="const">tree</b>. In
+both cases the result is a dictionary keyed by the names of all nodes
+in the graph. For <b class="const">distances</b> the value is the distance of the
+node to <i class="arg">start</i>, whereas for <b class="const">tree</b> the value is the path
+from the node to <i class="arg">start</i>, excluding the node itself, but including
+<i class="arg">start</i>. Tree format is the default.</p></dd>
+</dl></dd>
+<dt><a name="15"><b class="cmd">struct::graph::op::distance</b> <i class="arg">g</i> <i class="arg">origin</i> <i class="arg">destination</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command determines the (un)directed distance between the two
+nodes <i class="arg">origin</i> and <i class="arg">destination</i> in the graph <i class="arg">g</i>. It
+accepts the option <b class="option">-arcmode</b> of <b class="cmd">struct::graph::op::dijkstra</b>.</p></dd>
+<dt><a name="16"><b class="cmd">struct::graph::op::eccentricity</b> <i class="arg">g</i> <i class="arg">n</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command determines the (un)directed <i class="term"><a href="../../../../index.html#key500">eccentricity</a></i> of the
+node <i class="arg">n</i> in the graph <i class="arg">g</i>. It accepts the option
+<b class="option">-arcmode</b> of <b class="cmd">struct::graph::op::dijkstra</b>.</p>
+<p>The (un)directed <i class="term"><a href="../../../../index.html#key500">eccentricity</a></i> of a node is the maximal
+(un)directed distance between the node and any other node in the
+graph.</p></dd>
+<dt><a name="17"><b class="cmd">struct::graph::op::radius</b> <i class="arg">g</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command determines the (un)directed <i class="term"><a href="../../../../index.html#key468">radius</a></i> of the graph
+<i class="arg">g</i>. It accepts the option <b class="option">-arcmode</b> of <b class="cmd">struct::graph::op::dijkstra</b>.</p>
+<p>The (un)directed <i class="term"><a href="../../../../index.html#key468">radius</a></i> of a graph is the minimal (un)directed
+<i class="term"><a href="../../../../index.html#key500">eccentricity</a></i> of all nodes in the graph.</p></dd>
+<dt><a name="18"><b class="cmd">struct::graph::op::diameter</b> <i class="arg">g</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command determines the (un)directed <i class="term"><a href="../../../../index.html#key457">diameter</a></i> of the graph
+<i class="arg">g</i>. It accepts the option <b class="option">-arcmode</b> of <b class="cmd">struct::graph::op::dijkstra</b>.</p>
+<p>The (un)directed <i class="term"><a href="../../../../index.html#key457">diameter</a></i> of a graph is the maximal (un)directed
+<i class="term"><a href="../../../../index.html#key500">eccentricity</a></i> of all nodes in the graph.</p></dd>
+<dt><a name="19"><b class="cmd">struct::graph::op::BellmanFord</b> <i class="arg">G</i> <i class="arg">startnode</i></a></dt>
+<dd><p>Searching for <span class="sectref"><a href="#subsection1">shortests paths</a></span> between chosen node and all other nodes in graph <i class="arg">G</i>. Based
+on relaxation method. In comparison to <b class="cmd">struct::graph::op::dijkstra</b> it doesn't need assumption that all weights
+on edges in input graph <i class="arg">G</i> have to be positive.</p>
+<p>That generality sets the complexity of algorithm to - <i class="term">O(V*E)</i>, where <i class="term">V</i> is the number of vertices
+and <i class="term"><a href="../../../../index.html#key806">E</a></i> is number of edges in graph <i class="arg">G</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph object <i class="arg">G</i> (input)</dt>
+<dd><p>Directed, connected and edge weighted graph <i class="arg">G</i>, without any negative cycles ( presence of cycles with the negative sum
+of weight means that there is no shortest path, since the total weight becomes lower each time the cycle is
+traversed ). Negative weights on edges are allowed.</p></dd>
+<dt>Node <i class="arg">startnode</i> (input)</dt>
+<dd><p>The node for which we find all shortest paths to each other node in graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Dictionary containing for each node (key) distances to each other node in graph <i class="arg">G</i>.</p></dd>
+</dl>
+<p><em>Note:</em> If algorithm finds a negative cycle, it will return error message.</p></dd>
+<dt><a name="20"><b class="cmd">struct::graph::op::Johnsons</b> <i class="arg">G</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>Searching for <span class="sectref"><a href="#subsection1">shortest paths</a></span> between all pairs of vertices in graph. For sparse graphs
+asymptotically quicker than <b class="cmd">struct::graph::op::FloydWarshall</b> algorithm. Johnson's algorithm
+uses <b class="cmd">struct::graph::op::BellmanFord</b> and <b class="cmd">struct::graph::op::dijkstra</b> as subprocedures.</p>
+<p>Time complexity: <i class="term">O(n**2*log(n) +n*m)</i>, where <i class="term">n</i> is the number of nodes and <i class="term">m</i> is
+the number of edges in graph <i class="arg">G</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph object <i class="arg">G</i> (input)</dt>
+<dd><p>Directed graph <i class="arg">G</i>, weighted on edges and not containing
+any cycles with negative sum of weights ( the presence of such cycles means
+there is no shortest path, since the total weight becomes lower each time the
+cycle is traversed ). Negative weights on edges are allowed.</p></dd>
+</dl></dd>
+<dt>Options:</dt>
+<dd><dl class="doctools_options">
+<dt><b class="option">-filter</b></dt>
+<dd><p>Returns only existing distances, cuts all <i class="term">Inf</i> values for
+non-existing connections between pairs of nodes.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Dictionary containing distances between all pairs of vertices.</p></dd>
+</dl></dd>
+<dt><a name="21"><b class="cmd">struct::graph::op::FloydWarshall</b> <i class="arg">G</i></a></dt>
+<dd><p>Searching for <span class="sectref"><a href="#subsection1">shortest paths</a></span> between all pairs of edges in weighted graphs.</p>
+<p>Time complexity: <i class="term">O(V^3)</i> - where <i class="term">V</i> is number of vertices.</p>
+<p>Memory complexity: <i class="term">O(V^2)</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph object <i class="arg">G</i> (input)</dt>
+<dd><p>Directed and weighted graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Dictionary containing shortest distances to each node from each node.</p></dd>
+</dl>
+<p><em>Note:</em> Algorithm finds solutions dynamically. It compares all possible paths through the graph
+between each pair of vertices. Graph shouldn't possess any cycle with negative
+sum of weights (the presence of such cycles means there is no shortest path,
+since the total weight becomes lower each time the cycle is traversed).</p>
+<p>On the other hand algorithm can be used to find those cycles - if any shortest distance
+found by algorithm for any nodes <i class="term">v</i> and <i class="term">u</i> (when <i class="term">v</i> is the same node as <i class="term">u</i>) is negative,
+that node surely belong to at least one negative cycle.</p></dd>
+<dt><a name="22"><b class="cmd">struct::graph::op::MetricTravellingSalesman</b> <i class="arg">G</i></a></dt>
+<dd><p>Algorithm for solving a metric variation of <span class="sectref"><a href="#subsection2">Travelling salesman problem</a></span>.
+<i class="term">TSP problem</i> is <i class="term">NP-Complete</i>, so there is no efficient algorithm to solve it. Greedy methods
+are getting extremely slow, with the increase in the set of nodes.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected, weighted graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Approximated solution of minimum <i class="term">Hamilton Cycle</i> - closed path visiting all nodes,
+each exactly one time.</p></dd>
+</dl>
+<p><em>Note:</em> <span class="sectref"><a href="#subsection7">It's 2-approximation algorithm.</a></span></p></dd>
+<dt><a name="23"><b class="cmd">struct::graph::op::Christofides</b> <i class="arg">G</i></a></dt>
+<dd><p>Another algorithm for solving <span class="sectref"><a href="#subsection2">metric <i class="term">TSP problem</i></a></span>.
+Christofides implementation uses <i class="term">Max Matching</i> for reaching better approximation factor.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected, weighted graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Approximated solution of minimum <i class="term">Hamilton Cycle</i> - closed path visiting all nodes,
+each exactly one time.</p></dd>
+</dl>
+<p><em>Note:</em> <span class="sectref"><a href="#subsection7">It's is a 3/2 approximation algorithm. </a></span></p></dd>
+<dt><a name="24"><b class="cmd">struct::graph::op::GreedyMaxMatching</b> <i class="arg">G</i></a></dt>
+<dd><p><i class="term">Greedy Max Matching</i> procedure, which finds <span class="sectref"><a href="#subsection3">maximal matching</a></span> (not maximum)
+for given graph <i class="arg">G</i>. It adds edges to solution, beginning from edges with the
+lowest cost.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Set of edges - the max matching for graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt><a name="25"><b class="cmd">struct::graph::op::MaxCut</b> <i class="arg">G</i> <i class="arg">U</i> <i class="arg">V</i></a></dt>
+<dd><p>Algorithm solving a <span class="sectref"><a href="#subsection4">Maximum Cut Problem</a></span>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>The graph to cut.</p></dd>
+<dt>List <i class="arg">U</i> (output)</dt>
+<dd><p>Variable storing first set of nodes (cut) given by solution.</p></dd>
+<dt>List <i class="arg">V</i> (output)</dt>
+<dd><p>Variable storing second set of nodes (cut) given by solution.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns number of edges between found two sets of nodes.</p></dd>
+</dl>
+<p><em>Note:</em> <i class="term">MaxCut</i> is a <span class="sectref"><a href="#subsection7">2-approximation algorithm.</a></span></p></dd>
+<dt><a name="26"><b class="cmd">struct::graph::op::UnweightedKCenter</b> <i class="arg">G</i> <i class="arg">k</i></a></dt>
+<dd><p>Approximation algorithm that solves a <span class="sectref"><a href="#subsection5">k-center problem</a></span>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected complete graph <i class="arg">G</i>, which satisfies triangle inequality.</p></dd>
+<dt>Integer <i class="arg">k</i> (input)</dt>
+<dd><p>Positive integer that sets the number of nodes that will be included in <i class="term">k-center</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Set of nodes - <i class="arg">k</i> center for graph <i class="arg">G</i>.</p></dd>
+</dl>
+<p><em>Note:</em> <i class="term">UnweightedKCenter</i> is a <span class="sectref"><a href="#subsection7">2-approximation algorithm.</a></span></p></dd>
+<dt><a name="27"><b class="cmd">struct::graph::op::WeightedKCenter</b> <i class="arg">G</i> <i class="arg">nodeWeights</i> <i class="arg">W</i></a></dt>
+<dd><p>Approximation algorithm that solves a weighted version of <span class="sectref"><a href="#subsection5">k-center problem</a></span>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected complete graph <i class="arg">G</i>, which satisfies triangle inequality.</p></dd>
+<dt>Integer <i class="arg">W</i> (input)</dt>
+<dd><p>Positive integer that sets the maximum possible weight of <i class="term">k-center</i> found by algorithm.</p></dd>
+<dt>List <i class="arg">nodeWeights</i> (input)</dt>
+<dd><p>List of nodes and its weights in graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Set of nodes, which is solution found by algorithm.</p></dd>
+</dl>
+<p><em>Note:</em><i class="term">WeightedKCenter</i> is a <span class="sectref"><a href="#subsection7">3-approximation algorithm.</a></span></p></dd>
+<dt><a name="28"><b class="cmd">struct::graph::op::GreedyMaxIndependentSet</b> <i class="arg">G</i></a></dt>
+<dd><p>A <i class="term">maximal independent set</i> is an <i class="term"><a href="../../../../index.html#key470">independent set</a></i> such that adding any other node
+to the set forces the set to contain an edge.</p>
+<p>Algorithm for input graph <i class="arg">G</i> returns set of nodes (list), which are contained in Max Independent
+Set found by algorithm.</p></dd>
+<dt><a name="29"><b class="cmd">struct::graph::op::GreedyWeightedMaxIndependentSet</b> <i class="arg">G</i> <i class="arg">nodeWeights</i></a></dt>
+<dd><p>Weighted variation of <i class="term">Maximal Independent Set</i>. It takes as an input argument
+not only graph <i class="arg">G</i> but also set of weights for all vertices in graph <i class="arg">G</i>.</p>
+<p><em>Note:</em>
+Read also <i class="term">Maximal Independent Set</i> description for more info.</p></dd>
+<dt><a name="30"><b class="cmd">struct::graph::op::VerticesCover</b> <i class="arg">G</i></a></dt>
+<dd><p><i class="term">Vertices cover</i> is a set of vertices such that each edge of the graph is incident to
+at least one vertex of the set. This 2-approximation algorithm searches for minimum
+<i class="term">vertices cover</i>, which is a classical optimization problem in computer science and
+is a typical example of an <i class="term">NP-hard</i> optimization problem that has an approximation
+algorithm.
+For input graph <i class="arg">G</i> algorithm returns the set of edges (list), which is Vertex Cover found by algorithm.</p></dd>
+<dt><a name="31"><b class="cmd">struct::graph::op::EdmondsKarp</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i></a></dt>
+<dd><p>Improved Ford-Fulkerson's algorithm, computing the <span class="sectref"><a href="#subsection6">maximum flow</a></span> in given flow network <i class="arg">G</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Weighted and directed graph. Each edge should have set integer attribute considered as
+maximum throughputs that can be carried by that link (edge).</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>The node that is a source for graph <i class="arg">G</i>.</p></dd>
+<dt>Node <i class="arg">t</i> (input)</dt>
+<dd><p>The node that is a sink for graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Procedure returns the dictionary containing throughputs for all edges. For
+each key ( the edge between nodes <i class="term">u</i> and <i class="term">v</i> in the form of <i class="term">list u v</i> ) there is
+a value that is a throughput for that key. Edges where throughput values
+are equal to 0 are not returned ( it is like there was no link in the flow network
+between nodes connected by such edge).</p></dd>
+</dl>
+<p>The general idea of algorithm is finding the shortest augumenting paths in graph <i class="arg">G</i>, as long
+as they exist, and for each path updating the edge's weights along that path,
+with maximum possible throughput. The final (maximum) flow is found
+when there is no other augumenting path from source to sink.</p>
+<p><em>Note:</em> Algorithm complexity : <i class="term">O(V*E)</i>, where <i class="term">V</i> is the number of nodes and <i class="term"><a href="../../../../index.html#key806">E</a></i> is the number
+of edges in graph <i class="term">G</i>.</p></dd>
+<dt><a name="32"><b class="cmd">struct::graph::op::BusackerGowen</b> <i class="arg">G</i> <i class="arg">desiredFlow</i> <i class="arg">s</i> <i class="arg">t</i></a></dt>
+<dd><p>Algorithm finds solution for a <span class="sectref"><a href="#subsection6">minimum cost flow problem</a></span>. So, the goal is to find a flow,
+whose max value can be <i class="arg">desiredFlow</i>, from source node <i class="arg">s</i> to sink node <i class="arg">t</i> in given flow network <i class="arg">G</i>.
+That network except throughputs at edges has also defined a non-negative cost on each edge - cost of using that edge when
+directing flow with that edge ( it can illustrate e.g. fuel usage, time or any other measure dependent on usages ).</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Flow network (directed graph), each edge in graph should have two integer attributes: <i class="term">cost</i> and <i class="term">throughput</i>.</p></dd>
+<dt>Integer <i class="arg">desiredFlow</i> (input)</dt>
+<dd><p>Max value of the flow for that network.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>The source node for graph <i class="arg">G</i>.</p></dd>
+<dt>Node <i class="arg">t</i> (input)</dt>
+<dd><p>The sink node for graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Dictionary containing values of used throughputs for each edge ( key ).
+found by algorithm.</p></dd>
+</dl>
+<p><em>Note:</em> Algorithm complexity : <i class="term">O(V**2*desiredFlow)</i>, where <i class="term">V</i> is the number of nodes in graph <i class="arg">G</i>.</p></dd>
+<dt><a name="33"><b class="cmd">struct::graph::op::ShortestsPathsByBFS</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">outputFormat</i></a></dt>
+<dd><p>Shortest pathfinding algorithm using BFS method. In comparison to <b class="cmd">struct::graph::op::dijkstra</b> it can
+work with negative weights on edges. Of course negative cycles are not allowed. Algorithm is better than dijkstra
+for sparse graphs, but also there exist some pathological cases (those cases generally don't appear in practise) that
+make time complexity increase exponentially with the growth of the number of nodes.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Input graph.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>Source node for which all distances to each other node in graph <i class="arg">G</i> are computed.</p></dd>
+</dl></dd>
+<dt>Options and result:</dt>
+<dd><dl class="doctools_options">
+<dt><b class="option">distances</b></dt>
+<dd><p>When selected <i class="arg">outputFormat</i> is <b class="const">distances</b> - procedure returns dictionary containing
+distances between source node <i class="arg">s</i> and each other node in graph <i class="arg">G</i>.</p></dd>
+<dt><b class="option">paths</b></dt>
+<dd><p>When selected <i class="arg">outputFormat</i> is <b class="const">paths</b> - procedure returns dictionary containing
+for each node <i class="term">v</i>, a list of nodes, which is a path between source node <i class="arg">s</i> and node <i class="term">v</i>.</p></dd>
+</dl></dd>
+</dl></dd>
+<dt><a name="34"><b class="cmd">struct::graph::op::BFS</b> <i class="arg">G</i> <i class="arg">s</i> <span class="opt">?<i class="arg">outputFormat</i>...?</span></a></dt>
+<dd><p>Breadth-First Search - algorithm creates the BFS Tree.
+Memory and time complexity: <i class="term">O(V + E)</i>, where <i class="term">V</i> is the number of nodes and <i class="term"><a href="../../../../index.html#key806">E</a></i>
+is number of edges.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Input graph.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>Source node for BFS procedure.</p></dd>
+</dl></dd>
+<dt>Options and result:</dt>
+<dd><dl class="doctools_options">
+<dt><b class="option">graph</b></dt>
+<dd><p>When selected <b class="option">outputFormat</b> is <b class="option">graph</b> - procedure returns a graph structure (<b class="cmd"><a href="graph.html">struct::graph</a></b>),
+which is equivalent to BFS tree found by algorithm.</p></dd>
+<dt><b class="option">tree</b></dt>
+<dd><p>When selected <b class="option">outputFormat</b> is <b class="option">tree</b> - procedure returns a tree structure (<b class="cmd"><a href="struct_tree.html">struct::tree</a></b>),
+which is equivalent to BFS tree found by algorithm.</p></dd>
+</dl></dd>
+</dl></dd>
+<dt><a name="35"><b class="cmd">struct::graph::op::MinimumDiameterSpanningTree</b> <i class="arg">G</i></a></dt>
+<dd><p>The goal is to find for input graph <i class="arg">G</i>, the <i class="term">spanning tree</i> that
+has the minimum <i class="term"><a href="../../../../index.html#key457">diameter</a></i> value.</p>
+<p>General idea of algorithm is to run <i class="term"><a href="../../../../index.html#key464">BFS</a></i> over all vertices in graph
+<i class="arg">G</i>. If the diameter <i class="term">d</i> of the tree is odd, then we are sure that tree
+given by <i class="term"><a href="../../../../index.html#key464">BFS</a></i> is minimum (considering diameter value). When, diameter <i class="term">d</i>
+is even, then optimal tree can have minimum <i class="term"><a href="../../../../index.html#key457">diameter</a></i> equal to <i class="term">d</i> or
+<i class="term">d-1</i>.</p>
+<p>In that case, what algorithm does is rebuilding the tree given by <i class="term"><a href="../../../../index.html#key464">BFS</a></i>, by
+adding a vertice between root node and root's child node (nodes), such that
+subtree created with child node as root node is the greatest one (has the
+greatests height). In the next step for such rebuilded tree, we run again <i class="term"><a href="../../../../index.html#key464">BFS</a></i>
+with new node as root node. If the height of the tree didn't changed, we have found
+a better solution.</p>
+<p>For input graph <i class="arg">G</i> algorithm returns the graph structure (<b class="cmd"><a href="graph.html">struct::graph</a></b>) that is
+a spanning tree with minimum diameter found by algorithm.</p></dd>
+<dt><a name="36"><b class="cmd">struct::graph::op::MinimumDegreeSpanningTree</b> <i class="arg">G</i></a></dt>
+<dd><p>Algorithm finds for input graph <i class="arg">G</i>, a spanning tree <i class="term">T</i> with the minimum possible
+degree. That problem is <i class="term">NP-hard</i>, so algorithm is an approximation algorithm.</p>
+<p>Let <i class="term">V</i> be the set of nodes for graph <i class="arg">G</i> and let <i class="term">W</i> be any subset of <i class="term">V</i>. Lets
+assume also that <i class="term">OPT</i> is optimal solution and <i class="term">ALG</i> is solution found by algorithm for input
+graph <i class="arg">G</i>.</p>
+<p>It can be proven that solution found with the algorithm must fulfil inequality:</p>
+<p><i class="term">((|W| + k - 1) / |W|) &lt;= ALG &lt;= 2*OPT + log2(n) + 1</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected simple graph.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns graph structure, which is equivalent to spanning tree <i class="term">T</i> found by algorithm.</p></dd>
+</dl></dd>
+<dt><a name="37"><b class="cmd">struct::graph::op::MaximumFlowByDinic</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i> <i class="arg">blockingFlowAlg</i></a></dt>
+<dd><p>Algorithm finds <span class="sectref"><a href="#subsection6">maximum flow</a></span> for the flow network represented by graph <i class="arg">G</i>. It is based on
+the blocking-flow finding methods, which give us different complexities what makes a better fit for
+different graphs.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Directed graph <i class="arg">G</i> representing the flow network. Each edge should have attribute
+<i class="term">throughput</i> set with integer value.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>The source node for the flow network <i class="arg">G</i>.</p></dd>
+<dt>Node <i class="arg">t</i> (input)</dt>
+<dd><p>The sink node for the flow network <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Options:</dt>
+<dd><dl class="doctools_options">
+<dt><b class="option">dinic</b></dt>
+<dd><p>Procedure will find maximum flow for flow network <i class="arg">G</i> using Dinic's algorithm (<b class="cmd">struct::graph::op::BlockingFlowByDinic</b>)
+for blocking flow computation.</p></dd>
+<dt><b class="option">mkm</b></dt>
+<dd><p>Procedure will find maximum flow for flow network <i class="arg">G</i> using Malhotra, Kumar and Maheshwari's algorithm (<b class="cmd">struct::graph::op::BlockingFlowByMKM</b>)
+for blocking flow computation.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns dictionary containing it's flow value for each edge (key) in network <i class="arg">G</i>.</p></dd>
+</dl>
+<p><em>Note:</em> <b class="cmd">struct::graph::op::BlockingFlowByDinic</b> gives <i class="term">O(m*n^2)</i> complexity and
+<b class="cmd">struct::graph::op::BlockingFlowByMKM</b> gives <i class="term">O(n^3)</i> complexity, where <i class="term">n</i> is the number of nodes
+and <i class="term">m</i> is the number of edges in flow network <i class="arg">G</i>.</p></dd>
+<dt><a name="38"><b class="cmd">struct::graph::op::BlockingFlowByDinic</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i></a></dt>
+<dd><p>Algorithm for given network <i class="arg">G</i> with source <i class="arg">s</i> and sink <i class="arg">t</i>, finds a <span class="sectref"><a href="#subsection6">blocking
+flow</a></span>, which can be used to obtain a <i class="term"><a href="../../../../index.html#key497">maximum flow</a></i> for that network <i class="arg">G</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Directed graph <i class="arg">G</i> representing the flow network. Each edge should have attribute
+<i class="term">throughput</i> set with integer value.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>The source node for the flow network <i class="arg">G</i>.</p></dd>
+<dt>Node <i class="arg">t</i> (input)</dt>
+<dd><p>The sink node for the flow network <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns dictionary containing it's blocking flow value for each edge (key) in network <i class="arg">G</i>.</p></dd>
+</dl>
+<p><em>Note:</em> Algorithm's complexity is <i class="term">O(n*m)</i>, where <i class="term">n</i> is the number of nodes
+and <i class="term">m</i> is the number of edges in flow network <i class="arg">G</i>.</p></dd>
+<dt><a name="39"><b class="cmd">struct::graph::op::BlockingFlowByMKM</b> <i class="arg">G</i> <i class="arg">s</i> <i class="arg">t</i></a></dt>
+<dd><p>Algorithm for given network <i class="arg">G</i> with source <i class="arg">s</i> and sink <i class="arg">t</i>, finds a <span class="sectref"><a href="#subsection6">blocking
+flow</a></span>, which can be used to obtain a <i class="term"><a href="../../../../index.html#key497">maximum flow</a></i> for that <i class="term"><a href="../../../../index.html#key671">network</a></i> <i class="arg">G</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Directed graph <i class="arg">G</i> representing the flow network. Each edge should have attribute
+<i class="term">throughput</i> set with integer value.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>The source node for the flow network <i class="arg">G</i>.</p></dd>
+<dt>Node <i class="arg">t</i> (input)</dt>
+<dd><p>The sink node for the flow network <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns dictionary containing it's blocking flow value for each edge (key) in network <i class="arg">G</i>.</p></dd>
+</dl>
+<p><em>Note:</em> Algorithm's complexity is <i class="term">O(n^2)</i>, where <i class="term">n</i> is the number of nodes in flow network <i class="arg">G</i>.</p></dd>
+<dt><a name="40"><b class="cmd">struct::graph::op::createResidualGraph</b> <i class="arg">G</i> <i class="arg">f</i></a></dt>
+<dd><p>Procedure creates a <i class="term"><a href="../../../../index.html#key465">residual graph</a></i> (or <span class="sectref"><a href="#subsection6">residual network</a></span> ) for network <i class="arg">G</i> and given
+flow <i class="arg">f</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Flow network (directed graph where each edge has set attribute: <i class="term">throughput</i> ).</p></dd>
+<dt>dictionary <i class="arg">f</i> (input)</dt>
+<dd><p>Current flows in flow network <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Procedure returns graph structure that is a <i class="term"><a href="../../../../index.html#key465">residual graph</a></i> created from input flow
+network <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt><a name="41"><b class="cmd">struct::graph::op::createAugmentingNetwork</b> <i class="arg">G</i> <i class="arg">f</i> <i class="arg">path</i></a></dt>
+<dd><p>Procedure creates an <span class="sectref"><a href="#subsection6">augmenting network</a></span> for a given residual network <i class="arg">G</i>
+, flow <i class="arg">f</i> and augmenting path <i class="arg">path</i>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Residual network (directed graph), where for every edge there are set two attributes: throughput and cost.</p></dd>
+<dt>Dictionary <i class="arg">f</i> (input)</dt>
+<dd><p>Dictionary which contains for every edge (key), current value of the flow on that edge.</p></dd>
+<dt>List <i class="arg">path</i> (input)</dt>
+<dd><p>Augmenting path, set of edges (list) for which we create the network modification.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns graph structure containing the modified augmenting network.</p></dd>
+</dl></dd>
+<dt><a name="42"><b class="cmd">struct::graph::op::createLevelGraph</b> <i class="arg">Gf</i> <i class="arg">s</i></a></dt>
+<dd><p>For given residual graph <i class="arg">Gf</i> procedure finds the <span class="sectref"><a href="#subsection6">level graph</a></span>.</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">Gf</i> (input)</dt>
+<dd><p>Residual network, where each edge has it's attribute <i class="term">throughput</i> set with certain value.</p></dd>
+<dt>Node <i class="arg">s</i> (input)</dt>
+<dd><p>The source node for the residual network <i class="arg">Gf</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Procedure returns a <i class="term"><a href="../../../../index.html#key486">level graph</a></i> created from input <i class="term">residual network</i>.</p></dd>
+</dl></dd>
+<dt><a name="43"><b class="cmd">struct::graph::op::TSPLocalSearching</b> <i class="arg">G</i> <i class="arg">C</i></a></dt>
+<dd><p>Algorithm is a <i class="term">heuristic of local searching</i> for <i class="term">Travelling Salesman Problem</i>. For some
+solution of <i class="term">TSP problem</i>, it checks if it's possible to find a better solution. As <i class="term">TSP</i>
+is well known NP-Complete problem, so algorithm is a approximation algorithm (with 2 approximation factor).</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected and complete graph with attributes &quot;weight&quot; set on each single edge.</p></dd>
+<dt>List <i class="arg">C</i> (input)</dt>
+<dd><p>A list of edges being <i class="term">Hamiltonian cycle</i>, which is solution of <i class="term">TSP Problem</i> for graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns the best solution for <i class="term">TSP problem</i>, it was able to find.</p></dd>
+</dl>
+<p><em>Note:</em> The solution depends on the choosing of the beginning cycle <i class="arg">C</i>. It's not true that better cycle
+assures that better solution will be found, but practise shows that we should give starting cycle with as small
+sum of weights as possible.</p></dd>
+<dt><a name="44"><b class="cmd">struct::graph::op::TSPLocalSearching3Approx</b> <i class="arg">G</i> <i class="arg">C</i></a></dt>
+<dd><p>Algorithm is a <i class="term">heuristic of local searching</i> for <i class="term">Travelling Salesman Problem</i>. For some
+solution of <i class="term">TSP problem</i>, it checks if it's possible to find a better solution. As <i class="term">TSP</i>
+is well known NP-Complete problem, so algorithm is a approximation algorithm (with 3 approximation factor).</p>
+<dl class="doctools_definitions">
+<dt>Arguments:</dt>
+<dd><dl class="doctools_arguments">
+<dt>Graph Object <i class="arg">G</i> (input)</dt>
+<dd><p>Undirected and complete graph with attributes &quot;weight&quot; set on each single edge.</p></dd>
+<dt>List <i class="arg">C</i> (input)</dt>
+<dd><p>A list of edges being <i class="term">Hamiltonian cycle</i>, which is solution of <i class="term">TSP Problem</i> for graph <i class="arg">G</i>.</p></dd>
+</dl></dd>
+<dt>Result:</dt>
+<dd><p>Algorithm returns the best solution for <i class="term">TSP problem</i>, it was able to find.</p></dd>
+</dl>
+<p><em>Note:</em> In practise 3-approximation algorithm turns out to be far more effective than 2-approximation, but it gives
+worser approximation factor. Further heuristics of local searching (e.g. 4-approximation) doesn't give enough boost to
+square the increase of approximation factor, so 2 and 3 approximations are mainly used.</p></dd>
+<dt><a name="45"><b class="cmd">struct::graph::op::createSquaredGraph</b> <i class="arg">G</i></a></dt>
+<dd><p>X-Squared graph is a graph with the same set of nodes as input graph <i class="arg">G</i>, but a different set of edges. X-Squared graph
+has edge <i class="term">(u,v)</i>, if and only if, the distance between <i class="term">u</i> and <i class="term">v</i> nodes is not greater than X and <i class="term">u != v</i>.</p>
+<p>Procedure for input graph <i class="arg">G</i>, returns its two-squared graph.</p>
+<p><em>Note:</em> Distances used in choosing new set of edges are considering the number of edges, not the sum of weights at edges.</p></dd>
+<dt><a name="46"><b class="cmd">struct::graph::op::createCompleteGraph</b> <i class="arg">G</i> <i class="arg">originalEdges</i></a></dt>
+<dd><p>For input graph <i class="arg">G</i> procedure adds missing arcs to make it a <i class="term"><a href="../../../../index.html#key487">complete graph</a></i>. It also holds in
+variable <i class="arg">originalEdges</i> the set of arcs that graph <i class="arg">G</i> possessed before that operation.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Background theory and terms</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Shortest Path Problem</a></h3>
+<dl class="doctools_definitions">
+<dt>Definition (<i class="term">single-pair shortest path problem</i>):</dt>
+<dd><p>Formally, given a weighted graph (let <i class="term">V</i> be the set of vertices, and <i class="term"><a href="../../../../index.html#key806">E</a></i> a set of edges),
+and one vertice <i class="term">v</i> of <i class="term">V</i>, find a path <i class="term">P</i> from <i class="term">v</i> to a <i class="term">v'</i> of V so that
+the sum of weights on edges along the path is minimal among all paths connecting v to v'.</p></dd>
+<dt>Generalizations:</dt>
+<dd><ul class="doctools_itemized">
+<li><p><i class="term">The single-source shortest path problem</i>, in which we have to find shortest paths from a source vertex v to all other vertices in the graph.</p></li>
+<li><p><i class="term">The single-destination shortest path problem</i>, in which we have to find shortest paths from all vertices in the graph to a single destination vertex v. This can be reduced to the single-source shortest path problem by reversing the edges in the graph.</p></li>
+<li><p><i class="term">The all-pairs shortest path problem</i>, in which we have to find shortest paths between every pair of vertices v, v' in the graph.</p></li>
+</ul>
+<p><em>Note:</em>
+The result of <i class="term">Shortest Path problem</i> can be <i class="term">Shortest Path tree</i>, which is a subgraph of a given (possibly weighted) graph constructed so that the
+distance between a selected root node and all other nodes is minimal. It is a tree because if there are two paths between the root node and some
+vertex v (i.e. a cycle), we can delete the last edge of the longer path without increasing the distance from the root node to any node in the subgraph.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Travelling Salesman Problem</a></h3>
+<dl class="doctools_definitions">
+<dt>Definition:</dt>
+<dd><p>For given edge-weighted (weights on edges should be positive) graph the goal is to find the cycle that visits each node in graph
+exactly once (<i class="term">Hamiltonian cycle</i>).</p></dd>
+<dt>Generalizations:</dt>
+<dd><ul class="doctools_itemized">
+<li><p><i class="term">Metric TSP</i> - A very natural restriction of the <i class="term">TSP</i> is to require that the distances between cities form a <i class="term">metric</i>, i.e.,
+they satisfy <i class="term">the triangle inequality</i>. That is, for any 3 cities <i class="term">A</i>, <i class="term">B</i> and <i class="term"><a href="../../../../index.html#key290">C</a></i>, the distance between <i class="term">A</i> and <i class="term"><a href="../../../../index.html#key290">C</a></i>
+must be at most the distance from <i class="term">A</i> to <i class="term">B</i> plus the distance from <i class="term">B</i> to <i class="term"><a href="../../../../index.html#key290">C</a></i>. Most natural instances of <i class="term">TSP</i>
+satisfy this constraint.</p></li>
+<li><p><i class="term">Euclidean TSP</i> - Euclidean TSP, or <i class="term">planar TSP</i>, is the <i class="term">TSP</i> with the distance being the ordinary <i class="term">Euclidean distance</i>.
+<i class="term">Euclidean TSP</i> is a particular case of <i class="term">TSP</i> with <i class="term">triangle inequality</i>, since distances in plane obey triangle inequality. However,
+it seems to be easier than general <i class="term">TSP</i> with <i class="term">triangle inequality</i>. For example, <i class="term">the minimum spanning tree</i> of the graph associated
+with an instance of <i class="term">Euclidean TSP</i> is a <i class="term">Euclidean minimum spanning tree</i>, and so can be computed in expected <i class="term">O(n log n)</i> time for
+<i class="term">n</i> points (considerably less than the number of edges). This enables the simple <i class="term">2-approximation algorithm</i> for TSP with triangle
+inequality above to operate more quickly.</p></li>
+<li><p><i class="term">Asymmetric TSP</i> - In most cases, the distance between two nodes in the <i class="term">TSP</i> network is the same in both directions.
+The case where the distance from <i class="term">A</i> to <i class="term">B</i> is not equal to the distance from <i class="term">B</i> to <i class="term">A</i> is called <i class="term">asymmetric TSP</i>.
+A practical application of an <i class="term">asymmetric TSP</i> is route optimisation using street-level routing (asymmetric due to one-way streets,
+slip-roads and motorways).</p></li>
+</ul></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Matching Problem</a></h3>
+<dl class="doctools_definitions">
+<dt>Definition:</dt>
+<dd><p>Given a graph <i class="term">G = (V,E)</i>, a matching or <i class="term">edge-independent set</i> <i class="term">M</i> in <i class="term">G</i> is a set of pairwise non-adjacent edges,
+that is, no two edges share a common vertex. A vertex is <i class="term">matched</i> if it is incident to an edge in the <i class="term">matching M</i>.
+Otherwise the vertex is <i class="term">unmatched</i>.</p></dd>
+<dt>Generalizations:</dt>
+<dd><ul class="doctools_itemized">
+<li><p><i class="term">Maximal matching</i> - a matching <i class="term">M</i> of a graph G with the property that if any edge not in <i class="term">M</i> is added to <i class="term">M</i>,
+it is no longer a <i class="term"><a href="../../../../index.html#key5">matching</a></i>, that is, <i class="term">M</i> is maximal if it is not a proper subset of any other <i class="term"><a href="../../../../index.html#key5">matching</a></i> in graph G.
+In other words, a <i class="term">matching M</i> of a graph G is maximal if every edge in G has a non-empty intersection with at least one edge in <i class="term">M</i>.</p></li>
+<li><p><i class="term">Maximum matching</i> - a matching that contains the largest possible number of edges. There may be many <i class="term">maximum matchings</i>.
+The <i class="term">matching number</i> of a graph G is the size of a <i class="term">maximum matching</i>. Note that every <i class="term">maximum matching</i> is <i class="term">maximal</i>,
+but not every <i class="term">maximal matching</i> is a <i class="term">maximum matching</i>.</p></li>
+<li><p><i class="term">Perfect matching</i> - a matching which matches all vertices of the graph. That is, every vertex of the graph is incident to exactly one
+edge of the matching. Every <i class="term">perfect matching</i> is <i class="term"><a href="../../../../index.html#key310">maximum</a></i> and hence <i class="term">maximal</i>. In some literature, the term <i class="term">complete matching</i>
+is used. A <i class="term">perfect matching</i> is also a <i class="term">minimum-size edge cover</i>. Moreover, the size of a <i class="term">maximum matching</i> is no larger than the
+size of a <i class="term">minimum edge cover</i>.</p></li>
+<li><p><i class="term">Near-perfect matching</i> - a matching in which exactly one vertex is unmatched. This can only occur when the graph has an odd number of vertices,
+and such a <i class="term"><a href="../../../../index.html#key5">matching</a></i> must be <i class="term"><a href="../../../../index.html#key310">maximum</a></i>. If, for every vertex in a graph, there is a near-perfect matching that omits only that vertex, the graph
+is also called <i class="term">factor-critical</i>.</p></li>
+</ul></dd>
+<dt>Related terms:</dt>
+<dd><ul class="doctools_itemized">
+<li><p><i class="term">Alternating path</i> - given a matching <i class="term">M</i>, an <i class="term">alternating path</i> is a path in which the edges belong alternatively
+to the matching and not to the matching.</p></li>
+<li><p><i class="term"><a href="../../../../index.html#key489">Augmenting path</a></i> - given a matching <i class="term">M</i>, an <i class="term"><a href="../../../../index.html#key489">augmenting path</a></i> is an <i class="term">alternating path</i> that starts from
+and ends on free (unmatched) vertices.</p></li>
+</ul></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Cut Problems</a></h3>
+<dl class="doctools_definitions">
+<dt>Definition:</dt>
+<dd><p>A <i class="term">cut</i> is a partition of the vertices of a graph into two <i class="term">disjoint subsets</i>. The <i class="term">cut-set</i> of the <i class="term">cut</i> is the
+set of edges whose end points are in different subsets of the partition. Edges are said to be crossing the cut if they are in its <i class="term">cut-set</i>.</p>
+<p>Formally:</p>
+<ul class="doctools_itemized">
+<li><p>a <i class="term">cut</i> <i class="term">C = (S,T)</i> is a partition of <i class="term">V</i> of a graph <i class="term">G = (V, E)</i>.</p></li>
+<li><p>an <i class="term">s-t cut</i> <i class="term">C = (S,T)</i> of a <i class="term"><a href="../../../../index.html#key498">flow network</a></i> <i class="term">N = (V, E)</i> is a cut of <i class="term">N</i> such that <i class="term">s</i> is included in <i class="term">S</i>
+and <i class="term">t</i> is included in <i class="term">T</i>, where <i class="term">s</i> and <i class="term">t</i> are the <i class="term"><a href="../../../../index.html#key435">source</a></i> and the <i class="term">sink</i> of <i class="term">N</i> respectively.</p></li>
+<li><p>The <i class="term">cut-set</i> of a <i class="term">cut C = (S,T)</i> is such set of edges from graph <i class="term">G = (V, E)</i> that each edge <i class="term">(u, v)</i> satisfies
+condition that <i class="term">u</i> is included in <i class="term">S</i> and <i class="term">v</i> is included in <i class="term">T</i>.</p></li>
+</ul>
+<p>In an <i class="term">unweighted undirected</i> graph, the size or weight of a cut is the number of edges crossing the cut. In a <i class="term">weighted graph</i>,
+the same term is defined by the sum of the weights of the edges crossing the cut.</p>
+<p>In a <i class="term"><a href="../../../../index.html#key498">flow network</a></i>, an <i class="term">s-t cut</i> is a cut that requires the <i class="term"><a href="../../../../index.html#key435">source</a></i> and the <i class="term">sink</i> to be in different subsets,
+and its <i class="term">cut-set</i> only consists of edges going from the <i class="term">source's</i> side to the <i class="term">sink's</i> side. The capacity of an <i class="term">s-t cut</i>
+is defined by the sum of capacity of each edge in the <i class="term">cut-set</i>.</p>
+<p>The <i class="term">cut</i> of a graph can sometimes refer to its <i class="term">cut-set</i> instead of the partition.</p></dd>
+<dt>Generalizations:</dt>
+<dd><ul class="doctools_itemized">
+<li><p><i class="term">Minimum cut</i> - A cut is minimum if the size of the cut is not larger than the size of any other cut.</p></li>
+<li><p><i class="term">Maximum cut</i> - A cut is maximum if the size of the cut is not smaller than the size of any other cut.</p></li>
+<li><p><i class="term">Sparsest cut</i> - The <i class="term">Sparsest cut problem</i> is to bipartition the vertices so as to minimize the ratio of the number
+of edges across the cut divided by the number of vertices in the smaller half of the partition.</p></li>
+</ul></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">K-Center Problem</a></h3>
+<dl class="doctools_definitions">
+<dt>Definitions:</dt>
+<dd><dl class="doctools_definitions">
+<dt><i class="term">Unweighted K-Center</i></dt>
+<dd><p>For any set <i class="term">S</i> ( which is subset of <i class="term">V</i> ) and node <i class="term">v</i>, let the <i class="term">connect(v,S)</i> be the
+cost of cheapest edge connecting <i class="term">v</i> with any node in <i class="term">S</i>. The goal is to find
+such <i class="term">S</i>, that <i class="term">|S| = k</i> and <i class="term">max_v{connect(v,S)}</i> is possibly small.</p>
+<p>In other words, we can use it i.e. for finding best locations in the city ( nodes
+of input graph ) for placing k buildings, such that those buildings will be as close
+as possible to all other locations in town.</p></dd>
+<dt><i class="term">Weighted K-Center</i></dt>
+<dd><p>The variation of <i class="term">unweighted k-center problem</i>. Besides the fact graph is edge-weighted,
+there are also weights on vertices of input graph <i class="arg">G</i>. We've got also restriction
+<i class="arg">W</i>. The goal is to choose such set of nodes <i class="term">S</i> ( which is a subset of <i class="term">V</i> ), that it's
+total weight is not greater than <i class="arg">W</i> and also function: <i class="term">max_v { min_u { cost(u,v) }}</i>
+has the smallest possible worth ( <i class="term">v</i> is a node in <i class="term">V</i> and <i class="term">u</i> is a node in <i class="term">S</i> ).</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Flow Problems</a></h3>
+<dl class="doctools_definitions">
+<dt>Definitions:</dt>
+<dd><ul class="doctools_itemized">
+<li><p><i class="term">the maximum flow problem</i> - the goal is to find a feasible flow through a single-source, single-sink flow network that is maximum.
+The <i class="term">maximum flow problem</i> can be seen as a special case of more complex network flow problems, such as the <i class="term">circulation problem</i>.
+The maximum value of an <i class="term">s-t flow</i> is equal to the minimum capacity of an <i class="term">s-t cut</i> in the network, as stated in the
+<i class="term">max-flow min-cut theorem</i>.</p>
+<p>More formally for flow network <i class="term">G = (V,E)</i>, where for each edge <i class="term">(u, v)</i> we have its throuhgput <i class="term">c(u,v)</i> defined. As <i class="term"><a href="../../../../index.html#key141">flow</a></i>
+<i class="term">F</i> we define set of non-negative integer attributes <i class="term">f(u,v)</i> assigned to edges, satisfying such conditions:</p>
+<ol class="doctools_enumerated">
+<li><p>for each edge <i class="term">(u, v)</i> in <i class="term">G</i> such condition should be satisfied:      0 &lt;= f(u,v) &lt;= c(u,v)</p></li>
+<li><p>Network <i class="term">G</i> has source node <i class="term">s</i> such that the flow <i class="term">F</i> is equal to the sum of outcoming flow decreased by the sum of incoming flow from that source node <i class="term">s</i>.</p></li>
+<li><p>Network <i class="term">G</i> has sink node <i class="term">t</i> such that the the <i class="term">-F</i> value is equal to the sum of the incoming flow decreased by the sum of outcoming flow from that sink node <i class="term">t</i>.</p></li>
+<li><p>For each node that is not a <i class="term"><a href="../../../../index.html#key435">source</a></i> or <i class="term">sink</i> the sum of incoming flow and sum of outcoming flow should be equal.</p></li>
+</ol>
+</li>
+<li><p><i class="term">the minimum cost flow problem</i> - the goal is finding the cheapest possible way of sending a certain amount of flow through a <i class="term"><a href="../../../../index.html#key498">flow network</a></i>.</p></li>
+<li><p><i class="term"><a href="../../../../index.html#key455">blocking flow</a></i> - a <i class="term"><a href="../../../../index.html#key455">blocking flow</a></i> for a <i class="term">residual network</i> <i class="term">Gf</i> we name such flow <i class="term">b</i> in <i class="term">Gf</i> that:</p>
+<ol class="doctools_enumerated">
+<li><p>Each path from <i class="term">sink</i> to <i class="term"><a href="../../../../index.html#key435">source</a></i> is the shortest path in <i class="term">Gf</i>.</p></li>
+<li><p>Each shortest path in <i class="term">Gf</i> contains an edge with fully used throughput in <i class="term">Gf+b</i>.</p></li>
+</ol>
+</li>
+<li><p><i class="term">residual network</i> - for a flow network <i class="term">G</i> and flow <i class="term">f</i> <i class="term">residual network</i> is built with those edges, which can
+send larger flow. It contains only those edges, which can send flow larger than 0.</p></li>
+<li><p><i class="term">level network</i> - it has the same set of nodes as <i class="term"><a href="../../../../index.html#key465">residual graph</a></i>, but has only those edges <i class="term">(u,v)</i> from <i class="arg">Gf</i>
+for which such equality is satisfied: <i class="term">distance(s,u)+1 = distance(s,v)</i>.</p></li>
+<li><p><i class="term"><a href="../../../../index.html#key469">augmenting network</a></i> - it is a modification of <i class="term">residual network</i> considering the new
+flow values. Structure stays unchanged but values of throughputs and costs at edges
+are different.</p></li>
+</ul></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Approximation algorithm</a></h3>
+<dl class="doctools_definitions">
+<dt>k-approximation algorithm:</dt>
+<dd><p>Algorithm is a k-approximation, when for <i class="term">ALG</i> (solution returned by algorithm) and
+<i class="term">OPT</i> (optimal solution), such inequality is true:</p>
+<ul class="doctools_itemized">
+<li><p>for minimalization problems: <i class="term">ALG/OPT &lt;= k</i></p></li>
+<li><p>for maximalization problems: <i class="term">OPT/ALG &lt;= k</i></p></li>
+</ul></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http://en.wikipedia.org/wiki/Adjacency_matrix">Adjacency matrix</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Adjacency_list">Adjacency list</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Kruskal%27s_algorithm">Kruskal's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Prim%27s_algorithm">Prim's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Bipartite_graph">Bipartite graph</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Strongly_connected_components">Strongly connected components</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm">Tarjan's strongly connected components algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Cut_vertex">Cut vertex</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Bridge_(graph_theory)">Bridge</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Bellman-Ford_algorithm">Bellman-Ford's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Johnson_algorithm">Johnson's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Floyd-Warshall_algorithm">Floyd-Warshall's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Travelling_salesman_problem">Travelling Salesman Problem</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Christofides_algorithm">Christofides Algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Maxcut">Max Cut</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Matching">Matching</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Maximal_independent_set">Max Independent Set</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Vertex_cover_problem">Vertex Cover</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Ford-Fulkerson_algorithm">Ford-Fulkerson's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Maximum_flow_problem">Maximum Flow problem</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Minimum_cost_flow_problem">Busacker-Gowen's algorithm</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Dinic's_algorithm">Dinic's algorithm</a></p></li>
+<li><p><a href="http://www.csc.kth.se/~viggo/wwwcompendium/node128.html">K-Center problem</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Breadth-first_search">BFS</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Degree-constrained_spanning_tree">Minimum Degree Spanning Tree</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Approximation_algorithm">Approximation algorithm</a></p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>struct :: graph</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key467">adjacency list</a>, <a href="../../../../index.html#key491">adjacency matrix</a>, <a href="../../../../index.html#key484">adjacent</a>, <a href="../../../../index.html#key493">approximation algorithm</a>, <a href="../../../../index.html#key472">arc</a>, <a href="../../../../index.html#key482">articulation point</a>, <a href="../../../../index.html#key469">augmenting network</a>, <a href="../../../../index.html#key489">augmenting path</a>, <a href="../../../../index.html#key464">bfs</a>, <a href="../../../../index.html#key494">bipartite</a>, <a href="../../../../index.html#key455">blocking flow</a>, <a href="../../../../index.html#key466">bridge</a>, <a href="../../../../index.html#key487">complete graph</a>, <a href="../../../../index.html#key480">connected component</a>, <a href="../../../../index.html#key483">cut edge</a>, <a href="../../../../index.html#key485">cut vertex</a>, <a href="../../../../index.html#key474">degree</a>, <a href="../../../../index.html#key475">degree constrained spanning tree</a>, <a href="../../../../index.html#key457">diameter</a>, <a href="../../../../index.html#key495">dijkstra</a>, <a href="../../../../index.html#key478">distance</a>, <a href="../../../../index.html#key500">eccentricity</a>, <a href="../../../../index.html#key459">edge</a>, <a href="../../../../index.html#key498">flow network</a>, <a href="../../../../index.html#key305">graph</a>, <a href="../../../../index.html#key473">heuristic</a>, <a href="../../../../index.html#key470">independent set</a>, <a href="../../../../index.html#key490">isthmus</a>, <a href="../../../../index.html#key486">level graph</a>, <a href="../../../../index.html#key481">local searching</a>, <a href="../../../../index.html#key456">loop</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key477">max cut</a>, <a href="../../../../index.html#key497">maximum flow</a>, <a href="../../../../index.html#key460">minimal spanning tree</a>, <a href="../../../../index.html#key471">minimum cost flow</a>, <a href="../../../../index.html#key461">minimum degree spanning tree</a>, <a href="../../../../index.html#key499">minimum diameter spanning tree</a>, <a href="../../../../index.html#key488">neighbour</a>, <a href="../../../../index.html#key462">node</a>, <a href="../../../../index.html#key468">radius</a>, <a href="../../../../index.html#key465">residual graph</a>, <a href="../../../../index.html#key476">shortest path</a>, <a href="../../../../index.html#key492">squared graph</a>, <a href="../../../../index.html#key454">strongly connected component</a>, <a href="../../../../index.html#key479">subgraph</a>, <a href="../../../../index.html#key458">travelling salesman</a>, <a href="../../../../index.html#key463">vertex</a>, <a href="../../../../index.html#key496">vertex cover</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 Alejandro Paz &lt;vidriloco@gmail.com&gt;<br>
+Copyright &copy; 2008 (docs) Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2009 Michal Antoniewski &lt;antoniewski.m@gmail.com&gt;</p>
+</div>
+</div>

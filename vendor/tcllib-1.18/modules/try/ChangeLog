@@ -1,0 +1,22 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-06-25  Andreas Kupries  <andreask@activestate.com>
+
+	* try.man: Renamed to tcllib_try.man to prevent clash with Tcl
+	  core manpage. Effectively removed.
+	* tcllib_try.man: Effectively added, new name of try.man.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-05-31  Andreas Kupries  <andreask@activestate.com>
+
+	* New module and package: try. Tcl 8.5+ forward compatibility
+	  implementation of try/catch/finally (TIP 329).

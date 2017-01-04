@@ -1,0 +1,163 @@
+# me_cpucore.test:  Tests for the ME virtual machine -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the
+# commands making up the ME virtual machine.  Sourcing this file into
+# Tcl runs the tests and generates output for errors.  No output means
+# no errors were found.
+#
+# Copyright (c) 2005-2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: me_cpucore.test,v 1.3 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    use fileutil/fileutil.tcl fileutil
+}
+testing {
+    useLocal me_cpucore.tcl grammar::me::cpu::core
+}
+
+# -------------------------------------------------------------------------
+
+proc cpustate {state} {
+    set     vstate {}
+    lappend vstate cd [::grammar::me::cpu::core::code   $state]
+    lappend vstate pc [::grammar::me::cpu::core::pc     $state]
+    lappend vstate ht [::grammar::me::cpu::core::halted $state]
+    lappend vstate eo [::grammar::me::cpu::core::iseof  $state]
+    lappend vstate tc [::grammar::me::cpu::core::tok    $state]
+    lappend vstate at [::grammar::me::cpu::core::at     $state]
+    lappend vstate cc [::grammar::me::cpu::core::cc     $state]
+    lappend vstate ok [::grammar::me::cpu::core::ok     $state]
+    lappend vstate sv [::grammar::me::cpu::core::sv     $state]
+    lappend vstate er [::grammar::me::cpu::core::error  $state]
+    lappend vstate ls [::grammar::me::cpu::core::lstk   $state]
+    lappend vstate as [::grammar::me::cpu::core::astk   $state]
+    lappend vstate ms [::grammar::me::cpu::core::mstk   $state]
+    lappend vstate es [::grammar::me::cpu::core::estk   $state]
+    lappend vstate rs [::grammar::me::cpu::core::rstk   $state]
+    lappend vstate nc [::grammar::me::cpu::core::nc     $state]
+    return $vstate
+}
+
+proc cpudelta {prev now} {
+    array set _ {}
+    foreach {k v} [cpustate $prev] {
+	set _($k) $v
+    }
+    set res {}
+    foreach {k v} [cpustate $now] {
+	if {[info exists _($k)] && ($_($k) eq $v)} continue
+	lappend res $k $v
+    }
+    return $res
+}
+
+proc cpufstate {vstate} {
+    set res {}
+    foreach {k v} $vstate {lappend res [list $k $v]}
+    join $res \n
+}
+
+proc cpusubst {vstate args} {
+    array set _ $vstate
+    foreach {k v} $args {set _($k) $v}
+    set res {}
+    foreach k {cd pc ht eo tc at cc ok sv er ls as ms es rs nc} {
+	if {![info exists _($k)]} continue
+	lappend res $k $_($k)
+    }
+    return $res
+}
+
+proc cpufilter {vstate args} {
+    array set _ $vstate
+    set res {}
+    foreach k $args { lappend res $k $_($k) }
+    return $res
+}
+
+proc canon_code {code} {
+    foreach {i p t} $code break
+    # Sorting the token map, canonical rep for direct comparison
+    return [list $i $p [dictsort $t]]
+}
+
+# -------------------------------------------------------------------------
+
+set asm_table [string trimright \
+		   [fileutil::cat \
+			[localPath me_cpucore.tests.asm-map.txt]]]
+
+set badasm_table [string trimright \
+		      [fileutil::cat \
+			   [localPath me_cpucore.tests.badasm-map.txt]]]
+
+set badmach_table [string trimright \
+		       [fileutil::cat \
+			    [localPath me_cpucore.tests.badmach-map.txt]]]
+
+set semantics [string trimright \
+		   [fileutil::cat \
+			[localPath me_cpucore.tests.semantics.txt]]]
+
+# -------------------------------------------------------------------------
+# In this section we run all the tests depending on a grammar::me::cpu::core,
+# and thus have to test all the available implementations.
+
+set tests [file join [file dirname [info script]] me_cpucore.testsuite]
+
+catch {memory validate on}
+
+set impl tcl
+set usec [time {source $tests} 1]
+
+if 0 {
+    foreach impl [grammar::me::cpu::core::Implementations] {
+	grammar::me::cpu::core::SwitchTo $impl
+
+	# The global variable 'impl' is part of the public API the
+	# testsuit (in htmlparse_tree.testsuite) can expect from the
+	# environment.
+
+	namespace import -force grammar::me::cpu::core
+
+	set usec [time {source $tests} 1]
+
+	#puts "$impl:\t$usec"
+    }
+}
+
+catch {memory validate off}
+
+unset usec
+unset tests
+
+#puts ""
+
+# Reset system to fully inactive state.
+# grammar::me::cpu::core::SwitchTo {}
+
+# -------------------------------------------------------------------------
+
+# ### ### ### ######### ######### #########
+## Cleanup and statistics.
+
+rename cpustate   {}
+rename cpufstate  {}
+rename cpudelta   {}
+rename cpufilter  {}
+rename canon_code {}
+
+unset asm_table badmach_table semantics
+
+testsuiteCleanup

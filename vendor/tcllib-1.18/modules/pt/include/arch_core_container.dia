@@ -1,0 +1,4 @@
+# -*- tcl -*- tcl.tk//DSL diagram//EN//1.0
+set mark 6
+source [file join [file dirname [file normalize [info script]]] architecture.dia]
+return

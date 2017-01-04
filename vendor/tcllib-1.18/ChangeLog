@@ -1,0 +1,2862 @@
+2013-11-07  Andreas Kupries <andreask@activestate.com>
+
+	* support/devel/sak/localdoc/localdoc.tcl (::sak::localdoc::run):
+	  [Ticket 7c7f946046]: Pull in exclusion information from the
+	  installer configuration, and use it to exclude the associated
+	  man-pages from generation.
+
+2013-11-07  Andreas Kupries <andreask@activestate.com>
+
+	* support/installation/man.macros: [Ticket 369f67aeee] Updated to
+	  newest from Tcl/Tk.
+
+2013-05-30  Andreas Kupries  <andreask@activestate.com>
+
+	* Makefile.in: [Bug 3613973][Allura 1371]: Applied patch by
+	  Wolfgang Kechel, fixed missing CYGPATH invokations for paths in
+	  the installation targets.
+
+2013-04-04  Andreas Kupries  <aku@hephaistos>
+
+	* support/installation/modules.tcl (Module): 
+	* modules/debug: debug narrator module adapted
+	  from Colin McCormack's Debug wub utility package.
+
+2013-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* aclocal.m4: [Bug 3608581]: Extended check for executable
+	* configure: extension to recognize an MSYS environment as Windows
+	  and requiring a ".exe" suffix. Regenerated configure.
+
+2013-03-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: Added 'pt' (of modules/pt) to
+	  the set of distributed applications. Note that the application
+	  was moved to apps/ for this.
+
+2013-03-01  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/validate/syntax.tcl (::sak::validate::syntax::Setup): 
+	* support/devel/sak/validate/testsuites.tcl (::sak::validate::testsuites::Setup):
+	  The namespace ::tcl contains parts necessary for the proper
+	  operation of the interpreter, since 8.6. Do not delete anymore.
+
+2013-02-15  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'string'. String/text utilities, 8.5+.
+	  First packages:
+	  - string::token        - regex based lexing.
+	  - string::token::shell - parsing basic shell command line syntax.
+
+2013-02-08  Andreas Kupries <andreask@activestate.com>
+
+	* apps/dtplite: Fixed missing -ibase option in direcotry
+	* apps/dtplite.man: processing with -merge. Fixed sorting in
+	  generated toc and indices. Plus new feature: -toc for external
+	  toc to place in the output. Bumped to 1.0.4. Updated
+	  documentation.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-28  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/fileutil: New package 'fileutil::decode'.
+	* modules/zip: New module 'zip', with packages 'zipfile::encode'
+	  and 'zipfile::decode'
+
+2013-01-24  Andreas Kupries  <andreask@activestate.com>
+
+	* New module and packages: clock (rfc2822, iso8601).
+	  Tcl 8.5 only.
+
+2013-01-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* configure.in: [Bug 3593146]: Extended with CYGPATH usage to
+	  allow building under cygwin.
+	* configure: Regenerated (autoconf 2.67).
+
+2012-08-07  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/generator: Generators (via the coroutines of
+	  Tcl 8.6). Provided by Neil Madden.
+	* support/installation/modules.tcl:
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-07  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl (xcopy): Fixed bug a preventing the detection of files
+	  in subdirectories; copied from the installer.
+	* sak.tcl (ipackages): Fixed bug (reuse of varname) which placed
+	  packages into the wrong module.
+
+2011-05-31  Andreas Kupries  <andreask@activestate.com>
+
+	* New module and package: oo::util. Right now only easy
+	  referencing of instance methods for callbacks.
+
+	* New module and package: lambda. Easy anonymous procedures for
+	  Tcl 8.5+.
+
+	* New module and package: try. Tcl 8.5+ forward compatibility
+	  implementation of try/catch/finally (TIP 329).
+
+2011-04-21  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/struct/queue_c.tcl: Disabled the critcl debug settings used
+	* modules/pt/pt_rdengine_c.tcl: to work around bugs in critcl v2's
+	* modules/pt/pt_parse_peg_c.tcl: handling of C companion files.
+	* modules/pt/pt_cparam_config_critcl.tcl:
+
+	* sak.tcl (__critcl): Fixed processing of -debug, added the
+	  forgotten handling of its argument. Plus added handling of
+	  option -target.
+
+	* ./modules/sha1/sha256.h: Fixed the conditional definition of
+	  uint64_t and uint32_t for aix and hpux machines.
+
+2011-04-06  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/valtype: New module: Validation types. snit validation
+	  types for various classes of numbers (ISBN, EAN, ...) and
+	  general check-digit algorithms (luhn(5), verhoeff, ...).
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Trim dross of extracted version numbers.
+	* support/devel/sak/note/cmd.tcl: Extended 'sak note' to accept
+	* support/devel/sak/note/help.txt: a file of note data.
+
+2011-01-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/hook: New module 'hook'.
+	* support/installation/modules.tcl:
+
+2010-11-25  Andreas Kupries  <andreask@activestate.com>
+
+	* examples/mime/maildemo.tcl: [Patch 3117246]: Added the standard
+	  script prologue. Thanks to Stuart Cassoff.
+
+2010-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* apps/dtplite.man: Extended with new option -exclude to specify
+	* apps/dtplite: exclusion patterns (glob matching). Further fixed
+	  issues with file paths causing resolution of include file paths
+	  to break. This uses the new option -ibase of doctools 1.4.11 to
+	  keep include resolution and HTML cross-link generation apart
+	  from each other. Bumped version to 1.0.3.
+
+2010-10-26  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: [Bug 3085417]: Added the nano
+	  nameservice applications to the installation.
+
+2010-10-22  Kevin Kenny  <kennykb@acm.org>
+
+	* support/installation/modules.tcl: Corrected installation
+	  of grammar::aycock.
+	
+2010-10-18  Kevin Kenny  <kennykb@acm.org>
+
+	* modules/grammar_aycock: New module, Aycock-Earley-Horspool
+	  parser generator.
+	
+2010-10-08  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/pki: New module, public key infrastructure.
+	* support/installation/modules.tcl:
+
+2010-07-09  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: [Bug 3027371]. Fixed typo
+	  'imap' -> 'imap4'. Thanks to Larry Virden <lvirden@users.sf.net>
+	  for reporting.
+
+2010-07-08  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/gpx: New module 'gpx'.
+	* support/installation/modules.tcl:
+
+2010-07-06  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: Module 'imap4' activated.
+
+2010-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module 'pt', for ParserTools. Requires Tcl 8.5. Supercedes
+	  grammar_peg, grammar_me, and page.
+
+2009-12-08  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/test/run.tcl (CaptureFailureCollectBody,
+	  CaptureFailureCollectError): Fixed issue with test result
+	  capture on failure. We failed on the capture of failure due to
+	  unexpected return codes, because the output syntax is different
+	  for that compared to failure due to result differences. Code has
+	  been added to recognize and capture this other syntax.
+
+	* support/devel/sak/test/run.tcl: Extended the test framework to
+	* support/devel/all.tcl: record time per .test file, count of
+	  tests per file, enabling it to compute a speed (microseconds per
+	  test), as a rough and crude benchmark of where we may have
+	  performance problems with either packages or tests.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-12-03  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/readme/readme.tcl: Strip trailing whitespace
+	  from the table formatted parts of the generated readme.
+
+2009-12-01  Andreas Kupries  <andreask@activestate.com>
+
+	* New modules 'virtchannel_{core,base,transform}' with packages
+	  providing core services to reflected channels and
+	  transformations, and basic reflected channels, and
+	  transforms. This is in essence the example code for the paper I
+	  presented at Tcl'2009 in Portland (Reflected and Transformed
+	  Channels).
+
+	* support/installation/modules.tcl: New modules 'virtchannel_*'.
+
+2009-11-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New package 'json::write' in existing module 'json'.
+
+	* support/devel/sak/note/cmd.tcl: Extended note command to show
+	* support/devel/sak/note/note.tcl: saved hints when called without
+	  arguments.
+
+2009-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: Fix issue with examples for logger,
+	* support/installation/actions.tcl: which did not fit the
+	  expectations of action _exa, which assumed the module name,
+	  which is 'log'. Instead of wrestling CVS into renaming the
+	  directory a new action is made which takes the actual name as
+	  argument.
+
+	* support/devel/sak/note/cmd.tcl: New sak commands 'note' and 'readme'
+	* support/devel/sak/note/help.txt: for semi-automatic generation of
+	* support/devel/sak/note/note.tcl: the release README.txt from
+	* support/devel/sak/note/pkgIndex.tcl: current and last package
+	* support/devel/sak/note/topic.txt: versions, and note'd hints.
+	* support/devel/sak/readme/cmd.tcl:
+	* support/devel/sak/readme/help.txt:
+	* support/devel/sak/readme/pkgIndex.tcl:
+	* support/devel/sak/readme/readme.tcl:
+	* support/devel/sak/readme/topic.txt:
+
+2009-11-11  Andreas Kupries  <andreask@activestate.com>
+
+	* apps/dtplite: Updated the requirements to force use of doctools
+	  v1, this app is not doctools v2 ready yet.
+
+2009-11-10  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/validate/cmd.tcl: Extended argument processing
+	* support/devel/sak/validate/manpages.tcl: of the validation command
+	* support/devel/sak/validate/syntax.tcl: to enable a user to specify
+	* support/devel/sak/validate/testsuites.tcl: which version of Tcl
+	* support/devel/sak/validate/validate.tcl: to check against. Plus
+	* support/devel/sak/validate/versions.tcl: fix to handle modules
+	  without manpages.
+
+	* modules/coroutine: New module 'coroutine' providing to coroutine
+	  utility packages for easier use of channel operations. These
+	  packages are for Tcl 8.6+.
+
+	* support/installation/modules.tcl: New module 'coroutine'.
+
+2009-09-28  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/test/run.tcl (::sak::test::run::CaptureStack):
+	  Fix missing variable declaration, and tweak generated output a
+	  bit.
+
+	* support/devel/sak/test/run.tcl (Do): Reworked a bit to save
+	  captured error stacks and failed tests (body, actual, expected)
+	  into separate log files for quick access.
+
+2009-07-10  Andreas Kupries  <andreask@activestate.com>
+
+	* README.releasemgr: Added links to important places in the
+	  SourceForge site for managing Tcllib releases and uploading
+	  files (WebDAV), to avoid the ever more byzantine link sequences
+	  needed to find them on their site.
+
+2009-06-02  Andreas Kupries <andreask@activestate.com>
+
+	* README.developer: Extended with more information about the basic
+	  directory hierarchy and files to be found, testing and
+	  validating modules, writing of test cases, and documentation.
+
+2009-02-06  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl (Module): Put 'exif' on the
+	  exclude list, deprecating it. Use 'jpeg' instead to access the
+	  exif information block in images.
+
+2009-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples/bibtex/bibtex.tcl: Modified examples to assume that
+	* examples/htmlparse/webviewer.tcl: they are run by a tclsh found
+	* examples/irc/irc_example.tcl: on the PATH, and that this shell
+	* examples/mapproj/tkmap.tcl: has access to the packages of
+	* examples/math/bigfloat.demo.tcl: Tcllib required by the example.
+	* examples/ntp/rdate.tcl: Stuart Cassoff <stwo@users.sourceforge.net>
+	* examples/sasl/saslclient.tcl: provided by the patches as
+	* examples/struct/diff.tcl: part of his work on making a Tcllib
+	* examples/struct/diff2.tcl: OpenBSD port.
+
+	* support/installation/modules.tcl: Added the examples for a
+	  number of modules to the installer. Patch by Stuart, see above.
+
+2009-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* apps/dtplite: Added missing EOL to last line of the generated
+	  .toc and .idx files. Bumped version to 1.0.1
+
+	* apps/*.man: Added category information to the majority of man
+	* modules/*/*.man: pages. 
+
+	* support/devel/sak/doc/cmd.tcl: Moved the main code for the
+	* support/devel/sak/doc/doc.tcl: imake/ishow commands into a
+	* support/devel/sak/doc/pkgIndex.tcl: separate package. Added a
+	* support/devel/sak/doc/doc_auto.tcl: new command 'doc index'
+	* support/devel/sak/doc/manpages.txt: which not only updates
+	* support/devel/sak/doc/kwic.txt: 'manpages.txt', but also
+	* support/devel/sak/doc/toc.txt: generates a keyword index
+	  ('kwic.txt'), and a table of contents ('idx.txt'). The first
+	  result are committed as part of this change. The newly generated
+	  files are in docidx and doctoc formats, respectively.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-11-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: New module 'map' with
+	  packages 'map::slippy::*'.
+
+2008-11-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: New module 'cache' with
+	  package 'cache::async'.
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-09-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/devtools/testutilities.tcl (useTcllibC): Added code to
+	  print the location of the tcllibc used by the testsuite.
+
+	* support/devel/sak/test/run.tcl (::sak::test::run::AbortCause):
+	  Tweaked to be more lenient and accept more error messages.
+
+2008-07-08  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: New module 'amazon-s3' with
+	  packages 'S3' and 'xsxp', by Darren New. Access to Amazon's
+	  Simple Storage Service.
+
+2008-06-30  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/actions.tcl (_manfile): Tossed two of the
+	  three identical copies of this procedure. Thanks to Stuart
+	  Cassoff for noticing and reporting this.
+
+2008-06-20  Andreas Kupries  <andreask@activestate.com>
+
+ 	* support/installation/version.tcl: Added code integrated
+	  struct::stack's critcl implementation into the build.
+
+2008-05-22  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: Added 'yaml' to the list
+	  of official modules.
+
+2008-03-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/sak/validate/syntax.tcl: Fix problem in pcx scan
+	  logic, have to handle unknown commands. Like is done for
+	  testsuites.
+
+2008-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/sak/validate/syntax.tcl: Do not try to check TeX
+	  files for Tcl syntax.
+
+	* support/devel/sak/validate/syntax.tcl: New code, syntax checking
+	  via tclchecker.
+	* support/devel/sak/validate/validate.tcl: Activated new
+	  validation module.
+
+	* support/devel/sak/validate/manpages.tcl: Skip tcllibc.
+	* support/devel/sak/validate/testsuites.tcl: Skip tcllibc.
+
+	* support/devel/sak/util/feedback.tcl: Flush log lines.
+
+	* sak.tcl (ppackages): Added code to recognize a pragma '@sak
+	  notprovided' which we can use to mark the packages which have
+	  provide statements yet are not really visible and thus not
+	  indexed.
+
+	* modules/sha1/sha256c.tcl: Added notprovided pragmas to the
+	* modules/sha1/sha1c.tcl: critcl based package implementations
+	* modules/md5/md5c.tcl: and the pseudo-packages declared by
+	* modules/struct/graph_c.tcl: plugin management code.
+	* modules/struct/tree_c.tcl:
+	* modules/struct/sets_c.tcl:
+	* modules/dns/ipMoreC.tcl:
+	* modules/md5crypt/md5cryptc.tcl:
+	* modules/rc4/rc4c.tcl:
+	* modules/crc/crcc.tcl:
+	* modules/base64/base64c.tcl:
+	* modules/md4/md4c.tcl:
+	* modules/page/peg_grammar.tcl:
+	* modules/page/pluginmgr.tcl:
+
+2008-03-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: Added 'simulation' to the list
+	  of official modules.
+
+	* support/devel/sak/validate/versions.tcl: New code for the
+	  comparison of indexed versus provides packages.
+	* support/devel/sak/validate/validate.tcl: Activated new
+	  validation module.
+
+	* support/devel/sak/validate/testsuites.tcl: Reworked log format.
+	* support/devel/sak/validate/manpages.tcl:   Reworked log format.
+
+2008-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/sak/validate/help.txt: Clarified that testsuite
+	  validation is not testsuite execution.
+
+	* support/devel/sak/validate/validate.tcl: Added testsuite
+	* support/devel/sak/validate/cmd.tcl: validation, using the new
+	  entrypoints to move summaries after the checking phases, and
+	  updated to the feedback api changes.
+
+	* support/devel/sak/validate/testsuites.tcl: New code, validation
+	  of testsuites (= checking which packages are without).
+
+	* support/devel/sak/validate/manpages.tcl: Reworked for changed
+	  feedback module, split summary generation from main body, and
+	  set up proper multiple entry points.
+
+	* support/devel/sak/util/feedback.tcl: Reworked for easier use
+	  when used from multiple packages which can be run separately and
+	  together. Added support for summary generation.
+
+2008-03-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/sak/old/help.txt: Renamed old validation command.
+	* sak.tcl: Renamed old validation command.
+
+	* support/devel/sak/validate/cmd.tcl: New validation code, currently
+	* support/devel/sak/validate/help.txt: only checking documentation.
+	* support/devel/sak/validate/manpages.tcl:
+	* support/devel/sak/validate/pkgIndex.tcl:
+	* support/devel/sak/validate/topic.txt:
+	* support/devel/sak/validate/validate.tcl:
+
+	* support/devel/sak/doc/cmd.tcl: Fixed a typo.
+	* support/devel/sak/doc/topic.txt: Deeper indentation.
+	* support/devel/sak/help/topic.txt: Deeper indentation.
+	* support/devel/sak/old/topic.txt: Deeper indentation.
+
+	* support/devel/sak/test/run.tcl: Replaced custom color code with
+	  use of the new package sak::color.
+	* support/devel/sak/test/cmd.tcl: Fixed a typo.
+	* support/devel/sak/test/topic.txt: Deeper indentation.
+
+	* support/devel/sak/util/pkgIndex.tcl: Added two new sak support
+	* support/devel/sak/util/color.tcl: packages to handle colorization
+	* support/devel/sak/util/feedback.tcl: and common feedback ops (on
+	  top of the animation).
+
+	* support/devel/sak/util/anim.tcl: Exported the public commands.
+
+2008-03-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/sak/test/run.tcl (::sak::test::run::Summary):
+	  Fixed [Bug 1909367]. Error information is now passed from the
+	  file summary code to the counters for the whole test run.
+
+2008-01-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/stringprep:               New module 'stringprep'.
+	* support/installation/modules.tcl:
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-09-07  Andreas Kupries  <andreask@activestate.com>
+
+	* support/releases/history/README-1.10.txt: Updated for modified
+	  math package.
+
+2007-08-30  Andreas Kupries  <andreask@activestate.com>
+
+	* devdoc/critcl-tcllib.txt: Fixed [SF Tcllib Bug 1784843], applied
+	* devdoc/dirlayout_install.txt: Larry Virden's patches fixing typos,
+	* devdoc/indexing.txt: and doing other editorial changes.
+	* devdoc/installation.txt:
+	* devdoc/devguide.html:
+
+	* README.developer: Fixed [SF Tcllib Bug 1784836], applied Larry
+	* README: Virden's patches fixing typos, and doing other editorial
+	  changes.
+
+2007-08-29  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/tcllibc.tcl: Version of package bumped to 0.3.2 for the
+	  bugfix in the C implementation of struct::set (v 2.2.1).
+
+2007-08-28  Andreas Kupries  <andreask@activestate.com>
+
+	* support/releases/history/README-1.10.txt: Whitespace and
+	  formatting cleanup after various updates for modified packages.
+
+2007-08-24  Kevin B. Kenny  <kennykb@acm.org>
+
+	* support/installation/modules.tcl: New module 'mapproj' added.
+	
+2007-08-24  Andreas Kupries  <andreask@activestate.com>
+
+	* README.developer: Added a section describing the basic steps of
+	  adding a new module.
+
+	* support/releases/history/README-1.10.txt: Whitespace and
+	  formatting cleanup.
+
+2007-08-22  Andreas Kupries  <andreask@activestate.com>
+
+	* apps/tcldocstrip (::tcldocstrip::processCmdline): Fixed handling
+	  of arguments if there are none. The linsert construction broke
+	  for that case. Application version bumped to 1.0.1.
+
+2007-08-21  Andreas Kupries  <andreask@activestate.com>
+
+	* README.developer: Section about testing updated for the changes
+	  in the Makefile.
+
+	* Makefile.in (install-applications): New target, complement to
+	  'install-libraries', for applications only.
+
+	* Makefile.in (test): The target now distinguishes interactive
+	  invokation and batch mode, and chooses its log mode accordingly
+	  (interactive: progress feedback, short log, batch: detailed
+	  log). The batch mode is invoked by redirecting the stdout to a
+	  file. Per a suggestion of Mikhail Teterin. The two modes are
+	  also directly acessible, via the new targets 'test_batch' and
+	  'test_interactive'.
+
+2007-08-21  Andreas Kupries  <andreask@activestate.com>
+
+	* README.developer: Added a small introduction to the testing of
+	  modules via 'sak.tcl'. This fixes [SF Tcllib Bug 1750655] by
+	  Larry Virden.
+
+	* support/devel/sak/test/run.tcl: Reworked the handling of setup
+	  errors and of the various failure states to ensure that they are
+	  properly reported as problems in the summary output instead of
+	  giving the appearance that everything is ok. Some trouble in the
+	  math testsuite was spotted only by reading the detailed log and
+	  would have been missed otherwise.
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* support/releases/history/README-1.10.txt: README listing the
+	  changes for the upcoming release.
+
+2007-07-27  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: New module 'wip' added. A mini
+	  interpreter for word lists based on ideas in 'treeql'.
+
+2007-07-17  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: New module 'uev' added, for
+	  the generation and handling of user events.
+
+2007-05-04  Andreas Kupries  <andreask@activestate.com>
+
+	* support/installation/modules.tcl: New module 'nns' added, a
+	  nano-sized name service based on and for 'comm'. Derived from
+	  the nserver code in the Pool_Net bundle of packages.
+
+2007-05-03  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl: Added stronger check for 'package provided' command to
+	  'ppackages'. Code in critcl.tcl generated for tcllibc slips past
+	  the less strong filters.
+
+2007-03-21  Andreas Kupries  <andreask@activestate.com>
+
+	* Changed all documentation files (*.man). Replaced all deprecated
+	  commands and list types with their new canonical names, putting
+	  the Tcllib documentation back in line with the current
+	  definition of the doctools language and its companions.
+
+2006-11-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/version.tcl: Added critcl implementation of
+	  struct::graph to the list of critcl supported packages.
+
+2006-11-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/tcllibc.tcl: Silence critcl warnings. Files with no code
+	raise a warning message. Add an empty critcl::ccode block to avoid.
+
+2006-10-13  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/tcllibc.tcl: Bumped to version 0.3.1. I believe this has
+	  to be bumped whenever one of the contained packages changes, or
+	  more packages are added. Keep track of this.
+
+2006-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/all.tcl: Small comments added to clarify the
+	  operation of the cleanup hook, and a tiny bit of code cleanup.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-10-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (test): Changed to use an explicit -s TCLSH_PROG to
+	  avoid use of the Tcllib registry.
+
+	* support/devel/sak/test/run.tcl: Flush all writes to logfiles, to
+	  ensure that they are uptodate in case an abort is needed. Added
+	  output of totals after the test run, and made exit status
+	  dependent on failures (1 = Ok, 0 = Had problems).
+
+2006-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/all.tcl: Ensure that root is absolute across all
+	  versions of Tcl. Added code to recreate the auto_path in the
+	  slave interps and processes after it was smashed by older
+	  revisions of tcltest during their load.
+
+2006-09-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/releases/history/README-1.9.txt: New file. Readme file
+	  for the upcoming release, providing an overview of the changes.
+
+2006-09-20  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/test/run.tcl: Modified to not use echo and cat
+	* support/devel/sak/test/help.txt: when starting a testsuite on
+	  windows. Eliminated the use of valgrind for that platform as
+	  well. Updated the documentation regarding the latter.
+
+2006-09-19  Andreas Kupries <andreask@activestate.com>
+
+	* support/devel/sak/test/run.tcl: Extended testsuite logging.
+	* support/devel/sak/test/help.txt: Standard user feedback and
+	  extended information (raw log, summaries) are written to a set
+	  of files. All required information in one run, instead of two.
+
+2006-09-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installer.tcl: Accepted patch by Michael Schlenker
+	  <mic42@users.sourceforge.net> for [Tcllib SF Bug 1559489] to
+	  divert error messages to a dialog box instead of stderr where
+	  possible, to avoid them being silently swallowed by windows.
+
+	* support/devel/sak/test/run.tcl: Reworked output generated
+	* support/devel/all.tcl: by testsuites, added processing of
+	  the modified output for progress reporting, condensed reporting,
+	  and in preparation of placing results into a database.
+	* support/devel/sak/test/help.txt: Updated documentation.
+	* support/devel/sak/test/shell.tcl: Fixed typo in name of method
+	  to call to remove shells from the database.
+
+2006-09-06  Andreas Kupries <andreask@activestate.com>
+
+	* Makefile.in (test): Updated the target to the new syntax
+	  for running testsuites accepted by sak.
+
+2006-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/sak/test/help.txt: Added reference to the file
+	  used to store the list of registered shells.
+
+	* support/devel/all.tcl: Changed to terminate with 'exit' instead
+	  of 'return', to allow the testsuites to be driven by a 'wish'
+	  without having to deal with its event loop.
+
+	* support/devel/sak/test/cmd.tcl: Replaced the existing
+	* support/devel/sak/test/help.txt: implementation of 'test' with a
+	  dispatcher to an extensible set of packages. See below.
+
+	* support/devel/sak/test/pkgIndex.tcl: New implementation of the
+	* support/devel/sak/test/run.tcl: 'test' command and its sub-
+	* support/devel/sak/test/shell.tcl: commands. The 'registry', see
+	* support/devel/sak/test/shells.tcl: below, is used to store the
+	* support/devel/sak/test/test.tcl: registered shells.
+
+	* support/devel/sak/util/pkgIndex.tcl: Registered package.
+	* support/devel/sak/util/registry.tcl: New file, wrapper around
+	  the pregistry, customized to SAK.
+
+	* support/devel/sak/registry/pkgIndex.tcl: Package for a small tree-
+	* support/devel/sak/registry/registry.man: based database similar to
+	* support/devel/sak/registry/registry.tcl: the windows registry. For
+	* support/devel/sak/registry/registry.test: now just an internal
+	  package to support 'sak', in the future it may move and become an
+	  official package.
+
+2006-09-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* support/installation/modules.tcl: New module 'otp'.
+
+2006-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: New module 'interp'.
+
+2006-08-17  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* support/installation/modules.tcl: added json package
+
+2006-08-15  Michael Schlenker  <mic42@users.sourceforge.net>
+
+	* sak.tcl: Added support for nagelfar (nagelfar.berlios.de) to the
+	  static syntax checking options of sak.tcl while doing a validate
+	  or validate_all. Fixed a slight inconsistency between validate
+	  and validate all, tclchecker was not checked for validate.
+	  
+2006-08-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (*-doc): Forgotten to update the Makefile targets
+	  for documentation when changing the sak syntax for invoking a
+	  doc conversion. See entry 2006-07-09. Thanks to wohnivec@dix.cz
+	  for noticing and provision of a patch.
+
+2006-08-10  Andreas Kupries  <andreask@activestate.com>
+
+	* support/devel/sak/doc/doc.tcl (::sak::doc::ps): Fixed bogus
+	  redirection argument 1>@, correct is >@.
+
+2006-08-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/devel/all.tcl: Fixed the loading of Tk into the slave
+	  interp, before Tk 8.4 we are not a real package. Using an
+	  explicit load for a Tk statically bound into the executable.
+
+2006-07-27  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl: Removed __test. Replaced with a single command
+	* support/devel/sak/test:  with an implementation found in
+	  the support tree. See below.
+
+	* support/devel/sak/test/cmd.tcl:   New. Implementation of 'test'.
+	* support/devel/sak/test/help.txt:  New. Help for 'test'.
+	* support/devel/sak/test/topic.txt: New. Topic definition for 'test'.
+
+2006-07-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* support/installation/modules.tcl: Fixed registration of 'term',
+	  needs recursive install.
+
+2006-07-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* New module "term". Terminal control.
+	* support/installation/modules.tcl: Registered 'term'.
+
+2006-07-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Removed __nroff and all other documentation commands.
+	* support/devel/sak/old/help.txt: Replaced with a single command
+	  with an implementation found in the support tree. See below.
+
+	* support/devel/sak/doc/cmd.tcl: New. Implementation of 'doc'.
+	* support/devel/sak/doc/doc.tcl: New. Support package for 'doc'.
+	* support/devel/sak/doc/pkgIndex.tcl: New. Index for support package.
+	* support/devel/sak/doc/help.txt: New. Help for 'doc'.
+	* support/devel/sak/doc/topic.txt: New. Topic definition for 'help'.
+
+	* support/devel/sak/util/util.tcl: New. General support package,
+	* support/devel/sak/util/pkgIndex.tcl: and index for it.
+
+2006-07-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Removed __help. Replaced with implementation found in
+	  the support tree. See below.
+
+	* support/devel/sak/help/cmd.tcl: New. Implementation of 'help'
+	* support/devel/sak/help/help.tcl: New. Support package for 'help'.
+	* support/devel/sak/help/help.txt: New. Help for 'help'.
+	* support/devel/sak/help/pkgIndex.tcl: New. Index for support package.
+	* support/devel/sak/help/topic.txt: New. Topic definition for 'help'.
+	* support/devel/sak/old/help.txt: New. Help for old commands.
+	* support/devel/sak/old/topic.txt: New. Topic def. for old commands.
+
+	* sak.tcl: Added code to locate command implementations in the
+	  support tree. This allows us to factor the commands out of the
+	  main script, making the internal structure of sak clearer
+	  (through the use of packages).
+
+2006-06-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* main.tcl:                      Moved, and new location
+	* support/installation/main.tcl: of the file.
+
+	* sak.tcl: Updated to the new location (has to be copied to the
+	  topdir now, when generating the starkit/pack distribution).
+
+	* man.macros:                      Moved, and new location
+	* support/installation/man.macros: of the file.
+
+	* installer.tcl:       Updated to the new location.
+
+	* all.tcl:               Moved, and new location
+	* support/devel/all.tcl: of the file. Also updated to handle the
+	  new location of the distribution relative to all.tcl, to
+	  properly find the testsuites.
+
+	* sak.tcl: Updated to the new location of all.tcl
+
+	* package_rpm.tcl:                  Moved, and new location
+	* support/releases/package_rpm.tcl: of the file.
+
+	* package_yml.tcl:                  Moved, and new location
+	* support/releases/package_yml.tcl: of the file.
+
+	* package_tip55.tcl:                  Moved, and new location
+	* support/releases/package_tip55.tcl: of the file.
+
+	* sak.tcl:       Updated to the new location of
+	* installer.tcl: package_rpm.tcl, package_tip55.tcl,
+	                 package_yml.tcl
+
+	* package_version.tcl:              Moved, and new location
+	* support/installation/version.tcl: of the file.
+
+	* sak.tcl:       Updated to the new location of
+	* installer.tcl: package_version.tcl
+	
+	* install_action.tcl:               Moved, and new location
+	* support/installation/actions.tcl: of the file.
+
+	* installed_modules.tcl:            Moved, and new location
+	* support/installation/modules.tcl: of the file.
+
+	* sak.tcl:       Updated to the new location of
+	* installer.tcl: install_action.tcl, installed_modules.tcl.
+
+	* README.developer:  New files to introduce new developers
+	* README.releasemgr: and release managers to Tcllib, the tools
+	  available to support and ease their tasks, the procedures we
+	  have in place, etc. For now they are more or less placeholders,
+	  to be fleshed out with actual content over time.
+
+	* installed_modules.tcl: Registered new module 'nmea'.
+
+	* PACKAGES: Moved.
+	* support/releases/PACKAGES: New location of PACKAGES.
+	* sak.tcl: Updated to the new location of PACKAGES.
+
+2006-06-30  Andreas Kupries <andreask@activestate.com>
+
+	* installed_modules.tcl: Changed to a declarative style (more
+	  amenable to automated processing).
+
+2006-06-15  Andreas Kupries <andreask@activestate.com>
+
+	* sak.tcl: Extended to allow the specification of a module M as
+	  either M or modules/M. The latter is a path relative to the
+	  topdir and enables the entering of modules through
+	  tab-completion in the shell.
+
+2006-05-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: New module 'base32'.
+
+2006-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: New module 'transfer'.
+
+2006-04-26  Andreas Kupries <andreask@activestate.com>
+
+	* sak.tcl (gd-gen-tap): modified to strip non-version characters
+	  out of version numbers.
+
+2006-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* all.tcl: Removed the definitions of the common test constraints,
+	  and the emulations of the 'wrongNumArgs' and 'tooManyArgs'
+	  commands. These have all moved into the new common test support
+	  code found in "devtools".
+
+2005-11-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Removed all functionality related to execution of
+	  .timing files. They are superceded by the benchmarks provided
+	  through .bench files.
+
+	* modules/aes/aes.timing: Removed, superceded by .bench files.
+	* modules/des/des.timing:
+	* modules/rc4/rc4.timing:
+	* modules/blowfish/blowfish.timing
+
+2005-11-02  Andreas Kupries <andreask@activestate.com>
+
+	* sak.tcl (ppackages): Added hack to exclude the package @@ from
+	  the tap file. This is defined in template code in
+	  page/gen_peg_cpkg.tcl, i.e. a variable.
+
+2005-10-27  Andreas Kupries <andreask@activestate.com>
+
+	* sak.tcl (bench_mod): Modified default interp to use in
+	  benchmarks from PATH to the interp executing SAK.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* sak.tcl: Extended benchmark facility. New command for removal of
+	  columns from results. New option to explicitly specify a single
+	  interpreter to use.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* sak.tcl: More benchmarking functionality, showing benchmark data
+	  after the fact, implicit merging, and changing interp
+	  information around. Now we need only some functionality to show
+	  the data graphically, and possibly compute statistical
+	  information.
+
+2005-10-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: New module "bench". Benchmarking support
+	  package.
+	* sak.tcl: Added benchmarking functionality.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Added support for passing parameters to critcl. v04
+	will support -debug and -clean and v034 supports -keep.
+
+2005-09-29  Andreas Kupries <andreask@activestate.com>
+
+	* README-1.8.txt: New file. Readme file for the upcoming release.
+
+	* sak.tcl (pkg-compare): Modified the core of the 'rstatus'
+	  functionality to sort by module, then package, and show the
+	  module name before the packages. Easier for use in new release
+	  README file.
+
+	* installed_modules.tcl: log module changed to use _msg for
+	  installation.
+
+	* install_action.tcl (_msg): New action for modules having a
+	  message catalogs in a msgs subdirectory.
+
+	* installer.tcl (xcopy): Fixed bug in the interaction of recursion
+	  and pattern argument. It is for files, but affected directories
+	  as well, causing page to ignore its plugin directory.
+
+2005-09-28  Andreas Kupries <andreask@activestate.com>
+
+	* installed_modules.tcl: Using _tcr to install page and its
+	  plugins.
+
+	* install_action.tcl (_tcr): New install action, recursive install
+	  of all .tcl files in the module.
+
+2005-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules: New module:      grammar_me.
+	* installed_modules: New module:      grammar_peg.
+	* installed_modules: New module:      page.
+	* installed_modules: New application: page.
+
+2005-09-26  Andreas Kupries <andreask@activestate.com>
+
+	* installed_modules.tcl: Added the 'tcldocstrip' application to
+	  the installer.
+
+2005-09-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* all.tcl: Added Tcl 8.5 specific code to
+	'::tcltest::tooManyArgs'.
+
+2005-09-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Added a 'timing' subcommand to run *.timing scripts.
+
+2005-08-29  Kevin Kenny  <kennykb@acm.org>
+
+	* all.tcl (tcltest::wrongNumArgs): Revised to handle 8.5 error message.
+	
+2005-08-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/aes:            NEW MODULE: aes
+	* installed_modules.tcl: 
+
+2005-08-17  Bob Techentin <techentin@users.sourceforge.net>
+	
+	* installed_modules.tcl:  NEW MODULE: units
+	* modules/units:
+
+2005-07-26  Stephane Arnold <sarnold75@users.sourceforge.net>
+	
+	* installed_modules.tcl : registered math example
+
+2005-07-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* config/config.guess: Updated to newer versions.
+	* config/config.sub:
+
+	* all.tcl: Small correction in wrongNumArgs for when the argument
+	  list is not empty (Added a space).
+
+	* sak.tcl: Rewrite of critcl invokation on Windows, allow usage of
+	  critcl starpack, and for starkits a plain tclsh as interpreter.
+
+2005-07-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/pluginmgr:  New module for the management of plugins.
+
+2005-04-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installer.tcl: Fixed installer, updated to the new file and API
+	  for package meta information. Fixed bug in app installation,
+	  forgot to skip actual copy operations when in simulate-mode.
+
+2005-04-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Should be bundle independent now, with (undocumented)
+	  API to the bundle specific information (package_* files).
+
+	* sak.tcl: Moved existing name/version variables over to package
+	  neutral names. Moved meta data file to package neutral
+	  name. Changed the API between sak and meta data file, it is now
+	  command oriented. Replaced hardwired package labeling with
+	  variables. Moved the bundle specific release cleanup into the
+	  meta data file, and made the cleanup code generic. Ditto for the
+	  bundle specific critcl definitions. Modified package load to
+	  fall back to a regular 'require' if there is no local
+	  file containing the package implementation.
+
+	* sak.tcl:         Moved the bundle specific template data
+	* package_rpm.txt: into separate file and rewrote the code
+	* package_yml.txt: using them to be more regular.
+	* package_tip55.txt:
+
+2005-04-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Extended to handle multiple versions of a package
+	  better when comparing and listing versions.
+
+	* apps/tcldocstrip:     New application, an implementation of
+	* apps/tcldocstrip.man: docstrip in Tcl, for Tcl. Incl.
+	  documentation.
+
+2005-03-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Added code to regenerate sources of modules whose
+	  master sources are in one or more docstrip files. 
+
+	* sak.tcl: Extended the code for the extraction of version
+	  information from packages with a heuristic static analysis to
+	  cut down on the expense of executing package code. Also made the
+	  code more robust for packages importing other packages.
+
+	* sak.tcl: Replaced all internal 'package require' statements with
+	  calls to an internal helper which always loads from the local
+	  directory tree, i.e. preventing use of an external installation
+	  (which may be incompatible). ... Removed triplicate definition
+	  of command 'write_out'. ... Extended help message a
+	  bit. ... Added code to help internal debugging through logging.
+
+2005-03-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in (install-libraries): add -app-path arg (steffen)
+
+2005-03-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/bibtex:        NEW MODULE: Parser for BibTeX bibliographies.
+	* installed_modules.tcl: Added to the list of installed modules.
+
+2005-02-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/asn/asn.man:          Used the new functionality in sak
+	* modules/base64/base64.man:    to look over the package descriptions.
+	* modules/base64/uuencode.man:  Tightened them a bit, consolidating
+	* modules/base64/yencode.man:   especially differing module descriptions.
+	* modules/cmdline/cmdline.man:  Added some missing descriptions.
+	* modules/comm/comm.man:
+	* modules/crc/cksum.man:
+	* modules/crc/crc16.man:
+	* modules/crc/crc32.man:
+	* modules/crc/sum.man:
+	* modules/dns/tcllib_dns.man:
+	* modules/dns/tcllib_ip.man:
+	* modules/fumagic/cfront.tcl
+	* modules/grammar_fa/dacceptor.man:
+	* modules/grammar_fa/dexec.man:
+	* modules/grammar_fa/fa.man:
+	* modules/grammar_fa/faop.man:
+	* modules/jpeg/jpeg.man:
+	* modules/ldap/ldap.man:
+	* modules/math/bigfloat.man:
+	* modules/math/bignum.man:
+	* modules/math/calculus.man:
+	* modules/math/constants.man:
+	* modules/math/fourier.man:
+	* modules/math/fuzzy.man:
+	* modules/math/geometry.man:
+	* modules/math/interpolate.man:
+	* modules/math/linalg.man:
+	* modules/math/optimize.man:
+	* modules/math/polynomials.man:
+	* modules/math/qcomplex.man:
+	* modules/math/romberg.man:
+	* modules/math/special.man:
+	* modules/math/statistics.man:
+	* modules/md4/md4.man:
+	* modules/md5/md5.man:
+	* modules/md5crypt/md5crypt.man:
+	* modules/multiplexer/multiplexer.man:
+	* modules/ntp/ntp_time.man:
+	* modules/rc4/rc4.man:
+	* modules/ripemd/ripemd128.man:
+	* modules/ripemd/ripemd160.man:
+	* modules/sha1/sha1.man:
+	* modules/snit/snit.man:
+	* modules/snit/snitfaq.man:
+	* modules/textutil/expander.man:
+	* modules/textutil/textutil.man:
+
+	* sak.tcl: Extended with code to extract package descriptions from
+	  the module manpages. The association between packages and
+	  manpages is made through the manpage title and require
+	  statements. Added sub commands which format and print the found
+	  information.  Extended the tap generator to insert such
+	  information into its result.
+
+	* modules/doctools/fmt.desc: New format, used for the basic data
+	  extraction mentioned above.
+
+2005-02-14  Andreas Kupries <andreask@activestate.com>
+
+	* modules/docstrip:       NEW MODULE: docstrip.
+	* installed_modules.tcl:  Literate programming support.
+
+	* apps/dtplite (::dtplite::processCmdline): Fixed the [SF Tcllib
+	  Bug 1111364]. The extension has to be set up before the creation
+	  of the filename (for a directory output path), otherwise the
+	  result will have no extension.
+
+2005-02-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/fumagic:       NEW MODULE: fileutil::magic.
+	* installed_modules.tcl: Magic(5) based file recognizers and
+	  support code. Currently only one recognizer, for mime-types.
+
+2005-01-31  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/sasl:          NEW MODULE: sasl
+	* installed_modules.tcl: 'Simple Authentication and Security Layer'
+
+2005-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/rcs:           NEW MODULE: rcs
+	* installed_modules.tcl: Utilities to deal with 'diff -n' patches.
+
+2005-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* Makefile.in: Added -no-apps, and -app-path to the installer
+	  targets, to ensure that a configure --bin-path is handled
+	  correctly.
+
+	  Thanks to Gregor Leusch <gleusch@users.sourceforge.net> for both
+	  diagnosis and patch ([Tcllib SF Bug 1099727]).
+
+2004-12-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/blowfish:      NEW MODULE: blowfish
+	* installed_modules.tcl:   
+
+2004-10-13  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* examples/htmlparse/webviewer.tcl: Added a sample app to 
+	demonstrate the use of the htmlparse package. This also demos the
+	use of the autoproxy package too.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: Added new module 'treeql' to the
+	  installer. Thanks to Colin McCormack for donating it.
+
+2004-09-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installer.tcl (ainstall): Ensure existence of directory for the
+	  applications to install.
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl (tclfiles, docfiles): Added code to exclude files under
+	  SCCS directories from the validation. Required to prevent bogus
+	  output when run in my BitKeeper repository. Also fixed bug in
+	  docfiles, redefined the wrong command.
+
+2004-09-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: New module 'tie added to installer. Tcl
+	  files and documentation, no examples.
+
+2004-08-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* all.tcl: Added constraint 'tcl8.5plus'.
+
+2004-08-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/tar:
+	* installed_modules.tcl: New module: 'tar'. Tcl files and
+	  documentation, no examples.
+
+2004-07-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* apps/dtplite:     New application, a lightweight doctools
+	* apps/dtplite.man: processor, superceding mpexpand.
+
+	* installer.tcl:         Extended the installer with code to
+	* install_action.tcl:    handle the installation of the
+	* installed_modules.tcl: applications provided by tcllib.
+
+2004-07-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* installed_modules.tcl: NEW MODULE: http
+	The http module is intended to contain things for use with the http
+	package. Now, this is the 'autoproxy' package. I plan to add an
+	auto-cookie managing package too (if I can find it.)
+
+2004-07-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Fixed [Tcllib SF Bug 988123], which caused the doctools
+	  converter to fail if one run a module without documentation was
+	  followed by a module having documentation. Found by Reinhard Max
+	  <max@suse.de>.
+
+2004-07-09  Reinhard Max  <max@suse.de>
+
+	* installed_modules.tcl: NEW MODULE: ident
+
+2004-07-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* installed_modules.tcl: NEW MODULE: uuid
+
+2004-07-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Support critcl implementation of rc4.
+	* modules/tcllibc.tcl: Increment version to 0.2.0.
+
+2004-07-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* installed_modules.tcl: NEW MODULE: rc4
+
+2004-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: Added module 'bee'.
+
+	* New module for  de- and encoding data using the bittorrent
+	  serialization format.
+
+2004-05-25  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* installed_modules.tcl: remove struct1 module.
+	
+2004-05-23  Andreas Kupries  <andreask@activestate.com>
+
+	* tcllib_version.tcl: Changed version in main line to distinguish
+	  it from the 1.6 branch and the release coming up in it.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version in branch to 1.6.1 in preparation of upcoming
+	  bugfix release.
+
+2004-05-07  Andreas Kupries  <andreask@activestate.com>
+
+	* New module for querying JPEG images, and manipulating their
+	  comments.
+
+	* New module: PNG querying and manipulation.
+
+2004-05-04  Andreas Kupries  <andreask@activestate.com>
+
+	* install_action.tcl: Fixed [SF Tcllib Bug 784519]. Loading the
+	  proper doctools directly, and not using the package system. The
+	  latter may get confused and try to load the wrong (old) package.
+
+2004-04-27  Andreas Kupries  <andreask@activestate.com>
+
+	* installed_modules.tcl: Added new module.
+	* examples/ldap:
+	* modules/ldap: New module: LDAP client. Provided to us by Joechen
+	  Loewer <loewerj@web.de>.
+	
+2004-04-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Some mods to the critcl build code for use under
+	Windows. If it cannot find critcl.kit, then use env(CRITCL) for
+	the location of the kit file.
+
+2004-03-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples/csv/csv2html.orig:		Unified the startup header of all
+	* examples/csv/csvcut.orig:		applications, using suggestions
+	* examples/csv/csvdiff.orig:		made by Stuart Cassoff <stwo@telus.net>.
+	* examples/csv/csvjoin.orig:
+	* examples/csv/csvsort.orig:
+	* examples/csv/csvuniq.orig:
+	* examples/ftp/ftpdemo.tcl.orig:
+	* examples/ftp/ftpvalid.orig:
+	* examples/ftp/hpupdate.tcl.orig:
+	* examples/ftp/mirror.tcl.orig:
+	* examples/ftp/newer.tcl.orig:
+	* examples/ftpd/ftpd.orig:
+	* examples/ftpd/ftpd.test.orig:
+	* examples/ftpd/ftpd.unix.orig:
+	* examples/irc/irc_example.tcl.orig:
+	* examples/mime/mbot/README.html.orig:
+	* examples/mime/mbot/README.txt.orig:
+	* examples/mime/mbot/README.xml.orig:
+	* examples/mime/mbot/impersonal.tcl.orig:
+	* examples/mime/mbot/personal.tcl.orig:
+	* examples/nntp/postnews.orig:
+	* examples/oreilly-oscon2001/oscon.orig:
+	* examples/smtpd/tcl_smtpd.orig:
+	* examples/smtpd/tk_smtpd.orig:
+	* examples/smtpd/tk_smtpdMIME.orig:
+	* modules/des/des.tcl.orig:
+	* modules/devtools/musub.tcl.orig:
+	* modules/doctools/mpexpand.orig:
+	* modules/doctools/mpexpand.all.orig:
+	* modules/doctools/tocexpand.orig:
+	* modules/fileutil/fileutil.test.orig:
+	* modules/mime/performance.tcl.orig:
+	* modules/pop3/clnt.tcl.orig:
+	* modules/pop3/srv.tcl.orig:
+
+2004-03-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installer.tcl: Requiring Tcl 8.2 when executing the installer,
+	  as anything below that version does not make any sense. This
+	  fixes [Tcllib SF Bug 899152].
+
+	* installer.tcl: Fixed [Tcllib SF Bug 899209] by deleting an
+	  existing file before trying to overwrite it.
+
+2004-02-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcllib_version.tcl: Moving mainline to 1.6.0.1 to distinguish
+	  development from the released version.
+
+2004-02-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/ripemd: New module: RIPEMD message-digest implementation
+	* installed_modules.tcl: Added new module.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* README-1.5.txt -> README-1.6.txt
+	* INSTALL.txt
+	* tcllib_version.tcl
+
+	  We have too many places which use the Tcllib CVS head under the
+	  designation Tcllib 1.5. Because of that the next officially
+	  released version is called Tcllib 1.6, skipping the number
+	  1.5. This should differentiate cleanly between the various
+	  instances of Tcllib/CVS floating around and this release, and
+	  avoid any confusion about what is which.
+
+2004-02-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl (release): Made functional, added the code which extends
+	  all the ChangeLogs with the release notice.
+	  (gd-assemble): Extended to exclude SCCS and BitKeeper files from
+	  the distribution.
+	  (gd-gen-packages): Fixed problem with missing global variable.
+
+	* all.tcl: 'getErrorMessage' and 'tooManyMessage' renamed to
+	  'wrongNumArgs' anfd 'tooManyArg'. Also placed the common
+	  constraints (checking Tcl version: 8.3 only, 8.3+, 8.4+) in
+	  here, and removed their declaration from all test files using
+	  them.
+
+	* README-1.5.txt: Updated logger version info to 0.3.
+
+2004-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sak.tcl: Added a very primitive approval mechanism to suppress
+	  output from the package comparison in 'status'. Allows to work
+	  through a set of problems with repeated comparison, approving
+	  packages when done.
+
+	* sak.tcl: Extended functionality for release engineering. Better
+	  comparison of current state against last release. Alerts for
+	  mismatches in version numbers of packages versus changes made to
+	  them.
+
+	* PACKAGES: New file. Always carries the package information from
+	  the last release. Basis for the release status work above.
+
+2003-12-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: Added 'struct1', the v1.x version of the
+	  struct module. Kept for backward compatibility.
+
+2003-10-21  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl: Added -nonewline to a number of puts statements to work
+	  around a problem with Tcl 8.4 where additional ^M characters
+	  appear for Mac OS X. [Bug 784523].
+
+	* README: Updated to describe the new way of adding modules to
+	  tcllib. [Bug 784515].
+
+	* INSTALL.txt: Updated references to tcllib 1.4 to 1.5.
+	  [Bug 784516, incomplete].
+
+	* installed_modules.tcl: Changed doc action for snit from _null to
+	  _man (We have doctools manpages for snit for a while now).
+
+	* all.tcl: Added code to try to load 'Tk'. This allows the
+	  execution of 'tk' constrained tests, if Tk is present (for
+	  example when this code is run run by 'wish'). An example of a
+	  module having such tests is 'snit'.
+
+2003-07-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/md5crypt: New module: MD5-crypt implementation
+	* installed_modules.tcl: Added new module.
+	* sak.tcl: Added reference for critcl impl of md5crypt.
+
+2003-07-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Added a command for generating a YAML description
+	file. This is much like the TIP55 format but used for FreePAN.
+	* sak.tcl: Altered the finding of critcl under Windows.
+
+2003-07-15  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/snit: New module, William Duquette's oo package 'snit'
+	  (aka Snit Is Not IncrTcl).
+
+	* tcllib_version.tcl: Upped to 1.5 because of the new modules
+	  (snit, inifile).
+
+	* installed_modules.tcl: Added 'snit' to list of modules.
+
+2003-07-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installed_modules.tcl: Added the new module 'inifile' to the
+	  list of packages handled by 'sak'.
+
+2003-07-04  Miguel Sofer <msofer@users.sf.net>
+
+	* modules/ftpd.man:
+	* modules/ftpd.tcl (::ftpd::server): the variable ::ftpd::port is
+	now updated to reflect the port were the server was opened. This
+	is only relevant when a server was requested at port 0 - ie, at a
+	port determined by the OS.	
+
+2003-05-26  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl: Updated rpm spec generator using the latest .spec by
+	  Jean-Luc as template. The spec now determiens the list of files
+	  on its own. Don't have to generate them.
+
+2003-05-23  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl (gd-gen-rpmspec): Added functions to generate a .spec
+	  file (RPM build specification). Added method 'rpmspec' to
+	  generate tcllib.spec.
+
+2003-05-20  Andreas Kupries  <andreask@activestate.com>
+
+	* installed_modules.tcl: Added 'multiplexer' to the list of
+	  installed modules. Tested and validqated module. Documentation
+	  looks ok for me.
+
+2003-05-13  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: added a critcl command to sak to build any critcl
+	tcllib submodules into a tcllibc library (or separate libraries).
+
+2003-05-09  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* comm.man: updated comm to v4.1
+	* comm.tcl: rewrite of code to remove pseudo-object model.
+	Clean up code, add send -command callback to allow for
+	notification of results for asynchronous sends.
+
+2003-05-09  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl (modules_mod): Fixed incorrect check. Caused first
+	  module to be reported as bogus although it isn't.
+
+2003-05-08  Andreas Kupries  <andreask@activestate.com>
+
+	* installer.tcl: Fixed typo in the code loading the new
+	  'install_action.tcl', had used '...._actions'; note the trailing
+	  's'. Thanks to Larry <lvirden@users.sourceforge.net> for
+	  reporting this.
+
+2003-05-07  Andreas Kupries  <andreask@activestate.com>
+
+	* tcllib_version.tcl: Updated to 1.4.0.1 to distinguish the CVS
+	  from the official release.
+
+	* install_action.tcl:
+	* installer.tcl:
+	* sak.tcl: Lots of changes to make a number of command
+	  module-ware. In the sense that they now work for individual
+	  modules and not only for all in one go. The most important is
+	  'validate'. IOW, it is now possible to validate a single module,
+	  making this feature more convenient for a developer, as there is
+	  less noise in the output. This required more sharing of code
+	  with the installer.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Added a contributors command to list the contributors
+	to the library. This is also used when generating the TIP55
+	description file. Names are extracted from the ChangeLog files.
+
+2003-05-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/base64/base64.test:      
+	* modules/base64/uuencode.test:     
+	* modules/base64/yencode.test:     Various fixes to fix the
+	* modules/control/ChangeLog:       testsuite for tcl versions
+	* modules/control/do.test:         from 8.2 to 8.5
+	* modules/csv/csv.test:
+	* modules/dns/dns.test:
+	* modules/fileutil/ChangeLog:
+	* modules/fileutil/fileutil.man:
+	* modules/fileutil/fileutil.tcl:
+	* modules/fileutil/fileutil.test:
+	* modules/math/combinatorics.test:
+	* modules/math/math.test:
+	* modules/mime/mime.test:
+	* modules/ntp/time.test:
+	* modules/pop3/pop3.test:
+	* modules/pop3d/pop3d.test:
+	* modules/pop3d/pop3d_dbox.test:
+	* modules/pop3d/pop3d_udb.test:
+	* modules/profiler/profiler.test:
+	* modules/report/report.test:
+	* modules/stooop/pkgIndex.tcl:
+	* modules/stooop/stooop.test:
+	* modules/struct/list.test:
+	* modules/textutil/ChangeLog:
+	* modules/textutil/expander.tcl:
+	* modules/textutil/split.tcl:
+
+2003-04-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installer.tcl:
+	* installed_modules.tcl: Changed mechanism for exclusion so that
+	  installer is able to install even the excluded (i.e. unofficial)
+	  modules, if so chosen (cmdline only).
+
+2003-04-30  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl (gd-tip55): Bugfix, location of changeLog was not computed correctly.
+
+	* README-1.4txt: New, overview of changes from 1.3 to 1.4.
+
+	* installed_modules.tcl: Excluded 'calendar' form the list of
+	  installed modules/packages. Not yet ready.
+
+	* sak.tcl (ppackages): Rewritten to use a sub-interpreter for
+	  retrieving package version information instead of regexes
+	  etc.
+
+	  Reverted all changes made to [package provide] commands on
+	  2003-04-24, except for minor details, like the actual version
+	  numbers and typos.
+
+	 Fixes SF Tcllib FR #727694
+
+2003-04-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sak.tcl: Various fixes to enable document generation under
+	Windows.  Gracefully avoid non-present archivers (tar or zip).
+	Support for generating a TIP55 style metadata file (gentip55).
+	Added a file mtime check to avoid unecessary document generation.
+
+2003-04-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* modules/base64/yencode.tcl:    Modified the [package provide]'s
+	* modules/base64/uuencode.tcl:   of various packages to aid the
+	* modules/crc/sum.tcl:           automatic consistency checking at
+	* modules/crc/cksum.tcl:         the expense of slightly more
+	* modules/crc/crc32.tcl:         manual overhead for updating the
+	* modules/crc/crc16.tcl:         numbers.
+	* modules/dns/dns.tcl:
+	* modules/dns/resolv.tcl:        Additionally cleanup of the found
+	* modules/ftp/ftp.tcl:           inconsistencies.
+	* modules/ftp/ftp_geturl.tcl:
+	* modules/pop3d/pop3d.tcl:
+	* modules/pop3d/pop3d_udb.tcl:
+	* modules/pop3d/pop3d_dbox.tcl:
+	* modules/pop3d/pop3d_dbox.man:
+	* modules/smtpd/smtpd.tcl:
+	* modules/des/des.tcl:
+	* modules/des/des.man:
+	* modules/ntp/time.tcl:
+	* modules/md4/md4.tcl:
+
+	* sak.tcl: Changed provide heuristics a bit, more robust against
+	  whitespace in various places.
+
+2003-04-24  Andreas Kupries  <andreask@activestate.com>
+
+	* sak.tcl: New command 'provided' to list packages provided by tcl
+	  code. Extended the 'validate' command to compare the lists of
+	  provided and indexed packages. Note: A number of packages use
+	  variable in provide commands. These will show up as
+	  differences. They need higher attention to ensure version
+	  consistency.
+
+	  Modified some modules (calendar, exif, control, math) to reduce
+	  the number of reported false positives.
+
+	* sak.tcl: Added 'vcompare' to compare the current list of
+	  packages against a list in a file. Marks new and unchanged
+	  packages for higher attention. Helper for release engineer.
+
+	* modules/base64/uuencode.n: Removed old nroff documentation. All
+	* modules/cmdline/cmdline.n: documentation is generated from the
+	* modules/comm/comm.n:       doctools manpages (.man).
+	* modules/control/control.n:
+	* modules/counter/counter.n:
+	* modules/crc/cksum.n:
+	* modules/crc/crc32.n:
+	* modules/crc/sum.n:
+	* modules/csv/csv.n:
+	* modules/exif/exif.n:
+	* modules/fileutil/fileutil.n:
+	* modules/ftp/ftp.n:
+	* modules/ftpd/ftpd.n:
+	* modules/html/html.n:
+	* modules/htmlparse/htmlparse.n:
+	* modules/irc/irc.n:
+	* modules/javascript/javascript.n:
+	* modules/log/log.n:
+	* modules/math/combinatorics.n:
+	* modules/math/math.n:
+	* modules/md5/md5.n:
+	* modules/mime/mime.n:
+	* modules/mime/smtp.n:
+	* modules/ncgi/ncgi.n:
+	* modules/nntp/nntp.n:
+	* modules/pop3/pop3.n:
+	* modules/profiler/profiler.n:
+	* modules/report/report.n:
+	* modules/sha1/sha1.n:
+	* modules/smtpd/smtpd.n:
+	* modules/stooop/stooop.n:
+	* modules/struct/graph.n:
+	* modules/struct/matrix.n:
+	* modules/struct/queue.n:
+	* modules/struct/record.n:
+	* modules/struct/stack.n:
+	* modules/struct/tree.n:
+	* modules/textutil/expander.n:
+	* modules/textutil/textutil.n:
+	* modules/uri/uri.n:
+
+	* Makefile.in (install): Merged the code for the partial install
+	  targets into one call for full normal install, and dropped the
+	  link between install and the partial install targets.
+
+	* installed_modules.tcl: Moved the list of installed modules out
+	* installer.tcl:         of the installer proper into a separate
+	* sak.tcl:               file, so that the other tools have access
+	                         to it too. Extended the SAK to check this
+	                         information against the list of modules
+	                         under development and print out all the
+	                         discrepancies, i.e: modules which are not
+	                         installed, or modules installed, but not
+	                         existing. This is under 'validate'.
+
+	* sak.tcl: Restricted the list of modules to subdirectories of
+	  'modules' which contain a package index (pkgIndex.tcl).
+
+	  Added the subcommand 'lmodules' listing all modules one per
+	  line.  The existing subcommand 'modules' in contrast prints
+	  everything on a single line.
+
+	  Added the subcommand 'packages' listing the packages in tcllib
+	  and their versions, one per line.
+
+	  Added subcommand 'text' to generate documentation as plain text.
+
+2003-04-23  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/stats: Removed all files in the deprecated module
+	  'stats' now. They there not provided in releases for over a year
+	  now. It is time to clean up the CVS too.
+
+2003-04-22  Andreas Kupries  <andreask@activestate.com>
+
+	* modules/dns/tcllib_dns.man: Cleaned up RFC references, usage
+	* modules/ftp/ftp.man:        of such in the keyword sections,
+	* modules/ftpd/ftpd.man:      and added links to the master RFC
+	* modules/irc/irc.man:        website at http://www.rfc-editor.org.
+	* modules/md4/md4.man:
+	* modules/mime/mime.man:
+	* modules/mime/smtp.man:
+	* modules/nntp/nntp.man:
+	* modules/pop3/pop3.man:
+	* modules/pop3d/pop3d.man:
+	* modules/pop3d/pop3d_dbox.man:
+	* modules/pop3d/pop3d_udb.man:
+	* modules/smtpd/smtpd.man:
+	* modules/struct/graph.man:
+	* modules/uri/uri.man: 
+
+2003-04-21  Andreas Kupries  <andreask@activestate.com>
+
+	* devdoc/indexing.txt:
+	* installer.tcl: Extended [gen_main_index] to include the header
+	  of Don's generated package index. This makes the final chosen
+	  master index a combination of [i7/ad] and [i4/sd] as the
+	  fallback position.
+
+	* installer.tcl: Made sure that all [file copy] operations use
+	  -force. Fix for #719616.
+
+2003-04-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* installer.tcl: Bug fix, the modules calendar, control, and math
+	  have a "tclIndex" file which has to be installed too. Also
+	  changed usage of 'tcl_pkgPath', as this variable does not exist
+	  on windows.
+
+2003-04-17  Andreas Kupries  <andreask@activestate.com>
+
+	* configure.in: Switched over from the original build system
+	* configure:    to one where configure/Makefile are optional
+	* Makefile.in:  and delegating all real work to 'sak.tcl'.
+	* INSTALL.txt:  Updated documentation, reduced configure macros.
+	* aclocal.m4:
+	* sak.tcl:
+	* devdoc/releaseguide.html:
+
+2003-04-17  Andreas Kupries  <andreask@activestate.com>
+
+	* installer.tcl: Bug fixes in non-gui mode, added option to force
+	  cmdline mode.
+	
+	* sak.tcl: Added command to invoke the testsuite(s).
+
+	* installer.tcl: Added GUI.
+
+	* main.tcl: New file, entrypoint for *kit, *pack, redirects to
+	  'installer.tcl'.
+
+	* sak.tcl: Helper tool for tcllib development (Generate
+	  distribution, various forms of documentation, check the bundle
+	  of packages for problems.
+
+	* Makefile.in: Added des to the list of modules. (That is the good
+	  thing which came out of the erroneous commit, we found this
+	  error.)
+
+	* mkIndex.tcl: Reverting accidential commit of this file. The
+	  committed state works with a changed Makefile, but not with the
+	  current one.
+
+2003-04-16  Andreas Kupries  <andreask@activestate.com>
+
+	* installer.tcl: Added 'des' to list. Reworked according to
+	  feedback from Don.
+
+	* tcllib_version.tcl: Added, for sharing with other scripts.
+
+	* modules/stats/pkgIndex: Now throwing an error when trying to
+	  load 'stats'.
+
+	* modules/struct/ChangeLog: Typo correction.
+
+2003-04-15  Andreas Kupries  <andreask@activestate.com>
+
+	* installer.tcl: Added 'md4' to installer.tcl
+
+2003-04-15  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/md4: New module md4 created: MD4 hash algorithm.
+
+2003-04-15  Andreas Kupries  <andreask@activestate.com>
+
+	* installer.tcl: EXPERIMENTAL. New installer for tcllib. Currently
+	  only cmdline based. Use -help to get help.
+
+2003-04-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (check-doc-markup): Fixed setting for DOC_FLAGS. The
+	  option '-visualwarn' does not exist anymore. Replaced by the
+	  option '-deprecated'. Thanks to Larry Virden for reporting the
+	  problem.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* install.tcl: Changed to notify the user if the directory to
+	  install is not a source distribution but a CVS snapshot. Right
+	  now a direct installation of a CVS snapshot is not possible.
+
+	* Fixed bug #614591 throughout. Numerous modules updated. Also
+	  first round of getting version number consistents, and updated
+	  for a 1.4 release of the whole.
+
+2003-04-09  Andreas Kupries  <andreask@activestate.com>
+
+	* New module: devtools. Internal use only for now. Does not
+	  contain true packages.
+
+2003-04-01  Andreas Kupries  <andreask@activestate.com>
+
+	* Makefile.in (MODULES): Added the soundex module.
+
+2003-03-28  Andreas Kupries  <andreask@activestate.com>
+
+	* README: Updated information about acceptable documentation
+	  formats, i.e. added doctools, made it the most prefered
+	  format. This fixes the [Bug #685270], reported by Larry Virden
+	  <lvirden@users.sourceforge.net>.
+
+2003-03-24  Andreas Kupries  <andreask@activestate.com>
+
+	* README: Updated to refer to the SF website for Tcllib. Thanks to
+	  Larry Virden <lvirden@users.sourceforge.net> for the report and
+	  fix. [Bug #707607].
+
+2003-03-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/ntp: New module ntp created for time related network
+	protocol stuff. Added RFC868 (TIME) protocol client and example.
+
+2003-03-13  Andreas Kupries  <andreask@activestate.com>
+
+	* Makefile.in (install-libraries): Extended special code for
+	  doctools to install the new idx and toc engines.
+
+2003-02-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* modules/des: Imported and tcllib-ised the DES package
+	from wiki page "DES in Tcl" by Jochen Loewer. NOT added to the
+	main package list as it requires CBC/CFB/OFB modes for real use.
+
+2003-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* More doctools changes: Command [strong] is deprecated now. Added
+	  the command [copyright]. Went through all manpages to eliminate
+	  [strong]. Partial setting of copyright information, where known.
+
+2003-01-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mkInstallScripts.tcl: 
+	* Makefile.in (install-libraries): Added module specific
+	  installation code.
+
+	  doctools: Install message catalogs and predefined formatting
+	  engines.
+
+	  textutil: Install hyphenation files.
+
+	* Module doctools rewritten to make it a true package +
+	  application, instead of a pure application module. This means
+	  that this module now truly installs some functionality useable
+	  by other applications and packages.
+
+2003-01-03  Pat Thoyts <patthoyts@users.sourceforge.net>
+
+	* smtpd: enhanced error handling for FR #655611
+	  Handle some ESMTP options.
+	
+2002-11-24  Gerald Lester <gwlester@users.sourceforge.net>
+
+	* html: Fixed bug #643337 (changes made though 2002-12-2)
+	
+2002-11-24  Gerald Lester <gwlester@users.sourceforge.net>
+
+	* html: Fixed bug #596000
+	
+2002-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* struct (graph): Implemented FR 603924
+
+2002-10-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* pop3: Fixed bug #620062.
+
+2002-10-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (install-libraries): Added code to skip directories
+	  without .tcl files. Some shells do not like a for with nothing
+	  to iterate over.
+
+2002-10-08  Pat Thoyts <patthoyts@users.sourceforge.net>
+
+        * smtpd: implemented feature request #531531 to use MIME tokens
+
+2002-09-25  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in: better DESTDIR/libdir support (steffen)
+
+2002-09-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* mime: New field_decode, extended testsuite.
+
+2002-09-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* all.tcl (tcltest::tooManyMessage): Additional command to create
+	  different error messages for 8.3 and 8.4. Used in the testsuite
+	  of pop3.
+
+2002-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cmdline:
+	* counter:
+	* dns:
+	* ftpd:
+	* html:
+	* ncgi:
+	* examples/ftp: Cleaned up nits ('info exist' --> 'info exists').
+
+2002-08-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples/ftp: Fixed problem in ftpdemo.tcl.
+
+2002-08-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* nntp: Updated documentation, see Tcllib SF #597102.
+
+	* Makefile.in (install-doc): Fixed problem noted by Elchonon
+	  Edelson. Code to inline man.macros appended to existing
+	  files. Multiple execution of 'make install-doc' thus extended
+	  the manpages of tcllib with multiples of their original
+	  content. Not anymore.
+
+2002-08-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* exif: Applied patch #582828. Partially applied #530970.
+
+2002-08-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (DOC_EXP): Use the tclsh found during configuration
+	  to run mpexpand. This ensures that mpexpand does not pick
+	  something from the path on its own, possibly something too old
+	  to understand TCLLIBPATH. Problem noted by Elchonon Edelson
+	  <edelson@pobox.com>.
+
+	* mime: Accepted SF Tcllib FR #595240. This entails the donation
+	  of the personal mail filter mbot, as written and used by
+	  Marshall T. Rose, as an example of the usage of the mime and
+	  smtp packages.
+
+	* mime (smtp): Followup to patch SF #557520/2 (See 2002-07-25).
+
+2002-08-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* Makefile.in (install-doc): Changed $$(basename) to
+	  `basename`. Portability problem. Works for Linux for example,
+	  but not everywhere else. See 2002-08-06 for the change which
+	  introduced this.
+
+2002-08-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* htmlparse: Fixed SF bug #579853.
+
+2002-08-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (dist): Fixed SF Bug #567079, reported by Don Porter
+	  <dgp@users.sourceforge.net>. No infinite recursion anymore for
+	  srcdir == builddir.
+
+	* ftp: Fixed SF Bug #582668.
+
+	* comm: Fixed SF Bug #589225.
+
+	* Makefile.in (install-doc): Restored the code inlining the
+	  man.macros file into the generated nroff manpages. Got somehow
+	  deleted. Was still in the 'dist' target. Thanks to Reinhard Max
+	  <rmax@users.sourceforge.net> for noticing this.
+
+	* struct (pool): Fixed bug SF #585093.
+	* struct (tree): Fixed bug SF #587533.
+
+2002-07-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime:        Applied SF patch #585455.
+	* mime (smtp): Applied patch SF #557520/2.
+
+2002-07-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* struct (tree): Fixed SF bug #578460.
+
+	* doctools: Fixed bug #578465.
+
+2002-07-02  Don Porter <dgp@users.sourceforge.net>
+
+	* all.tcl: Corrected name of tcltest hook procedure
+
+2002-06-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv: Fixed SF bug #565051.
+
+	* mime: Fixed SF bug #548832.
+
+2002-06-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Applied patch for bug #567428. Bug reported by Larry Virden
+	  <lvirden@users.sourceforge.net>, patch by him too. Correction of
+	  spelling mistakes in the documentation of various modules +
+	  correction of comment placements which interfere with solaris
+	  conventions for nroff output.
+
+2002-06-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Released and tagged tcllib 1.3.0. ========================
+
+2002-06-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns: Fixed SF bug #564670.
+
+2002-06-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* all.tcl: Updated to use a default value for -modules if that
+	  option is not present.
+
+	* install.tcl: New file, alternate installer for unix and
+	  windows. Execute with any tclsh and tcllib 1.3 is installed in
+	  the parent directory of the tcl script library
+	  directory. Courtesy Gerald Lester
+	  <gwlester@users.sourceforge.net>.
+
+	* Makefile.in (install-doc): Changed to use the doctools generated
+	  nroff and html files instead of the manually written .n files.
+
+	* configure.in (MINOR_VERSION): Updated to version 1.3
+
+	* Makefile.in (doc): Removed tmml-doc from default set of
+	  documentation.
+	
+	* Makefile.in (dist, install): New target 'gen-main-index'
+	  encapsulates the generation of the package index for
+	  tcllib. This target is used by both the direct installation
+	  (install) and during the generation of a source distribution
+	  (dist).
+
+	* mkIndex.tcl: Rewritten to make use of 'pkg_mkIndex' to get the
+	  list of all packages in tcllib. Added a message which deprecates
+	  [package require tcllib] if it is used.
+
+2002-06-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* math (calculus): Fixed SF Tcllib Bug #553773.
+
+	* ftpd:
+	* html:
+	* htmlparse:
+	* base64:
+	* uuencode: Updated version information.
+
+2002-05-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime: Fixed SF Tcllib Bug #561416
+
+2002-05-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* base64: Fixed SF Tcllib Bug #548354.
+
+2002-05-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doctools: Fixed bug #556509.
+	* fileutil: Fixed bug #556504.
+
+2002-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d: Fixed bug #532216. All parts of pop3d now have a
+	  testsuite.
+
+2002-05-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d: Added testsuites for user database and simple mailbox
+	  storage.
+
+	* fileutil: SF Bug #462015 closed. Proosed change rejected, added
+	  new commands to perform the desired operation instead.
+
+2002-05-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doctools: Fixed bug #534334 (actually more a FR).
+
+	* examples/csv/csvdiff: Applied patch associated with tcllib SF
+	  bug #551133. Bug reported by <lvirden@users.sourceforge.net>,
+	  patch by <dgp@users.sourceforge.net>.
+
+	  Accepted FR #551127 and added code implementing the feature.
+
+2002-05-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* struct (tree): Accepted FR #552972.
+
+	* mime: Fixed bugs #539952, #553784.
+
+2002-05-08  Don Porter <dgp@users.sourceforge.net>
+
+	* all.tcl: Show full stack trace when an error occurs sourcing
+	a test file.
+
+2002-04-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cmdline: Accepted patch #540313
+
+	* examples/ftp/hpupdate.tcl: Accepted patch #548221 by Larry
+	  Virden <lvirden@users.sourceforge.net>.
+	  Fixed bug #548224 (Touch).
+
+	* base64: Fixed bug #548112.
+
+2002-04-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doctools: Fixed bug #527025.
+
+	* smtp (mime): Fixed bug #547336.
+
+2002-04-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (dist): Ensured that the deprecated module 'stats'
+	  is not distributed anymore. Use 'counter' instead.
+	  (*-force): Enforced generation of documentation, for developers.
+
+2002-04-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (MODULES): Added irc module.
+
+2002-04-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime: Fixed bug #533025.
+
+2002-04-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (doc_generate): Added 'touch' command to prevent
+	  multiple execution of target.
+
+	* struct (matrix): Fixed bug #532791.
+
+	* doctools: Fixed SF Bug #535382.
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doctools: Implemented FR #530059 and FR #527029.
+
+	* Fixed minor formatting errors in several existing doctools
+	  manpages.
+
+	* struct (matrix): Fixed bug #532783.
+
+2002-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ftpd: Fixed SF Bug #531799.
+
+	* New module:  pop3d. A POP3 server.
+	* Makefile.in: Added pop3d.
+
+2002-03-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* math: Update of calculus. #528434
+
+	* report, struct (matrix): Fixed bug #530207.
+
+2002-03-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil (expander): Fixed SF Bug #530056.
+
+2002-03-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* doctools: Fixed bug #528390.
+
+2002-03-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* struct (matrix): Accepted FR #524430 (-nocase).
+
+	* doctools: FR #527716 accepted. Bug #527025 partially fixed.
+
+2002-03-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>  
+
+	* Makefile.in (doc_generate): Added "TCLLIBPATH=$(srcdir)/modules"
+	  in front of the mpexpand invocation so that it is forced to use
+	  the "expander" package inside of the distribution. This fixes
+	  Tcllib Bug #525007 reported by Don Porter
+	  <dgp@users.sourceforge.net>.
+
+2002-03-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* New module: dns
+	* Makefile.in: updated for new module
+
+2002-02-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>  
+
+	* doctools: Done FR #517599. FR #520269.
+
+	* mime: Fixed bug #519623.
+
+	* Makefile.in (install-doc): Changed code determining the files to
+	  install to handle missing files better (use 'ls', suppress error
+	  messages).
+
+2002-02-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>  
+
+	* exif: New module. FR 517066 accepted.
+
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (statcheck, frink, procheck): Added developer
+	  targets to invoke two static code checkers.
+
+	* Ran frink over the package and corrected several minor problems.
+
+2002-02-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in: Added target for generation of documentation in
+	  various formats from .man pages
+
+2002-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime: Applied patch 511692.
+
+2002-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (dist): Brought archive names and contents more in
+	  sync with earlier releases. This comes from work on release 1.2.
+
+2002-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* Bumped version to 1.2, new release. Summary of changes here. See
+	  the individual Changelogs to see the detailed changes in each
+	  module.
+
+	  New modules: calendar, crc, doctools, irc, smtpd, and stooop.
+
+	  calendar:	Version is	0.1
+	  crc:		Version is	1.0
+	  doctools:	Version is	1.0
+	  irc:		Version is	0.1
+	  smtpd:	Version is	1.0
+	  stooop:	Version is	4.3
+
+	  Changed modules: base64, comm, control, csv, fileutil, ftp,
+	  html, math, mime, ncgi, nntp, pop3, struct, textutil, and uri.
+
+	  base64:	Version stays @	2.2, but got new subpackage.
+	  comm:		Version up to	3.7.1
+	  control:	Version up to	0.2
+	  csv:		Version up to	0.2
+	  fileutil:	Version up to	1.3
+	  ftp:		Version up to	2.3
+	  html:		Version up to	1.2
+	  math:		Version up to	1.2
+	  mime:		Version up to	1.3.1
+	  ncgi:		Version up to	1.2.1
+	  nntp:		Version up to	0.2
+	  pop3:		Version up to	1.5.1
+	  struct:	Version up to	1.2
+	  textutil:	Version up to	0.4
+	  uri:		Version up to	1.1
+
+2002-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (dist): Fixed bug #495976.
+
+2002-01-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* crc module: added sum manual page
+	* base64 module: added uuencode manual page
+
+2002-01-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples/csv/csvdiff: New example for csv module. FR #485717.
+
+	* mime: Fixed bug #499242.
+
+2002-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime: Implemented FR #503336
+ 	* ftp:  Fixed bug #503471.
+	* nntp: Fixed bug #502250
+
+2002-01-16  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* base64 module: added uuencode package
+	* crc module: added sum and cksum packages.
+
+2002-01-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* mkInstallScripts.tcl:
+	* Makefile.in: Added crc and smtpd modules to the installation files.
+	
+2002-01-11  Kevin Kenny  <kennykb@users.sourceforge.net>
+
+	* mkInstallScripts.tcl: Changed the installation process for
+	Windows to avoid the unimplemented [file permissions] in favor of
+	[file attributes].
+	
+2002-01-11  Kevin Kenny  <kennykb@users.sourceforge.net>
+
+	* New module: calendar.
+	
+2002-01-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* New module: crc. From patch #501339
+
+2002-01-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (install-doc): Fixed bug #500655. Using the code
+	  from the tcl "Makefile.in" as template equivalent code for
+	  tcllib was created and added to the file "Makefile.in". The
+	  modified makefile now includes the contents of "man.macros" into
+	  every installed manpage.
+
+	* html: Applied patch #484117.
+
+2001-12-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module: doctools. FR #492234.
+
+2001-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* texturil: Applied patch #492156.
+
+2001-12-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3:     Bugfix for item #490151.
+
+	* textutil: Bugfix for item #476988.
+
+2001-12-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil: Update from William, 'evalcmd' callback.
+
+2001-12-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil: Bugfix for item #486572.
+
+2001-11-28  Reinhard Max  <max@suse.de>
+
+	* split.tcl: Speed improvement.
+
+2001-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* struct.matrix: Implemented FR #481022.
+
+2001-11-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc: Added IRC example to examples section. Patch #481479.
+
+	* struct/graph: Applied patch #483125
+	
+	* smtpd: Example consolidation: Moved the smtpd example to
+	  'examples' directory.
+
+	* ftp: Implemented FR #481161.
+
+	* ftpd: Added example ftp server used for testing the
+	  functionality of FR #481161.
+
+2001-11-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtpd: New module.
+
+2001-11-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* csv: Applied patch #482570.
+
+	* comm: Fixed bug #480227.
+
+	* ftp, uri: Implemented FR #476804.
+
+	* ftp: Applied patch #428053.
+
+2001-11-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* irc: New module. Internet protocol handling. Internet Relay Chat
+	  (IRC). Author David N. Welton <davidw@dedasys.com>.
+
+	* examples/nntp: Moved example applications out of the nntp module
+	  into the example space.
+
+	* examples/ftpd: Moved example applications out of the ftpd module
+	  into the example space.
+
+	* examples/ftp: Moved example applications out of the ftp module
+	  into the example space.
+
+	* csv: Implemented FR #481023.
+
+	* textutil: Added 'expander' code by William H. Duquette
+	  <will@wjduquette.com>. Added option -strictlength to
+	  adjust. Code by Dan Kuchler <dan@kuchler.net>.
+
+2001-11-09  Joe English  <jenglish@users.sourceforge.net>
+
+	* comm: Replaced nroff macro trickery in comm.n manpage.
+
+2001-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime: Fixed bug #479174.
+
+	* mkInstallScripts.tcl: Added code to install tclIndex files.
+
+	* Makefile.in (install-libraries, dist): Added commands to copy
+	  'tclIndex' files into installation and distribution. This fixes
+	  the remainder of #475846.
+	  (dist): Fixed error in generation of tar/zip files too.
+
+2001-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* examples/ftp/ftpvalid: New example, using ftp and uri
+	  modules. Validation of ftp urls.
+
+	* fileutil: Accepted Patch #477805.
+	* ftp:      Accepted Patch #478478.
+
+2001-11-07  Reinhard Max  <max@suse.de>
+
+	* control: added implementation for a 'do ... while/until' loop.
+
+2001-11-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ftp: Fixed bug #476729.
+
+2001-11-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime: Fixed bugs #477088, #472009.
+
+2001-10-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri: Accepted patch #470211.
+
+2001-10-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ncgi: Fixed bug #464560.
+	* ftp:  Fixed bug #466746.
+
+2001-10-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ------------------ Tcllib 1.1 released ------------------
+
+	* tcllib moved to version 1.1
+	
+	* cmdline:	Version up to 1.1.1
+	* ftp:		Version up to 2.2.1
+	* html:		Version up to 1.1.1
+	* md5:		Version up to 1.4.1
+	* mime/smtp:	Version up to 1.3
+	* ncgi:		Version up to 1.2
+	* pop3:		Version up to 1.5
+	* report:	Version up to 0.2
+	* sha1:		Version up to 1.0.1
+	* struct:	Version up to 1.1.1
+	* textutil:	Version up to 0.3
+
+2001-10-14  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* csv.tcl: moved to v0.2
+
+2001-09-24   Joe English  <jenglish@sourceforge.net>
+
+	* modules/ftpd/ftpd.tcl: fix improperly-formatted multi-line 
+	  replies.  See SF tracker ID #424797
+
+2001-08-24   Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (check): Added target to report modules without
+	  testsuites and/or manpages.
+
+2001-08-22  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* examples/nntp: Added new example application 'postnews'. This is
+	  an example how to use the 'nntp'-client library provided by
+	  tcllib.
+
+	* Makefile.in (MODULES):  Added package 'comm'.
+
+2001-08-21  Don Porter <dgp@users.sourceforge.net>
+
+	* Makefile.in (MODULES):  Added package 'control'.
+
+2001-08-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (mandir, libdir): Applied patch [447141] by Reinhard
+	  Max <rmax@users.sourceforge.net> to virtualize mandir and libdir
+	  via ${INSTALL_ROOT}.
+
+	* all.tcl: Added ::tcltest::getErrorMessage in preparation of
+	  fixing [440051], [440049] and [440046] reported by Larry Virden
+	  <lvirden@users.sourceforge.net>.
+
+2001-07-17  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.0
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Frink 2.2 run, fixed dubious code.
+
+2001-07-06  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Fixed #438748, corrections of various misspellings in manpages
+	  accross all modules. 
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Ran frink and procheck over all modules and fixed the reported
+	  problems. As far as they actually were problems.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (MODULES): Added module 'sha1'. This is another
+	  message digest like 'md5'.
+
+2001-05-01  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (MODULES):  Added module 'report'.
+
+	* all.tcl: Added code to propagate "::tcltest::testDirectory" into
+	  the slave actually doing the tests. This tripped some of the
+	  tests for the new CSV module as they use some external files and
+	  were thus unable to find them correctly without this setting.
+
+	* Makefile.in (MODULES): Added module 'csv'.
+
+	* Added directory 'examples' for future sample applications of
+	  tcllib and some example applications too.
+
+2001-04-24  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in: Added module 'md5'.
+
+2001-03-26  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in (install-libraries):  [Bug #404917]
+	  Added 'smtp' explictly to the list of modules for the full
+	  package index. It is part of the 'mime' directory and thus not
+	  automatically found / part of the list.
+
+2001-03-26  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in: Added module 'htmlparse'.
+
+2001-03-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Makefile.in: Added module 'log'.
+
+2001-03-20  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* all.tcl: [Bug #410100, Patch #410105]
+	  Squashed a subtle bug with package management for the
+	  tests. Changes: all.tcl now adds the module path to the
+	  auto_path (the tested modules did it themselves before) and also
+	  moved the setting of the auto_path in the slave before the first
+	  'package require'. Why ? Assume the old code, an installed
+	  fileutil 1.0 and a new fileutil 1.1 under development. The
+	  initialization of the tests scans the package directories and
+	  finds fileutil 1.0. The module then adds itself to the auto_path
+	  and then requires fileutil (without version). Now fileutil 1.0
+	  is found by the pkg management, it is acceptable according to
+	  the rules of require and thus used. The new version is not
+	  considered at all, as changing the auto_path does *not* enforce
+	  a rescan of package directories. It is possible to solve the
+	  problem by having the modules require themselves and request a
+	  specific version (1.1 in this case). But this would mean that in
+	  each module we have (at least) one more file containing the
+	  version number (all test files!) and we have to maintain this
+	  for every module. The change here however solves the problem
+	  without touching the modules at all.
+
+2000-11-02  Brent Welch <welch@ajubasolutions.com>
+
+	* configure.in: Bumped version number to 0.8
+
+2000-11-01  Dan Kuchler <kuchler@ajubasolutions.com>
+
+	* Makefile.in: Added javascript package to tcllib.
+
+2000-10-27  Dan Kuchler <kuchler@ajubasolutions.com>
+
+	* Makefile.in: Added ftpd package to tcllib.
+
+2000-10-04  Brent Welch <welch@ajubasolutions.com>
+
+	* Makefile.in: Nuked stats in favor of counter.
+
+2000-09-19  Brent Welch <welch@ajubasolutions.com>
+
+	* Makefile.in: 
+	Added the stats module.
+	* configure.in: 
+	Increased version number to 0.7
+	* modules/stats/stats.tcl:
+	* modules/stats/stats.n:
+	* modules/stats/stats.test:
+	* modules/stats/pkgIndex.tcl:
+	Initial version of the stats package.
+
+2000-08-23  Brent Welch <welch@ajubasolutions.com>
+
+	* Makefile.in: fixed typo
+
+2000-08-22  Brent Welch <welch@ajubasolutions.com>
+
+	* configure.in: Bumped patchlevel to 0.6.1
+	* Makefile.in: Ignore errors when installing documentation,
+	which only partly exists. You'll still see the error messages
+	but it doesn't stop the install.
+	Applied tcllib-0-6-1 tag
+
+2000-07-19  Brent Welch <welch@ajubasolutions.com>
+
+	* configure.in: Bumped patchlevel to 0.6
+	applied tcllib-0-6 tag
+
+2000-06-15  Dan Kuchler	 <kuchler@ajubasolutions.com>
+
+	* Makefile.in: Added nntp client package.
+	* modules/nntp: Added nntp client package to tcllib.
+
+2000-06-13  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Added uri package.
+	* modules/uri: Added uri package from Steve Ball, Andreas Kupries.
+
+2000-06-09  Brent Welch <welch@scriptics.com>
+
+	* configure.in: Bumped patchlevel to 0.5
+	applied tcllib-0-5 tag
+
+2000-06-02  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Added ftp package.
+	* modules/ftp: Added ftp package from Steffen Traeger to tcllib.
+
+2000-04-28  Sandeep Tamhankar <sandeep@scriptics.com>
+
+	* mkInstallScripts.tcl: Fixed a bug in the UNIX shell script where
+	it was checking if TCLINSTALL was non-null, but it was using ==,
+	which isn't legal in /bin/sh.  I found this out the hard way while
+	trying to install tcllib0.4 in the default location
+	(/usr/local/lib/tcllib0.4) and because of this bug, it ended up
+	installing in /lib/tcllib0.4.
+	
+2000-04-26  Brent Welch <welch@scriptics.com>
+
+	* configure.in: Bumped patchlevel to 0.4
+	* Makefile.in: Fixed dist target to deal with missing manual
+	pages and test files.
+	* mkInstallScripts.tcl: Made install directory a parameter to
+	the unix install.sh script
+
+2000-04-25  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Tweaked dist target to include README and
+	license.terms in distributions.
+
+2000-04-17  Brent Welch	 <welch@scriptics.com>
+
+	* modules/html: Added html generation module
+
+2000-04-10  Brent Welch	 <welch@scriptics.com>
+
+	* Makefile.in: restored ncgi module
+
+2000-04-07  Eric Melski	 <ericm@scriptics.com>
+
+	* configure: 
+	* configure.in: Upped version to 0.3.
+
+2000-03-29  Eric Melski	 <ericm@scriptics.com>
+
+	* mkIndex.tcl: Added missing "== -1" to [lsearch] for package dir
+	in generated pkgIndex.tcl.
+
+2000-03-28  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Added $(srcdir)/ prefix to mkIndex.tcl call in the
+	install-libraries target, so that it would find the mkIndex.tcl
+	script when run outside of the source tree.  Same for man.macros
+	in the install-doc target, so it would find the file.
+
+2000-03-27  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Added dist target for building distribution.
+
+	* configure.in: Removed mkIndex.tcl from AC_OUTPUT call.
+
+	* mkInstallScripts.tcl: First cut at script for autogenerating
+	simple INSTALL.BAT and install.sh files for tcllib distributions.
+
+	* mkIndex.tcl: 
+	* mkIndex.tcl.in: Replace mkIndex.tcl.in with mkIndex.tcl, which
+	now takes more args to specify values.
+
+2000-03-09  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Added ncgi module, commented out until tests are done.
+
+2000-03-09  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Updated test target to call out to all.tcl.
+
+	* all.tcl: First checkin of all.tcl, the magic that hides behind
+	"make test".
+
+2000-03-08  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Commented out cgi module until it's ready for use.
+	Added checks for bogus module names in install-libraries, but
+	they're not foolproof.
+
+2000-03-07  Brent Welch <welch@scriptics.com>
+
+	* modules/cgi: Preliminary version of a CGI module.  Still needs
+	some cookie functions, test suite, and docs...
+	
+2000-03-07  Eric Melski <ericm@scriptics.com>
+
+	* modules/math: math library
+
+	* Makefile.in: added math library to list of modules
+
+2000-03-07  Scott Stanton  <stanton@scriptics.com>
+
+	* configure.in: 
+	* configure: 
+	* aclocal.m4:
+	* Makefile.in: Changed to use shared config subdirectory.  Also
+	fixed problem on Windows builds where it would fail to identify
+	the tclsh executable to use.  Simplified configure.in to minimum
+	number of macros.
+
+2000-03-06  Eric Melski	 <ericm@scriptics.com>
+
+	* man.macros: Moved from individual modules to toplevel tcllib
+	dir, so that it is not repeated hundreds of times.
+	
+	* Makefile.in:
+	* mkIndex.tcl.in: Added version number to installed tcllib dir.
+
+	* license.terms: Adapted license from Tcl.
+	
+	* README: Added more information about file layout in module dirs.
+
+2000-03-06  Scott Redman  <redman@scriptics.com>
+
+	* Makefile.in:	added pop3 module.
+
+2000-03-02  Eric Melski	 <ericm@scriptics.com>
+
+	* mkIndex.tcl.in: Instead of probing install dir for modules,
+	changed to take module list on command line, so that users can
+	change what goes into the pkgIndex.tcl from the Makefile.
+	
+	* Makefile.in: additional work on module list and pkgIndex.tcl
+	generation.  Now changing the module list changes what is
+	installed and what is put in the pkgIndex.tcl.
+
+2000-03-02  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Work on install-libraries, install-doc; removed
+	references to compiled bits.
+
+	* mkIndex.tcl.in: Tweaked the generated pkgIndex.tcl to only
+	append the dirname if it doesn't already exist in the auto_path,
+	and to use \[file dirname \[info script\]\] instead of [pwd].
+
+	* configure:
+	* configure.in: Removed checks for compiler, and all stuff related
+	to compiling/linking (this is a tcl only extension).
+
+	* tcl.m4: new tcl.m4 from sample extension.
+
+2000-03-01  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in: Added fileutil, cmdline, mime, base64 modules.
+
+2000-02-24  Eric Melski	 <ericm@scriptics.com>
+
+	* Makefile.in, et al: Preliminary Makefile and configure script, and
+	supporting files

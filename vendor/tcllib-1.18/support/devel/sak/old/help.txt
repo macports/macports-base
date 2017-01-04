@@ -1,0 +1,102 @@
+        Commands available through the swiss army knife aka SAK:
+
+        help     - This help
+
+        /Configuration
+        /===========================================================
+
+        version  - Return the bundle's version number
+        major    - Return the bundle's major version number
+        minor    - Return the bundle's minor version number
+        name     - Return the bundle's package name
+
+        /Development
+        /===========================================================
+
+        modules          - Return list of modules.
+        contributors     - Print a list of contributors to the bundle.
+        lmodules         - See above, however one module per line
+        imodules         - Return list of modules known to the installer.
+        critcl-modules   - Return a list of modules with critcl enhancements.
+
+        packages         - Return indexed packages in the bundle, plus versions,
+                           one package per line. Extracted from the
+                           package indices found in the modules.
+
+        provided         - Return list and versions of provided packages
+                           (in contrast to indexed).
+
+        critcl ?module?  - Build a critcl module [default is @@].
+
+        bench ?opt? ?module..?
+                         - Run benchmark scripts (*.bench).
+
+                Options: -throwerrors 0|1  Propagate errors if set.
+                         -match   pattern  Exclude benchmarks not matching the
+                                           glob pattern.
+                         -rmatch  pattern  S.a, but a regexp pattern.
+                         -iters   integer  Max #iterations for all benchmarks.
+                         -threads integer  #Threads to use for threaded shells.
+                         -o       path     File to write the results too.
+                         -format  text|csv|raw Format to use for the results.
+                         -norm    column   Normalize results using the specified
+                                           column as reference.
+                         -verbose          Informational output during the run.
+                         -debug            Internal output during the run.
+
+        bench/show ?-o path? ?-format f? ?-norm col? file...
+
+                         Reads the files, merges the data, then
+                         writes the result back in the specified
+                         format, to the specified file, possibly
+                         normalizing to a column. Without a file
+                         the result is written to stdout.
+
+        bench/edit ?-o path? ?-format f? file col newvalue
+
+                         Reads the file, changes the interpreter
+                         path in the column to a new value. For
+                         merging of data from the same interpreter,
+                         but possibly different versions of the
+                         benchmarked package, like Tcllib.
+
+        bench/del ?-o path? ?-format f? file col...
+
+                         Reads the file and removes the specified
+                         columns. To delete unnecessary data in merged
+                         results.
+
+        oldvalidate ?module..?     - Check listed modules for problems.
+                                  For all modules if none specified.
+
+        oldvalidate_v ?module..?   - Check listed modules for for version
+                                  problems. For all modules if none
+                                  specified.
+
+        test ?module...?        - Run testsuite for listed modules.
+                                  For all modules if none specified.
+
+        docstrip/users             - List modules using docstrip
+        docstrip/regen ?module...? - Regenerate the sources of all
+                                     or the listed modules from their
+                                     docstrip sources.
+
+        /Documentation
+        /===========================================================
+
+        desc  ?module...?    - Module/Package descriptions
+        desc/2 ?module...?   - Module/Package descriptions, alternate format.
+
+        /Release engineering
+        /===========================================================
+
+        gendist  - Generate distribution from CVS snapshot
+
+        rpmspec  - Generate a RPM spec file for the bundle.
+        gentip55 - Generate a TIP55-style DESCRIPTION.txt file.
+        yml      - Generate a YAML description file.
+
+        release name sf-user-id
+                 - Marks the current state of all files as a new
+                   release. This updates all ChangeLog's, and
+                   regenerates the contents of PACKAGES

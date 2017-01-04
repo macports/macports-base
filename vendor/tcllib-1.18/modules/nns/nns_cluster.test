@@ -1,0 +1,195 @@
+# -*- tcl -*-
+# common.test:  Tests for the common code of the name service
+#
+# Sourcing this file into Tcl runs the tests and generates output for
+# errors.  No output means no errors were found.
+
+# -------------------------------------------------------------------------
+
+set testutilsscript [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+source $testutilsscript
+
+package require tcltest
+testsNeedTcl     8.5
+testsNeedTcltest 1.0
+
+set ::WHOAMI Main
+
+support {
+    use snit/snit2.tcl      snit
+    use comm/comm.tcl       comm
+    use dns/ip.tcl          ip
+    use nettool/nettool.tcl nettool
+    use cron/cron.tcl       cron
+    use uuid/uuid.tcl       uuid
+    use interp/interp.tcl   interp
+    use log/logger.tcl      logger
+    use md5/md5x.tcl        md5
+}
+testing {
+    useLocal nns_cluster.tcl nameserv::cluster
+}
+
+###
+# Create a server in a seperate interp
+###
+interp create server
+interp eval server [list set testutilsscript $testutilsscript]
+interp eval server {
+  source $testutilsscript
+  set ::WHOAMI Server
+
+  package require tcltest
+  testsNeedTcl     8.5
+  testsNeedTcltest 1.0
+  
+  support {
+      use snit/snit2.tcl      snit
+      use comm/comm.tcl       comm
+      use dns/ip.tcl          ip
+      use nettool/nettool.tcl nettool
+      use cron/cron.tcl       cron
+      use uuid/uuid.tcl       uuid
+      use interp/interp.tcl   interp
+      use log/logger.tcl      logger
+      use md5/md5x.tcl        md5
+  }
+  testing {
+      use nns/nns_cluster.tcl nameserv::cluster
+  }
+  set ::cluster::local_pid SERVER
+  ::cluster::publish nns@[::cluster::macid] {}
+  update
+}
+set ::cluster::local_pid MAIN
+set macid [::cluster::macid]
+set myport [::nettool::allocate_port 10000]
+
+::cluster::ping nns@$macid
+set data [::cluster::search *]
+test cluster-comm-1.0 {Publish service - NNS} {
+  dict exists $data nns@[::cluster::macid]
+} {1}
+
+test cluster-comm-1.1 {Check that non-existant service does not exist} {
+  dict exists $data foo@bar
+} {0}
+
+###
+# Create a phony service
+###
+set now [clock seconds]
+::cluster::publish foo@bar [list clocktime $now]
+# The windows event loop needs a breather
+::cluster::ping nns@$macid
+
+set data [::cluster::search *]
+test cluster-comm-2.0 {Publish service - NNS} {
+  dict exists $data nns@[::cluster::macid]
+} {1}
+test cluster-comm-2.1 {Check that new service does exists} {
+  dict exists $data foo@bar
+} {1}
+
+###
+# Modify a service
+###
+::cluster::configure foo@bar {color pink}
+::cluster::ping nns@$macid
+
+set data [::cluster::search foo@bar]
+test cluster-comm-2.3 {Modify a service} {
+  dict get $data foo@bar color
+} {pink}
+
+::cluster::configure foo@bar {color blue}
+::cluster::ping nns@$macid
+
+set data [::cluster::search foo@bar]
+test cluster-comm-2.4 {Modify a service} {
+  dict get $data foo@bar color
+} {blue}
+
+
+###
+# Create another client in a seperate interp
+###
+interp create otherclient
+interp eval otherclient [list set testutilsscript $testutilsscript]
+interp eval otherclient {
+  source $testutilsscript
+  set ::WHOAMI Other
+  
+  package require tcltest
+  testsNeedTcl     8
+  testsNeedTcltest 1.0
+  
+  support {
+      use snit/snit2.tcl      snit
+      use comm/comm.tcl comm 
+      use dns/ip.tcl          ip
+      use nettool/nettool.tcl nettool
+      use cron/cron.tcl cron
+      use uuid/uuid.tcl uuid
+      use interp/interp.tcl   interp
+      use log/logger.tcl      logger
+      use md5/md5x.tcl        md5
+  }
+  testing {
+      use nns/nns_cluster.tcl nameserv::cluster
+  }
+
+  ###
+  # Cheat and let this server know the server is local
+  ###
+  set macid [::cluster::macid]
+  set myport [::nettool::allocate_port 10000]
+  
+  set url other@$macid
+  ::comm::comm new $url -port $myport -local 0 -listen 1
+  ::cluster::publish $url [list port $myport protocol comm class comm]
+}
+::cluster::ping nns@$macid
+
+set data [::cluster::search *]
+test cluster-comm-3.0 {Publish service - NNS} {
+  dict exists $data nns@[::cluster::macid]
+} {1}
+test cluster-comm-3.1 {Check that new service does exists} {
+  dict exists $data foo@bar
+} {1}
+test cluster-comm-3.3 {Check that other service does exists} {
+  dict exists $data other@[::cluster::macid]
+} {1}
+
+test cluster-comm-3.3 {Check that other service does exists} {
+  set chan [::cluster::resolve other@[::cluster::macid]]
+  ::comm::comm send $chan {set foo b}
+} {b}
+
+###
+# Remove the phony service
+###
+::cluster::unpublish foo@bar {}
+::cluster::ping nns@$macid
+
+set data [::cluster::search *]
+test cluster-comm-4.0 {Publish service - NNS} {
+  dict exists $data nns@[::cluster::macid]
+} {1}
+test cluster-comm-4.1 {Check that service is closed} {
+  dict exists $data foo@bar
+} {0}
+
+###
+# Have a non-existant service fail
+###
+test cluster-comm-5.0 {Service lookup failture} {
+  catch {cluster::resolve foo@bar} pat
+} {1}
+#puts $pat
+
+testsuiteCleanup
+return

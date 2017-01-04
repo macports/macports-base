@@ -1,0 +1,313 @@
+
+<div class='fossil-doc' data-title='csv - CSV processing'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">csv(n) 0.8.1 tcllib &quot;CSV processing&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>csv - Procedures to handle CSV data.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">FORMAT</a></li>
+<li class="doctools_section"><a href="#section4">EXAMPLE</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">csv <span class="opt">?0.8.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::csv::iscomplete</b> <i class="arg">data</i></a></li>
+<li><a href="#2"><b class="cmd">::csv::join</b> <i class="arg">values</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span> <span class="opt">?<i class="arg">delMode</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::csv::joinlist</b> <i class="arg">values</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span> <span class="opt">?<i class="arg">delMode</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::csv::joinmatrix</b> <i class="arg">matrix</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span> <span class="opt">?<i class="arg">delMode</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::csv::read2matrix</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">chan m</i> {<i class="arg">sepChar</i> ,} {<i class="arg">expand</i> none}</a></li>
+<li><a href="#6"><b class="cmd">::csv::read2queue</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">chan q</i> {<i class="arg">sepChar</i> ,}</a></li>
+<li><a href="#7"><b class="cmd">::csv::report</b> <i class="arg">cmd matrix</i> <span class="opt">?<i class="arg">chan</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::csv::split</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">line</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">::csv::split2matrix</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">m line</i> {<i class="arg">sepChar</i> ,} {<i class="arg">expand</i> none}</a></li>
+<li><a href="#10"><b class="cmd">::csv::split2queue</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">q line</i> {<i class="arg">sepChar</i> ,}</a></li>
+<li><a href="#11"><b class="cmd">::csv::writematrix</b> <i class="arg">m chan</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span></a></li>
+<li><a href="#12"><b class="cmd">::csv::writequeue</b> <i class="arg">q chan</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">csv</b> package provides commands to manipulate information
+in CSV <span class="sectref"><a href="#section3">FORMAT</a></span> (CSV = Comma Separated Values).</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<p>The following commands are available:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::csv::iscomplete</b> <i class="arg">data</i></a></dt>
+<dd><p>A predicate checking if the argument <i class="arg">data</i> is a complete csv
+record. The result is a boolean flag indicating the completeness of
+the data. The result is true if the data is complete.</p></dd>
+<dt><a name="2"><b class="cmd">::csv::join</b> <i class="arg">values</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span> <span class="opt">?<i class="arg">delMode</i>?</span></a></dt>
+<dd><p>Takes a list of values and returns a string in CSV format containing
+these values. The separator character can be defined by the caller,
+but this is optional. The default is &quot;,&quot;. The quoting aka delimiting character can
+be defined by the caller, but this is optional. The default is '&quot;'.
+By default the quoting mode <i class="arg">delMode</i> is &quot;auto&quot;, surrounding
+values with <i class="arg">delChar</i> only when needed. When set to &quot;always&quot;
+however, values are always surrounded by the <i class="arg">delChar</i> instead.</p></dd>
+<dt><a name="3"><b class="cmd">::csv::joinlist</b> <i class="arg">values</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span> <span class="opt">?<i class="arg">delMode</i>?</span></a></dt>
+<dd><p>Takes a list of lists of values and returns a string in CSV format
+containing these values. The separator character can be defined by the
+caller, but this is optional. The default is &quot;,&quot;. The quoting character
+can be defined by the caller, but this is optional. The default is '&quot;'.
+By default the quoting mode <i class="arg">delMode</i> is &quot;auto&quot;, surrounding
+values with <i class="arg">delChar</i> only when needed. When set to &quot;always&quot;
+however, values are always surrounded by the <i class="arg">delChar</i> instead.
+Each element of the outer list is considered a record, these are
+separated by newlines in the result. The elements of each record are
+formatted as usual (via <b class="cmd">::csv::join</b>).</p></dd>
+<dt><a name="4"><b class="cmd">::csv::joinmatrix</b> <i class="arg">matrix</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span> <span class="opt">?<i class="arg">delMode</i>?</span></a></dt>
+<dd><p>Takes a <i class="arg">matrix</i> object following the API specified for the
+struct::matrix package and returns a string in CSV format containing
+these values. The separator character can be defined by the caller,
+but this is optional. The default is &quot;,&quot;. The quoting character
+can be defined by the caller, but this is optional. The default is
+'&quot;'.
+By default the quoting mode <i class="arg">delMode</i> is &quot;auto&quot;, surrounding
+values with <i class="arg">delChar</i> only when needed. When set to &quot;always&quot;
+however, values are always surrounded by the <i class="arg">delChar</i> instead.
+Each row of the matrix is considered a record, these are
+separated by newlines in the result. The elements of each record are
+formatted as usual (via <b class="cmd">::csv::join</b>).</p></dd>
+<dt><a name="5"><b class="cmd">::csv::read2matrix</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">chan m</i> {<i class="arg">sepChar</i> ,} {<i class="arg">expand</i> none}</a></dt>
+<dd><p>A wrapper around <b class="cmd">::csv::split2matrix</b> (see below) reading
+CSV-formatted lines from the specified channel (until EOF) and adding
+them to the given matrix. For an explanation of the <i class="arg">expand</i>
+argument see <b class="cmd">::csv::split2matrix</b>.</p></dd>
+<dt><a name="6"><b class="cmd">::csv::read2queue</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">chan q</i> {<i class="arg">sepChar</i> ,}</a></dt>
+<dd><p>A wrapper around <b class="cmd">::csv::split2queue</b> (see below) reading
+CSV-formatted lines from the specified channel (until EOF) and adding
+them to the given queue.</p></dd>
+<dt><a name="7"><b class="cmd">::csv::report</b> <i class="arg">cmd matrix</i> <span class="opt">?<i class="arg">chan</i>?</span></a></dt>
+<dd><p>A report command which can be used by the matrix methods
+<b class="cmd">format 2string</b> and <b class="cmd">format 2chan</b>. For the latter this
+command delegates the work to <b class="cmd">::csv::writematrix</b>. <i class="arg">cmd</i> is
+expected to be either <b class="method">printmatrix</b> or
+<b class="method">printmatrix2channel</b>. The channel argument, <i class="arg">chan</i>, has
+to be present for the latter and must not be present for the first.</p></dd>
+<dt><a name="8"><b class="cmd">::csv::split</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">line</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span></a></dt>
+<dd><p>converts a <i class="arg">line</i> in CSV format into a list of the values
+contained in the line. The character used to separate the values from
+each other can be defined by the caller, via <i class="arg">sepChar</i>, but this
+is optional. The default is &quot;,&quot;. The quoting character can be defined
+by the caller, but this is optional. The default is '&quot;'.</p>
+<p>If the option <b class="option">-alternate</b> is specified a slightly different
+syntax is used to parse the input. This syntax is explained below, in
+the section <span class="sectref"><a href="#section3">FORMAT</a></span>.</p></dd>
+<dt><a name="9"><b class="cmd">::csv::split2matrix</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">m line</i> {<i class="arg">sepChar</i> ,} {<i class="arg">expand</i> none}</a></dt>
+<dd><p>The same as <b class="cmd">::csv::split</b>, but appends the resulting list as a
+new row to the matrix <i class="arg">m</i>, using the method <b class="cmd">add row</b>. The
+expansion mode specified via <i class="arg">expand</i> determines how the command
+handles a matrix with less columns than contained in <i class="arg">line</i>. The
+allowed modes are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">none</b></dt>
+<dd><p>This is the default mode. In this mode it is the responsibility of the
+caller to ensure that the matrix has enough columns to contain the
+full line. If there are not enough columns the list of values is
+silently truncated at the end to fit.</p></dd>
+<dt><b class="const">empty</b></dt>
+<dd><p>In this mode the command expands an empty matrix to hold all columns
+of the specified line, but goes no further. The overall effect is that
+the first of a series of lines determines the number of columns in the
+matrix and all following lines are truncated to that size, as if mode
+<b class="const">none</b> was set.</p></dd>
+<dt><b class="const">auto</b></dt>
+<dd><p>In this mode the command expands the matrix as needed to hold all
+columns contained in <i class="arg">line</i>. The overall effect is that after
+adding a series of lines the matrix will have enough columns to hold
+all columns of the longest line encountered so far.</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::csv::split2queue</b> <span class="opt">?<b class="option">-alternate</b>?</span> <i class="arg">q line</i> {<i class="arg">sepChar</i> ,}</a></dt>
+<dd><p>The same as <b class="cmd">::csv::split</b>, but appending the resulting list as a
+single item to the queue <i class="arg">q</i>, using the method <b class="cmd">put</b>.</p></dd>
+<dt><a name="11"><b class="cmd">::csv::writematrix</b> <i class="arg">m chan</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span></a></dt>
+<dd><p>A wrapper around <b class="cmd">::csv::join</b> taking all rows in the matrix
+<i class="arg">m</i> and writing them CSV formatted into the channel <i class="arg">chan</i>.</p></dd>
+<dt><a name="12"><b class="cmd">::csv::writequeue</b> <i class="arg">q chan</i> <span class="opt">?<i class="arg">sepChar</i>?</span> <span class="opt">?<i class="arg">delChar</i>?</span></a></dt>
+<dd><p>A wrapper around <b class="cmd">::csv::join</b> taking all items in the queue
+<i class="arg">q</i> (assumes that they are lists) and writing them CSV formatted
+into the channel <i class="arg">chan</i>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">FORMAT</a></h2>
+<p>The format of regular CSV files is specified as</p>
+<ol class="doctools_enumerated">
+<li><p>Each record of a csv file (comma-separated values, as exported e.g. by
+Excel) is a set of ASCII values separated by &quot;,&quot;. For other languages
+it may be &quot;;&quot; however, although this is not important for this case as
+the functions provided here allow any separator character.</p></li>
+<li><p>If and only if a value contains itself the separator &quot;,&quot;, then it (the
+value) has to be put between &quot;&quot;. If the value does not contain the
+separator character then quoting is optional.</p></li>
+<li><p>If a value contains the character &quot;, that character is represented by &quot;&quot;.</p></li>
+<li><p>The output string &quot;&quot; represents the value &quot;. In other words, it is
+assumed that it was created through rule 3, and only this rule,
+i.e. that the value was not quoted.</p></li>
+</ol>
+<p>An alternate format definition mainly used by MS products specifies
+that the output string &quot;&quot; is a representation of the empty
+string. In other words, it is assumed that the output was generated
+out of the empty string by quoting it (i.e. rule 2), and not through
+rule 3. This is the only difference between the regular and the
+alternate format.</p>
+<p>The alternate format is activated through specification of the option
+<b class="option">-alternate</b> to the various split commands.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLE</a></h2>
+<p>Using the regular format the record</p>
+<pre class="doctools_example">
+123,&quot;123,521.2&quot;,&quot;Mary says &quot;&quot;Hello, I am Mary&quot;&quot;&quot;,&quot;&quot;
+</pre>
+<p>is parsed into the items</p>
+<pre class="doctools_example">
+a) 123
+b) 123,521.2
+c) Mary says &quot;Hello, I am Mary&quot;
+d) &quot;
+</pre>
+<p>Using the alternate format the result is</p>
+<pre class="doctools_example">
+a) 123
+b) 123,521.2
+c) Mary says &quot;Hello, I am Mary&quot;
+d) (the empty string)
+</pre>
+<p>instead. As can be seen only item (d) is different, now the empty string
+instead of a &quot;.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>csv</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../../../../index.html#key51">matrix</a>, <a href="../../../../index.html#key50">queue</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key49">csv</a>, <a href="../../../../index.html#key51">matrix</a>, <a href="../../../../index.html#key48">package</a>, <a href="../../../../index.html#key50">queue</a>, <a href="../../../../index.html#key52">tcllib</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002-2015 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

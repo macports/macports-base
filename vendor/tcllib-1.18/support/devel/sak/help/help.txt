@@ -1,0 +1,8 @@
+
+    help -- Print help message
+
+    sak help ?topic?
+
+        Print a help message about the specified topic. If no topic
+        was given then print a general help message about SAK itself,
+        and provide a list of the available topics.

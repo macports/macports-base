@@ -1,0 +1,553 @@
+# -*- tcl -*-
+# This file contains the tests for the cmdline.tcl file.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1999 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: cmdline.test,v 1.18 2011/02/23 17:41:52 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal cmdline.tcl cmdline
+}
+
+# -------------------------------------------------------------------------
+
+set cmdLineFile [localPath cmdline.tcl]
+set argv0 "argv0"
+
+# ---------------------------------------------------
+# cmdline::getopt
+
+test cmdline-1.1 {cmdline::getopt} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {}
+    list [cmdline::getopt argList {a} opt arg] $argList $opt $arg
+} {0 {} {} {}}
+test cmdline-1.2 {cmdline::getopt, multiple options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {}
+    list [cmdline::getopt argList {a b.arg c} opt arg] $argList $opt $arg
+} {0 {} {} {}}
+test cmdline-1.3 {cmdline::getopt, -- option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-- -a}
+    list [cmdline::getopt argList {a} opt arg] $argList $opt $arg
+} {0 -a {} {}}
+test cmdline-1.4 {cmdline::getopt, non dash option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {b -a}
+    list [cmdline::getopt argList {a} opt arg] $argList $opt $arg
+} {0 {b -a} {} {}}
+test cmdline-1.5 {cmdline::getopt, simple option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-a b}
+    list [cmdline::getopt argList {a} opt arg] $argList $opt $arg
+} {1 b a 1}
+test cmdline-1.6 {cmdline::getopt, multiple letter option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo b}
+    list [cmdline::getopt argList {foo} opt arg] $argList $opt $arg
+} {1 b foo 1}
+test cmdline-1.7 {cmdline::getopt, multiple letter option, no abbreviations} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-f b}
+    list [cmdline::getopt argList {foo} opt arg] $argList $opt $arg
+} {-1 {-f b} f {Illegal option "-f"}}
+test cmdline-1.8 {cmdline::getopt, option with argument} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo bar baz}
+    list [cmdline::getopt argList {foo.arg} opt arg] $argList $opt $arg
+} {1 baz foo bar}
+test cmdline-1.9 {cmdline::getopt, option with argument, missing arg} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::getopt argList {foo.arg} opt arg] $argList $opt $arg
+} {-1 {} foo {Option "foo" requires an argument}}
+test cmdline-1.10 {cmdline::getopt, unknown option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-bar}
+    list [cmdline::getopt argList {foo.arg} opt arg] $argList $opt $arg
+} {-1 -bar bar {Illegal option "-bar"}}
+test cmdline-1.11 {cmdline::getopt, multiple options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::getopt argList {a.arg b foo c.arg} opt arg] $argList $opt $arg
+} {1 {} foo 1}
+
+
+test cmdline-1.12 {cmdline::getopt, option with argument, -o=v syntax} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo=bar baz}
+    list [cmdline::getopt argList {foo.arg} opt arg] $argList $opt $arg
+} {1 baz foo bar}
+
+test cmdline-1.13 {cmdline::getopt, option with argument, --o=v syntax} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {--foo=bar baz}
+    list [cmdline::getopt argList {foo.arg} opt arg] $argList $opt $arg
+} {1 baz foo bar}
+
+
+
+# cmdline::getoptions
+
+test cmdline-2.1 {cmdline::getoptions} {
+    set argList {foo}
+    list [cmdline::getoptions argList {}] $argList
+} {{} foo}
+test cmdline-2.2 {cmdline::getoptions, secret flag} {
+    set argList {-foo}
+    list [cmdline::getoptions argList {{foo.secret}}] $argList
+} {{foo 1} {}}
+test cmdline-2.3 {cmdline::getoptions, normal flag} {
+    set argList {-foo}
+    list [cmdline::getoptions argList {{foo}}] $argList
+} {{foo 1} {}}
+test cmdline-2.4 {cmdline::getoptions, flag with arg} {
+    set argList {-foo bar}
+    list [cmdline::getoptions argList {{foo.arg}}] $argList
+} {{foo bar} {}}
+test cmdline-2.5 {cmdline::getoptions, missing flag with arg, default value} {
+    set argList {}
+    list [cmdline::getoptions argList {{foo.arg blat}}] $argList
+} {{foo blat} {}}
+test cmdline-2.6 {cmdline::getoptions, flag with arg, default value} {
+    set argList {-foo bar}
+    list [cmdline::getoptions argList {{foo.arg blat}}] $argList
+} {{foo bar} {}}
+test cmdline-2.7 {cmdline::getoptions, multiple flags with arg, default value} {
+    set argList {}
+    list [dictsort [cmdline::getoptions argList {{foo.arg blat} {a.arg b}}]] $argList
+} {{a b foo blat} {}}
+test cmdline-2.8 {cmdline::getoptions, errors} {
+    set argList {-a -foo}
+    list [catch {cmdline::getoptions argList {{foo.arg blat} a}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-2.9 {cmdline::getoptions, errors} {
+    set argList {-a -?}
+    list [catch {cmdline::getoptions argList {{foo.arg blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-2.10 {cmdline::getoptions, errors} {
+    set argList {-help}
+    list [catch {cmdline::getoptions argList {{foo.arg blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-2.11 {cmdline::getoptions, usage string in errors} {
+    set argList {-help}
+    list [catch {cmdline::getoptions argList {{foo.arg blat} a} {testing}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] testing
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+
+test cmdline-2.12 {cmdline::getoptions, bug 3189786} {
+    set argList {-help}
+    list [catch {cmdline::getoptions argList {myarg a} {testing}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] testing
+ -myarg               
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+
+# cmdline::usage
+
+test cmdline-3.1 {cmdline::usage,hidden options} {
+    set argList {-help}
+    list [catch {cmdline::getoptions argList {{foo.secret blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-3.2 {cmdline::usage, with & without arg} {
+    set argList {-help}
+    list [catch {cmdline::getoptions argList \
+	    {{foo.arg blat testing} {a {} {line 2}}}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value           testing <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+
+
+test cmdline-3.3 {cmdline::usage, bug 3189786} {
+    set argList {-help}
+    list [catch {cmdline::getoptions argList {{mysecret blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -mysecret            blat
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+
+# cmdline::getfiles
+
+# Run the script body in a slave process so we can collect stdout.
+
+proc runGetFilesTest {body} {
+    set    script "source [list $::cmdLineFile]\n"
+    append script "cd [list $::tcltest::temporaryDirectory]\n"
+    append script $body
+
+    set scriptfile [makeFile $script script]
+
+    set f [open "|[list $::tcltest::tcltest $scriptfile]" r]
+    set result [read $f]
+    close $f
+    removeFile script
+    return $result
+}
+
+
+# Create a directory with some files in it
+
+makeDirectory         cmdlineJunk
+set foo1 [makeFile {} cmdlineJunk/foo1]
+set foo2 [makeFile {} cmdlineJunk/foo2]
+set bar3 [makeFile {} cmdlineJunk/bar3]
+
+test cmdline-4.1 {cmdline::getfiles} {pcOnly} {
+    runGetFilesTest {
+	cmdline::getfiles {} 0
+    }
+} {}    
+test cmdline-4.2 {cmdline::getfiles, one pattern} {pcOnly} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {foo*} 0]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $foo1 $foo2]
+test cmdline-4.3 {cmdline::getfiles, multiple patterns} {pcOnly} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {foo* bar*} 0]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $bar3 $foo1 $foo2]
+test cmdline-4.4 {cmdline::getfiles, no match} {pcOnly} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {blat* foo*} 0]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} "warning: no files match \"blat*\"\n[list $foo1 $foo2]"
+test cmdline-4.5 {cmdline::getfiles, quiet} {pcOnly} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {blat* foo*} 1]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $foo1 $foo2]
+test cmdline-4.6 {cmdline::getfiles, relative paths} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {foo1 foo2} 0]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $foo1 $foo2]
+test cmdline-4.7 {cmdline::getfiles, absolute paths} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles [list [file join [pwd] foo1]] 0]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $foo1]
+test cmdline-4.8 {cmdline::getfiles, no match} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {blat foo1} 0]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} "warning: no files match \"blat\"\n[list $foo1]"
+test cmdline-4.9 {cmdline::getfiles, silent no match} {
+    runGetFilesTest {
+	cd cmdlineJunk
+	set result [cmdline::getfiles {blat foo1} 1]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $foo1]
+
+
+test cmdline-4.10 {cmdline::getfiles, backslashes on windows} {pc} {
+    runGetFilesTest {
+	set result [cmdline::getfiles {cmdlineJunk\\foo*} 1]
+	puts -nonewline [lsort $result]
+	exit
+    }
+} [list $foo1 $foo2]
+
+
+# Remove the temporary directory and files from the previous tests
+
+removeFile      cmdlineJunk/foo1
+removeFile      cmdlineJunk/foo2
+removeFile      cmdlineJunk/bar3
+removeDirectory cmdlineJunk
+
+
+# cmdline::getArgv0
+
+test cmdline-5.1 {cmdline::getArgv0} {
+    set oldargv0 $argv0
+    set argv0 "foo"
+    set result [cmdline::getArgv0]
+    set argv0 $oldargv0
+    set result
+} foo
+test cmdline-5.2 {cmdline::getArgv0} {
+    set oldargv0 $argv0
+    set argv0 "foo.exe"
+    set result [cmdline::getArgv0]
+    set argv0 $oldargv0
+    set result
+} foo
+test cmdline-5.3 {cmdline::getArgv0} {
+    set oldargv0 $argv0
+    set argv0 "foo.bin"
+    set result [cmdline::getArgv0]
+    set argv0 $oldargv0
+    set result
+} foo
+test cmdline-5.4 {cmdline::getArgv0} {
+    set oldargv0 $argv0
+    set argv0 "foo.bar.bin"
+    set result [cmdline::getArgv0]
+    set argv0 $oldargv0
+    set result
+} foo.bar
+test cmdline-5.5 {cmdline::getArgv0} {
+    set oldargv0 $argv0
+    set argv0 "/a/b/c/foo"
+    set result [cmdline::getArgv0]
+    set argv0 $oldargv0
+    set result
+} foo
+
+# cmdline::getKnownOpt
+
+test cmdline-6.1 {cmdline::getKnownOpt} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {}
+    list [cmdline::getKnownOpt argList {a} opt arg] $argList $opt $arg
+} {0 {} {} {}}
+test cmdline-6.2 {cmdline::getKnownOpt, multiple options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {}
+    list [cmdline::getKnownOpt argList {a b.arg c} opt arg] $argList $opt $arg
+} {0 {} {} {}}
+test cmdline-6.3 {cmdline::getKnownOpt, -- option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-- -a}
+    list [cmdline::getKnownOpt argList {a} opt arg] $argList $opt $arg
+} {0 -a {} {}}
+test cmdline-6.4 {cmdline::getKnownOpt, non dash option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {b -a}
+    list [cmdline::getKnownOpt argList {a} opt arg] $argList $opt $arg
+} {0 {b -a} {} {}}
+test cmdline-6.5 {cmdline::getKnownOpt, simple option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-a b}
+    list [cmdline::getKnownOpt argList {a} opt arg] $argList $opt $arg
+} {1 b a 1}
+test cmdline-6.6 {cmdline::getKnownOpt, multiple letter option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo b}
+    list [cmdline::getKnownOpt argList {foo} opt arg] $argList $opt $arg
+} {1 b foo 1}
+test cmdline-6.7 {cmdline::getKnownOpt, multiple letter option, no abbreviations} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-f b}
+    list [cmdline::getKnownOpt argList {foo} opt arg] $argList $opt $arg
+} {-1 {-f b} f {Illegal option "-f"}}
+test cmdline-6.8 {cmdline::getKnownOpt, option with argument} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo bar baz}
+    list [cmdline::getKnownOpt argList {foo.arg} opt arg] $argList $opt $arg
+} {1 baz foo bar}
+test cmdline-6.9 {cmdline::getKnownOpt, option with argument, missing arg} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::getKnownOpt argList {foo.arg} opt arg] $argList $opt $arg
+} {-2 {} foo {Option "foo" requires an argument}}
+test cmdline-6.10 {cmdline::getKnownOpt, unknown option} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-bar}
+    list [cmdline::getKnownOpt argList {foo.arg} opt arg] $argList $opt $arg
+} {-1 -bar bar {Illegal option "-bar"}}
+test cmdline-6.11 {cmdline::getKnownOpt, multiple options} {
+    catch {unset opt}
+    catch {unset arg}
+    set argList {-foo}
+    list [cmdline::getKnownOpt argList {a.arg b foo c.arg} opt arg] $argList $opt $arg
+} {1 {} foo 1}
+
+# cmdline::getKnownOptions
+
+test cmdline-7.1 {cmdline::getKnownOptions} {
+    set argList {foo}
+    list [cmdline::getKnownOptions argList {}] $argList
+} {{} foo}
+test cmdline-7.2 {cmdline::getKnownOptions, secret flag} {
+    set argList {-foo}
+    list [cmdline::getKnownOptions argList {{foo.secret}}] $argList
+} {{foo 1} {}}
+test cmdline-7.3 {cmdline::getKnownOptions, normal flag} {
+    set argList {-foo}
+    list [cmdline::getKnownOptions argList {{foo}}] $argList
+} {{foo 1} {}}
+test cmdline-7.4 {cmdline::getKnownOptions, flag with arg} {
+    set argList {-foo bar}
+    list [cmdline::getKnownOptions argList {{foo.arg}}] $argList
+} {{foo bar} {}}
+test cmdline-7.5 {cmdline::getKnownOptions, missing flag with arg, default value} {
+    set argList {}
+    list [cmdline::getKnownOptions argList {{foo.arg blat}}] $argList
+} {{foo blat} {}}
+test cmdline-7.6 {cmdline::getKnownOptions, flag with arg, default value} {
+    set argList {-foo bar}
+    list [cmdline::getKnownOptions argList {{foo.arg blat}}] $argList
+} {{foo bar} {}}
+test cmdline-7.7 {cmdline::getKnownOptions, multiple flags with arg, default value} {
+    set argList {}
+    list [dictsort [cmdline::getKnownOptions argList {{foo.arg blat} {a.arg b}}]] $argList
+} {{a b foo blat} {}}
+test cmdline-7.8 {cmdline::getKnownOptions, ignore unknown option} {
+    set argList {-unknown -foo buzz}
+    list [cmdline::getKnownOptions argList {{foo.arg blat}}] $argList
+} {{foo buzz} -unknown}
+test cmdline-7.9 {cmdline::getKnownOptions, ignore unknown option} {
+    set argList {-foo buzz -unknown}
+    list [cmdline::getKnownOptions argList {{foo.arg blat}}] $argList
+} {{foo buzz} -unknown}
+test cmdline-7.10 {cmdline::getKnownOptions, ignore unknown option with args} {
+    set argList {-unknown u1 u2 u3 -foo buzz}
+    list [cmdline::getKnownOptions argList {{foo.arg blat}}] $argList
+} {{foo buzz} {-unknown u1 u2 u3}}
+test cmdline-7.11 {cmdline::getKnownOptions, ignore unknown option with args} {
+    set argList {-foo buzz -unknown u1 u2 u3}
+    list [cmdline::getKnownOptions argList {{foo.arg blat}}] $argList
+} {{foo buzz} {-unknown u1 u2 u3}}
+test cmdline-7.12 {cmdline::getKnownOptions, errors} {
+    set argList {-a -foo}
+    list [catch {cmdline::getKnownOptions argList {{foo.arg blat} a}} msg] $msg $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-7.13 {cmdline::getKnownOptions, errors} {
+    set argList {-a -?}
+    list [catch {cmdline::getKnownOptions argList {{foo.arg blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-7.14 {cmdline::getKnownOptions, errors} {
+    set argList {-help}
+    list [catch {cmdline::getKnownOptions argList {{foo.arg blat} a}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] options:
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+test cmdline-7.15 {cmdline::getKnownOptions, usage string in errors} {
+    set argList {-help}
+    list [catch {cmdline::getKnownOptions argList {{foo.arg blat} a} {testing}} msg] $msg \
+	    $argList
+} [list 1 "[cmdline::getArgv0] testing
+ -foo value            <blat>
+ -a                   
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+" {}]
+
+testsuiteCleanup
+return

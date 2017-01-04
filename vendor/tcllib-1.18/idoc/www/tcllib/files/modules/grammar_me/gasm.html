@@ -1,0 +1,448 @@
+
+<html><head>
+<title>grammar::me::cpu::gasm - Grammar operations and usage</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'gasm.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- grammar::me::cpu::gasm.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::me::cpu::gasm(n) 0.1 tcllib &quot;Grammar operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::me::cpu::gasm - ME assembler</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">DEFINITIONS</a></li>
+<li class="doctools_section"><a href="#section3">API</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">grammar::me::cpu::gasm <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::grammar::me::cpu::gasm::begin</b> <i class="arg">g</i> <i class="arg">n</i> <span class="opt">?<i class="arg">mode</i>?</span> <span class="opt">?<i class="arg">note</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::grammar::me::cpu::gasm::done</b> <b class="const">--&gt;</b> <i class="arg">t</i></a></li>
+<li><a href="#3"><b class="cmd">::grammar::me::cpu::gasm::state</b></a></li>
+<li><a href="#4"><b class="cmd">::grammar::me::cpu::gasm::state!</b> <i class="arg">s</i></a></li>
+<li><a href="#5"><b class="cmd">::grammar::me::cpu::gasm::lift</b> <i class="arg">t</i> <i class="arg">dst</i> <b class="const">=</b> <i class="arg">src</i></a></li>
+<li><a href="#6"><b class="cmd">::grammar::me::cpu::gasm::Inline</b> <i class="arg">t</i> <i class="arg">node</i> <i class="arg">label</i></a></li>
+<li><a href="#7"><b class="cmd">::grammar::me::cpu::gasm::Cmd</b> <i class="arg">cmd</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#8"><b class="cmd">::grammar::me::cpu::gasm::Bra</b></a></li>
+<li><a href="#9"><b class="cmd">::grammar::me::cpu::gasm::Nop</b> <i class="arg">text</i></a></li>
+<li><a href="#10"><b class="cmd">::grammar::me::cpu::gasm::Note</b> <i class="arg">text</i></a></li>
+<li><a href="#11"><b class="cmd">::grammar::me::cpu::gasm::Jmp</b> <i class="arg">label</i></a></li>
+<li><a href="#12"><b class="cmd">::grammar::me::cpu::gasm::Exit</b></a></li>
+<li><a href="#13"><b class="cmd">::grammar::me::cpu::gasm::Who</b> <i class="arg">label</i></a></li>
+<li><a href="#14"><b class="cmd">::grammar::me::cpu::gasm::/Label</b> <i class="arg">name</i></a></li>
+<li><a href="#15"><b class="cmd">::grammar::me::cpu::gasm::/Clear</b></a></li>
+<li><a href="#16"><b class="cmd">::grammar::me::cpu::gasm::/Ok</b></a></li>
+<li><a href="#17"><b class="cmd">::grammar::me::cpu::gasm::/Fail</b></a></li>
+<li><a href="#18"><b class="cmd">::grammar::me::cpu::gasm::/At</b> <i class="arg">name</i></a></li>
+<li><a href="#19"><b class="cmd">::grammar::me::cpu::gasm::/CloseLoop</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a simple in-memory assembler. Its origin is that
+of a support package for use by packages converting PEG and other
+grammars into a corresponding matcher based on the ME virtual machine,
+like <b class="package">page::compiler::peg::mecpu</b>. Despite that it is actually
+mostly agnostic regarding the instructions, users can choose any
+instruction set they like.</p>
+<p>The program under construction is held in a graph structure (See
+package <b class="package"><a href="../struct/graph.html">struct::graph</a></b>) during assembly and subsequent
+manipulation, with instructions represented by nodes, and the flow of
+execution between instructions explicitly encoded in the arcs between
+them.</p>
+<p>In this model jumps are not encoded explicitly, they are implicit in
+the arcs. The generation of explicit jumps is left to any code
+converting the graph structure into a more conventional
+representation. The same goes for branches. They are implicitly
+encoded by all instructions which have two outgoing arcs, whereas all
+other instructions have only one outgoing arc. Their conditonality is
+handled by tagging their outgoing arcs with information about the
+conditions under which they are taken.</p>
+<p>While the graph the assembler operates on is supplied from the
+outside, i.e. external, it does manage some internal state, namely:</p>
+<ol class="doctools_enumerated">
+<li><p>The handle of the graph node most assembler operations will
+work on, the <i class="term">anchor</i>.</p></li>
+<li><p>A mapping from arbitrary strings to instructions. I.e. it is
+possible to <i class="term">label</i> an instruction during assembly, and later
+recall that instruction by its label.</p></li>
+<li><p>The condition code to use when creating arcs between
+instructions, which is one of <b class="const">always</b>, <b class="const">ok</b>, and
+<b class="const">fail</b>.</p></li>
+<li><p>The current operation mode, one of <b class="const">halt</b>,
+<b class="const">okfail</b>, and <b class="const">!okfail</b>.</p></li>
+<li><p>The name of a node in a tree. This, and the operation mode
+above are the parts most heavily influenced by the needs of a grammar
+compiler, as they assume some basic program structures (selected
+through the operation mode), and intertwine the graph with a tree,
+like the AST for the grammar to be compiled.</p></li>
+</ol>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">DEFINITIONS</a></h2>
+<p>As the graph the assembler is operating on, and the tree it is
+intertwined with, are supplied to the assembler from the outside it is
+necessary to specify the API expected from them, and to describe the
+structures expected and/or generated by the assembler in either.</p>
+<ol class="doctools_enumerated">
+<li><p>Any graph object command used by the assembler has to provide
+the API as specified in the documentation for the package
+<b class="package"><a href="../struct/graph.html">struct::graph</a></b>.</p></li>
+<li><p>Any tree object command used by the assembler has to provide
+the API as specified in the documentation for the package
+<b class="package"><a href="../struct/struct_tree.html">struct::tree</a></b>.</p></li>
+<li><p>Any instruction (node) generated by the assembler in a graph
+will have at least two, and at most three attributes:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">instruction</b></dt>
+<dd><p>The value of this attribute is the name of
+the instruction. The only names currently defined by the assembler are
+the three pseudo-instructions</p>
+<dl class="doctools_definitions">
+<dt><b class="const">NOP</b></dt>
+<dd><p>This instruction does nothing. Useful for fixed
+framework nodes, unchanging jump destinations, and the like. No
+arguments.</p></dd>
+<dt><b class="const">C</b></dt>
+<dd><p>A .NOP to allow the insertion of arbitrary comments
+into the instruction stream, i.e. a comment node. One argument, the
+text of the comment.</p></dd>
+<dt><b class="const">BRA</b></dt>
+<dd><p>A .NOP serving as explicitly coded conditional
+branch. No arguments.</p></dd>
+</dl>
+<p>However we reserve the space of all instructions whose names begin
+with a &quot;.&quot; (dot) for future use by the assembler.</p></dd>
+<dt><b class="const">arguments</b></dt>
+<dd><p>The value of this attribute is a list of
+strings, the arguments of the instruction. The contents are dependent
+on the actual instruction and the assembler doesn't know or care about
+them. This means for example that it has no builtin knowledge about
+what instruction need which arguments and thus doesn't perform any
+type of checking.</p></dd>
+<dt><b class="const">expr</b></dt>
+<dd><p>This attribute is optional. When it is present its
+value is the name of a node in the tree intertwined with the graph.</p></dd>
+</dl>
+</li>
+<li><p>Any arc between two instructions will have one attribute:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">condition</b></dt>
+<dd><p>The value of this attribute determines under which
+condition execution will take this arc. It is one of <b class="const">always</b>,
+<b class="const">ok</b>, and <b class="const">fail</b>. The first condition is used for all arcs
+which are the single outgoing arc of an instruction. The other two are
+used for the two outgoing arcs of an instruction which implicitly
+encode a branch.</p></dd>
+</dl>
+</li>
+<li><p>A tree node given to the assembler for cross-referencing will
+be written to and given the following attributes, some fixed, some
+dependent on the operation mode. All values will be references to
+nodes in the instruction graph. Some of the instruction will expect
+some or specific sets of these attributes.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">gas::entry</b></dt>
+<dd><p>Always written.</p></dd>
+<dt><b class="const">gas::exit</b></dt>
+<dd><p>Written for all modes but <b class="const">okfail</b>.</p></dd>
+<dt><b class="const">gas::exit::ok</b></dt>
+<dd><p>Written for mode <b class="const">okfail</b>.</p></dd>
+<dt><b class="const">gas::exit::fail</b></dt>
+<dd><p>Written for mode <b class="const">okfail</b>.</p></dd>
+</dl>
+</li>
+</ol>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::grammar::me::cpu::gasm::begin</b> <i class="arg">g</i> <i class="arg">n</i> <span class="opt">?<i class="arg">mode</i>?</span> <span class="opt">?<i class="arg">note</i>?</span></a></dt>
+<dd><p>This command starts the assembly of an instruction sequence, and
+(re)initializes the state of the assembler. After completion of the
+instruction sequence use <b class="cmd">::grammar::me::cpu::gasm::done</b> to
+finalize the assembler.</p>
+<p>It will operate on the graph <i class="arg">g</i> in the specified <i class="arg">mode</i>
+(Default is <b class="const">okfail</b>). As part of the initialization it will
+always create a standard .NOP instruction and label it &quot;entry&quot;. The
+creation of the remaining standard instructions is
+<i class="arg">mode</i>-dependent:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">halt</b></dt>
+<dd><p>An &quot;icf_halt&quot; instruction labeled &quot;exit/return&quot;.</p></dd>
+<dt><b class="const">!okfail</b></dt>
+<dd><p>An &quot;icf_ntreturn&quot; instruction labeled &quot;exit/return&quot;.</p></dd>
+<dt><b class="const">okfail</b></dt>
+<dd><p>Two .NOP instructions labeled &quot;exit/ok&quot; and
+&quot;exit/fail&quot; respectively.</p></dd>
+</dl>
+<p>The <i class="arg">note</i>, if specified (default is not), is given to the &quot;entry&quot; .NOP instruction.</p>
+<p>The node reference <i class="arg">n</i> is simply stored for use by
+<b class="cmd">::grammar::me::cpu::gasm::done</b>. It has to refer to a node in the
+tree <i class="arg">t</i> argument of that command.</p>
+<p>After the initialization is done the &quot;entry&quot; instruction will be the
+<i class="term">anchor</i>, and the condition code will be set to <b class="const">always</b>.</p>
+<p>The command returns the empy string as its result.</p></dd>
+<dt><a name="2"><b class="cmd">::grammar::me::cpu::gasm::done</b> <b class="const">--&gt;</b> <i class="arg">t</i></a></dt>
+<dd><p>This command finalizes the creation of an instruction sequence and
+then clears the state of the assembler.
+<em>NOTE</em> that this <em>does not</em> delete any of the created
+instructions. They can be made available to future begin/done cycles.
+Further assembly will be possible only after reinitialization of the
+system via <b class="cmd">::grammar::me::cpu::gasm::begin</b>.</p>
+<p>Before the state is cleared selected references to selected
+instructions will be written to attributes of the node <i class="arg">n</i> in the
+tree <i class="arg">t</i>.
+Which instructions are saved is <i class="arg">mode</i>-dependent. Both <i class="arg">mode</i>
+and the destination node <i class="arg">n</i> were specified during invokation of
+<b class="cmd">::grammar::me::cpu::gasm::begin</b>.</p>
+<p>Independent of the mode a reference to the instruction labeled &quot;entry&quot;
+will be saved to the attribute <b class="const">gas::entry</b> of <i class="arg">n</i>. The
+reference to the node <i class="arg">n</i> will further be saved into the attribute
+&quot;expr&quot; of the &quot;entry&quot; instruction. Beyond that</p>
+<dl class="doctools_definitions">
+<dt><b class="const">halt</b></dt>
+<dd><p>A reference to the instruction labeled
+&quot;exit/return&quot; will be saved to the attribute <b class="const">gas::exit</b> of
+<i class="arg">n</i>.</p></dd>
+<dt><b class="const">okfail</b></dt>
+<dd><p>See <b class="const">halt</b>.</p></dd>
+<dt><b class="const">!okfail</b></dt>
+<dd><p>Reference to the two instructions labeled
+&quot;exit/ok&quot; and &quot;exit/fail&quot; will be saved to the attributes
+<b class="const">gas::exit::ok</b> and <b class="const">gas::exit::fail</b> of <i class="arg">n</i>
+respectively.</p></dd>
+</dl>
+<p>The command returns the empy string as its result.</p></dd>
+<dt><a name="3"><b class="cmd">::grammar::me::cpu::gasm::state</b></a></dt>
+<dd><p>This command returns the current state of the assembler. Its format is
+not documented and considered to be internal to the package.</p></dd>
+<dt><a name="4"><b class="cmd">::grammar::me::cpu::gasm::state!</b> <i class="arg">s</i></a></dt>
+<dd><p>This command takes a serialized assembler state <i class="arg">s</i> as returned by
+<b class="cmd">::grammar::me::cpu::gasm::state</b> and makes it the current state
+of the assembler.</p>
+<p><em>Note</em> that this may overwrite label definitions, however all
+non-conflicting label definitions in the state before are not touched
+and merged with <i class="arg">s</i>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="5"><b class="cmd">::grammar::me::cpu::gasm::lift</b> <i class="arg">t</i> <i class="arg">dst</i> <b class="const">=</b> <i class="arg">src</i></a></dt>
+<dd><p>This command operates on the tree <i class="arg">t</i>. It copies the contents of
+the attributes <b class="const">gas::entry</b>, <b class="const">gas::exit::ok</b> and
+<b class="const">gas::exit::fail</b> from the node <i class="arg">src</i> to the node <i class="arg">dst</i>.
+It returns the empty string as its result.</p></dd>
+<dt><a name="6"><b class="cmd">::grammar::me::cpu::gasm::Inline</b> <i class="arg">t</i> <i class="arg">node</i> <i class="arg">label</i></a></dt>
+<dd><p>This command links an instruction sequence created by an earlier
+begin/done pair into the current instruction sequence.</p>
+<p>To this end it</p>
+<ol class="doctools_enumerated">
+<li><p>reads the instruction references from the attributes
+<b class="const">gas::entry</b>, <b class="const">gas::exit::ok</b>, and <b class="const">gas::exit::fail</b>
+from the node <i class="arg">n</i> of the tree <i class="arg">t</i> and makes them available to
+assembler und the labels <i class="arg">label</i>/entry, <i class="arg">label</i>/exit::ok, and
+<i class="arg">label</i>/exit::fail respectively.</p></li>
+<li><p>Creates an arc from the <i class="term">anchor</i> to the node labeled
+<i class="arg">label</i>/entry, and tags it with the current condition code.</p></li>
+<li><p>Makes the node labeled <i class="arg">label</i>/exit/ok the new <i class="term">anchor</i>.</p></li>
+</ol>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="7"><b class="cmd">::grammar::me::cpu::gasm::Cmd</b> <i class="arg">cmd</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>This is the basic command to add instructions to the graph.
+It creates a new instruction of type <i class="arg">cmd</i> with the given
+arguments <i class="arg">arg</i>...
+If the <i class="term">anchor</i> was defined it will also create an arc from the
+<i class="term">anchor</i> to the new instruction using the current condition code.
+After the call the new instruction will be the <i class="term">anchor</i> and the
+current condition code will be set to <b class="const">always</b>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="8"><b class="cmd">::grammar::me::cpu::gasm::Bra</b></a></dt>
+<dd><p>This is a convenience command to create a .BRA pseudo-instruction. It
+uses <b class="cmd">::grammar::me::cpu::gasm::Cmd</b> to actually create the
+instruction and inherits its behaviour.</p></dd>
+<dt><a name="9"><b class="cmd">::grammar::me::cpu::gasm::Nop</b> <i class="arg">text</i></a></dt>
+<dd><p>This is a convenience command to create a .NOP pseudo-instruction. It
+uses <b class="cmd">::grammar::me::cpu::gasm::Cmd</b> to actually create the
+instruction and inherits its behaviour.
+The <i class="arg">text</i> will be saved as the first and only argument of the new
+instruction.</p></dd>
+<dt><a name="10"><b class="cmd">::grammar::me::cpu::gasm::Note</b> <i class="arg">text</i></a></dt>
+<dd><p>This is a convenience command to create a .C pseudo-instruction,
+i.e. a comment. It uses <b class="cmd">::grammar::me::cpu::gasm::Cmd</b> to
+actually create the instruction and inherits its behaviour.
+The <i class="arg">text</i> will be saved as the first and only argument of the new
+instruction.</p></dd>
+<dt><a name="11"><b class="cmd">::grammar::me::cpu::gasm::Jmp</b> <i class="arg">label</i></a></dt>
+<dd><p>This command creates an arc from the <i class="term">anchor</i> to the instruction
+labeled with <i class="arg">label</i>, and tags with the the current condition
+code.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="12"><b class="cmd">::grammar::me::cpu::gasm::Exit</b></a></dt>
+<dd><p>This command creates an arc from the <i class="term">anchor</i> to one of the exit
+instructions, based on the operation mode (see
+<b class="cmd">::grammar::me::cpu::gasm::begin</b>), and tags it with current
+condition code.</p>
+<p>For mode <b class="const">okfail</b> it links to the instruction labeled either
+&quot;exit/ok&quot; or &quot;exit/fail&quot;, depending on the current condition code, and
+tagging it with the current condition code
+For the other two modes it links to the instruction labeled
+&quot;exit/return&quot;, tagging it condition code <b class="const">always</b>, independent
+the current condition code.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="13"><b class="cmd">::grammar::me::cpu::gasm::Who</b> <i class="arg">label</i></a></dt>
+<dd><p>This command returns a reference to the instruction labeled with
+<i class="arg">label</i>.</p></dd>
+<dt><a name="14"><b class="cmd">::grammar::me::cpu::gasm::/Label</b> <i class="arg">name</i></a></dt>
+<dd><p>This command labels the <i class="term">anchor</i> with <i class="arg">name</i>.
+<em>Note</em> that an instruction can have more than one label.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="15"><b class="cmd">::grammar::me::cpu::gasm::/Clear</b></a></dt>
+<dd><p>This command clears the <i class="term">anchor</i>, leaving it undefined, and
+further resets the current condition code to <b class="const">always</b>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="16"><b class="cmd">::grammar::me::cpu::gasm::/Ok</b></a></dt>
+<dd><p>This command sets the current condition code to <b class="const">ok</b>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="17"><b class="cmd">::grammar::me::cpu::gasm::/Fail</b></a></dt>
+<dd><p>This command sets the current condition code to <b class="const">fail</b>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="18"><b class="cmd">::grammar::me::cpu::gasm::/At</b> <i class="arg">name</i></a></dt>
+<dd><p>This command sets the <i class="term">anchor</i> to the instruction labeled with
+<i class="arg">name</i>, and further resets the current condition code to
+<b class="const">always</b>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+<dt><a name="19"><b class="cmd">::grammar::me::cpu::gasm::/CloseLoop</b></a></dt>
+<dd><p>This command marks the <i class="term">anchor</i> as the last instruction in a loop
+body, by creating the attribute <b class="const">LOOP</b>.</p>
+<p>The command returns the empty string as its result.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_me</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key318">assembler</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key305">graph</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key300">tree</a>, <a href="../../../../index.html#key24">virtual machine</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

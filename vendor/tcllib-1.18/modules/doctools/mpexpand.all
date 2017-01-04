@@ -1,0 +1,38 @@
+#! /bin/sh
+# -*- tcl -*- \
+exec tclsh "$0" ${1+"$@"}
+
+set here    [file dirname [file join [pwd] [info script]]]
+set verbose 0
+
+set o [lindex $argv 0]
+if {[string equal $o "-verbose"]} {
+    set verbose 1
+    set argv [lrange $argv 1 end]
+} elseif {[string equal $o ""] && [llength $argv] > 1} {
+    puts stderr "Usage: $argv0 ?-verbose? ?module?"
+    exit 1
+}
+
+set module [lindex $argv 0]
+array set fmts {
+    nroff n
+    html  html
+    tmml  tmml
+    latex tex
+}
+
+foreach fname [glob -nocomplain *.man] {
+    foreach fmt [array names fmts] {
+	set out [file rootname $fname].$fmts($fmt)
+	if {1 || $verbose} {
+	    puts "  $fname -> $out"
+	}
+	if {$module != {}} {
+	    exec [file join $here mpexpand] -module $module $fmt $fname $out
+	} else {
+	    exec [file join $here mpexpand] $fmt $fname $out
+	}
+    }
+}
+exit

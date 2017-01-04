@@ -1,0 +1,72 @@
+[vset VERSION 1.0.1]
+[manpage_begin math::calculus::symdiff n [vset VERSION]]
+[see_also math::calculus]
+[see_also math::interpolate]
+[copyright "2010 by Kevin B. Kenny <kennykb@acm.org>
+Redistribution permitted under the terms of the Open\
+Publication License <http://www.opencontent.org/openpub/>"]
+[moddesc "Symbolic differentiation for Tcl"]
+[titledesc "Symbolic differentiation for Tcl"]
+[require Tcl 8.5]
+[require grammar::aycock 1.0]
+[require math::calculus::symdiff [vset VERSION]]
+[description]
+[para]
+The [cmd math::calculus::symdiff] package provides a symbolic differentiation
+facility for Tcl math expressions. It is useful for providing derivatives
+to packages that either require the Jacobian of a set of functions or else
+are more efficient or stable when the Jacobian is provided.
+[section "Procedures"]
+The [cmd math::calculus::symdiff] package exports the two procedures:
+[list_begin definitions]
+[call [cmd math::calculus::symdiff::symdiff] [arg expression] [arg variable]]
+Differentiates the given [arg expression] with respect to the specified
+[arg variable]. (See [sectref "Expressions"] below for a discussion of the
+subset of Tcl math expressions that are acceptable to
+[cmd math::calculus::symdiff].)
+The result is a Tcl expression that evaluates the derivative. Returns an
+error if [arg expression] is not a well-formed expression or is not
+differentiable.
+[call [cmd math::calculus::jacobian] [arg variableDict]]
+Computes the Jacobian of a system of equations.
+The system is given by the dictionary [arg variableDict], whose keys
+are the names of variables in the system, and whose values are Tcl expressions
+giving the values of those variables. (See [sectref "Expressions"] below
+for a discussion of the subset of Tcl math expressions that are acceptable
+to [cmd math::calculus::symdiff]. The result is a list of lists:
+the i'th element of the j'th sublist is the partial derivative of
+the i'th variable with respect to the j'th variable. Returns an error if
+any of the expressions cannot be differentiated, or if [arg variableDict]
+is not a well-formed dictionary.
+[list_end]
+[section "Expressions"]
+The [cmd math::calculus::symdiff] package accepts only a small subset of the expressions
+that are acceptable to Tcl commands such as [cmd expr] or [cmd if].
+Specifically, the only constructs accepted are:
+[list_begin itemized]
+[item]Floating-point constants such as [const 5] or [const 3.14159e+00].
+[item]References to Tcl variable using $-substitution. The variable names
+must consist of alphanumerics and underscores: the [const \$\{...\}] notation
+is not accepted.
+[item]Parentheses.
+[item]The [const +], [const -], [const *], [const /]. and [const **]
+operators.
+[item]Calls to the functions [cmd acos], [cmd asin], [cmd atan],
+[cmd atan2], [cmd cos], [cmd cosh], [cmd exp], [cmd hypot], [cmd log],
+[cmd log10], [cmd pow], [cmd sin], [cmd sinh]. [cmd sqrt], [cmd tan],
+and [cmd tanh].
+[list_end]
+Command substitution, backslash substitution, and argument expansion are
+not accepted.
+[section "Examples"]
+[example {
+math::calculus::symdiff::symdiff {($a*$x+$b)*($c*$x+$d)} x
+==> (($c * (($a * $x) + $b)) + ($a * (($c * $x) + $d)))
+math::calculus::symdiff::jacobian {x {$a * $x + $b * $y}
+                         y {$c * $x + $d * $y}}
+==> {{$a} {$b}} {{$c} {$d}}
+}]
+
+[vset CATEGORY {math :: calculus}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

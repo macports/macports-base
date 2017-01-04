@@ -1,0 +1,214 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin docidx_lang_intro n 1.0]
+[see_also docidx_intro]
+[see_also docidx_lang_cmdref]
+[see_also docidx_lang_syntax]
+[keywords {docidx commands}]
+[keywords {docidx language}]
+[keywords {docidx markup}]
+[keywords {docidx syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {docidx language introduction}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document is an informal introduction to version 1 of the docidx
+markup language based on a multitude of examples. After reading this a
+writer should be ready to understand the two parts of the formal
+specification, i.e. the [term {docidx language syntax}] specification
+and the [term {docidx language command reference}].
+
+[subsection Fundamentals]
+
+While the [term {docidx markup language}] is quite similar to the
+[term {doctools markup language}], in the broadest terms possible,
+there is one key difference. An index consists essentially only of
+markup commands, with no plain text interspersed between them, except
+for whitespace.
+
+[para]
+
+Each markup command is a Tcl command surrounded by a matching pair of
+[const [lb]] and [const [rb]]. Inside of these delimiters the usual
+rules for a Tcl command apply with regard to word quotation, nested
+commands, continuation lines, etc. I.e.
+
+[para]
+[example {
+    ... [key {markup language}] ...
+}]
+
+[example {
+  ... [manpage thefile \\
+          {file description}] ...
+}]
+
+[subsection {Basic structure}]
+
+The most simple document which can be written in docidx is
+
+[example {
+    [index_begin GROUPTITLE TITLE]
+    [index_end]
+}]
+
+[para]
+
+Not very useful, but valid. This also shows us that all docidx
+documents consist of only one part where we will list all keys and
+their references.
+
+[para]
+
+A more useful index will contain at least keywords, or short 'keys',
+i.e. the phrases which were indexed. So:
+
+[example_begin]
+[lb]index_begin GROUPTITLE TITLE[rb]
+[lb][cmd {key markup}][rb]
+[lb][cmd {key {semantic markup}]}][rb]
+[lb][cmd {key {docidx markup}}][rb]
+[lb][cmd {key {docidx language}}][rb]
+[lb][cmd {key {docidx commands}}][rb]
+[lb]index_end[rb]
+[example_end]
+
+[para]
+
+In the above example the command [cmd key] is used to declare the
+keyword phrases we wish to be part of the index.
+
+[para]
+
+However a truly useful index does not only list the keyword phrases,
+but will also contain references to documents associated with the
+keywords. Here is a made-up index for all the manpages in the module
+[term base64]:
+
+[example_begin]
+[lb]index_begin tcllib/base64 {De- & Encoding}[rb]
+[lb]key base64[rb]
+[lb][cmd {manpage base64}][rb]
+[lb]key encoding[rb]
+[lb][cmd {manpage base64}][rb]
+[lb][cmd {manpage uuencode}][rb]
+[lb][cmd {manpage yencode}][rb]
+[lb]key uuencode[rb]
+[lb][cmd {manpage uuencode}][rb]
+[lb]key yEnc[rb]
+[lb][cmd {manpage yencode}][rb]
+[lb]key ydecode[rb]
+[lb][cmd {manpage yencode}][rb]
+[lb]key yencode[rb]
+[lb][cmd {manpage yencode}][rb]
+[lb]index_end[rb]
+[example_end]
+
+[para]
+
+In the above example the command [cmd manpage] is used to insert
+references to documents, using symbolic file names, with each command
+belonging to the last [cmd key] command coming before it.
+
+[para]
+
+The other command to insert references is [cmd url]. In contrast to
+[cmd manpage] it uses explicit (possibly format-specific) urls to
+describe the location of the referenced document. As such this command
+is intended for the creation of references to external documents which
+could not be handled in any other way.
+
+[subsection {Advanced structure}]
+
+In all previous examples we fudged a bit regarding the markup actually
+allowed to be used before the [cmd index_begin] command opening the
+document.
+
+[para]
+
+Instead of only whitespace the two templating commands [cmd include]
+and [cmd vset] are also allowed, to enable the writer to either set
+and/or import configuration settings relevant to the table of
+contents. I.e. it is possible to write
+
+[example_begin]
+[lb][cmd {include FILE}][rb]
+[lb][cmd {vset VAR VALUE}][rb]
+[lb]index_begin GROUPTITLE TITLE[rb]
+...
+[lb]index_end[rb]
+[example_end]
+
+Even more important, these two commands are allowed anywhere where a
+markup command is allowed, without regard for any other
+structure.
+
+[example_begin]
+[lb]index_begin GROUPTITLE TITLE[rb]
+[lb][cmd {include FILE}][rb]
+[lb][cmd {vset VAR VALUE}][rb]
+...
+[lb]index_end[rb]
+[example_end]
+
+The only restriction [cmd include] has to obey is that the contents of
+the included file must be valid at the place of the inclusion. I.e. a
+file included before [cmd index_begin] may contain only the templating
+commands [cmd vset] and [cmd include], a file included after a key
+may contain only manape or url references, and other keys, etc.
+
+[subsection Escapes]
+
+Beyond the 6 commands shown so far we have two more available.
+
+However their function is not the marking up of index structure, but
+the insertion of characters, namely [const [lb]] and [const [rb]].
+
+These commands, [cmd lb] and [cmd rb] respectively, are required
+because our use of [lb] and [rb] to bracket markup commands makes it
+impossible to directly use [lb] and [rb] within the text.
+
+[para]
+
+Our example of their use are the sources of the last sentence in the
+previous paragraph, with some highlighting added.
+
+[example_begin]
+  ...
+  These commands, [lb]cmd lb[rb] and [lb]cmd lb[rb] respectively, are required
+  because our use of [lb][cmd lb][rb] and [lb][cmd rb][rb] to bracket markup commands makes it
+  impossible to directly use [lb][cmd lb][rb] and [lb][cmd rb][rb] within the text.
+  ...
+[example_end]
+
+[section {FURTHER READING}]
+
+Now that this document has been digested the reader, assumed to be a
+[term writer] of documentation should be fortified enough to be able
+to understand the formal [term {docidx language syntax}]
+specification as well. From here on out the
+[term {docidx language command reference}] will also serve as the
+detailed specification and cheat sheet for all available commands and
+their syntax.
+
+[para]
+
+To be able to validate a document while writing it, it is also
+recommended to familiarize oneself with Tclapps' ultra-configurable
+[syscmd dtp].
+
+[para]
+
+On the other hand, docidx is perfectly suited for the automatic
+generation from doctools documents, and this is the route Tcllib's
+easy and simple [syscmd dtplite] goes, creating an index for a set of
+documents behind the scenes, without the writer having to do so on
+their own.
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

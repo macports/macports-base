@@ -1,0 +1,409 @@
+
+<div class='fossil-doc' data-title='hook - Hooks'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">hook(n) 0.1 tcllib &quot;Hooks&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>hook - Hooks</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Concepts</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Introduction</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Bindings</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Subjects and observers</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Reference</a></li>
+<li class="doctools_section"><a href="#section4">Example</a></li>
+<li class="doctools_section"><a href="#section5">Credits</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">hook <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">hook</b> <b class="method">bind</b> <span class="opt">?<i class="arg">subject</i>?</span> <span class="opt">?<i class="arg">hook</i>?</span> <span class="opt">?<i class="arg">observer</i>?</span> <span class="opt">?<i class="arg">cmdPrefix</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">hook</b> <b class="method">call</b> <i class="arg">subject</i> <i class="arg">hook</i> <span class="opt">?<i class="arg">args</i>...?</span></a></li>
+<li><a href="#3"><b class="cmd">hook</b> <b class="method">forget</b> <i class="arg">object</i></a></li>
+<li><a href="#4"><b class="cmd">hook</b> <b class="method">cget</b> <i class="arg">option</i></a></li>
+<li><a href="#5"><b class="cmd">hook</b> <b class="method">configure</b> <b class="option">option</b> <i class="arg">value</i> ...</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides the <b class="cmd">hook</b> ensemble command, which
+implements the Subject/Observer pattern. It allows <i class="term">subjects</i>,
+which may be <i class="term">modules</i>, <i class="term">objects</i>, <i class="term">widgets</i>, and so
+forth, to synchronously call <i class="term">hooks</i> which may be bound to an
+arbitrary number of subscribers, called <i class="term">observers</i>. A subject
+may call any number of distinct hooks, and any number of observers can
+bind callbacks to a particular hook called by a particular
+subject. Hook bindings can be queried and deleted.</p>
+<p>This man page is intended to be a reference only.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Concepts</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Introduction</a></h3>
+<p>Tcl modules usually send notifications to other modules in two ways:
+via Tk events, and via callback options like the text widget's
+<b class="option">-yscrollcommand</b> option. Tk events are available only in Tk,
+and callback options require tight coupling between the modules
+sending and receiving the notification.</p>
+<p>Loose coupling between sender and receiver is often desirable,
+however.  In Model/View/Controller terms, a View can send a command
+(stemming from user input) to the Controller, which updates the
+Model. The Model can then call a hook <em>to which all relevant
+Views subscribe.</em> The Model is decoupled from the Views, and indeed
+need not know whether any Views actually exist.
+At present, Tcl/Tk has no standard mechanism for implementing loose
+coupling of this kind. This package defines a new command, <b class="cmd">hook</b>,
+which implements just such a mechanism.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Bindings</a></h3>
+<p>The <b class="cmd">hook</b> command manages a collection of hook bindings. A hook
+binding has four elements:</p>
+<ol class="doctools_enumerated">
+<li><p>A <i class="term"><a href="../../../../index.html#key677">subject</a></i>: the name of the entity that will be calling the
+hook.</p></li>
+<li><p>The <i class="term"><a href="../../../../index.html#key679">hook</a></i> itself. A hook usually reflects some occurrence in the
+life of the <i class="term"><a href="../../../../index.html#key677">subject</a></i> that other entities might care to know
+about. A <i class="term"><a href="../../../../index.html#key679">hook</a></i> has a name, and may also have arguments. Hook
+names are arbitrary strings. Each <i class="term"><a href="../../../../index.html#key677">subject</a></i> must document the
+names and arguments of the hooks it can call.</p></li>
+<li><p>The name of the <i class="term"><a href="../../../../index.html#key649">observer</a></i> that wishes to receive the <i class="term"><a href="../../../../index.html#key679">hook</a></i>
+from the <i class="term"><a href="../../../../index.html#key677">subject</a></i>.</p></li>
+<li><p>A command prefix to which the <i class="term"><a href="../../../../index.html#key679">hook</a></i> arguments will be appended
+when the binding is executed.</p></li>
+</ol>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Subjects and observers</a></h3>
+<p>For convenience, this document collectively refers to subjects and
+observers as <i class="term">objects</i>, while placing no requirements on how
+these <i class="term">objects</i> are actually implemented. An object can be a
+<b class="package"><a href="../../../../index.html#key756">TclOO</a></b> or <b class="package"><a href="../../../../index.html#key797">Snit</a></b> or <b class="package">XOTcl</b> object, a Tcl
+command, a namespace, a module, a pseudo-object managed by some other
+object (as tags are managed by the Tk text widget) or simply a
+well-known name.</p>
+<p>Subject and observer names are arbitrary strings; however, as
+<b class="cmd">hook</b> might be used at the package level, it's necessary to have
+conventions that avoid name collisions between packages written by
+different people.</p>
+<p>Therefore, any subject or observer name used in core or package level
+code should look like a Tcl command name, and should be defined in a
+namespace owned by the package. Consider, for example, an ensemble
+command <b class="cmd">::foo</b> that creates a set of pseudo-objects and uses
+<b class="package">hook</b> to send notifications. The pseudo-objects have names
+that are not commands and exist in their own namespace, rather like
+file handles do. To avoid name collisions with subjects defined by
+other packages, users of <b class="package">hook</b>, these <b class="cmd">::foo</b> handles
+should have names like <b class="const">::foo::1</b>, <b class="const">::foo::2</b>, and so on.</p>
+<p>Because object names are arbitrary strings, application code can use
+whatever additional conventions are dictated by the needs of the
+application.</p>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Reference</a></h2>
+<p>Hook provides the following commands:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">hook</b> <b class="method">bind</b> <span class="opt">?<i class="arg">subject</i>?</span> <span class="opt">?<i class="arg">hook</i>?</span> <span class="opt">?<i class="arg">observer</i>?</span> <span class="opt">?<i class="arg">cmdPrefix</i>?</span></a></dt>
+<dd><p>This subcommand is used to create, update, delete, and query hook
+bindings.</p>
+<p>Called with no arguments it returns a list of the subjects with
+hooks to which observers are currently bound.</p>
+<p>Called with one argument, a <i class="arg">subject</i>, it returns a list of
+the subject's hooks to which observers are currently bound.</p>
+<p>Called with two arguments, a <i class="arg">subject</i> and a <i class="arg">hook</i>, it
+returns a list of the observers which are currently bound to this
+<i class="arg">subject</i> and <i class="arg">hook</i>.</p>
+<p>Called with three arguments, a <i class="arg">subject</i>, a <i class="arg">hook</i>, and
+an <i class="arg">observer</i>, it returns the binding proper, the command prefix
+to be called when the hook is called, or the empty string if there is
+no such binding.</p>
+<p>Called with four arguments, it creates, updates, or deletes a
+binding. If <i class="arg">cmdPrefix</i> is the empty string, it deletes any
+existing binding for the <i class="arg">subject</i>, <i class="arg">hook</i>, and
+<i class="arg">observer</i>; nothing is returned. Otherwise, <i class="arg">cmdPrefix</i> must
+be a command prefix taking as many additional arguments as are
+documented for the <i class="arg">subject</i> and <i class="arg">hook</i>. The binding is added
+or updated, and the observer is returned.</p>
+<p>If the <i class="arg">observer</i> is the empty string, &quot;&quot;, it will create a
+new binding using an automatically generated observer name of the form
+<b class="const">::hook::ob</b>&lt;<b class="variable">number</b>&gt;. The automatically generated name
+will be returned, and can be used to query, update, and delete the
+binding as usual. If automated observer names are always used, the
+observer name effectively becomes a unique binding ID.</p>
+<p>It is possible to call <b class="cmd">hook bind</b> to create or delete a
+binding to a <i class="arg">subject</i> and <i class="arg">hook</i> while in an observer binding
+for that same <i class="arg">subject</i> and <i class="arg">hook</i>. The following rules
+determine what happens when</p>
+<pre class="doctools_example">
+    hook bind $s $h $o $binding
+</pre>
+<p>is called during the execution of</p>
+<pre class="doctools_example">
+    hook call $s $h
+</pre>
+<ol class="doctools_enumerated">
+<li><p>No binding is ever called after it is deleted.</p></li>
+<li><p>When a binding is called, the most recently given command prefix is
+always used.</p></li>
+<li><p>The set of observers whose bindings are to be called is determined
+when this method begins to execute, and does not change thereafter,
+except that deleted bindings are not called.</p></li>
+</ol>
+<p>In particular:</p>
+<ol class="doctools_enumerated">
+<li><p>If <b class="variable">$o</b>s binding to <b class="variable">$s</b> and <b class="variable">$h</b> is deleted, and
+<b class="variable">$o</b>s binding has not yet been called during this execution of</p>
+<pre class="doctools_example">
+    hook call $s $h
+</pre>
+<p>it will not be called. (Note that it might already have been called;
+and in all likelihood, it is probably deleting itself.)</p></li>
+<li><p>If <b class="variable">$o</b> changes the command prefix that's bound to <b class="variable">$s</b> and
+<b class="variable">$h</b>, and if <b class="variable">$o</b>s binding has not yet been called during
+this execution of</p>
+<pre class="doctools_example">
+    hook call $s $h
+</pre>
+<p>the new binding will be called when the time comes. (But again, it is
+probably <b class="variable">$o</b>s binding that is is making the change.)</p></li>
+<li><p>If a new observer is bound to <b class="variable">$s</b> and <b class="variable">$h</b>, its binding will
+not be called until the next invocation of</p>
+<pre class="doctools_example">
+    hook call $s $h
+</pre>
+</li>
+</ol></dd>
+<dt><a name="2"><b class="cmd">hook</b> <b class="method">call</b> <i class="arg">subject</i> <i class="arg">hook</i> <span class="opt">?<i class="arg">args</i>...?</span></a></dt>
+<dd><p>This command is called when the named <i class="arg">subject</i> wishes to call the
+named <i class="arg">hook</i>. All relevant bindings are called with the specified
+arguments in the global namespace. Note that the bindings are called
+synchronously, before the command returns; this allows the <i class="arg">args</i>
+to include references to entities that will be cleaned up as soon as
+the hook has been called.</p>
+<p>The order in which the bindings are called is not guaranteed. If
+sequence among observers must be preserved, define one observer and
+have its bindings call the other callbacks directly in the proper
+sequence.</p>
+<p>Because the <b class="cmd">hook</b> mechanism is intended to support loose
+coupling, it is presumed that the <i class="arg">subject</i> has no knowledge of
+the observers, nor any expectation regarding return values. This has a
+number of implications:</p>
+<ol class="doctools_enumerated">
+<li><p><b class="cmd">hook call</b> returns the empty string.</p></li>
+<li><p>Normal return values from observer bindings are ignored.</p></li>
+<li><p>Errors and other exceptional returns propagate normally by
+default. This will rarely be what is wanted, because the subjects
+usually have no knowledge of the observers and will therefore have no
+particular competence at handling their errors. That makes it an
+application issue, and so applications will usually want to define an
+<b class="option">-errorcommand</b>.</p></li>
+</ol>
+<p>If the <b class="option">-errorcommand</b> configuration option has a non-empty
+value, its value will be invoked for all errors and other exceptional
+returns in observer bindings. See <b class="cmd">hook configure</b>, below, for
+more information on configuration options.</p></dd>
+<dt><a name="3"><b class="cmd">hook</b> <b class="method">forget</b> <i class="arg">object</i></a></dt>
+<dd><p>This command deletes any existing bindings in which the named
+<i class="arg">object</i> appears as either the <i class="term"><a href="../../../../index.html#key677">subject</a></i> or the
+<i class="term"><a href="../../../../index.html#key649">observer</a></i>.
+Bindings deleted by this method will never be called again. In
+particular,</p>
+<ol class="doctools_enumerated">
+<li><p>If an observer is forgotten during a call to <b class="cmd">hook call</b>, any
+uncalled binding it might have had to the relevant subject and hook
+will <em>not</em> be called subsequently.</p></li>
+<li><p>If a subject <b class="variable">$s</b> is forgotten during a call to</p>
+<pre class="doctools_example">hook call $s $h</pre>
+<p>then <b class="cmd">hook call</b> will return as soon as the current binding
+returns.  No further bindings will be called.</p></li>
+</ol></dd>
+<dt><a name="4"><b class="cmd">hook</b> <b class="method">cget</b> <i class="arg">option</i></a></dt>
+<dd><p>This command returns the value of one of the <b class="cmd">hook</b> command's
+configuration options.</p></dd>
+<dt><a name="5"><b class="cmd">hook</b> <b class="method">configure</b> <b class="option">option</b> <i class="arg">value</i> ...</a></dt>
+<dd><p>This command sets the value of one or more of the <b class="cmd">hook</b> command's
+configuration options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-errorcommand</b> <i class="arg">cmdPrefix</i></dt>
+<dd><p>If the value of this option is the empty string, &quot;&quot;, then errors
+and other exception returns in binding scripts are propagated
+normally. Otherwise, it must be a command prefix taking three
+additional arguments:</p>
+<ol class="doctools_enumerated">
+<li><p>a 4-element list {subject hook arglist observer},</p></li>
+<li><p>the result string, and</p></li>
+<li><p>the return options dictionary.</p></li>
+</ol>
+<p>Given this information, the <b class="option">-errorcommand</b> can choose to log
+the error, call <b class="cmd">interp bgerror</b>, delete the errant binding
+(thus preventing the error from arising a second time) and so forth.</p></dd>
+<dt><b class="option">-tracecommand</b> <i class="arg">cmdPrefix</i></dt>
+<dd><p>The option's value should be a command prefix taking four
+arguments:</p>
+<ol class="doctools_enumerated">
+<li><p>a <i class="term"><a href="../../../../index.html#key677">subject</a></i>,</p></li>
+<li><p>a <i class="term"><a href="../../../../index.html#key679">hook</a></i>,</p></li>
+<li><p>a list of the hook's argument values, and</p></li>
+<li><p>a list of <i class="term">objects</i> the hook was called for.</p></li>
+</ol>
+<p>The command will be called for each hook that is called. This allows
+the application to trace hook execution for debugging purposes.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Example</a></h2>
+<p>The <b class="cmd">::model</b> module calls the &lt;Update&gt; hook in response to
+commands that change the model's data:</p>
+<pre class="doctools_example">
+     hook call ::model &lt;Update&gt;
+</pre>
+<p>The <b class="widget">.view</b> megawidget displays the model state, and needs to
+know about model updates. Consequently, it subscribes to the ::model's
+&lt;Update&gt; hook.</p>
+<pre class="doctools_example">
+     hook bind ::model &lt;Update&gt; .view [list .view ModelUpdate]
+</pre>
+<p>When the <b class="cmd">::model</b> calls the hook, the <b class="widget">.view</b>s
+ModelUpdate subcommand will be called.</p>
+<p>Later the <b class="widget">.view</b> megawidget is destroyed. In its destructor,
+it tells the <i class="term"><a href="../../../../index.html#key679">hook</a></i> that it no longer exists:</p>
+<pre class="doctools_example">
+     hook forget .view
+</pre>
+<p>All bindings involving <b class="widget">.view</b> are deleted.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Credits</a></h2>
+<p>Hook has been designed and implemented by William H. Duquette.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>hook</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../uev/uevent.html">uevent(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key539">callback</a>, <a href="../../../../index.html#key541">event</a>, <a href="../../../../index.html#key679">hook</a>, <a href="../../../../index.html#key649">observer</a>, <a href="../../../../index.html#key678">producer</a>, <a href="../../../../index.html#key680">publisher</a>, <a href="../../../../index.html#key677">subject</a>, <a href="../../../../index.html#key676">subscriber</a>, <a href="../../../../index.html#key681">uevent</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2010, by William H. Duquette</p>
+</div>
+</div>

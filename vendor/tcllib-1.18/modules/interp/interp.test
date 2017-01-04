@@ -1,0 +1,127 @@
+# -*- tcl -*-
+# interp.test:  tests for the interp alias and creation utilities
+#
+# Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+support {
+    use snit/snit.tcl   snit
+}
+testing {
+    useLocal interp.tcl interp
+}
+
+# -------------------------------------------------------------------------
+
+test interp-1.0 {wrong#args} {
+    catch {interp::createEmpty a b} msg
+    set msg
+} {wrong#args: Expected ?path?}
+
+# -------------------------------------------------------------------------
+
+test interp-2.0 {auto naming, empty} {
+    set i [interp::createEmpty]
+    catch {$i eval {set x}} msg
+    interp delete $i
+    set msg
+} {invalid command name "set"}
+
+test interp-2.1 {explicit naming, empty} {
+    set i [interp::createEmpty A]
+    catch {$i eval {set x}} msg
+    interp delete $i
+    list $i $msg
+} {A {invalid command name "set"}}
+
+# -------------------------------------------------------------------------
+
+test interp-3.0 {wrong#args} {
+    catch {interp::snitLink} msg
+    set msg
+} [tcltest::wrongNumArgs interp::snitLink {path methods} 0]
+
+test interp-3.1 {wrong#args} {
+    catch {interp::snitLink a} msg
+    set msg
+} [tcltest::wrongNumArgs interp::snitLink {path methods} 1]
+
+test interp-3.2 {wrong#args} {
+    catch {interp::snitLink a b c} msg
+    set msg
+} [tcltest::tooManyArgs interp::snitLink {path methods}]
+
+test interp-3.3 {create, test redirection} {
+    res!
+    snit::type foo {
+	variable i
+	constructor {} {
+	    set i [interp::createEmpty]
+	    interp::snitLink $i Duck
+	}
+	method Duck {} {
+	    res+ Ducking
+	}
+	method ho {} {$i eval Duck}
+    }
+    set i [foo %AUTO%]
+    $i ho
+    $i destroy
+    foo destroy
+    res?
+} Ducking
+
+# -------------------------------------------------------------------------
+
+test interp-4.0 {wrong#args} {
+    catch {interp::snitDictLink} msg
+    set msg
+} [tcltest::wrongNumArgs interp::snitDictLink {path methoddict} 0]
+
+test interp-4.1 {wrong#args} {
+    catch {interp::snitDictLink a} msg
+    set msg
+} [tcltest::wrongNumArgs interp::snitDictLink {path methoddict} 1]
+
+test interp-4.2 {wrong#args} {
+    catch {interp::snitDictLink a b c} msg
+    set msg
+} [tcltest::tooManyArgs interp::snitDictLink {path methoddict}]
+
+test interp-4.3 {create, test redirection} {
+    res!
+    snit::type foo {
+	variable i
+	constructor {} {
+	    set i [interp::createEmpty]
+	    interp::snitDictLink $i {
+		Wail  {The wailer}
+		Quack {The duck}
+	    }
+	}
+	method The {what} {
+	    res+ $what
+	}
+	method ho {sound} {$i eval $sound}
+    }
+    set i [foo %AUTO%]
+    $i ho Quack
+    $i ho Wail
+    $i destroy
+    foo destroy
+    res?
+} {duck wailer}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

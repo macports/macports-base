@@ -1,0 +1,367 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: find.test,v 1.7 2007/10/24 19:28:36 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocalFile find.setup
+}
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+
+test find-1.1 {standard recursive find} {macOrUnix} {
+    f_setup
+    set res [lsort [fileutil::find [tempPath {find 1}]]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2}] \
+	[tempPath {find 1/find 2/file* 2}]]
+
+test find-1.2 {standard recursive find} {win} {
+    f_setup
+    set res [lsort [fileutil::find [tempPath {find 1}]]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2}]]
+
+test find-1.3 {find directories} {
+    f_setup
+    set res [fileutil::find [tempPath {find 1}] {file isdirectory}]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/find 2}]]
+
+test find-1.4 {find files bigger than a given size} {macOrUnix} {
+    f_setup
+    set res [fileutil::find [tempPath {find 1}] {fileIsBiggerThan 1}]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/find 2/file* 2}]]
+
+# Find has to skip '{file 3}', in the sense that the path should be in
+# the output, but it must not be expanded further. Two tests, one for
+# all versions of Tcl (8.2+), but only unix, and one for windows,
+# restricted to Tcl 8.4+.
+
+test find-1.5.0 {handling of circular links} {unix} {
+    f_setupcircle
+    set res [lsort [fileutil::find [tempPath {find 1}]]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2}] \
+	[tempPath {find 1/find 2/file 3}] \
+	[tempPath {find 1/find 2/file* 2}]]
+
+test find-1.5.1 {handling of circular links} {win tcl8.4plus} {
+    f_setupcircle
+    set res [lsort [fileutil::find [tempPath {find 1}]]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2}] \
+	[tempPath {find 1/find 2/file 3}]]
+
+test find-1.6 {find file} {
+    f_setup
+    set res [::fileutil::find [tempPath {find 1/file [1]}]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}]]
+
+test find-1.7 {find file with filter} {
+    f_setup
+    set res [::fileutil::find [tempPath {find 1/file [1]}] {file isfile}]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}]]
+
+test find-1.8 {find file with filter - negative} {
+    f_setup
+    set res [::fileutil::find [tempPath {find 1/file [1]}] {file isdirectory}]
+    f_cleanup
+    set res
+} {}
+
+# Behaviour of find with regard to dot-files.
+
+test find-1.9 {find file dot-files} {
+    f_setupdot
+    set res [lsort [::fileutil::find [tempPath dotfiles]]]
+    f_cleanupdot
+    set res
+} [list [tempPath dotfiles/.foo] \
+	[tempPath dotfiles/foo]]
+
+
+# Find has to skip '{file 3}', in the sense that the path should be in
+# the output, but it cannot be expanded further, being a broken
+# link. Two tests, one for all versions of Tcl (8.2+), but only unix,
+# and one for windows, restricted to Tcl 8.4+.
+
+test find-1.10.0 {handling of broken links} {unix} {
+    f_setupbroken
+    set res [lsort [fileutil::find [tempPath {find 1}]]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2}] \
+	[tempPath {find 1/find 2/file 3}] \
+	[tempPath {find 1/find 2/file* 2}]]
+
+test find-1.10.1 {handling of broken links} {win tcl8.4plus} {
+    f_setupbroken
+    set res [lsort [fileutil::find [tempPath {find 1}]]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2}] \
+	[tempPath {find 1/find 2/file 3}]]
+
+
+test find-1.11.0 {find result, circular links, unix} -setup {
+    f_setupcircle3
+} -constraints unix -body {
+    join [lsort [fileutil::find [tempPath z]]] \n
+} -cleanup {
+    f_cleanup3
+} -result [join [pathmap \
+		     z/a z/a/c z/a/c/g z/a/c/h z/a/c/h/e z/a/c/h/f \
+		     z/a/c/i z/a/d z/b z/b/e z/b/e/g z/b/e/g/c z/b/e/g/d \
+		     z/b/e/h z/b/e/i z/b/f] \n]
+
+test find-1.11.1 {find result, circular links, windows, 8.4+} -setup {
+    f_setupcircle3
+} -constraints {win tcl8.4plus} -body {
+    join [lsort [fileutil::find [tempPath z]]] \n
+} -cleanup {
+    f_cleanup3
+} -result [join [pathmap \
+		     z/a z/a/c z/a/c/g z/a/c/h z/a/c/h/e z/a/c/h/f \
+		     z/a/c/i z/a/d z/b z/b/e z/b/e/g z/b/e/g/c z/b/e/g/d \
+		     z/b/e/h z/b/e/i z/b/f] \n]
+
+# -------------------------------------------------------------------------
+
+test find-1.12.0 {Traverse pathological circularity, unix} -setup {
+    f_setup_crossindex
+} -constraints unix -body {
+    join [lsort [fileutil::find [tempPath s]]] \n
+} -cleanup {
+    f_cleanup_crossindex
+} -result [join [pathmap       \
+		     s/c         \
+		     s/c/t        \
+		     s/c/t/t0      \
+		     s/c/t/t0/b     \
+		     s/c/t/t0/s     \
+		     s/c/t/t1       \
+		     s/c/t/t1/b     \
+		     s/c/t/t1/s     \
+		     s/c/t/t2       \
+		     s/c/t/t2/b     \
+		     s/c/t/t2/s     \
+		     s/d            \
+		     s/d/t0         \
+		     s/d/t0/b       \
+		     s/d/t0/s       \
+		     s/d/t0/s/t0    \
+		     s/d/t0/s/t1    \
+		     s/d/t0/s/t1/b  \
+		     s/d/t0/s/t1/s  \
+		     s/d/t0/s/t2    \
+		     s/d/t0/s/t2/b  \
+		     s/d/t0/s/t2/s  \
+		     s/d/t1         \
+		     s/d/t1/b       \
+		     s/d/t1/s       \
+		     s/d/t1/s/t0    \
+		     s/d/t1/s/t0/b  \
+		     s/d/t1/s/t0/s  \
+		     s/d/t1/s/t1    \
+		     s/d/t1/s/t2    \
+		     s/d/t1/s/t2/b  \
+		     s/d/t1/s/t2/s  \
+		     s/d/t2         \
+		     s/d/t2/b       \
+		     s/d/t2/s       \
+		     s/d/t2/s/t0    \
+		     s/d/t2/s/t0/b  \
+		     s/d/t2/s/t0/s  \
+		     s/d/t2/s/t1    \
+		     s/d/t2/s/t1/b  \
+		     s/d/t2/s/t1/s  \
+		     s/d/t2/s/t2    \
+		    ] \n]
+
+test find-1.12.1 {Traverse pathological circularity, windows, 8.4+} -setup {
+    f_setup_crossindex
+} -constraints {win tcl8.4plus} -body {
+    join [lsort [fileutil::find [tempPath s]]] \n
+} -cleanup {
+    f_cleanup_crossindex
+} -result [join [pathmap       \
+		     s/c         \
+		     s/c/t        \
+		     s/c/t/t0      \
+		     s/c/t/t0/b     \
+		     s/c/t/t0/s     \
+		     s/c/t/t1       \
+		     s/c/t/t1/b     \
+		     s/c/t/t1/s     \
+		     s/c/t/t2       \
+		     s/c/t/t2/b     \
+		     s/c/t/t2/s     \
+		     s/d            \
+		     s/d/t0         \
+		     s/d/t0/b       \
+		     s/d/t0/s       \
+		     s/d/t0/s/t0    \
+		     s/d/t0/s/t1    \
+		     s/d/t0/s/t1/b  \
+		     s/d/t0/s/t1/s  \
+		     s/d/t0/s/t2    \
+		     s/d/t0/s/t2/b  \
+		     s/d/t0/s/t2/s  \
+		     s/d/t1         \
+		     s/d/t1/b       \
+		     s/d/t1/s       \
+		     s/d/t1/s/t0    \
+		     s/d/t1/s/t0/b  \
+		     s/d/t1/s/t0/s  \
+		     s/d/t1/s/t1    \
+		     s/d/t1/s/t2    \
+		     s/d/t1/s/t2/b  \
+		     s/d/t1/s/t2/s  \
+		     s/d/t2         \
+		     s/d/t2/b       \
+		     s/d/t2/s       \
+		     s/d/t2/s/t0    \
+		     s/d/t2/s/t0/b  \
+		     s/d/t2/s/t0/s  \
+		     s/d/t2/s/t1    \
+		     s/d/t2/s/t1/b  \
+		     s/d/t2/s/t1/s  \
+		     s/d/t2/s/t2    \
+		    ] \n]
+
+# -------------------------------------------------------------------------
+
+test find-2.0 {find by pattern} {
+    list [catch {
+        ::fileutil::findByPattern [tempPath {}] -glob {fil*} foo
+    } err] $err
+} {1 {wrong#args for "::fileutil::findByPattern", should be "::fileutil::findByPattern basedir ?-regexp|-glob? ?--? patterns"}}
+
+test find-2.1 {find by pattern} {
+    list [catch {
+        ::fileutil::findByPattern [tempPath {}] -glob
+    } err] $err
+} {1 {wrong#args for "::fileutil::findByPattern", should be "::fileutil::findByPattern basedir ?-regexp|-glob? ?--? patterns"}}
+
+test find-2.2 {find by pattern} {macOrUnix} {
+    f_setupcircle
+    set res [lsort [::fileutil::findByPattern [tempPath {find 1}] -glob {fil*}]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}] \
+	[tempPath {find 1/find 2/file 3}] \
+	[tempPath {find 1/find 2/file* 2}]]
+
+test find-2.3 {find by pattern} {win} {
+    f_setup
+    set res [lsort [::fileutil::findByPattern [tempPath {find 1}] -glob {fil*}]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}]]
+
+test find-2.4 {find by pattern} {
+    f_setup
+    set res [lsort [::fileutil::findByPattern [tempPath {find 1}] -regexp {.*\\[1\\]$}]]
+    f_cleanup
+    set res
+} [list [tempPath {find 1/file [1]}]]
+
+# -------------------------------------------------------------------------
+
+test find-3.0 {inaccessible directory} {unix notRoot} {
+    f_setupnostat
+    set res [lsort [fileutil::find [tempPath find3]]]
+    f_cleanupnostat
+    set res
+} [list [tempPath find3/find4]]
+
+test find-3.1 {inaccessible directory} {unix notRoot} {
+    f_setupnostat
+    set res [lsort [fileutil::find [tempPath find3/find4]]]
+    f_cleanupnostat
+    set res
+} {}
+
+# -------------------------------------------------------------------------
+
+test find-sf-3147481-0 {unreadable directory} {notRoot} {
+    f_setupnoread
+    set res [lsort [fileutil::find [tempPath find3]]]
+    f_cleanupnoread
+    set res
+} [list [tempPath find3/find4]]
+
+test find-sf-3147481-1 {unreadable directory} {notRoot} {
+    f_setupnoread
+    set res [lsort [fileutil::find [tempPath find3/find4]]]
+    f_cleanupnoread
+    set res
+} {}
+
+# -------------------------------------------------------------------------
+
+proc rec {f} {
+    # Documented filter API:
+    # f   = unqualified filename,
+    # pwd = directory the file is in.
+    global  res
+    lappend res [list [pwd] $f]
+    return 1
+}
+
+test find-4.0 {find file with filter, filter API} {
+    f_setup
+    set res {}
+    ::fileutil::find [tempPath {find 1}] rec
+    f_cleanup
+    lsort $res
+} [list \
+       [list [tempPath {find 1/find 2}] {file* 2}]  \
+       [list [tempPath {find 1}]        {file [1]}] \
+       [list [tempPath {find 1}]        {find 2}]   \
+      ]
+#            pwd                        fname
+
+# -------------------------------------------------------------------------
+
+f_cleanall
+testsuiteCleanup
+return

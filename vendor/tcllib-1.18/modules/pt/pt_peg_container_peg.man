@@ -1,0 +1,22 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::peg::container::peg n 1]
+[include include/module.inc]
+[titledesc {PEG Storage. Canned PEG grammar specification}]
+[require snit]
+[require pt::peg::container::peg [opt 1]]
+[require pt::peg::container]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a sub-type of [package pt::peg::container] which
+is preloaded with a parsing expression grammar describing a textual
+format for parsing expression grammars.
+
+[para]
+
+The sub-type provides the exact same API as
+[package pt::peg::container]. Instead of duplicating its contents the
+reader is asked to read the referenced document.
+
+[include include/feedback.inc]
+[manpage_end]

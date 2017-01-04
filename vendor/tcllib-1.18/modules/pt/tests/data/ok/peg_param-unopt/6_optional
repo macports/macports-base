@@ -1,0 +1,37 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<MAIN>>:
+         call              optional_3
+         halt
+
+
+optional_3:
+# ?
+#     'a'
+
+         loc_push
+         error_push
+
+         call              char_1
+
+         error_pop_merge
+   fail! loc_pop_rewind
+     ok! loc_pop_discard
+         status_ok
+         return
+
+char_1:
+# 'a'
+
+         input_next        "t a"
+     ok! test_char         "a"
+         return
+
+#
+#

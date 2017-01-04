@@ -1,0 +1,23 @@
+snit::type a_pe_grammar {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {n eos}
+
+        $myg add   eos
+        $myg mode  eos value
+        $myg rule  eos {x {n ex} {* {x {+ space} {n ex}}}}
+
+        $myg add   ex
+        $myg mode  ex  value
+        $myg rule  ex  {x {+ {x {! {n X}} {/ {t x} {t z}}}} {? {n X}}}
+
+        $myg add   X
+        $myg mode  X   value
+        $myg rule  X   {t x}
+
+        return
+    }
+
+    component myg
+    delegate method * to myg
+}

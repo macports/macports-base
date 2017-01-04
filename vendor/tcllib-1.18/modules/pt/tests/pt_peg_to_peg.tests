@@ -1,0 +1,69 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-to-peg-set:${setimpl}-1.0 {convert, wrong#args} -body {
+    pt::peg::to::peg convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::peg convert serial"}
+
+test pt-peg-to-peg-set:${setimpl}-1.1 {convert, wrong#args} -body {
+    pt::peg::to::peg convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::peg convert serial"}
+
+test pt-peg-to-peg-set:${setimpl}-2.0 {reset, wrong#args} -body {
+    pt::peg::to::peg reset XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::peg reset"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of peg output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+foreach {k fused section} {
+    0 0 {}
+    1 1 -fused
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_peg$section -> n label input data expected {
+	test pt-peg-to-peg-set:${setimpl}-3.$k.$n "pt::peg::to::peg, $label$section, ok :- $input" -setup {
+	    pt::peg::to::peg reset
+	    pt::peg::to::peg configure -fused $fused
+	} -body {
+	    pt::peg::to::peg convert $data
+	} -cleanup {
+	    pt::peg::to::peg reset
+	} -result $expected
+    }
+
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_peg-templated$section -> n label input data expected {
+	test pt-peg-to-peg-set:${setimpl}-4.$k.$n "pt::peg::to::peg, $label$section, ok :- $input" -setup {
+
+	    text::write reset
+	    text::write field   # -*- text -*-                              ; text::write /line
+	    text::write field   # Parsing Expression Grammar '@name@'.      ; text::write /line
+	    text::write field   # Generated for @user@, from file '@file@'  ; text::write /line
+	    text::write /line
+	    text::write field   @code@                                      ; text::write /line
+	    text::write /line
+	    text::write field   #                                           ; text::write /line
+	    text::write field   #                                           ; text::write /line
+
+	    pt::peg::to::peg reset
+	    pt::peg::to::peg configure -fused    $fused
+	    pt::peg::to::peg configure -name     TEMPLATE
+	    pt::peg::to::peg configure -file     TEST
+	    pt::peg::to::peg configure -template [text::write get]
+
+	    text::write reset
+	} -body {
+	    pt::peg::to::peg convert $data
+	} -cleanup {
+	    pt::peg::to::peg reset
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

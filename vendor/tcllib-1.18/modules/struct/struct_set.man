@@ -1,0 +1,136 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id: struct_set.man,v 1.12 2009/01/29 06:16:20 andreas_kupries Exp $}]
+[manpage_begin struct::set n 2.2.3]
+[keywords cardinality]
+[keywords difference]
+[keywords emptiness]
+[keywords exclusion]
+[keywords inclusion]
+[keywords intersection]
+[keywords membership]
+[keywords set]
+[keywords {symmetric difference}]
+[keywords union]
+[copyright {2004-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc {Tcl Data Structures}]
+[titledesc {Procedures for manipulating sets}]
+[category  {Data structures}]
+[require Tcl 8.0]
+[require struct::set [opt 2.2.3]]
+[description]
+
+[para]
+
+The [cmd ::struct::set] namespace contains several useful commands for
+processing finite sets.
+
+[para]
+
+It exports only a single command, [cmd struct::set]. All
+functionality provided here can be reached through a subcommand of
+this command.
+
+[para]
+
+[emph Note:] As of version 2.2 of this package a critcl based C
+implementation is available. This implementation however requires Tcl
+8.4 to run.
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd ::struct::set] [method empty] [arg set]]
+
+Returns a boolean value indicating if the [arg set] is
+empty ([const true]), or not ([const false]).
+
+[call [cmd ::struct::set] [method size] [arg set]]
+
+Returns an integer number greater than or equal to zero. This is the
+number of elements in the [arg set]. In other words, its cardinality.
+
+[call [cmd ::struct::set] [method contains] [arg set] [arg item]]
+
+Returns a boolean value indicating if the [arg set] contains the
+element [arg item] ([const true]), or not ([const false]).
+
+[call [cmd ::struct::set] [method union] [opt [arg set1]...]]
+
+Computes the set containing the union of [arg set1], [arg set2],
+etc., i.e. "[arg set1] + [arg set2] + ...", and returns this set
+as the result of the command.
+
+[call [cmd ::struct::set] [method intersect] [opt [arg set1]...]]
+
+Computes the set containing the intersection of [arg set1],
+[arg set2], etc., i.e. "[arg set1] * [arg set2] * ...", and
+returns this set as the result of the command.
+
+[call [cmd ::struct::set] [method difference] [arg set1] [arg set2]]
+
+Computes the set containing the difference of [arg set1] and
+[arg set2], i.e. ("[arg set1] - [arg set2]") and returns this
+set as the result of the command.
+
+[call [cmd ::struct::set] [method symdiff] [arg set1] [arg set2]]
+
+Computes the set containing the symmetric difference of [arg set1] and
+[arg set2], i.e. ("([arg set1] - [arg set2]) + ([arg set2] - [arg set1])")
+and returns this set as the result of the command.
+
+[call [cmd ::struct::set] [method intersect3] [arg set1] [arg set2]]
+
+This command is a combination of the methods [method intersect] and
+[method difference].
+
+It returns a three-element list containing "[arg set1]*[arg set2]",
+"[arg set1]-[arg set2]", and "[arg set2]-[arg set1]", in this
+order. In other words, the intersection of the two parameter sets, and
+their differences.
+
+[call [cmd ::struct::set] [method equal] [arg set1] [arg set2]]
+
+Returns a boolean value indicating if the two sets are equal
+([const true]) or not ([const false]).
+
+[call [cmd ::struct::set] [method include] [arg svar] [arg item]]
+
+The element [arg item] is added to the set specified by the variable
+name in [arg svar]. The return value of the command is empty. This is
+the equivalent of [cmd lappend] for sets. If the variable named by
+[arg svar] does not exist it will be created.
+
+[call [cmd ::struct::set] [method exclude] [arg svar] [arg item]]
+
+The element [arg item] is removed from the set specified by the
+variable name in [arg svar]. The return value of the command is
+empty. This is a near-equivalent of [cmd lreplace] for sets.
+
+[call [cmd ::struct::set] [method add] [arg svar] [arg set]]
+
+All the element of [arg set] are added to the set specified by the
+variable name in [arg svar]. The return value of the command is
+empty. This is like the method [method include], but for the addition
+of a whole set. If the variable named by [arg svar] does not exist it
+will be created.
+
+[call [cmd ::struct::set] [method subtract] [arg svar] [arg set]]
+
+All the element of [arg set] are removed from the set specified by the
+variable name in [arg svar]. The return value of the command is
+empty. This is like the method [method exclude], but for the removal
+of a whole set.
+
+[call [cmd ::struct::set] [method subsetof] [arg A] [arg B]]
+
+Returns a boolean value indicating if the set [arg A] is a true
+subset of or equal to the set [arg B] ([const true]), or not
+([const false]).
+
+[list_end]
+
+[section REFERENCES]
+
+[vset CATEGORY {struct :: set}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

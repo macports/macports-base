@@ -1,0 +1,1615 @@
+# me_tcl.test:  Tests for the ME virtual machine -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the
+# commands making up the ME virtual machine.  Sourcing this file into
+# Tcl runs the tests and generates output for errors.  No output means
+# no errors were found.
+#
+# Copyright (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: me_tcl.test,v 1.8 2007/08/01 22:49:26 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+testing {
+    useLocal me_tcl.tcl grammar::me::tcl
+}
+
+# ### ### ### ######### ######### #########
+## Pre-requisites. Helper commands to inspect the state of the ME
+## virtual machine.
+
+proc ME_state {} {
+    # This command retrieves all parts of the ME virtual machine state
+    # for inspection by the testing commands. The result is a dictionary.
+
+    set res {}
+
+    lappend res [list tok__ [grammar::me::tcl ctok]]
+    lappend res [list loc__ [grammar::me::tcl::icl_get]]
+    lappend res [list ok___ $grammar::me::tcl::ok]
+    lappend res [list error [grammar::me::tcl::ier_get]]
+    lappend res [list sv___ [grammar::me::tcl sv]]
+    lappend res [list ast__ [grammar::me::tcl astall]]
+
+    set nt [grammar::me::tcl tokens]
+    incr nt -1
+    lappend res [list input [grammar::me::tcl tok 0 $nt]]
+
+    lappend res [list cache [dictsort [grammar::me::tcl nc]]]
+    lappend res [list next_ [grammar::me::tcl next]]
+    lappend res [list ord__ [dictsort [grammar::me::tcl ord]]]
+
+    return $res
+}
+
+proc ME_stateText {} {
+    join [ME_state] \n
+}
+
+proc next_badresult {} {return a}
+
+proc next_eof       {} {return {}}
+
+proc next_char      {x} {return [list $x 3 4 {}]}
+
+proc next_count     {} {
+    global count
+    incr   count
+    return [list T$count 1 $count $count]
+}
+proc nc_init {} {
+    global count
+    set    count 0
+    return
+}
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-init-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::tcl::init
+    } -result {wrong # args: should be "grammar::me::tcl::init nxcmd ?tokmap?"}
+
+test mevmtcl-init-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::tcl::init a b c
+    } -result {wrong # args: should be "grammar::me::tcl::init nxcmd ?tokmap?"}
+
+test mevmtcl-init-1.2 {Call with bad token map} \
+    -returnCodes error \
+    -body {
+	grammar::me::tcl::init a b
+    } -result {Bad token order map, not a dictionary}
+
+
+test mevmtcl-init-2.0 {Basic initialization} \
+    -body {
+	grammar::me::tcl::init fake
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-init-2.1 {Basic initialization, with map} \
+    -body {
+        grammar::me::tcl::init fakeB {ident 0}
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fakeB
+ord__ {ident 0}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ict_advance-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_advance
+    } -result {wrong # args: should be "grammar::me::tcl::ict_advance msg"}
+
+test mevmtcl-ict_advance-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_advance a b
+    } -result {wrong # args: should be "grammar::me::tcl::ict_advance msg"}
+
+test mevmtcl-ict_advance-1.2 {Bad next callback} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_advance foo
+    } -result {invalid command name "fake"}
+
+test mevmtcl-ict_advance-1.3 {Bad next callback, bad results} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init next_badresult
+    } -body {
+	grammar::me::tcl::ict_advance foo
+    } -result {Bad callback result, expected 4 elements}
+
+
+test mevmtcl-ict_advance-2.0 {Behaviour at eof} \
+    -setup {
+	grammar::me::tcl::init next_eof
+    } -body {
+	grammar::me::tcl::ict_advance "foo (got EOF)"
+	ME_stateText
+    } -result {tok__ {}
+loc__ 0
+ok___ 0
+error {0 {{foo (got EOF)}}}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ next_eof
+ord__ {}}
+
+test mevmtcl-ict_advance-2.1 {Behaviour for regular token} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+    } -body {
+	grammar::me::tcl::ict_advance foo
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ict_advance-2.2 {Behaviour for backtracing in input} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::icl_rewind 0
+    } -body {
+	grammar::me::tcl::ict_advance foo
+	ME_stateText
+    } -result {tok__ T2
+loc__ 1
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ict_match_token-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_token
+    } -result {wrong # args: should be "grammar::me::tcl::ict_match_token tok msg"}
+
+test mevmtcl-ict_match_token-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_token a b c
+    } -result {wrong # args: should be "grammar::me::tcl::ict_match_token tok msg"}
+
+
+test mevmtcl-ict_match_token-2.0 {Token is matching} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_token T1 "Expected foo"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ict_match_token-2.1 {Token is not matching} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_token BOGUS "Expected 'BOGUS'"
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 {{Expected 'BOGUS'}}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ict_match_tokrange-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokrange
+    } -result {wrong # args: should be "grammar::me::tcl::ict_match_tokrange toks toke msg"}
+
+test mevmtcl-ict_match_tokrange-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokrange a b c d
+    } -result {wrong # args: should be "grammar::me::tcl::ict_match_tokrange toks toke msg"}
+
+
+test mevmtcl-ict_match_tokrange-2.0 {Token range, lexicographic compare, outside low} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange T2 T4 "\[T2 .. T4\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 {{[T2 .. T4]}}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ict_match_tokrange-2.1 {Token range, lexicographic compare, outside up} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange A S "\[A .. S\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 {{[A .. S]}}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ict_match_tokrange-2.2 {Token range, lexicographic compare, in range} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange A T2 "\[A .. T2\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ict_match_tokrange-2.3 {Token range, lexicographic compare, in range, low edge} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange T1 T5 "\[T1 .. T5\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ict_match_tokrange-2.4 {Token range, lexicographic compare, in range, upper edge} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange A T1 "\[A .. T1\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+test mevmtcl-ict_match_tokrange-3.0 {Token range, map order compare, outside low} \
+    -setup {
+	grammar::me::tcl::init next_count {T1 0 A 1 B 2}
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange 1 2 "\[A .. B\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 {{[A .. B]}}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {A 1 B 2 T1 0}}
+
+test mevmtcl-ict_match_tokrange-3.1 {Token range, map order compare, outside up} \
+    -setup {
+	grammar::me::tcl::init next_count {A 1 B 2 T1 3}
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange 1 2 "\[A .. B\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 {{[A .. B]}}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {A 1 B 2 T1 3}}
+
+test mevmtcl-ict_match_tokrange-3.2 {Token range, map order compare, in range} \
+    -setup {
+	grammar::me::tcl::init next_count {A 1 T1 2 B 3}
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange 1 3 "\[A .. B\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {A 1 B 3 T1 2}}
+
+test mevmtcl-ict_match_tokrange-3.3 {Token range, map order compare, in range, low edge} \
+    -setup {
+	grammar::me::tcl::init next_count {T1 0 A 1 B 2}
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange 0 1 "\[T1 .. A\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {A 1 B 2 T1 0}}
+
+test mevmtcl-ict_match_tokrange-3.4 {Token range, map order compare, in range, upper edge} \
+    -setup {
+	grammar::me::tcl::init next_count {A 0 B 1 T1 2}
+	nc_init
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokrange 0 2 "\[A .. T1\]"
+	ME_stateText
+    } -result {tok__ T1
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {A 0 B 1 T1 2}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ict_match_tokclass-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokclass
+    } -result {wrong # args: should be "grammar::me::tcl::ict_match_tokclass code msg"}
+
+test mevmtcl-ict_match_tokclass-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokclass a b c
+    } -result {wrong # args: should be "grammar::me::tcl::ict_match_tokclass code msg"}
+
+test mevmtcl-ict_match_tokclass-1.2a {Call with bad code} \
+    -constraints {tcl8.5plus tcl8.5minus} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokclass gargle foo
+    } -result {bad class "gargle": must be alnum, alpha, ascii, control, boolean, digit, double, false, graph, integer, list, lower, print, punct, space, true, upper, wideinteger, wordchar, or xdigit}
+
+test mevmtcl-ict_match_tokclass-1.2b {Call with bad code} \
+    -constraints {!tcl8.5plus} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokclass gargle foo
+    } -result {bad class "gargle": must be alnum, alpha, ascii, control, boolean, digit, double, false, graph, integer, lower, print, punct, space, true, upper, wordchar, or xdigit}
+
+test mevmtcl-ict_match_tokclass-1.2c {Call with bad code} \
+    -constraints tcl8.6plus \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ict_match_tokclass gargle foo
+    } -result {bad class "gargle": must be alnum, alpha, ascii, control, boolean, digit, double, entier, false, graph, integer, list, lower, print, punct, space, true, upper, wideinteger, wordchar, or xdigit}
+
+test mevmtcl-ict_match_tokclass-2.0 {Token is matching} \
+    -setup {
+	grammar::me::tcl::init {next_char X}
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokclass alpha "<alpha>"
+	ME_stateText
+    } -result {tok__ X
+loc__ 0
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{X 3 4 {}}}
+cache {}
+next_ {next_char X}
+ord__ {}}
+
+test mevmtcl-ict_match_tokclass-2.1 {Token is not matching} \
+    -setup {
+	grammar::me::tcl::init {next_char 0}
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::ict_match_tokclass alpha "<alpha>"
+	ME_stateText
+    } -result {tok__ 0
+loc__ -1
+ok___ 0
+error {0 <alpha>}
+sv___ {}
+ast__ {}
+input {{0 3 4 {}}}
+cache {}
+next_ {next_char 0}
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-inc_save-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::inc_save
+    } -result {wrong # args: should be "grammar::me::tcl::inc_save symbol at"}
+
+test mevmtcl-inc_save-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::inc_save a b c
+    } -result {wrong # args: should be "grammar::me::tcl::inc_save symbol at"}
+
+
+test mevmtcl-inc_save-2.0 {Basic save of nonterminal match data} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::inc_save A -1
+	ME_stateText
+    } -result {tok__ T2
+loc__ 1
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2}}
+cache {-1,A {1 1 {} {}}}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-inc_restore-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::inc_restore
+    } -result {wrong # args: should be "grammar::me::tcl::inc_restore symbol"}
+
+test mevmtcl-inc_restore-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::inc_restore a b
+    } -result {wrong # args: should be "grammar::me::tcl::inc_restore symbol"}
+
+
+test mevmtcl-inc_restore-2.0 {Restore match data, not present} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::icl_rewind -1
+	grammar::me::tcl::iok_fail
+    } -body {
+	list [grammar::me::tcl::inc_restore A] [ME_stateText]
+    } -result {0 {tok__ T2
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2}}
+cache {}
+next_ next_count
+ord__ {}}}
+
+test mevmtcl-inc_restore-2.1 {Restore match data from cache} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::inc_save A -1
+	grammar::me::tcl::icl_rewind -1
+	grammar::me::tcl::iok_fail
+    } -body {
+	list [grammar::me::tcl::inc_restore A] [ME_stateText]
+    } -result {1 {tok__ T2
+loc__ 1
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2}}
+cache {-1,A {1 1 {} {}}}
+next_ next_count
+ord__ {}}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-iok_ok-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::iok_ok a
+    } -result {wrong # args: should be "grammar::me::tcl::iok_ok"}
+
+
+test mevmtcl-iok_ok-2.0 {Regular behaviour} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::iok_ok
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-iok_fail-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::iok_fail a
+    } -result {wrong # args: should be "grammar::me::tcl::iok_fail"}
+
+
+test mevmtcl-iok_fail-2.0 {Regular behaviour} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::iok_ok
+    } -body {
+	grammar::me::tcl::iok_fail
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-iok_negate-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::iok_negate a
+    } -result {wrong # args: should be "grammar::me::tcl::iok_negate"}
+
+
+test mevmtcl-iok_negate-2.0 {Regular behaviour} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::iok_negate
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 1
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-iok_negate-2.1 {Regular behaviour} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::iok_ok
+    } -body {
+	grammar::me::tcl::iok_negate
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-icl_get-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::icl_get a
+    } -result {wrong # args: should be "grammar::me::tcl::icl_get"}
+
+
+test mevmtcl-icl_get-2.0 {Get current location} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::icl_get
+    } -result -1
+
+test mevmtcl-icl_get-2.1 {Get current location after advancing} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::icl_get
+    } -result 2
+
+test mevmtcl-icl_get-2.2 {Get current location after advance & rewind} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::icl_rewind 1
+    } -body {
+	grammar::me::tcl::icl_get
+    } -result 1
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-icl_rewind-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::icl_rewind
+    } -result {wrong # args: should be "grammar::me::tcl::icl_rewind oldloc"}
+
+test mevmtcl-icl_rewind-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::icl_rewind a b
+    } -result {wrong # args: should be "grammar::me::tcl::icl_rewind oldloc"}
+
+
+test mevmtcl-icl_rewind-2.0 {Rewind travels back} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::icl_rewind 1
+	grammar::me::tcl::icl_get
+    } -result 1
+
+test mevmtcl-icl_rewind-2.1 {Rewind is not sanity checked} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::icl_rewind -4
+	grammar::me::tcl::icl_get
+    } -result -4
+
+test mevmtcl-icl_rewind-2.2 {Rewind is not sanity checked} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::icl_rewind 50
+	grammar::me::tcl::icl_get
+    } -result 50
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ier_get-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_get a
+    } -result {wrong # args: should be "grammar::me::tcl::ier_get"}
+
+
+test mevmtcl-ier_get-2.0 {Get current error} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_get
+    } -result {}
+
+test mevmtcl-ier_get-2.1 {Get current error} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_get
+    } -result {0 'BOGUS'}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ier_clear-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_clear a
+    } -result {wrong # args: should be "grammar::me::tcl::ier_clear"}
+
+
+test mevmtcl-ier_clear-2.0 {Clear error, no preceding error} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_clear
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-ier_clear-2.1 {Clear error} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_clear
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ier_nonterminal-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_nonterminal
+    } -result {wrong # args: should be "grammar::me::tcl::ier_nonterminal msg pos"}
+
+test mevmtcl-ier_nonterminal-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_nonterminal a b c
+    } -result {wrong # args: should be "grammar::me::tcl::ier_nonterminal msg pos"}
+
+
+test mevmtcl-ier_nonterminal-2.0 {No-op if there is no error} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_nonterminal A 4
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-ier_nonterminal-2.1 {No-op for non-matching locations} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_nonterminal A 4
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 'BOGUS'}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ier_nonterminal-2.2 {Replace error for matching locations} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_nonterminal A -1
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 A}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ier_merge-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_merge
+    } -result {wrong # args: should be "grammar::me::tcl::ier_merge new"}
+
+test mevmtcl-ier_merge-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_merge a b
+    } -result {wrong # args: should be "grammar::me::tcl::ier_merge new"}
+
+
+test mevmtcl-ier_merge-2.0 {Both errors empty} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_merge {}
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-ier_merge-2.1 {Stored error empty, argument not} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ier_merge {3 {A dot bar}}
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {3 {A dot bar}}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-ier_merge-2.2 {Stored error non-empty, argument is} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_merge {}
+	ME_stateText
+    } -result {tok__ T1
+loc__ -1
+ok___ 0
+error {0 'BOGUS'}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ier_merge-2.3 {Both errors non-empty, stored further} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_merge {0 {A C}}
+	ME_stateText
+    } -result {tok__ T3
+loc__ 1
+ok___ 0
+error {2 'BOGUS'}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ier_merge-2.4 {Both errors non-empty, argument further} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_merge {4 {A C}}
+	ME_stateText
+    } -result {tok__ T3
+loc__ 1
+ok___ 0
+error {4 {A C}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ier_merge-2.5 {Both errors non-empty, same location} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_match_token BOGUS 'BOGUS'
+    } -body {
+	grammar::me::tcl::ier_merge {2 {A C}}
+	ME_stateText
+    } -result {tok__ T3
+loc__ 1
+ok___ 0
+error {2 {'BOGUS' A C}}
+sv___ {}
+ast__ {}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-isv_clear-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_clear a
+    } -result {wrong # args: should be "grammar::me::tcl::isv_clear"}
+
+
+test mevmtcl-isv_clear-2.0 {Clear sv, was already clear} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_clear
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-isv_clear-2.1 {Clear sv, after creating something} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::isv_terminal
+    } -body {
+	grammar::me::tcl::isv_clear
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {{{} -1 -1}}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-isv_terminal-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_terminal a
+    } -result {wrong # args: should be "grammar::me::tcl::isv_terminal"}
+
+
+test mevmtcl-isv_terminal-2.0 {Create terminal sv & push} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_terminal
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {{} -1 -1}
+ast__ {{{} -1 -1}}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-isv_terminal-2.1 {Create terminal sv & push, after advancing} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::ict_advance foo
+    } -body {
+	grammar::me::tcl::isv_terminal
+	ME_stateText
+    } -result {tok__ T3
+loc__ 2
+ok___ 1
+error {}
+sv___ {{} 2 2}
+ast__ {{{} 2 2}}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-isv_nonterminal_leaf-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_leaf
+    } -result {wrong # args: should be "grammar::me::tcl::isv_nonterminal_leaf nt pos"}
+
+test mevmtcl-isv_nonterminal_leaf-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_leaf a b c
+    } -result {wrong # args: should be "grammar::me::tcl::isv_nonterminal_leaf nt pos"}
+
+
+test mevmtcl-isv_nonterminal_leaf-2.0 {No-op if not ok} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_leaf A -3
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-isv_nonterminal_leaf-2.1 {Generate sv} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::iok_ok
+    } -body {
+	grammar::me::tcl::isv_nonterminal_leaf A -3
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 1
+error {}
+sv___ {A -2 -1}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-isv_nonterminal_range-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_range
+    } -result {wrong # args: should be "grammar::me::tcl::isv_nonterminal_range nt pos"}
+
+test mevmtcl-isv_nonterminal_range-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_range a b c
+    } -result {wrong # args: should be "grammar::me::tcl::isv_nonterminal_range nt pos"}
+
+
+test mevmtcl-isv_nonterminal_range-2.0 {No-op if not ok} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_range A -3
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-isv_nonterminal_range-2.1 {Generate sv} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::iok_ok
+    } -body {
+	grammar::me::tcl::isv_nonterminal_range A -3
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 1
+error {}
+sv___ {A -2 -1 {{} -2 -1}}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-isv_nonterminal_reduce-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_reduce
+    } -result {wrong # args: should be "grammar::me::tcl::isv_nonterminal_reduce nt pos ?mrk?"}
+
+test mevmtcl-isv_nonterminal_reduce-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_reduce a b c d
+    } -result {wrong # args: should be "grammar::me::tcl::isv_nonterminal_reduce nt pos ?mrk?"}
+
+
+test mevmtcl-isv_nonterminal_reduce-2.0 {No-op if not ok} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::isv_nonterminal_reduce A -3
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 0
+error {}
+sv___ {}
+ast__ {}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+test mevmtcl-isv_nonterminal_reduce-2.1 {Generate sv, reduce all} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+    } -body {
+	grammar::me::tcl::isv_nonterminal_reduce A -1
+	ME_stateText
+    } -result {tok__ T3
+loc__ 2
+ok___ 1
+error {}
+sv___ {A 0 2 {{} 0 0} {{} 1 1} {{} 2 2}}
+ast__ {{{} 0 0} {{} 1 1} {{} 2 2}}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-isv_nonterminal_reduce-2.2 {Generate sv, reduce partial} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+    } -body {
+	grammar::me::tcl::isv_nonterminal_reduce A 0 1
+	ME_stateText
+    } -result {tok__ T3
+loc__ 2
+ok___ 1
+error {}
+sv___ {A 1 2 {{} 1 1} {{} 2 2}}
+ast__ {{{} 0 0} {{} 1 1} {{} 2 2}}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ias_push-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ias_push a
+    } -result {wrong # args: should be "grammar::me::tcl::ias_push"}
+
+
+test mevmtcl-ias_push-2.0 {Push sv to ast stack} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::iok_ok
+	grammar::me::tcl::isv_nonterminal_leaf A -3
+    } -body {
+	grammar::me::tcl::ias_push
+	ME_stateText
+    } -result {tok__ {}
+loc__ -1
+ok___ 1
+error {}
+sv___ {A -2 -1}
+ast__ {{A -2 -1}}
+input {}
+cache {}
+next_ fake
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ias_mark-1.0 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ias_mark a
+    } -result {wrong # args: should be "grammar::me::tcl::ias_mark"}
+
+
+test mevmtcl-ias_mark-2.0 {Get ast stack size} \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ias_mark
+    } -result 0
+
+test mevmtcl-ias_mark-2.1 {Get ast stack size} \
+    -setup {
+	grammar::me::tcl::init fake
+	grammar::me::tcl::iok_ok
+	grammar::me::tcl::isv_nonterminal_leaf A -3
+	grammar::me::tcl::ias_push
+    } -body {
+	grammar::me::tcl::ias_mark
+    } -result 1
+
+
+# ### ### ### ######### ######### #########
+## 
+
+test mevmtcl-ias_pop2mark-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ias_pop2mark
+    } -result {wrong # args: should be "grammar::me::tcl::ias_pop2mark mark"}
+
+test mevmtcl-ias_pop2mark-1.1 {Call with too many arguments} \
+    -returnCodes error \
+    -setup {
+	grammar::me::tcl::init fake
+    } -body {
+	grammar::me::tcl::ias_pop2mark a b
+    } -result {wrong # args: should be "grammar::me::tcl::ias_pop2mark mark"}
+
+
+test mevmtcl-ias_pop2mark-2.0 {No-op if stack smaller than mark} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+    } -body {
+	grammar::me::tcl::ias_pop2mark 5
+	ME_stateText
+    } -result {tok__ T3
+loc__ 2
+ok___ 1
+error {}
+sv___ {{} 2 2}
+ast__ {{{} 0 0} {{} 1 1} {{} 2 2}}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3}}
+cache {}
+next_ next_count
+ord__ {}}
+
+test mevmtcl-ias_pop2mark-2.1 {Reduce to chosen size} \
+    -setup {
+	grammar::me::tcl::init next_count
+	nc_init
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+	grammar::me::tcl::ict_advance foo
+	grammar::me::tcl::isv_terminal
+    } -body {
+	grammar::me::tcl::ias_pop2mark 2
+	ME_stateText
+    } -result {tok__ T4
+loc__ 3
+ok___ 1
+error {}
+sv___ {{} 3 3}
+ast__ {{{} 0 0} {{} 1 1}}
+input {{T1 1 1 1} {T2 1 2 2} {T3 1 3 3} {T4 1 4 4}}
+cache {}
+next_ next_count
+ord__ {}}
+
+
+# ### ### ### ######### ######### #########
+## Cleanup and statistics.
+
+rename ME_state {}
+testsuiteCleanup

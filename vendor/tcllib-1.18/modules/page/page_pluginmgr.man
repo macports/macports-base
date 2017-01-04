@@ -1,0 +1,800 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin page_pluginmgr n 1.0]
+[keywords page]
+[keywords {parser generator}]
+[keywords {text processing}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Parser generator tools}]
+[titledesc {page plugin manager}]
+[category  {Page Parser Generator}]
+[require page::pluginmgr [opt 0.2]]
+[require fileutil]
+[description]
+[para]
+
+This package provides the plugin manager central to the [syscmd page]
+application. It manages the various reader, writer, configuration, and
+transformation plugins which actually process the text (read,
+transform, and write).
+
+[para]
+
+All plugins are loaded into slave interpreters specially prepared for
+them. While implemented using packages they need this special
+environment and are not usable in a plain interpreter, like
+tclsh. Because of that they are only described in general terms in
+section [sectref {PREDEFINED PLUGINS}], and not documented as regular
+packages. It is expected that they follow the APIs specified in the
+sections
+
+[list_begin enum]
+[enum] [sectref {CONFIG PLUGIN API}]
+[enum] [sectref {READER PLUGIN API}]
+[enum] [sectref {WRITER PLUGIN API}]
+[enum] [sectref {TRANSFORM PLUGIN API}]
+[list_end]
+
+as per their type.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::page::pluginmgr::reportvia] [arg cmd]]
+
+This command defines the callback command used by
+
+[cmd ::page::pluginmgr::report] (see below) to report input errors and
+warnings. The default is to write such reports to the standard error
+channel.
+
+[call [cmd ::page::pluginmgr::report] [arg level] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+This command is used to report input errors and warnings. By default
+such reports are written to the standard error. This can be changed by
+setting a user-specific callback command with
+[cmd ::page::pluginmgr::reportvia] (see above).
+
+[para]
+
+The arguments [arg level] and [arg text] specify both the importance
+of the message, and the message itself. For the former see the package
+[package logger] for the allowed values.
+
+[para]
+
+The optional argument [arg from] and [arg to] can be used by the
+caller to indicate the location (or range) in the input where the
+reported problem occured. Each is a list containing two elements, the
+line and the column in the input, in this order.
+
+[call [cmd ::page::pluginmgr::log] [arg cmd]]
+
+This command defines a log callback command to be used by loaded
+plugins for the reporting of internal errors, warnings, and general
+information. Specifying the empty string as callback disables logging.
+
+[para]
+
+Note: The [arg cmd] has to be created by the [package logger] package,
+or follow the same API as such.
+
+[para]
+
+The command returns the empty string as its result.
+
+[call [cmd ::page::pluginmgr::configuration] [arg name]]
+
+This command loads the named configuration plugin, retrieves the
+options encoded in it, and then immediately unloads it again.
+
+[para]
+
+If the [arg name] is the path to a file, then this files will be tried
+to be loaded as a plugin first, and, if that fails, opened and its
+contents read as a list of options and their arguments, separated by
+spaces, tabs and newlines, possibly quotes with single and double
+quotes.
+
+[para]
+
+See section [sectref {CONFIG PLUGIN API}] for the API expected of
+configuration plugins.
+
+[para]
+
+The result of the command is the list of options retrieved.
+
+[call [cmd ::page::pluginmgr::reader] [arg name]]
+
+This command loads the named reader plugin and initializes it. The
+result of the command is a list of options the plugin understands.
+
+[para]
+
+Only a single reader plugin can be loaded. Loading another reader
+plugin causes the previously loaded reader plugin to be de-initialized
+and unloaded.
+
+[para]
+
+See section [sectref {READER PLUGIN API}] for the API expected of
+reader plugins.
+
+[call [cmd ::page::pluginmgr::rconfigure] [arg dict]]
+
+This commands configures the loaded reader plugin. The options and
+their values are provided as a Tcl dictionary. The result of the
+command is the empty string.
+
+[call [cmd ::page::pluginmgr::rtimeable]]
+
+This commands checks if the loaded reader plugin is able to collect
+timing statistics. The result of the command is a boolean flag. The
+result is [const true] if the plugin can be timed, and [const false]
+otherwise.
+
+[call [cmd ::page::pluginmgr::rtime]]
+
+This command activates the collection of timing statistics in the
+loaded reader plugin.
+
+[call [cmd ::page::pluginmgr::rgettime]]
+
+This command retrieves the collected timing statistics of the loaded
+reader plugin after it was executed.
+
+[call [cmd ::page::pluginmgr::rhelp]]
+
+This command retrieves the help string of the loaded reader
+plugin. This is expected to be in [term doctools] format.
+
+[call [cmd ::page::pluginmgr::rlabel]]
+
+This command retrieves the human-readable name of the loaded reader
+plugin.
+
+[call [cmd ::page::pluginmgr::read] [arg read] [arg eof] [opt [arg complete]]]
+
+This command invokes the loaded reader plugin to process the input,
+and returns the results of the plugin as its own result. The input is
+accessible through the callback commands [arg read], and [arg eof]. The
+optional [arg done] can be used to intrecept when the plugin has
+completed its processing. All arguments are command prefixes.
+
+[para]
+
+The plugin will invoke the various callbacks in the following
+situations:
+
+[list_begin definitions]
+[call [arg read] [arg num]]
+is invoked whenever input to process is needed, with the number of
+characters/bytes it asks for. The result is expected to be the input
+the plugin is in need of.
+
+[call [arg eof]]
+is invoked by the plugin to check if the input has reached the of the
+stream. The result is expected to be a boolean flag, [const true] when
+the input has hit EOF, and [const false] otherwise.
+
+[call [arg done]]
+is invoked when the plugin has completed the processing of the input.
+
+[list_end]
+
+[call [cmd ::page::pluginmgr::writer] [arg name]]
+
+This command loads the named writer plugin and initializes it. The
+result of the command is a list of options the plugin understands.
+
+[para]
+
+Only a single reader plugin can be loaded. Loading another reader
+plugin causes the previously loaded reader plugin to be de-initialized
+and unloaded.
+
+[para]
+
+See section [sectref {WRITER PLUGIN API}] for the API expected of
+writer plugins.
+
+[call [cmd ::page::pluginmgr::wconfigure] [arg dict]]
+
+This commands configures the loaded writer plugin. The options and
+their values are provided as a Tcl dictionary. The result of the
+command is the empty string.
+
+[call [cmd ::page::pluginmgr::wtimeable]]
+
+This commands checks if the loaded writer plugin is able to measure
+execution times. The result of the command is a boolean flag. The
+result is [const true] if the plugin can be timed, and [const false]
+otherwise.
+
+[call [cmd ::page::pluginmgr::wtime]]
+
+This command activates the collection of timing statistics in the
+loaded writer plugin.
+
+[call [cmd ::page::pluginmgr::wgettime]]
+
+This command retrieves the collected timing statistics of the loaded
+writer plugin after it was executed.
+
+[call [cmd ::page::pluginmgr::whelp]]
+
+This command retrieves the help string of the loaded writer
+plugin. This is expected to be in [term doctools] format.
+
+[call [cmd ::page::pluginmgr::wlabel]]
+
+This command retrieves the human-readable name of the loaded writer
+plugin.
+
+[call [cmd ::page::pluginmgr::write] [arg chan] [arg data]]
+
+The loaded writer plugin is invoked to generate the output. It is
+given the [arg data] to generate the outpout from, and the Tcl handle
+[arg chan] of the channel to write the generated output to. The
+command returns th empty string as its result.
+
+[call [cmd ::page::pluginmgr::transform] [arg name]]
+
+This command loads the named transformation plugin and initializes
+it. The result of the command is a 2-element list containing the
+plugin id and a list of options the plugin understands, in this order.
+
+[para]
+
+Multiple transformations plugins can be loaded and are identified by
+handles.
+
+[para]
+
+See section [sectref {TRANSFORM PLUGIN API}] for the API expected of
+transformation plugins.
+
+[call [cmd ::page::pluginmgr::tconfigure] [arg id] [arg dict]]
+
+This commands configures the identified transformation plugin. The
+options and their values are provided as a Tcl dictionary. The result
+of the command is the empty string.
+
+[call [cmd ::page::pluginmgr::ttimeable] [arg id]]
+
+This commands checks if the identified transformation plugin is able
+to collect timing statistics. The result of the command is a boolean
+flag. The result is [const true] if the plugin can be timed, and
+[const false] otherwise.
+
+[call [cmd ::page::pluginmgr::ttime] [arg id]]
+
+This command activates the collection of timing statistics in the
+identified transformation plugin.
+
+[call [cmd ::page::pluginmgr::tgettime] [arg id]]
+
+This command retrieves the collected timing statistics of the
+identified transformation plugin after it was executed.
+
+[call [cmd ::page::pluginmgr::thelp] [arg id]]
+
+This command retrieves the help string of the identified
+transformation plugin. This is expected to be in [term doctools]
+format.
+
+[call [cmd ::page::pluginmgr::tlabel] [arg id]]
+
+This command retrieves the human-readable name of the identified
+transformation plugin.
+
+[call [cmd ::page::pluginmgr::transform_do] [arg id] [arg data]]
+
+The identified transformation plugin is invoked to process the
+specified [arg data]. The result of the plugin is returned as the
+result of the command.
+
+[list_end]
+
+[section {CONFIG PLUGIN API}]
+
+Configuration plugins are expected to provide a single command,
+described below.
+
+[para]
+
+[list_begin definitions]
+[call [cmd page_cdefinition]]
+
+This command of a configuration plugin is called by the plugin manager
+to execute it. Its result has to be a list of options and values to
+process.
+
+[list_end]
+[para]
+
+Configuration plugins do not expect the environment to provide any
+special commands.
+
+[para]
+
+It is expected that a configuration plugin [const FOO] is implemented
+by the package [package page::config::[const FOO]].
+
+[para]
+
+Configuration plugins are loaded, executed, and unloaded in one step,
+they are not kept in memory. The command for doing this is
+[cmd ::page::pluginmgr::configuration].
+
+[section {READER PLUGIN API}]
+
+Reader plugins are expected to provide the following commands,
+described below.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd page_rfeature] [arg name]]
+
+This command takes a feature [arg name] and returns a boolean flag
+indicating whether the feature is supported by the plugin, or not.
+
+The result has to be [const true] if the feature is supported, and
+[const false] otherwise.
+
+[para]
+
+See section [sectref FEATURES] for the possible features the plugin
+manager will ask for.
+
+[call [cmd page_rtime]]
+
+This command is invoked to activate the collection of timing
+statistics.
+
+[call [cmd page_rgettime]]
+
+This command is invoked to retrieve the collected timing statistics.
+
+[call [cmd page_rlabel]]
+
+This command is invoked to retrieve a human-readable label for the
+plugin.
+
+[call [cmd page_rhelp]]
+
+This command is invoked to retrieve a help text for plugin. The text
+is expected to be in [term doctools] format.
+
+[call [cmd page_roptions]]
+
+This command is invoked to retrieve the options understood by the
+plugin.
+
+[call [cmd page_rconfigure] [arg option] [arg value]]
+
+This command is invoked to reconfigure the plugin, specifically the
+given [arg option] is set to the new [arg value].
+
+[call [cmd page_rrun]]
+
+This command is invoked to process the input stream per the current
+plugin configuration.  The result of the command is the result of the
+processing.
+
+[list_end]
+[para]
+
+Reader plugins expect the environment to provide the following special
+commands.
+
+[list_begin definitions]
+
+[call [cmd page_read] [arg num]]
+
+This command is invoked to read [arg num] characters/bytes from the
+input. Its result has to be read characters/bytes.
+
+[call [cmd page_read_done]]
+
+This command is invoked to signal that the plugin has completed the
+processing of the input.
+
+[call [cmd page_eof]]
+
+This command is invoked to check if the input stream has reached its
+end. Its result has to be a boolean flag, [const true] when the input
+has reached the end, [const false] otherwise.
+
+[call [cmd page_info] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report some information to the user. May indicate a
+location or range in the input. Each piece of location data, if
+provided, is a 2-element list containing line and column numbers.
+
+[call [cmd page_warning] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report a warning to the user. May indicate a location or
+range in the input. Each piece of location data, if provided, is a
+2-element list containing line and column numbers.
+
+[call [cmd page_error] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report an error to the user. May indicate a location or
+range in the input. Each piece of location data, if provided, is a
+2-element list containing line and column numbers.
+
+[call [cmd page_log_info] [arg text]]
+
+Invoked to report some internal information.
+
+[call [cmd page_log_warning] [arg text]]
+
+Invoked to report an internal warning.
+
+[call [cmd page_log_error] [arg text]]
+
+Invoked to report an internal error.
+
+[list_end]
+[para]
+
+It is expected that a reader plugin [const FOO] is implemented
+by the package [package page::reader::[const FOO]].
+
+[para]
+
+Reader plugins are loaded by the command
+[cmd ::page::pluginmgr::reader]. At most one reader plugin can be kept
+in memory.
+
+[section {WRITER PLUGIN API}]
+
+Writer plugins are expected to provide the following commands,
+described below.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd page_wfeature]]
+
+This command takes a feature [arg name] and returns a boolean flag
+indicating whether the feature is supported by the plugin, or not.
+
+The result has to be [const true] if the feature is supported, and
+[const false] otherwise.
+
+[para]
+
+See section [sectref FEATURES] for the possible features the plugin
+manager will ask for.
+
+[call [cmd page_wtime]]
+
+This command is invoked to activate the collection of timing
+statistics.
+
+[call [cmd page_wgettime]]
+
+This command is invoked to retrieve the collected timing statistics.
+
+[call [cmd page_wlabel]]
+
+This command is invoked to retrieve a human-readable label for the
+plugin.
+
+[call [cmd page_whelp]]
+
+This command is invoked to retrieve a help text for plugin. The text
+is expected to be in [term doctools] format.
+
+[call [cmd page_woptions]]
+
+This command is invoked to retrieve the options understood by the
+plugin.
+
+[call [cmd page_wconfigure] [arg option] [arg value]]
+
+This command is invoked to reconfigure the plugin, specifically the
+given [arg option] is set to the new [arg value].
+
+[call [cmd page_wrun] [arg chan] [arg data]]
+
+This command is invoked to process the specified [arg data] and write
+it to the output stream [arg chan]. The latter is a Tcl channel handle
+opened for writing. The result of the command is the empty string.
+
+[list_end]
+[para]
+
+Writer plugins expect the environment to provide the following special
+commands.
+
+[list_begin definitions]
+
+[call [cmd page_info] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report some information to the user. May indicate a
+location or range in the input. Each piece of location data, if
+provided, is a 2-element list containing line and column numbers.
+
+[call [cmd page_warning] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report a warning to the user. May indicate a location or
+range in the input. Each piece of location data, if provided, is a
+2-element list containing line and column numbers.
+
+[call [cmd page_error] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report an error to the user. May indicate a location or
+range in the input. Each piece of location data, if provided, is a
+2-element list containing line and column numbers.
+
+[call [cmd page_log_info] [arg text]]
+
+Invoked to report some internal information.
+
+[call [cmd page_log_warning] [arg text]]
+
+Invoked to report an internal warning.
+
+[call [cmd page_log_error] [arg text]]
+
+Invoked to report an internal error.
+
+[list_end]
+[para]
+
+It is expected that a writer plugin [const FOO] is implemented
+by the package [package page::writer::[const FOO]].
+
+[para]
+
+Writer plugins are loaded by the command
+[cmd ::page::pluginmgr::writer]. At most one writer plugin can be kept
+in memory.
+
+[section {TRANSFORM PLUGIN API}] page::transform::*
+
+Transformation plugins are expected to provide the following commands,
+described below.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd page_tfeature]]
+
+This command takes a feature [arg name] and returns a boolean flag
+indicating whether the feature is supported by the plugin, or not.
+
+The result has to be [const true] if the feature is supported, and
+[const false] otherwise.
+
+[para]
+
+See section [sectref FEATURES] for the possible features the plugin
+manager will ask for.
+
+[call [cmd page_ttime]]
+
+This command is invoked to activate the collection of timing
+statistics.
+
+[call [cmd page_tgettime]]
+
+This command is invoked to retrieve the collected timing statistics.
+
+[call [cmd page_tlabel]]
+
+This command is invoked to retrieve a human-readable label for the
+plugin.
+
+[call [cmd page_thelp]]
+
+This command is invoked to retrieve a help text for plugin. The text
+is expected to be in [term doctools] format.
+
+[call [cmd page_toptions]]
+
+This command is invoked to retrieve the options understood by the
+plugin.
+
+[call [cmd page_tconfigure] [arg option] [arg value]]
+
+This command is invoked to reconfigure the plugin, specifically the
+given [arg option] is set to the new [arg value].
+
+[call [cmd page_trun] [arg chan] [arg data]]
+
+This command is invoked to process the specified [arg data] and write
+it to the output stream [arg chan]. The latter is a Tcl channel handle
+opened for writing. The result of the command is the empty string.
+
+[list_end]
+[para]
+
+Transformation plugins expect the environment to provide the following
+special commands.
+
+[list_begin definitions]
+
+[call [cmd page_info] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report some information to the user. May indicate a
+location or range in the input. Each piece of location data, if
+provided, is a 2-element list containing line and column numbers.
+
+[call [cmd page_warning] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report a warning to the user. May indicate a location or
+range in the input. Each piece of location data, if provided, is a
+2-element list containing line and column numbers.
+
+[call [cmd page_error] [arg text] [opt "[arg from] [opt [arg to]]"]]
+
+Invoked to report an error to the user. May indicate a location or
+range in the input. Each piece of location data, if provided, is a
+2-element list containing line and column numbers.
+
+[call [cmd page_log_info] [arg text]]
+
+Invoked to report some internal information.
+
+[call [cmd page_log_warning] [arg text]]
+
+Invoked to report an internal warning.
+
+[call [cmd page_log_error] [arg text]]
+
+Invoked to report an internal error.
+
+[list_end]
+[para]
+
+It is expected that a transformation plugin [const FOO] is implemented
+by the package [package page::transform::[const FOO]].
+
+[para]
+
+Transformation plugins are loaded by the command
+
+[cmd ::page::pluginmgr::transform]. More than one transformation
+plugin can be kept in memory.
+
+[section {PREDEFINED PLUGINS}]
+
+The following predefined plugins are known, i.e. provided by the page
+module.
+
+[list_begin definitions]
+
+[def Configuration]
+[list_begin definitions]
+[def peg]
+
+Returns a set of options to configure the [syscmd page] application
+for the processing of a PEG grammar and the generation of ME code. See
+the packages [package grammar_peg], [package grammar_me] and relations
+for more details.
+
+[list_end]
+
+[def Reader]
+[list_begin definitions]
+[def hb]
+Expects a so-called [term {half-baked PEG container}] as input and
+returns the equivalent abstract syntax tree. See the writer plugin
+[term hb] for the plugin generating this type of input.
+
+[def lemon]
+Expects a grammar specification as understood by Richar Hipp's LEMON
+parser generator and returns an abstract syntax tree for it.
+
+[def peg]
+Expects a grammar specification in the form of a parsing expression
+grammar (PEG) and returns an abstract syntax tree for it.
+
+[def ser]
+Expect the serialized form of a parsing expression grammar as
+generated by the package [package grammar::peg] as input, converts it
+into an equivalent abstract syntax tree and returns that.
+
+[def treeser]
+Expects the serialized form of a tree as generated by the package
+[package struct::tree] as input and returns it, after validation.
+
+[list_end]
+
+[def Writer]
+[list_begin definitions]
+[def hb]
+Expects an abstract syntax tree for a parsing expression grammar as
+input and writes it out in the form of a so-called
+[term {half-baked PEG container}].
+
+[def identity]
+Takes any input and writes it as is.
+
+[def mecpu]
+Expects symbolic assembler code for the MatchEngine CPU (See the
+package [package grammar::me::cpu] and relatives) and writes it out as
+Tcl code for a parser.
+
+[def me]
+Expects an abstract syntax tree for a parsing expression grammar as
+input and writes it out as Tcl code for the MatchEngine (See the
+package [package grammar::me] and relatives) which parses input in
+that grammar.
+
+[def null]
+Takes any input and writes nothing. The logical equivalent of
+/dev/null.
+
+[def peg]
+Expects an abstract syntax tree for a parsing expression grammar as
+input and writes it out in the form of a canonical PEG which can be
+read by the reader plugin [term peg].
+
+[def ser]
+Expects an abstract syntax tree for a parsing expression grammar as
+input and writes it out as a serialized PEG container which can be
+read by the reader plugin [term ser].
+
+[def tpc]
+Expects an abstract syntax tree for a parsing expression grammar as
+input and writes it out as Tcl code initializing a PEG container as
+provided by the package [package grammar::peg].
+
+[def tree]
+Takes any serialized tree (per package [package struct::tree]) as
+input and writes it out in a generic indented format.
+
+[list_end]
+
+[def Transformation]
+[list_begin definitions]
+
+[def mecpu]
+Takes an abstract syntax tree for a parsing expression grammer as
+input, generates symbolic assembler code for the MatchEngine CPU, and
+returns that as its result (See the package [package grammar::me::cpu]
+and relatives).
+
+[def reachable]
+Takes an abstract syntax tree for a parsing expression grammer as
+input, performs a reachability analysis, and returns the modified and
+annotated tree.
+
+[def realizable]
+Takes an abstract syntax tree for a parsing expression grammer as
+input, performs an analysis of realizability, and returns the modified
+and annotated tree.
+
+[list_end]
+[list_end]
+
+[comment {
+	Make it clear that all data between plugins is shuffled around
+	in serialized form, as objects cannot be transfered/accessed
+	across the interpreter boundaries (safety concerns).
+
+	Describe the commands expected by plugins to be available in
+	the environment.
+
+	Describe the predefined features.
+}]
+
+[section FEATURES]
+
+The plugin manager currently checks the plugins for only one feature,
+[const timeable]. A plugin supporting this feature is assumed to be
+able to collect timing statistics on request.
+
+[vset CATEGORY page]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

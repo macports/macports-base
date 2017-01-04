@@ -1,0 +1,440 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 2.4.13]
+[manpage_begin ftp n [vset PACKAGE_VERSION]]
+[see_also ftpd]
+[see_also mime]
+[see_also pop3]
+[see_also smtp]
+[keywords ftp]
+[keywords internet]
+[keywords net]
+[keywords {rfc 959}]
+[moddesc   {ftp client}]
+[titledesc {Client-side tcl implementation of the ftp protocol}]
+[category  Networking]
+[require Tcl 8.2]
+[require ftp [opt [vset PACKAGE_VERSION]]]
+[description]
+
+[para]
+
+The ftp package provides the client side of the ftp protocol as
+specified in RFC 959 ([uri http://www.rfc-editor.org/rfc/rfc959.txt]).
+The package implements both active (default) and passive ftp sessions.
+
+[para]
+
+A new ftp session is started with the [cmd ::ftp::Open] command. To
+shutdown an existing ftp session use [cmd ::ftp::Close]. All other
+commands are restricted to usage in an an open ftp session. They will
+generate errors if they are used out of context.  The ftp package
+includes file and directory manipulating commands for remote sites. To
+perform the same operations on the local site use commands built into
+the core, like [cmd cd] or [cmd file].
+
+[para]
+
+The output of the package is controlled by two state variables,
+
+[var ::ftp::VERBOSE] and [var ::ftp::DEBUG]. Setting
+
+[var ::ftp::VERBOSE] to "1" forces the package to show all responses
+from a remote server. The default value is "0". Setting
+
+[var ::ftp::DEBUG] to "1" enables debugging and forces the package to
+show all return codes, states, state changes and "real" ftp
+commands. The default value is "0".
+
+[para]
+
+The command [cmd ::ftp::DisplayMsg] is used to show the different
+messages from the ftp session. The setting of [var ::ftp::VERBOSE]
+determines if this command is called or not. The current
+implementation of the command uses the [package log] package of tcllib
+to write the messages to their final destination. This means that the
+behaviour of [cmd ::ftp::DisplayMsg] can be customized without
+changing its implementation. For more radical changes overwriting its
+implementation by the application is of course still possible. Note
+that the default implementation honors the option [option -output] to
+
+[cmd ::ftp::Open] for a session specific log command.
+
+[para]
+
+[emph Caution]: The default implementation logs error messages like
+all other messages. If this behaviour is changed to throwing an error
+instead all commands in the API will change their behaviour too. In
+such a case they will not return a failure code as described below but
+pass the thrown error to their caller.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::ftp::Open] [arg server] [arg user] [arg passwd] [opt [arg options]]]
+
+This command is used to start a FTP session by establishing a control
+connection to the FTP server. The defaults are used for any option not
+specified by the caller.
+
+[para]
+
+The command takes a host name [arg server], a user name [arg user] and
+a password [arg password] as its parameters and returns a session
+handle that is an integer number greater than or equal to "0", if the
+connection is successfully established. Otherwise it returns "-1".
+The [arg server] parameter must be the name or internet address (in
+dotted decimal notation) of the ftp server to connect to. The
+
+[arg user] and [arg passwd] parameters must contain a valid user name
+and password to complete the login process.
+
+[para]
+
+The options overwrite some default values or set special abilities:
+
+[list_begin definitions]
+
+[def "[option -blocksize] [arg size]"]
+
+The blocksize is used during data transfer. At most [arg size] bytes
+are transfered at once. The default value for this option is 4096.
+The package will evaluate the [cmd {-progress callback}] for the
+session after the transfer of each block.
+
+[def "[option -timeout] [arg seconds]"]
+
+If [arg seconds] is non-zero, then [cmd ::ftp::Open] sets up a timeout
+which will occur after the specified number of seconds. The default
+value is 600.
+
+[def "[option -port] [arg number]"]
+
+The port [arg number] specifies an alternative remote port on the ftp
+server on which the ftp service resides. Most ftp services listen for
+connection requests on the default port 21. Sometimes, usually for
+security reasons, port numbers other than 21 are used for ftp
+connections.
+
+[def "[option -mode] [arg mode]"]
+
+The transfer [arg mode] option determines if a file transfer occurs in
+[const active] or [const passive] mode. In passive mode the client
+will ask the ftp server to listen on a data port and wait for the
+connection rather than to initiate the process by itself when a data
+transfer request comes in. Passive mode is normally a requirement when
+accessing sites via a firewall. The default mode is [const active].
+
+[def "[option -progress] [arg callback]"]
+
+This [arg callback] is evaluated whenever a block of data was
+transfered. See the option [option -blocksize] for how to specify the
+size of the transfered blocks.
+
+[para]
+
+When evaluating the [arg callback] one argument is appended to the
+callback script, the current accumulated number of bytes transferred
+so far.
+
+[def "[option -command] [arg callback]"]
+
+Specifying this option places the connection into asynchronous
+mode. The [arg callback] is evaluated after the completion of any
+operation. When an operation is running no further operations must be
+started until a callback has been received for the currently executing
+operation.
+
+[para]
+
+When evaluating the [arg callback] several arguments are appended to
+the callback script, namely the keyword of the operation that has
+completed and any additional arguments specific to the operation.  If
+an error occurred during the execution of the operation the callback is
+given the keyword [const error].
+
+[def "[option -output] [arg callback]"]
+
+This option has no default. If it is set the default implementation of
+[cmd ::ftp::DisplayMsg] will use its value as command prefix to log
+all internal messages. The callback will have three arguments appended
+to it before evaluation, the id of the session, the message itself,
+and the connection state, in this order.
+
+[list_end]
+
+[call [cmd ::ftp::Close] [arg handle]]
+
+This command terminates the specified ftp session. If no file transfer
+is in progress, the server will close the control connection
+immediately. If a file transfer is in progress however, the control
+connection will remain open until the transfers completes. When that
+happens the server will write the result response for the transfer to
+it and close the connection afterward.
+
+[call [cmd ::ftp::Cd] [arg handle] [arg directory]]
+
+This command changes the current working directory on the ftp server
+to a specified target [arg directory].  The command returns 1 if the
+current working directory was successfully changed to the specified
+directory or 0 if it fails.  The target directory can be
+
+[list_begin itemized]
+[item]
+
+a subdirectory of the current directory,
+
+[item]
+
+Two dots, [const ..]  (as an indicator for the parent directory of
+the current directory)
+
+[item]
+
+or a fully qualified path to a new working directory.
+
+[list_end]
+
+[call [cmd ::ftp::Pwd] [arg handle]]
+
+This command returns the complete path of the current working
+directory on the ftp server, or an empty string in case of an error.
+
+[call [cmd ::ftp::Type] [arg handle] [opt [const ascii|binary|tenex]]]
+
+This command sets the ftp file transfer type to either [const ascii],
+[const binary], or [const tenex]. The command always returns the
+currently set type. If called without type no change is made.
+
+[para]
+
+Currently only [const ascii] and [const binary] types are
+supported. There is some early (alpha) support for Tenex mode. The
+type [const ascii] is normally used to convert text files into a
+format suitable for text editors on the platform of the destination
+machine. This mainly affects end-of-line markers. The type
+
+[const binary] on the other hand allows the undisturbed transfer of
+non-text files, such as compressed files, images and executables.
+
+[call [cmd ::ftp::List] [arg handle] [opt [arg pattern]]]
+
+This command returns a human-readable list of files.  Wildcard
+expressions such as [file *.tcl] are allowed.  If [arg pattern]
+refers to a specific directory, then the contents of that directory
+are returned.  If the [arg pattern] is not a fully-qualified path
+name, the command lists entries relative to the current remote
+directory.  If no [arg pattern] is specified, the contents of the
+current remote directory is returned.
+
+[para]
+
+The listing includes any system-dependent information that the server
+chooses to include. For example most UNIX systems produce output from
+the command [syscmd {ls -l}]. The command returns the retrieved
+information as a tcl list with one item per entry. Empty lines and
+UNIX's "total" lines are ignored and not included in the result as
+reported by this command.
+
+[para]
+
+If the command fails an empty list is returned.
+
+[call [cmd ::ftp::NList] [arg handle] [opt [arg directory]]]
+
+This command has the same behavior as the [cmd ::ftp::List] command,
+except that it only retrieves an abbreviated listing. This means only
+file names are returned in a sorted list.
+
+[call [cmd ::ftp::FileSize] [arg handle] [arg file]]
+
+This command returns the size of the specified [arg file] on the ftp
+server. If the command fails an empty string is returned.
+
+[para]
+
+[emph ATTENTION!] It will not work properly when in ascii mode and
+is not supported by all ftp server implementations.
+
+[call [cmd ::ftp::ModTime] [arg handle] [arg file]]
+
+This command retrieves the time of the last modification of the
+
+[arg file] on the ftp server as a system dependent integer value in
+seconds or an empty string if an error occurred. Use the built-in
+command [cmd clock] to convert the retrieves value into other formats.
+
+[call [cmd ::ftp::Delete] [arg handle] [arg file]]
+
+This command deletes the specified [arg file] on the ftp server. The
+command returns 1 if the specified file was successfully deleted or 0
+if it failed.
+
+[call [cmd ::ftp::Rename] [arg handle] [arg from] [arg to]]
+
+This command renames the file [arg from] in the current directory of
+the ftp server to the specified new file name [arg to]. This new file
+name must not be the same as any existing subdirectory or file name.
+The command returns 1 if the specified file was successfully renamed
+or 0 if it failed.
+
+[call [cmd ::ftp::Put] [arg handle] ([arg local] | -data [arg data] | -channel [arg chan]) [opt [arg remote]]]
+
+This command transfers a local file [arg local] to a remote file
+
+[arg remote] on the ftp server. If the file parameters passed to the
+command do not fully qualified path names the command will use the
+current directory on local and remote host. If the remote file name is
+unspecified, the server will use the name of the local file as the
+name of the remote file. The command returns 1 to indicate a successful
+transfer and 0 in the case of a failure.
+
+[para]
+
+If [option -data] [arg data] is specified instead of a local file, the
+system will not transfer a file, but the [arg data] passed into it. In
+this case the name of the remote file has to be specified.
+
+[para]
+
+If [option -channel] [arg chan] is specified instead of a local file,
+the system will not transfer a file, but read the contents of the
+channel [arg chan] and write this to the remote file. In this case the
+name of the remote file has to be specified. After the transfer
+
+[arg chan] will be closed.
+
+[call [cmd ::ftp::Append] [arg handle] ([arg local] | -data [arg data] | -channel [arg chan]) [opt [arg remote]]]
+
+This command behaves like [cmd ::ftp::Puts], but appends the
+transfered information to the remote file. If the file did not exist
+on the server it will be created.
+
+[call [cmd ::ftp::Get] [arg handle] [arg remote] [opt "([arg local] | -variable [arg varname] | -channel [arg chan])"]]
+
+This command retrieves a remote file [arg remote] on the ftp server
+and stores its contents into the local file [arg local]. If the file
+parameters passed to the command are not fully qualified path names
+the command will use the current directory on local and remote
+host. If the local file name is unspecified, the server will use the
+name of the remote file as the name of the local file. The command
+returns 1 to indicate a successful transfer and 0 in the case of a
+failure. The command will throw an error if the directory the file
+[arg local] is to be placed in does not exist.
+
+[para]
+
+If [option -variable] [arg varname] is specified, the system will
+store the retrieved data into the variable [arg varname] instead of a
+file.
+
+[para]
+
+If [option -channel] [arg chan] is specified, the system will write
+the retrieved data into the channel [arg chan] instead of a file. The
+system will [emph not] close [arg chan] after the transfer, this is
+the responsibility of the caller to [cmd ::ftp::Get].
+
+[call [cmd ::ftp::Reget] [arg handle] [arg remote] [opt [arg local]] [opt [arg from]] [opt [arg to]]]
+
+This command behaves like [cmd ::ftp::Get], except that if local file
+[arg local] exists and is smaller than remote file [arg remote], the
+local file is presumed to be a partially transferred copy of the
+remote file and the transfer is continued from the apparent point of
+failure.  The command will throw an error if the directory the file
+[arg local] is to be placed in does not exist. This command is useful
+when transferring very large files over networks that tend to drop
+connections.
+
+[para]
+
+Specifying the additional byte offsets [arg from] and [arg to] will
+cause the command to change its behaviour and to download exactly the
+specified slice of the remote file. This mode is possible only if a
+local destination is explicitly provided. Omission of [arg to] leads
+to downloading till the end of the file.
+
+[call [cmd ::ftp::Newer] [arg handle] [arg remote] [opt [arg local]]]
+
+This command behaves like [cmd ::ftp::Get], except that it retrieves
+the remote file only if the modification time of the remote file is
+more recent than the file on the local system. If the file does not
+exist on the local system, the remote file is considered newer. The
+command will throw an error if the directory the file [arg local] is
+to be placed in does not exist.
+
+[call [cmd ::ftp::MkDir] [arg handle] [arg directory]]
+
+This command creates the specified [arg directory] on the ftp
+server. If the specified path is relative the new directory will be
+created as a subdirectory of the current working directory. Else the
+created directory will have the specified path name. The command
+returns 1 to indicate a successful creation of the directory and 0 in
+the case of a failure.
+
+[call [cmd ::ftp::RmDir] [arg handle] [arg directory]]
+
+This command removes the specified directory on the ftp server. The
+remote directory has to be empty or the command will fail. The command
+returns 1 to indicate a successful removal of the directory and 0 in
+the case of a failure.
+
+[call [cmd ::ftp::Quote] [arg handle] [arg arg1] [arg arg2] [arg ...]]
+
+This command is used to send an arbitrary ftp command to the
+server. It cannot be used to obtain a directory listing or for
+transferring files. It is included to allow an application to execute
+commands on the ftp server which are not provided by this package.
+The arguments are sent verbatim, i.e. as is, with no changes.
+
+[para]
+
+In contrast to the other commands in this package this command will
+not parse the response it got from the ftp server but return it
+verbatim to the caller.
+
+[call [cmd ::ftp::DisplayMsg] [arg handle] [arg msg] [opt [arg state]]]
+
+This command is used by the package itself to show the different
+messages from the ftp sessions. The package itself declares this
+command very simple, writing the messages to [const stdout] (if
+
+[var ::ftp::VERBOSE] was set, see below) and throwing tcl errors for
+error messages. It is the responsibility of the application to
+overwrite it as needed. A state variable for different states assigned
+to different colors is recommended by the author. The package
+
+[package log] is useful for this.
+
+[def [var ::ftp::VERBOSE]]
+
+A state variable controlling the output of the package. Setting
+
+[var ::ftp::VERBOSE] to "1" forces the package to show all responses
+from a remote server. The default value is "0".
+
+[def [var ::ftp::DEBUG]]
+
+A state variable controlling the output of ftp. Setting
+
+[var ::ftp::DEBUG] to "1" enables debugging and forces the package to
+show all return codes, states, state changes and "real" ftp
+commands. The default value is "0".
+
+[list_end]
+
+[section BUGS]
+[para]
+
+The correct execution of many commands depends upon the proper
+behavior by the remote server, network and router configuration.
+
+[para]
+
+An update command placed in the procedure [cmd ::ftp::DisplayMsg] may
+run into persistent errors or infinite loops. The solution to this
+problem is to use [cmd {update idletasks}] instead of [cmd update].
+
+[vset CATEGORY ftp]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

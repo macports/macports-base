@@ -1,0 +1,292 @@
+
+<div class='fossil-doc' data-title='smtp - smtp client'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">smtp(n) 1.4.5 tcllib &quot;smtp client&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>smtp - Client-side tcl implementation of the smtp protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Authentication</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLE</a></li>
+<li class="doctools_section"><a href="#section4">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section5">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl</b></li>
+<li>package require <b class="pkgname">mime <span class="opt">?1.5.4?</span></b></li>
+<li>package require <b class="pkgname">smtp <span class="opt">?1.4.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::smtp::sendmessage</b> <i class="arg">token</i> <i class="arg">option</i>...</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">smtp</b> library package provides the client side of the
+Simple Mail Transfer Protocol (SMTP) (1) (2).</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::smtp::sendmessage</b> <i class="arg">token</i> <i class="arg">option</i>...</a></dt>
+<dd><p>This command sends the MIME part (see package <b class="package"><a href="mime.html">mime</a></b>)
+represented by <i class="arg">token</i> to an SMTP server. <i class="arg">options</i> is a list
+of options and their associated values.  The recognized options are:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-servers</b></dt>
+<dd><p>A list of SMTP servers. The default is <b class="const">localhost</b>.</p></dd>
+<dt><b class="option">-ports</b></dt>
+<dd><p>A list of SMTP ports. The default is <b class="const">25</b>.</p></dd>
+<dt><b class="option">-client</b></dt>
+<dd><p>The name to use as our hostname when connecting to the server. By
+default this is either localhost if one of the servers is localhost,
+or is set to the string returned by <b class="cmd">info hostname</b>.</p></dd>
+<dt><b class="option">-queue</b></dt>
+<dd><p>Indicates that the SMTP server should be asked to queue the message
+for later processing. A boolean value.</p></dd>
+<dt><b class="option">-atleastone</b></dt>
+<dd><p>Indicates that the SMTP server must find at least one recipient
+acceptable for the message to be sent. A boolean value.</p></dd>
+<dt><b class="option">-originator</b></dt>
+<dd><p>A string containing an 822-style address specification. If present the
+header isn't examined for an originator address.</p></dd>
+<dt><b class="option">-recipients</b></dt>
+<dd><p>A string containing one or more 822-style address specifications. If
+present the header isn't examined for recipient addresses). If the
+string contains more than one address they will be separated by
+commas.</p></dd>
+<dt><b class="option">-header</b></dt>
+<dd><p>A list containing two elements, an smtp header and its associated
+value (the -header option may occur zero or more times).</p></dd>
+<dt><b class="option">-usetls</b></dt>
+<dd><p>This package supports the RFC 3207 TLS extension (3) by default provided the
+tls package is available. You can turn this off with this boolean option.</p></dd>
+<dt><b class="option">-tlspolicy</b></dt>
+<dd><p>This option lets you specify a command to be called if an error occurs
+during TLS setup. The command is called with the SMTP code and diagnostic
+message appended. The command should return 'secure' or 'insecure' where
+insecure will cause the package to continue on the unencrypted channel.
+Returning 'secure' will cause the socket to be closed and the next server
+in the <b class="option">-servers</b> list to be tried.</p></dd>
+<dt><b class="option">-username</b></dt>
+<dd></dd>
+<dt><b class="option">-password</b></dt>
+<dd><p>If your SMTP server requires authentication (RFC 2554 (4)) before
+accepting mail you can use <b class="option">-username</b> and <b class="option">-password</b>
+to provide your authentication details to the server. Currently this
+package supports DIGEST-MD5, CRAM-MD5, LOGIN and PLAIN authentication
+methods. The most secure method will be tried first and each method
+tried in turn until we are either authorized or we run out of
+methods. Note that if the server permits a TLS connection, then the
+authorization will occur after we begin using the secure channel.</p>
+<p>Please also read the section on <span class="sectref"><a href="#section2">Authentication</a></span>, it details
+the necessary prequisites, i.e. packages needed to support these
+options and authentication.</p></dd>
+</dl>
+<p>If the <b class="option">-originator</b> option is not present, the originator
+address is taken from <b class="const">From</b> (or <b class="const">Resent-From</b>);
+similarly, if the <b class="option">-recipients</b> option is not present,
+recipient addresses are taken from <b class="const">To</b>, <b class="const">cc</b>, and
+<b class="const">Bcc</b> (or <b class="const">Resent-To</b>, and so on). Note that the header
+key/values supplied by the <b class="option">-header</b> option (not those present
+in the MIME part) are consulted. Regardless, header key/values are
+added to the outgoing message as necessary to ensure that a valid
+822-style message is sent.</p>
+<p>The command returns a list indicating which recipients were
+unacceptable to the SMTP server. Each element of the list is another
+list, containing the address, an SMTP error code, and a textual
+diagnostic. Depending on the <b class="option">-atleastone</b> option and the
+intended recipients, a non-empty list may still indicate that the
+message was accepted by the server.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Authentication</a></h2>
+<p>Beware. SMTP authentication uses <b class="package"><a href="../sasl/sasl.html">SASL</a></b>. I.e. if the user
+has to authenticate a connection, i.e. use the options <b class="option">-user</b>
+and <b class="option">-password</b> (see above) it is necessary to have the
+<b class="package">sasl</b> package available so that <b class="package">smtp</b> can load it.</p>
+<p>This is a soft dependency because not everybody requires authentication,
+and <b class="package">sasl</b> depends on a lot of the cryptographic (secure) hashes,
+i.e. all of <b class="package"><a href="../md5/md5.html">md5</a></b>, <b class="package"><a href="../otp/otp.html">otp</a></b>, <b class="package"><a href="../md4/md4.html">md4</a></b>, <b class="package"><a href="../sha1/sha1.html">sha1</a></b>,
+and <b class="package"><a href="../ripemd/ripemd160.html">ripemd160</a></b>.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLE</a></h2>
+<pre class="doctools_example">
+proc send_simple_message {recipient email_server subject body} {
+    package require smtp
+    package require mime
+    set token [mime::initialize -canonical text/plain \\
+	-string $body]
+    mime::setheader $token Subject $subject
+    smtp::sendmessage $token \\
+	-recipients $recipient -servers $email_server
+    mime::finalize $token
+}
+send_simple_message someone@somewhere.com localhost \\
+    &quot;This is the subject.&quot; &quot;This is the message.&quot;
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>Jonathan B. Postel, &quot;SIMPLE MAIL TRANSFER PROTOCOL&quot;, RFC 821, August 1982.
+    (<a href="http://www.rfc-editor.org/rfc/rfc821.txt">http://www.rfc-editor.org/rfc/rfc821.txt</a>)</p></li>
+<li><p>J. Klensin, &quot;Simple Mail Transfer Protocol&quot;, RFC 2821, April 2001.
+    (<a href="http://www.rfc-editor.org/rfc/rfc2821.txt">http://www.rfc-editor.org/rfc/rfc2821.txt</a>)</p></li>
+<li><p>P. Hoffman, &quot;SMTP Service Extension for Secure SMTP over Transport
+    Layer Security&quot;, RFC 3207, February 2002.
+    (<a href="http://www.rfc-editor.org/rfc/rfc3207.txt">http://www.rfc-editor.org/rfc/rfc3207.txt</a>)</p></li>
+<li><p>J. Myers, &quot;SMTP Service Extension for Authentication&quot;,
+    RFC 2554, March 1999.
+    (<a href="http://www.rfc-editor.org/rfc/rfc2554.txt">http://www.rfc-editor.org/rfc/rfc2554.txt</a>)</p></li>
+</ol>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>smtp</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../ftp/ftp.html">ftp</a>, <a href="../../../../index.html#key445">http</a>, <a href="mime.html">mime</a>, <a href="../pop3/pop3.html">pop3</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key335">email</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key330">mail</a>, <a href="../../../../index.html#key230">mime</a>, <a href="../../../../index.html#key295">net</a>, <a href="../../../../index.html#key336">rfc 2554</a>, <a href="../../../../index.html#key329">rfc 2821</a>, <a href="../../../../index.html#key334">rfc 3207</a>, <a href="../../../../index.html#key332">rfc 821</a>, <a href="../../../../index.html#key333">rfc 822</a>, <a href="../../../../index.html#key337">smtp</a>, <a href="../../../../index.html#key331">tls</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 1999-2000 Marshall T. Rose and others</p>
+</div>
+</div>

@@ -1,0 +1,44 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::memchan n 1]
+[keywords {in-memory channel}]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {In-memory channel}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::events [opt 1]]
+[require tcl::chan::memchan [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::memchan] package provides a command creating
+channels which live purely in memory. They provide random-access,
+i.e. are seekable. This is equivalent to the memchan channels provided by
+the package [package Memchan], except that this is written in pure Tcl,
+not C. On the other hand, [package Memchan] is usable with Tcl 8.4 and
+before, whereas this package requires Tcl 8.5 or higher, and
+[package TclOO].
+
+[para] Packages related to this are [package tcl::chan::string] and
+[package tcl::chan::variable].
+
+[para] The internal [package TclOO] class implementing the channel
+handler is a sub-class of the [package tcl::chan::events] framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::memchan]]
+
+This command creates a new memchan channel and returns its handle.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

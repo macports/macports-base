@@ -1,0 +1,48 @@
+# -*- tcl -*-
+# Graph tests - arc target
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: target.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc target ARC
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-target-1.0 {arc target, wrong#arcs, missing} {
+    SETUP
+    catch {mygraph arc target} msg
+    mygraph destroy
+    set msg
+} [tmWrong {arc target} arc 0]
+
+test graph-${impl}-${setimpl}-arc-target-1.1 {arc target, wrong#arcs, too many} {
+    SETUP
+    catch {mygraph arc target a b} msg
+    mygraph destroy
+    set msg
+} [tmTooMany {arc target} arc]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-target-2.0 {arc target, missing arc} {
+    SETUP
+    catch {mygraph arc target arc0} msg
+    mygraph destroy
+    set msg
+} [MissingArc $MY arc0]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-target-3.0 {arc target} {
+    SETUP
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+    set result [mygraph arc target arc0]
+    mygraph destroy
+    set result
+} node1
+
+# ---------------------------------------------------

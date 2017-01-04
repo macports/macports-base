@@ -1,0 +1,189 @@
+# Tests for the base64 module.                              -*- tcl -*- 
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: ascii85.test,v 1.1 2010/05/03 21:48:39 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+package require tcltest
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+    devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ascii85.tcl ascii85
+}
+
+# -------------------------------------------------------------------------
+# Encoding tests
+# -------------------------------------------------------------------------
+
+test ascii85-1.1 {ascii85::encode} {
+    ascii85::encode "this is a test\n"
+} {FD,B0+DGm>@3BZ'F*%`}
+
+test ascii85-1.2 {ascii85::encode wraps lines at 76 characters} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    ascii85::encode $str
+} {<+ohcF(fK4F<GU8A0>K&GT_$8DBNqABk(ppGp%3BEc6)5BHVD1AKYW+AS#a%AnbgmA0>;uA0>W0D
+/a&s+E)F7EZfI;AKZ)'Cht5'Ec6/>+C\njEXD}
+
+test ascii85-1.3 {ascii85::encode with wrap length set to 60} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    ascii85::encode -maxlen 60 $str
+} {<+ohcF(fK4F<GU8A0>K&GT_$8DBNqABk(ppGp%3BEc6)5BHVD1AKYW+AS#a%
+AnbgmA0>;uA0>W0D/a&s+E)F7EZfI;AKZ)'Cht5'Ec6/>+C\njEXD}
+
+test ascii85-1.4 {ascii85::encode with wrap length set to 0} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    ascii85::encode -maxlen 0 $str
+} {<+ohcF(fK4F<GU8A0>K&GT_$8DBNqABk(ppGp%3BEc6)5BHVD1AKYW+AS#a%AnbgmA0>;uA0>W0D/a&s+E)F7EZfI;AKZ)'Cht5'Ec6/>+C\njEXD}
+
+test ascii85-1.5 {ascii85::encode with wrap length set to 76, wrapchar to newline+space} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    ascii85::encode -maxlen 76 -wrapchar "\n " $str
+} {<+ohcF(fK4F<GU8A0>K&GT_$8DBNqABk(ppGp%3BEc6)5BHVD1AKYW+AS#a%AnbgmA0>;uA0>W0D
+ /a&s+E)F7EZfI;AKZ)'Cht5'Ec6/>+C\njEXD}
+
+test ascii85-1.6 {ascii85::encode, errors} {
+    list [catch {ascii85::encode} msg] $msg
+} [list 1 "wrong # args: should be \"ascii85::encode ?-maxlen maxlen? ?-wrapchar wrapchar? string\""]
+
+test ascii85-1.7 {ascii85::encode, errors} {
+    list [catch {ascii85::encode -maxlen foo} msg] $msg
+} [list 1 "wrong # args: should be \"ascii85::encode ?-maxlen maxlen? ?-wrapchar wrapchar? string\""]
+
+# changed form the original. ascii85 checks for correct # args before
+# checking for valid options. Now this test is duplicate of 1.12
+test ascii85-1.8 {ascii85::encode, errors} {
+    list [catch {ascii85::encode -maxlen foo bar} msg] $msg
+} [list 1 {expected positive integer but got "foo"}]
+
+test ascii85-1.9 {ascii85::encode, errors} {
+    list [catch {ascii85::encode -maxlen foo -wrapchar bar} msg] $msg
+} [list 1 "wrong # args: should be \"ascii85::encode ?-maxlen maxlen? ?-wrapchar wrapchar? string\""]
+
+test ascii85-1.10 {ascii85::encode, errors} {
+    list [catch {ascii85::encode -foo bar baz} msg] $msg
+} [list 1 "unknown option \"-foo\": must be -maxlen or -wrapchar"]
+
+test ascii85-1.11 {ascii85::encode with bogus wrap length (< 0)} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    list [catch { ascii85::encode -maxlen -3 $str } msg] $msg
+} {1 {expected positive integer but got "-3"}}
+
+# dulicate of 1.8
+test ascii85-1.12 {ascii85::encode with bogus wrap length (non-numeric)} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    list [catch { ascii85::encode -maxlen foo $str } msg] $msg
+} {1 {expected positive integer but got "foo"}}
+
+test ascii85-1.13 {ascii85::encode with bogus wrap length (non-integer)} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    list [catch { ascii85::encode -maxlen 1.5 $str } msg] $msg
+} {1 {expected positive integer but got "1.5"}}
+
+test ascii85-1.14 {ascii85::encode with wrap length set to 20} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    ascii85::encode -maxlen 20 $str
+} {<+ohcF(fK4F<GU8A0>K&
+GT_$8DBNqABk(ppGp%3B
+Ec6)5BHVD1AKYW+AS#a%
+AnbgmA0>;uA0>W0D/a&s
++E)F7EZfI;AKZ)'Cht5'
+Ec6/>+C\njEXD}
+
+test ascii85-1.15 {ascii85::encode with wrap length set to 23 (prime)} {
+    set str "The short red fox ran quickly through the green field "
+    append str "and jumped over the tall brown bear\n"
+    ascii85::encode -maxlen 23 $str
+} {<+ohcF(fK4F<GU8A0>K&GT_
+$8DBNqABk(ppGp%3BEc6)5B
+HVD1AKYW+AS#a%AnbgmA0>;
+uA0>W0D/a&s+E)F7EZfI;AK
+Z)'Cht5'Ec6/>+C\njEXD}
+
+test ascii85-1.16 {ascii85::encode string of length zero} {
+    ascii85::encode ""
+} ""
+
+# -------------------------------------------------------------------------
+# Decoding tests
+# -------------------------------------------------------------------------
+
+test ascii85-2.1 {ascii85::decode} {
+    ascii85::decode {FD,B0+DGm>@3BZ'F*%`}
+} "this is a test\n"
+
+test ascii85-2.2 {ascii85::decode ignores newlines} {
+    set str {<+ohcF(fK4F<GU8A0>K&GT_$8DBNqABk(ppGp%3BEc6)5BHVD1AKYW+AS#a%AnbgmA0>;uA0>W0D}
+    append str \n
+    append str {/a&s+E)F7EZfI;AKZ)'Cht5'Ec6/>+C\njEXD}
+    ascii85::decode $str
+} "The short red fox ran quickly through the green field and jumped over the tall brown bear\n"
+
+test ascii85-2.3 {ascii85::decode error chars not in range} {
+    list [catch {ascii85::decode "ab~cd"} msg] $msg
+} {1 {error decoding data: chars outside the allowed range}}
+
+test ascii85-2.4 {ascii85::decode error "z" char misplaced} {
+    list [catch {ascii85::decode "abczd"} msg] $msg
+} {1 {error decoding data: "z" char misplaced}}
+
+test ascii85-2.5 {ascii85::decode error trailing char} {
+    list [catch {ascii85::decode "abcde5"} msg] $msg
+} {1 {error decoding data: trailing char}}
+
+test ascii85-2.6 {ascii85::decode decoding of null chars} {
+    foreach enc [list !! !!! !!!! z z!!] {
+        lappend res [ascii85::decode $enc]
+    }
+    set res
+} [list \x00 \x00\x00 \x00\x00\x00 \x00\x00\x00\x00 \x00\x00\x00\x00\x00]
+
+test ascii85-2.7 {ascii85::decode integer range limit} {
+    ascii85::decode s8W-!
+} "\xff\xff\xff\xff"
+
+test ascii85-2.8 {ascii85::decode integer range overflow} {
+    list [catch {ascii85::decode {s8W-"}} msg] $msg
+} {1 {error decoding data: decoded group overflow}}
+
+test ascii85-2.9 {ascii85::decode of empty string} {
+    ascii85::decode ""
+} ""
+
+# -------------------------------------------------------------------------
+# Identity tests
+# -------------------------------------------------------------------------
+
+test ascii85-3.1 {ascii85 identity test} {
+    ascii85::decode [ascii85::encode "this is a test"]
+} "this is a test"
+
+test ascii85-3.2 {base64 identity test} {
+    set x \f\xee
+    set y [ascii85::decode [ascii85::encode $x]]
+    string compare $x $y
+} 0
+
+testsuiteCleanup
+return

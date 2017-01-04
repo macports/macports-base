@@ -1,0 +1,313 @@
+[vset VERSION 1.4.3]
+[manpage_begin ncgi n [vset VERSION]]
+[see_also html]
+[keywords CGI]
+[keywords cookie]
+[keywords form]
+[keywords html]
+[comment {-*- tcl -*- doctools manpage}]
+[moddesc   {CGI Support}]
+[titledesc {Procedures to manipulate CGI values.}]
+[category  {CGI programming}]
+[require Tcl 8.4]
+[require ncgi [opt [vset VERSION]]]
+[description]
+[para]
+
+The [package ncgi] package provides commands that manipulate CGI
+values.  These are values that come from Web forms and are processed
+either by CGI scripts or web pages with embedded Tcl code.  Use the
+[package ncgi] package to query these values, set and get cookies, and
+encode and decode www-url-encoded values.
+
+[para]
+
+In the simplest case, a CGI script first calls [cmd ::ncgi::parse] and
+then calls [cmd ::ncgi::value] to get different form values.  If a CGI
+value is repeated, you should use [cmd ::ncgi::valueList] to get back
+the complete list of values.
+
+[para]
+
+An alternative to [cmd ::ncgi::parse] is [cmd ::ncgi::input], which
+has semantics similar to Don Libes' [cmd cgi_input] procedure.
+
+[cmd ::ncgi::input] restricts repeated CGI values to have names that
+end with "List".  In this case, [cmd ::ncgi::value] will return the
+complete list of values, and [cmd ::ncgi::input] will raise errors if
+it find repeated form elements without the right name.
+
+[para]
+
+The [cmd ::ncgi::reset] procedure can be used in test suites and Web
+servers to initialize the source of the CGI values.  Otherwise the
+values are read in from the CGI environment.
+
+[para]
+
+The complete set of procedures is described below.
+
+[list_begin definitions]
+
+[call [cmd ::ncgi::cookie] [arg cookie]]
+
+Return a list of values for [arg cookie], if any.  It is possible that
+more than one cookie with the same name can be present, so this
+procedure returns a list.
+
+[call [cmd ::ncgi::decode] [arg str]]
+
+Decode strings in www-url-encoding, which represents special
+characters with a %xx sequence, where xx is the character code in hex.
+
+[call [cmd ::ncgi::empty] [arg name]]
+
+Returns 1 if the CGI variable [arg name] is not present or has the
+empty string as its value.
+
+[call [cmd ::ncgi::exists] [arg name]]
+
+The return value is a boolean. It returns [const 0] if the CGI
+variable [arg name] is not present, and [const 1] otherwise.
+
+[call [cmd ::ncgi::encode] [arg string]]
+
+Encode [arg string] into www-url-encoded format.
+
+[call [cmd ::ncgi::header] [opt [arg type]] [arg args]]
+
+Output the CGI header to standard output.  This emits a Content-Type:
+header and additional headers based on [arg args], which is a list of
+header names and header values. The [arg type] defaults to
+"text/html".
+
+[call [cmd ::ncgi::import] [arg cginame] [opt [arg tclname]]]
+
+This creates a variable in the current scope with the value of the CGI
+variable [arg cginame].  The name of the variable is [arg tclname], or
+[arg cginame] if [arg tclname] is empty (default).
+
+[call [cmd ::ncgi::importAll] [arg args]]
+
+This imports several CGI variables as Tcl variables.  If [arg args] is
+empty, then every CGI value is imported.  Otherwise each CGI variable
+listed in [arg args] is imported.
+
+[call [cmd ::ncgi::importFile] [arg cmd] [arg cginame] [opt [arg filename]]]
+
+This provides information about an uploaded file from a form input
+field of type [const file] with name [arg cginame].  [arg cmd] can be
+one of [option -server] [option -client], [option -type] or
+[option -data].
+
+[list_begin definitions]
+
+[def "[option -client] [arg cginame]"]
+
+returns the filename as sent by the client.
+
+[def "[option -type] [arg cginame]"]
+
+returns the mime type of the uploaded file.
+
+[def "[option -data] [arg cginame]"]
+
+returns the contents of the file.
+
+[def "[option -server] [arg cginame] [arg filename]"]
+
+writes the file contents to a local temporary file (or [arg filename]
+if supplied) and returns the name of the file. The caller is
+responsible for deleting this file after use.
+
+[list_end]
+
+[call [cmd ::ncgi::input] [opt [arg fakeinput]] [opt [arg fakecookie]]]
+
+This reads and decodes the CGI values from the environment.  It
+restricts repeated form values to have a trailing "List" in their
+name.  The CGI values are obtained later with the [cmd ::ncgi::value]
+procedure.
+
+[call [cmd ::ncgi::multipart] [arg {type query}]]
+
+This procedure parses a multipart/form-data [arg query].  This is used
+by [cmd ::ncgi::nvlist] and not normally called directly.  It returns
+an alternating list of names and structured values.  Each structure
+value is in turn a list of two elements.  The first element is
+meta-data from the multipart/form-data structure.  The second element
+is the form value.  If you use [cmd ::ncgi::value] you just get the
+form value.  If you use [cmd ::ncgi::valueList] you get the structured
+value with meta data and the value.
+
+[para]
+
+The [arg type] is the whole Content-Type, including the parameters
+like [arg boundary].  This returns a list of names and values that
+describe the multipart data.  The values are a nested list structure
+that has some descriptive information first, and the actual form value
+second.  The descriptive information is list of header names and
+values that describe the content.
+
+[call [cmd ::ncgi::nvlist]]
+
+This returns all the query data as a name, value list.  In the case of
+multipart/form-data, the values are structured as described in
+
+[cmd ::ncgi::multipart].
+
+[call [cmd ::ncgi::names]]
+
+This returns all names found in the query data, as a list.
+
+[cmd ::ncgi::multipart].
+
+[call [cmd ::ncgi::parse]]
+
+This reads and decodes the CGI values from the environment.  The CGI
+values are obtained later with the [cmd ::ncgi::value] procedure.  IF
+a CGI value is repeated, then you should use [cmd ::ncgi::valueList]
+to get the complete list of values.
+
+[call [cmd ::ncgi::parseMimeValue] [arg value]]
+
+This decodes the Content-Type and other MIME headers that have the
+form of "primary value; param=val; p2=v2" It returns a list, where the
+first element is the primary value, and the second element is a list
+of parameter names and values.
+
+[call [cmd ::ncgi::query]]
+
+This returns the raw query data.
+
+[call [cmd ::ncgi::redirect] [arg url]]
+
+Generate a response that causes a 302 redirect by the Web server.  The
+[arg url] is the new URL that is the target of the redirect.  The URL
+will be qualified with the current server and current directory, if
+necessary, to convert it into a full URL.
+
+[call [cmd ::ncgi::reset] [arg {query type}]]
+
+Set the query data and Content-Type for the current CGI session.  This
+is used by the test suite and by Web servers to initialize the ncgi
+module so it does not try to read standard input or use environment
+variables to get its data.  If neither [arg query] or [arg type] are
+specified, then the [package ncgi] module will look in the standard
+CGI environment for its data.
+
+[call [cmd ::ncgi::setCookie] [arg args]]
+
+Set a cookie value that will be returned as part of the reply.  This
+must be done before [cmd ::ncgi::header] or [cmd ::ncgi::redirect] is
+called in order for the cookie to be returned properly.  The
+
+[arg args] are a set of flags and values:
+
+[list_begin definitions]
+
+[def "[option -name] [arg name]"]
+[def "[option -value] [arg value]"]
+[def "[option -expires] [arg date]"]
+[def "[option -path] [arg {path restriction}]"]
+[def "[option -domain] [arg {domain restriction}]"]
+[list_end]
+
+[call [cmd ::ncgi::setDefaultValue] [arg {key defvalue}]]
+
+Set a CGI value if it does not already exists.  This affects future
+calls to [cmd ::ncgi::value] (but not future calls to
+
+[cmd ::ncgi::nvlist]).  If the CGI value already is present, then this
+procedure has no side effects.
+
+[call [cmd ::ncgi::setDefaultValueList] [arg {key defvaluelist}]]
+
+Like [cmd ::ncgi::setDefaultValue] except that the value already has
+list structure to represent multiple checkboxes or a multi-selection.
+
+[call [cmd ::ncgi::setValue] [arg {key value}]]
+
+Set a CGI value, overriding whatever was present in the CGI
+environment already.  This affects future calls to [cmd ::ncgi::value]
+(but not future calls to [cmd ::ncgi::nvlist]).
+
+[call [cmd ::ncgi::setValueList] [arg {key valuelist}]]
+
+Like [cmd ::ncgi::setValue] except that the value already has list
+structure to represent multiple checkboxes or a multi-selection.
+
+[call [cmd ::ncgi::type]]
+
+Returns the Content-Type of the current CGI values.
+
+[call [cmd ::ncgi::urlStub] [opt [arg url]]]
+
+Returns the current URL, but without the protocol, server, and port.
+If [arg url] is specified, then it defines the URL for the current
+session.  That value will be returned by future calls to
+
+[cmd ::ncgi::urlStub]
+
+[call [cmd ::ncgi::value] [arg key] [opt [arg default]]]
+
+Return the CGI value identified by [arg key].  If the CGI value is not
+present, then the [arg default] value is returned instead. This value
+defaults to the empty string.
+
+[para]
+
+If the form value [arg key] is repeated, then there are two cases: if
+[cmd ::ncgi::parse] was called, then [cmd ::ncgi::value] only returns
+the first value associated with [arg key].  If [cmd ::ncgi::input] was
+called, then [cmd ::ncgi::value] returns a Tcl list value and
+
+[arg key] must end in "List" (e.g., "skuList").  In the case of
+multipart/form-data, this procedure just returns the value of the form
+element.  If you want the meta-data associated with each form value,
+then use [cmd ::ncgi::valueList].
+
+[call [cmd ::ncgi::valueList] [arg key] [opt [arg default]]]
+
+Like [cmd ::ncgi::value], but this always returns a list of values
+(even if there is only one value).  In the case of
+multipart/form-data, this procedure returns a list of two elements.
+The first element is meta-data in the form of a parameter, value list.
+The second element is the form value.
+
+[list_end]
+
+[section EXAMPLES]
+
+Uploading a file
+[example {
+HTML:
+<html>
+<form action="/cgi-bin/upload.cgi" method="POST" enctype="multipart/form-data">
+Path: <input type="file" name="filedata"><br>
+Name: <input type="text" name="filedesc"><br>
+<input type="submit">
+</form>
+</html>
+
+TCL: upload.cgi
+#!/usr/local/bin/tclsh
+
+::ncgi::parse
+set filedata [::ncgi::value filedata]
+set filedesc [::ncgi::value filedesc]
+
+puts "<html> File uploaded at <a href=\"/images/$filedesc\">$filedesc</a> </html>"
+
+set filename /www/images/$filedesc
+
+set fh [open $filename w]
+puts -nonewline $fh $filedata
+close $fh
+}]
+
+[para]
+
+[vset CATEGORY ncgi]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

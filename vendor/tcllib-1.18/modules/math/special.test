@@ -1,0 +1,132 @@
+# -*- tcl -*-
+# Tests for special functions in math library  -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# $Id: special.test,v 1.13 2007/08/21 17:33:00 andreas_kupries Exp $
+#
+# Copyright (c) 2004 by Arjen Markus
+# All rights reserved.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4;# statistics,linalg!
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl        math
+    useLocal constants.tcl   math::constants
+    useLocal linalg.tcl      math::linearalgebra
+    useLocal statistics.tcl  math::statistics
+    useLocal polynomials.tcl math::polynomials
+}
+testing {
+    useLocal special.tcl math::special
+}
+
+# -------------------------------------------------------------------------
+
+#
+# Expect an accuracy of at least four decimals
+#
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 1.0e-4} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+#
+# Expect an accuracy of some three decimals (Fresnel)
+#
+proc matchFresnel {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 2.0e-3} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+customMatch numbers         matchNumbers
+customMatch numbers-fresnel matchFresnel
+
+test "Erf-1.0" "Values of the error function" \
+    -match numbers -body {
+    set result {}
+    foreach x {0.0 0.1 0.2 0.5 1.0 2.0 -0.1 -0.2 -0.5 -1.0 -2.0} {
+        lappend result [::math::special::erf $x]
+    }
+    set result
+} -result {0.0  0.1124629  0.2227026  0.5204999  0.8427008  0.9953227
+               -0.1124629 -0.2227026 -0.5204999 -0.8427008 -0.9953227}
+
+proc make_erfc {erf_values} {
+    set result {}
+    foreach v $erf_values {
+        lappend result [expr {1.0-$v}]
+    }
+    return $result
+}
+
+test "Erf-1.1" "Values of the complementary error function" \
+    -match numbers -body {
+    set result {}
+    foreach x {0.0 0.1 0.2 0.5 1.0 2.0 -0.1 -0.2 -0.5 -1.0 -2.0} {
+        lappend result [::math::special::erfc $x]
+    }
+    set result
+} -result [make_erfc {0.0  0.1124629  0.2227026  0.5204999  0.8427008 0.9953227
+                          -0.1124629 -0.2227026 -0.5204999 -0.8427008 -0.9953227}]
+
+
+test "Fresnel-1.0" "Values of the Fresnel C intergral" \
+   -match numbers-fresnel -body {
+   set result {}
+   foreach x {0.0 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0 5.0} {
+      lappend result [::math::special::fresnel_C $x]
+   }
+   set result
+} -result {0.0  0.09999 0.19992 0.49234 0.77989 0.44526
+           0.48825 0.60572 0.49842 0.56363}
+
+test "Fresnel-1.1" "Values of the Fresnel S intergral" \
+   -match numbers-fresnel -body {
+   set result {}
+   foreach x {0.0 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0 5.0} {
+      lappend result [::math::special::fresnel_S $x]
+   }
+   set result
+} -result {0.0  0.00052 0.00419 0.06473 0.43826 0.69750
+           0.34342 0.49631 0.42052 0.49919}
+
+test "invnorm-1.0" "Values of the inverse normal distribution" \
+   -match numbers -body {
+   set result {}
+   foreach p {0.001 0.01 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.99 0.999} {
+       lappend result [::math::special::invnorm $p]
+   }
+   set result
+} -result {-3.090232304709404 -2.326347874388028 -1.2815515641401563 -0.8416212327266185 -0.5244005132792953 -0.2533471028599986
+           0.0 0.2533471028599986 0.5244005132792952 0.8416212327266186 1.2815515641401563 2.326347874388028 3.090232304709404}
+
+test "sinc-1.0" "Values of the sinc function" \
+   -match numbers -body {
+   set result [::math::special::sinc 0.0]
+} -result 1.0
+
+# End of test cases
+testsuiteCleanup

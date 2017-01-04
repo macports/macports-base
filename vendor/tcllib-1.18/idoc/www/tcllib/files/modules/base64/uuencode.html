@@ -1,0 +1,217 @@
+<html><head>
+<title>uuencode - Text encoding &amp; decoding binary data</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'uuencode.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002, Pat Thoyts
+   -->
+<! -- uuencode.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">uuencode(n) 1.1.4 tcllib &quot;Text encoding &amp; decoding binary data&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>uuencode - UU-encode/decode binary data</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8</b></li>
+<li>package require <b class="pkgname">uuencode <span class="opt">?1.1.4?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::uuencode::encode</b> <i class="arg">string</i></a></li>
+<li><a href="#2"><b class="cmd">::uuencode::decode</b> <i class="arg">string</i></a></li>
+<li><a href="#3"><b class="cmd">::uuencode::uuencode</b> <span class="opt">?<b class="option">-name</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-mode</b> <i class="arg">octal</i>?</span> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></li>
+<li><a href="#4"><b class="cmd">::uuencode::uudecode</b> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a Tcl-only implementation of the
+<b class="syscmd">uuencode(1)</b> and <b class="syscmd">uudecode(1)</b> commands. This encoding
+packs binary data into printable ASCII characters.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::uuencode::encode</b> <i class="arg">string</i></a></dt>
+<dd><p>returns the uuencoded data. This will encode all the data passed in
+even if this is longer than the uuencode maximum line length. If the
+number of input bytes is not a multiple of 3 then additional 0 bytes
+are added to pad the string.</p></dd>
+<dt><a name="2"><b class="cmd">::uuencode::decode</b> <i class="arg">string</i></a></dt>
+<dd><p>Decodes the given encoded data. This will return any padding
+characters as well and it is the callers responsibility to deal with
+handling the actual length of the encoded data. (see uuencode).</p></dd>
+<dt><a name="3"><b class="cmd">::uuencode::uuencode</b> <span class="opt">?<b class="option">-name</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-mode</b> <i class="arg">octal</i>?</span> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></dt>
+<dd></dd>
+<dt><a name="4"><b class="cmd">::uuencode::uudecode</b> (<b class="option">-file</b> <i class="arg">filename</i> | <span class="opt">?<b class="option">--</b>?</span> <i class="arg">string</i>)</a></dt>
+<dd><p>UUDecode a file or block of data. A file may contain more than one
+embedded file so the result is a list where each element is a three
+element list of filename, mode value and data.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">OPTIONS</a></h2>
+<dl class="doctools_definitions">
+<dt>-filename name</dt>
+<dd><p>Cause the uuencode or uudecode commands to read their data from the
+named file rather that taking a string parameter.</p></dd>
+<dt>-name string</dt>
+<dd><p>The uuencoded data header line contains the suggested file name to be
+used when unpacking the data. Use this option to change this from the
+default of &quot;data.dat&quot;.</p></dd>
+<dt>-mode octal</dt>
+<dd><p>The uuencoded data header line contains a suggested permissions bit
+pattern expressed as an octal string. To change the default of 0644
+you can set this option. For instance, 0755 would be suitable for an
+executable. See <b class="syscmd">chmod(1)</b>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% set d [uuencode::encode &quot;Hello World!&quot;]
+2&amp;5L;&amp;\\@5V]R;&amp;0A
+</pre>
+<pre class="doctools_example">
+% uuencode::uudecode $d
+Hello World!
+</pre>
+<pre class="doctools_example">
+% set d [uuencode::uuencode -name hello.txt &quot;Hello World&quot;]
+begin 644 hello.txt
++2&amp;5L;&amp;\@5V]R;&amp;0`
+`
+end
+</pre>
+<pre class="doctools_example">
+% uuencode::uudecode $d
+{hello.txt 644 {Hello World}}
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>base64</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key254">encoding</a>, <a href="../../../../index.html#key253">uuencode</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002, Pat Thoyts</p>
+</div>
+</div></body></html>

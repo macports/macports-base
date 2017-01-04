@@ -1,0 +1,6 @@
+[index_begin {Keyword Index} {}]
+[key TMML]
+[manpage apps/dtplite.man              dtplite]
+[key conversion]
+[manpage apps/dtplite.man              doc-tools-processor-lite]
+[index_end]

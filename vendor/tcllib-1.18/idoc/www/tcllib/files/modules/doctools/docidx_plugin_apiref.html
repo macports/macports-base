@@ -1,0 +1,446 @@
+
+<html><head>
+<title>docidx_plugin_apiref - Documentation tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'docidx_plugin_apiref.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- docidx_plugin_apiref.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">docidx_plugin_apiref(n) 1.0 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>docidx_plugin_apiref - docidx plugin API reference</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">OVERVIEW</a></li>
+<li class="doctools_section"><a href="#section3">FRONTEND COMMANDS</a></li>
+<li class="doctools_section"><a href="#section4">PLUGIN COMMANDS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Management commands</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Formatting commands</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">dt_fmap</b> <i class="arg">symfname</i></a></li>
+<li><a href="#2"><b class="cmd">dt_format</b></a></li>
+<li><a href="#3"><b class="cmd">dt_read</b> <i class="arg">file</i></a></li>
+<li><a href="#4"><b class="cmd">dt_source</b> <i class="arg">file</i></a></li>
+<li><a href="#5"><b class="cmd">ex_cappend</b> <i class="arg">text</i></a></li>
+<li><a href="#6"><b class="cmd">ex_cget</b> <i class="arg">varname</i></a></li>
+<li><a href="#7"><b class="cmd">ex_cis</b> <i class="arg">cname</i></a></li>
+<li><a href="#8"><b class="cmd">ex_cname</b></a></li>
+<li><a href="#9"><b class="cmd">ex_cpop</b> <i class="arg">cname</i></a></li>
+<li><a href="#10"><b class="cmd">ex_cpush</b> <i class="arg">cname</i></a></li>
+<li><a href="#11"><b class="cmd">ex_cset</b> <i class="arg">varname</i> <i class="arg">value</i></a></li>
+<li><a href="#12"><b class="cmd">ex_lb</b> <span class="opt">?<i class="arg">newbracket</i>?</span></a></li>
+<li><a href="#13"><b class="cmd">ex_rb</b> <span class="opt">?<i class="arg">newbracket</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">idx_initialize</b></a></li>
+<li><a href="#15"><b class="cmd">idx_listvariables</b></a></li>
+<li><a href="#16"><b class="cmd">idx_numpasses</b></a></li>
+<li><a href="#17"><b class="cmd">idx_postprocess</b> <i class="arg">text</i></a></li>
+<li><a href="#18"><b class="cmd">idx_setup</b> <i class="arg">n</i></a></li>
+<li><a href="#19"><b class="cmd">idx_shutdown</b></a></li>
+<li><a href="#20"><b class="cmd">idx_varset</b> <i class="arg">varname</i> <i class="arg">text</i></a></li>
+<li><a href="#21"><b class="cmd">fmt_plain_text</b> <i class="arg">text</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document is intended for <i class="term">plugin writers</i>, i.e. developers
+wishing to write an index <i class="term"><a href="../../../../index.html#key657">formatting engine</a></i> for some output
+format X.</p>
+<p>It specifies the interaction between the <b class="package"><a href="../doctools2idx/idx_container.html">doctools::idx</a></b>
+package and its plugins, i.e. the interface any index formatting
+engine has to comply with.</p>
+<p>This document deals with version 1 of the interface.</p>
+<p>A reader who is on the other hand more interested in the markup
+language itself should start with the
+<i class="term"><a href="docidx_lang_intro.html">docidx language introduction</a></i> and proceed from there to the
+formal specifications, i.e. the <i class="term"><a href="docidx_lang_syntax.html">docidx language syntax</a></i> and
+the <i class="term"><a href="docidx_lang_cmdref.html">docidx language command reference</a></i>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">OVERVIEW</a></h2>
+<p>The API for an index formatting engine consists of two major sections.</p>
+<p>On the one side we have a set of commands through which the plugin is
+able to query the frontend. These commands are provided by the
+frontend and linked into the plugin interpreter. Please see section
+<span class="sectref"><a href="#section3">FRONTEND COMMANDS</a></span> for their detailed specification.</p>
+<p>And on the other side the plugin has to provide its own set of
+commands which will then be called by the frontend in a specific
+sequence while processing input. They, again, fall into two
+categories, management and formatting.
+Please see section <span class="sectref"><a href="#section4">PLUGIN COMMANDS</a></span> and its subsections for
+their detailed specification.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">FRONTEND COMMANDS</a></h2>
+<p>This section specifies the set of commands through which a plugin,
+also known as an index formatting engine, is able to query the
+frontend. These commands are provided by the frontend and linked into
+the plugin interpreter.</p>
+<p>I.e. an index formatting engine can assume that all of the following
+commands are present when any of its own commands (as specified in
+section <span class="sectref"><a href="#section4">PLUGIN COMMANDS</a></span>) are executed.</p>
+<p>Beyond that it can also assume that it has full access to its own safe
+interpreter and thus is not able to damage the other parts of the
+processor, nor can it damage the filesystem.
+It is however able to either kill or hang the whole process, by
+exiting, or running an infinite loop.</p>
+<p>Coming back to the imported commands, all the commands with prefix
+<em>dt_</em> provide limited access to specific parts of the frontend,
+whereas the commands with prefix <em>ex_</em> provide access to the
+state of the <b class="package"><a href="../textutil/expander.html">textutil::expander</a></b> object which does the main
+parsing of the input within the frontend. These commands should not be
+except under very special circumstances.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">dt_fmap</b> <i class="arg">symfname</i></a></dt>
+<dd><p>Query command. It returns the actual pathname to use in the output in
+place of the symbolic filename <i class="arg">symfname</i>. It will return the
+unchanged input if no mapping was established for <i class="arg">symfname</i>.</p>
+<p>The required mappings are established with the method <b class="method">map</b> of
+a frontend, as explained in section <b class="sectref">OBJECT METHODS</b>
+of the documentation for the package <b class="package"><a href="../doctools2idx/idx_container.html">doctools::idx</a></b>.</p></dd>
+<dt><a name="2"><b class="cmd">dt_format</b></a></dt>
+<dd><p>Query command. It returns the name of the format associated with the
+index formatting engine.</p></dd>
+<dt><a name="3"><b class="cmd">dt_read</b> <i class="arg">file</i></a></dt>
+<dd><p>Controlled filesystem access. Returns contents of <i class="arg">file</i> for
+whatever use desired by the plugin.
+Only files which are either in the same directory as the file
+containing the engine, or below it, can be loaded. Trying to load a
+file outside of this directory causes an error.</p></dd>
+<dt><a name="4"><b class="cmd">dt_source</b> <i class="arg">file</i></a></dt>
+<dd><p>Controlled filesystem access. This command allows the index formatting
+engine to load additional Tcl code it may need.
+Only files which are either in the same directory as the file
+containing the engine, or below it, can be loaded. Trying to load a
+file outside of this directory causes an error.</p></dd>
+<dt><a name="5"><b class="cmd">ex_cappend</b> <i class="arg">text</i></a></dt>
+<dd><p>Appends a string to the output in the current context.  This command
+should rarely be used by macros or application code.</p></dd>
+<dt><a name="6"><b class="cmd">ex_cget</b> <i class="arg">varname</i></a></dt>
+<dd><p>Retrieves the value of variable <i class="arg">varname</i>, defined in the current
+context.</p></dd>
+<dt><a name="7"><b class="cmd">ex_cis</b> <i class="arg">cname</i></a></dt>
+<dd><p>Determines whether or not the name of the current context is
+<i class="arg">cname</i>.</p></dd>
+<dt><a name="8"><b class="cmd">ex_cname</b></a></dt>
+<dd><p>Returns the name of the current context.</p></dd>
+<dt><a name="9"><b class="cmd">ex_cpop</b> <i class="arg">cname</i></a></dt>
+<dd><p>Pops a context from the context stack, returning all accumulated
+output in that context.  The context must be named <i class="arg">cname</i>, or an
+error results.</p></dd>
+<dt><a name="10"><b class="cmd">ex_cpush</b> <i class="arg">cname</i></a></dt>
+<dd><p>Pushes a context named <i class="arg">cname</i> onto the context stack.  The
+context must be popped by <b class="method">cpop</b> before expansion ends or an
+error results.</p></dd>
+<dt><a name="11"><b class="cmd">ex_cset</b> <i class="arg">varname</i> <i class="arg">value</i></a></dt>
+<dd><p>Sets variable <i class="arg">varname</i> to <i class="arg">value</i> in the current context.</p></dd>
+<dt><a name="12"><b class="cmd">ex_lb</b> <span class="opt">?<i class="arg">newbracket</i>?</span></a></dt>
+<dd><p>Returns the current value of the left macro expansion bracket; this is
+for use as or within a macro, when the bracket needs to be included in
+the output text.  If <i class="arg">newbracket</i> is specified, it becomes the new
+bracket, and is returned.</p></dd>
+<dt><a name="13"><b class="cmd">ex_rb</b> <span class="opt">?<i class="arg">newbracket</i>?</span></a></dt>
+<dd><p>Returns the current value of the right macro expansion bracket; this
+is for use as or within a macro, when the bracket needs to be included
+in the output text.  If <i class="arg">newbracket</i> is specified, it becomes the
+new bracket, and is returned.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">PLUGIN COMMANDS</a></h2>
+<p>The plugin has to provide its own set of commands which will then be
+called by the frontend in a specific sequence while processing
+input. They fall into two categories, management and formatting. Their
+expected names, signatures, and responsibilities are specified in the
+following two subsections.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Management commands</a></h3>
+<p>The management commands a plugin has to provide are used by the
+frontend to</p>
+<ol class="doctools_enumerated">
+<li><p>initialize and shutdown the plugin</p></li>
+<li><p>determine the number of passes it has
+       to make over the input</p></li>
+<li><p>initialize and shutdown each pass</p></li>
+<li><p>query and initialize engine parameters</p></li>
+</ol>
+<p>After the plugin has been loaded and the frontend commands are
+established the commands will be called in the following sequence:</p>
+<pre class="doctools_example">
+    idx_numpasses -&gt; n
+    idx_listvariables -&gt; vars
+    idx_varset var1 value1
+    idx_varset var2 value2
+    ...
+    idx_varset varK valueK
+    idx_initialize
+    idx_setup 1
+    ...
+    idx_setup 2
+    ...
+    ...
+    idx_setup n
+    ...
+    idx_postprocess
+    idx_shutdown
+    ...
+</pre>
+<p>I.e. first the number of passes and the set of available engine
+parameters is established, followed by calls setting the
+parameters. That second part is optional.</p>
+<p>After that the plugin is initialized, the specified number of passes
+executed, the final result run through a global post processing step
+and at last the plugin is shutdown again. This can be followed by more
+conversions, restarting the sequence at <b class="cmd">idx_varset</b>.</p>
+<p>In each of the passes, i.e. after the calls of <b class="cmd">idx_setup</b> the
+frontend will process the input and call the formatting commands as
+markup is encountered. This means that the sequence of formatting
+commands is determined by the grammar of the docidx markup language,
+as specified in the <i class="term"><a href="docidx_lang_syntax.html">docidx language syntax</a></i> specification.</p>
+<p>A different way of looking at the sequence is:</p>
+<ul class="doctools_itemized">
+<li><p>First some basic parameters are determined.</p></li>
+<li><p>Then everything starting at the first <b class="cmd">idx_varset</b> to
+<b class="cmd">idx_shutdown</b> forms a <i class="term">run</i>, the formatting of a
+single input. Each run can be followed by more.</p></li>
+<li><p>Embedded within each run we have one or more <i class="term">passes</i>,
+each starting with <b class="cmd">idx_setup</b> and going until either the next
+<b class="cmd">idx_setup</b> or <b class="cmd">idx_postprocess</b> is reached.</p>
+<p>If more than one pass is required to perform the formatting only the
+output of the last pass is relevant. The output of all the previous,
+preparatory passes is ignored.</p></li>
+</ul>
+<p>The commands, their names, signatures, and responsibilities are, in
+detail:</p>
+<dl class="doctools_definitions">
+<dt><a name="14"><b class="cmd">idx_initialize</b></a></dt>
+<dd><p><em>Initialization/Shutdown</em>.
+This command is called at the beginning of every conversion run, as
+the first command of that run. Note that a run is not a pass, but may
+consist of multiple passes.
+It has to initialize the general state of the plugin, beyond the
+initialization done during the load. No return value is expected, and
+any returned value is ignored.</p></dd>
+<dt><a name="15"><b class="cmd">idx_listvariables</b></a></dt>
+<dd><p><em>Initialization/Shutdown</em> and <em>Engine parameters</em>.
+Second command is called after the plugin code has been loaded,
+i.e. immediately after <b class="cmd">idx_numpasses</b>.
+It has to return a list containing the names of the parameters the
+frontend can set to configure the engine. This list can be empty.</p></dd>
+<dt><a name="16"><b class="cmd">idx_numpasses</b></a></dt>
+<dd><p><em>Initialization/Shutdown</em> and <em>Pass management</em>.
+First command called after the plugin code has been loaded. No other
+command of the engine will be called before it.
+It has to return the number of passes this engine requires to fully
+process the input document. This value has to be an integer number
+greater or equal to one.</p></dd>
+<dt><a name="17"><b class="cmd">idx_postprocess</b> <i class="arg">text</i></a></dt>
+<dd><p><em>Initialization/Shutdown</em>.
+This command is called immediately after the last pass in a run. Its
+argument is the result of the conversion generated by that pass. It is
+provided to allow the engine to perform any global modifications of
+the generated document. If no post-processing is required for a
+specific format the command has to just return the argument.</p>
+<p>Expected to return a value, the final result of formatting the input.</p></dd>
+<dt><a name="18"><b class="cmd">idx_setup</b> <i class="arg">n</i></a></dt>
+<dd><p><em>Initialization/Shutdown</em> and <em>Pass management</em>.
+This command is called at the beginning of each pass over the input in
+a run. Its argument is the number of the pass which has begun. Passes
+are counted from <b class="const">1</b> upward.
+The command has to set up the internal state of the plugin for this
+particular pass. No return value is expected, and any returned value
+is ignored.</p></dd>
+<dt><a name="19"><b class="cmd">idx_shutdown</b></a></dt>
+<dd><p><em>Initialization/Shutdown</em>.
+This command is called at the end of every conversion run. It is the
+last command called in a run. It has to clean up of all the
+run-specific state in the plugin.
+After the call the engine has to be in a state which allows the
+initiation of another run without fear that information from the last
+run is leaked into this new run.
+No return value is expected, and any returned value is ignored.</p></dd>
+<dt><a name="20"><b class="cmd">idx_varset</b> <i class="arg">varname</i> <i class="arg">text</i></a></dt>
+<dd><p><em>Engine parameters</em>.
+This command is called by the frontend to set an engine parameter to a
+particular value.
+The parameter to change is specified by <i class="arg">varname</i>, the value to
+set in <i class="arg">text</i>.</p>
+<p>The command has to throw an error if an unknown <i class="arg">varname</i> is
+used. Only the names returned by <b class="cmd">idx_listvariables</b> have to be
+considered as known.</p>
+<p>The values of all engine parameters have to persist between passes and
+runs.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Formatting commands</a></h3>
+<p>The formatting commands have to implement the formatting for the
+output format, for all the markup commands of the docidx markup
+language, except <b class="cmd">lb</b>, <b class="cmd">rb</b>, <b class="cmd">vset</b>, <b class="cmd">include</b>, and
+<b class="cmd"><a href="../../../../index.html#key155">comment</a></b>. These exceptions are processed by the frontend and are
+never seen by the plugin. In return a command for the formatting of
+plain text has to be provided, something which has no markup in the
+input at all.</p>
+<p>This means, that each of the five markup commands specified in the
+<i class="term"><a href="docidx_lang_cmdref.html">docidx language command reference</a></i> and outside of the set of
+exceptions listed above has an equivalent formatting command which
+takes the same arguments as the markup command and whose name is the
+name of markup command with the prefix <em>fmt_</em> added to it.</p>
+<p>All commands are expected to format their input in some way per the
+semantics specified in the command reference and to return whatever
+part of this that they deem necessary as their result, which will be
+added to the output.</p>
+<p>To avoid essentially duplicating the command reference we do not list
+any of the command here and simply refer the reader to the
+<i class="term"><a href="docidx_lang_cmdref.html">docidx language command reference</a></i> for their signature and
+description. The sole exception is the plain text formatter, which has
+no equivalent markup command.</p>
+<p>The calling sequence of formatting commands is not as rigid as for the
+management commands, but determined by the grammar of the docidx
+markup language, as specified in the <i class="term"><a href="docidx_lang_syntax.html">docidx language syntax</a></i>
+specification.</p>
+<dl class="doctools_definitions">
+<dt><a name="21"><b class="cmd">fmt_plain_text</b> <i class="arg">text</i></a></dt>
+<dd><p><em>No associated markup command</em>.</p>
+<p>Called by the frontend for any plain text encountered in the
+input. It has to perform any and all special processing required for
+plain text.</p>
+<p>The formatted text is expected as the result of the command,
+and added to the output. If no special processing is required it has
+to simply return its argument without change.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="docidx_intro.html">docidx_intro</a>, <a href="docidx_lang_cmdref.html">docidx_lang_cmdref</a>, <a href="docidx_lang_faq.html">docidx_lang_faq</a>, <a href="docidx_lang_intro.html">docidx_lang_intro</a>, <a href="docidx_lang_syntax.html">docidx_lang_syntax</a>, <a href="../doctools2idx/idx_container.html">doctools::idx</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key657">formatting engine</a>, <a href="../../../../index.html#key182">index</a>, <a href="../../../../index.html#key779">index formatter</a>, <a href="../../../../index.html#key778">keywords</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key252">plugin</a>, <a href="../../../../index.html#key136">semantic markup</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

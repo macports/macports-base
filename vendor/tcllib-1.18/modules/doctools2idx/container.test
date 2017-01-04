@@ -1,0 +1,680 @@
+# -*- tcl -*-
+# idx.test:  Tests for the doctools::idx package. Index management.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: container.test,v 1.2 2009/04/29 02:10:34 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    use struct/list.tcl          struct::list
+    use snit/snit.tcl            snit
+    use fileutil/fileutil.tcl    fileutil
+    use log/logger.tcl           logger
+    use pluginmgr/pluginmgr.tcl  pluginmgr
+
+    use doctools2base/config.tcl          doctools::config
+    use doctools2base/paths.tcl           doctools::paths
+    useLocal export.tcl      doctools::idx::export
+    useLocal import.tcl      doctools::idx::import
+    use doctools2base/nroff_manmacros.tcl doctools::nroff::man_macros
+
+    source [tcllibPath doctools2base/tests/common]
+}
+testing {
+    useLocalKeep container.tcl doctools::idx
+}
+
+# -------------------------------------------------------------------------
+
+setup_plugins
+
+# -------------------------------------------------------------------------
+
+test doctools-idx-1.0 {deserialize =, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I deserialize =
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethoddeserialize_= type selfns win self data ?format?"}
+
+test doctools-idx-1.1 {deserialize =, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I deserialize = T F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethoddeserialize_= type selfns win self data ?format?"}
+
+test doctools-idx-2.0 {deserialize +=, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I deserialize +=
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethoddeserialize_+= type selfns win self data ?format?"}
+
+test doctools-idx-2.1 {deserialize +=, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I deserialize += T F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethoddeserialize_+= type selfns win self data ?format?"}
+
+test doctools-idx-3.0 {serialize, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I serialize F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodserialize type selfns win self ?format?"}
+
+test doctools-idx-4.0 {key add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I key add
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodkey_add type selfns win self key"}
+
+test doctools-idx-4.1 {key add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I key add N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodkey_add type selfns win self key"}
+
+test doctools-idx-5.0 {key remove, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I key remove
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodkey_remove type selfns win self key"}
+
+test doctools-idx-5.1 {key remove, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I key remove N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodkey_remove type selfns win self key"}
+
+test doctools-idx-6.0 {key references, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I key references
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodkey_references type selfns win self key"}
+
+test doctools-idx-6.1 {key references, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I key references N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodkey_references type selfns win self key"}
+
+test doctools-idx-7.0 {keys, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I keys XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodkeys type selfns win self"}
+
+test doctools-idx-8.0 {reference add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference add
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_add type selfns win self reftype key name label"}
+
+test doctools-idx-8.1 {reference add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference add T
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_add type selfns win self reftype key name label"}
+
+test doctools-idx-8.2 {reference add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference add T K
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_add type selfns win self reftype key name label"}
+
+test doctools-idx-8.3 {reference add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference add T K N
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_add type selfns win self reftype key name label"}
+
+test doctools-idx-8.4 {reference add, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference add T K N L XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_add type selfns win self reftype key name label"}
+
+test doctools-idx-9.0 {reference remove, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference remove
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_remove type selfns win self name"}
+
+test doctools-idx-9.1 {reference remove, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference remove N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_remove type selfns win self name"}
+
+test doctools-idx-10.0 {reference label, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference label
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_label type selfns win self name"}
+
+test doctools-idx-10.1 {reference label, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference label N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_label type selfns win self name"}
+
+test doctools-idx-11.0 {reference keys, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference keys
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_keys type selfns win self name"}
+
+test doctools-idx-11.1 {reference keys, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference keys N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_keys type selfns win self name"}
+
+test doctools-idx-12.0 {reference type, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference type
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_type type selfns win self name"}
+
+test doctools-idx-12.1 {reference type, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I reference type N XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_hmethodreference_type type selfns win self name"}
+
+test doctools-idx-13.0 {references, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I references XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodreferences type selfns win self"}
+
+test doctools-idx-14.0 {title, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I title T XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodtitle type selfns win self ?text?"}
+
+test doctools-idx-15.0 {label, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I label L XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodlabel type selfns win self ?text?"}
+
+test doctools-idx-16.0 {exporter, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I exporter E XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodexporter type selfns win self ?object?"}
+
+test doctools-idx-17.0 {importer, wrong#args} -setup {
+    doctools::idx I
+} -body {
+    I importer I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::idx::Snit_methodimporter type selfns win self ?object?"}
+
+# -------------------------------------------------------------------------
+
+test doctools-idx-18.0 {key add, new key} -setup {
+    doctools::idx I
+} -body {
+    I key add K
+    I keys
+} -cleanup {
+    I destroy
+} -result K
+
+test doctools-idx-18.1 {key add, known key} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I key add K
+    I keys
+} -cleanup {
+    I destroy
+} -result K
+
+test doctools-idx-19.0 {key remove, known key} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I key remove K
+    I keys
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-19.1 {key remove, unknown key} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I key remove K'
+    I keys
+} -cleanup {
+    I destroy
+} -result K
+
+test doctools-idx-19.2 {key remove, reference still has keys} -setup {
+    doctools::idx I
+    I key add K
+    I key add K'
+    I reference add manpage K  R r
+    I reference add manpage K' R r
+} -body {
+    I key remove K
+    list [I keys] [I references]
+} -cleanup {
+    I destroy
+} -result {K' R}
+
+test doctools-idx-19.3 {key remove, last user of reference} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I key remove K
+    list [I keys] [I references]
+} -cleanup {
+    I destroy
+} -result {{} {}}
+
+test doctools-idx-20.0 {keys, empty} -setup {
+    doctools::idx I
+} -body {
+    I keys
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-20.1 {keys, not empty} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I keys
+} -cleanup {
+    I destroy
+} -result K
+
+test doctools-idx-20.2 {keys, not empty. multiple} -setup {
+    doctools::idx I
+    I key add K
+    I key add K'
+} -body {
+    lsort [I keys]
+} -cleanup {
+    I destroy
+} -result {K K'}
+
+test doctools-idx-21.0 {key, without references} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I key references K
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-21.1 {key, with reference, one} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I key references K
+} -cleanup {
+    I destroy
+} -result R
+
+test doctools-idx-21.2 {key, with reference, many} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+    I reference add manpage K R' r
+} -body {
+    I key references K
+} -cleanup {
+    I destroy
+} -result {R R'}
+
+test doctools-idx-22.0 {reference add, unknown key} -setup {
+    doctools::idx I
+} -body {
+    I reference add manpage K R r
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Unknown key 'K'}
+
+test doctools-idx-22.1 {reference add, bad type} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I reference add bogus K R r
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Bad reference type 'bogus'}
+
+test doctools-idx-22.2 {reference add, known ref, type mismatch} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference add url K R r
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Cannot add url reference 'R', is a manpage reference already}
+
+test doctools-idx-22.3 {reference add, unknown ref} -setup {
+    doctools::idx I
+    I key add K
+} -body {
+    I reference add manpage K R r
+    list [I references] [I key references K]
+} -cleanup {
+    I destroy
+} -result {R R}
+
+test doctools-idx-22.4 {reference add, known ref, type match} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference add manpage K R r'
+    list [I references] [I key references K]
+} -cleanup {
+    I destroy
+} -result {R R}
+
+test doctools-idx-23.0 {reference remove, known reference} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference remove R
+    list [I references] [I key references K]
+} -cleanup {
+    I destroy
+} -result {{} {}}
+
+test doctools-idx-23.1 {reference remove, unknown reference} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference remove R'
+    list [I references] [I key references K]
+} -cleanup {
+    I destroy
+} -result {R R}
+
+test doctools-idx-24.0 {reference type} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference type R
+} -cleanup {
+    I destroy
+} -result manpage
+
+test doctools-idx-25.0 {reference label} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference label R
+} -cleanup {
+    I destroy
+} -result r
+
+test doctools-idx-25.1 {reference label, multiple keys, overwrites} -setup {
+    doctools::idx I
+    I key add K
+    I key add K'
+    I reference add manpage K R r
+} -body {
+    lappend res [I reference label R]
+    I reference add manpage K' R r'
+    lappend res [I reference label R]
+} -cleanup {
+    I destroy
+    unset res
+} -result {r r'}
+
+test doctools-idx-25.2 {reference label, same key, overwrites} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+    I reference add manpage K R r'
+} -body {
+    I reference label R
+} -cleanup {
+    I destroy
+} -result r'
+
+test doctools-idx-26.0 {reference, always one key} -setup {
+    doctools::idx I
+    I key add K
+    I reference add manpage K R r
+} -body {
+    I reference keys R
+} -cleanup {
+    I destroy
+} -result K
+
+test doctools-idx-26.1 {reference, multiple keys} -setup {
+    doctools::idx I
+    I key add K
+    I key add K'
+    I reference add url K  R r
+    I reference add url K' R r
+} -body {
+    lsort [I reference keys R]
+} -cleanup {
+    I destroy
+} -result {K K'}
+
+test doctools-idx-27.0 {references, empty} -setup {
+    doctools::idx I
+} -body {
+    I references
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-27.1 {references, not empty} -setup {
+    doctools::idx I
+    I key add K
+    I reference add url K R r
+} -body {
+    I references
+} -cleanup {
+    I destroy
+} -result R
+
+test doctools-idx-27.2 {references, not empty. multiple} -setup {
+    doctools::idx I
+    I key add K
+    I reference add url K R r
+    I reference add url K R' r
+} -body {
+    lsort [I references]
+} -cleanup {
+    I destroy
+} -result {R R'}
+
+test doctools-idx-28.0 {title, default} -setup {
+    doctools::idx I
+} -body {
+    I title
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-28.1 {title, set} -setup {
+    doctools::idx I
+} -body {
+    I title T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-28.2 {title, get} -setup {
+    doctools::idx I
+    I title T
+} -body {
+    I title
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-29.0 {label, default} -setup {
+    doctools::idx I
+} -body {
+    I label
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-29.1 {label, set} -setup {
+    doctools::idx I
+} -body {
+    I label T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-29.2 {label, get} -setup {
+    doctools::idx I
+    I label T
+} -body {
+    I label
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-30.0 {exporter, default} -setup {
+    doctools::idx I
+} -body {
+    I exporter
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-30.1 {exporter, set} -setup {
+    doctools::idx I
+} -body {
+    I exporter T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-30.2 {exporter, get} -setup {
+    doctools::idx I
+    I exporter T
+} -body {
+    I exporter
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-31.0 {importer, default} -setup {
+    doctools::idx I
+} -body {
+    I importer
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-idx-31.1 {importer, set} -setup {
+    doctools::idx I
+} -body {
+    I importer T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-idx-31.2 {importer, get} -setup {
+    doctools::idx I
+    I importer T
+} -body {
+    I importer
+} -cleanup {
+    I destroy
+} -result T
+
+# TODO :: check index merging (+=).
+
+# idx tests, numbering starts at 40
+# -------------------------------------------------------------------------
+
+source [localPath tests/container]
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+return

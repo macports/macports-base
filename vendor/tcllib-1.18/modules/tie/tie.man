@@ -1,0 +1,535 @@
+[manpage_begin tie n 1.1]
+[keywords array]
+[keywords database]
+[keywords file]
+[keywords metakit]
+[keywords persistence]
+[keywords tie]
+[keywords untie]
+[copyright {2004-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Array persistence}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require tie [opt 1.1]]
+[description]
+
+The [package tie] package provides a framework for the creation of
+persistent Tcl array variables. It should be noted that the provided
+mechanism is generic enough to also allow its usage for the
+distribution of the contents of Tcl arrays over multiple threads and
+processes, i.e. communication.
+
+[para]
+
+This, persistence and communication, is accomplished by [term tying])
+a Tcl array variable to a [term {data source}]. Examples of data
+sources are other Tcl arrays and files.
+
+[para]
+
+It should be noted that a single Tcl array variable can be tied to
+more than one [term {data source}]. It is this feature which allows
+the framework to be used for communication as well. Just tie several
+Tcl arrays in many client processes to a Tcl array in a server and all
+changes to any of them will be distributed to all. Less centralized
+variants of this are of course possible as well.
+
+[section {USING TIES}]
+
+[subsection {TIE API}]
+
+This section describes the basic API used to establish and remove ties
+between Tcl array variables and data sources. This interface is the
+only one a casual user has to be concerned about. The following
+sections about the various internal interfaces can be safely skipped.
+
+[list_begin definitions]
+[call [cmd ::tie::tie] [arg arrayvarname] [arg options]... [arg dstype] [arg dsname]...]
+
+This command establishes a tie between the Tcl array whose name is
+provided by the argument [arg arrayvarname] and the
+
+[term {data source}] identified by the [arg dstype] and its series of
+[arg dsname] arguments. All changes made to the Tcl array after this
+command returns will be saved to the [term {data source}] for
+safekeeping (or distribution).
+
+[para]
+
+The result of the command is always a token which identifies the new
+tie. This token can be used later to destroy this specific tie.
+
+[list_begin arguments]
+[arg_def varname arrayvarname in]
+
+The name of the Tcl array variable to connect the new tie to.
+
+[arg_def name|command dstype in]
+
+This argument specifies the type of the [term {data source}] we wish
+to access.
+
+The [arg dstype] can be one of [const log], [const array],
+
+[const remotearray], [const file], [const growfile], or
+
+[const dsource]; in addition, the programmer can register additional
+data source types.
+
+Each [arg dstype] is followed by one or more arguments that identify
+the [term {data source}] to which the array is to be tied.
+
+[arg_def string dsname in]
+
+The series of [arg dsname] arguments coming after the [arg dstype]
+identifies the [term {data source}] we wish to connect to, and has to
+be appropriate for the chosen type.
+
+[list_end]
+[para]
+
+The command understands a number of additional options which guide the
+process of setting up the connection between Tcl array and
+[term {data source}].
+
+[para]
+
+[list_begin options]
+[opt_def -open]
+
+The Tcl array for the new tie is [term loaded] from the
+[term {data source}], and the previously existing contents of the Tcl
+array are erased. Care is taken to [emph not] erase the previous
+contents should the creation of the tie fail.
+
+[para]
+
+This option and the option [option -save] exclude each other. If
+neither this nor option [option -save] are specified then this option
+is assumed as default.
+
+[opt_def -save]
+
+The Tcl array for the new tie is [term saved] to the
+[term {data source}], and the previously existing contents of the
+[term {data source}] are erased.
+
+[para]
+
+This option and the option [option -open] exclude each other. If
+neither this nor option [option -open] are specified then option
+[option -open] is assumed as default.
+
+[opt_def -merge]
+
+Using this option prevents the erasure of any previously existing
+content and merges the data instead. It can be specified in
+conjunction with either [option -open] or [option -save]. They
+determine how data existing in both Tcl array and
+[term {data source}], i.e duplicates, are dealt with.
+
+[para]
+
+When used with [option -open] data in the [term {data source}] has
+precedence.
+
+In other words, for duplicates the data in the [term {data source}] is
+loaded into the Tcl array.
+
+[para]
+
+When used with [option -save] data in the Tcl array has precedence. In
+other words, for duplicates the data in the Tcl array is saved into
+the [term {data source}].
+
+[list_end]
+[para]
+
+[call [cmd ::tie::untie] [arg arrayvarname] [opt [arg token]]]
+
+This command dissolves one or more ties associated with the Tcl array
+named by [arg arrayvarname]. If no [arg token] is specified then all
+ties to that Tcl array are dissolved. Otherwise only the tie the token
+stands for is removed, if it is actually connected to the
+array. Trying to remove a specific tie not belonging to the provided
+array will cause an error.
+
+[para]
+
+It should be noted that while severing a tie will destroy management
+information internal to the package the [term {data source}] which was
+handled by the tie will not be touched, only closed.
+
+[para]
+
+After the command returns none of changes made to the array will be
+saved to the [term {data source}] anymore.
+
+[para]
+
+The result of the command is an empty string.
+
+[list_begin arguments]
+[arg_def varname arrayname in]
+
+The name of a Tcl array variable which may have ties.
+
+[arg_def handle token in]
+
+A handle representing a specific tie. This argument is optional.
+
+[list_end]
+[para]
+
+[call [cmd ::tie::info] [method ties] [arg arrayvarname]]
+
+This command returns a list of ties associated with the Tcl array
+variable named by [arg arrayvarname]. The result list will be empty if
+the variable has no ties associated with it.
+
+[call [cmd ::tie::info] [method types]]
+
+This command returns a dictionary of registered types, and the class
+commands they are associated with.
+
+[call [cmd ::tie::info] [method type] [arg dstype]]
+
+This command returns the fully resolved class command for a type
+name. This means that the command will follow a chain of type
+definitions ot its end.
+
+[list_end]
+
+[subsection {STANDARD DATA SOURCE TYPES}]
+
+This package provides the six following types as examples and standard
+data sources.
+
+[list_begin definitions]
+
+[def [const log]]
+
+This [term {data source}] does not maintain any actual data, nor
+persistence. It does not accept any identifying arguments. All changes
+are simply logged to [const stdout].
+
+[def [const array]]
+
+This [term {data source}] uses a regular Tcl array as the origin of
+the persistent data. It accepts a single identifying argument, the
+name of this Tcl array. All changes are mirrored to that array.
+
+[def [const remotearray]]
+
+This [term {data source}] is similar to [const array]. The difference
+is that the Tcl array to which we are mirroring is not directly
+accessible, but through a [cmd send]-like command.
+
+[para]
+
+It accepts three identifying arguments, the name of the other Tcl
+array, the command prefix for the [cmd send]-like accessor command,
+and an identifier for the remote entity hosting the array, in this
+order. All changes are mirrored to that array, via the command
+prefix. All commands will be executed in the context of the global
+namespace.
+
+[para]
+
+[cmd send]-like means that the command prefix has to have [cmd send]
+syntax and semantics. I.e. it is a channel over which we can send
+arbitrary commands to some other entity.
+
+The remote array [term {data source}] however uses only the commands
+[cmd set], [cmd unset], [cmd {array exists}], [cmd {array names}], [cmd {array set}], and
+[cmd {array get}] to retrieve and set values in the remote array.
+
+[para]
+
+The command prefix and the entity id are separate to allow the data
+source to use options like [option -async] when assembling the actual
+commands.
+
+[para]
+
+Examples of command prefixes, listed with the id of the remote entity,
+without options. In reality only the part before the id is the command
+prefix:
+
+[list_begin definitions]
+[def "[cmd send] [arg tkname]"]
+
+The Tcl array is in a remote interpreter and is accessed via Tk's X
+communication.
+
+[def "[cmd {comm::comm send}] [arg hostportid]"]
+
+The Tcl array is in a remote interpreter and is accessed through a
+socket.
+
+[def "[cmd {thread::send}] [arg threadid]"]
+
+The Tcl array is in a remote interpreter in a different thread of this
+process.
+
+[list_end]
+[para]
+
+[def [const file]]
+
+This [term {data source}] uses a single file as origin of the
+persistent data. It accepts a single identifying argument, the path to
+this file. The file has to be both readable and writable. It may not
+exist, the [term {data source}] will create it in that case. This (and
+only this) situation will require that the directory for the file
+exists and is writable as well.
+
+[para]
+
+All changes are saved in the file, as proper Tcl commands, one command
+per operation. In other words, the file will always contain a proper
+Tcl script.
+
+[para]
+
+If the file exists when the tie using it is set up, then it will be
+compacted, i.e. superfluous operations are removed, if the operations
+log stored in it contains either at least one operation clearing the
+whole array, or at least 1.5 times more operations than entries in the
+loaded array.
+
+[def [const growfile]]
+
+This [term {data source}] is like [const file] in terms of the storage
+medium for the array data, and how it is configured. In constrast to
+the former it however assumes and ensures that the tied array will
+never shrink. I.e. the creation of new array entries, and the
+modification of existing entries is allowed, but the deletion of
+entries is not, and causes the data source to throw errors.
+
+[para]
+
+This restriction allows us to simplify both file format and access to
+the file radically. For one, the file is read only once and the
+internal cache cannot be invalidated. Second, writing data is reduced
+to a simple append, and no compaction step is necessary. The format of
+the contents is the string representation of a dictionary which can be
+incrementally extended forever at the end.
+
+[def [const dsource]]
+
+This [term {data source}] uses an explicitly specified
+[term {data source object}] as the source for the persistent
+data. It accepts a single identifying argument, the command prefix,
+i.e. object command.
+
+[para]
+
+To use this type it is necessary to know how the framework manages
+ties and what [sectref dso {data source objects}] are.
+
+[para]
+
+All changes are delegated to the specified object.
+
+[list_end]
+
+[section {CREATING NEW DATA SOURCES}]
+
+This section is of no interest to the casual user of ties. Only
+developers wishing to create new data sources have to know the
+information provided herein.
+
+[subsection {DATA SOURCE OBJECTS} dso]
+
+All ties are represented internally by an in-memory object which
+mediates between the tie framework and the specific
+[term {data source}], like an array, file, etc.
+This is the [term {data source object}].
+
+[para]
+
+Its class, the [sectref dsc {data source class}] is [emph not] generic,
+but specific to the type of the [term {data source}]. Writing a new
+[term {data source}] requires us to write such a class, and then
+registering it with the framework as a new type.
+
+[para]
+
+The following subsections describe the various APIs a
+[sectref dsc {data source class}] and the objects it generates will have
+to follow to be compatible with the tie framework.
+
+[para]
+
+Data source objects are normally automatically created and destroyed
+by the framework when a tie is created, or removed. This management
+can be explicitly bypassed through the usage of the "dsource" type.
+
+The [term {data source}] for this type is a
+[term {data source object}] itself, and this object is outside of the
+scope of the tie framework and not managed by it.
+
+In other words, this type allows the creation of ties which talk to
+pre-existing [term {data source object}]s, and these objects will
+survive the removal of the ties using them as well.
+
+[subsection {REGISTERING A NEW DATA SOURCE CLASS}]
+
+After a [sectref dsc {data source class}] has been written it is necessary
+to register it as a new type with the framework.
+
+[list_begin definitions]
+[call [cmd ::tie::register] [arg dsclasscmd] [const as] [arg dstype]]
+
+Using this command causes the tie framework to remember the class
+command [arg dsclasscmd] of a [sectref dsc {data source class}] under the
+type name [arg dstype].
+
+[para]
+
+After the call the argument [arg dstype] of the basic user command
+[cmd ::tie::tie] will accept [arg dstype] as a type name and translate
+it internally to the appropriate class command for the creation of
+[sectref dso {data source objects}] for the new [term {data source}].
+
+[list_end]
+
+[subsection {DATA SOURCE CLASS} dsc]
+
+Each data source class is represented by a single command, also called
+the [term {class command}], or [term {object creation command}]. Its
+syntax is
+
+[list_begin definitions]
+
+[call [cmd {dsclasscmd}] [arg objname] [opt [arg dsname]...]]
+
+The first argument of the class command is the name of the
+[term {data source object}] to create.
+
+The framework itself will always supply the string [const %AUTO%], to
+signal that the class command has to generate not only the object, but
+the object name as well.
+
+[para]
+
+This is followed by a series of arguments identifying the data source
+the new object is for. These are the same [arg dsname] arguments which
+are given to the basic user command [cmd ::tie::tie]. Their actual
+meaning is dependent on the [term {data source class}].
+
+[para]
+
+The result of the class command has to be the fully-qualified name of
+the new [term {data source object}], i.e. the name of the
+[term {object command}].
+
+The interface this command has to follow is described in the section
+[sectref {DATA SOURCE OBJECT API}]
+
+[list_end]
+[para]
+
+[subsection {DATA SOURCE OBJECT API}]
+
+Please read the section [sectref dsc] first, to know
+how to generate new [term {object commands}].
+
+[para]
+
+Each [term {object command}] for a [term {data source}] object has to
+provide at least the methods listed below for proper inter-operation
+with the tie framework. Note that the names of most of the methods
+match the subcommands of the builtin [cmd array] command.
+
+[para]
+[list_begin definitions]
+[call [cmd ds] [method destroy]]
+
+This method is called when the object [cmd ds] is destroyed. It now
+has to release all its internal resources associated with the external
+data source.
+
+[call [cmd ds] [method names]]
+
+This command has to return a list containing the names of all keys
+found in the [term {data source}] the object talks to. This is
+equivalent to [cmd {array names}].
+
+[call [cmd ds] [method size]]
+
+This command has to return an integer number specifying the number of
+keys found in the [term {data source}] the object talks to. This is
+equivalent to [cmd {array size}].
+
+[call [cmd ds] [method get]]
+
+This command has to return a dictionary containing the data found in
+the [term {data source}] the object talks to. This is equivalent to
+[cmd {array get}].
+
+[call [cmd ds] [method set] [arg dict]]
+
+This command takes a dictionary and adds its contents to the data
+source the object talks to. This is equivalent to [cmd {array set}].
+
+[call [cmd ds] [method unset] [opt [arg pattern]]]
+
+This command takes a pattern and removes all elements whose keys
+matching it from the [term {data source}]. If no pattern is specified
+it defaults to [const *], causing the removal of all elements. This
+is nearly equivalent to [cmd {array unset}].
+
+[call [cmd ds] [method setv] [arg index] [arg value]]
+
+This command has to save the [arg value] in the [term {data source}]
+the object talks to, under the key [arg index].
+
+[para]
+
+The result of the command is ignored. If an error is thrown then this
+error will show up as error of the set operation which caused the
+method call.
+
+[call [cmd ds] [method unsetv] [arg index]]
+
+This command has to remove the value under the key [arg index] from
+the [term {data source}] the object talks to.
+
+[para]
+
+The result of the command is ignored. If an error is thrown then this
+error will show up as error of the unset operation which caused the
+method call.
+
+[call [cmd ds] [method getv] [arg index]]
+
+This command has to return the value for the key [arg index] in the
+[term {data source}] the object talks to.
+
+[list_end]
+
+And here a small table comparing the [term {data source}] methods to
+the regular Tcl commands for accessing an array.
+
+[para]
+[example {
+        Regular Tcl             Data source
+        -----------             -----------
+        array names a           ds names
+        array size  a           ds size
+        array get   a           ds get
+        array set   a dict      ds set   dict
+        array unset a pattern   ds unset ?pattern?
+        -----------             -----------
+        set a($idx) $val        ds setv   idx val
+        unset a($idx)           ds unsetv idx
+        $a($idx)                ds getv   idx
+        -----------             -----------
+}]
+
+[vset CATEGORY tie]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

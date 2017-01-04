@@ -1,0 +1,6 @@
+Doctools Error in plain text at line 3, column 24:
+[plain_text {
+Text between list...]
+--> (FmtError) Manpage error (nolisttxt), "plain_text 
+Text between list_begin and first item is not allowed
+" : Plain text not allowed between beginning of a list and its first item.

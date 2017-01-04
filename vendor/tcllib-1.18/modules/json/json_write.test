@@ -1,0 +1,218 @@
+# json_write.test - Copyright (C) 2009 Andreas Kupries <andreas_kupries@sourceforge.net>
+#
+# Tests for the Tcllib json::write package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: json_write.test,v 1.1 2009/11/25 04:41:01 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+testing {
+    useLocal json_write.tcl json::write
+}
+
+# -------------------------------------------------------------------------
+
+set data {grammar {
+    rules {
+        A {is {/ {t +} {t -}}                                         mode value}
+        D {is {/ {t 0} {t 1} }                                        mode value}
+        E {is {/ {x {t (} {n E} {t )}} {x {n F} {* {x {n M} {n F}}}}} mode value}
+        F {is {x {n T} {* {x {n A} {n T}}}}                           mode value}
+        M {is {/ {t *} {t /}}                                         mode value}
+        N {is {x {? {n S}} {+ {n D}}}                                 mode value}
+        S {is {/ {t +} {t -}}                                         mode value}
+        T {is  {n N}                                                  mode value}
+    }
+    start {n Expression}
+}}
+
+proc gen {serial} {
+    array set g $serial
+    array set g $g(grammar)
+    unset     g(grammar)
+
+    # Assemble the rules ...
+    set rules {}
+    foreach {symbol def} $g(rules) {
+        lassign $def _ is _ mode
+        lappend rules $symbol \
+            [json::write object \
+                 is   [json::write string $is] \
+                 mode [json::write string $mode]]
+    }
+
+    # Assemble the final result ...
+    return [json::write object grammar \
+                [json::write object \
+                     rules [json::write object {*}$rules] \
+                     start [json::write string $g(start)]]]
+}
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+test json-write-1.0 {default configuration} -body {
+    list [json::write indented] [json::write aligned]
+} -result {1 1}
+
+test json-write-1.1 {implied configurations} -body {
+    json::write indented 0
+    list [json::write indented] [json::write aligned]
+} -result {0 0}
+
+test json-write-1.2 {implied configurations} -body {
+    json::write indented 0
+    json::write aligned  0
+    json::write aligned  1
+    list [json::write indented] [json::write aligned]
+} -result {1 1}
+
+# -------------------------------------------------------------------------
+
+test json-write-2.0 {argument errors} -body {
+    json::write indented X Y
+} -returnCodes 1 -result {wrong # args: should be "json::write indented ?bool?"}
+
+test json-write-2.1 {argument errors} -body {
+    json::write aligned X Y
+} -returnCodes 1 -result {wrong # args: should be "json::write aligned ?bool?"}
+
+test json-write-2.2 {argument errors} -body {
+    json::write string
+} -returnCodes 1 -result {wrong # args: should be "json::write string s"}
+
+test json-write-2.3 {argument errors} -body {
+    json::write string A B
+} -returnCodes 1 -result {wrong # args: should be "json::write string s"}
+
+test json-write-2.4 {argument errors} -body {
+    json::write object A
+} -returnCodes 1 -result {wrong # args, expected an even number of arguments}
+
+# -------------------------------------------------------------------------
+
+test json-write-3.0 {indented, aligned} -setup {
+    json::write indented 1
+    json::write aligned  1
+} -body {
+    gen $data
+} -result {{
+    "grammar" : {
+        "rules" : {
+            "A" : {
+                "is"   : "/ {t +} {t -}",
+                "mode" : "value"
+            },
+            "D" : {
+                "is"   : "/ {t 0} {t 1} ",
+                "mode" : "value"
+            },
+            "E" : {
+                "is"   : "/ {x {t (} {n E} {t )}} {x {n F} {* {x {n M} {n F}}}}",
+                "mode" : "value"
+            },
+            "F" : {
+                "is"   : "x {n T} {* {x {n A} {n T}}}",
+                "mode" : "value"
+            },
+            "M" : {
+                "is"   : "/ {t *} {t /}",
+                "mode" : "value"
+            },
+            "N" : {
+                "is"   : "x {? {n S}} {+ {n D}}",
+                "mode" : "value"
+            },
+            "S" : {
+                "is"   : "/ {t +} {t -}",
+                "mode" : "value"
+            },
+            "T" : {
+                "is"   : "n N",
+                "mode" : "value"
+            }
+        },
+        "start" : "n Expression"
+    }
+}}
+
+test json-write-3.1 {indented, !aligned} -setup {
+    json::write indented 1
+    json::write aligned  0
+} -body {
+    gen $data
+} -result {{
+    "grammar" : {
+        "rules" : {
+            "A" : {
+                "is" : "/ {t +} {t -}",
+                "mode" : "value"
+            },
+            "D" : {
+                "is" : "/ {t 0} {t 1} ",
+                "mode" : "value"
+            },
+            "E" : {
+                "is" : "/ {x {t (} {n E} {t )}} {x {n F} {* {x {n M} {n F}}}}",
+                "mode" : "value"
+            },
+            "F" : {
+                "is" : "x {n T} {* {x {n A} {n T}}}",
+                "mode" : "value"
+            },
+            "M" : {
+                "is" : "/ {t *} {t /}",
+                "mode" : "value"
+            },
+            "N" : {
+                "is" : "x {? {n S}} {+ {n D}}",
+                "mode" : "value"
+            },
+            "S" : {
+                "is" : "/ {t +} {t -}",
+                "mode" : "value"
+            },
+            "T" : {
+                "is" : "n N",
+                "mode" : "value"
+            }
+        },
+        "start" : "n Expression"
+    }
+}}
+
+test json-write-3.1 {!indented, !aligned} -setup {
+    json::write indented 0
+    json::write aligned  0
+} -body {
+    gen $data
+} -result {{"grammar":{"rules":{"A":{"is":"/ {t +} {t -}","mode":"value"},"D":{"is":"/ {t 0} {t 1} ","mode":"value"},"E":{"is":"/ {x {t (} {n E} {t )}} {x {n F} {* {x {n M} {n F}}}}","mode":"value"},"F":{"is":"x {n T} {* {x {n A} {n T}}}","mode":"value"},"M":{"is":"/ {t *} {t /}","mode":"value"},"N":{"is":"x {? {n S}} {+ {n D}}","mode":"value"},"S":{"is":"/ {t +} {t -}","mode":"value"},"T":{"is":"n N","mode":"value"}},"start":"n Expression"}}}
+
+
+# -------------------------------------------------------------------------
+
+test json-write-4.0 {string quoting} -body {
+    json::write string "a\"b\\c\bd\fe\nf\rg\th\0i\1j\2k\3l\177m"
+} -result "\"a\\\"b\\\\c\\bd\\fe\\nf\\rg\\th\\u0000i\\u0001j\\u0002k\\u0003l\\u007fm\""
+
+# -------------------------------------------------------------------------
+unset data
+rename gen {}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

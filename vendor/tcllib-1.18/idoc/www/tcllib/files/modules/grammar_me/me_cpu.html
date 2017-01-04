@@ -1,0 +1,360 @@
+
+<html><head>
+<title>grammar::me::cpu - Grammar operations and usage</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'me_cpu.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005-2006 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- grammar::me::cpu.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::me::cpu(n) 0.2 tcllib &quot;Grammar operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::me::cpu - Virtual machine implementation II for parsing token streams</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">CLASS API</a></li>
+<li class="doctools_subsection"><a href="#subsection2">OBJECT API</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">grammar::me::cpu <span class="opt">?0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::grammar::me::cpu</b> <i class="arg">meName</i> <i class="arg">matchcode</i></a></li>
+<li><a href="#2"><b class="cmd">meName</b> <b class="method">option</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">meName</i> <b class="method">lc</b> <i class="arg">location</i></a></li>
+<li><a href="#4"><i class="arg">meName</i> <b class="method">tok</b> <span class="opt">?<i class="arg">from</i> <span class="opt">?<i class="arg">to</i>?</span>?</span></a></li>
+<li><a href="#5"><i class="arg">meName</i> <b class="method">pc</b> <i class="arg">state</i></a></li>
+<li><a href="#6"><i class="arg">meName</i> <b class="method">iseof</b> <i class="arg">state</i></a></li>
+<li><a href="#7"><i class="arg">meName</i> <b class="method">at</b> <i class="arg">state</i></a></li>
+<li><a href="#8"><i class="arg">meName</i> <b class="method">cc</b> <i class="arg">state</i></a></li>
+<li><a href="#9"><i class="arg">meName</i> <b class="method">sv</b></a></li>
+<li><a href="#10"><i class="arg">meName</i> <b class="method">ok</b></a></li>
+<li><a href="#11"><i class="arg">meName</i> <b class="method">error</b></a></li>
+<li><a href="#12"><i class="arg">meName</i> <b class="method">lstk</b> <i class="arg">state</i></a></li>
+<li><a href="#13"><i class="arg">meName</i> <b class="method">astk</b> <i class="arg">state</i></a></li>
+<li><a href="#14"><i class="arg">meName</i> <b class="method">mstk</b> <i class="arg">state</i></a></li>
+<li><a href="#15"><i class="arg">meName</i> <b class="method">estk</b> <i class="arg">state</i></a></li>
+<li><a href="#16"><i class="arg">meName</i> <b class="method">rstk</b> <i class="arg">state</i></a></li>
+<li><a href="#17"><i class="arg">meName</i> <b class="method">nc</b> <i class="arg">state</i></a></li>
+<li><a href="#18"><i class="arg">meName</i> <b class="method">ast</b></a></li>
+<li><a href="#19"><i class="arg">meName</i> <b class="method">halted</b></a></li>
+<li><a href="#20"><i class="arg">meName</i> <b class="method">code</b></a></li>
+<li><a href="#21"><i class="arg">meName</i> <b class="method">eof</b></a></li>
+<li><a href="#22"><i class="arg">meName</i> <b class="method">put</b> <i class="arg">tok</i> <i class="arg">lex</i> <i class="arg">line</i> <i class="arg">col</i></a></li>
+<li><a href="#23"><i class="arg">meName</i> <b class="method">putstring</b> <i class="arg">string</i> <i class="arg">lvar</i> <i class="arg">cvar</i></a></li>
+<li><a href="#24"><i class="arg">meName</i> <b class="method">run</b> <span class="opt">?<i class="arg">n</i>?</span></a></li>
+<li><a href="#25"><i class="arg">meName</i> <b class="method">pull</b> <i class="arg">nextcmd</i></a></li>
+<li><a href="#26"><i class="arg">meName</i> <b class="method">reset</b></a></li>
+<li><a href="#27"><i class="arg">meName</i> <b class="method">destroy</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides an implementation of the ME virtual machine.
+Please go and read the document <b class="syscmd"><a href="me_intro.html">grammar::me_intro</a></b> first if
+you do not know what a ME virtual machine is.</p>
+<p>This implementation provides an object-based API and the machines are
+not truly tied to Tcl. A C implementation of the same API is quite
+possible.</p>
+<p>Internally the package actually uses the value-based machine
+manipulation commands as provided by the package
+<b class="package"><a href="me_cpucore.html">grammar::me::cpu::core</a></b> to perform its duties.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">CLASS API</a></h3>
+<p>The package directly provides only a single command for the
+construction of ME virtual machines.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::grammar::me::cpu</b> <i class="arg">meName</i> <i class="arg">matchcode</i></a></dt>
+<dd><p>The command creates a new ME machine object with an associated global
+Tcl command whose name is <i class="arg">meName</i>. This command may be used to
+invoke various operations on the machine.
+It has the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">meName</b> <b class="method">option</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command.</p></dd>
+</dl>
+<p>The argument <i class="arg">matchcode</i> contains the match instructions the
+machine has to execute while parsing the input stream. Please read
+section <b class="sectref">MATCH CODE REPRESENTATION</b> of the
+documentation for the package <b class="package"><a href="me_cpucore.html">grammar::me::cpu::core</a></b> for
+the specification of the structure of this value.</p>
+<p>The <i class="arg">tokmap</i> argument taken by the implementation provided by the
+package <b class="package"><a href="me_tcl.html">grammar::me::tcl</a></b> is here hidden inside of the match
+instructions and therefore not needed.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">OBJECT API</a></h3>
+<p>All ME virtual machine objects created by the class command specified
+in section <span class="sectref"><a href="#subsection1">CLASS API</a></span> support the methods listed below.</p>
+<p>The machines provided by this package provide methods for operation in
+both push- and pull-styles. Push-style means that tokens are pushed
+into the machine state when they arrive, triggering further execution
+until they are consumed. In other words, this allows the machine to be
+suspended and resumed at will and an arbitrary number of times, the
+quasi-parallel operation of several machines, and the operation as
+part of the event loop.</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">meName</i> <b class="method">lc</b> <i class="arg">location</i></a></dt>
+<dd><p>This method converts the location of a token given as offset in the
+input stream into the associated line number and column index. The
+result of the command is a 2-element list containing the two values,
+in the order mentioned in the previous sentence.
+This allows higher levels to convert the location information found in
+the error status and the generated AST into more human readable data.</p>
+<p><em>Note</em> that the command is not able to convert locations which
+have not been reached by the machine yet. In other words, if the
+machine has read 7 tokens the command is able to convert the offsets
+<b class="const">0</b> to <b class="const">6</b>, but nothing beyond that. This also shows that
+it is not possible to convert offsets which refer to locations before
+the beginning of the stream.</p></dd>
+<dt><a name="4"><i class="arg">meName</i> <b class="method">tok</b> <span class="opt">?<i class="arg">from</i> <span class="opt">?<i class="arg">to</i>?</span>?</span></a></dt>
+<dd><p>This method returns a Tcl list containing the part of the input stream
+between the locations <i class="arg">from</i> and <i class="arg">to</i> (both inclusive). If
+<i class="arg">to</i> is not specified it will default to the value of <i class="arg">from</i>.
+If <i class="arg">from</i> is not specified either the whole input stream is returned.</p>
+<p>Each element of the returned list is a list of four elements, the
+token, its associated lexeme, line number, and column index, in this
+order.
+This command places the same restrictions on its location arguments as
+the method <b class="method">lc</b>.</p></dd>
+<dt><a name="5"><i class="arg">meName</i> <b class="method">pc</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the current value of the stored program counter.</p></dd>
+<dt><a name="6"><i class="arg">meName</i> <b class="method">iseof</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the current value of the stored eof flag.</p></dd>
+<dt><a name="7"><i class="arg">meName</i> <b class="method">at</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the current location in the input stream.</p></dd>
+<dt><a name="8"><i class="arg">meName</i> <b class="method">cc</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the current token.</p></dd>
+<dt><a name="9"><i class="arg">meName</i> <b class="method">sv</b></a></dt>
+<dd><p>This command returns the current semantic value <i class="term">SV</i> stored in
+the machine. This is an abstract syntax tree as specified in the
+document <b class="syscmd"><a href="me_ast.html">grammar::me_ast</a></b>, section <b class="sectref">AST VALUES</b>.</p></dd>
+<dt><a name="10"><i class="arg">meName</i> <b class="method">ok</b></a></dt>
+<dd><p>This method returns the current match status <i class="term">OK</i>.</p></dd>
+<dt><a name="11"><i class="arg">meName</i> <b class="method">error</b></a></dt>
+<dd><p>This method returns the current error status <i class="term">ER</i>.</p></dd>
+<dt><a name="12"><i class="arg">meName</i> <b class="method">lstk</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the location stack.</p></dd>
+<dt><a name="13"><i class="arg">meName</i> <b class="method">astk</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the AST stack.</p></dd>
+<dt><a name="14"><i class="arg">meName</i> <b class="method">mstk</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the AST marker stack.</p></dd>
+<dt><a name="15"><i class="arg">meName</i> <b class="method">estk</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the error stack.</p></dd>
+<dt><a name="16"><i class="arg">meName</i> <b class="method">rstk</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the subroutine return stack.</p></dd>
+<dt><a name="17"><i class="arg">meName</i> <b class="method">nc</b> <i class="arg">state</i></a></dt>
+<dd><p>This method takes the state value of a ME virtual machine and returns
+the nonterminal match cache as a dictionary.</p></dd>
+<dt><a name="18"><i class="arg">meName</i> <b class="method">ast</b></a></dt>
+<dd><p>This method returns the current top entry of the AST stack <i class="term">AS</i>.
+This is an abstract syntax tree as specified in the document
+<b class="syscmd"><a href="me_ast.html">grammar::me_ast</a></b>, section <b class="sectref">AST VALUES</b>.</p></dd>
+<dt><a name="19"><i class="arg">meName</i> <b class="method">halted</b></a></dt>
+<dd><p>This method returns a boolean value telling the caller whether the
+engine has halted execution or not. Halt means that no further
+matching is possible, and the information retrieved via the other
+method is final. Attempts to <b class="method">run</b> the engine will be ignored,
+until a <b class="method">reset</b> is made.</p></dd>
+<dt><a name="20"><i class="arg">meName</i> <b class="method">code</b></a></dt>
+<dd><p>This method returns the <i class="arg">code</i> information used to construct the
+object. In other words, the match program executed by the machine.</p></dd>
+<dt><a name="21"><i class="arg">meName</i> <b class="method">eof</b></a></dt>
+<dd><p>This method adds an end of file marker to the end of the input stream.
+This signals the machine that the current contents of the input queue
+are the final parts of the input and nothing will come after. Attempts
+to put more characters into the queue will fail.</p></dd>
+<dt><a name="22"><i class="arg">meName</i> <b class="method">put</b> <i class="arg">tok</i> <i class="arg">lex</i> <i class="arg">line</i> <i class="arg">col</i></a></dt>
+<dd><p>This method adds the token <i class="arg">tok</i> to the end of the input stream,
+with associated lexeme data <i class="arg">lex</i> and <i class="arg">line</i>/<i class="arg">col</i>umn
+information.</p></dd>
+<dt><a name="23"><i class="arg">meName</i> <b class="method">putstring</b> <i class="arg">string</i> <i class="arg">lvar</i> <i class="arg">cvar</i></a></dt>
+<dd><p>This method adds each individual character in the <i class="arg">string</i> as a
+token to the end of the input stream, from first to last. The lexemes
+will be empty and the line/col information is computed based on the
+characters encountered and the data in the variables <i class="arg">lvar</i> and
+<i class="arg">cvar</i>.</p></dd>
+<dt><a name="24"><i class="arg">meName</i> <b class="method">run</b> <span class="opt">?<i class="arg">n</i>?</span></a></dt>
+<dd><p>This methods causes the engine to execute match instructions until
+either</p>
+<ul class="doctools_itemized">
+<li><p><i class="arg">n</i> instructions have been executed, or</p></li>
+<li><p>a halt instruction was executed, or</p></li>
+<li><p>the input queue is empty and the code is asking for more tokens to
+process.</p></li>
+</ul>
+<p>If no limit <i class="arg">n</i> was set only the last two conditions are checked
+for.</p></dd>
+<dt><a name="25"><i class="arg">meName</i> <b class="method">pull</b> <i class="arg">nextcmd</i></a></dt>
+<dd><p>This method implements pull-style operation of the machine. It causes
+it to execute match instructions until either a halt instruction is
+reached, or the command prefix
+<i class="arg">nextcmd</i> ceases to deliver more tokens.</p>
+<p>The command prefix <i class="arg">nextcmd</i> represents the input stream of
+characters and is invoked by the machine whenever the a new character
+from the stream is required. The instruction for handling this is
+<i class="term">ict_advance</i>.
+The callback has to return either the empty list, or a list of 4
+elements containing the token, its lexeme attribute, and its location
+as line number and column index, in this order.
+The empty list is the signal that the end of the input stream has been
+reached. The lexeme attribute is stored in the terminal cache, but
+otherwise not used by the machine.</p>
+<p>The end of the input stream for this method does not imply that method
+<b class="method">eof</b> is called for the machine as a whole. By avoiding this
+and still asking for an explicit call of the method it is possible to
+mix push- and pull-style operation during the lifetime of the machine.</p></dd>
+<dt><a name="26"><i class="arg">meName</i> <b class="method">reset</b></a></dt>
+<dd><p>This method resets the machine to its initial state, discarding any
+state it may have.</p></dd>
+<dt><a name="27"><i class="arg">meName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method deletes the object and releases all resurces it claimed.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_me</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key24">virtual machine</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005-2006 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

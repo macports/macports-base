@@ -1,0 +1,208 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::pegrammar n 1]
+[include include/module.inc]
+[titledesc {Introduction to Parsing Expression Grammars}]
+[description]
+[include include/ref_intro.inc]
+
+Welcome to the introduction to [term {Parsing Expression Grammar}]s
+(short: [term PEG]), the formalism used by the Parser Tools.
+
+It is assumed that the reader has a basic knowledge of parsing theory,
+i.e. [term {Context-Free Grammars}] (short: [term CFG]),
+[term languages], and associated terms like [term LL(k)],
+[term LR(k)], [term terminal] and [term nonterminal] [term symbols],
+etc.
+
+We do not intend to recapitulate such basic definitions or terms like
+[term useful], [term reachable], (left/right) [term recursive],
+[term nullable], first/last/follow sets, etc.
+
+[comment {-- doctools extension -- 2nd argument for term to distinguish printed text and actual term, for the indexing ---}]
+
+Please see the [sectref References] at the end instead if you are in
+need of places and books which provide such background information.
+
+[para]
+
+PEGs are formally very similar to CFGs, with terminal and nonterminal
+symbols, start symbol, and rules defining the structure of each
+nonterminal symbol.
+
+The main difference lies in the choice(sic!) of [term choice]
+operators. Where CFGs use an [term {unordered choice}] to represent
+alternatives PEGs use [term {prioritized choice}]. Which is fancy way
+of saying that a parser has to try the first alternative first and can
+try the other alternatives if only if it fails for the first, and so
+on.
+
+[para]
+
+On the CFG side this gives rise to LL(k) and LR(k) for making the
+choice [term deterministic] with a bounded [term lookahead] of k
+terminal symbols, where LL is in essence [term topdown] aka
+[term {recursive descent}] parsing, and LR [term bottomup] aka
+[term {shift reduce}] parsing.
+
+[para]
+
+On the PEG side we can parse input with recursive descent and
+[term backtracking] of failed choices, the latter of which amounts to
+unlimited lookahead.
+
+By additionally recording the success or failure of nonterminals at
+the specific locations they were tried at and reusing this information
+after backtracking we can avoid the exponential blowup of running time
+usually associated with backtracking and keep the parsing linear. The
+memory requirements are of course higher due to this cache, as we are
+trading space for time.
+
+[para]
+
+This is the basic concept behind [term {packrat parsers}].
+
+[para]
+
+A limitation pure PEGs share with LL(k) CFGs is that
+[term left-recursive] grammars cannot be parsed, with the associated
+recursive descent parser entering an infinite recursion.
+
+This limitation is usually overcome by extending pure PEGs with
+explicit operators to specify repetition, zero or more, and one or
+more, or, formally spoken, for the [term {kleene closure}] and
+[term {positive kleene closure}].
+
+This is what the Parser Tools are doing.
+
+[para]
+
+Another extension, specific to Parser Tools, is a set of operators
+which map more or less directly to various character classes built
+into Tcl, i.e. the classes reachable via [cmd {string is}].
+
+[para]
+
+The remainder of this document consists of the formal definition of
+PEGs for the mathematically inclined, and an appendix listing
+references to places with more information on PEGs specifically, and
+parsing in general.
+
+[section {Formal definition}]
+[para]
+
+For the mathematically inclined, a Parsing Expression Grammar is a
+4-tuple (VN,VT,R,eS) where
+
+[list_begin itemized]
+[item]
+VN is a set of [term {nonterminal symbols}],
+
+[item]
+VT is a set of [term {terminal symbols}],
+
+[item]
+R is a finite set of rules, where each rule is a pair (A,e), A in VN,
+and [term e] a [term {parsing expression}].
+
+[item]
+eS is a parsing expression, the [term {start expression}].
+
+[list_end]
+[para]
+
+Further constraints are
+
+[list_begin itemized]
+[item]
+The intersection of VN and VT is empty.
+
+[item]
+For all A in VT exists exactly one pair (A,e) in R. In other words, R
+is a function from nonterminal symbols to parsing expressions.
+
+[list_end]
+[para]
+
+Parsing expressions are inductively defined via
+
+[list_begin itemized]
+[item]
+The empty string (epsilon) is a parsing expression.
+
+[item]
+A terminal symbol [term a] is a parsing expression.
+
+[item]
+A nonterminal symbol [term A] is a parsing expression.
+
+[item]
+[term e1][term e2] is a parsing expression for parsing expressions
+[term e1] and [term 2]. This is called [term sequence].
+
+[item]
+[term e1]/[term e2] is a parsing expression for parsing expressions
+[term e1] and [term 2]. This is called [term {ordered choice}].
+
+[item]
+[term e]* is a parsing expression for parsing expression
+[term e]. This is called [term {zero-or-more repetitions}], also known
+as [term {kleene closure}].
+
+[item]
+[term e]+ is a parsing expression for parsing expression
+[term e]. This is called [term {one-or-more repetitions}], also known
+as [term {positive kleene closure}].
+
+[item]
+![term e] is a parsing expression for parsing expression
+[term e1]. This is called a [term {not lookahead predicate}].
+
+[item]
+&[term e] is a parsing expression for parsing expression
+[term e1]. This is called an [term {and lookahead predicate}].
+
+[list_end]
+[para]
+
+[para]
+
+PEGs are used to define a grammatical structure for streams of symbols
+over VT. They are a modern phrasing of older formalisms invented by
+Alexander Birham. These formalisms were called TS (TMG recognition
+scheme), and gTS (generalized TS). Later they were renamed to TPDL
+(Top-Down Parsing Languages) and gTPDL (generalized TPDL).
+
+[para]
+
+They can be easily implemented by recursive descent parsers with
+backtracking. This makes them relatives of LL(k) Context-Free
+Grammars.
+
+[section References]
+
+[list_begin enumerated]
+[enum]
+[uri {http://www.pdos.lcs.mit.edu/~baford/packrat/} \
+	{The Packrat Parsing and Parsing Expression Grammars Page}],
+by Bryan Ford, Massachusetts Institute of Technology. This is the main
+entry page to PEGs, and their realization through Packrat Parsers.
+
+[enum]
+[uri {http://en.wikipedia.org/wiki/Parsing_expression_grammar}]
+Wikipedia's entry about Parsing Expression Grammars.
+
+[enum]
+[uri {http://www.cs.vu.nl/~dick/PTAPG.html} \
+	{Parsing Techniques - A Practical Guide }], an online book
+offering a clear, accessible, and thorough discussion of many
+different parsing techniques with their interrelations and
+applicabilities, including error recovery techniques.
+
+[enum]
+[uri {http://scifac.ru.ac.za/compilers/} \
+	{Compilers and Compiler Generators}], an online book using
+CoCo/R, a generator for recursive descent parsers.
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

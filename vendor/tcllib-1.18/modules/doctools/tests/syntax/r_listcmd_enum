@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[enum]
+--> (FmtError) Manpage error (listcmd), "enum" : Command not allowed outside of a list.

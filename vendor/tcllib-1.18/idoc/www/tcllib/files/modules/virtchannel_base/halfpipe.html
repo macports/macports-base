@@ -1,0 +1,202 @@
+
+<html><head>
+<title>tcl::chan::halfpipe - Reflected/virtual channel support</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'halfpipe.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- tcl::chan::halfpipe.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tcl::chan::halfpipe(n) 1 tcllib &quot;Reflected/virtual channel support&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tcl::chan::halfpipe - In-memory channel, half of a fifo2</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Options</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">tcl::chan::events <span class="opt">?1?</span></b></li>
+<li>package require <b class="pkgname">tcl::chan::halfpipe <span class="opt">?1?</span></b></li>
+<li>package require <b class="pkgname">tcl::chan::halfpipe <span class="opt">?1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::tcl::chan::halfpipe</b> <span class="opt">?<b class="option">-option</b> <i class="arg">value</i>...?</span></a></li>
+<li><a href="#2"><i class="arg">objectCmd</i> <b class="method">put</b> <i class="arg">bytes</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">tcl::chan::halfpipe</b> package provides a command creating
+one half of a <b class="package"><a href="tcllib_fifo2.html">tcl::chan::fifo2</a></b> pair. Writing into such a
+channel invokes a set of callbacks which then handle the data. This is
+similar to a channel handler, except having a much simpler API.</p>
+<p>The internal <b class="package"><a href="../../../../index.html#key756">TclOO</a></b> class implementing the channel
+handler is a sub-class of the <b class="package"><a href="../virtchannel_core/events.html">tcl::chan::events</a></b> framework.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::tcl::chan::halfpipe</b> <span class="opt">?<b class="option">-option</b> <i class="arg">value</i>...?</span></a></dt>
+<dd><p>This command creates a halfpipe channel and configures it with the
+callbacks to run when the channel is closed, data was written to it,
+or ran empty. See the section <span class="sectref"><a href="#section3">Options</a></span> for the list of
+options and associated semantics.
+The result of the command is a list containing two elements, the
+handle of the new channel, and the object command of the channel
+handler, in this order.
+The latter is supplied to the caller to provide her with access to the
+<b class="method">put</b> method for adding data to the channel.</p>
+<p>Two halfpipes with a bit of glue logic in the callbacks make
+for one <b class="package"><a href="tcllib_fifo2.html">tcl::chan::fifo2</a></b>.</p></dd>
+<dt><a name="2"><i class="arg">objectCmd</i> <b class="method">put</b> <i class="arg">bytes</i></a></dt>
+<dd><p>This method of the channel handler object puts the data <i class="arg">bytes</i>
+into the channel so that it can be read from it.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Options</a></h2>
+<dl class="doctools_options">
+<dt><b class="option">-close-command</b> cmdprefix</dt>
+<dd><p>This callback is invoked when the channel is closed.
+A single argument is supplied, the handle of the channel being closed.
+The result of the callback is ignored.</p></dd>
+<dt><b class="option">-write-command</b> cmdprefix</dt>
+<dd><p>This callback is invoked when data is written to the channel.
+Two arguments are supplied, the handle of the channel written to, and the data written.
+The result of the callback is ignored.</p></dd>
+<dt><b class="option">-empty-command</b> cmdprefix</dt>
+<dd><p>This callback is invoked when the channel has run out of data to read.
+A single argument is supplied, the handle of the channel.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>virtchannel</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key720">callbacks</a>, <a href="../../../../index.html#key607">fifo</a>, <a href="../../../../index.html#key46">in-memory channel</a>, <a href="../../../../index.html#key47">reflected channel</a>, <a href="../../../../index.html#key45">tip 219</a>, <a href="../../../../index.html#key44">virtual channel</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Channels</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

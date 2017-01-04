@@ -1,0 +1,436 @@
+<html><head><title>record - Tcl Data Structures </title></head>
+<! -- Generated from record.man by tcllib/doctools/mpexpand with fmt.html -->
+<! -- Copyright (c) 2002 schwarz -->
+<! -- All rights reserved -->
+<! -- CVS: $Id: record.html,v 1.2 2004/01/15 06:36:14 andreas_kupries Exp $ record.n -->
+
+<h1> record(n) 1.2.1 record &quot;Tcl Data Structures&quot;</h1>
+<a name="name"><h2>NAME</h2>
+<p> record - Define and create records (similar to 'C' structures)
+<! -- -*- tcl -*- -->
+<! -- Author: Brett Schwarz &lt;brett_schwarz@yahoo.com&gt; -->
+
+
+<a name="synopsis"><h2>SYNOPSIS</h2>
+package require <b>Tcl 8.2</b><br>
+package require <b>struct ?1.2.1?</b><br>
+<br><table border=1 width=100% cellspacing=0 cellpadding=0><tr            bgcolor=lightyellow><td bgcolor=lightyellow><table 0 width=100% cellspacing=0 cellpadding=0><tr valign=top ><td ><b class='cmd'>record define</b> <i class='arg'>recordName</i> <i class='arg'>recordMembers</i> ?<i class='arg'>instanceName1 instanceName2 ...</i>?</td></tr>
+<tr valign=top ><td ><b class='cmd'>record show</b> <i class='arg'>record</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record show</b> <i class='arg'>instances</i> <i class='arg'>recordName</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record show</b> <i class='arg'>members</i> <i class='arg'>recordName</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record show</b> <i class='arg'>values</i> <i class='arg'>instanceName</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record exists</b> <i class='arg'>record</i> <i class='arg'>recordName</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record exists</b> <i class='arg'>instance</i> <i class='arg'>instanceName</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record delete</b> <i class='arg'>record</i> <i class='arg'>recordName</i></td></tr>
+<tr valign=top ><td ><b class='cmd'>record delete</b> <i class='arg'>instance</i> <i class='arg'>instanceName</i></td></tr>
+<tr valign=top ><td ><i class='arg'>recordName</i> <strong><i class='arg'>instanceName|#auto</i></strong> ?<i class='arg'>-member1 value1 -member2 value2 ...</i>?</td></tr>
+<tr valign=top ><td ><i class='arg'>instanceName</i> <strong>cget</strong> ?<i class='arg'>-member1 -member2 ...</i>?</td></tr>
+<tr valign=top ><td ><i class='arg'>instanceName</i> <strong>configure</strong> ?<i class='arg'>-member1 value1 -member2 value2 ...</i>?</td></tr>
+</table></td></tr></table>
+<a name="description"><h2>DESCRIPTION</h2>
+
+The <b class='cmd'>::struct::record</b> package provides a mechanism to group variables together
+as one data structure, similar to a 'C' structure. The members of a 
+record can be variables or other records. However, a record can not contain circular
+record, i.e. records that contain the same record as a
+member.
+
+<p>
+This package was structured so that it is very similar to how Tk objects work. Each record
+definition creates a record object that encompasses that definition. Subsequently, that
+record object can create instances of that record. These instances can then
+be manipulated with the <strong>cget</strong> and <strong>configure</strong> methods.
+
+<p>
+The package only contains one top level command, but several sub commands (see below). It also obeys the namespace in which the record was define, hence the objects returned are fully qualified.
+
+<dl>
+
+<dt><b class='cmd'>record define</b> <i class='arg'>recordName</i> <i class='arg'>recordMembers</i> ?<i class='arg'>instanceName1 instanceName2 ...</i>?<dd>
+
+
+Defines a record. <i class='arg'>recordName</i> is the name of the record, and is also
+used as an object command. This object command is used to create instances of the
+record definition. <i class='arg'>recordMembers</i> are the members of
+the record that make up the record definition. These are variables
+and other record. If optional <i class='arg'>instanceName</i> args are given, then an instance
+is generated after the definition is created for each <i class='arg'>instanceName</i>.
+
+<br><br>
+<dt><b class='cmd'>record show</b> <i class='arg'>record</i><dd>
+
+
+Returns a list of records that have been defined.
+
+<br><br>
+<dt><b class='cmd'>record show</b> <i class='arg'>instances</i> <i class='arg'>recordName</i><dd>
+
+
+Returns the instances that have been instantiated by
+<i class='arg'>recordName</i>.
+
+<br><br>
+<dt><b class='cmd'>record show</b> <i class='arg'>members</i> <i class='arg'>recordName</i><dd>
+
+
+Returns the members that are defined for
+record <i class='arg'>recordName</i>. It returns the same format as how the
+records were defined.
+
+<br><br>
+<dt><b class='cmd'>record show</b> <i class='arg'>values</i> <i class='arg'>instanceName</i><dd>
+
+
+Returns a list of values that are set for the instance
+<i class='arg'>instanceName</i>. The output is a list of key/value pairs. If there
+are nested records, then the values of the nested records will 
+itself be a list.
+
+<br><br>
+<dt><b class='cmd'>record exists</b> <i class='arg'>record</i> <i class='arg'>recordName</i><dd>
+
+
+Tests for the existence of a <i class='arg'>record</i> with the
+name <i class='arg'>recordName</i>.
+
+<br><br>
+<dt><b class='cmd'>record exists</b> <i class='arg'>instance</i> <i class='arg'>instanceName</i><dd>
+
+
+Tests for the existence of a <i class='arg'>instance</i> with the
+name <i class='arg'>instanceName</i>.
+
+<br><br>
+<dt><b class='cmd'>record delete</b> <i class='arg'>record</i> <i class='arg'>recordName</i><dd>
+
+
+Deletes <i class='arg'>recordName</i>, and all instances of <i class='arg'>recordName</i>. It will return
+an error if the record does not exist.
+
+<br><br>
+<dt><b class='cmd'>record delete</b> <i class='arg'>instance</i> <i class='arg'>instanceName</i><dd>
+
+
+Deletes <i class='arg'>instance</i> with the name of <i class='arg'>instanceName</i>. It
+will return an error if the instance does not exist.
+
+</dl>
+<p>
+      
+<a name="recordmembers"><h2>RECORD MEMBERS</h2>
+
+Record members can either be variables, or other records, However, the same
+record can not be nested witin itself (circular). To define a nested record,
+you need to specify the <strong>record</strong> keyword, along the with name of the record, and the name of the instance of that nested
+record. For example, it would look like this:
+
+<p>
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+# this is the nested record
+record define mynestedrecord {
+    nest1
+    nest2
+}
+
+# This is the main record
+record define myrecord {
+    mem1
+    mem2
+    {record mynestedrecord mem3}
+}
+
+</pre></td></tr></table></p>
+
+You can also assign default or initial values to the members of a record,
+by enclosing the member entry in braces:
+
+<p>
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+
+record define myrecord {
+    mem1
+    {mem2 5}
+}
+
+</pre></td></tr></table></p>
+
+All instances created from this record definition, will initially have 5 as
+the value for <i class='arg'>mem2</i>. If no default is given, then the value will be the empty string.
+
+<p>
+<strong>Getting Values</strong>
+<p>
+
+To get a value of a member, there are several ways to do this. 
+
+<ol>
+
+<li>
+To get a member value, then use the instance built-in <strong>cget</strong> method:
+<br><br>
+    <i class='arg'>instanceName</i> <strong>cget</strong> -mem1
+
+<br><br>
+<li>
+To get multiple member values, you can specify them all in one command:
+<br><br>
+    <i class='arg'>instanceName</i> <strong>cget</strong> -mem1 -mem2
+
+<br><br>
+<li>
+To get a list of the key/value of all of the members, there are 3 ways:
+<br><br>
+    - <i class='arg'>instanceName</i> <strong>cget</strong>
+<br><br>
+	- <i class='arg'>instanceName</i> <strong>configure</strong>
+<br><br>
+	- <i class='arg'>instanceName</i>
+
+<br><br>
+<li>
+To get a value of a nested member, then use the dot notation:
+<br><br>
+    <i class='arg'>instanceName</i> <strong>cget</strong> -mem3.nest1
+
+</ol>
+
+<p>
+<strong>Setting Values</strong>
+<p>
+
+To set a value of a member, there are several ways to do this. 
+
+<ol>
+
+<li>
+To set a member value, then use the instance built-in <strong>configure</strong> method:
+<br><br>
+    <i class='arg'>instanceName</i> <strong>configure</strong> -mem1 val1
+
+<br><br>
+<li>
+To set multiple member values, you can specify them all in one command:
+<br><br>
+    <i class='arg'>instanceName</i> <strong>configure</strong> -mem1 va1 -mem2 val2
+
+<br><br>
+<li>
+To set a value of a nested member, then use the dot notation:
+<br><br>
+    <i class='arg'>instanceName</i> <strong>configure</strong> -mem3.nest1 value
+
+</ol>
+
+<p>
+<strong>Alias access</strong>
+<p>
+
+In the original implementation, access was done by using dot notation similar to how 'C' structures are accessed. However, 
+there was a concensus to make the interface more Tcl like, which made sense. However, the original alias access still
+exists. It might prove to be helpful to some.
+
+<p>
+Basically, for every member of every instance, an alias is created. This alias is used to get and set values for that
+member. An example will illustrate the point, using the above defined records:
+
+<p>
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+# Create an instance first
+% myrecord inst1
+::inst1
+% # To get a member of an instance, just use the 
+% # alias (it behaves like a Tcl command):
+% inst1.mem1
+%
+% # To set a member via the alias, just include 
+% # a value (optionally the equal sign - syntactic sugar)
+% inst1.mem1 = 5
+5
+% inst1.mem1
+5
+% # For nested records, just continue with the 
+% # dot notation (note no equal sign)
+% inst1.mem3.nest1 10
+10
+% inst1.mem3.nest1
+10
+% # just the instance by itself gives all 
+% # member/values pairs for that instance
+% inst1
+-mem1 5 -mem2 {} -mem3 {-nest1 10 -nest2 {}}
+% # and to get all members within the nested record
+% inst1.mem3
+-nest1 10 -nest2 {}
+%
+
+</pre></td></tr></table></p>
+
+<a name="recordcommand"><h2>RECORD COMMAND</h2>
+
+The following subcommands and corresponding arguments are available to any
+record command:
+
+<dl>
+
+<dt><i class='arg'>recordName</i> <strong><i class='arg'>instanceName|#auto</i></strong> ?<i class='arg'>-member1 value1 -member2 value2 ...</i>?<dd>
+
+
+Using the <i class='arg'>recordName</i> object command that was created from the record definition, 
+instances of the record definition can be created. Once a instance is
+created, then it inherits the members of the record definition, very
+similar to how objects work. During instance generation, an object command for the instance
+is created as well, using <i class='arg'>instanceName</i>. This object command is used
+to access the data members of the instance. During the instantiation, values for
+that instance can be given, <strong>but</strong> all values must be given, and be given
+in key/value pairs. Nested records, need to be in list format.
+
+<br><br>
+Optionally, <i class='arg'>#auto</i> can be used in place of <i class='arg'>instanceName</i>. When #auto is used,
+then a instance name will automatically be generated, of the form recordName&lt;integer&gt;, where
+&lt;integer&gt; is a unique integer (starting at 0) that is generated.
+
+</dl>
+<p>
+
+<a name="instancecommand"><h2>INSTANCE COMMAND</h2>
+ 
+The following subcommands and corresponding arguments are available to
+any record instance command:
+
+<dl>
+ 
+<dt><i class='arg'>instanceName</i> <strong>cget</strong> ?<i class='arg'>-member1 -member2 ...</i>?<dd>
+
+
+Each instance has the sub command <strong>cget</strong> associated with it. This
+is very similar to how Tk widget's cget command works. It queries
+the values of the member for that particular instance. If
+no arguments are given, then a key/value list is returned.
+
+<br><br>
+<dt><i class='arg'>instanceName</i> <strong>configure</strong> ?<i class='arg'>-member1 value1 -member2 value2 ...</i>?<dd>
+
+
+Each instance has the sub command <strong>configure</strong> associated with it. This
+is very similar to how Tk widget's configure command works. It sets
+the values of the particular member for that particular instance. If
+no arguments are given, then a key/value list is returned.
+
+</dl>
+
+<a name="examples"><h2>EXAMPLES</h2>
+ 
+Two examples are provided to give an good illustration on how to use
+this package.
+
+<p>      
+<strong>Example 1</strong>
+<p>
+
+Probably the most obvious example would be to hold contact information,
+such as addresses, phone numbers, comments, etc. Since a person can have
+multiple phone numbers, multiple email addresses, etc, we will use nested
+records to define these. So, the first thing we do is define the nested
+records:
+
+<p>
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+
+##
+##  This is an interactive example, to see what is 
+##  returned by each command as well.
+##
+
+% namespace import ::struct::record::*
+
+% # define a nested record. Notice that country has default 'USA'.
+% record define locations {
+    street
+    street2
+    city
+    state
+    zipcode
+    {country USA}
+    phone
+}
+::locations
+% # Define the main record. Notice that it uses the location record twice.
+% record define contacts {
+    first 
+    middle 
+    last 
+    {record locations home}
+    {record locations work}
+}
+::contacts
+% # Create an instance for the contacts record.
+% contacts cont1
+::cont1
+% # Display some introspection values
+% record show records
+::contacts ::locations
+% #
+% record show values cont1
+-first {} -middle {} -last {} -home {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}} -work {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}}
+% #
+% record show instances contacts
+::cont1
+% #
+% cont1 config
+-first {} -middle {} -last {} -home {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}} -work {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}}
+% #
+% cont1 cget
+-first {} -middle {} -last {} -home {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}} -work {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}}
+% # copy one record to another record
+% record define contacts2 [record show members contacts]
+::contacts2
+% record show members contacts2
+first middle last {record locations home} {record locations work}
+% record show members contacts
+first middle last {record locations home} {record locations work}
+%
+</pre></td></tr></table></p>
+
+<p>      
+<strong>Example 1</strong>
+<p>
+
+This next example just illustrates a simple linked list
+<p>
+<p><table><tr><td bgcolor=black>&nbsp;</td><td><pre class='sample'>
+
+% # define a very simple record for linked list
+% record define llist {
+    value
+    next
+}
+::llist
+% llist lstart
+::lstart
+% lstart config -value 1 -next [llist #auto]
+% [lstart cget -next] config -value 2 -next [llist #auto]
+% [[lstart cget -next] cget -next] config -value 3 -next &quot;end&quot;
+% set next lstart
+lstart
+% while 1 {
+lappend values [$next cget -value]
+set next [$next cget -next]
+if {[string match &quot;end&quot; $next]} {break}
+}
+% puts &quot;$values&quot;
+1 2 3
+% # cleanup linked list
+% # We could just use delete record llist also
+% foreach I [record show instances llist] {
+record delete instance $I
+}
+% record show instances llist
+%
+
+</pre></td></tr></table></p>
+
+<p>
+
+<a name="keywords"><h2>KEYWORDS</h2>
+struct, record, data structures
+</body></html>

@@ -1,0 +1,146 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools2idx_introduction n 2.0]
+[see_also docidx_intro]
+[see_also doctoc_intro]
+[see_also doctools]
+[see_also doctools2doc_introduction]
+[see_also doctools2toc_introduction]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_intro]
+[see_also doctools_lang_syntax]
+[see_also doctools_plugin_apiref]
+[keywords conversion]
+[keywords formatting]
+[keywords index]
+[keywords {keyword index}]
+[keywords markup]
+[keywords parsing]
+[keywords plugin]
+[keywords {semantic markup}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {DocTools - Keyword indices}]
+[category  {Documentation tools}]
+[comment {
+}]
+[description]
+
+[term docidx] (short for [emph {documentation indices}]) stands for a
+set of related, yet different, entities which are working together for
+the easy creation and transformation of keyword indices for
+documentation.
+
+[para]
+
+These are
+
+[list_begin enumerated]
+[enum]
+A tcl based language for the semantic markup of a keyword index.
+Markup is represented by Tcl commands.
+
+Beginners should start with the
+[manpage {docidx language introduction}].
+
+The formal specification is split over two documents, one dealing with
+the [manpage {docidx language syntax}], the other a
+[manpage {docidx language command reference}].
+
+[enum]
+A set of packages for the programmatic manipulation of keyword indices
+in memory, and their conversion between various formats, reading and
+writing. The aforementioned markup language is one of the formats
+which can be both read from and written to.
+
+[enum]
+The system for the conversion of indices is based on a plugin
+mechanism, for this we have two APIs describing the interface between
+the packages above and the import/export plugins.
+
+[list_end]
+
+[para]
+Which of the more detailed documents are relevant to the reader of
+this introduction depends on their role in the documentation process.
+
+[para]
+
+[list_begin enumerated]
+[enum]
+A [manpage writer] of documentation has to understand the markup language
+itself. A beginner to docidx should read the more informally written
+[manpage {docidx language introduction}] first. Having digested this
+the formal [manpage {docidx language syntax}] specification should
+become understandable. A writer experienced with docidx may only
+need the [manpage {docidx language command reference}] from time to
+time to refresh her memory.
+
+[para]
+While a document is written the [syscmd dtp] application can be used
+to validate it, and after completion it also performs the conversion
+into the chosen system of visual markup, be it *roff, HTML, plain
+text, wiki, etc. The simpler [syscmd dtplite] application makes
+internal use of docidx when handling directories of documentation,
+automatically generating a proper keyword index for them.
+
+[enum]
+A [term processor] of documentation written in the [term docidx]
+markup language has to know which tools are available for use.
+
+[para]
+
+The main tool is the aforementioned [syscmd dtp] application provided
+by Tcllib. The simpler [syscmd dtplite] does not expose docidx to the
+user. At the bottom level, common to both applications, however we
+find the three packages providing the basic facilities to handle
+keyword indices, i.e. import from textual formats, programmatic
+manipulation in memory, and export to textual formats. These are
+
+[list_begin definitions]
+[def [package doctools::idx]]
+Programmatic manipulation of keyword indices in memory.
+
+[def [package doctools::idx::import]]
+Import of keyword indices from various textual formats. The set of
+supported formats is extensible through plugin packages.
+
+[def [package doctools::idx::export]]
+Export of keyword indices to various textual formats. The set of
+supported formats is extensible through plugin packages.
+
+[list_end]
+
+See also section [sectref {Package Overview}] for an overview of the
+dependencies between these and other, supporting packages.
+
+[enum]
+At last, but not least, [term {plugin writers}] have to understand the
+interaction between the import and export packages and their plugins.
+These APIs are described in the documentation for the two relevant
+packages, i.e.
+
+[list_begin itemized]
+[item] [package doctools::idx::import]
+[item] [package doctools::idx::export]
+[list_end]
+
+[list_end]
+
+[section {Related formats}]
+
+The docidx format does not stand alone, it has two companion formats.
+These are called [term doctoc] and [term doctools], and they are
+intended for the markup of [term {tables of contents}], and of general
+documentation, respectively.
+
+They are described in their own sets of documents, starting at
+the [manpage {DocTools - Tables Of Contents}] and
+the [manpage {DocTools - General}], respectively.
+
+[section {Package Overview}]
+[include include/dependencies.inc]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,427 @@
+[comment {-*- tcl -*- paths manpage}]
+[manpage_begin pluginmgr n 0.3]
+[keywords {plugin management}]
+[keywords {plugin search}]
+[copyright {2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Plugin management}]
+[titledesc {Manage a plugin}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require pluginmgr [opt 0.3]]
+[description]
+
+This package provides commands and objects for the generic management
+of plugins which can be loaded into an application.
+
+[para]
+
+To avoid the implementation of yet another system to locate Tcl code
+the system provides by this package is built on top of the regular
+package management system. Each plugin is considered as a package and
+a simple invokation of [cmd {package require}] is enough to locate and
+load it, if it exists. The only time we will need additional paths is
+when a plugin manager is part of a wrapped application and has to be
+able to search for plugins existing outside of that application. For
+this situation the package provides a command to create a general set
+of such paths based on names for the plugin manager and/or application
+in question.
+
+[para]
+
+The main contribution of this package is a generic framework which
+allows the easy declaration of
+
+[list_begin enumerated]
+[enum]
+How to translate a plugin name to the name of the package implementing
+it, and vice versa.
+
+[enum]
+The list of commands a plugin has to provide as API, and also of more
+complex checks as code.
+
+[enum]
+The list of commands expected by the plugin from the environment.
+
+[list_end]
+
+This then allows the easy generation of plugin managers customized to
+particular types of plugins for an application.
+
+[para]
+
+It should be noted that all plugin code is considered untrusted and
+will always be executed within a safe interpreter. The interpreter is
+enabled enough to allow plugins the loading of all additional packages
+they may need.
+
+[section {PUBLIC API}]
+[subsection {PACKAGE COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd ::pluginmgr] [arg objectName] [opt [arg "option value"]...]]
+
+This command creates a new plugin manager object with an associated
+Tcl command whose name is [arg objectName]. This [term object] command
+is explained in full detail in the sections [sectref {OBJECT COMMAND}]
+and [sectref {OBJECT METHODS}]. The object command will be created
+under the current namespace if the [arg objectName] is not fully
+qualified, and in the specified namespace otherwise.
+
+[para]
+
+The options and their values coming after the name of the object are
+used to set the initial configuration of the mamager object,
+specifying the applicable plugins and their API.
+
+[call [cmd ::pluginmgr::paths] [arg objectName] [arg name]...]
+
+This utility command adds a set of paths to the specified object,
+based on the given [arg name]s.
+
+It will search for:
+
+[list_begin enumerated]
+
+[enum]
+
+The environment variable [var [arg name]_PLUGINS]. Its contents will
+be interpreted as a list of package paths. The entries have to be
+separated by either [const :] (unix) or [const \;] (windows).
+
+[para]
+
+The name will be converted to upper-case letters.
+
+[enum]
+
+The registry entry "HKEY_LOCAL_MACHINE\SOFTWARE\[arg name]\PLUGINS".
+Its contents will be interpreted as a list of package paths. The
+entries have to be separated by [const \;]. This item is considered
+only when on Windows (tm).
+
+[para]
+
+The casing of letters is not changed.
+
+[enum]
+
+The registry entry "HKEY_CURRENT_USER\SOFTWARE\[arg name]\PLUGINS".
+Its contents will be interpreted as a list of package paths. The
+entries have to be separated by [const \;]. This item is considered
+only when on Windows (tm).
+
+[para]
+
+The casing of letters is not changed.
+
+[enum]
+
+The directory [file "~/.[arg name]/plugin"].
+
+[enum]
+
+The directory [file "~/.[arg name]/plugins"].
+
+[para]
+
+The casing of letters is not changed.
+
+[list_end]
+[para]
+
+and add all the paths found that way to the list of package paths
+maintained by the object.
+
+[para]
+
+If [arg name] is namespaced each item in the list will be repeated per
+prefix of [arg name], with conversion of :-sequences into the proper
+separator (underscore for environment variables, backslash for
+registry entries, and / for directories).
+
+[para]
+Examples:
+[para]
+
+[example {
+    ::pluginmgr::paths ::obj docidx
+
+    => env  DOCIDX_PLUGINS
+       reg  HKEY_LOCAL_MACHINE\SOFTWARE\docidx\PLUGINS
+       reg  HKEY_CURRENT_USER\SOFTWARE\docidx\PLUGINS
+       path ~/.docidx/plugins
+
+    ::pluginmgr::paths ::obj doctools::idx
+
+    => env  DOCTOOLS_PLUGINS
+       env  DOCTOOLS_IDX_PLUGINS
+       reg  HKEY_LOCAL_MACHINE\SOFTWARE\doctools\PLUGINS
+       reg  HKEY_LOCAL_MACHINE\SOFTWARE\doctools\idx\PLUGINS
+       reg  HKEY_CURRENT_USER\SOFTWARE\doctools\PLUGINS
+       reg  HKEY_CURRENT_USER\SOFTWARE\doctools\idx\PLUGINS
+       path ~/.doctools/plugin
+       path ~/.doctools/idx/plugin
+}]
+
+[list_end]
+
+[subsection {OBJECT COMMAND}]
+
+All commands created by the command [cmd ::pluginmgr] (See section
+[sectref {PACKAGE COMMANDS}]) have the following general form and may
+be used to invoke various operations on their plugin manager object.
+
+[list_begin definitions]
+
+[call [cmd objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the exact
+behavior of the command. See section [sectref {OBJECT METHODS}] for
+the detailed specifications.
+
+[list_end]
+
+[subsection {OBJECT METHODS}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method clone]]
+
+This method creates a new plugin management object and returns the
+associated object command. The generated object is a clone of the
+object the method was invoked on. I.e. the new object will have the
+same configuration as the current object. With regard to state, if the
+current object has a plugin loaded then this plugin and all associated
+state is moved to the generated clone and the current object is reset
+into the base state (no plugin loaded). In this manner a configured
+plugin manager is also a factory for loaded plugins.
+
+[call [arg objectName] [method configure]]
+
+The method returns a list of all known options and their current
+values when called without any arguments.
+
+[call [arg objectName] [method configure] [arg option]]
+
+The method behaves like the method [method cget] when called with a
+single argument and returns the value of the option specified by said
+argument.
+
+[call [arg objectName] [method configure] [option -option] [arg value]...]
+
+The method reconfigures the specified [option option]s of the object,
+setting them to the associated [arg value]s, when called with an even
+number of arguments, at least two.
+
+[para]
+
+The legal options are described in the section
+[sectref {OBJECT CONFIGURATION}].
+
+[call [arg objectName] [method cget] [option -option]]
+
+This method expects a legal configuration option as argument and will
+return the current value of that option for the object the method was
+invoked for.
+
+[para]
+
+The legal configuration options are described in section
+[sectref {OBJECT CONFIGURATION}].
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object it is invoked for.
+
+[call [arg objectName] [method do] [arg arg]...]
+
+This method interprets its list of arguments as the words of a command
+and invokes this command in the execution context of the plugin.
+
+The result of the invoked command is made the result of the method.
+
+The call will fail with an error if no valid plugin has been loaded
+into the manager object.
+
+[call [arg objectName] [method interpreter]]
+
+This method returns the handle of the safe interpreter the current
+plugin is loaded into. An empty string as return value signals that
+the manager currently has no valid plugin loaded.
+
+[call [arg objectName] [method plugin]]
+
+This method returns the name of the plugin currently loaded. An empty
+string as return value signals that the manager currently has no valid
+plugin loaded.
+
+[call [arg objectName] [method load] [arg string]]
+
+This method loads, validates, and initializes a named plugin into the
+manager object.
+
+[para]
+The algorithm to locate and load the plugin employed is:
+
+[list_begin enumerated]
+[enum]
+
+If the [arg string] contains the path to an existing file then this
+file is taken as the implementation of the plugin.
+
+[enum]
+Otherwise the plugin name is translated into a package name via the value
+of the option [option -pattern] and then loaded through the
+regular package management.
+
+[enum]
+The load fails.
+
+[list_end]
+[para]
+
+The algorithm to validate and initialize the loaded code is:
+
+[list_begin enumerated]
+[enum]
+If the option [option -api] is non-empty introspection commands are
+used to ascertain that the plugin provides the listed commands.
+
+[enum]
+If the option [option -check] is non-empty the specified command
+prefix is called.
+
+[enum]
+If either of the above fails the candidate plugin is unloaded again
+
+[enum]
+Otherwise all the commands specified via the option
+[option -cmds] are installed in the plugin.
+
+[list_end]
+[para]
+
+A previously loaded plugin is discarded, but only if the new plugin
+was found and sucessfully validated and initialized. Note that there
+will be no intereference between old and new plugin as both will be
+put into separate safe interpreters.
+
+[call [arg objectName] [method unload]]
+
+This method unloads the currently loaded plugin. It returns the empty
+string. The call will be silently ignored if no plugin is loaded at
+all.
+
+[call [arg objectName] [method list]]
+
+This method uses the contents of the option [option -pattern] to find
+all packages which can be plugins under the purview of this manager
+object. It translates their names into plugin names and returns a list
+containing them.
+
+[call [arg objectName] [method path] [arg path]]
+
+This methods adds the specified [arg path] to the list of additional
+package paths to look at when searching for a plugin. It returns the
+empty string. Duplicate paths are ignored, i.e. each path is added
+only once. Paths are made absolute, but are not normalized.
+
+[call [arg objectName] [method paths]]
+
+This method returns a list containing all additional paths which have
+been added to the plugin manager object since its creation.
+
+[list_end]
+
+[subsection {OBJECT CONFIGURATION}]
+
+All plugin manager objects understand the following configuration options:
+
+[list_begin options]
+
+[opt_def -pattern [arg string]]
+
+The value of this option is a glob pattern which has to contain
+exactly one '*'-operator. All packages whose names match this pattern
+are the plugins recognized by the manager object. And vice versa, the
+replacement of the '*'-operator with a plugin name will yield the name
+of the package implementing that plugin.
+
+[para]
+
+This option has no default, except if option [option -name] was set.
+It has to be set before attempting to load a plugin, either directly,
+or through option [option -name].
+
+[opt_def -api [arg list]]
+
+The value of this option is a list of command names, and any plugin
+loaded has to provide these commands. Names which are not fully
+qualified are considered to be rooted in the global namespace.
+
+If empty no expectations are made on the plugin. The default value is
+the empty list.
+
+[opt_def -check [arg cmdprefix]]
+
+The value of this option is interpreted as a command prefix.
+
+Its purpose is to perform complex checks on a loaded plugin package to
+validate it, which go beyond a simple list of provided commands.
+
+[para]
+
+It is called with the manager object command as the only argument and
+has to return a boolean value. A value of [const true] will be
+interpreted to mean that the candidate plugin passed the test.
+
+The call will happen if and only if the candidate plugin already
+passed the basic API check specified through the option [option -api].
+
+[para]
+
+The default value is the empty list, which causes the manager object
+to suppress the call and to assume the candidate plugin passes.
+
+[opt_def -cmds [arg dict]]
+
+The value of this option is a dictionary.  It specifies the commands
+which will be made available to the plugin (as keys), and the trusted
+commands in the environment which implement them (as values).
+
+The trusted commands will be executed in the interpreter specified by
+the option [option -cmdip].
+
+The default value is the empty dictionary.
+
+[opt_def -cmdip [arg ipspec]]
+
+The value of this option is the path of the interpreter where the
+trusted commands given to the plugin will be executed in.
+
+The default is the empty string, referring to the current interpreter.
+
+[opt_def -setup [arg cmdprefix]]
+
+The value of this option is interpreted as a command prefix.
+
+[para]
+
+It is called whenever a new safe interpreter for a plugin has been
+created, but before a plugin is loaded. It is provided with the
+manager object command and the interpreter handle as its only
+arguments. Any return value will be ignored.
+
+[para]
+
+Its purpose is give a user of the plugin management the ability to
+define commands, packages, etc. a chosen plugin may need while being
+loaded.
+
+[list_end]
+
+[vset CATEGORY pluginmgr]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,86 @@
+[comment {-*- text -*- doctools manpage}]
+[vset PGEN_VERSION 1.0.2]
+[manpage_begin pt::pgen n [vset PGEN_VERSION]]
+[include include/module.inc]
+[titledesc {Parser Generator}]
+[require pt::pgen [opt [vset PGEN_VERSION]]]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a command implementing a
+[term {parser generator}]
+taking parsing expression grammars as input.
+
+[para]
+
+It is the implementation of method [method generate] of [cmd pt], the
+[manpage {Parser Tools Application}].
+
+[para]
+
+As such the intended audience of this document are people wishing to
+modify and/or extend this part of [cmd pt]'s functionality. Users of
+[cmd pt] on the other hand are hereby refered to the applications'
+manpage, i.e. [manpage {Parser Tools Application}].
+
+[para]
+
+It resides in the User Package Layer of Parser Tools.
+[para][image arch_user_pkg][para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::pgen] \
+	[arg inputformat] \
+	[arg text] \
+	[arg resultformat] \
+	[opt [arg options...]]]
+
+This command takes the parsing expression grammar in [arg text] (in
+the format specified by [arg inputformat]), and returns the same
+grammar in the format [arg resultformat] as the result of the command.
+
+[para]
+
+The two known input formats are [const peg] and [const json].
+Introductions to them, including their formal specifications, can be
+found in the [manpage {PEG Language Tutorial}] and
+[manpage {The JSON Grammar Exchange Format}]. The packages used to
+parse these formats are
+
+[list_begin definitions]
+[def [const peg]]  [package pt::peg::from::peg]
+[def [const json]] [package pt::peg::from::json]
+[list_end]
+
+[para]
+
+On the output side the known formats, and the packages used to
+generate them are
+
+[list_begin definitions]
+
+[def [const c]]         [package pt::peg::to::cparam]
+[def [const container]] [package pt::peg::to::container]
+[def [const critcl]]    [package pt::peg::to::cparam] +
+                        [package pt::cparam::configuration::critcl]
+[def [const json]]      [package pt::peg::to::json]
+[def [const oo]]        [package pt::peg::to::tclparam] +
+                        [package pt::tclparam::configuration::tcloo]
+[def [const peg]]       [package pt::peg::to::peg]
+[def [const snit]]      [package pt::peg::to::tclparam] +
+                        [package pt::tclparam::configuration::snit]
+[list_end]
+
+The options supported by each of these formats are documented
+with their respective packages.
+
+[list_end]
+
+[section Example]
+[vset MODE pkg][include include/example/full.inc]
+
+[include include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,50 @@
+after DN creation:
+object='cn=Test User,ou=People,o=University of Michigan,c=US'
+  cn          Test User
+  mail        test.user@google.com
+  objectClass OpenLDAPperson
+  sn          User
+  uid         testuid
+
+after replacing some attrbitues:
+object='cn=Test User,ou=People,o=University of Michigan,c=US'
+  cn          Test User
+  drink       icetea
+  mail        test.user@google.com
+  objectClass OpenLDAPperson
+  sn          User
+  uid         JOLO
+
+after adding multiple attrbitues:
+object='cn=Test User,ou=People,o=University of Michigan,c=US'
+  cn          Test User
+  drink       icetea
+  drink       water
+  drink       orangeJuice
+  mail        test.user@google.com
+  objectClass OpenLDAPperson
+  pager       +1 313 555 7671
+  sn          User
+  uid         JOLO
+
+after delete some attrbitues:
+object='cn=Test User,ou=People,o=University of Michigan,c=US'
+  cn          Test User
+  drink       icetea
+  drink       orangeJuice
+  mail        test.user@google.com
+  objectClass OpenLDAPperson
+  sn          User
+  uid         JOLO
+
+after moving/renaming DN:
+object='cn=Tester,ou=People,o=University of Michigan,c=US'
+  cn          Tester
+  drink       icetea
+  drink       orangeJuice
+  mail        test.user@google.com
+  objectClass OpenLDAPperson
+  sn          User
+  uid         JOLO
+
+after deleting the whole DN:

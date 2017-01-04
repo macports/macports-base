@@ -1,0 +1,36 @@
+# documentation: http://developer.yahoo.com/search/boss/boss_guide/
+
+package require rest
+
+set yboss(web) {
+   url http://boss.yahooapis.com/ysearch/web/v1/%query%
+   req_args { appid: }
+   opt_args { start: count: lang: region: sites: filter: type: }
+   post_transform { return [dict get $result ysearchresponse] }
+   check_result { {[dict get $result responsecode] == "200"} {} }
+}
+
+set yboss(news) {
+   url http://boss.yahooapis.com/ysearch/news/v1/%query%
+   req_args { appid: }
+   opt_args { start: count: lang: region: sites: age: }
+   post_transform { return [dict get $result ysearchresponse] }
+   check_result { {[dict $result responsecode] == "200"} {} }
+}
+
+set yboss(images) {
+   url http://boss.yahooapis.com/ysearch/images/v1/%query%
+   req_args { appid: }
+   opt_args { start: count: lang: region: sites: filter: dimensions: refererurl: url: }
+   post_transform { return [dict get $result ysearchresponse] }
+   check_result { {[dict $result responsecode] == "200"} {} }
+}
+
+set yboss(spelling) {
+   url http://boss.yahooapis.com/ysearch/spelling/v1/%query%
+   req_args { appid: }
+   post_transform { return [dict get $result ysearchresponse] }
+   check_result { {[dict $result responsecode] == "200"} {} }
+}
+
+rest::create_interface yboss

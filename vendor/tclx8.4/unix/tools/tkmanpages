@@ -1,0 +1,76 @@
+#
+# tkmanpages --
+#
+#   Manual info file to be sources by bldmanhelp.tcl that returns a table
+# describing the Tk manual to build the help files from.
+#------------------------------------------------------------------------------
+# Copyright 1992-1999 Karl Lehenbauer and Mark Diekhans.
+#
+# Permission to use, copy, modify, and distribute this software and its
+# documentation for any purpose and without fee is hereby granted, provided
+# that the above copyright notice appear in all copies.  Karl Lehenbauer and
+# Mark Diekhans make no representations about the suitability of this
+# software for any purpose.  It is provided "as is" without express or
+# implied warranty.
+#------------------------------------------------------------------------------
+# $Id: tkmanpages,v 8.6 1999/06/24 01:09:07 redman Exp $
+#------------------------------------------------------------------------------
+#
+return {
+    {bell.n         tk/control/bell}
+    {bind.n         tk/control/bind}
+    {bindtags.n     tk/control/bindtags}
+    {bitmap.n       tk/images/bitmap}
+    {button.n       tk/widgets/button}
+    {canvas.n       tk/widgets/canvas}
+    {checkbutton.n  tk/widgets/checkbutton}
+    {chooseColor.n  tk/widgets/tk_chooseColor}
+    {clipboard.n    tk/control/clipboard}
+    {destroy.n      tk/control/destroy}
+    {dialog.n       tk/widgets/tk_dialog}
+    {entry.n        tk/widgets/entry}
+    {event.n        tk/control/event}
+    {focus.n        tk/control/focus}
+    {focusNext.n    tk/control/tk_focusNext}
+    {font.n         tk/control/font}
+    {frame.n        tk/widgets/frame}
+    {getOpenFile.n  tk/widgets/tk_getOpenFile}
+    {grab.n         tk/control/grab}
+    {grid.n         tk/control/grid}
+    {image.n        tk/images/image}
+    {label.n        tk/widgets/label}
+    {listbox.n      tk/widgets/listbox}
+    {loadTk.n       tk/control/loadTk}
+    {lower.n        tk/control/lower}
+    {menu.n         tk/widgets/menu}
+    {menubar.n      tk/widgets/tk_menuBar}
+    {menubutton.n   tk/widgets/menubutton}
+    {message.n      tk/widgets/message}
+    {messageBox.n   tk/widgets/tk_messageBox}
+    {option.n       tk/control/option}
+    {optionMenu.n   tk/widgets/tk_optionMenu}
+    {options.n      tk/widgets/options}
+    {pack.n         tk/control/pack}
+    {pack-old.n     tk/control/pack-old}
+    {palette.n      tk/control/tk_setPalette}
+    {palette.n      tk/control/tk_bisque}
+    {photo.n        tk/images/photo}
+    {place.n        tk/control/place}
+    {popup.n        tk/widgets/tk_popup}
+    {radiobutton.n  tk/widgets/radiobutton}
+    {raise.n        tk/control/raise}
+    {scale.n        tk/widgets/scale}
+    {scrollbar.n    tk/widgets/scrollbar}
+    {selection.n    tk/control/selection}
+    {send.n         tk/control/send}
+    {text.n         tk/widgets/text}
+    {tk.n           tk/control/tk}
+    {tkerror.n      tk/control/tkerror}
+    {tkvars.n       tk/control/tkvars}
+    {tkwait.n       tk/control/tkwait}
+    {toplevel.n     tk/widgets/toplevel}
+    {winfo.n        tk/control/winfo}
+    {wm.n           tk/control/wm}
+}
+
+

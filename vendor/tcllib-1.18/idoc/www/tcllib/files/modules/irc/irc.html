@@ -1,0 +1,325 @@
+
+<html><head>
+<title>irc - Low Level Tcl IRC Interface</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'irc.man' by tcllib/doctools with format 'html'
+   -->
+<! -- irc.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">irc(n) 0.6.1 tcllib &quot;Low Level Tcl IRC Interface&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>irc - Create IRC connection and interface.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Per-connection Commands</a></li>
+<li class="doctools_section"><a href="#section3">Callback Commands</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl</b></li>
+<li>package require <b class="pkgname">irc <span class="opt">?0.6.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::irc::config</b> <span class="opt">?key?</span> <span class="opt">?value?</span></a></li>
+<li><a href="#2"><b class="cmd">::irc::connection</b></a></li>
+<li><a href="#3"><b class="cmd">::irc::connections</b></a></li>
+<li><a href="#4"><i class="arg">net</i> <b class="method">registerevent</b> <i class="arg">event</i> <i class="arg">script</i></a></li>
+<li><a href="#5"><i class="arg">net</i> <b class="method">getevent</b> <i class="arg">event</i> <i class="arg">script</i></a></li>
+<li><a href="#6"><i class="arg">net</i> <b class="method">eventexists</b> <i class="arg">event</i> <i class="arg">script</i></a></li>
+<li><a href="#7"><i class="arg">net</i> <b class="method">connect</b> <i class="arg">hostname</i> <span class="opt">?port?</span></a></li>
+<li><a href="#8"><i class="arg">net</i> <b class="method">config</b> <span class="opt">?key?</span> <span class="opt">?value?</span></a></li>
+<li><a href="#9"><i class="arg">net</i> <b class="method">log</b> <i class="arg">level</i> <i class="arg">message</i></a></li>
+<li><a href="#10"><i class="arg">net</i> <b class="method">logname</b></a></li>
+<li><a href="#11"><i class="arg">net</i> <b class="method">connected</b></a></li>
+<li><a href="#12"><i class="arg">net</i> <b class="method">sockname</b></a></li>
+<li><a href="#13"><i class="arg">net</i> <b class="method">peername</b></a></li>
+<li><a href="#14"><i class="arg">net</i> <b class="method">socket</b></a></li>
+<li><a href="#15"><i class="arg">net</i> <b class="method">user</b> <i class="arg">username</i> <i class="arg">localhostname</i> <i class="arg">localdomainname</i> <i class="arg">userinfo</i></a></li>
+<li><a href="#16"><i class="arg">net</i> <b class="method">nick</b> <i class="arg">nick</i></a></li>
+<li><a href="#17"><i class="arg">net</i> <b class="method">ping</b> <i class="arg">target</i></a></li>
+<li><a href="#18"><i class="arg">net</i> <b class="method">serverping</b></a></li>
+<li><a href="#19"><i class="arg">net</i> <b class="method">join</b> <i class="arg">channel</i> <span class="opt">?<i class="arg">key</i>?</span></a></li>
+<li><a href="#20"><i class="arg">net</i> <b class="method">part</b> <i class="arg">channel</i> <span class="opt">?<i class="arg">message</i>?</span></a></li>
+<li><a href="#21"><i class="arg">net</i> <b class="method">quit</b> <span class="opt">?<i class="arg">message</i>?</span></a></li>
+<li><a href="#22"><i class="arg">net</i> <b class="method">privmsg</b> <i class="arg">target</i> <i class="arg">message</i></a></li>
+<li><a href="#23"><i class="arg">net</i> <b class="method">notice</b> <i class="arg">target</i> <i class="arg">message</i></a></li>
+<li><a href="#24"><i class="arg">net</i> <b class="method">ctcp</b> <i class="arg">target</i> <i class="arg">message</i></a></li>
+<li><a href="#25"><i class="arg">net</i> <b class="method">kick</b> <i class="arg">channel</i> <i class="arg">target</i> <span class="opt">?<i class="arg">message</i>?</span></a></li>
+<li><a href="#26"><i class="arg">net</i> <b class="method">mode</b> <i class="arg">target</i> <i class="arg">args</i></a></li>
+<li><a href="#27"><i class="arg">net</i> <b class="method">topic</b> <i class="arg">channel</i> <i class="arg">message</i></a></li>
+<li><a href="#28"><i class="arg">net</i> <b class="method">invite</b> <i class="arg">channel</i> <i class="arg">target</i></a></li>
+<li><a href="#29"><i class="arg">net</i> <b class="method">send</b> <i class="arg">text</i></a></li>
+<li><a href="#30"><i class="arg">net</i> <b class="method">destroy</b></a></li>
+<li><a href="#31"><b class="cmd">who</b> <span class="opt">?<b class="const">address</b>?</span></a></li>
+<li><a href="#32"><b class="cmd">action</b></a></li>
+<li><a href="#33"><b class="cmd">target</b></a></li>
+<li><a href="#34"><b class="cmd">additional</b></a></li>
+<li><a href="#35"><b class="cmd">header</b></a></li>
+<li><a href="#36"><b class="cmd">msg</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides low-level commands to deal with the IRC protocol
+(Internet Relay Chat) for immediate and interactive multi-cast
+communication.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::irc::config</b> <span class="opt">?key?</span> <span class="opt">?value?</span></a></dt>
+<dd><p>Sets configuration <span class="opt">?key?</span> to <span class="opt">?value?</span>. The configuration keys
+currently defined are the boolean flags <b class="const">logger</b> and <b class="const">debug</b>.
+<b class="const">logger</b> makes <b class="package">irc</b> use the logger package for printing
+error. <b class="const">debug</b> requires <b class="const">logger</b> and prints extra debug output.
+If no <span class="opt">?key?</span> or <span class="opt">?value?</span> is given the current values are returned.</p></dd>
+<dt><a name="2"><b class="cmd">::irc::connection</b></a></dt>
+<dd><p>The command creates a new object to deal with an IRC connection.
+Creating this IRC object does not automatically create the network
+connection.  It returns a new irc namespace command which can be used
+to interact with the new IRC connection.  NOTE: the old form of the
+connection command, which took a hostname and port as arguments, is
+deprecated.  Use <b class="cmd">connect</b> instead to specify this information.</p></dd>
+<dt><a name="3"><b class="cmd">::irc::connections</b></a></dt>
+<dd><p>Returns a list of all the current connections that were created with
+<b class="const">connection</b></p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Per-connection Commands</a></h2>
+<p>In the following list of available connection methods <i class="arg">net</i>
+represents a connection command as returned by
+<b class="cmd">::irc::connection</b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="4"><i class="arg">net</i> <b class="method">registerevent</b> <i class="arg">event</i> <i class="arg">script</i></a></dt>
+<dd><p>Registers a callback handler for the specific event.  Events available
+are those described in RFC 1459
+<a href="http://www.rfc-editor.org/rfc/rfc1459.txt">http://www.rfc-editor.org/rfc/rfc1459.txt</a>.
+In addition, there are several other events defined.
+<b class="const">defaultcmd</b> adds a command that is called if no other callback
+is present.  <b class="const">EOF</b> is called if the connection signals an End of
+File condition. The events <b class="const">defaultcmd</b>, <b class="const">defaultnumeric</b>,
+<b class="const">defaultevent</b>, and <b class="const">EOF</b> are required.
+<i class="arg">script</i> is executed in the connection namespace, which can take
+advantage of several commands (see <span class="sectref"><a href="#section3">Callback Commands</a></span>
+below) to aid in the parsing of data.</p></dd>
+<dt><a name="5"><i class="arg">net</i> <b class="method">getevent</b> <i class="arg">event</i> <i class="arg">script</i></a></dt>
+<dd><p>Returns the current handler for the event if one exists. Otherwise an
+empty string is returned.</p></dd>
+<dt><a name="6"><i class="arg">net</i> <b class="method">eventexists</b> <i class="arg">event</i> <i class="arg">script</i></a></dt>
+<dd><p>Returns a boolean value indicating the existence of the event handler.</p></dd>
+<dt><a name="7"><i class="arg">net</i> <b class="method">connect</b> <i class="arg">hostname</i> <span class="opt">?port?</span></a></dt>
+<dd><p>This causes the socket to be established.  <b class="cmd">::irc::connection</b>
+created the namespace and the commands to be used, but did not
+actually open the socket. This is done here.  NOTE: the older form of
+'connect' did not require the user to specify a hostname and port,
+which were specified with 'connection'.  That form is deprecated.</p></dd>
+<dt><a name="8"><i class="arg">net</i> <b class="method">config</b> <span class="opt">?key?</span> <span class="opt">?value?</span></a></dt>
+<dd><p>The same as <b class="cmd">::irc::config</b> but sets and gets options for the <i class="arg">net</i>
+connection only.</p></dd>
+<dt><a name="9"><i class="arg">net</i> <b class="method">log</b> <i class="arg">level</i> <i class="arg">message</i></a></dt>
+<dd><p>If logger is turned on by <b class="method">config</b> this will write a log <i class="arg">message</i>
+at <i class="arg">level</i>.</p></dd>
+<dt><a name="10"><i class="arg">net</i> <b class="method">logname</b></a></dt>
+<dd><p>Returns the name of the logger instance if logger is turned on.</p></dd>
+<dt><a name="11"><i class="arg">net</i> <b class="method">connected</b></a></dt>
+<dd><p>Returns a boolean value indicating if this connection is connected to a server.</p></dd>
+<dt><a name="12"><i class="arg">net</i> <b class="method">sockname</b></a></dt>
+<dd><p>Returns a 3 element list consisting of the ip address, the hostname, and the port
+of the local end of the connection, if currently connected.</p></dd>
+<dt><a name="13"><i class="arg">net</i> <b class="method">peername</b></a></dt>
+<dd><p>Returns a 3 element list consisting of the ip address, the hostname, and the port
+of the remote end of the connection, if currently connected.</p></dd>
+<dt><a name="14"><i class="arg">net</i> <b class="method">socket</b></a></dt>
+<dd><p>Return the Tcl channel for the socket used by the connection.</p></dd>
+<dt><a name="15"><i class="arg">net</i> <b class="method">user</b> <i class="arg">username</i> <i class="arg">localhostname</i> <i class="arg">localdomainname</i> <i class="arg">userinfo</i></a></dt>
+<dd><p>Sends USER command to server.  <i class="arg">username</i> is the username you want
+to appear.  <i class="arg">localhostname</i> is the host portion of your hostname, <i class="arg">localdomainname</i>
+is your domain name, and <i class="arg">userinfo</i> is a short description of who you are. The 2nd and 3rd
+arguments are normally ignored by the IRC server.</p></dd>
+<dt><a name="16"><i class="arg">net</i> <b class="method">nick</b> <i class="arg">nick</i></a></dt>
+<dd><p>NICK command.  <i class="arg">nick</i> is the nickname you wish to use for the
+particular connection.</p></dd>
+<dt><a name="17"><i class="arg">net</i> <b class="method">ping</b> <i class="arg">target</i></a></dt>
+<dd><p>Send a CTCP PING to <i class="arg">target</i>.</p></dd>
+<dt><a name="18"><i class="arg">net</i> <b class="method">serverping</b></a></dt>
+<dd><p>PING the server.</p></dd>
+<dt><a name="19"><i class="arg">net</i> <b class="method">join</b> <i class="arg">channel</i> <span class="opt">?<i class="arg">key</i>?</span></a></dt>
+<dd><p><i class="arg">channel</i> is the IRC channel to join.  IRC channels typically
+begin with a hashmark (&quot;#&quot;) or ampersand (&quot;&amp;&quot;).</p></dd>
+<dt><a name="20"><i class="arg">net</i> <b class="method">part</b> <i class="arg">channel</i> <span class="opt">?<i class="arg">message</i>?</span></a></dt>
+<dd><p>Makes the client leave <i class="arg">channel</i>. Some networks may support the optional
+argument <i class="arg">message</i></p></dd>
+<dt><a name="21"><i class="arg">net</i> <b class="method">quit</b> <span class="opt">?<i class="arg">message</i>?</span></a></dt>
+<dd><p>Instructs the IRC server to close the current connection. The package
+will use a generic default if no <i class="arg">message</i> was specified.</p></dd>
+<dt><a name="22"><i class="arg">net</i> <b class="method">privmsg</b> <i class="arg">target</i> <i class="arg">message</i></a></dt>
+<dd><p>Sends <i class="arg">message</i> to <i class="arg">target</i>, which can be either a channel, or
+another user, in which case their nick is used.</p></dd>
+<dt><a name="23"><i class="arg">net</i> <b class="method">notice</b> <i class="arg">target</i> <i class="arg">message</i></a></dt>
+<dd><p>Sends a <b class="const">notice</b> with message <i class="arg">message</i> to <i class="arg">target</i>,
+which can be either a channel, or another user, in which case their nick is used.</p></dd>
+<dt><a name="24"><i class="arg">net</i> <b class="method">ctcp</b> <i class="arg">target</i> <i class="arg">message</i></a></dt>
+<dd><p>Sends a CTCP of type <i class="arg">message</i> to <i class="arg">target</i></p></dd>
+<dt><a name="25"><i class="arg">net</i> <b class="method">kick</b> <i class="arg">channel</i> <i class="arg">target</i> <span class="opt">?<i class="arg">message</i>?</span></a></dt>
+<dd><p>Kicks the user <i class="arg">target</i> from the channel <i class="arg">channel</i> with a <i class="arg">message</i>.
+The latter can be left out.</p></dd>
+<dt><a name="26"><i class="arg">net</i> <b class="method">mode</b> <i class="arg">target</i> <i class="arg">args</i></a></dt>
+<dd><p>Sets the mode <i class="arg">args</i> on the target <i class="arg">target</i>. <i class="arg">target</i> may be a channel,
+a channel user, or yourself.</p></dd>
+<dt><a name="27"><i class="arg">net</i> <b class="method">topic</b> <i class="arg">channel</i> <i class="arg">message</i></a></dt>
+<dd><p>Sets the topic on <i class="arg">channel</i> to <i class="arg">message</i> specifying an empty string
+will remove the topic.</p></dd>
+<dt><a name="28"><i class="arg">net</i> <b class="method">invite</b> <i class="arg">channel</i> <i class="arg">target</i></a></dt>
+<dd><p>Invites <i class="arg">target</i> to join the channel <i class="arg">channel</i></p></dd>
+<dt><a name="29"><i class="arg">net</i> <b class="method">send</b> <i class="arg">text</i></a></dt>
+<dd><p>Sends <i class="arg">text</i> to the IRC server.</p></dd>
+<dt><a name="30"><i class="arg">net</i> <b class="method">destroy</b></a></dt>
+<dd><p>Deletes the connection and its associated namespace and information.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Callback Commands</a></h2>
+<p>These commands can be used within callbacks</p>
+<dl class="doctools_definitions">
+<dt><a name="31"><b class="cmd">who</b> <span class="opt">?<b class="const">address</b>?</span></a></dt>
+<dd><p>Returns the nick of the user who performed a command.  The optional
+keyword <b class="const">address</b> causes the command to return the user in the
+format &quot;username@address&quot;.</p></dd>
+<dt><a name="32"><b class="cmd">action</b></a></dt>
+<dd><p>Returns the action performed, such as KICK, PRIVMSG, MODE, etc...
+Normally not useful, as callbacks are bound to a particular event.</p></dd>
+<dt><a name="33"><b class="cmd">target</b></a></dt>
+<dd><p>Returns the target of a particular command, such as the channel or
+user to whom a PRIVMSG is sent.</p></dd>
+<dt><a name="34"><b class="cmd">additional</b></a></dt>
+<dd><p>Returns a list of any additional arguments after the target.</p></dd>
+<dt><a name="35"><b class="cmd">header</b></a></dt>
+<dd><p>Returns the entire event header (everything up to the :) as a proper list.</p></dd>
+<dt><a name="36"><b class="cmd">msg</b></a></dt>
+<dd><p>Returns the message portion of the command (the part after the :).</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>irc</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>rfc 1459</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key692">chat</a>, <a href="../../../../index.html#key743">irc</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div></body></html>

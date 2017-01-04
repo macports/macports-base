@@ -1,0 +1,156 @@
+# -*- tcl -*-
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# adbox_all.test:
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It verifies the argument_dialogbox in conjunction with all its different
+# data entry widgets.
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: adbox_all.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+testsNeed     Tk 8.3
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+
+tepam::GuiEnvironmentInit
+
+######## Check all major functionalities of the argument dialogbox in conjunction with all widgets ########
+
+# Evaluate the default font name. Use the 'font actual' command to evaluate the real font
+# names (Tk8.5 uses pseudo font names like 'TkDefaultFont').
+set DefaultFontOrig [[label .lfont] cget -font]
+set DefaultFont [list [font actual $DefaultFontOrig -family] \
+                      [expr [font actual $DefaultFontOrig -size]<6 ? 6 : [font actual $DefaultFontOrig -size]]]
+
+foreach {ShortType  WidgetType      OkCode  OkValue                DefaultValue   SetValue          Attributes} {
+         ent        entry           ok      ""                     "Test Phrase"  "This is a test"  ""
+         txt        text            ok      ""                     "Test Phrase"  "This is a test"  ""
+         col        color           error   "*Required type is *"  "red"          "blue"            ""
+         dir        directory       ok      ""                     "test_dir"     "other_dir"       ""
+         file       file            error   "*Required type is *"  "test_file"    "other_file"      ""
+         lbx1       listbox         ok      "1"                    "2"            "3"               "-choices {1 2 3 4 5 6}"
+         lbx2       listbox         ok      "1"                    {2 4}          {3 5}             "-choices {1 2 3 4 5 6} -multiple_selection 1"
+         lbx1       combobox        ok      ""                     "2"            "3"               "-choices {1 2 3 4 5 6}"
+         dlbx       disjointlistbox ok      ""                     {2 4}          {2 5}             "-choices {1 2 3 4 5 6}"
+         cbx        checkbox        ok      ""                     {2 4}          {2 5}             "-choices {1 2 3 4 5 6}"
+         rbx        radiobox        ok      "1"                    {2 4}          {2 5}             "-choices {1 2 3 4 5 6}"
+         cbtn       checkbutton     ok      "0"                    1              1                 ""
+         fnt        font            ok      $DefaultFont           {Courier 7}    {Arial 6}         ""
+} {
+   append Attributes " -variable Result"
+
+   # Check the 'Cancel' functionality:
+
+      set tepam::argument_dialogbox(test,status) cancel
+      set tepam::argument_dialogbox(test,script) ""
+      catch {unset Result}
+   
+      test tepam-adbox.all.$ShortType.cr1 "argument_dialogbox with $WidgetType widget - create 1" \
+         -body "tepam::argument_dialogbox -$WidgetType \{$Attributes\} " \
+         -result "cancel" \
+         -match exact
+
+      test tepam-adbox.all.$ShortType.re1 "argument_dialogbox with $WidgetType widget - result 1" \
+         -body {info exists Result} \
+         -result 0 \
+         -match exact
+
+   # Check the 'OK' functionality without providing a default value:
+
+      set tepam::argument_dialogbox(test,status) ok
+      set tepam::argument_dialogbox(test,script) ""
+      catch {unset Result}
+
+      if {$OkCode=="ok"} {
+         test tepam-adbox.all.$ShortType.cr2 "argument_dialogbox with $WidgetType widget - create 2" \
+            -body "tepam::argument_dialogbox -$WidgetType \{$Attributes\}" \
+            -result "ok" \
+            -match exact
+
+         test tepam-adbox.all.$ShortType.re2 "argument_dialogbox with $WidgetType widget - result 2" \
+            -body {set Result} \
+            -result [subst $OkValue] \
+            -match exact
+      } else {
+         test tepam-adbox.all.$ShortType.cr2 "argument_dialogbox with $WidgetType widget - create 2" \
+            -body { tepam::argument_dialogbox -$WidgetType {-variable Result} } \
+            -returnCodes $OkCode \
+            -result [subst $OkValue] \
+            -match glob
+      }
+
+   # Check the 'OK' functionality, provide a default value:
+
+      set tepam::argument_dialogbox(test,status) ok
+      set tepam::argument_dialogbox(test,script) ""
+      catch {unset Result}
+   
+      test tepam-adbox.all.$ShortType.cr3 "argument_dialogbox with $WidgetType widget - create 3" \
+         -body "tepam::argument_dialogbox -$WidgetType \{$Attributes -default \"$DefaultValue\"\}" \
+         -result "ok" \
+         -match exact
+
+      test tepam-adbox.all.$ShortType.re3 "argument_dialogbox with $WidgetType widget - result 3" \
+         -body {set Result} \
+         -result [subst $DefaultValue] \
+         -match exact
+
+   # Check the 'OK' functionality, provide a default value and change change then this value:
+
+      set tepam::argument_dialogbox(test,status) ok
+      set tepam::argument_dialogbox(test,script) "ad_form($WidgetType) \$WChild(0).f set \"$SetValue\""
+      catch {unset Result}
+   
+      test tepam-adbox.all.$ShortType.cr4 "argument_dialogbox with $WidgetType widget - create 4" \
+         -body "tepam::argument_dialogbox -$WidgetType \{$Attributes -default \"$DefaultValue\"\}" \
+         -result "ok" \
+         -match exact
+
+      test tepam-adbox.all.$ShortType.re4 "argument_dialogbox with $WidgetType widget - result 4" \
+         -body {set Result} \
+         -result [subst $SetValue] \
+         -match exact
+
+}
+
+######## That's all ########
+
+destroy .lfont; # Remove again the label widget to evaluate the default font
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: adbox_all.test
+# Modifications:
+#
+# Revision 1.3  2012/05/07 20:26:02  droll
+# * TEPAM version 0.4.0
+# * Add the new text procedure argument type and the text multi line data
+#   entry widget.
+#
+# Revision 1.2  2011/11/09 05:43:30  andreas_kupries
+#
+#  * adbox_all.test: [Bug 3422990]: Fixed these test files to
+#  * adbox_widgets.test: properly register their need for Tk
+#  * proc_interactive.test: and not execute without it.
+#
+# Revision 1.1  2010/02/11 21:50:55  droll
+# * TEPAM module checkin
+##########################################################################

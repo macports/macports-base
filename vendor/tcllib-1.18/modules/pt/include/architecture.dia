@@ -1,0 +1,53 @@
+# -*- tcl -*- tcl.tk//DSL diagram//EN//1.0
+# Parser Tools Architecture Diagram
+
+set counter 0
+if {![info exists mark]} { set mark -1 }
+
+proc xbox {args} {
+    variable mark
+    variable counter
+
+    if {$mark == $counter} {
+	lappend args color red stroke 2
+    }
+    incr counter
+    return [uplevel 1 [list box {*}$args]]
+}
+
+proc area {label args} {
+    set E [xbox fillcolor lightyellow {*}$args]
+    group {
+	text text $label with nw at [last box nw]
+    }
+    return $E
+}
+
+down
+set boxwidth [90 mm]
+set movelength [5 mm]
+
+set A [area Applications]
+move
+set U [area "User Packages"]
+move
+set C [area "Core Packages" height [90 mm]]
+move
+set S [area "Support Packages"]
+
+text at $A "pt"
+text at $U "pt::pgen"
+text at $S "<general>"
+block {
+    set fillcolor white
+    set boxwidth  [20 mm]
+
+    xbox "json" "peg" height [25 mm] dotted ; up ; arrow stroke 4
+    xbox "Import:" ; right ; arrow same <->
+    xbox "Container" width [25 mm] ; arrow same
+    xbox "Export:" ; down ; arrow <- stroke 4
+    xbox "json" "peg" "cparam" "tclparam" height [25 mm] dotted ; left ; move
+    xbox "Execute" "Transform" height [25 mm] width [25 mm] ; up
+    arrow <-> stroke 4 ; down ; move from [last box s]
+    xbox "AST  /  PE  /  PEG  Support" width [75 mm]
+} at $C

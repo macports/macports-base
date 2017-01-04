@@ -1,0 +1,609 @@
+# mime.test - Test suite for TclMIME                     -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2000 by Ajuba Solutions
+# All rights reserved.
+#
+# RCS: @(#) $Id: mime.test,v 1.31 2012/02/23 17:35:17 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 1.0
+
+support {
+    # This code loads md5x, i.e. md5 v2. Proper testing should do one
+    # run using md5 v1, aka md5.tcl as well.
+    use md5/md5x.tcl md5
+}
+testing {
+    useLocal mime.tcl mime
+}
+
+# -------------------------------------------------------------------------
+
+namespace import mime::*
+
+# -------------------------------------------------------------------------
+
+test mime-1.1 {initialize with no args} {
+    catch {initialize} res
+    subst $res
+} {specify exactly one of -file, -parts, or -string}
+
+test mime-2.1 {Generate a MIME message} {
+    set tok [initialize -canonical "Text/plain" -string "jack and jill"]
+    set msg [mime::buildmessage $tok]
+    # The generated message is predictable except for the Content-ID
+    regexp "MIME-Version: 1.0\r
+Content-ID: \[^\n]+\r
+Content-Type: text/plain\r
+\r
+jack and jill" $msg
+} 1
+
+test mime-2.2 {Generate a multi-part MIME message} {
+    set tok1 [initialize -canonical "Text/plain" -string "jack and jill"]
+    set tok2 [initialize -canonical "Text/plain" -string "james"]
+    set bigTok [mime::initialize -canonical Multipart/MyType \
+	    -param [list MyParam foo] \
+	    -param [list boundary bndry] \
+	    -header [list Content-Description "Test Multipart"] \
+	    -parts [list $tok1 $tok2]]
+    set msg [mime::buildmessage $bigTok]
+    # The generated message is predictable except for the Content-ID
+    list [regexp "MIME-Version: 1.0\r
+Content-Description: Test Multipart\r
+Content-ID: \[^\n]+\r
+Content-Type: multipart/mytype;\r
+              \[^\n]+;\r
+              \[^\n]+\r
+\r
+--bndry\r
+MIME-Version: 1.0\r
+Content-ID: \[^\n]+\r
+Content-Type: text/plain\r
+\r
+jack and jill\r
+--bndry\r
+MIME-Version: 1.0\r
+Content-ID: \[^\n]+\r
+Content-Type: text/plain\r
+\r
+james\r
+--bndry--\r
+" $msg] [regexp "boundary=\"bndry\"" $msg] [regexp "myparam=\"foo\"" $msg]
+} {1 1 1}
+
+test mime-3.1 {Parse a MIME message} {
+    set msg {MIME-Version: 1.0
+Content-Type: Text/plain
+
+I'm the message.}
+    set tok [mime::initialize -string $msg]
+    mime::getbody $tok
+} "I'm the message."
+
+test mime-3.2 {Parse a multi-part MIME message} {
+    set msg {MIME-Version: 1.0
+Content-Type: Multipart/foo; boundary="bar"
+
+--bar
+MIME-Version: 1.0
+Content-Type: Text/plain
+
+part1
+--bar
+MIME-Version: 1.0
+Content-Type: Text/plain
+
+part2
+--bar
+MIME-Version: 1.0
+Content-Type: Text/plain
+
+part3
+--bar--
+}
+
+    set tok [mime::initialize -string $msg]
+    set partToks [mime::getproperty $tok parts]
+
+    set res ""
+    foreach childTok $partToks {
+	lappend res [mime::getbody $childTok]
+    }
+    set res
+} {part1 part2 part3}
+
+test mime-3.3 {Try to parse a totally invalid message} {
+    catch {mime::initialize -string "blah"} err0
+    set err0
+} {improper line in header: blah}
+
+test mime-3.4 {Try to parse a MIME message with an invalid version} {
+    set msg1 {MIME-Version: 2.0
+Content-Type: text/plain
+
+msg1}
+
+    set tok [mime::initialize -string $msg1]
+    catch {mime::getbody $tok} err1
+    catch {mime::buildmessage $tok} err1a
+    list $err1 $err1a
+} "msg1 {MIME-Version: 2.0\r
+Content-Type: text/plain\r
+\r
+msg1}"
+
+test mime-3.5 {Try to parse a MIME message with no newline between headers and data} {
+    set msg2 {MIME-Version: 1.0
+Content-Type: foobar
+data without newline}
+
+    catch {mime::initialize -string $msg2} err2
+    set err2
+} {improper line in header: data without newline}
+
+test mime-3.6 {Try to parse a MIME message with no MIME version and generate a new message from it} {
+
+    # No MIME version
+    set msg3 {Content-Type: text/plain
+
+foo}
+
+    set tok [mime::initialize -string $msg3]
+    catch {mime::getbody $tok} err3
+    catch {mime::buildmessage $tok} err3a
+    list $err3 $err3a
+} "foo {MIME-Version: 1.0\r
+Content-Type: text/plain\r
+\r
+foo}"
+
+test mime-3.7 {Test mime with a bad email [SF Bug 631314 ]} {
+    set tok [mime::initialize -file \
+		 [file join $tcltest::testsDirectory badmail1.txt]]
+
+    set res {}
+    set ctok [lindex [mime::getproperty $tok parts] 0]
+    lappend res [dictsort [mime::getproperty $tok]]
+    lappend res [dictsort [mime::getproperty $ctok]]
+    mime::finalize $tok
+    string map [list $ctok CHILD] $res
+} {{content multipart/mixed encoding {} params {boundary ----------CSFNU9QKPGZL79} parts CHILD size 0} {content application/octet-stream encoding {} params {charset us-ascii} size 0}}
+
+test mime-3.8 {Test mime with another bad email [SF Bug 631314 ]} {
+    set tok [mime::initialize -file \
+		 [file join $tcltest::testsDirectory badmail2.txt]]
+    set res {}
+    set ctok [lindex [mime::getproperty $tok parts] 0]
+    lappend res [dictsort [mime::getproperty $tok]]
+    lappend res [dictsort [mime::getproperty $ctok]]
+    mime::finalize $tok
+    string map [list $ctok CHILD] $res
+} {{content multipart/related encoding {} params {boundary ----=_NextPart_000_0000_2CBA2CBA.150C56D2} parts CHILD size 659} {content application/octet-stream encoding base64 params {} size 659}}
+
+test mime-3.9 {Parse a MIME message with a charset encoded body and use getbody -decode to get it back} {
+    set msg {MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+
+Fran\xE7ois
+}
+    set tok [mime::initialize -string $msg]
+    mime::getbody $tok -decode
+} {Fran\xE7ois
+}
+
+test mime-3.10 {Parse a MIME message with a charset encoded body and use getbody -decode to get it back (example from encoding man page)} {
+    set msg {MIME-Version: 1.0
+Content-Type: text/plain; charset=EUC-JP
+Content-Transfer-Encoding: quoted-printable
+
+=A4=CF}
+    set tok [mime::initialize -string $msg]
+    mime::getbody $tok -decode
+} "\u306F"
+
+test mime-3.11 {Parse a MIME message without a charset encoded body and use getbody -decode to get it back} {
+    set msg {MIME-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+A plain text message.}
+    set tok [mime::initialize -string $msg]
+    mime::getbody $tok -decode
+} "A plain text message."
+
+test mime-3.12 {Parse a MIME message with a charset encoded body in an unrecognised charset and use getbody -decode to attempt to get it back} {
+    set msg {MIME-Version: 1.0
+Content-Type: text/plain; charset=SCRIBBLE
+Content-Transfer-Encoding: quoted-printable
+
+This is a message in the scribble charset that tcl does not recognise.}
+    set tok [mime::initialize -string $msg]
+    catch {mime::getbody $tok -decode} errmsg
+    set errmsg
+} "-decode failed: can't reversemap charset SCRIBBLE"
+
+test mime-3.13 {Parse a MIME message with a charset encoded body in an unrecognised charset but don't use -decode so we get it back raw} {
+    set msg {MIME-Version: 1.0
+Content-Type: text/plain; charset=SCRIBBLE
+Content-Transfer-Encoding: quoted-printable
+
+This is a message in the scribble charset that tcl does not recognise.}
+    set tok [mime::initialize -string $msg]
+    mime::getbody $tok
+} "This is a message in the scribble charset that tcl does not recognise."
+
+test mime-4.1 {Test qp_encode with a > 76 character string containing special chars.} {
+    set str1 "foo!\"\t barbaz \$ ` \{ # jack and jill went up a hill to fetch a pail of water. Jack fell down and said !\"\#\$@\[\\\]^`\{\|\}\~  \nJill said, \"Oh my\""
+    mime::qp_encode $str1
+} "foo=21=22\t barbaz =24 =60 =7B =23 jack and jill went up a hill to fetch a=\n pail of water. Jack fell down and said =21=22=23=24=40=5B=5C=5D=5E=60=7B=\n=7C=7D=7E =20\nJill said, =22Oh my=22"
+
+test mime-4.2 {Check that encode/decode yields original string} {
+    set str1 "foo!\"\t barbaz \$ ` \{ # jack and jill went up a hill to fetch a pail of water. Jack fell down and said !\"\#\$@\[\\\]^`\{\|\}\~  \nJill said, \"Oh my\"  "
+    set enc [mime::qp_encode $str1]
+    set dec [mime::qp_decode $enc]
+    string equal $dec $str1
+} {1}
+
+test mime-4.3 {mime::decode data that might come from an MUA} {
+    set enc "I'm the =22 message =\nwith some new lines=  \n but with some extra space, too.   "
+    mime::qp_decode $enc
+} "I'm the \" message with some new lines but with some extra space, too."
+
+test mime-4.4 {Test qp_encode with non-US_ASCCI characters.} {
+    set str1 "Test de caractères accentués : â î é ç et quelques contrôles \"\[|\]()\""
+    mime::qp_encode $str1
+} "Test de caract=E8res accentu=E9s : =E2 =EE =E9 =E7 et quelques contr=F4le=\ns =22=5B=7C=5D()=22"
+
+
+test mime-4.5 {Test qp_encode with softbreak} {
+    set str1 [string repeat abc 40]
+    mime::qp_encode $str1
+} "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca=
+bcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc"
+
+test mime-4.6 {Test qp_encode with softbreak} {
+    set str1 [string repeat abc 40]
+    mime::qp_encode $str1 0 1
+} [string repeat abc 40]
+
+
+
+
+test mime-5.1 {Test word_encode with quoted-printable method} {
+    mime::word_encode iso8859-1 quoted-printable "Test de contrôle effectué"
+} "=?ISO-8859-1?Q?Test_de_contr=F4le_effectu=E9?="
+
+test mime-5.2 {Test word_encode with base64 method} {
+    mime::word_encode iso8859-1 base64 "Test de contrôle effectué"
+} "=?ISO-8859-1?B?VGVzdCBkZSBjb250cvRsZSBlZmZlY3R16Q==?="
+
+test mime-5.3 {Test encode+decode with quoted-printable method} {
+    set enc [mime::word_encode iso8859-1 quoted-printable "Test de contrôle effectué"]
+    mime::word_decode $enc
+} {iso8859-1 quoted-printable {Test de contrôle effectué}}
+
+test mime-5.4 {Test encode+decode with base64 method} {
+    set enc [mime::word_encode iso8859-1 base64 "Test de contrôle effectué"]
+    mime::word_decode $enc
+} {iso8859-1 base64 {Test de contrôle effectué}}
+
+test mime-5.5 {Test decode with lowercase quoted-printable method} {
+	mime::word_decode "=?ISO-8859-1?q?Test_lowercase_q?="
+} {iso8859-1 quoted-printable {Test lowercase q}}
+
+test mime-5.6 {Test decode with lowercase base64 method} {
+	mime::word_decode "=?ISO-8859-1?b?VGVzdCBsb3dlcmNhc2UgYg==?="
+} {iso8859-1 base64 {Test lowercase b}}
+
+test mime-5.7 {Test word_encode with quoted-printable method across encoded word boundaries} {
+    mime::word_encode iso8859-1 quoted-printable "Test de contrôle effectué" -maxlength 31
+} "=?ISO-8859-1?Q?Test_de_contr?=
+ =?ISO-8859-1?Q?=F4le_effectu?=
+ =?ISO-8859-1?Q?=E9?="
+
+test mime-5.8 {Test word_encode with quoted-printable method across encoded word boundaries} {
+    mime::word_encode iso8859-1 quoted-printable "Test de contrôle effectué" -maxlength 32
+} "=?ISO-8859-1?Q?Test_de_contr?=
+ =?ISO-8859-1?Q?=F4le_effectu?=
+ =?ISO-8859-1?Q?=E9?="
+
+test mime-5.9 {Test word_encode with quoted-printable method and multibyte character} {
+    mime::word_encode euc-jp quoted-printable "Following me is a multibyte character \xA4\xCF"
+} "=?EUC-JP?Q?Following_me_is_a_multibyte_character_=A4=CF?="
+
+set n 10
+while {$n < 14} {
+    test mime-5.$n {Test word_encode with quoted-printable method and multibyte character across encoded word boundary} {
+        mime::word_encode euc-jp quoted-printable "Following me is a multibyte character \xA4\xCF" -maxlength [expr 42 + $n]
+    } "=?EUC-JP?Q?Following_me_is_a_multibyte_character_?=
+ =?EUC-JP?Q?=A4=CF?="
+    incr n
+}
+
+test mime-5.14 {Test word_encode with quoted-printable method and multibyte character (triple)} {
+    mime::word_encode utf-8 quoted-printable "Here is a triple byte encoded character \xE3\x81\xAF"
+} "=?UTF-8?Q?Here_is_a_triple_byte_encoded_character_=E3=81=AF?="
+
+set n 15
+while {$n < 23} {
+    test mime-5.$n {Test word_encode with quoted-printable method and triple byte character across encoded word boundary} {
+        mime::word_encode utf-8 quoted-printable "Here is a triple byte encoded character \xE3\x81\xAF" -maxlength [expr 38 + $n]
+    } "=?UTF-8?Q?Here_is_a_triple_byte_encoded_character_?=
+ =?UTF-8?Q?=E3=81=AF?="
+    incr n
+}
+
+while {$n < 25} {
+    test mime-5.$n {Test word_encode with quoted-printable method and triple byte character across encoded word boundary} {
+        mime::word_encode utf-8 quoted-printable "Here is a triple byte encoded character \xE3\x81\xAF" -maxlength [expr 38 + $n]
+    } "=?UTF-8?Q?Here_is_a_triple_byte_encoded_character_=E3=81=AF?="
+    incr n
+}
+
+while {$n < 29} {
+    test mime-5.$n {Test word_encode with base64 method across encoded word boundaries} {
+        mime::word_encode euc-jp base64 "There is a multibyte character \xA4\xCF" -maxlength [expr 28 + $n]
+    } "=?EUC-JP?B?VGhlcmUgaXMgYSBtdWx0aWJ5dGUgY2hhcmFjdGVy?=
+ =?EUC-JP?B?IKTP?="
+    incr n
+}
+
+while {$n < 33} {
+    test mime-5.$n {Test word_encode with base64 method and triple byte character across encoded word boundary} {
+        mime::word_encode utf-8 base64 "Here is a multibyte character \xE3\x81\xAF" -maxlength [expr 23 + $n]
+    } "=?UTF-8?B?SGVyZSBpcyBhIG11bHRpYnl0ZSBjaGFyYWN0ZXIg?=
+ =?UTF-8?B?44Gv?="
+    incr n
+}
+
+test mime-5.33 {Test word_encode with quoted-printable method and -maxlength set to same length as will the result} {
+    mime::word_encode iso8859-1 quoted-printable "123" -maxlength 20
+} "=?ISO-8859-1?Q?123?="
+
+test mime-5.34 {Test word_encode with base64 method and -maxlength set to same length as will the result} {
+    mime::word_encode iso8859-1 base64 "123" -maxlength 21
+} "=?ISO-8859-1?B?MTIz?="
+
+test mime-5.35 {Test word_encode with quoted-printable method and non charset encoded string} {
+    mime::word_encode utf-8 quoted-printable "\u306F" -charset_encoded 0
+} "=?UTF-8?Q?=E3=81=AF?="
+
+test mime-5.36 {Test word_encode with base64 method and non charset encoded string} {
+    mime::word_encode utf-8 base64 "\u306F" -charset_encoded 0
+} "=?UTF-8?B?44Gv?="
+
+test mime-5.36 {Test word_encode with base64 method and one byte} {
+    mime::word_encode iso8859-1 base64 "a"
+} "=?ISO-8859-1?B?YQ==?="
+
+test mime-5.37 {Test word_encode with base64 method and two bytes} {
+    mime::word_encode euc-jp base64 "\xA4\xCF"
+} "=?EUC-JP?B?pM8=?="
+
+test mime-5.38 {Test word_encode with unknown charset} {
+    catch {mime::word_encode scribble  quoted-printable "scribble is an unknown charset"} errmsg
+    set errmsg
+} "unknown charset 'scribble'"
+
+test mime-5.39 {Test word_encode with invalid charset} {
+    catch {mime::word_encode unicode quoted-printable "unicode is not a valid charset"} errmsg
+    set errmsg
+} "invalid charset 'unicode'"
+
+test mime-5.40 {Test word_encode with invalid method} {
+    catch {mime::word_encode iso8859-1 tea-leaf "tea-leaf is not a valid method"} errmsg
+    set errmsg
+} "unknown method 'tea-leaf', must be base64 or quoted-printable"
+
+test mime-5.41 {Test word_encode with maxlength to short for method quoted-printable} {
+    catch {mime::word_encode iso8859-1 quoted-printable "1" -maxlength 17} errmsg
+    set errmsg
+} "maxlength 17 too short for chosen charset and encoding"
+
+test mime-5.42 {Test word_encode with maxlength on the limit for quoted_printable and an unquoted character} {
+   catch {mime::word_encode iso8859-1 quoted-printable "_" -maxlength 18} errmsg
+   set errmsg
+} "=?ISO-8859-1?Q?_?="
+
+test mime-5.43 {Test word_encode with maxlength to short for method quoted_printable and a character to be quoted} {
+   catch {mime::word_encode iso8859-1 quoted-printable "=" -maxlength 18} errmsg
+   set errmsg
+} "maxlength 18 too short for chosen charset and encoding"
+
+
+test mime-5.44 {Test word_encode with maxlength to short for method quoted-printable and multibyte character} {
+    catch {mime::word_encode euc-jp quoted-printable "\xA4\xCF" -maxlength 17} errmsg
+    set errmsg
+} "maxlength 17 too short for chosen charset and encoding"
+
+test mime-5.45 {Test word_encode with maxlength to short for method base64} {
+    catch {mime::word_encode iso8859-1 base64 "1" -maxlength 20} errmsg
+    set errmsg
+} "maxlength 20 too short for chosen charset and encoding"
+
+test mime-6.1 {Test field_decode (from RFC 2047, part 8)} {
+    mime::field_decode {=?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>}
+} {Keith Moore <moore@cs.utk.edu>}
+
+test mime-6.2 {Test field_decode (from RFC 2047, part 8)} {
+    mime::field_decode {=?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?= <paf@nada.kth.se>}
+} {Patrik Fältström <paf@nada.kth.se>}
+
+test mime-6.3 {Test field_decode (from RFC 2047, part 8)} {
+    mime::field_decode {=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
+			=?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=}
+} {If you can read this you understand the example.}
+
+foreach {n encoded expected} {
+    4 "(=?ISO-8859-1?Q?a?=)"
+    "(a)"
+    5 "(=?ISO-8859-1?Q?a?= b)"
+    "(a b)"
+    6 "(=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?=)"
+    "(ab)"
+    7 "(=?ISO-8859-1?Q?a?=  =?ISO-8859-1?Q?b?=)"
+    "(ab)"
+    8 "(=?ISO-8859-1?Q?a?=
+    =?ISO-8859-1?Q?b?=)"
+    "(ab)"
+    9 "(=?ISO-8859-1?Q?a_b?=)"
+    "(a b)"
+    10 "(=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=)"
+    "(a b)"
+    11 "(=?ISO-8859-1?Q?a?=x=?ISO-8859-2?Q?_b?=)"
+    "(ax b)"
+    12 "a         b         c"
+    "a         b         c"
+    13 ""
+    ""
+} {
+    test mime-6.$n {Test field_decode (from RFC 2047, part 8)} {
+	mime::field_decode $encoded
+    } $expected ; # {}
+}
+
+foreach {bug n encoded expected} {
+    764702 1 "(=?utf-8?Q?H=C3=BCrz?=)" "(Hürz)"
+} {
+    test mime-7.$n "Test field_decode (from SF Tcllib bug $bug)" {
+	mime::field_decode $encoded
+    } $expected ; # {}
+}
+
+test mime-8.1 {Test reversemapencoding+mapencoding with preferred name} {
+    set charset [mime::reversemapencoding "US-ASCII"]
+    mime::mapencoding $charset
+} {US-ASCII}
+
+test mime-8.2 {Test reversemapencoding+mapencoding with alias} {
+    set charset [mime::reversemapencoding "UTF8"]
+    mime::mapencoding $charset
+} {UTF-8}
+
+
+test mime-9.0 {Test chunk handling of copymessage and helpers} {
+    set in [makeFile [set data [string repeat [string repeat "123456789 " 10]\n 350]] input.txt]
+    set mi [makeFile {} mime.txt]
+
+    set token [mime::initialize -canonical text/plain -file $in]
+
+    set f [open $mi w]
+    fconfigure $f -translation binary
+    mime::copymessage $token $f
+    close $f
+
+    set token [mime::initialize -file $mi]
+    set newdata [mime::getbody $token]
+    set res [string compare $data $newdata]
+
+    removeFile input.txt
+    removeFile mime.txt
+    unset data newdata token f in mi
+    set res
+} 0
+
+set ::env(TZ) "UTC0"
+set epoch [clock scan 2000-01-01]
+foreach {n stamp date} {
+    1     86340 {Sat, 01 Jan 2000 23:59:00 +0000}
+    2   5176620 {Tue, 29 Feb 2000 21:57:00 +0000}
+    3  31610520 {Sun, 31 Dec 2000 20:42:00 +0000}
+    4  31708740 {Mon, 01 Jan 2001 23:59:00 +0000}
+    5  68248620 {Thu, 28 Feb 2002 21:57:00 +0000}
+    6 126218520 {Wed, 31 Dec 2003 20:42:00 +0000}
+} {
+    test mime-10.$n "Test formatting dates (RFC 822)" {
+        # To verify that clock scan gets the expected value.
+        set stamp_test [expr {[mime::parsedatetime $date clock] - $epoch}]
+        # Parse and re-format should get us the original.
+        set parsed_test [mime::parsedatetime $date proper]
+        list $stamp_test $parsed_test
+    } [list $stamp $date]
+}
+
+
+test mime-11.0 {Bug 1825092} {
+    set in [makeFile {From sw@fooooooooo.de  Sat Oct 20 17:58:49 2007
+Return-Path: <sw@fooooooooo.de>
+Message-ID: <17849372.3849122@fooooooooo.de>
+From: Somwhere <sw@fooooooooo.de>
+MIME-Version: 1.0
+To: Here <h@fooooooooo.de>
+Subject: test
+Content-Type: multipart/mixed;
+ boundary="------------090305080603000703000106"
+
+This is a multi-part message in MIME format.
+--------------090305080603000703000106
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
+
+XXX
+
+--------------090305080603000703000106
+Content-Disposition: attachment;
+ filename="a0036.dss"
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream;
+ name="a0036.dss"
+
+BGRzcwEAAQABAAAAYQAAAAAAAAAAAAAAAAAAACQAAAD+//7/+/8wNzA2MTYwODE1MjQwNzA2
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ
+--------------090305080603000703000106--
+} mail_part]
+    set token [mime::initialize -file $in]
+    set allparts [mime::getproperty $token parts]
+    set attachment [lindex $allparts 1]
+
+    set out [makeFile {} mail_att]
+    set ofh [open $out w]
+    fconfigure $ofh -translation binary
+    mime::copymessage $attachment $ofh
+    close $ofh
+
+    set data [viewFile $out]
+    file delete $in $out
+    set data
+} {MIME-Version: 1.0
+Content-Disposition: attachment;
+ filename="a0036.dss"
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream;
+              name="a0036.dss"
+
+BGRzcwEAAQABAAAAYQAAAAAAAAAAAAAAAAAAACQAAAD+//7/+/8wNzA2MTYwODE1MjQwNzA2
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ}
+
+# -------------------------------------------------------------------------
+
+test mime-12.0 {Bug 3483716} {
+    set token [mime::initialize -string {Content-Type: message/delivery-status; name="deliverystatus.txt"
+Content-Disposition: attachment; filename="deliverystatus.txt"; size=138;
+creation-date="Thu, 02 Feb 2012 13:50:05 GMT";
+modification-date="Thu, 02 Feb 2012 13:50:05 GMT"
+Content-Description: deliverystatus.txt
+Content-Transfer-Encoding: base64
+
+T3JpZ2luYWwtUmVjaXBpZW50OiA8L2ZheD1ibHViYkBndW1taS5ib290PgpBY3Rpb246IGZhaWxl
+ZApEaWFnbm9zdGljLUNvZGU6IHNtdHA7IDU1MCAjNS4xLjAgQWRkcmVzcyByZWplY3RlZC4KUmVt
+b3RlLU1UQTogNTMuMjQuMjgyLjE1MA==
+}]
+    set parts [mime::getproperty $token parts]
+    mime::getheader [lindex $parts end] Remote-MTA
+} 53.24.282.150
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

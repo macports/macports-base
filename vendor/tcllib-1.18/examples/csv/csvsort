@@ -1,0 +1,94 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Sort CSV data by a column
+
+package require csv
+package require cmdline
+
+# ----------------------------------------------------
+# csvsort ?-sep sepchar? ?-f? ?-n? ?-r? ?-skip cnt? column file.in|- file.out|-
+#
+# Argument processing and checks.
+
+set sepChar ,
+set sortmode ascii
+set order    increasing
+set reverse  0
+set skip     0
+
+set usage "Usage: $argv0 ?-sep sepchar? ?-f? ?-n? ?-r? ?-skip cnt? column file.in|- file.out|-"
+
+while {[set ok [cmdline::getopt argv {sep.arg f n r skip.arg} opt val]] > 0} {
+    #puts stderr "= $opt $val"
+    switch -exact -- $opt {
+	sep  {set sepChar $val}
+	n    {set sortmode integer}
+	f    {set sortmode real}
+	r    {set order    decreasing}
+	skip {set skip    $val}
+    }
+}
+if {($ok < 0) || ([llength $argv] != 3)} {
+    puts stderr $usage
+    exit -1
+}
+
+foreach {sortCol in out} $argv break
+
+if {
+    ![string is integer $sortCol] ||
+    ($sortCol < 0)                ||
+    ![string compare $in  ""]     ||
+    ![string compare $out ""]
+} {
+    puts stderr $usage
+    exit -1    
+}
+
+if {![string compare $in -]} {
+    set in stdin
+} else {
+    set in [open $in r]
+}
+if {![string compare $out -]} {
+    set out stdout
+} else {
+    set out [open $out w]
+}
+
+# ----------------------------------------------------
+# Actual processing, uses the following information from the
+# commandline:
+#
+# in      - channel for input
+# out     - channel for output
+# sepChar - separator character
+# sortCol - column to sort after
+# sortmode - Sort integer (1) or string (0)
+# reverse - Sort ascending (0) or descending (1)
+# skip    - Skip that many lines at the beginning.
+
+set data [list]
+
+while {![eof $in]} {
+    if {[gets $in line] < 0} {
+	continue
+    }
+    if {$skip > 0} {
+	puts $out $line
+	incr skip -1
+	continue
+    }
+    lappend data [::csv::split $line $sepChar]
+}
+
+#puts stderr $sortmode,$order
+
+set data [lsort -index $sortCol -$order -$sortmode $data]
+
+foreach item $data {
+    puts $out [::csv::join $item $sepChar]
+}
+
+exit ; # automatically closes the channels
+

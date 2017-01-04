@@ -1,0 +1,137 @@
+# -*- tcl -*-
+# Testsuite for pt::pgen.
+# Called by the ../pt_pgen.test driver file.
+
+#----------------------------------------------------------------------
+## I. Testing the generator operation itself
+
+# TODO testing of the pt::pgen command API (#args, options, outputs) ...
+
+#----------------------------------------------------------------------
+## II. Using generated parsers to test behaviour on good and bad
+##     input, i.e. the error handling implemented in our PEG parsers.
+
+## See data/gr/README.txt for the documentation of the directory
+## structure used to organize the test-cases used here.
+
+foreach {format notes} {
+    container {grammar interpreter - reference}
+    snit      {snit::type Tcl parser}
+    oo        {TclOO class Tcl parser}
+    critcl    {PARAM based C class parser}
+} {
+    # Choose test constraint based on the current format.
+    switch -exact -- $format {
+	critcl  { set cons critcl }
+	oo      { set cons tcloo  }
+	default { set cons {}     }
+    }
+
+    TestFilesProcessIn $mytestdir gr def -> n glabel grfile grdata {
+	# Make parser instance. Shared across tests. Amortize the time
+	# spent on dynamically making it.
+
+	if {!(($format eq "critcl" && ![tcltest::testConstraint critcl]) ||
+	      ($format eq "oo"     && ![tcltest::testConstraint tcloo]))} {
+	    set p [make-parser $format $glabel $grdata]
+	} else {
+	    set p {}
+	}
+
+	# Test parser on good inputs for the grammar.
+	TestFilesProcess $mytestdir gr ok-${glabel} ok-${glabel}-res -> k label infile text expected {
+	    test pt-pgen-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-f:${format}-g:${glabel}-t:${label}-1.$n.$k \
+		"$format parser $glabel, good input - $label" -constraints $cons -setup {
+		} -body {
+		    $p parset $text
+		} -result $expected
+	}
+
+	# Test parser on bad inputs for the grammar.
+	##
+	# Note how the expected output depends not only on grammar,
+	# but the parser format as well. Different optimizations and
+	# such leading to different instructions implementing matches.
+	# Example: "next_str" vs. "sequence of next_char".
+
+	TestFilesProcess $mytestdir gr fail-${glabel} fail-${glabel}-${format}-res -> k label infile text expected {
+	    test pt-pgen-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-f:${format}-g:${glabel}-t:${label}-2.$n.$k \
+		"$format parser $glabel, bad input - $label" -constraints $cons -setup {
+		} -body {
+		    set code [catch {
+			$p parset $text
+		    } msg]
+		    # msg = list ("pt::rde" location list(msg))
+		    # Sort the messages for a canonical result.
+		    # NOTE: The data out of the RDE/critcl is sorted
+		    # by msg id, that is not necessarily
+		    # lexicographical, nor matching the Tcl results.
+		    lassign $msg tag loc mlist
+		    set msg [list $tag $loc [lsort -dict $mlist]]
+
+		    # TODO: Convert message to readable.
+		    list $code $msg
+		} -result $expected
+	} yes ;# Allow missing testsets, for two reasons:
+	#      # (a) Easier during testsuite development, allowing incremental buildup
+	#      # (b) Some grammar construction *cannot* fail (Ex: x*), thus we cannot provide
+	#      #     failure cases either.
+
+	# Kill shared parser instance.
+	if {$p eq {}} continue
+	$p destroy
+    }
+
+    # Testing the handling of generated parsers for single
+    # characters, for characters special to Tcl, C, and
+    # PEGs. I.e. ensure that the various forms of quoting are done
+    # correctly.
+
+    foreach {n peg input message hmsg} $chars {
+	set glabel "T_$hmsg"
+	set grdata [string map [list @ $peg]  $gtemplate]
+	set edata  [string map [list @ $hmsg] $etemplate]
+
+	# Make parser instance. Shared across tests.
+	# Amortize the time spent on dynamically making it.
+
+	if {!(($format eq "critcl" && ![tcltest::testConstraint critcl]) ||
+	      ($format eq "oo"     && ![tcltest::testConstraint tcloo]))} {
+	    set p [make-parser $format $glabel $grdata]
+	} else {
+	    set p {}
+	}
+
+	test pt-pgen-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-f:${format}-g:${glabel}-3.$n \
+	    "$format parser $glabel, good input" -constraints $cons -setup {
+	    } -body {
+		$p parset $input
+	    } -result {}
+
+	test pt-pgen-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-f:${format}-g:${glabel}-4.$n \
+	    "$format parser $glabel, bad input, tcl error" -constraints $cons -setup {
+	    } -body {
+		set code [catch {
+		    $p parset X
+		} msg]
+		lassign $msg tag loc mlist
+		list $tag $loc [lsort -dict $mlist]
+	    } -result [list pt::rde 0 [list $message]]
+
+	test pt-pgen-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-f:${format}-g:${glabel}-5.$n \
+	    "$format parser $glabel, bad input, readable error" -constraints $cons -setup {
+	    } -body {
+		set code [catch {
+		    $p parset X
+		} msg]
+		lassign $msg tag loc mlist
+		pt::util::error2readable [list $tag $loc [lsort -dict $mlist]] X
+	    } -result $edata
+
+	# Kill shared parser instance.
+	if {$p eq {}} continue
+	$p destroy
+    }
+}
+
+#----------------------------------------------------------------------

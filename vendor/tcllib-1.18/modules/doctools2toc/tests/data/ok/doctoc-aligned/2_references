@@ -1,0 +1,5 @@
+[toc_begin {Table of Contents} {}]
+[item structure.man    doctools::toc::structure    {doctoc serialization utilities}]
+[item parse.man        doctools::toc::parse        {Parsing text in doctoc format}]
+[item introduction.man doctools::toc::introduction {DocTools - Tables of Contents}]
+[toc_end]

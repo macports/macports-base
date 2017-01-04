@@ -1,0 +1,262 @@
+
+<html><head>
+<title>bibtex - bibtex</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'bibtex.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005 for documentation, Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- bibtex.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">bibtex(n) 0.6 tcllib &quot;bibtex&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>bibtex - Parse bibtex files</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">bibtex <span class="opt">?0.6?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::bibtex::parse</b> <span class="opt">?<i class="arg">options</i>?</span> <span class="opt">?<i class="arg">text</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::bibtex::parse</b> <i class="arg">text</i></a></li>
+<li><a href="#3"><b class="cmd">::bibtex::parse</b> <span class="opt">?<b class="option">-command</b> <i class="arg">cmd</i>?</span> <b class="option">-channel</b> <i class="arg">chan</i></a></li>
+<li><a href="#4"><b class="cmd">::bibtex::parse</b> <span class="opt">?<b class="option">-recordcommand</b>   <i class="arg">recordcmd</i>?</span> <span class="opt">?<b class="option">-preamblecommand</b> <i class="arg">preamblecmd</i>?</span> <span class="opt">?<b class="option">-stringcommand</b>   <i class="arg">stringcmd</i>?</span> <span class="opt">?<b class="option">-commentcommand</b>  <i class="arg">commentcmd</i>?</span> <span class="opt">?<b class="option">-progresscommand</b> <i class="arg">progresscmd</i>?</span> <span class="opt">?<b class="option">-casesensitivestrings</b> <i class="arg">bool</i>?</span> (<i class="arg">text</i> | <b class="option">-channel</b> <i class="arg">chan</i>)</a></li>
+<li><a href="#5"><b class="cmd">::bibtex::wait</b> <i class="arg">token</i></a></li>
+<li><a href="#6"><b class="cmd">::bibtex::destroy</b> <i class="arg">token</i></a></li>
+<li><a href="#7"><b class="cmd">::bibtex::addStrings</b> <i class="arg">token</i> <i class="arg">stringdict</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands for the parsing of bibliographies in
+BibTeX format.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::bibtex::parse</b> <span class="opt">?<i class="arg">options</i>?</span> <span class="opt">?<i class="arg">text</i>?</span></a></dt>
+<dd><p>This is the general form of the command for parsing a
+bibliography. Depending on the options used to invoke it it will
+either return a token for the parser, or the parsed entries of the
+input bibliography. Instead of performing an immediate parse returning
+a predefined format the command can also enter an event-based parsing
+style where all relevant entries in the input are reported through
+callback commands, in the style of SAX.</p></dd>
+<dt><a name="2"><b class="cmd">::bibtex::parse</b> <i class="arg">text</i></a></dt>
+<dd><p>In this form the command will assume that the specified <i class="arg">text</i> is
+a bibliography in BibTeX format, parse it, and then return a list
+containing one element per record found in the bibliography. Note that
+comments, string definitions, preambles, etc. will not show up in the
+result.  Each element will be a list containing record type,
+bibliography key and record data, in this order. The record data will
+be a dictionary, its keys the keys of the record, with the associated
+values.</p></dd>
+<dt><a name="3"><b class="cmd">::bibtex::parse</b> <span class="opt">?<b class="option">-command</b> <i class="arg">cmd</i>?</span> <b class="option">-channel</b> <i class="arg">chan</i></a></dt>
+<dd><p>In this form the command will reads the bibliography from the
+specified Tcl channel <i class="arg">chan</i> and then returns the same data
+structure as described above.</p>
+<p>If however the option <b class="option">-command</b> is specified the result will be a
+handle for the parser instead and all processing will be incremental
+and happen in the background. When the input has been exhausted the
+callback <i class="arg">cmd</i> will be invoked with the result of the parse. The
+exact definition for the callback is</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">cmd</b> <i class="arg">token</i> <i class="arg">parseresult</i></dt>
+<dd><p>The parse result will have the structure explained above, for the
+simpler forms of the parser.</p></dd>
+</dl>
+<p><em>Note</em> that the parser will <em>not</em> close the channel after it
+has exhausted it. This is still the responsibility of the user of the
+parser.</p></dd>
+<dt><a name="4"><b class="cmd">::bibtex::parse</b> <span class="opt">?<b class="option">-recordcommand</b>   <i class="arg">recordcmd</i>?</span> <span class="opt">?<b class="option">-preamblecommand</b> <i class="arg">preamblecmd</i>?</span> <span class="opt">?<b class="option">-stringcommand</b>   <i class="arg">stringcmd</i>?</span> <span class="opt">?<b class="option">-commentcommand</b>  <i class="arg">commentcmd</i>?</span> <span class="opt">?<b class="option">-progresscommand</b> <i class="arg">progresscmd</i>?</span> <span class="opt">?<b class="option">-casesensitivestrings</b> <i class="arg">bool</i>?</span> (<i class="arg">text</i> | <b class="option">-channel</b> <i class="arg">chan</i>)</a></dt>
+<dd><p>This is the most low-level form for the parser. The returned result
+will be a handle for the parser. During processing it will invoke the
+invoke the specified callback commands for each type of data found in
+the bibliography.</p>
+<p>The processing will be incremental and happen in the background if,
+and only if a Tcl channel <i class="arg">chan</i> is specified. For a <i class="arg">text</i>
+the processing will happen immediately and all callbacks will be
+invoked before the command itself returns.</p>
+<p>The callbacks, i.e. <i class="arg">*cmd</i>, are all command prefixes and will be
+invoked with additional arguments appended to them. The meaning of the
+arguments depends on the callback and is explained below. The first
+argument will however always be the handle of the parser invoking the
+callback.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-casesensitivestrings</b></dt>
+<dd><p>This option takes a boolean value. When set string macro processing
+becomes case-sensitive. The default is case-insensitive string macro
+processing.</p></dd>
+<dt><b class="cmd">recordcmd</b> <i class="arg">token</i> <i class="arg">type</i> <i class="arg">key</i> <i class="arg">recorddict</i></dt>
+<dd><p>This callback is invoked whenever the parser detects a bibliography
+record in the input. Its arguments are the record type, the
+bibliography key for the record, and a dictionary containing the keys
+and values describing the record. Any string macros known to the
+parser have already been expanded.</p></dd>
+<dt><b class="cmd">preamblecmd</b> <i class="arg">token</i> <i class="arg">preambletext</i></dt>
+<dd><p>This callback is invoked whenever the parser detects an @preamble
+block in the input. The only additional argument is the text found in
+the preamble block. By default such entries are ignored.</p></dd>
+<dt><b class="cmd">stringcmd</b> <i class="arg">token</i> <i class="arg">stringdict</i></dt>
+<dd><p>This callback is invoked whenever the parser detects an @string-based
+macro definition in the input. The argument is a dictionary with the
+macro names as keys and their replacement strings as values. By
+default such definitions are added to the parser state for use in
+future bibliography records.</p></dd>
+<dt><b class="cmd">commentcmd</b> <i class="arg">token</i> <i class="arg">commenttext</i></dt>
+<dd><p>This callback is invoked whenever the parser detects a comment in the
+input. The only additional argument is the comment text. By default
+such entries are ignored.</p></dd>
+<dt><b class="cmd">progresscmd</b> <i class="arg">token</i> <i class="arg">percent</i></dt>
+<dd><p>This callback is invoked during processing to tell the user about the
+progress which has been made. Its argument is the percentage of data
+processed, as integer number between <b class="const">0</b> and <b class="const">100</b>.
+In the case of incremental processing the perecentage will always be
+<b class="const">-1</b> as the total number of entries is not known beforehand.</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::bibtex::wait</b> <i class="arg">token</i></a></dt>
+<dd><p>This command waits for the parser represented by the <i class="arg">token</i> to
+complete and then returns. The returned result is the empty string.</p></dd>
+<dt><a name="6"><b class="cmd">::bibtex::destroy</b> <i class="arg">token</i></a></dt>
+<dd><p>This command cleans up all internal state associated with the parser
+represented by the handle <i class="arg">token</i>, effectively destroying it. This
+command can be called from within the parser callbacks to terminate
+processing.</p></dd>
+<dt><a name="7"><b class="cmd">::bibtex::addStrings</b> <i class="arg">token</i> <i class="arg">stringdict</i></a></dt>
+<dd><p>This command adds the macro definitions stored in the
+dictionary <i class="arg">stringdict</i> to the parser represented
+by the handle <i class="arg">token</i>.</p>
+<p>The dictionary keys are the macro names and the values their
+replacement strings. This command has the correct signature for use as
+a <b class="option">-stringcommand</b> callback in an invokation of the command
+<b class="cmd">::bibtex::parse</b>.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>bibtex</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key420">bibliography</a>, <a href="../../../../index.html#key421">bibtex</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key192">text processing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 for documentation, Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,66 @@
+# -*- tcl -*-
+# pt_peg_interp.test:  tests for the pt::peg::interp peg interpreter package.
+#
+# Copyright (c) 2010 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_interp.test,v 1.1 2010/07/27 22:53:53 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+support {
+    useAccel [useTcllibC] struct/stack.tcl struct::stack ; # User: pt::rde
+    TestAccelInit                          struct::stack ; # (tcl)
+
+    use      snit/snit.tcl          snit
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+
+    useLocal pt_astree.tcl             pt::ast
+    useLocal pt_pexpression.tcl        pt::pe
+    useLocal pt_pegrammar.tcl          pt::peg
+    useLocal pt_peg_container.tcl      pt::peg::container
+
+    useAccel [useTcllibC] pt/pt_rdengine.tcl  pt::rde ; # User: pt::parse::peg
+    TestAccelInit                             pt::rde ; # or:   pt:peg::interp
+
+    # Here we are testing the PEG interpreter, so we need the grammar
+    # as a container.
+    useLocal pt_peg_container_peg.tcl  pt::peg::container::peg
+
+    source [localPath tests/common]
+}
+testing {
+    use pt/pt_peg_interp.tcl pt::peg::interp
+}
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+# Note: When using pt::rde's C implementation struct::stack is not
+#       used, and its implementation of no relevance.
+
+TestAccelDo pt::rde rdeimpl {
+    if {$rdeimpl eq "critcl"} {
+	set stackimpl n/a
+	struct::stack::SwitchTo {}
+	source [localPath tests/pt_peg_interp.tests]
+    } else {
+	TestAccelDo struct::stack stackimpl {
+	    source [localPath tests/pt_peg_interp.tests]
+	}
+    }
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit pt::rde
+TestAccelExit struct::stack
+testsuiteCleanup
+return

@@ -1,0 +1,454 @@
+
+<div class='fossil-doc' data-title='fileutil::multi::op - file utilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">fileutil::multi::op(n) 0.5.3 tcllib &quot;file utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>fileutil::multi::op - Multi-file operation, scatter/gather</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">CLASS API</a></li>
+<li class="doctools_section"><a href="#section3">OBJECT API</a></li>
+<li class="doctools_section"><a href="#section4">FILE API</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">fileutil::multi::op <span class="opt">?0.5.3?</span></b></li>
+<li>package require <b class="pkgname">wip <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::fileutil::multi::op</b> <span class="opt">?<i class="arg">opName</i>?</span> <span class="opt">?<i class="arg">word</i>...?</span></a></li>
+<li><a href="#2"><b class="cmd">opName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">$opName</b> <b class="method">do</b> <span class="opt">?<i class="arg">word</i>...?</span></a></li>
+<li><a href="#4"><b class="cmd">into</b> <i class="arg">directory</i></a></li>
+<li><a href="#5"><b class="cmd">in</b> <i class="arg">directory</i></a></li>
+<li><a href="#6"><b class="cmd">to</b> <i class="arg">directory</i></a></li>
+<li><a href="#7"><b class="cmd">from</b> <i class="arg">directory</i></a></li>
+<li><a href="#8"><b class="cmd">not</b> <i class="arg">pattern</i></a></li>
+<li><a href="#9"><b class="cmd">for</b> <i class="arg">pattern</i></a></li>
+<li><a href="#10"><b class="cmd">exclude</b> <i class="arg">pattern</i></a></li>
+<li><a href="#11"><b class="cmd">but</b></a></li>
+<li><a href="#12"><b class="cmd">except</b></a></li>
+<li><a href="#13"><b class="cmd">as</b> <i class="arg">name</i></a></li>
+<li><a href="#14"><b class="cmd">recursive</b></a></li>
+<li><a href="#15"><b class="cmd">recursively</b></a></li>
+<li><a href="#16"><b class="cmd"><a href="../../../../index.html#key64">copy</a></b></a></li>
+<li><a href="#17"><b class="cmd"><a href="../../../../index.html#key229">move</a></b></a></li>
+<li><a href="#18"><b class="cmd"><a href="../../../../index.html#key228">remove</a></b></a></li>
+<li><a href="#19"><b class="cmd">expand</b></a></li>
+<li><a href="#20"><b class="cmd">invoke</b> <i class="arg">cmdprefix</i></a></li>
+<li><a href="#21"><b class="cmd">reset</b></a></li>
+<li><a href="#22"><b class="cmd">(</b></a></li>
+<li><a href="#23"><b class="cmd">)</b></a></li>
+<li><a href="#24"><b class="cmd">cd</b> <i class="arg">directory</i></a></li>
+<li><a href="#25"><b class="cmd">up</b></a></li>
+<li><a href="#26"><b class="cmd">for-windows</b></a></li>
+<li><a href="#27"><b class="cmd">for-win</b></a></li>
+<li><a href="#28"><b class="cmd">for-unix</b></a></li>
+<li><a href="#29"><b class="cmd">the</b> <i class="arg">pattern</i></a></li>
+<li><a href="#30"><b class="cmd">the-set</b> <i class="arg">varname</i></a></li>
+<li><a href="#31"><b class="cmd">-&gt;</b> <i class="arg">varname</i></a></li>
+<li><a href="#32"><b class="cmd">strict</b></a></li>
+<li><a href="#33"><b class="cmd">!strict</b></a></li>
+<li><a href="#34"><b class="cmd">files</b></a></li>
+<li><a href="#35"><b class="cmd">links</b></a></li>
+<li><a href="#36"><b class="cmd">directories</b></a></li>
+<li><a href="#37"><b class="cmd">dirs</b></a></li>
+<li><a href="#38"><b class="cmd">all</b></a></li>
+<li><a href="#39"><b class="cmd">state?</b></a></li>
+<li><a href="#40"><b class="cmd">as?</b></a></li>
+<li><a href="#41"><b class="cmd">excluded?</b></a></li>
+<li><a href="#42"><b class="cmd">from?</b></a></li>
+<li><a href="#43"><b class="cmd">into?</b></a></li>
+<li><a href="#44"><b class="cmd">operation?</b></a></li>
+<li><a href="#45"><b class="cmd">recursive?</b></a></li>
+<li><a href="#46"><b class="cmd">strict?</b></a></li>
+<li><a href="#47"><b class="cmd">type?</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides objects which are able to perform actions on
+multiple files selected by glob patterns.</p>
+<p>At the core is a domain specific language allowing the easy
+specification of multi-file copy and/or move and/or deletion
+operations. Alternate names would be scatter/gather processor, or
+maybe even assembler.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">CLASS API</a></h2>
+<p>The main command of the package is:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::fileutil::multi::op</b> <span class="opt">?<i class="arg">opName</i>?</span> <span class="opt">?<i class="arg">word</i>...?</span></a></dt>
+<dd><p>The command creates a new multi-file operation object with an
+associated global Tcl command whose name is <i class="arg">opName</i>.  This
+command can be used to invoke the various possible file operations.
+It has the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">opName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command.</p></dd>
+</dl>
+<p>If the string <b class="const">%AUTO%</b> is used as the <i class="arg">opName</i> then the
+package will generate a unique name on its own.</p>
+<p>If one or more <i class="arg">word</i>s are specified they are interpreted as an
+initial set of file commands to execute. I.e. the method <b class="method">do</b>
+of the newly constructed object is implicitly invoked using the words
+as its arguments.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">OBJECT API</a></h2>
+<p>The following methods are possible for multi-file operation objects:</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><b class="cmd">$opName</b> <b class="method">do</b> <span class="opt">?<i class="arg">word</i>...?</span></a></dt>
+<dd><p>This method interprets the specified words as file commands to
+execute. See the section <span class="sectref"><a href="#section4">FILE API</a></span> for the set of
+acceptable commands, their syntax, and semantics.</p>
+<p>The result of the method is the result generated by the last file
+command it executed.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">FILE API</a></h2>
+<p>Both object constructor and method <b class="method">do</b> take a list of words
+and interpret them as file commands to execute. The names were chosen
+to allow the construction of operations as sentences in near-natural
+language. Most of the commands influence just the state of the object,
+i.e. are simply providing the configuration used by the command
+triggering the actual action.</p>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">into</b> <i class="arg">directory</i></a></dt>
+<dd><p>Specifies the destination directory for operations.</p></dd>
+<dt><a name="5"><b class="cmd">in</b> <i class="arg">directory</i></a></dt>
+<dd><p>Alias for <b class="cmd">into</b>.</p></dd>
+<dt><a name="6"><b class="cmd">to</b> <i class="arg">directory</i></a></dt>
+<dd><p>Alias for <b class="cmd">into</b>.</p></dd>
+<dt><a name="7"><b class="cmd">from</b> <i class="arg">directory</i></a></dt>
+<dd><p>Specifies the source directory for operations.</p></dd>
+<dt><a name="8"><b class="cmd">not</b> <i class="arg">pattern</i></a></dt>
+<dd><p>Specifies a glob pattern for paths to be excluded from the operation.</p></dd>
+<dt><a name="9"><b class="cmd">for</b> <i class="arg">pattern</i></a></dt>
+<dd><p>Alias for <b class="cmd">not</b>.</p></dd>
+<dt><a name="10"><b class="cmd">exclude</b> <i class="arg">pattern</i></a></dt>
+<dd><p>Alias for <b class="cmd">not</b>.</p></dd>
+<dt><a name="11"><b class="cmd">but</b></a></dt>
+<dd><p>Has no arguments of its own, but looks ahead in the list of words and
+executes all <b class="cmd">not</b> commands immediately following it. This allows the
+construction of &quot;but not&quot; and &quot;but exclude&quot; clauses for a more natural
+sounding specification of excluded paths.</p></dd>
+<dt><a name="12"><b class="cmd">except</b></a></dt>
+<dd><p>A semi-alias for <b class="cmd">but</b>. Has no arguments of its own, but looks
+ahead in the list of words and executes all <b class="cmd">for</b> commands
+immediately following it. This allows the construction of &quot;except for&quot;
+clauses for a more natural sounding specification of excluded paths.</p></dd>
+<dt><a name="13"><b class="cmd">as</b> <i class="arg">name</i></a></dt>
+<dd><p>Specifies a new name for the first file handled by the current
+operation. I.e. for the renaming of a single file during the
+operation.</p></dd>
+<dt><a name="14"><b class="cmd">recursive</b></a></dt>
+<dd><p>Signals that file expansion should happen in the whole directory
+hierarchy and not just the directory itself.</p></dd>
+<dt><a name="15"><b class="cmd">recursively</b></a></dt>
+<dd><p>An alias for <b class="cmd">recursive</b>.</p></dd>
+<dt><a name="16"><b class="cmd"><a href="../../../../index.html#key64">copy</a></b></a></dt>
+<dd><p>Signals that the operation is the copying of files from source to
+destination directory per the specified inclusion and exclusion
+patterns.</p></dd>
+<dt><a name="17"><b class="cmd"><a href="../../../../index.html#key229">move</a></b></a></dt>
+<dd><p>Signals that the operation is the moving of files from source to
+destination directory per the specified inclusion and exclusion
+patterns.</p></dd>
+<dt><a name="18"><b class="cmd"><a href="../../../../index.html#key228">remove</a></b></a></dt>
+<dd><p>Signals that the operation is the removal of files in the destination
+directory per the specified inclusion and exclusion patterns.</p></dd>
+<dt><a name="19"><b class="cmd">expand</b></a></dt>
+<dd><p>Signals that there is no operation but the calculation of the set of
+files from the include and exclude patterns. This operation is not
+available if <b class="cmd">the-set</b> is used.</p></dd>
+<dt><a name="20"><b class="cmd">invoke</b> <i class="arg">cmdprefix</i></a></dt>
+<dd><p>Signals that the user-specified command prefix <i class="arg">cmdprefix</i> is the
+operation to perform. The command prefix is executed at the global
+level and given the source directory, destination directory, and set
+of files (as dictionary mapping from source to destination files), in
+this order.</p></dd>
+<dt><a name="21"><b class="cmd">reset</b></a></dt>
+<dd><p>Forces the object into the ground state where all parts of the
+configuration have default values.</p></dd>
+<dt><a name="22"><b class="cmd">(</b></a></dt>
+<dd><p>Saves a copy of the current object state on a stack.</p></dd>
+<dt><a name="23"><b class="cmd">)</b></a></dt>
+<dd><p>Takes the state at the top of the state stack and restores it,
+i.e. makes it the new current object state.</p></dd>
+<dt><a name="24"><b class="cmd">cd</b> <i class="arg">directory</i></a></dt>
+<dd><p>Changes the destination directory to the sub-directory <i class="arg">directory</i>
+of the current destination.</p></dd>
+<dt><a name="25"><b class="cmd">up</b></a></dt>
+<dd><p>Changes the destination directory to the parent directory of the
+current destination.</p></dd>
+<dt><a name="26"><b class="cmd">for-windows</b></a></dt>
+<dd><p>Checks that Windows is the current platform. Aborts processing if not.</p></dd>
+<dt><a name="27"><b class="cmd">for-win</b></a></dt>
+<dd><p>An alias for <b class="cmd">for-windows</b>.</p></dd>
+<dt><a name="28"><b class="cmd">for-unix</b></a></dt>
+<dd><p>Checks that Unix is the current platform. Aborts processing if not.</p></dd>
+<dt><a name="29"><b class="cmd">the</b> <i class="arg">pattern</i></a></dt>
+<dd><p>This command specifies the files to operate on per a glob pattern, and
+is also the active element, i.e. the command which actually performs
+the specified operation. All the other commands only modified the
+object state to set the operation up, but di nothing else.</p>
+<p>To allow for a more natural sounding syntax this command also looks
+ahead in the list of words looks and executes several commands
+immediately following it before performing its own actions.
+These commands are <b class="cmd">as</b>, <b class="cmd">but</b>, <b class="cmd">exclude</b>, <b class="cmd">except</b>,
+<b class="cmd">from</b>, and <b class="cmd">into</b> (and aliases). That way these commands act
+like qualifiers, and still take effect as if they had been written
+before this command.</p>
+<p>After the operation has been performed the object state the exclude
+patterns and the alias name, if specified, are reset to their default
+values (i.e. empty), but nothing else.</p></dd>
+<dt><a name="30"><b class="cmd">the-set</b> <i class="arg">varname</i></a></dt>
+<dd><p>Like <b class="cmd">the</b>, however the set of files to use is not specified
+implicitly per a glob pattern, but contained and loaded from the
+specified variable. The operation <b class="cmd">expand</b> is not available
+if this command is used.</p></dd>
+<dt><a name="31"><b class="cmd">-&gt;</b> <i class="arg">varname</i></a></dt>
+<dd><p>Saves the set of files from the last expansion into the specified
+variable.</p></dd>
+<dt><a name="32"><b class="cmd">strict</b></a></dt>
+<dd><p>Make file expansion and definition of destination directory (<b class="cmd">in</b>
+and aliases) strict, i.e. report errors for missing directories, and
+empty expansion.</p></dd>
+<dt><a name="33"><b class="cmd">!strict</b></a></dt>
+<dd><p>Complement of <b class="cmd">strict</b>. A missing destination directory or empty
+expansion are not reported as errors.</p></dd>
+<dt><a name="34"><b class="cmd">files</b></a></dt>
+<dd><p>Limit the search to files. Default is to accept every type of path.</p></dd>
+<dt><a name="35"><b class="cmd">links</b></a></dt>
+<dd><p>Limit the search to symbolic links. Default is to accept every type of path.</p></dd>
+<dt><a name="36"><b class="cmd">directories</b></a></dt>
+<dd><p>Limit the search to directories. Default is to accept every type of path.</p></dd>
+<dt><a name="37"><b class="cmd">dirs</b></a></dt>
+<dd><p>An alias for <b class="cmd">directories</b>.</p></dd>
+<dt><a name="38"><b class="cmd">all</b></a></dt>
+<dd><p>Accept all types of paths (default).</p></dd>
+<dt><a name="39"><b class="cmd">state?</b></a></dt>
+<dd><p>Returns the current state of the object as dictionary. The dictionary keys and their meanings are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">as</b></dt>
+<dd><p>Last setting made by <b class="cmd">as</b>.</p></dd>
+<dt><b class="const">excluded</b></dt>
+<dd><p>List of currently known exclusion patterns.</p></dd>
+<dt><b class="const">from</b></dt>
+<dd><p>Current source directory, set by <b class="cmd">from</b>.</p></dd>
+<dt><b class="const">into</b></dt>
+<dd><p>Current destination directory, set by <b class="cmd">into</b> (and aliases).</p></dd>
+<dt><b class="const">operation</b></dt>
+<dd><p>Current operation to perform, set by <b class="cmd"><a href="../../../../index.html#key64">copy</a></b>, <b class="cmd"><a href="../../../../index.html#key229">move</a></b>, <b class="cmd"><a href="../../../../index.html#key228">remove</a></b>, <b class="cmd">expand</b>, or <b class="cmd">invoke</b>.</p></dd>
+<dt><b class="const">recursive</b></dt>
+<dd><p>Current recursion status. Set/unset by <b class="cmd">recursive</b> and <b class="cmd">!recursive</b>.</p></dd>
+<dt><b class="const">strict</b></dt>
+<dd><p>Current strictness. Set/unset by <b class="cmd">strict</b> and <b class="cmd">!strict</b>.</p></dd>
+<dt><b class="const">type</b></dt>
+<dd><p>Current path type limiter. Set by either <b class="cmd">files</b>, <b class="cmd">directories</b>, <b class="cmd">links</b>, or <b class="cmd">all</b>.</p></dd>
+</dl></dd>
+<dt><a name="40"><b class="cmd">as?</b></a></dt>
+<dd><p>Returns the current alias name.</p></dd>
+<dt><a name="41"><b class="cmd">excluded?</b></a></dt>
+<dd><p>Returns the current set of exclusion patterns.</p></dd>
+<dt><a name="42"><b class="cmd">from?</b></a></dt>
+<dd><p>Returns the current source directory.</p></dd>
+<dt><a name="43"><b class="cmd">into?</b></a></dt>
+<dd><p>Returns the current destination directory.</p></dd>
+<dt><a name="44"><b class="cmd">operation?</b></a></dt>
+<dd><p>Returns the current operation to perform.</p></dd>
+<dt><a name="45"><b class="cmd">recursive?</b></a></dt>
+<dd><p>Returns the current recursion status.</p></dd>
+<dt><a name="46"><b class="cmd">strict?</b></a></dt>
+<dd><p>Returns the current strictness.</p></dd>
+<dt><a name="47"><b class="cmd">type?</b></a></dt>
+<dd><p>Returns the current path type limiter.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+<p>The following examples assume that the variable <b class="variable">F</b> contains a
+reference to a multi-file operation object.</p>
+<pre class="doctools_example">
+    $F do copy                       \\
+	the  *.dll                    \\
+	from c:/TDK/PrivateOpenSSL/bin \\
+	to   [installdir_of tls]
+</pre>
+<pre class="doctools_example">
+    $F do move      \\
+	the  *       \\
+	from /sources \\
+	into /scratch  \\
+	but not *.html
+    # Alternatively use 'except for *.html'.
+</pre>
+<pre class="doctools_example">
+    $F do           \\
+	move         \\
+	the  index    \\
+	from /sources  \\
+	into /scratch   \\
+	as   pkgIndex.tcl
+</pre>
+<pre class="doctools_example">
+    $F do         \\
+	remove     \\
+	the *.txt  \\
+	in /scratch
+</pre>
+<p>Note that the fact that most commands just modify the object state
+allows us to use more off forms as specifications instead of just
+nearly-natural language sentences.
+For example the second example in this section can re-arranged into:</p>
+<pre class="doctools_example">
+    $F do            \\
+	from /sources \\
+	into /scratch  \\
+	but not *.html \\
+	move           \\
+	the  *
+</pre>
+<p>and the result is not only still a valid specification, but even stays
+relatively readable.</p>
+<p>Further note that the information collected by the commands <b class="cmd">but</b>,
+<b class="cmd">except</b>, and <b class="cmd">as</b> is automatically reset after the associated
+<b class="cmd">the</b> was executed. However no other state is reset in that
+manner, allowing the user to avoid repetitions of unchanging
+information. For example the second and third examples of this section
+can be merged and rewritten into the equivalent:</p>
+<pre class="doctools_example">
+$F do                   \\
+    move                 \\
+    the  *                \\
+    from /sources          \\
+    into /scratch           \\
+    but not *.html not index \\
+    the  index               \\
+    as   pkgIndex.tcl
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>fileutil</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key64">copy</a>, <a href="../../../../index.html#key115">file utilities</a>, <a href="../../../../index.html#key229">move</a>, <a href="../../../../index.html#key227">multi-file</a>, <a href="../../../../index.html#key228">remove</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div>

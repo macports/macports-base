@@ -1,0 +1,62 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-to-param-1.0 {convert, wrong#args} -body {
+    pt::peg::to::param convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::param convert serial"}
+
+test pt-peg-to-param-1.1 {convert, wrong#args} -body {
+    pt::peg::to::param convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::param convert serial"}
+
+test pt-peg-to-param-2.0 {reset, wrong#args} -body {
+    pt::peg::to::param reset XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::param reset"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of peg output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+foreach {k c i section} {
+    0 1 1 {}
+    1 1 0 -compact
+    2 0 1 -inlined
+    3 0 0 -unopt
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_param$section -> n label input data expected {
+	test pt-peg-to-param-3.$k.$n "pt::peg::to::param, $label$section, ok :- $input" -setup {
+
+	    text::write reset
+	    text::write field   # -*- text -*-                              ; text::write /line
+	    text::write field   # Parsing Expression Grammar '@name@'.      ; text::write /line
+	    text::write field   # Generated for @user@, from file '@file@'  ; text::write /line
+	    text::write /line
+	    text::write field   @code@                                      ; text::write /line
+	    text::write /line
+	    text::write field   #                                           ; text::write /line
+	    text::write field   #                                           ; text::write /line
+
+	    pt::peg::to::param reset
+	    pt::peg::to::param configure -name     TEMPLATE
+	    pt::peg::to::param configure -file     TEST
+	    pt::peg::to::param configure -template [text::write get]
+
+	    pt::peg::to::param configure -inline  $i
+	    pt::peg::to::param configure -compact $c
+
+	    text::write reset
+	} -body {
+	    pt::peg::to::param convert $data
+	} -cleanup {
+	    pt::peg::to::param reset
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

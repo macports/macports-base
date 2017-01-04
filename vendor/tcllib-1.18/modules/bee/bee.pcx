@@ -1,0 +1,81 @@
+# -*- tcl -*- bee.pcx
+# Syntax of the commands provided by package bee.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register bee
+pcx::tcldep   0.1 needs tcl 8.4
+
+namespace eval ::bee {}
+
+pcx::message needCommand {Required -command is missing} err
+
+pcx::check 0.1 std ::bee::decode \
+    {checkSimpleArgs 1 3 {
+	checkWord
+	checkVarNameWrite
+	checkWholeNum
+    }}
+pcx::check 0.1 std ::bee::decodeCancel \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.1 std ::bee::decodeChannel \
+    {checkSimpleArgs 1 -1 {
+	checkChannelID
+	{checkConstrained {checkSequence {
+	    {checkSwitches exact {
+		{-command {checkSetConstraint cmd {checkProcCall 3}}}
+		{-exaxt}
+		{-prefix checkWord}
+	    } {checkAtEnd}}
+	    {checkConstraint {
+		{!cmd {warn bee::needCommand {} checkNOP}}
+	    } {checkNOP}}
+	}}}
+    }}
+pcx::check 0.1 std ::bee::decodeIndices \
+    {checkSimpleArgs 1 3 {
+	checkWord
+	checkVarNameWrite
+	checkWholeNum
+    }}
+pcx::check 0.1 std ::bee::decodePush \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	checkWord
+    }}
+pcx::check 0.1 std ::bee::encodeDict \
+    {checkSimpleArgs 1 1 {
+	checkDict
+    }}
+pcx::check 0.1 std ::bee::encodeDictArgs \
+    {checkSimpleArgsModNk 0 2 {
+	checkWord
+	checkWord
+    }}
+pcx::check 0.1 std ::bee::encodeList \
+    {checkSimpleArgs 1 1 {
+	checkList
+    }}
+pcx::check 0.1 std ::bee::encodeListArgs \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+pcx::check 0.1 std ::bee::encodeNumber \
+    {checkSimpleArgs 1 1 {
+	checkInt
+    }}
+pcx::check 0.1 std ::bee::encodeString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::bee::init procedure for non-standard initialization.
+pcx::complete

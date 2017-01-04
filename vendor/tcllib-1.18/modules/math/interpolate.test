@@ -1,0 +1,346 @@
+# -*- tcl -*-
+# interpolate.test --
+#    Test cases for the ::math::interpolate package
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    use      struct/matrix.tcl struct::matrix
+    useLocal math.tcl          math
+}
+testing {
+    useLocal interpolate.tcl math::interpolate
+}
+
+# -------------------------------------------------------------------------
+
+#
+# Minimisation via steepest-descent
+#
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {$e != 0.0} {
+            if {abs($a-$e) > 0.5e-4*abs($a+$e)} {
+                set match 0
+                break
+            }
+        } else {
+            if {abs($a-$e) > 1.0e-5} {
+                set match 0
+                break
+            }
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+#
+# Test cases: interpolation in tables
+#
+# Add a dummy row to the table - ticket b25b826973edcbb5b3a95f6c284214925a1d5e67
+# This makes it possible to use the same table in both 1D and 2D interpolations
+#
+set t [::math::interpolate::defineTable table1 \
+   {    x     v1    v2    v3 } \
+   {    -      1     2     3
+        0      0    10     1
+        1      1     9     4
+        2      2     8     9
+        5      5     5    25
+        7      7     3    49
+       10     10     0   100 }]
+
+test "Interpolate-1.1" "Interpolate in a one-dimensional table" \
+     -match numbers -body {
+   set result {}
+   foreach x { -1.0 0.0 3.0 5.0 9.9 11.0 } {
+      set result [concat $result \
+                 [::math::interpolate::interp-1d-table $t $x]]
+   }
+   set result
+} -result {
+   -1    0    10     1
+    0    0    10     1
+    3    3     7    14.333333
+    5    5     5    25
+  9.9  9.9     0.1  98.3
+   11   10     0   100 }
+
+
+# value = x+y
+set t2 [::math::interpolate::defineTable table2 \
+   {    x      y1   y2    y3 } \
+   {    -      0     3    10
+        1      1     4    11
+        2      2     5    12
+        5      5     8    15
+        7      7    10    17
+       10     10    13    20 }]
+
+test "Interpolate-1.2" "Interpolate in a two-dimensional table" \
+     -match numbers -body {
+   set result {}
+   foreach y { -1.0 0.0 3.0 5.0 9.9 11.0 } {
+      foreach x { -1.0 0.0 3.0 5.0 9.9 11.0 } {
+         set result [concat $result \
+            $x $y [::math::interpolate::interp-table $t2 $x $y]]
+      }
+   }
+   set result
+} -result {
+    -1.0 -1.0 1.0
+     0.0 -1.0 1.0
+     3.0 -1.0 3.0
+     5.0 -1.0 5.0
+     9.9 -1.0 9.9
+    11.0 -1.0 10.0
+    -1.0 0.0 1.0
+     0.0 0.0 1.0
+     3.0 0.0 3.0
+     5.0 0.0 5.0
+     9.9 0.0 9.9
+    11.0 0.0 10.0
+    -1.0 3.0 4.0
+     0.0 3.0 4.0
+     3.0 3.0 6.0
+     5.0 3.0 8.0
+     9.9 3.0 12.9
+    11.0 3.0 13.0
+    -1.0 5.0 6.0
+     0.0 5.0 6.0
+     3.0 5.0 8.0
+     5.0 5.0 10.0
+     9.9 5.0 14.9
+    11.0 5.0 15.0
+    -1.0 9.9 10.9
+     0.0 9.9 10.9
+     3.0 9.9 12.9
+     5.0 9.9 14.9
+     9.9 9.9 19.8
+    11.0 9.9 19.9
+    -1.0 11.0 11.0
+     0.0 11.0 11.0
+     3.0 11.0 13.0
+     5.0 11.0 15.0
+     9.9 11.0 19.9
+    11.0 11.0 20.0
+}
+
+# linear interpolation: y = x + 1 and y = 2*x, x<5, or 20-2*x, x>5
+
+test "Interpolate-2.1" "Linear interpolation - 1" \
+     -match numbers -body {
+   set result {}
+
+   set xyvalues { 0.0 1.0  10.0 11.0 }
+   foreach x { 0.0 4.0 7.0 10.0 101.0 } {
+      lappend result [::math::interpolate::interp-linear $xyvalues $x]
+   }
+   set result
+} -result { 1.0 5.0 8.0 11.0 11.0 }
+
+test "Interpolate-2.2" "Linear interpolation - 2" \
+     -match numbers -body {
+   set result {}
+   set xyvalues { 0.0 0.0  5.0 10.0 10.0 0.0 }
+   foreach x { 0.0 4.0 7.0 10.0 11.0 } {
+      lappend result [::math::interpolate::interp-linear $xyvalues $x]
+   }
+   set result
+} -result { 0.0 8.0 6.0 0.0 0.0 }
+
+# Lagrange interpolation: y = x + 1
+test "Interpolate-3.1" "Lagrange interpolation - 1" \
+     -match numbers -body {
+   set result {}
+   set xyvalues { 0.0 1.0  10.0 11.0 }
+   foreach x { 0.0 4.0 7.0 10.0 101.0 } {
+      lappend result [::math::interpolate::interp-lagrange $xyvalues $x]
+   }
+   set result
+} -result { 1.0  5.0  8.0  11.0  102.0 }
+
+
+#Lagrange interpolation (2) - expected: y=10-2*(x-5)**2/5
+test "Interpolate-3.2" "Lagrange interpolation - 2" \
+     -match numbers -body {
+   set result {}
+   set xyvalues { 0.0 0.0  5.0 10.0 10.0 0.0 }
+   foreach x { 0.0 4.0 7.0 10.0 11.0 } {
+      lappend result [::math::interpolate::interp-lagrange $xyvalues $x]
+   }
+   set result
+} -result { 0.0 9.6 8.4 0.0 -4.4 }
+
+# Spatial interpolation
+test "Interpolate-4.1" "Spatial interpolation - 1" \
+     -match numbers -body {
+   set result {}
+   set xyzvalues { {-1.0 0.0 -2.0 }
+                   { 1.0 0.0  2.0 } }
+   foreach coord { {0.0 0.0} {0.0 1.0} {3.0 0.0} {100.0 0.0} } {
+      lappend result [::math::interpolate::interp-spatial $xyzvalues $coord]
+   }
+   set result
+} -result { 0.0 0.0 1.2 0.039996 }
+
+test "Interpolate-4.2" "Spatial interpolation - 2" \
+   -match numbers -body {
+   set result {}
+
+   set xyzvalues { {-1.0 0.0 { -2.0  1.0 } }
+                   { 1.0 0.0 {  2.0 -1.0 } } }
+   foreach coord { {0.0 0.0} {0.0 1.0} {3.0 0.0} {100.0 0.0} } {
+      set result [concat $result \
+            [::math::interpolate::interp-spatial $xyzvalues $coord]]
+   }
+   set result
+} -result { 0.0       0.0
+            0.0       0.0
+            1.2      -0.6
+            0.039996 -0.019998 }
+
+test "Interpolate-4.3" "Spatial interpolation - 3 - coincident points" \
+   -match numbers -body {
+   set result {}
+
+   set xyzvalues { {-1.0 0.0 { -2.0  1.0 } }
+                   { 1.0 0.0 {  2.0 -1.0 } } }
+   set coord {-1.0 0.0}
+      set result [::math::interpolate::interp-spatial $xyzvalues $coord]
+
+   set result
+} -result { -2.0 1.0 }
+
+#
+# Test TODO: parameters for spatial interpolation
+#
+
+test interpolate-5.1 "neville algorithm" \
+    -body {
+	set problems {}
+	namespace import ::math::interpolate::neville
+	set xtable [list 0. 30. 45. 60. 90. 120. 135. 150. 180.]
+	set ytable [list 0. 0.5 [expr sqrt(0.5)] [expr sqrt(0.75)] 1. \
+			[expr sqrt(0.75)] [expr sqrt(0.5)] 0.5 0.]
+	for { set x -15 } { $x <= 195 } { incr x } {
+	    foreach { y error } [neville $xtable $ytable $x] break
+	    set diff [expr { abs( $y - sin( $x*3.1415926535897932/180. ) ) }]
+	    if { $error > 3.e-4 || ( $diff > $error && $diff > 1.e-8 ) } {
+		append problems \n "interpolating for sine of " $x " degrees" \
+		    \n "value was " $y " +/- " $error \
+		    \n "actual error was " $diff
+	    }
+	}
+	set problems
+    } \
+    -result {}
+
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 0.1e-6} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchNumbers
+
+test "cubic-splines-1.0" "Interpolate linear function" \
+   -match numbers -body {
+    set xcoord {1 2 3 4 5}
+    set ycoord {1 2 3 4 5}
+    set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+    set yvalues {}
+    foreach x {1.5 2.5 3.5 4.5} {
+        lappend yvalues [::math::interpolate::interp-cubic-splines $coeffs $x]
+    }
+    set yvalues
+} -result {1.5 2.5 3.5 4.5}
+
+test "cubic-splines-1.1" "Interpolate quadratic function" \
+   -match numbers -body {
+    set xcoord {1 2 3 4 5}
+    set ycoord {1 4 9 16 25}
+    set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+    set yvalues {}
+    foreach x $xcoord {
+        lappend yvalues [::math::interpolate::interp-cubic-splines $coeffs $x]
+    }
+    set yvalues
+} -result {1 4 9 16 25}
+
+test "cubic-splines-1.2" "Interpolate arbitrary function" \
+   -match numbers -body {
+    set coeffs [::math::interpolate::prepare-cubic-splines \
+                  {0.1 0.3 0.4 0.8  1.0} \
+                  {1.0 2.1 2.2 4.11 4.12}]
+    set yvalues {}
+    foreach x {0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0} {
+        lappend yvalues [::math::interpolate::interp-cubic-splines $coeffs $x]
+    }
+    set yvalues
+} -result {1.0 1.6804411764705884 2.1 2.2 2.5380974264705882
+           3.1041911764705885 3.695689338235294 4.11 4.2099448529411765 4.12}
+
+test "cubic-splines-2.1" "Too few data" \
+-match glob -body {
+   set xcoord {1 2}
+   set ycoord {1 4}
+   set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+} -result "At least *" -returnCodes error
+
+test "cubic-splines-2.2" "Unequal lengths" \
+-match glob -body {
+   set xcoord {1 2 4 5}
+   set ycoord {1 4 5 5 6}
+   set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+} -result "Equal number *" -returnCodes error
+
+test "cubic-splines-2.3" "Not-ascending x-coordinates" \
+-match glob -body {
+   set xcoord {1 2 1.5}
+   set ycoord {1 4 5}
+   set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+} -result "* ascending" -returnCodes error
+
+test "cubic-splines-2.4" "X too small" \
+-match glob -body {
+   set xcoord {1 2 3}
+   set ycoord {1 4 5}
+   set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+   set yvalue [::math::interpolate::interp-cubic-splines $coeffs -1]
+} -result "* too small" -returnCodes error
+
+test "cubic-splines-2.5" "X too large" \
+-match glob -body {
+   set xcoord {1 2 3}
+   set ycoord {1 4 5}
+   set coeffs [::math::interpolate::prepare-cubic-splines $xcoord $ycoord]
+   set yvalue [::math::interpolate::interp-cubic-splines $coeffs 6]
+} -result "* too large" -returnCodes error
+
+
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local Variables:
+# mode: tcl
+# End:

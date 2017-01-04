@@ -1,0 +1,8 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+term::ansi::send::import vt
+vt::title [join $argv]
+exit

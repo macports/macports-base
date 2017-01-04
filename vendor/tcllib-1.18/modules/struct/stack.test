@@ -1,0 +1,106 @@
+# -*- tcl -*-
+# stack.test:  tests for the stack package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: stack.test,v 1.19 2010/03/17 22:11:45 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+testing {
+    useAccel [useTcllibC] struct/stack.tcl struct::stack
+    TestAccelInit                          struct::stack
+}
+
+#----------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite
+# (in stack.testsuite) can expect from the environment.
+
+TestAccelDo struct::stack impl {
+    namespace import -force struct::stack
+
+    switch -exact -- $impl {
+	critcl {
+	    set MY mystack
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		return [tcltest::wrongNumArgs "mystack $m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		return [tcltest::tooManyArgs "mystack $m" $loarg]
+	    }
+
+	    proc tmTake {tcl c} { return $c }
+	}
+	tcl {
+	    set MY ::mystack
+
+	    if {[package vsatisfies [package provide Tcl] 8.5]} {
+		if {[catch {package present TclOO}]} {
+		    # Without TclOO
+		    proc tmWrong {m loarg n {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			incr n
+			return [tcltest::wrongNumArgs "I $m" "name$xarg" $n]
+		    }
+
+		    proc tmTooMany {m loarg {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			return [tcltest::tooManyArgs "I $m" "name$xarg"]
+		    }
+		} else {
+		    # OO implementation.
+		    proc tmWrong {m loarg n {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			incr n
+			return [tcltest::wrongNumArgs "mystack $m" "$loarg" $n]
+		    }
+
+		    proc tmTooMany {m loarg {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			return [tcltest::tooManyArgs "mystack $m" "$loarg"]
+		    }
+		}
+	    } else {
+		proc tmWrong {m loarg n {xarg {}}} {
+		    if {$xarg == {}} {set xarg $loarg}
+		    if {$xarg != {}} {set xarg " $xarg"}
+		    incr n
+		    return [tcltest::wrongNumArgs "::struct::stack::I::$m" "name$xarg" $n]
+		}
+
+		proc tmTooMany {m loarg {xarg {}}} {
+		    if {$xarg == {}} {set xarg $loarg}
+		    if {$xarg != {}} {set xarg " $xarg"}
+		    return [tcltest::tooManyArgs "::struct::stack::I::$m" "name$xarg"]
+		}
+	    }
+
+	    proc tmTake {tcl c} { return $tcl }
+	}
+    }
+
+    source [localPath stack.testsuite]
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::stack
+testsuiteCleanup

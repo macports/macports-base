@@ -1,0 +1,292 @@
+[comment {-*- tcl -*-}]
+[manpage_begin {struct::tree_v1} n 1.2.2]
+[keywords tree]
+[copyright {2002 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Create and manipulate tree objects}]
+[category  {Data structures}]
+[require Tcl 8.2]
+[require struct::tree [opt 1.2.2]]
+[description]
+[para]
+
+The [cmd ::struct::tree] command creates a new tree object with an
+associated global Tcl command whose name is [arg treeName]. This
+command may be used to invoke various operations on the tree. It has
+the following general form:
+
+[list_begin definitions]
+[call [cmd treeName] [method option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+
+[para]
+
+A tree is a collection of named elements, called nodes, one of which is
+distinguished as a root, along with a relation ("parenthood") that
+places a hierarchical structure on the nodes. (Data Structures and
+Algorithms; Aho, Hopcroft and Ullman; Addison-Wesley, 1987).  In
+addition to maintaining the node relationships, this tree
+implementation allows any number of keyed values to be associated with
+each node.
+
+[para]
+
+The element names can be arbitrary strings.
+
+[para][comment {This comparison (C) 2007 Lars Bergstrom, Bug 1687902}]
+
+A tree is thus similar to an array, but with three important
+differences:
+
+[list_begin enumerated]
+[enum] Trees are accessed through an object command, whereas arrays are
+accessed as variables. (This means trees cannot be local to a procedure.)
+
+[enum] Trees have a hierarchical structure, whereas an array is just an
+unordered collection.
+
+[enum] Each node of a tree has a separate collection of attributes and
+values. This is like an array where every value is a dictionary.
+
+[list_end]
+
+[para]
+
+The following commands are possible for tree objects:
+
+[list_begin definitions]
+
+[call [arg treeName] [method append] [arg node] [opt "-key [arg key]"] [arg value]]
+
+Appends a [arg value] to one of the keyed values associated with an
+node. If no [arg key] is specified, the key [const data] is assumed.
+
+[call [arg treeName] [method children] [arg node]]
+
+Return a list of the children of [arg node].
+
+[call [arg treeName] [method cut] [arg node]]
+
+Removes the node specified by [arg node] from the tree, but not its
+children.  The children of [arg node] are made children of the parent
+of the [arg node], at the index at which [arg node] was located.
+
+[call [arg treeName] [method delete] [arg node] [opt "[arg node] ..."]]
+
+Removes the specified nodes from the tree.  All of the nodes' children
+will be removed as well to prevent orphaned nodes.
+
+[call [arg treeName] [method depth] [arg node]]
+
+Return the number of steps from node [arg node] to the root node.
+
+[call [arg treeName] [method destroy]]
+
+Destroy the tree, including its storage space and associated command.
+
+[call [arg treeName] [method exists] [arg node]]
+
+Returns true if the specified node exists in the tree.
+
+[call [arg treeName] [method get] [arg node] [opt "[option -key] [arg key]"]]
+
+Return the value associated with the key [arg key] for the node
+
+[arg node]. If no key is specified, the key [const data] is assumed.
+
+[call [arg treeName] [method getall] [arg node]]
+
+Returns a serialized list of key/value pairs (suitable for use with
+[lb][cmd {array set}][rb]) for the [arg node].
+
+[call [arg treeName] [method keys] [arg node]]
+
+Returns a list of keys for the [arg node].
+
+[call [arg treeName] [method keyexists] [arg node] [opt "-key [arg key]"]]
+
+Return true if the specified [arg key] exists for the [arg node]. If
+no [arg key] is specified, the key [const data] is assumed.
+
+[call [arg treeName] [method index] [arg node]]
+
+Returns the index of [arg node] in its parent's list of children.  For
+example, if a node has [term nodeFoo], [term nodeBar], and
+
+[term nodeBaz] as children, in that order, the index of
+
+[term nodeBar] is 1.
+
+[call [arg treeName] [method insert] [arg parent] [arg index] [opt "[arg child] [opt "[arg child] ..."]"]]
+
+Insert one or more nodes into the tree as children of the node
+
+[arg parent]. The nodes will be added in the order they are given. If
+[arg parent] is [const root], it refers to the root of the tree. The
+new nodes will be added to the [arg parent] node's child list at the
+index given by [arg index]. The [arg index] can be [const end] in
+which case the new nodes will be added after the current last child.
+
+[para]
+
+If any of the specified children already exist in [arg treeName],
+those nodes will be moved from their original location to the new
+location indicated by this command.
+
+[para]
+
+If no [arg child] is specified, a single node will be added, and a
+name will be generated for the new node. The generated name is of the
+form [emph node][var x], where [var x] is a number. If names are
+specified they must neither contain whitespace nor colons (":").
+
+[para]
+
+The return result from this command is a list of nodes added.
+
+[call [arg treeName] [method isleaf] [arg node]]
+
+Returns true if [arg node] is a leaf of the tree (if [arg node] has no
+children), false otherwise.
+
+[call [arg treeName] [method lappend] [arg node] [opt "-key [arg key]"] [arg value]]
+
+Appends a [arg value] (as a list) to one of the keyed values
+associated with an [arg node]. If no [arg key] is specified, the key
+[const data] is assumed.
+
+[call [arg treeName] [method move] [arg parent] [arg index] [arg node] [opt "[arg node] ..."]]
+
+Make the specified nodes children of [arg parent], inserting them into
+the parent's child list at the index given by [arg index]. Note that
+the command will take all nodes out of the tree before inserting them
+under the new parent, and that it determines the position to place
+them into after the removal, before the re-insertion. This behaviour
+is important when it comes to moving one or more nodes to a different
+index without changing their parent node.
+
+[call [arg treeName] [method next] [arg node] ]
+
+Return the right sibling of [arg node], or the empty string if
+
+[arg node] was the last child of its parent.
+
+[call [arg treeName] [method numchildren] [arg node]]
+
+Return the number of immediate children of [arg node].
+
+[call [arg treeName] [method parent] [arg node]]
+
+Return the parent of [arg node].
+
+[call [arg treeName] [method previous] [arg node] ]
+
+Return the left sibling of [arg node], or the empty string if
+
+[arg node] was the first child of its parent.
+
+[call [arg treeName] [method set] [arg node] [opt "[option -key] [arg key]"] [opt [arg value]]]
+
+Set or get one of the keyed values associated with a node. If no key
+is specified, the key [const data] is assumed.  Each node that is
+added to a tree has the value "" assigned to the key [const data]
+automatically.  A node may have any number of keyed values associated
+with it.  If [arg value] is not specified, this command returns the
+current value assigned to the key; if [arg value] is specified, this
+command assigns that value to the key.
+
+[call [arg treeName] [method size] [opt [arg node]]]
+
+Return a count of the number of descendants of the node [arg node]; if
+no node is specified, [const root] is assumed.
+
+[call [arg treeName] [method splice] [arg parent] [arg from] [opt [arg to]] [opt [arg child]]]
+
+Insert a node named [arg child] into the tree as a child of the node
+[arg parent]. If [arg parent] is [const root], it refers to the root
+of the tree. The new node will be added to the parent node's child
+list at the index given by [arg from].  The children of [arg parent]
+which are in the range of the indices [arg from] and [arg to] are made
+children of [arg child].  If the value of [arg to] is not specified it
+defaults to [const end].  If no name is given for [arg child], a name
+will be generated for the new node.  The generated name is of the form
+[emph node][var x], where [var x] is a number.  The return result
+from this command is the name of the new node.
+
+[call [arg treeName] [method swap] [arg node1] [arg node2]]
+
+Swap the position of [arg node1] and [arg node2] in the tree.
+
+[call [arg treeName] [method unset] [arg node] [opt "[option -key] [arg key]"]]
+
+Removes a keyed value from the node [arg node].  If no key is
+specified, the key [const data] is assumed.
+
+[call [arg treeName] [method walk] [arg node] [opt "[option -order] [arg order]"] [opt "[option -type] [arg type]"] [option -command] [arg cmd]]
+
+Perform a breadth-first or depth-first walk of the tree starting at
+the node [arg node].  The type of walk, breadth-first or depth-first,
+is determined by the value of [arg type]; [const bfs] indicates
+breadth-first, [const dfs] indicates depth-first.  Depth-first is the
+default. The order of the walk, pre-, post-, both- or in-order is
+determined by the value of [arg order]; [const pre] indicates
+pre-order, [const post] indicates post-order, [const both] indicates
+both-order and [const in] indicates in-order. Pre-order is the
+default.
+
+[para]
+
+Pre-order walking means that a parent node is visited before any of
+its children.  For example, a breadth-first search starting from the
+root will visit the root, followed by all of the root's children,
+followed by all of the root's grandchildren. Post-order walking means
+that a parent node is visited after any of its children. Both-order
+walking means that a parent node is visited before [emph and] after
+any of its children. In-order walking means that a parent node is
+visited after its first child and before the second. This is a
+generalization of in-order walking for binary trees and will do the
+right thing if a binary is walked. The combination of a breadth-first
+walk with in-order is illegal.
+
+[para]
+
+As the walk progresses, the command [arg cmd] will be evaluated at
+each node.  Percent substitution will be performed on [arg cmd] before
+evaluation, just as in a [cmd bind] script.  The following
+substitutions are recognized:
+
+[list_begin definitions]
+
+[def [const %%]]
+
+Insert the literal % character.
+
+[def [const %t]]
+
+Name of the tree object.
+
+[def [const %n]]
+
+Name of the current node.
+
+[def [const %a]]
+
+Name of the action occurring; one of [const enter], [const leave],
+or [const visit].  [const enter] actions occur during pre-order
+walks; [const leave] actions occur during post-order walks;
+
+[const visit] actions occur during in-order walks.  In a both-order
+walk, the command will be evaluated twice for each node; the action is
+[const enter] for the first evaluation, and [const leave] for the
+second.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY {struct :: tree}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

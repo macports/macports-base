@@ -1,0 +1,507 @@
+
+<html><head>
+<title>asn - ASN.1 processing</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'asn.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;   -- Copyright &copy; 2004 Jochen Loewer &lt;loewerj@web.de&gt;   -- Copyright &copy; 2004-2011 Michael Schlenker &lt;mic42@users.sourceforge.net&gt;
+   -->
+<! -- asn.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">asn(n) 0.8 tcllib &quot;ASN.1 processing&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>asn - ASN.1 BER encoder/decoder</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PUBLIC API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">ENCODER</a></li>
+<li class="doctools_subsection"><a href="#subsection2">DECODER</a></li>
+<li class="doctools_subsection"><a href="#subsection3">HANDLING TAGS</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">asn <span class="opt">?0.8.4?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::asn::asnSequence</b> <i class="arg">evalue</i>...</a></li>
+<li><a href="#2"><b class="cmd">::asn::asnSequenceFromList</b> <i class="arg">elist</i></a></li>
+<li><a href="#3"><b class="cmd">::asn::asnSet</b> <i class="arg">evalue</i>...</a></li>
+<li><a href="#4"><b class="cmd">::asn::asnSetFromList</b> <i class="arg">elist</i></a></li>
+<li><a href="#5"><b class="cmd">::asn::asnApplicationConstr</b> <i class="arg">appNumber</i> <i class="arg">evalue</i>...</a></li>
+<li><a href="#6"><b class="cmd">::asn::asnApplication</b> <i class="arg">appNumber</i> <i class="arg">data</i></a></li>
+<li><a href="#7"><b class="cmd">::asn::asnChoice</b> <i class="arg">appNumber</i> <i class="arg">evalue</i>...</a></li>
+<li><a href="#8"><b class="cmd">::asn::asnChoiceConstr</b> <i class="arg">appNumber</i> <i class="arg">evalue</i>...</a></li>
+<li><a href="#9"><b class="cmd">::asn::asnInteger</b> <i class="arg">number</i></a></li>
+<li><a href="#10"><b class="cmd">::asn::asnEnumeration</b> <i class="arg">number</i></a></li>
+<li><a href="#11"><b class="cmd">::asn::asnBoolean</b> <i class="arg">bool</i></a></li>
+<li><a href="#12"><b class="cmd">::asn::asnContext</b> <i class="arg">context</i> <i class="arg">data</i></a></li>
+<li><a href="#13"><b class="cmd">::asn::asnContextConstr</b> <i class="arg">context</i> <i class="arg">evalue</i>...</a></li>
+<li><a href="#14"><b class="cmd">::asn::asnObjectIdentifier</b> <i class="arg">idlist</i></a></li>
+<li><a href="#15"><b class="cmd">::asn::asnUTCTime</b> <i class="arg">utcstring</i></a></li>
+<li><a href="#16"><b class="cmd">::asn::asnNull</b></a></li>
+<li><a href="#17"><b class="cmd">::asn::asnBitString</b> <i class="arg">string</i></a></li>
+<li><a href="#18"><b class="cmd">::asn::asnOctetString</b> <i class="arg">string</i></a></li>
+<li><a href="#19"><b class="cmd">::asn::asnNumericString</b> <i class="arg">string</i></a></li>
+<li><a href="#20"><b class="cmd">::asn::asnPrintableString</b> <i class="arg">string</i></a></li>
+<li><a href="#21"><b class="cmd">::asn::asnIA5String</b> <i class="arg">string</i></a></li>
+<li><a href="#22"><b class="cmd">::asn::asnBMPString</b> <i class="arg">string</i></a></li>
+<li><a href="#23"><b class="cmd">::asn::asnUTF8String</b> <i class="arg">string</i></a></li>
+<li><a href="#24"><b class="cmd">::asn::asnString</b> <i class="arg">string</i></a></li>
+<li><a href="#25"><b class="cmd">::asn::defaultStringType</b> <span class="opt">?<i class="arg">type</i>?</span></a></li>
+<li><a href="#26"><b class="cmd">::asn::asnPeekByte</b> <i class="arg">data_var</i> <i class="arg">byte_var</i></a></li>
+<li><a href="#27"><b class="cmd">::asn::asnGetLength</b> <i class="arg">data_var</i> <i class="arg">length_var</i></a></li>
+<li><a href="#28"><b class="cmd">::asn::asnGetResponse</b> <i class="arg">chan</i> <i class="arg">data_var</i></a></li>
+<li><a href="#29"><b class="cmd">::asn::asnGetInteger</b> <i class="arg">data_var</i> <i class="arg">int_var</i></a></li>
+<li><a href="#30"><b class="cmd">::asn::asnGetEnumeration</b> <i class="arg">data_var</i> <i class="arg">enum_var</i></a></li>
+<li><a href="#31"><b class="cmd">::asn::asnGetOctetString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></li>
+<li><a href="#32"><b class="cmd">::asn::asnGetString</b> <i class="arg">data_var</i> <i class="arg">string_var</i> <span class="opt">?<i class="arg">type_var</i>?</span></a></li>
+<li><a href="#33"><b class="cmd">::asn::asnGetNumericString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></li>
+<li><a href="#34"><b class="cmd">::asn::asnGetPrintableString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></li>
+<li><a href="#35"><b class="cmd">::asn::asnGetIA5String</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></li>
+<li><a href="#36"><b class="cmd">::asn::asnGetBMPString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></li>
+<li><a href="#37"><b class="cmd">::asn::asnGetUTF8String</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></li>
+<li><a href="#38"><b class="cmd">::asn::asnGetUTCTime</b> <i class="arg">data_var</i> <i class="arg">utc_var</i></a></li>
+<li><a href="#39"><b class="cmd">::asn::asnGetBitString</b> <i class="arg">data_var</i> <i class="arg">bits_var</i></a></li>
+<li><a href="#40"><b class="cmd">::asn::asnGetObjectIdentifier</b> <i class="arg">data_var</i> <i class="arg">oid_var</i></a></li>
+<li><a href="#41"><b class="cmd">::asn::asnGetBoolean</b> <i class="arg">data_var</i> <i class="arg">bool_var</i></a></li>
+<li><a href="#42"><b class="cmd">::asn::asnGetNull</b> <i class="arg">data_var</i></a></li>
+<li><a href="#43"><b class="cmd">::asn::asnGetSequence</b> <i class="arg">data_var</i> <i class="arg">sequence_var</i></a></li>
+<li><a href="#44"><b class="cmd">::asn::asnGetSet</b> <i class="arg">data_var</i> <i class="arg">set_var</i></a></li>
+<li><a href="#45"><b class="cmd">::asn::asnGetApplication</b> <i class="arg">data_var</i> <i class="arg">appNumber_var</i> <span class="opt">?<i class="arg">content_var</i>?</span> <span class="opt">?<i class="arg">encodingType_var</i>?</span></a></li>
+<li><a href="#46"><b class="cmd">::asn::asnGetContext</b> <i class="arg">data_var</i> <i class="arg">contextNumber_var</i> <span class="opt">?<i class="arg">content_var</i>?</span> <span class="opt">?<i class="arg">encodingType_var</i>?</span></a></li>
+<li><a href="#47"><b class="cmd">::asn::asnPeekTag</b> <i class="arg">data_var</i> <i class="arg">tag_var</i> <i class="arg">tagtype_var</i> <i class="arg">constr_var</i></a></li>
+<li><a href="#48"><b class="cmd">::asn::asnTag</b> <i class="arg">tagnumber</i> <span class="opt">?<i class="arg">class</i>?</span> <span class="opt">?<i class="arg">tagstyle</i>?</span></a></li>
+<li><a href="#49"><b class="cmd">::asn::asnRetag</b> <i class="arg">data_var</i> <i class="arg">newTag</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">asn</b> package provides <em>partial</em> de- and encoder
+commands for BER encoded ASN.1 data. It can also be used for
+decoding DER, which is a restricted subset of BER.</p>
+<p>ASN.1 is a standard <i class="term">Abstract Syntax Notation</i>, and BER are its
+<i class="term">Basic Encoding Rules</i>.</p>
+<p>See <a href="http://asn1.elibel.tm.fr/en/standards/index.htm">http://asn1.elibel.tm.fr/en/standards/index.htm</a> for more
+information about the standard.</p>
+<p>Also see <a href="http://luca.ntop.org/Teaching/Appunti/asn1.html">http://luca.ntop.org/Teaching/Appunti/asn1.html</a> for
+<em>A Layman's Guide to a Subset of ASN.1, BER, and DER</em>, an RSA
+Laboratories Technical Note by Burton S. Kaliski Jr. (Revised November
+1, 1993). A text version of this note is part of the module sources
+and should be read by any implementor.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PUBLIC API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">ENCODER</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::asn::asnSequence</b> <i class="arg">evalue</i>...</a></dt>
+<dd><p>Takes zero or more encoded values, packs them into an ASN sequence and
+returns its encoded binary form.</p></dd>
+<dt><a name="2"><b class="cmd">::asn::asnSequenceFromList</b> <i class="arg">elist</i></a></dt>
+<dd><p>Takes a list of encoded values, packs them into an ASN sequence and
+returns its encoded binary form.</p></dd>
+<dt><a name="3"><b class="cmd">::asn::asnSet</b> <i class="arg">evalue</i>...</a></dt>
+<dd><p>Takes zero or more encoded values, packs them into an ASN set and
+returns its encoded binary form.</p></dd>
+<dt><a name="4"><b class="cmd">::asn::asnSetFromList</b> <i class="arg">elist</i></a></dt>
+<dd><p>Takes a list of encoded values, packs them into an ASN set and
+returns its encoded binary form.</p></dd>
+<dt><a name="5"><b class="cmd">::asn::asnApplicationConstr</b> <i class="arg">appNumber</i> <i class="arg">evalue</i>...</a></dt>
+<dd><p>Takes zero or more encoded values, packs them into an ASN application
+construct and returns its encoded binary form.</p></dd>
+<dt><a name="6"><b class="cmd">::asn::asnApplication</b> <i class="arg">appNumber</i> <i class="arg">data</i></a></dt>
+<dd><p>Takes a single encoded value <i class="arg">data</i>, packs it into an ASN
+application construct and returns its encoded binary form.</p></dd>
+<dt><a name="7"><b class="cmd">::asn::asnChoice</b> <i class="arg">appNumber</i> <i class="arg">evalue</i>...</a></dt>
+<dd><p>Takes zero or more encoded values, packs them into an ASN choice
+construct and returns its encoded binary form.</p></dd>
+<dt><a name="8"><b class="cmd">::asn::asnChoiceConstr</b> <i class="arg">appNumber</i> <i class="arg">evalue</i>...</a></dt>
+<dd><p>Takes zero or more encoded values, packs them into an ASN choice
+construct and returns its encoded binary form.</p></dd>
+<dt><a name="9"><b class="cmd">::asn::asnInteger</b> <i class="arg">number</i></a></dt>
+<dd><p>Returns the encoded form of the specified integer
+<i class="arg">number</i>.</p></dd>
+<dt><a name="10"><b class="cmd">::asn::asnEnumeration</b> <i class="arg">number</i></a></dt>
+<dd><p>Returns the encoded form of the specified enumeration id
+<i class="arg">number</i>.</p></dd>
+<dt><a name="11"><b class="cmd">::asn::asnBoolean</b> <i class="arg">bool</i></a></dt>
+<dd><p>Returns the encoded form of the specified boolean value
+<i class="arg">bool</i>.</p></dd>
+<dt><a name="12"><b class="cmd">::asn::asnContext</b> <i class="arg">context</i> <i class="arg">data</i></a></dt>
+<dd><p>Takes an encoded value and packs it into a constructed value with
+application tag, the <i class="arg">context</i> number.</p></dd>
+<dt><a name="13"><b class="cmd">::asn::asnContextConstr</b> <i class="arg">context</i> <i class="arg">evalue</i>...</a></dt>
+<dd><p>Takes zero or more encoded values and packs them into a constructed
+value with application tag, the <i class="arg">context</i> number.</p></dd>
+<dt><a name="14"><b class="cmd">::asn::asnObjectIdentifier</b> <i class="arg">idlist</i></a></dt>
+<dd><p>Takes a list of at least 2 integers describing an object identifier
+(OID) value, and returns the encoded value.</p></dd>
+<dt><a name="15"><b class="cmd">::asn::asnUTCTime</b> <i class="arg">utcstring</i></a></dt>
+<dd><p>Returns the encoded form of the specified UTC time string.</p></dd>
+<dt><a name="16"><b class="cmd">::asn::asnNull</b></a></dt>
+<dd><p>Returns the NULL encoding.</p></dd>
+<dt><a name="17"><b class="cmd">::asn::asnBitString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the encoded form of the specified <i class="arg">string</i>.</p></dd>
+<dt><a name="18"><b class="cmd">::asn::asnOctetString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the encoded form of the specified <i class="arg">string</i>.</p></dd>
+<dt><a name="19"><b class="cmd">::asn::asnNumericString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the <i class="arg">string</i> encoded as ASN.1 NumericString. Raises an
+error if the <i class="arg">string</i> contains characters other than decimal
+numbers and space.</p></dd>
+<dt><a name="20"><b class="cmd">::asn::asnPrintableString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the <i class="arg">string</i> encoding as ASN.1 PrintableString. Raises an
+error if the <i class="arg">string</i> contains characters which are not allowed by
+the Printable String datatype. The allowed characters are A-Z, a-z,
+0-9, space, apostrophe, colon, parentheses, plus, minus, comma,
+period, forward slash, question mark, and the equals sign.</p></dd>
+<dt><a name="21"><b class="cmd">::asn::asnIA5String</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the <i class="arg">string</i> encoded as ASN.1 IA5String. Raises an error
+if the <i class="arg">string</i> contains any characters outside of the US-ASCII
+range.</p></dd>
+<dt><a name="22"><b class="cmd">::asn::asnBMPString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the <i class="arg">string</i> encoded as ASN.1 Basic Multilingual Plane
+string (Which is essentialy big-endian UCS2).</p></dd>
+<dt><a name="23"><b class="cmd">::asn::asnUTF8String</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns the <i class="arg">string</i> encoded as UTF8 String. Note that some legacy
+applications such as Windows CryptoAPI do not like UTF8 strings. Use
+BMPStrings if you are not sure.</p></dd>
+<dt><a name="24"><b class="cmd">::asn::asnString</b> <i class="arg">string</i></a></dt>
+<dd><p>Returns an encoded form of <i class="arg">string</i>, choosing the most restricted
+ASN.1 string type possible. If the string contains non-ASCII
+characters, then there is more than one string type which can be
+used. See <b class="cmd">::asn::defaultStringType</b>.</p></dd>
+<dt><a name="25"><b class="cmd">::asn::defaultStringType</b> <span class="opt">?<i class="arg">type</i>?</span></a></dt>
+<dd><p>Selects the string type to use for the encoding of non-ASCII
+strings. Returns current default when called without argument. If the
+argument <i class="arg">type</i> is supplied, it should be either <b class="const">UTF8</b> or
+<b class="const">BMP</b> to choose UTF8String or BMPString respectively.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">DECODER</a></h3>
+<p>General notes:</p>
+<ol class="doctools_enumerated">
+<li><p>Nearly all decoder commands take two arguments. These arguments are variable
+names, except for <b class="cmd">::asn::asnGetResponse</b>. The first variable
+contains the encoded ASN value to decode at the beginning, and more,
+and the second variable is where the value is stored to. The remainder
+of the input after the decoded value is stored back into the
+datavariable.</p></li>
+<li><p>After extraction the data variable is always modified first, before by
+writing the extracted value to its variable. This means that if both
+arguments refer to the same variable, it will always contain the
+extracted value after the call, and not the remainder of the input.</p></li>
+</ol>
+<dl class="doctools_definitions">
+<dt><a name="26"><b class="cmd">::asn::asnPeekByte</b> <i class="arg">data_var</i> <i class="arg">byte_var</i></a></dt>
+<dd><p>Retrieve the first byte of the data, without modifing <i class="arg">data_var</i>.
+This can be used to check for implicit tags.</p></dd>
+<dt><a name="27"><b class="cmd">::asn::asnGetLength</b> <i class="arg">data_var</i> <i class="arg">length_var</i></a></dt>
+<dd><p>Decode the length information for a block of BER data. The tag has already
+to be removed from the data.</p></dd>
+<dt><a name="28"><b class="cmd">::asn::asnGetResponse</b> <i class="arg">chan</i> <i class="arg">data_var</i></a></dt>
+<dd><p>Reads an encoded ASN <em>sequence</em> from the channel <i class="arg">chan</i> and
+stores it into the variable named by <i class="arg">data_var</i>.</p></dd>
+<dt><a name="29"><b class="cmd">::asn::asnGetInteger</b> <i class="arg">data_var</i> <i class="arg">int_var</i></a></dt>
+<dd><p>Assumes that an encoded integer value is at the front of the data
+stored in the variable named <i class="arg">data_var</i>, extracts and stores it
+into the variable named by <i class="arg">int_var</i>. Additionally removes all
+bytes associated with the value from the data for further processing
+by the following decoder commands.</p></dd>
+<dt><a name="30"><b class="cmd">::asn::asnGetEnumeration</b> <i class="arg">data_var</i> <i class="arg">enum_var</i></a></dt>
+<dd><p>Assumes that an enumeration id is at the front of the data stored in
+the variable named <i class="arg">data_var</i>, and stores it into the variable
+named by <i class="arg">enum_var</i>. Additionally removes all bytes associated
+with the value from the data for further processing by the following
+decoder commands.</p></dd>
+<dt><a name="31"><b class="cmd">::asn::asnGetOctetString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></dt>
+<dd><p>Assumes that a string is at the front of the data stored in the
+variable named <i class="arg">data_var</i>, and stores it into the variable named
+by <i class="arg">string_var</i>. Additionally removes all bytes associated with
+the value from the data for further processing by the following
+decoder commands.</p></dd>
+<dt><a name="32"><b class="cmd">::asn::asnGetString</b> <i class="arg">data_var</i> <i class="arg">string_var</i> <span class="opt">?<i class="arg">type_var</i>?</span></a></dt>
+<dd><p>Decodes a user-readable string. This is a convenience function which
+is able to automatically distinguish all supported ASN.1 string types
+and convert the input value appropriately.
+See <b class="cmd">::asn::asnGetPrintableString</b>, <b class="cmd">::asnGetIA5String</b>, etc.
+below for the type-specific conversion commands.</p>
+<p>If the optional third argument <i class="arg">type_var</i> is supplied, then the
+type of the incoming string is stored in the variable named by it.</p>
+<p>The function throws the error
+&quot;Invalid command name asnGetSome<b class="variable">UnsupportedString</b>&quot; if the
+unsupported string type <b class="variable">Unsupported</b> is encountered. You can
+create the appropriate function
+&quot;asn::asnGetSome<b class="variable">UnsupportedString</b>&quot; in your application if
+neccessary.</p></dd>
+<dt><a name="33"><b class="cmd">::asn::asnGetNumericString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></dt>
+<dd><p>Assumes that a numeric string value is at the front of the data stored
+in the variable named <i class="arg">data_var</i>, and stores it into the variable
+named by <i class="arg">string_var</i>. Additionally removes all bytes associated
+with the value from the data for further processing by the following
+decoder commands.</p></dd>
+<dt><a name="34"><b class="cmd">::asn::asnGetPrintableString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></dt>
+<dd><p>Assumes that a printable string value is at the front of the data
+stored in the variable named <i class="arg">data_var</i>, and stores it into the
+variable named by <i class="arg">string_var</i>. Additionally removes all bytes
+associated with the value from the data for further processing by the
+following decoder commands.</p></dd>
+<dt><a name="35"><b class="cmd">::asn::asnGetIA5String</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></dt>
+<dd><p>Assumes that a IA5 (ASCII) string value is at the front of the data
+stored in the variable named <i class="arg">data_var</i>, and stores it into the
+variable named by <i class="arg">string_var</i>. Additionally removes all bytes
+associated with the value from the data for further processing by the
+following decoder commands.</p></dd>
+<dt><a name="36"><b class="cmd">::asn::asnGetBMPString</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></dt>
+<dd><p>Assumes that a BMP (two-byte unicode) string value is at the front of
+the data stored in the variable named <i class="arg">data_var</i>, and stores it
+into the variable named by <i class="arg">string_var</i>, converting it into a
+proper Tcl string. Additionally removes all bytes associated with the
+value from the data for further processing by the following decoder
+commands.</p></dd>
+<dt><a name="37"><b class="cmd">::asn::asnGetUTF8String</b> <i class="arg">data_var</i> <i class="arg">string_var</i></a></dt>
+<dd><p>Assumes that a UTF8 string value is at the front of the data stored in
+the variable named <i class="arg">data_var</i>, and stores it into the variable
+named by <i class="arg">string_var</i>, converting it into a proper Tcl string.
+Additionally removes all bytes associated with the value from the data
+for further processing by the following decoder commands.</p></dd>
+<dt><a name="38"><b class="cmd">::asn::asnGetUTCTime</b> <i class="arg">data_var</i> <i class="arg">utc_var</i></a></dt>
+<dd><p>Assumes that a UTC time value is at the front of the data stored in the
+variable named <i class="arg">data_var</i>, and stores it into the variable named
+by <i class="arg">utc_var</i>. The UTC time value is stored as a string, which has to
+be decoded with the usual clock scan commands.
+Additionally removes all bytes associated with the
+value from the data for further processing by the following decoder
+commands.</p></dd>
+<dt><a name="39"><b class="cmd">::asn::asnGetBitString</b> <i class="arg">data_var</i> <i class="arg">bits_var</i></a></dt>
+<dd><p>Assumes that a bit string value is at the front of the data stored in the
+variable named <i class="arg">data_var</i>, and stores it into the variable named
+by <i class="arg">bits_var</i> as a string containing only 0 and 1.
+Additionally removes all bytes associated with the
+value from the data for further processing by the following decoder
+commands.</p></dd>
+<dt><a name="40"><b class="cmd">::asn::asnGetObjectIdentifier</b> <i class="arg">data_var</i> <i class="arg">oid_var</i></a></dt>
+<dd><p>Assumes that a object identifier (OID) value is at the front of the data
+stored in the variable named <i class="arg">data_var</i>, and stores it into the variable
+named by <i class="arg">oid_var</i> as a list of integers.
+Additionally removes all bytes associated with the
+value from the data for further processing by the following decoder
+commands.</p></dd>
+<dt><a name="41"><b class="cmd">::asn::asnGetBoolean</b> <i class="arg">data_var</i> <i class="arg">bool_var</i></a></dt>
+<dd><p>Assumes that a boolean value is at the front of the data stored in the
+variable named <i class="arg">data_var</i>, and stores it into the variable named
+by <i class="arg">bool_var</i>. Additionally removes all bytes associated with the
+value from the data for further processing by the following decoder
+commands.</p></dd>
+<dt><a name="42"><b class="cmd">::asn::asnGetNull</b> <i class="arg">data_var</i></a></dt>
+<dd><p>Assumes that a NULL value is at the front of the data stored in the
+variable named <i class="arg">data_var</i> and removes the bytes used to encode it
+from the data.</p></dd>
+<dt><a name="43"><b class="cmd">::asn::asnGetSequence</b> <i class="arg">data_var</i> <i class="arg">sequence_var</i></a></dt>
+<dd><p>Assumes that an ASN sequence is at the front of the data stored in the
+variable named <i class="arg">data_var</i>, and stores it into the variable named
+by <i class="arg">sequence_var</i>. Additionally removes all bytes associated with
+the value from the data for further processing by the following
+decoder commands.</p>
+<p>The data in <i class="arg">sequence_var</i> is encoded binary and has to be
+further decoded according to the definition of the sequence, using the
+decoder commands here.</p></dd>
+<dt><a name="44"><b class="cmd">::asn::asnGetSet</b> <i class="arg">data_var</i> <i class="arg">set_var</i></a></dt>
+<dd><p>Assumes that an ASN set is at the front of the data stored in the
+variable named <i class="arg">data_var</i>, and stores it into the variable named
+by <i class="arg">set_var</i>. Additionally removes all bytes associated with the
+value from the data for further processing by the following decoder
+commands.</p>
+<p>The data in <i class="arg">set_var</i> is encoded binary and has to be further
+decoded according to the definition of the set, using the decoder
+commands here.</p></dd>
+<dt><a name="45"><b class="cmd">::asn::asnGetApplication</b> <i class="arg">data_var</i> <i class="arg">appNumber_var</i> <span class="opt">?<i class="arg">content_var</i>?</span> <span class="opt">?<i class="arg">encodingType_var</i>?</span></a></dt>
+<dd><p>Assumes that an ASN application construct is at the front of the data
+stored in the variable named <i class="arg">data_var</i>, and stores its id into
+the variable named by <i class="arg">appNumber_var</i>. Additionally removes all
+bytes associated with the value from the data for further processing
+by the following decoder commands.
+If a <i class="arg">content_var</i> is specified, then the command places all data
+associated with it into the named variable, in the binary form which
+can be processed using the decoder commands of this package.
+If a <i class="arg">encodingType_var</i> is specified, then that var is set to 1 if
+the encoding is constructed and 0 if it is primitive.</p>
+<p>Otherwise it is the responsibility of the caller to decode the
+remainder of the application construct based on the id retrieved by
+this command, using the decoder commands of this package.</p></dd>
+<dt><a name="46"><b class="cmd">::asn::asnGetContext</b> <i class="arg">data_var</i> <i class="arg">contextNumber_var</i> <span class="opt">?<i class="arg">content_var</i>?</span> <span class="opt">?<i class="arg">encodingType_var</i>?</span></a></dt>
+<dd><p>Assumes that an ASN context tag construct is at the front of the data
+stored in the variable named <i class="arg">data_var</i>, and stores its id into
+the variable named by <i class="arg">contextNumber_var</i>. Additionally removes all
+bytes associated with the value from the data for further processing
+by the following decoder commands.
+If a <i class="arg">content_var</i> is specified, then the command places all data
+associated with it into the named variable, in the binary form which
+can be processed using the decoder commands of this package.
+If a <i class="arg">encodingType_var</i> is specified, then that var is set to 1 if
+the encoding is constructed and 0 if it is primitive.</p>
+<p>Otherwise it is the responsibility of the caller to decode the
+remainder of the construct based on the id retrieved by this command,
+using the decoder commands of this package.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">HANDLING TAGS</a></h3>
+<p>Working with ASN.1 you often need to decode tagged values, which use a tag thats different
+from the universal tag for a type. In those cases you have to replace the tag with the universal tag
+used for the type, to decode the value.
+To decode a tagged value use the <b class="cmd">::asn::asnRetag</b> to change the tag to the appropriate type
+to use one of the decoders for primitive values.
+To help with this the module contains three functions:</p>
+<dl class="doctools_definitions">
+<dt><a name="47"><b class="cmd">::asn::asnPeekTag</b> <i class="arg">data_var</i> <i class="arg">tag_var</i> <i class="arg">tagtype_var</i> <i class="arg">constr_var</i></a></dt>
+<dd><p>The <b class="cmd">::asn::asnPeekTag</b> command can be used to take a peek at the data and decode the tag value, without
+removing it from the data. The <i class="arg">tag_var</i> gets set to the tag number, while the <i class="arg">tagtype_var</i> gets set
+to the class of the tag. (Either UNIVERSAL, CONTEXT, APPLICATION or PRIVATE). The <i class="arg">constr_var</i> is set to 1 if the
+tag is for a constructed value, and to 0 for not constructed. It returns the length of the tag.</p></dd>
+<dt><a name="48"><b class="cmd">::asn::asnTag</b> <i class="arg">tagnumber</i> <span class="opt">?<i class="arg">class</i>?</span> <span class="opt">?<i class="arg">tagstyle</i>?</span></a></dt>
+<dd><p>The <b class="cmd">::asn::asnTag</b> can be used to create a tag value. The <i class="arg">tagnumber</i> gives the number of the tag, while
+the <i class="arg">class</i> gives one of the classes (UNIVERSAL,CONTEXT,APPLICATION or PRIVATE). The class may be abbreviated to just the first letter (U,C,A,P),
+default is UNIVERSAL.
+The <i class="arg">tagstyle</i> is either C for Constructed encoding, or P for primitve encoding. It defaults to P. You can also use 1 instead of C and
+0 instead of P for direct use of the values returned by <b class="cmd">::asn::asnPeekTag</b>.</p></dd>
+<dt><a name="49"><b class="cmd">::asn::asnRetag</b> <i class="arg">data_var</i> <i class="arg">newTag</i></a></dt>
+<dd><p>Replaces the tag in front of the data in <i class="arg">data_var</i> with <i class="arg">newTag</i>. The new Tag can be created using the <b class="cmd">::asn::asnTag</b> command.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<p>Examples for the usage of this package can be found in the
+implementation of package <b class="package"><a href="../ldap/ldap.html">ldap</a></b>.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>asn</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key426">asn</a>, <a href="../../../../index.html#key424">ber</a>, <a href="../../../../index.html#key425">cer</a>, <a href="../../../../index.html#key427">der</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key133">protocol</a>, <a href="../../../../index.html#key422">x.208</a>, <a href="../../../../index.html#key423">x.209</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2004 Jochen Loewer &lt;loewerj@web.de&gt;<br>
+Copyright &copy; 2004-2011 Michael Schlenker &lt;mic42@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

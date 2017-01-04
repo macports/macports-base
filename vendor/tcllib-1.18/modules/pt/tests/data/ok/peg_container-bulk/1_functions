@@ -1,0 +1,21 @@
+snit::type a_pe_grammar {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {n Expression}
+        $myg add   Expression Function Sinus
+        $myg modes {
+            Expression value
+            Function   value
+            Sinus      value
+        }
+        $myg rules {
+            Expression {n Function}
+            Function   {n Sinus}
+            Sinus      {x {t s} {t i} {t n} {t \50} {n Expression} {t \51}}
+        }
+        return
+    }
+
+    component myg
+    delegate method * to myg
+}

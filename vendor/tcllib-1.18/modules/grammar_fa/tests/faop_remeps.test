@@ -1,0 +1,158 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_remeps.test,v 1.5 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-remove-${setimpl}-eps-1.0 {remove-eps, error} {
+    catch {grammar::fa::op::remove_eps} res
+    set res
+} {wrong # args: should be "grammar::fa::op::remove_eps fa"}
+
+
+test faop-remove-${setimpl}-eps-1.1 {remove-eps, error} {
+    catch {grammar::fa::op::remove_eps a b} res
+    set res
+} {wrong # args: should be "grammar::fa::op::remove_eps fa"}
+
+
+test faop-remove-${setimpl}-eps-1.2 {remove-eps, error} {
+    catch {grammar::fa::op::remove_eps a} res
+    set res
+} {invalid command name "a"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code result} {
+    00 x       id
+    01 x-      id
+    02 xe      {grammar::fa {} {x {0 0 {}}}}
+    03 xy      id
+    04 xy-     id
+    05 xye     {grammar::fa {} {x {0 0 {}} y {0 0 {}}}}
+    06 xyee    {grammar::fa {} {x {0 0 {}} y {0 0 {}}}}
+    07 xye-    {grammar::fa @  {x {0 0 {@ {x y}}} y {0 0 {@ {x y}}}}}
+    08 xy--    id
+    09 xy-=    id
+    10 xyz/ee  {grammar::fa {} {x {0 0 {}}    y {0 0 {}} z {0 0 {}}}}
+    11 xyz/e-  {grammar::fa @  {x {0 0 {@ y}} y {0 0 {}} z {0 0 {}}}}
+    12 xyz/--  id
+    13 xyz/-=  id
+    14 xyz|ee  {grammar::fa {} {x {0 0 {}}    y {0 0 {}} z {0 0 {}}}}
+    15 xyz|e-  {grammar::fa @  {x {0 0 {@ z}} y {0 0 {}} z {0 0 {}}}}
+    16 xyz|--  id
+    17 xyz|-=  id
+    18 xyz+eee {grammar::fa {}    {x {0 0 {}} y {0 0 {}} z {0 0 {}}}}
+    19 xyz+ee- {grammar::fa @     {x {0 0 {@ {x y z}}} y {0 0 {@ {x y z}}} z {0 0 {@ {x y z}}}}}
+    20 xyz+e-- {grammar::fa @     {x {0 0 {@ z}} y {0 0 {@ z}} z {0 0 {@ {x y}}}}}
+    21 xyz+e-= {grammar::fa {@ =} {x {0 0 {@ z}} y {0 0 {@ z}} z {0 0 {= {x y}}}}}
+    22 xyz+--- id
+    23 xyz+--= id
+    24 xyz+-=_ id
+    25 xyz&eee {grammar::fa {}    {x {0 0 {}} y {0 0 {}} z {0 0 {}}}}
+    26 xyz&ee- {grammar::fa @     {x {0 0 {@ z}} y {0 0 {@ z}} z {0 0 {}}}}
+    27 xyz&e-- {grammar::fa @     {x {0 0 {@ z}} y {0 0 {@ z}} z {0 0 {}}}}
+    28 xyz&e-= {grammar::fa {@ =} {x {0 0 {= z @ z}} y {0 0 {= z}} z {0 0 {}}}}
+    29 xyz&--- id
+    30 xyz&--= id
+    31 xyz&-=_ id
+    32 xyz!ee  {grammar::fa {} {x {0 0 {}} y {0 0 {}} z {0 0 {}}}}
+    33 xyz!e-  {grammar::fa @  {x {0 0 {@ z}} y {0 0 {@ z}} z {0 0 {}}}}
+    34 xyz!--  id
+    35 xyz!-=  id
+    36 xyz!-e  {grammar::fa @ {x {0 0 {@ {y z}}} y {0 0 {}} z {0 0 {}}}}
+} {
+    set key ${n}.${code}
+    if {$result eq "id"} {
+	grammar::fa a
+	gen $code
+	set result [a serialize]
+	a destroy
+    }
+
+    test faop-remove-${setimpl}-eps-2.$key {remove-eps} {
+	grammar::fa a
+	gen $code
+	grammar::fa::op::remove_eps a
+	set     res [a is epsilon-free]
+	lappend res [validate_serial $result a]
+	a destroy
+	set res
+    } {1 ok}
+
+    test faop-remove-${setimpl}-eps-3.$key {second remove eps is null operation} {
+	grammar::fa a
+	gen $code
+	grammar::fa::op::remove_eps a
+	set res [a serialize]
+	grammar::fa::op::remove_eps a
+	set res [validate_serial $res a]
+	a destroy
+	set res
+    } ok
+
+    test faop-remove-${setimpl}-eps-4.$key {remove-eps, as method} {
+	grammar::fa a
+	gen $code
+	a remove_eps
+	set     res [a is epsilon-free]
+	lappend res [validate_serial $result a]
+	a destroy
+	set res
+    } {1 ok}
+
+    test faop-remove-${setimpl}-eps-5.$key {second remove eps is null operation, as method} {
+	grammar::fa a
+	gen $code
+	a remove_eps
+	set res [a serialize]
+	a remove_eps
+	set res [validate_serial $res a]
+	a destroy
+	set res
+    } ok
+}
+
+
+foreach {n code st fin stnew finnew} {
+    00 datom x y x       y
+    01 dalt  u z {u v w} {x y z}
+    02 dopt  u x {u v x} {u w x} 
+    03 drep  u x {u v x} {u w x}
+} {
+    test faop-remove-${setimpl}-eps-6.$n.$code {remove epsilon, start/final propagation} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	grammar::fa::op::remove_eps a
+
+	set     res {}
+	lappend res [string equal $stnew  [lsort [a startstates]]]
+	lappend res [string equal $finnew [lsort [a finalstates]]]
+	a destroy
+	set res
+    } {1 1}
+
+    test faop-remove-${setimpl}-eps-7.$n.$code {remove epsilon, start/final propagation, as method} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	a remove_eps
+
+	set     res {}
+	lappend res [string equal $stnew  [lsort [a startstates]]]
+	lappend res [string equal $finnew [lsort [a finalstates]]]
+	a destroy
+	set res
+    } {1 1}
+}
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

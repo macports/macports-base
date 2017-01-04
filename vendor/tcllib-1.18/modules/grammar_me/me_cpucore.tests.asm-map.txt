@@ -1,0 +1,38 @@
+ict_advance		message				{{0 0} message {}}
+ict_match_token		{tok message}			{{1 0 1} {tok message} {}}
+ict_match_token		{5:tok message}			{{1 5 0} message {tok 5}}
+ict_match_tokrange	{tokbegin tokend message}	{{2 0 1 2} {tokbegin tokend message} {}}
+ict_match_tokrange	{5:tokbegin 6:tokend message}	{{2 5 6 0} message {tokbegin 5 tokend 6}}
+ict_match_tokclass	{alnum  message}		{{3 0 0} message {}}
+ict_match_tokclass	{alpha  message}		{{3 1 0} message {}}
+ict_match_tokclass	{digit  message}		{{3 2 0} message {}}
+ict_match_tokclass	{xdigit message}		{{3 3 0} message {}}
+ict_match_tokclass	{punct  message}		{{3 4 0} message {}}
+ict_match_tokclass	{space  message}		{{3 5 0} message {}}
+inc_restore		{branchlabel nt}		{{4 0 0} nt {}}
+inc_save		nt				{{5 0} nt {}}
+icf_ntcall		branchlabel			{{6 0} {} {}}
+icf_ntreturn		{}				{7 {} {}}
+iok_ok			{}				{8 {} {}}
+iok_fail		{}				{9 {} {}}
+iok_negate		{}				{10 {} {}}
+icf_jalways		branchlabel			{{11 0} {} {}}
+icf_jok			branchlabel			{{12 0} {} {}}
+icf_jfail		branchlabel			{{13 0} {} {}}
+icf_halt		{}				{14 {} {}}
+icl_push		{}				{15 {} {}}
+icl_rewind		{}				{16 {} {}}
+icl_pop			{}				{17 {} {}}
+ier_push		{}				{18 {} {}}
+ier_clear		{}				{19 {} {}}
+ier_nonterminal		message				{{20 0} message {}}
+ier_merge		{}				{21 {} {}}
+isv_clear		{}				{22 {} {}}
+isv_terminal		{}				{23 {} {}}
+isv_nonterminal_leaf	nt				{{24 0} nt {}}
+isv_nonterminal_range	nt				{{25 0} nt {}}
+isv_nonterminal_reduce	nt				{{26 0} nt {}}
+ias_push		{}				{27 {} {}}
+ias_mark		{}				{28 {} {}}
+ias_mrewind		{}				{29 {} {}}
+ias_mpop		{}				{30 {} {}}

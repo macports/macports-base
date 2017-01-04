@@ -1,0 +1,12 @@
+{"menu": {
+    "id": "file",
+    "value": "File:",
+    "unival": "\u6021:",
+    "popup": {
+        "menuitem": [
+                     {"value": "Open", "onclick": "OpenDoc()"},
+                     {"value": "Close", "onclick": "CloseDoc()"}
+                    ]
+    }
+}
+}

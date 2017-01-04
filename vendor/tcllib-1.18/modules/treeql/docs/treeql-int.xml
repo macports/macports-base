@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet href="api.css" type="text/css" ?>
+<!DOCTYPE api SYSTEM "api.dtd" [
+]>
+  <api>
+  <title>Treeql Shims - Internal</title>
+  <header>
+  </header>
+  <group>
+    <name>Shims</name>
+
+    <function>
+      <name>do_attr</name>
+      <args><arg>node</arg> <arg>op</arg> <arg>attr</arg></args>
+      <result>returns the result of functionally applying <arg>op</arg> to the node's attribute</result>
+      <detail>shim to perform operation {*}<arg>op</arg> on attribute <arg>attr</arg> of <arg>node</arg></detail>
+    </function>
+    
+    <function>
+      <name>do_getvals</name>
+      <args><arg>node</arg> <arg>pattern</arg></args>
+      <result>returns a list of string values of matching attributes</result>
+      <detail>shim to return string values of attributes matching <arg>pattern</arg> of a given <arg>node</arg></detail>
+    </function>
+    
+    <function>
+      <name>do_ancestors</name>
+      <args><arg>node</arg></args>
+      <result></result>
+      <detail>shim to find node ancestors by repetitive [parent]</detail>
+    </function>
+    
+    <function>
+      <name>do_previous*</name>
+      <args><arg>node</arg></args>
+      <result></result>
+    </function>
+    
+    <function>
+      <name>do_next*</name>
+      <args><arg>node</arg></args>
+      <result></result>
+    </function>
+    
+  </group>
+  <group>
+    <name>SubQueries</name>
+
+    <function>
+      <name>subquery</name>
+      <args></args>
+      <result>return result of new query $query, preserving current node set</result>
+    </function>
+    
+    <function>
+      <name>and</name>
+      <args><arg>and</arg></args>
+      <result>construct the set of nodes present in both $nodes and node set $and</result>
+    </function>
+    
+    <function>
+      <name>or</name>
+      <args><arg>or</arg></args>
+      <result>construct the set of nodes present in $nodes or node set $or</result>
+    </function>
+    
+    <function>
+      <name>not</name>
+      <args><arg>not</arg></args>
+      <result>construct the set of nodes present in $nodes but not node set $not</result>
+    </function>
+    
+  </group>
+</api>

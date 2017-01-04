@@ -1,0 +1,419 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-01-10  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.test: Requiring Tcl 8.4 here as well.
+
+	* pop3.tcl: [Bug 3471474]: Fixed bug where the socketcmd was not
+	* pop3.man: treated as cmdprefix as documented, but as command
+	* pkgIndex.tcl: name. Dropped supported for 8.2 and moved forward
+	  to require Tcl 8.4. Keep the 8.4-ism of 'eq'. Bumped the version
+	  to 1.9.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test (pop3-7.0): Updated for additional configure options
+	  returned by peek, plus same change to the socket handle handling
+	  as for pop3-0.8, see below.
+
+2011-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test (pop3-0.8): Modified the test case matching a bit to
+	  handle the fact that under 8.6 a socket channel handle may
+	  contain hex data after the general prefix, instead of just
+	  digits.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Fixed tests results to list the new options.
+	* pop3.tcl: Fixed issue with closing during open introduced by the
+	  patch. When a connect error occurs we cannot send a QUIT any
+	  longer, and have to close the socket directly.
+
+2011-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.tcl: Extended package with STARTTLS support provided by
+	* pop3.man: Pascal Scheffers. This switches a regular connection
+	* pkgIndex.tcl: over to SSL/TLS. Version bumped to 1.8.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-09-28  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.test: Moved the dialog setup for test pop3-7.0 into the
+	  test, to ensure that it is not run if TLS is not available.
+
+2009-04-13  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.tcl (::pop3::open): Extended to accept a new option
+	* pop3.man: -socketcmd, through which the user can override the
+	* pop3.test: way the connection is opened. Primary use is securing
+	* pkgIndex.tcl: of the connection via SSL (package tls, command
+	  tls::socket). Updated documentation. Extended testsuite. Bumped
+	  package version to 1.7.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-08  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.test: And snit is loaded by coserv.tcl too, no explicit
+	  load required.
+
+2007-08-01  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.test: Updated to new snit dependency in comm.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Made pop3-0.5 more robust, accept more than just
+	  'connection refused' as proper failure to connect. Like 'timed
+	  out'.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Added use of local log package, fixed bug in dialog
+	  setup for testcases pop3-2.4 and -2.5, extended these two test
+	  cases to have the dialog trace in their result.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Fixed cleanup of temp. files used by testsuite.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Hooked into the new common test support code.
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* pop3.test: Fixed [SF Tcllib Bug 1316056]. Uncluttering test
+	  output.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* clnt.tcl: Removed old unused code. It was part of the testsuite
+	* srv.tcl:  in the very beginning. It was unused in the first
+	  rewrite to the old sub process and dialog facility.
+
+	* pop3.test: Rewritten to use the new facilities for programmed
+	  interaction and sub processes.
+
+	* pop3.tcl (::pop3::open): Capitalized the user and pass
+	  commands. Every command in the wire is now fully capitalized.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-08-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Added code to remove the temp. file containing the
+	  server log.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Version bumped up to 1.6.1.
+	* pop3.man:
+
+	* pop3.test: New test for the corner case.
+	* pop3.tcl (::pop3::RetrFast): Thanks to Clif Flynt for reporting a
+	  new corner case I had not considered in the fast/slow
+	  transition code, plus patch. Modified a number of string
+	  comparisons, using [string equal] instead of "==" (Improved
+	  performance due to less conversion and less checking for
+	  numerics, and possibly bytecompilation in Tcl 8.4+).
+
+2003-11-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.tcl (pop3::open): Remembering initial count of messages, as
+	  limit for message ids.
+	  (pop3::delete): Replaced [status] call with access to stored
+	  limit for validation of message ids.
+	  (pop3::retrieve): Ditto.
+	  The changes above fix [SF Tcllib Bug 833486].
+
+	* pop3.test: Updated testsuite to the changes in the sequences of
+	  pop3 commands (New STAT after PASS, and no STAT before
+	  LAST/RETR, nor before LAST/DELE).
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Creating the name of the file containing the fake
+	  server only once. Because the tcltest 1.0 [makeFile] coming with
+	  Tcl 8.2 will return the fully generated name only once, and not
+	  everytime it is called.
+
+2003-04-21  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.test (0.6): Fixed test 0.6, removed dependency on service
+	  running on port 25 (smtp), using fake service on some free port
+	  instead.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.tcl:
+	* pop3.man:
+	* pkgIndex.tcl:  Set version of the package to to 1.6
+
+2003-04-09  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.man: Documented new API.
+
+	* pop3.tcl: More logging of internal activity. Final nail into the
+	  bug #528928 (Additional border cases were not handled yet,
+	  incorrect handling detected through the new testsuite).
+
+	  New API 'pop3::config'.
+
+	* pop3.test: Testsuite rewritten. Uses the sub-process and server
+	  support provided by the new module 'devtools'. Avoids the stdin
+	  lockup on windows. Uses a micro server for fixed responses to
+	  the client instead of a true pop3 server, simplifies the
+	  testing, less external dependencies, also better control over
+	  the data sent to the client = easier to create intentionally
+	  (semi-)bogus information to stress border cases.
+
+2003-04-03  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3.tcl: Fixed bug in the new code which wasn't found because
+	  that case was untestable when using a full-blown pop3 demon (Was
+	  unable to construct a message which caused the boundary
+	  condition to ocur in the client). Found using the microserver
+	  code.
+
+	* pop3.test: Removed test case planned to test the above mentioned
+	  boundary case. Added code for a microserver based testcase which
+	  does exercize the condition. Deactivated as microserver is not
+	  yet part of tcllib.
+
+	* pop3.test:
+	* srv.tcl: Corrected leftover changes from yesterday which should
+	  not have been in the commit. I.e. reactivated reporting and
+	  correct cleanup.
+
+2003-04-02  Andreas Kupries  <andreask@activestate.com>
+
+	* srv.tcl:
+	* pop3.test: Added tests and messages for bug #528928.
+
+	* pop3.tcl (pop3::open): Bug fix, close channel to server when
+	  talking to it fails (no greeting, login failure). This cleans up
+	  a leak of open sockets.
+
+	  (pop3::RetrFast): Fixed bug #528928 where a .-stuffed line was
+	  misinterpreted as mail terminator.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.man: More semantic markup, less visual one.
+
+2002-10-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Updated to expect 10 messages in pop3-6.0.
+	* srv.tcl: Initialize server with 10 messages. Divert log output
+	  to server log. Prevents hangs in pop3-6.0.
+
+	* pop3.tcl (pop3::retrieve): Changed conditionals around [scan] to
+	  check for the actual number of conversions required to make the
+	  code work, instead of < 0. This fixes bug 620062.
+
+2002-09-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* srv.tcl: Extended to cleanup the fake maildrop directories when
+	  exiting the server.
+
+	* pop3.test: Updated to handle differences between 8.3 and 8.4
+	  (different error messages). Added code to suppress logging under
+	  normal circumstances. Extended to clean up the log file created
+	  by the test pop3 server.
+
+2002-09-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.test: Added testcase 6.0, a nano-client to retrieve and
+	  delete all messages on a pop server in one go. Directly derived
+	  from the script for Tcllib bug #501577. Unable to reproduce that
+	  bug :(
+	
+	* pop3.test:
+	* clnt.tcl:
+	* srv.tcl: Added testsuite. Incomplete. No test of 'delete'
+	  command yet. The problems found by the testsuite so far were all
+	  in the used pop3 server (pop3d module of tcllib).
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.man: New file, doctools manpage.
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.5.1
+
+2001-12-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.tcl (retrieve): Forgot several 'RETR $index'
+	  commands. Fixed now. This is tcllib bug item #490151 reported by
+	  an unknown person.
+
+2001-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.n:
+	* pop3.tcl:
+	* pkgIndex.tcl: Version up to 1.5
+
+2001-08-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.tcl: Added UIDL command, patch [448634] by Mark G. Saye
+	  <markgsaye@users.sourceforge.net>. Code was added manually as
+	  the patch was not applicable anymore after the recent changes
+	  (see below). Updated implementation of UIDL to use the new
+	  command [RetrSlow] instead of performing the retrieval by
+	  itself. Also updated the implementations of the TOP and LIST
+	  commands to do the same.
+
+2001-08-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3.n: Updated to new package version, see [447013] too.
+
+	* pop3.tcl: Lots of changes with regard to items [443613] and
+	  [443645]. Switched auto back to binary (or else the counting of
+	  octects is not right and we will hang trying to read more than
+	  is coming from the server). This means we have to perform EOL
+	  translation on the message on our own, this was effectively an
+	  unreported bug. also unreported was that the faster code did not
+	  do .-unstuffing, which the slower line-by-line code did. This is
+	  now fixed too. My thanks to Ashwin Hirschi
+	  <deery@users.sourceforge.net> for his help in testing the code.
+
+2001-07-31  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Updated to reflect pkg version in the code. After
+	  the fact comment: This also fixes SF bug [447013]
+
+	* pop3.tcl: Added 'state' variable to remember state information
+	  about the active (= open) pop3 connections. This state includes
+	  information about the retrieval mode to use and whether we are
+	  talking to an MS Exchange server or not. MS Exchange can't be
+	  set automatically for now, but the retrieval mode is
+	  auto-detected. Because of the former, pop3::open now accepts the
+	  options -msex and -retr-mode. This should allay and fix the SF
+	  bugs [443613] and [443645].
+
+	  (pop3::list): Fixed bug [443619].
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* pop3.tcl: Fixed dubious code reported by frink.
+
+2001-01-24  Scott Redman  <redman@tivo.com>
+
+	* pop3.tcl: Fixed a bug when getting the "." back
+	with extra \r by adding a [string trimright $line].
+	Reported by Joe English, [bug: 124477].
+
+2000-09-14  Scott Redman  <redman@ajubasolutions.com>
+
+	* pop3.tcl: Based on feedback from Cameron Laird, I did some
+	digging into the RFC and figured out that using the number of
+	octets given by RETR at the beginning of the retrieval to grab
+	that number of bytes was far more efficient.  Thanks to Cameron
+	for pointing that out.  Speed for retrieval should be greatly
+	improved.  Changed version to 1.1.
+
+2000-05-18  Scott Redman  <redman@scriptics.com>
+
+	* pop3.tcl:
+	* pop3.n:  Applied patch from Petteri Kettunen to add the LIST and
+	TOP implementations.  See RFC1939.  Also removed a spurious puts
+	command.  [bug: 5426]
+
+2000-05-17  Scott Redman  <redman@scriptics.com>
+
+	* pop3.tcl:  Remove extra '.'s added by the POP3 server.  If a
+	line begins with a '.', the server will add a '.' to the line to
+	prevent confusion with the end-of-message character (which is also
+	'.'). [bug: 5522]
+
+2000-03-06  Scott Redman  <redman@scriptics.com>
+
+	* ChangeLog:
+	* man.macros:
+	* pkgIndex.tcl:
+	* pop3.n:
+	* pop3.tcl:  New POP3 email client API, inspired by Scott
+	Beasley's "frenchie" email client program.  

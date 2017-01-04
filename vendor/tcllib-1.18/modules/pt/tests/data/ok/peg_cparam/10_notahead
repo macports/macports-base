@@ -1,0 +1,96 @@
+/*
+ * -*- tcl -*-
+ * Parsing Expression Grammar 'TEMPLATE'.
+ * Generated for unknown, from file 'TEST'
+ */
+
+/*
+ * Declaring the parse functions
+ */
+
+<<attributes>> void <<ns>>notahead_3 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_6 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_TEST (<<STATE>> <<state>>);
+
+/*
+ * Precomputed table of strings (symbols, error messages, etc.).
+ */
+
+static char const* <<string-table>> [17] = {
+    /*        0 = */   "alnum",
+    /*        1 = */   "alpha",
+    /*        2 = */   "ascii",
+    /*        3 = */   "control",
+    /*        4 = */   "ddigit",
+    /*        5 = */   "digit",
+    /*        6 = */   "graph",
+    /*        7 = */   "lower",
+    /*        8 = */   "print",
+    /*        9 = */   "punct",
+    /*       10 = */   "space",
+    /*       11 = */   "upper",
+    /*       12 = */   "wordchar",
+    /*       13 = */   "xdigit",
+    /*       14 = */   "t a",
+    /*       15 = */   "n TEST",
+    /*       16 = */   "TEST"
+};
+
+/*
+ * Grammar Start Expression
+ */
+
+<<attributes>> void <<ns>><<main>> (<<STATE>> <<state>>) { <<prelude>>
+    <<self>> <<ns>>sym_TEST (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'TEST'
+ */
+
+<<attributes>> void <<ns>>sym_TEST (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     !
+    *         'a'
+    *     (IDENTIFIER)
+    */
+
+    if (rde_param_i_symbol_start (<<state>>, 16)) return ;
+    <<self>> <<ns>>sequence_6 (<<state>>);
+    rde_param_i_symbol_done_leaf (<<state>>, 16, 15);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_6 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     !
+    *         'a'
+    *     (IDENTIFIER)
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    <<self>> <<ns>>notahead_3 (<<state>>);
+    if (rde_param_i_seq_void2void(<<state>>)) return;
+    /* Undefined symbol 'IDENTIFIER' */;
+    rde_param_i_status_fail (<<state>>);
+    rde_param_i_state_merge_void (<<state>>);
+    return;
+}
+
+<<attributes>> void <<ns>>notahead_3 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * !
+    *     'a'
+    */
+
+    rde_param_i_loc_push (<<state>>);
+    rde_param_i_next_char (<<state>>, "a", 14);
+    rde_param_i_notahead_exit (<<state>>);
+    return;
+}
+
+/*
+ */

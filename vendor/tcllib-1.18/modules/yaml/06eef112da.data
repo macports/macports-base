@@ -1,0 +1,7 @@
+---
+- &foo
+- &bar
+- alpha: 43
+  beta:
+    houston: [*foo]
+    newyork:  [[*bar,[aaa]]]

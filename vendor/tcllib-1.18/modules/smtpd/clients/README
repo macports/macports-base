@@ -1,0 +1,13 @@
+These files are mail sending test scripts written in various scripting
+languages. The purpose of these is to check that our SMTPd
+inter-operates successfully with everyone else's SMTP client software.
+
+Feel free to add a test script for your favourite other language - or to
+improve the usage of any of the current languages.
+
+mail-test.pl  - Perl test script
+mail-test.py  - Python test
+mail-test.rb  - Ruby test
+mail-test.php - PHP test (requires some php.ini configuration)
+php.ini       - PHP ini file (default for Windows installations) 
+mail-test.tcl - and of course, a Tcl client!

@@ -1,0 +1,230 @@
+# -*- tcl -*-
+# Tests for the cache::async module.
+#
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: async.test,v 1.1 2008/11/19 06:04:59 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+testing {
+    useLocal async.tcl cache::async
+}
+
+# -------------------------------------------------------------------------
+# Helper commands
+
+proc DATA_NONE {method key cmd} {
+    res+ DATA_NONE $method $key $cmd
+    set ::wait .
+    return -code error "Should not be called"
+}
+
+proc DATA_VALUE {method key cmd} {
+    res+ DATA_VALUE $method $key $cmd
+    eval [linsert $cmd end set $key ALPHA]
+    return
+}
+
+proc DATA_HOLE {method key cmd} {
+    res+ DATA_HOLE $method $key $cmd
+    eval [linsert $cmd end unset $key]
+    return
+}
+
+proc DONE {args} {
+    res+ DONE $args
+    set ::wait .
+    return
+}
+
+proc WAIT {} {
+    res+ WAIT
+    vwait ::wait
+    res+ RESUME
+}
+
+# -------------------------------------------------------------------------
+
+test cache-async-1.0 {preset value} -setup {
+    cache::async ca DATA_NONE
+    ca set KEY VALUE
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DONE {set KEY VALUE}
+RESUME}
+
+test cache-async-1.1 {preset hole} -setup {
+    cache::async ca DATA_NONE
+    ca unset KEY
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DONE {unset KEY}
+RESUME}
+
+# -------------------------------------------------------------------------
+
+test cache-async-2.0 {provider value} -setup {
+    cache::async ca DATA_VALUE
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DATA_VALUE get KEY ::ca
+DONE {set KEY ALPHA}
+RESUME}
+
+test cache-async-2.1 {provider hole} -setup {
+    cache::async ca DATA_HOLE
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DATA_HOLE get KEY ::ca
+DONE {unset KEY}
+RESUME}
+
+# -------------------------------------------------------------------------
+
+test cache-async-3.0 {provider value, multi request merge} -setup {
+    cache::async ca DATA_VALUE
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    ca get KEY DONE
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DATA_VALUE get KEY ::ca
+DONE {set KEY ALPHA}
+DONE {set KEY ALPHA}
+DONE {set KEY ALPHA}
+RESUME}
+
+test cache-async-3.1 {provider hole, multi request merge} -setup {
+    cache::async ca DATA_HOLE
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    ca get KEY DONE
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DATA_HOLE get KEY ::ca
+DONE {unset KEY}
+DONE {unset KEY}
+DONE {unset KEY}
+RESUME}
+
+# -------------------------------------------------------------------------
+
+test cache-async-4.0 {preset value, sync return on hit} -setup {
+    cache::async ca DATA_NONE -full-async-results 0
+    ca set KEY VALUE
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+DONE {set KEY VALUE}}
+
+test cache-async-4.1 {preset hole, sync return on hit} -setup {
+    cache::async ca DATA_NONE -full-async-results 0
+    ca unset KEY
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+DONE {unset KEY}}
+
+# -------------------------------------------------------------------------
+
+test cache-async-5.0 {provider value, stays async} -setup {
+    cache::async ca DATA_VALUE -full-async-results 0
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DATA_VALUE get KEY ::ca
+DONE {set KEY ALPHA}
+RESUME}
+
+test cache-async-5.1 {provider hole, stays async} -setup {
+    cache::async ca DATA_HOLE -full-async-results 0
+    res!
+} -body {
+    res+ BEGIN
+    ca get KEY DONE
+    WAIT
+    res?lines
+} -cleanup {
+    ca destroy
+} -result {BEGIN
+WAIT
+DATA_HOLE get KEY ::ca
+DONE {unset KEY}
+RESUME}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

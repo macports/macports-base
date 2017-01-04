@@ -1,0 +1,310 @@
+# -*- tcl -*-
+# Tests for the multi-op system.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: multi.test,v 1.5 2008/10/11 05:42:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    use      snit/snit.tcl   snit
+    use      struct/list.tcl struct::list
+    use      wip/wip.tcl     wip
+    useLocal fileutil.tcl    fileutil
+    useLocal multiop.tcl     fileutil::multi::op
+
+    useLocalFile multiop.setup
+}
+testing {
+    useLocalKeep multi.tcl   fileutil::multi
+}
+
+# -------------------------------------------------------------------------
+
+test multi-1.0 {multi-file operation, copying} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset copy from $src to $dst the *e* except for *n*
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {{anneliese bertram connie detlev egon egon/bettina egon/suse} {bertram detlev}}
+
+test multi-1.1 {multi-file operation, moving} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset move from $src into $dst the *e* except for *n*
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {{anneliese connie egon egon/bettina egon/suse} {bertram detlev}}
+
+test multi-1.1 {multi-file operation, deletion} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset copy from $src into $dst the *e* except for *n*
+    fileutil::multi reset remove in $dst the *a*
+    mo_scan destination
+} -cleanup {
+    mo_cleanup
+} -result {detlev}
+
+test multi-1.2 {multi-file operation, recursive copying} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset recursively copy the * from $src to $dst
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {{anneliese bertram connie detlev egon egon/bettina egon/suse} {anneliese bertram connie detlev egon egon/bettina egon/suse}}
+
+test multi-1.3 {multi-file operation, recursive move} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset recursively move the * files from $src to $dst
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {egon {anneliese bertram connie detlev egon egon/bettina egon/suse}}
+
+test multi-1.4 {multi-file operation, expand and save} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset expand the *a* in $src -> v
+    lsort $v
+} -cleanup {
+    mo_cleanup ; unset v
+} -result {anneliese bertram}
+
+test multi-1.5 {multi-file operation, expand and save} -setup {
+    mo_setup
+} -body {
+    set v {bertram egon}
+    fileutil::multi reset copy the-set v from $src to $dst
+    mo_scan destination
+} -cleanup {
+    mo_cleanup ; unset v
+} -result {bertram egon egon/bettina egon/suse}
+
+# -------------------------------------------------------------------------
+
+test multi-2.0 {multi-file operation, platform conditionals, not matching, win on unix} -setup {
+    mo_setup
+} -constraints unix -body {
+    set v {bertram egon}
+    fileutil::multi reset for-win copy the-set v from $src to $dst
+    mo_scan destination
+} -cleanup {
+    mo_cleanup ; unset v
+} -result {}
+
+test multi-2.1 {multi-file operation, platform conditionals, not matching, unix on win} -setup {
+    mo_setup
+} -constraints win -body {
+    set v {bertram egon}
+    fileutil::multi reset for-unix copy the-set v from $src to $dst
+    mo_scan destination
+} -cleanup {
+    mo_cleanup ; unset v
+} -result {}
+
+test multi-2.2 {multi-file operation, platform conditionals, matching, unix} -setup {
+    mo_setup
+} -constraints unix -body {
+    set v {bertram}
+    fileutil::multi reset for-unix copy the-set v from $src to $dst
+    mo_scan destination
+} -cleanup {
+    mo_cleanup ; unset v
+} -result {bertram}
+
+test multi-2.3 {multi-file operation, platform conditionals, matching, windows} -setup {
+    mo_setup
+} -constraints win -body {
+    set v {bertram}
+    fileutil::multi reset for-win copy the-set v from $src to $dst
+    mo_scan destination
+} -cleanup {
+    mo_cleanup ; unset v
+} -result {bertram}
+
+# -------------------------------------------------------------------------
+
+proc rec {args} {
+    global  res
+    lappend res $args
+    return
+}
+
+test multi-3.0 {multi-file operation, invoke user operation} -setup {
+    mo_setup
+} -constraints unix -body {
+    set v {bertram egon}
+    set res {}
+    fileutil::multi reset invoke rec the-set v from $src to $dst as X
+    set res
+} -cleanup {
+    mo_cleanup ; unset v res
+} -result [list [list $src $dst {bertram X egon egon}]]
+
+# -------------------------------------------------------------------------
+
+test multi-4.0 {multi-file operation, moving, files} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset move the * files from $src into $dst
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {{egon egon/bettina egon/suse} {anneliese bertram connie detlev}}
+
+test multi-4.1 {multi-file operation, moving, directories} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset move the * directories from $src into $dst
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {{anneliese bertram connie detlev} {egon egon/bettina egon/suse}}
+
+test multi-4.2 {multi-file operation, moving, links} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset move the * links from $src into $dst
+    list [mo_scan origin] [mo_scan destination]
+} -cleanup {
+    mo_cleanup
+} -result {{anneliese bertram connie detlev egon egon/bettina egon/suse} {}}
+
+# -------------------------------------------------------------------------
+
+test multi-5.0 {multi-file operation, strict destination} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset strict into ${dst}x
+} -cleanup {
+    mo_cleanup
+} -returnCodes error -result "Destination directory \"${dst}x\": Does not exist"
+
+test multi-5.1 {multi-file operation, non-strict destination} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset !strict into ${dst}x
+} -cleanup {
+    mo_cleanup
+} -result {}
+
+test multi-5.2 {multi-file operation, strict expansion} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset strict expand the A* in $src
+} -cleanup {
+    mo_cleanup
+} -returnCodes error -result "No files matching pattern \"A*\" in directory \"$src\""
+
+test multi-5.3 {multi-file operation, non-strict expansion} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset !strict expand the A* in $src
+} -cleanup {
+    mo_cleanup
+} -result {}
+
+# -------------------------------------------------------------------------
+
+test multi-6.0 {multi-file operation, query state, defaults} -setup {
+    mo_setup
+    fileutil::multi reset
+} -body {
+    list \
+	[dictsort [fileutil::multi state?]] \
+	[fileutil::multi as?] \
+	[fileutil::multi excluded?] \
+	[fileutil::multi from?] \
+	[fileutil::multi into?] \
+	[fileutil::multi operation?] \
+	[fileutil::multi recursive?] \
+	[fileutil::multi strict?] \
+	[fileutil::multi type?]
+
+} -cleanup {
+    mo_cleanup
+} -result {{as {} excluded {} from {} into {} op {} recursive 0 strict 0 type {}} {} {} {} {} {} 0 0 {}}
+
+test multi-6.1 {multi-file operation, query state, settings} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset from $src to B not C* as D links recursive strict move
+    string map [list $src @] [list \
+				  [dictsort [fileutil::multi state?]] \
+				  [fileutil::multi as?] \
+				  [fileutil::multi excluded?] \
+				  [fileutil::multi from?] \
+				  [fileutil::multi into?] \
+				  [fileutil::multi operation?] \
+				  [fileutil::multi recursive?] \
+				  [fileutil::multi strict?] \
+				  [fileutil::multi type?]]
+} -cleanup {
+    mo_cleanup
+} -result {{as D excluded C* from @ into B op move recursive 1 strict 1 type links} D C* @ B move 1 1 links}
+
+# -------------------------------------------------------------------------
+
+test multi-7.0 {multi-file operation, change destination dir, subdir} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset in A cd B into?
+} -cleanup {
+    mo_cleanup
+} -result A/B
+
+test multi-7.1 {multi-file operation, change destination dir, up} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset in A cd B up into?
+} -cleanup {
+    mo_cleanup
+} -result A
+
+# -------------------------------------------------------------------------
+
+test multi-8.0 {multi-file operation, stack handling} -setup {
+    mo_setup
+} -body {
+    list \
+	[dictsort [fileutil::multi reset state?]] \
+	[dictsort [fileutil::multi \( into B as A not C* state?]] \
+	[dictsort [fileutil::multi \) state?]]
+} -cleanup {
+    mo_cleanup
+} -result [list \
+	       {as {} excluded {} from {} into {} op {} recursive 0 strict 0 type {}} \
+	       {as A excluded C* from {} into B op {} recursive 0 strict 0 type {}} \
+	       {as {} excluded {} from {} into {} op {} recursive 0 strict 0 type {}} \
+	      ]
+
+test multi-8.1 {multi-file operation, stack handling, underflow} -setup {
+    mo_setup
+} -body {
+    fileutil::multi reset \)
+} -cleanup {
+    mo_cleanup
+} -returnCodes error -result {Stack underflow}
+
+# -------------------------------------------------------------------------
+mo_cleanup_all
+testsuiteCleanup
+return

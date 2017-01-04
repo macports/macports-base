@@ -1,0 +1,42 @@
+
+    doc -- Generate and/or validate documentation
+
+    sak doc ?format? ?module...?
+
+        Convert the documentation for the specified module into the
+        given format. Modules can be specified by their plain name, or
+        as relative path.
+
+	The special format 'validate' causes the tool to syntax check
+        of the input without generating actual output. When output is
+        generated it is written into the sub-directory 'doc'/format of
+        the current working directory.
+
+	The special format 'imake' scans the checkout for manpages and
+	saves the list of found files into a file in the support
+	directory. This files will be put into CVS. The special format
+	'ishow' will dump the contents of this list to stdout. Both
+	have been added to make it easy to verify that a checkout has
+	all manpages it should have. These two formats ignore any
+	module information they are given.
+
+	The format is actually a glob and output is generated for all
+	known formats matching it. It is implicitly padded with a * to
+	allow the use of prefixes.
+
+        The known output formats (beyond 'validate') are
+
+        - dvi     See latex, + conversion to dvi (via 'latex' application)
+        - html    HTML pages
+        - latex   LaTeX pages
+        - list    A list of manpages
+        - nroff   Manpages
+        - ps      See dvi, + conversion to PostScript (via 'dvips' application)
+	- pdf     See ps, + conversion to PDF (via 'ps2pdf' application)
+        - text    Plain text
+        - tmml    TMML (Tcl Manpage Markup Language)
+        - wiki    Wiki markup (Tcler's Wiki)
+
+	- validate     Validate syntax, no output
+	- imake	       Make list of all manpages and save in checkout, no output.
+	- ishow	       Print list of manpages saved in checkout to stdout.

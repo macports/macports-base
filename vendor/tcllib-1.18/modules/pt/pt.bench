@@ -1,0 +1,186 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'pt' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.5 for the packages and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.5]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package require Tcl 8.5
+
+package forget struct::stack
+package forget char
+package forget snit
+package forget pt::ast
+package forget pt::parse::peg
+package forget pt::pe
+package forget pt::pe::op
+package forget pt::peg
+package forget pt::peg::container
+package forget pt::peg::container::peg
+package forget pt::peg::interp
+package forget pt::rde
+
+catch { namespace delete ::snit }
+catch { namespace delete ::pt }
+
+set self  [file join [pwd] [file dirname [info script]]]
+set mod   [file dirname $self]
+set index [file join [file dirname $self] tcllibc pkgIndex.tcl]
+
+if 1 {
+    if {[file exists $index]} {
+	set ::dir [file dirname $index]
+	uplevel #0 [list source $index]
+	unset ::dir
+	package require tcllibc
+    }
+}
+
+source [file join $mod  snit   snit2.tcl]
+source [file join $mod  struct stack.tcl]
+
+source [file join $self char.tcl]
+source [file join $self pt_astree.tcl]
+source [file join $self pt_pexpression.tcl]
+source [file join $self pt_pegrammar.tcl]
+source [file join $self pt_peg_container.tcl]
+source [file join $self pt_peg_container_peg.tcl]
+source [file join $self pt_rdengine.tcl]
+source [file join $self pt_peg_interp.tcl]
+source [file join $self pt_parse_peg.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Initialize the data we are using as parser input.
+
+set peg   [file join $self tests data ok peg_peg-fused/3_peg_itself]
+set c     [open $peg r]
+set input [read $c]
+close $c
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+struct::stack::SwitchTo {}
+foreach e [struct::stack::KnownImplementations] {
+    ::struct::stack::LoadAccelerator $e
+}
+
+pt::rde::SwitchTo {}
+foreach e [pt::rde::KnownImplementations] {
+    ::pt::rde::LoadAccelerator $e
+}
+
+pt::parse::peg::SwitchTo {}
+foreach e [pt::parse::peg::KnownImplementations] {
+    ::pt::parse::peg::LoadAccelerator $e
+}
+
+# ### ### ### ######### ######### ######### ###########################
+
+proc DOI {rdeimpl stackimpl} {
+
+    if {$rdeimpl eq "critcl"} {
+	set iter 1000
+    } elseif {$stackimpl eq "critcl"} {
+	set iter 100
+    } else {
+	set iter 10
+    }
+
+    bench -iter $iter -desc "peg interpreter rde($rdeimpl) stack($stackimpl) PEG" -pre {
+	set g [pt::peg::container::peg %AUTO%]         ; # load peg grammar
+	set i [pt::peg::interp         %AUTO%]         ; # grammar interpreter / parser
+	$i use $g
+	$g destroy
+    } -body {
+	$i parset $input
+    } -post {
+	$i destroy
+    }
+    return
+}
+
+proc DOS {parseimpl rdeimpl stackimpl} {
+
+    if {$parseimpl eq "critcl"} {
+	set iter 1000
+    } elseif {$rdeimpl eq "critcl"} {
+	set iter 1000
+    } elseif {$stackimpl eq "critcl"} {
+	set iter 100
+    } else {
+	set iter 10
+    }
+
+    bench -iter $iter -desc "peg specialized parse($parseimpl) rde($rdeimpl) stack($stackimpl) PEG" -pre {
+	set i [pt::parse::peg]
+    } -body {
+	$i parset $input
+    } -post {
+	$i destroy
+    }
+
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+# Note: When using pt::rde's C implementation struct::stack is not
+#       used, and its implementation of no relevance.
+#
+#       Similarly, when pt::parse::peg's C implementation is used
+#       neither pt::rde's, nor struct::stack's implementations are of
+#       relevance.
+
+foreach parseimpl [pt::parse::peg::Implementations] {
+    pt::parse::peg::SwitchTo $parseimpl
+
+    if {$parseimpl eq "critcl"} {
+	pt::rde::SwitchTo {}
+	struct::stack::SwitchTo {}
+	DOS $parseimpl n/a n/a
+    } else {
+	foreach rdeimpl [pt::rde::Implementations] {
+	    pt::rde::SwitchTo $rdeimpl
+
+	    if {$rdeimpl eq "critcl"} {
+		struct::stack::SwitchTo {}
+		DOS $parseimpl $rdeimpl n/a
+	    } else {
+		foreach stackimpl [struct::stack::Implementations] {
+		    struct::stack::SwitchTo $stackimpl
+
+		    DOS $parseimpl $rdeimpl $stackimpl
+		}
+	    }
+	}
+    }
+}
+
+foreach rdeimpl [pt::rde::Implementations] {
+    pt::rde::SwitchTo $rdeimpl
+
+    if {$rdeimpl eq "critcl"} {
+	struct::stack::SwitchTo {}
+	DOI $rdeimpl n/a
+    } else {
+	foreach stackimpl [struct::stack::Implementations] {
+	    struct::stack::SwitchTo $stackimpl
+
+	    DOI $rdeimpl $stackimpl
+	}
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

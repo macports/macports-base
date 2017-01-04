@@ -1,0 +1,316 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin pt::peg_language n 1]
+[include include/module.inc]
+[titledesc {PEG Language Tutorial}]
+[description]
+[include include/ref_intro.inc]
+
+Welcome to the tutorial / introduction for the
+[sectref {PEG Specification Language}].
+
+If you are already familiar with the language we are about to discuss,
+and only wish to refresh your memory you can, of course, skip ahead to
+the aforementioned section and just read the full formal specification.
+
+[section {What is it?}]
+
+[include include/format/whatis_peg.inc]
+
+[section {The elements of the language}]
+[subsection {Basic structure}]
+
+The general outline of a textual PEG is
+
+[example {
+PEG <<name>> (<<start-expression>>)
+   <<rules>>
+END;
+}]
+
+[emph Note]: We are using text in double angle-brackets as
+place-holders for things not yet explained.
+
+[subsection Names]
+
+Names are mostly used to identify the nonterminal symbols of the
+grammar, i.e. that which occurs on the left-hand side of a <rule>.
+The exception to that is the name given after the keyword [const PEG]
+(see previous section), which is the name of the whole grammar itself.
+
+[para]
+
+The structure of a name is simple:
+
+[list_begin enumerated]
+[enum] It begins with a letter, underscore, or colon, followed by
+[enum] zero or more letters, digits, underscores, or colons.
+[list_end]
+
+Or, in formal textual notation:
+
+[example {
+    ([_:] / <alpha>) ([_:] / <alnum>)*
+}]
+
+Examples of names:
+
+[example {
+    Hello
+    ::world
+    _:submarine55_
+}]
+
+Examples of text which are [emph not] names:
+
+[example {
+    12
+    .bogus
+    0wrong
+    @location
+}]
+
+[subsection Rules]
+
+The main body of the text of a grammar specification is taken up by
+the rules. Each rule defines the sentence structure of one nonterminal
+symbol. Their basic structure is
+
+[example {
+     <<name>>  <-  <<expression>> ;
+}]
+
+The <name> specifies the nonterminal symbol to be defined, the
+<expression> after the arrow (<-) then declares its structure.
+
+[para]
+
+Note that each rule ends in a single semicolon, even the last.
+I.e. the semicolon is a rule [emph terminator], not a separator.
+
+[para]
+
+We can have as many rules as we like, as long as we define each
+nonterminal symbol at most once, and have at least one rule for each
+nonterminal symbol which occured in an expression, i.e. in either the
+start expression of the grammar, or the right-hande side of a rule.
+
+[subsection Expressions]
+
+The [emph parsing] expressions are the meat of any specification. They
+declare the structure of the whole document (<<start-expression>>),
+and of all nonterminal symbols.
+
+[para]
+
+All expressions are made up out of [term {atomic expressions}] and
+[term operators] combining them. We have operators for choosing
+between alternatives, repetition of parts, and for look-ahead
+constraints. There is no explicit operator for the sequencing (also
+known as [term concatenation]) of parts however. This is specified by
+simply placing the parts adjacent to each other.
+
+[para]
+
+Here are the operators, from highest to lowest priority (i.e. strength
+of binding):
+
+[example {
+    # Binary operators.
+
+    <<expression-1>>     <<expression-2>>  # sequence. parse 1, then 2.
+    <<expression-1>>  /  <<expression-2>>  # alternative. try to parse 1, and parse 2 if 1 failed to parse.
+
+    # Prefix operators. Lookahead constraints. Same priority.
+
+    & <<expression>>  # Parse expression, ok on successful parse.
+    ! <<expression>>  # Ditto, except ok on failure to parse.
+
+    # Suffix operators. Repetition. Same priority.
+
+    <<expression>> ?  # Parse expression none, or once (repeat 0 or 1).
+    <<expression>> *  # Parse expression zero or more times.
+    <<expression>> +  # Parse expression one or more times.
+
+    # Expression nesting
+
+    ( <<expression>> ) # Put an expression in parens to change its priority.
+}]
+
+With this we can now deconstruct the formal expression for names given
+in section [sectref Names]:
+
+[example {
+    ([_:] / <alpha>) ([_:] / <alnum>)*
+}]
+
+It is a sequence of two parts,
+[example {    [_:] / <alpha> }]
+and
+[example {    ([_:] / <alnum>)* }]
+
+The parentheses around the parts kept their inner alternatives bound
+together against the normally higher priority of the sequence. Each of
+the two parts is an alternative, with the second part additionally
+repeated zero or more times, leaving us with the three atomic
+expressions
+
+[example {
+    [_:]
+    <alpha>
+    <alnum>
+}]
+
+And [term {atomic expressions}] are our next topic. They
+fall into three classes:
+
+[list_begin enumerated]
+[enum] names, i.e. nonterminal symbols,
+[enum] string literals, and
+[enum] character classes.
+[list_end]
+
+Names we know about already, or see section [sectref Names] for a
+refresher.
+
+[para]
+
+String literals are simple. They are delimited by (i.e. start and end
+with) either a single or double-apostroph, and in between the
+delimiters we can have any character but the delimiter itself. They
+can be empty as well. Examples of strings are
+
+[example {
+    ''
+    ""
+    'hello'
+    "umbra"
+    "'"
+    '"'
+}]
+
+The last two examples show how to place any of the delimiters into a
+string.
+
+[para]
+
+For the last, but not least of our atomic expressions, character
+classes, we have a number of predefined classes, shown below, and the
+ability to construct or own. The predefined classes are:
+
+[example {
+    <alnum>    # Any unicode alphabet or digit character (string is alnum).
+    <alpha>    # Any unicode alphabet character (string is alpha).
+    <ascii>    # Any unicode character below codepoint 0x80 (string is ascii).
+    <control>  # Any unicode control character (string is control).
+    <ddigit>   # The digit characters [0-9].
+    <digit>    # Any unicode digit character (string is digit).
+    <graph>    # Any unicode printing character, except space (string is graph).
+    <lower>    # Any unicode lower-case alphabet character (string is lower).
+    <print>    # Any unicode printing character, incl. space (string is print).
+    <punct>    # Any unicode punctuation character (string is punct).
+    <space>    # Any unicode space character (string is space).
+    <upper>    # Any unicode upper-case alphabet character (string is upper).
+    <wordchar> # Any unicode word character (string is wordchar).
+    <xdigit>   # The hexadecimal digit characters [0-9a-fA-F].
+    .          # Any character, except end of input.
+}]
+
+And the syntax of custom-defined character classes is
+
+[example {
+    [ <<range>>* ]
+}]
+
+where each range is either a single character, or of the form
+
+[example {
+   <<character>> - <character>>
+}]
+
+Examples for character classes we have seen already in the course of
+this introduction are
+
+[example {
+    [_:]
+    [0-9]
+    [0-9a-fA-F]
+}]
+
+We are nearly done with expressions. The only piece left is to tell
+how the characters in character classes and string literals are
+specified.
+
+[para]
+
+Basically characters in the input stand for themselves, and in
+addition to that we several types of escape syntax to to repesent
+control characters, or characters outside of the encoding the text is
+in.
+
+[para]
+
+All the escaped forms are started with a backslash character ('\',
+unicode codepoint 0x5C). This is then followed by a series of octal
+digits, or 'u' and hexedecimal digits, or a regular character from a
+fixed set for various control characters. Some examples:
+
+[example {
+    \n \r \t \' \" \[ \] \\ #
+    \000 up to \277         # octal escape, all ascii character, leading 0's can be removed.
+    \u2CA7                  # hexadecimal escape, all unicode characters.
+    #                       # Here 2ca7 <=> Koptic Small Letter Tau
+}]
+
+[subsection {Whitespace and comments}]
+
+One issue not touched upon so far is whitespace and comments.
+
+[para]
+
+Whitespace is any unicode space character, i.e. anything in the
+character class <space>, and comments. The latter are sequences of
+characters starting with a '#' (hash, unicode codepoint 0x23) and
+ending at the next end-of-line.
+
+[para]
+
+Whitespace can be freely used between all syntactical elements of a
+grammar specification. It cannot be used inside of syntactical
+elements, like names, string literals, predefined character classes,
+etc.
+
+[subsection {Nonterminal attributes}]
+
+Lastly, a more advanced topic. In the section [sectref Rules] we gave
+the structure of a rule as
+
+[example {
+     <<name>>  <-  <<expression>> ;
+}]
+
+This is not quite true. It is possible to associate a semantic mode
+with the nonterminal in the rule, by writing it before the name,
+separated from it by a colon, i.e. writing
+
+[example {
+    <<mode>> : <<name>>  <-  <<expression>> ;
+}]
+
+is also allowed. This mode is optional. The known modes and their
+meanings are:
+
+[include include/modes.inc]
+
+Of these three modes only [const leaf] and [const void] can be
+specified directly. [const value] is implicitly specified by the
+absence of a mode before the nonterminal.
+
+[para]
+
+Now, with all the above under our belt it should be possible to not
+only read, but understand the formal specification of the text
+representation shown in the next section, written in itself.
+
+[include include/format/peg.inc]
+[include include/feedback.inc]
+[manpage_end]

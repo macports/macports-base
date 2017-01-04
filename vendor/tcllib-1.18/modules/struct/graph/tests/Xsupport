@@ -1,0 +1,320 @@
+# -*- tcl -*-
+# graph.testsupport:  Helper commands for the testsuite.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# All rights reserved.
+#
+# RCS: @(#) $Id: Xsupport,v 1.4 2009/11/03 17:38:30 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Validate a serialization against the graph it was generated from.
+
+proc validate_serial {g serial {nodes {}}} {
+    # Need a list with length a multiple of 3, plus one.
+
+    if {[llength $serial] % 3 != 1} {
+	return serial/wrong#elements
+    }
+
+    set gattr [lindex $serial end]
+    if {[llength $gattr] % 2} {
+	return attr/graph/wrong#elements
+    }
+    if {![string equal \
+	    [dictsort $gattr] \
+	    [dictsort [$g getall]]]} {
+	return attr/graph/data-mismatch
+    }
+
+    # Check node attrs and arcs information
+    array set an {}
+    array set ne {}
+    foreach {node attr arcs} [lrange $serial 0 end-1] {
+	# Must not list nodes outside of origin
+	if {![$g node exists $node]} {
+	    return node/$node/unknown
+	}
+	# Node structure correct ?
+	if {[llength $attr] % 2} {
+	    return node/$node/attr/wrong#elements
+	}
+	# Node attributes matching ?
+	if {![string equal \
+		[dictsort $attr] \
+		[dictsort [$g node getall $node]]]} {
+	    return node/$node/attr/data-mismatch
+	}
+	# Remember nodes for reverse check.
+	set ne($node) .
+
+	# Go through the attached arcs.
+	foreach a $arcs {
+	    # Structure correct ?
+	    if {([llength $a] != 3) && ([llength $a] != 4)} {
+		return node/$node/arc/wrong#elements
+	    }
+	    # Decode structure
+	    foreach {arc dst aattr} $a break
+	    # Already handled ?
+	    if {[info exists an($arc)]} {
+		return arc/$arc/duplicate-definition
+	    }
+	    # Must not list arc outside of origin
+	    if {![$g arc exists $arc]} {
+		return arc/$arc/unknown
+	    }
+	    # Attribute structure correct ?
+	    if {[llength $aattr] % 2} {
+		return arc/$arc/attr/wrong#elements
+	    }
+	    # Attribute data correct ?
+	    if {![string equal \
+		    [dictsort $aattr] \
+		    [dictsort [$g arc getall $arc]]]} {
+		return arc/$arc/attr/data-mismatch
+	    }
+	    # Arc information, node reference ok ?
+	    if {![string is integer -strict $dst]} {
+		return arc/$arc/dst/not-an-integer
+	    }
+	    if {$dst < 0} {
+		return arc/$arc/dst/out-of-bounds
+	    }
+	    if {$dst >= [llength $serial]} {
+		return arc/$arc/dts/out-of-bounds
+	    }
+	    # Arc information matching origin ?
+	    if {![string equal $node [$g arc source $arc]]} {
+		return arc/$arc/src/mismatch/$node/[$g arc source $arc]
+	    }
+	    if {![string equal [lindex $serial $dst] [$g arc target $arc]]} {
+		return arc/$arc/dst/mismatch/$node/[$g arc target $arc]
+	    }
+	    # Arc weight ok?
+	    if {[llength $a] == 4} {
+		if {![$g arc hasweight $arc]} {
+		    return arc/$arc/weight/mismatch/existence/defined-but-missing
+		} elseif {[lindex $a end] ne [$g arc getweight $arc]} {
+		    return arc/$arc/weight/mismatch/value/[lindex $a end]/[$g arc getweight $arc]/
+		}
+	    } elseif {[$g arc hasweight $arc]} {
+		return arc/$arc/weight/mismatch/existence/undefined-but-notmissing
+	    }
+	    # Remember for check for multiples
+	    set an($arc) .
+	}
+    }
+
+    # Nodes ... All must exist in graph ...
+    #       ... Spanning nodes have to be in serialization
+
+    if {[llength $nodes] == 0} {
+	set nodes [lsort [$g nodes]]
+    } else {
+	set nodes [lsort $nodes]
+    }
+
+    # Reverse check ...
+    if {[array size ne] != [llength $nodes]} {
+	return nodes/mismatch/#nodes
+    }
+    if {![string equal [lsort [array names ne]] $nodes]} {
+	return nodes/mismatch/data
+    }
+
+    # Arcs ... All must exist in graph ...
+    #      ... src / dst has to exist, has to match data in graph.
+    #      ... All arcs between nodes in 'n' have to be in 'a'
+
+    foreach k [$g arcs] {
+	set s [$g arc source $k]
+	set e [$g arc target $k]
+	if {[info exists ne($s)] && [info exists ne($e)] && ![info exists an($k)]} {
+	    return arc/$k/missing/should-have-been-listed
+	}
+    }
+
+    return ok
+}
+
+#----------------------------------------------------------------------
+
+proc SETUP {{g mygraph}} {
+    catch {$g destroy}
+    struct::graph $g
+}
+
+#----------------------------------------------------------------------
+
+proc SETUPx {} {
+    SETUP
+
+    mygraph node insert %0 %1 %2 %3 %4 %5
+    mygraph node set    %0 volume 30
+    mygraph node set    %5 volume 50
+
+    mygraph arc insert %0 %1 0 ; mygraph arc set 0 volume 30
+    mygraph arc insert %0 %2 1
+    mygraph arc insert %0 %3 2
+    mygraph arc insert %3 %4 3
+    mygraph arc insert %4 %5 4
+    mygraph arc insert %5 %3 5 ; mygraph arc set 5 volume 50
+}
+
+#----------------------------------------------------------------------
+
+proc SETUPwalk {} {
+    SETUP
+    mygraph node insert i ii iii iv v vi vii viii ix
+    mygraph arc insert   i    ii  1
+    mygraph arc insert   ii  iii  2
+    mygraph arc insert   ii  iii  3
+    mygraph arc insert   ii  iii  4
+    mygraph arc insert  iii   iv  5
+    mygraph arc insert  iii   iv  6
+    mygraph arc insert   iv    v  7
+    mygraph arc insert    v   vi  8
+    mygraph arc insert   vi viii  9
+    mygraph arc insert viii    i 10
+    mygraph arc insert    i   ix 11
+    mygraph arc insert   ix   ix 12
+    mygraph arc insert    i  vii 13
+    mygraph arc insert  vii   vi 14
+}
+
+#----------------------------------------------------------------------
+# Generators for various error messages generated
+# by the implementations.
+
+proc MissingArc  {g a} {return "arc \"$a\" does not exist in graph \"$g\""}
+proc MissingNode {g n} {return "node \"$n\" does not exist in graph \"$g\""}
+
+proc ExistingArc  {g a} {return "arc \"$a\" already exists in graph \"$g\""}
+proc ExistingNode {g n} {return "node \"$n\" already exists in graph \"$g\""}
+
+proc MissingKey {e type k} {return "invalid key \"$k\" for $type \"$e\""}
+
+# Fake for graph attribute tests
+proc MissingGraph {args} {return {Bogus missing}}
+
+#----------------------------------------------------------------------
+
+# Helper commands for TSP problems.
+
+# 1. Generate canonical arc direction for a set of arcs, assuming that
+#    the arcs are specified as {nodeA nodeB}. Handles plain arc names
+#    as well, by ignoring them. Works only if plain arc names do not
+#    contain spaces.
+
+proc undirected {arcs} {
+    # arcs = list(arc), arc = list(source target)
+    set result {}
+    foreach a $arcs {
+	if {[llength $a] < 2} {
+	    lappend result $a
+	} else {
+	    lappend result [lsort $a]
+	}
+    }
+    return $result
+}
+
+# 2. Canonical representations of TSP tours.
+# 2a. For symmetrical graphs the tour weight is invariant under node
+#     rotation and reversal of direction.
+# 2b. For asymmetrical graphs the tour weight is invariant under node
+#     rotation.
+#
+# 'toursort' generates a canonical representation for a tour per (2a).
+# First node is smallest node in the tour, second node is the smallest
+# of the two neighbours in the tour, of the first node.
+#
+# 'toursorta' generates a canonical representation for a tour per (2b).
+# First node is smallest node in the tour.
+#
+# 'Smallest' isdefined through lexicographical comparison of node
+# names (lsort -dict).
+
+proc toursort {nodes} {
+    # Remember: last(nodes) == first(nodes)
+
+    # Empty or single-node tour => nothing to do.
+    if {[llength $nodes] <= 2} {
+	return $nodes
+    }
+
+    # Two-node tour => Sort it.
+    if {[llength $nodes] == 2} {
+	return [list {*}[set first [lsort -dict [lrange $nodes 0 1]]] $first]
+    }
+
+    # Three or more nodes requires more complex operations.
+
+    set nodes [lrange $nodes 0 end-1] ; # Drop the duplicate
+    set min [lindex [lsort -dict $nodes] 0]
+    set pos [lsearch -exact $nodes $min]
+
+    # Extended list with pre-fist/post-last nodes to avoid boundary
+    # computations when getting the neighbours of min.
+
+    set e [list [lindex $nodes end] {*}$nodes [lindex $nodes 0]]
+
+    # We have to correct pos (+1) for the extended list, inlining this
+    # into the neighbour extraction, we are looking for the nodes at
+    # locations (pos+1)-1 and (pos+1)+1, i.e. pos and pos+2.
+
+    set pre  [lindex $e $pos]
+    set post [lindex $e $pos+2]
+
+    if {[lindex [lsort -dict [list $pre $post]] 0] eq $pre} {
+	# pre < post => The direction is wrong, reverse.
+	set nodes [lreverse $nodes]
+	set pos   [lsearch -exact $nodes $min]
+    }
+
+    # Now it is time to rotate the node last to bring min to the
+    # front, if it is not there already.
+
+    if {$pos > 0} {
+	set nodes [list {*}[lrange $nodes ${pos} end] {*}[lrange $nodes 0 ${pos}-1]]
+    }
+
+    # Re-add the duplicate.
+    lappend nodes [lindex $nodes 0]
+    return $nodes
+}
+
+proc toursorta {nodes} {
+    # Remember: last(nodes) == first(nodes)
+
+    # Empty or single-node tour => nothing to do.
+    if {[llength $nodes] <= 2} {
+	return $nodes
+    }
+
+    # Two-node tour => Sort it.
+    if {[llength $nodes] == 2} {
+	return [list {*}[set first [lsort -dict [lrange $nodes 0 1]]] $first]
+    }
+
+    # Three or more nodes requires more complex operations.
+
+    set nodes [lrange $nodes 0 end-1] ; # Drop the duplicate
+    set pos   [lsearch -exact $nodes [lindex [lsort -dict $nodes] 0]]
+
+    # Now it is time to rotate the node last to bring min to the
+    # front, if it is not there already.
+
+    if {$pos > 0} {
+	set nodes [list {*}[lrange $nodes ${pos} end] {*}[lrange $nodes 0 ${pos}-1]]
+    }
+
+    # Re-add the duplicate.
+    lappend nodes [lindex $nodes 0]
+    return $nodes
+}
+
+#----------------------------------------------------------------------

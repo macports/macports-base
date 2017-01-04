@@ -1,0 +1,245 @@
+2013-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* transmitter.crt: [Bug 3433470] Regenerated the certificates,
+	* transmitter.key: again. Expiry is Jan 2023 (10 years).
+	* receiver.crt: While SimpleCA doesn't seem to allow me to
+	* receiver.key: specify a longer period in the GUI it was possible
+	* ca.crt: to get, update and run the Tcl code, unwrapped.
+	* ca.key: Further changed to 4096-bit certs.
+
+2011-11-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Fixed typos, one still breaking 'testsNeed'.
+
+2011-11-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Fixed 'testsNeed' command to require the
+	  needed package and abort properly when it is not found.
+
+	* transmitter.crt: [Bug 3433470] Regenerated the certificates.
+	* transmitter.key: Expiry is Nov 2012. SimpleCA doesn't seem
+	* receiver.crt: to allow me to specify a longer period. :(
+	* receiver.key: Updated README.
+	* ca.crt:
+	* ca.key:
+	* README:
+
+2011-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added new constraint to identify core version
+	  upto Tcl 8.5, but not higher.
+
+2011-01-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl (useTcllibC): Account for the possibility of
+	  the environment providing a tcllibc, instead of a Tcllib local
+	  one.
+
+2011-01-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl (snitTooManyArgs): Fixed error messages for
+	  snit 1.x series.
+
+2010-09-15  Andreas Kupries  <andreask@activestate.com>
+
+	* testutilities.tcl: [Bug 3066026]: Moved the tcltest
+	compatibility initialization into a procedure (InitializeTcltest)
+	which is called by testNeedsTcltest and a few other places to be
+	done only after we are sure that the tcltest package is present.
+
+2010-03-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added constraint for 8.4-.
+
+2009-09-24  Andreas Kupries  <andreask@activestate.com>
+
+	* testutilities.tcl: Added constraint for 8.6+.
+
+2009-04-13  Andreas Kupries  <andreask@activestate.com>
+
+	* dialog.tcl: Extended to allow dialog over a socket secured by
+	  SSL (via package tls).
+
+2009-04-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ca.crt: New files, SSL/TLS certificates for use in testsuites.
+	* ca.key: ca.* = Tcllib Certification Authority
+	* ca.key.password: Receiver, Transmitter = Certificates for two
+	* receiver.crt: sides of a communication channel.
+	* receiver.key:
+	* transmitter.crt:
+	* transmitter.key:
+
+	* README: Acknowledgement added for the SimpleCA software used to
+	  create the certificates.
+
+2008-09-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* testutitlites.tcl: Added wrong num args error messages for
+	  Tcl 8.6 alphas, to make tests pass.
+
+2007-04-30  Andreas Kupries  <andreask@activestate.com>
+
+	* testutilities.tcl: Made TestFiles 8.2-ready. Added command
+	  'TestFilesGlob' to simply return files instead of immediately
+	  sourcing them.
+
+2007-04-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added 'TestFiles', a command to run a set of
+	  subordinate test files, found by globbing.
+
+	* testutilities.tcl: Added 'useAccel' to help with the setup of
+	  packages which have accelerators, automatically using the proper
+	  use variant.
+
+2006-10-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Extended with three commands to make testing
+	  of packages with multiple implementations (accelerators)
+	  easier. A specific API for querying and manipulating
+	  accelerators is assumed.
+
+2006-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Changed variable definitions to shield
+	  against creative writing. Added common code to save and restore
+	  the environment (::env), for testsuites which have to (1) either
+	  modify it as part of the tests, or (2) shield themselves against
+	  manipulation from the environment.
+
+2006-09-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dialog.tcl: Bugfix in 'Input', cleaning up the waiting timer
+	  when reaching eof on the socket. Could otherwise trigger
+	  while executing an unrelated future dialog. Extended to manage
+	  two traces, the new one a condensed form of the existing trace,
+	  easier to put into the result of a testcase.
+
+	* coserv.tcl: Reworked a bit to allow the restart of a server
+	  after a shutdown, by recreating the helper file executed by the
+	  slave-process.
+
+2006-09-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Modified use commands to ensure that their
+	  output is a proper list.
+
+2006-09-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added commands constructing wrong#args
+	  messages for snit methods, depending on snit version.
+
+2006-09-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Ensure that the makeFile/Dir wrapper are
+	  created only once. Also modified the code to modify the
+	  originals to return the full name. The wrapper are needed only
+	  as indicators.
+
+2006-04-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added set of commands for the easy assembly
+	  of complex results. Mainly a shorthand for 'lappend', using a
+	  common variable.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Force re-import of tcltest commands after
+	  changes made by the support system. Added code forcing a useful
+	  result value of makeFile/makeDirectory even for Tcltest 1.x
+	  (path created instead of list of all paths). Command for the
+	  creation of a binary temp. file, and a command to return the
+	  path of temp files without us having to create them.
+
+	* coserv.tcl: Fixed usage of temp. files by comm server.
+
+	* coserv.tcl: Fixed output for a better fit with the other test
+	* dialog.tcl: support.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added variants of the use commands which keep
+	  the relevant namespace. Sometimes necessary to prevent
+	  destruction of support code loaded first.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Added commands for the loading of files and
+	  packages from the Tcllib under test. This will reduce the amount
+	  of boilerplate in a .test file spent on getting the package
+	  under test, its supporting packages, and other helper files.
+
+	  Added helpers for dealing with loading "tcllibc" package and
+	  packages using it.
+
+2006-01-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: Moved the definitions of the common
+	  constraints out of the toplevel "all.tcl" into the test support
+	  code.
+
+2006-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* testutilities.tcl: New file for boilerplate code and common
+	  commands used by most to all testsuites in Tcllib.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	*
+
+2004-10-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dialog.tcl: More log output for better tracing of the
+	  internals. Especially added trace when receiving an incomplete
+	  line while waiting for data from the peer. Added code to clean
+	  up old connections, prevent leakage of channel handles.
+
+2004-10-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* muserv.tcl:  Removed the old facilities for sub processes
+	* musub.tcl:   and programmed interactions. They have been
+	* subserv.tcl: superceded by the code below.
+
+	* coserv.tcl: New sub process mgmt based on "comm".
+	* dialog.tcl: New code for programmed dialogs based on
+	  "coserv.tcl".
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	*
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	*
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	*
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	*
+
+2003-05-01  Andreas Kupries  <andreask@activestate.com>
+
+	* subserv.tcl (muserv): Propagate the auto_path into the
+	  subprocess so that it is able to find all packages the server
+	  might require. Without that the server will need an installed
+	  tcllib, for example. This fixes a hang in the pop3 testsuite
+	  when tcllib is not installed.
+
+2003-04-09  Andreas Kupries  <andreask@activestate.com>
+
+	* New module.
+	* First contents are support for sub-processes in testsuites.

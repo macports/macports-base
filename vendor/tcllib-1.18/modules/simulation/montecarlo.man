@@ -1,0 +1,219 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin simulation::montecarlo n 0.1]
+[keywords math]
+[keywords {montecarlo simulation}]
+[keywords {stochastic modelling}]
+[copyright {2008 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Tcl Simulation Tools}]
+[titledesc {Monte Carlo simulations}]
+[category  Mathematics]
+[require Tcl [opt 8.4]]
+[require simulation::montecarlo 0.1]
+[require simulation::random]
+[require math::statistics]
+
+[description]
+[para]
+The technique of [emph "Monte Carlo simulations"] is basically simple:
+
+[list_begin itemized]
+[item]
+generate random values for one or more parameters.
+[item]
+evaluate the model of some system you are interested in and record the
+interesting results for each realisation of these parameters.
+[item]
+after a suitable number of such trials, deduce an overall characteristic
+of the model.
+[list_end]
+
+You can think of a model of a network of computers, an ecosystem of some
+kind or in fact anything that can be quantitatively described and has
+some stochastic element in it.
+[para]
+
+The package [term simulation::montecarlo] offers a basic framework for
+such a modelling technique:
+
+[example {
+#
+# MC experiments:
+# Determine the mean and median of a set of points and compare them
+#
+::simulation::montecarlo::singleExperiment -init {
+    package require math::statistics
+
+    set prng [::simulation::random::prng_Normal 0.0 1.0]
+} -loop {
+    set numbers {}
+    for { set i 0 } { $i < [getOption samples] } { incr i } {
+        lappend numbers [$prng]
+    }
+    set mean   [::math::statistics::mean $numbers]
+    set median [::math::statistics::median $numbers] ;# ? Exists?
+    setTrialResult [list $mean $median]
+} -final {
+    set result [getTrialResults]
+    set means   {}
+    set medians {}
+    foreach r $result {
+        foreach {m M} $r break
+        lappend means   $m
+        lappend medians $M
+    }
+    puts [getOption reportfile] "Correlation: [::math::statistics::corr $means $medians]"
+
+} -trials 100 -samples 10 -verbose 1 -columns {Mean Median}
+}]
+
+This example attemps to find out how well the median value and the mean
+value of a random set of numbers correlate. Sometimes a median value is
+a more robust characteristic than a mean value - especially if you have
+a statistical distribution with "fat" tails.
+
+[section "PROCEDURES"]
+
+The package defines the following auxiliary procedures:
+
+[list_begin definitions]
+
+[call [cmd ::simulation::montecarlo::getOption] [arg keyword]]
+
+Get the value of an option given as part of the [term singeExperiment] command.
+
+[list_begin arguments]
+[arg_def string keyword] Given keyword (without leading minus)
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::montecarlo::hasOption] [arg keyword]]
+
+Returns 1 if the option is available, 0 if not.
+
+[list_begin arguments]
+[arg_def string keyword] Given keyword (without leading minus)
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::montecarlo::setOption] [arg keyword] [arg value]]
+
+Set the value of the given option.
+
+[list_begin arguments]
+[arg_def string keyword] Given keyword (without leading minus)
+[arg_def string value] (New) value for the option
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::montecarlo::setTrialResult] [arg values]]
+
+Store the results of the trial for later analysis
+
+[list_begin arguments]
+[arg_def list values] List of values to be stored
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::montecarlo::setExpResult] [arg values]]
+
+Set the results of the entire experiment (typically used in the final
+phase).
+
+[list_begin arguments]
+[arg_def list values] List of values to be stored
+[list_end]
+
+[para]
+
+[call [cmd ::simulation::montecarlo::getTrialResults]]
+
+Get the results of all individual trials for analysis (typically used in
+the final phase or after completion of the command).
+
+[para]
+
+[call [cmd ::simulation::montecarlo::getExpResult]]
+
+Get the results of the entire experiment (typically used in the final
+phase or even after completion of the [term singleExperiment] command).
+
+[para]
+
+[call [cmd ::simulation::montecarlo::transposeData] [arg values]]
+
+Interchange columns and rows of a list of lists and return the result.
+
+[list_begin arguments]
+[arg_def list values] List of lists of values
+[list_end]
+
+[list_end]
+
+There are two main procedures: [term integral2D] and [term singleExperiment].
+
+[list_begin definitions]
+
+[call [cmd ::simulation::montecarlo::integral2D] [arg ...]]
+
+Integrate a function over a two-dimensional region using a Monte Carlo
+approach.
+[para]
+Arguments PM
+
+[para]
+
+[call [cmd ::simulation::montecarlo::singleExperiment] [arg args]]
+
+Iterate code over a number of trials and store the results. The
+iteration is gouverned by parameters given via a list of
+keyword-value pairs.
+
+[list_begin args]
+[arg_def int n] List of keyword-value pairs, all of which are available
+during the execution via the [term getOption] command.
+[list_end]
+
+[list_end]
+
+The [term singleExperiment] command predefines the following
+options:
+
+[list_begin itemized]
+[item]
+[term "-init code"]: code to be run at start up
+[item]
+[term "-loop body"]: body of code that defines the computation to
+be run time and again. The code should use [term setTrialResult]
+to store the results of each trial (typically a list of numbers,
+but the interpretation is up to the implementation). Note: Required keyword.
+[item]
+[term "-final code"]: code to be run at the end
+[item]
+[term "-trials n"]: number of trials in the experiment (required)
+[item]
+[term "-reportfile file"]: opened file to send the output to (default: stdout)
+[item]
+[term "-verbose"]: write the intermediate results (1) or not (0) (default: 0)
+[item]
+[term "-analysis proc"]: either "none" (no automatic analysis), standard
+(basic statistics of the trial results and a correlation matrix) or the
+name of a procedure that will take care of the analysis.
+[item]
+[term "-columns list"]: list of column names, useful for verbose output
+and the analysis
+[list_end]
+Any other options can be used via the getOption procedure
+in the body.
+
+[section TIPS]
+The procedure [term singleExperiment] works by constructing a
+temporary procedure that does the actual work. It loops for the given
+number of trials.
+[para]
+As it constructs a temporary procedure, local variables defined at the
+start continue to exist in the loop.
+[manpage_end]

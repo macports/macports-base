@@ -1,0 +1,53 @@
+# -*- tcl -*- htmlparse.test:
+# tests for the interaction of html parser and tree structure.
+
+test htmlparse-${impl}-5.0 {conversion to tree} {
+    struct::tree t
+    ::htmlparse::2tree $html3 t
+
+    set tx [list]
+    t walk root n {
+	lappend tx [list [t depth $n] [t get $n type]]
+    }
+    t destroy
+    set tx
+} [list \
+	{0 root} {1 hmstart} {2 html} {3 head} \
+	{4 title} {5 PCDATA} {4 meta} {3 body} \
+	{4 h2} {5 PCDATA} \
+	{4 p} {5 b} {6 PCDATA} \
+	{4 p} {5 form} {6 input}]
+
+test htmlparse-${impl}-5.1 {conversion to tree} {
+    struct::tree t
+    ::htmlparse::2tree $html3 t
+    ::htmlparse::removeVisualFluff t
+
+    set tx [list]
+    t walk root n {
+	lappend tx [list [t depth $n] [t get $n type]]
+    }
+    t destroy
+    set tx
+} [list \
+	{0 root} {1 head} {2 title} {3 PCDATA} \
+	{1 body} {2 h2} {3 PCDATA} \
+	{2 p} {3 PCDATA} \
+	{2 p} {3 form} {4 input}]
+
+test htmlparse-${impl}-5.2 {conversion to tree} {
+    struct::tree t
+    ::htmlparse::2tree $html3      t
+    ::htmlparse::removeVisualFluff t
+    ::htmlparse::removeFormDefs    t
+
+    set tx [list]
+    t walk root n {
+	lappend tx [list [t depth $n] [t get $n type]]
+    }
+    t destroy
+    set tx
+} [list \
+	{0 root} {1 head} {2 title} {3 PCDATA} \
+	{1 body} {2 h2} {3 PCDATA} \
+	{2 p} {3 PCDATA} {2 p}]

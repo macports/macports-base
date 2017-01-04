@@ -1,0 +1,323 @@
+# Tests for combinatorics functions in math library  -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2001 by Kevin B. Kenny
+# All rights reserved.
+#
+# RCS: @(#) $Id: combinatorics.test,v 1.14 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal math.tcl math
+}
+
+# -------------------------------------------------------------------------
+
+# Fake [lset] for Tcl releases that don't have it.  We need only
+# lset into a flat list.
+
+if { [string compare lset [info commands lset]] } {
+    proc K { x y } { set x }
+    proc lset { listVar index var } {
+	upvar 1 $listVar list
+	set list [lreplace [K $list [set list {}]] $index $index $var]
+    }
+}
+
+# -------------------------------------------------------------------------
+
+test combinatorics-1.1 { math::ln_Gamma, wrong num args } {
+    catch { math::ln_Gamma } msg
+    set msg
+} [tcltest::wrongNumArgs math::ln_Gamma x 0]
+
+test combinatorics-1.2 { math::ln_Gamma, main line code } {
+    set maxerror 0.
+    set f 1.
+    for { set i 1 } { $i < 171 } { set i $ip1 } {
+	set f [expr { $f * $i }]
+	set ip1 [expr { $i + 1 }]
+	set f2 [expr { exp( [math::ln_Gamma $ip1] ) }]
+	set error [expr { abs( $f2 - $f ) / $f }]
+	if { $error > $maxerror } {
+	    set maxerror $error
+	}
+    }
+    if { $maxerror > 5e-10 } {
+	error "max error of factorials computed using math::ln_Gamma\
+               specified to be 5e-10, was $maxerror"
+    }
+    concat
+} {}
+
+test combinatorics-1.3 { math::ln_Gamma, half integer args } {
+    set maxerror 0.
+    set z 0.5
+    set pi 3.1415926535897932
+    set g [expr { sqrt( $pi ) }]
+    while { $z < 170. } {
+	set g2 [expr { exp( [::math::ln_Gamma $z] ) }]
+	set error [expr { abs( $g2 - $g ) / $g }]
+	if { $error > $maxerror } {
+	    set maxerror $error
+	}
+	set g [expr { $g * $z }]
+	set z [expr { $z + 1. }]
+    }
+    if { $maxerror > 5e-10 } {
+	error "max error of half integer gamma computed using math::ln_Gamma\
+               specified to be 5e-10, was $maxerror"
+    }
+    concat
+} {}
+
+test combinatorics-1.4 { math::ln_Gamma, bogus arg } {
+    catch { math::ln_Gamma bogus } msg
+    set msg
+} {expected a floating-point number but found "bogus"}
+
+test combinatorics-1.5 { math::ln_Gamma, evaluate at pole } {
+    catch { math::ln_Gamma 0.0 } msg
+    list $msg $::errorCode
+} {{argument to math::ln_Gamma must be positive} {ARITH DOMAIN {argument to math::ln_Gamma must be positive}}}
+
+test combinatorics-1.6 { math::ln_Gamma, exponent overflow } {
+    catch { math::ln_Gamma 2.556348163871691e+305 } msg
+    list $msg $::errorCode
+} {{floating-point value too large to represent} {ARITH OVERFLOW {floating-point value too large to represent}}}
+
+test combinatorics-2.1 { math::factorial, wrong num args } {
+    catch { math::factorial } msg
+    set msg
+} [tcltest::wrongNumArgs math::factorial x 0]
+
+test combinatorics-2.2 { math::factorial 0 } {
+    math::factorial 0
+} 1
+
+test combinatorics-2.3 { math::factorial, main line } {
+    set maxerror 0.
+    set f 1.
+    for { set i 1 } { $i < 171 } { set i $ip1 } {
+	set f [expr { $f * $i }]
+	set ip1 [expr { $i + 1 }]
+	set f2 [math::factorial $i]
+	set error [expr { abs( $f2 - $f ) / $f }]
+	if { $error > $maxerror } {
+	    set maxerror $error
+	}
+    }
+    if { $maxerror > 1e-16 } {
+	error "max error of factorials computed using math::factorial\
+               specified to be 1e-16, was $maxerror"
+    }
+    concat
+} {}
+
+test combinatorics-2.4 { math::factorial, half integer args } {
+    set maxerror 0.
+    set z -0.5
+    set pi 3.1415926535897932
+    set g [expr { sqrt( $pi ) }]
+    while { $z < 169. } {
+	set g2 [math::factorial $z]
+	set error [expr { abs( $g2 - $g ) / $g }]
+	if { $error > $maxerror } {
+	    set maxerror $error
+	}
+	set z [expr { $z + 1. }]
+	set g [expr { $g * $z }]
+    }
+    if { $maxerror > 1e-9 } {
+	error "max error of half integer factorial\
+               specified to be 1e-9, was $maxerror"
+    }
+    concat
+} {}
+
+test combinatorics-2.5 { math::factorial, bogus arg } {
+    catch { math::factorial bogus } msg
+    set msg
+} {expected a floating-point number but found "bogus"}
+
+test combinatorics-2.6 { math::factorial, evaluate at pole } {
+    catch { math::factorial -1.0 } msg
+    list $msg $::errorCode
+} {{argument to math::factorial must be greater than -1.0} {ARITH DOMAIN {argument to math::factorial must be greater than -1.0}}}
+
+test combinatorics-2.7 { math::factorial, exponent overflow } {
+    if {![catch { 
+	math::factorial 171 
+    } msg]} {
+	if { [string equal $msg Infinity] || [string equal $msg Inf] } {
+	    set result ok
+	} else {
+	    set result "result of factorial was [list $msg],\
+	                should be Infinity"
+	}
+    } else {
+	if { [string equal [lrange $::errorCode 0 1] {ARITH OVERFLOW}] } {
+	    set result ok
+	} else {
+	    set result "error from factorial was [list $::errorCode],\
+                        should be {ARITH IOVERFLOW *}"
+	}
+    }
+    set result
+} ok
+
+test combinatorics-2.8 { math::factorial, "" arg } {
+    catch { math::factorial "" } msg
+    list $msg
+} {{expected a floating-point number but found ""}}
+
+test combinatorics-3.1 { math::choose, wrong num args } {
+    catch { math::choose } msg
+    set msg
+} [tcltest::wrongNumArgs math::choose {n k} 0]
+
+test combinatorics-3.2 { math::choose, wrong num args } {
+    catch { math::choose 1 } msg
+    set msg
+} [tcltest::wrongNumArgs math::choose {n k} 1]
+
+test combinatorics-3.3 { math::choose, precomputed table and gamma evals } {
+    set maxError 0
+    set l {}
+    for { set n 0 } { $n < 100 } { incr n } {
+	lappend l 1.
+	for { set k [expr { $n - 1 }] } { $k > 0 } { set k $km1 } {
+	    set km1 [expr { $k - 1 }]
+	    set cnk [expr { [lindex $l $k] + [lindex $l $km1] }]
+	    lset l $k $cnk
+	    set ccnk [math::choose $n $k]
+	    set error [expr { abs( $ccnk - $cnk ) / $cnk }]
+	    if { $error > $maxError } {
+		set maxError $error
+	    }
+	}
+    }
+    if { $maxError > 5e-10 } {
+	error "max error in math::choose was $maxError, specified to be 5e-10"
+    }
+    concat
+} {}
+
+test combinatorics-3.4 { math::choose, bogus n } {
+    catch { math::choose bogus 0 } msg
+    set msg
+} {expected a floating-point number but found "bogus"}
+
+test combinatorics-3.5 { math::choose bogus k } {
+    catch { math::choose 0 bogus } msg
+    set msg
+} {expected a floating-point number but found "bogus"}
+
+test combinatorics-3.6 { match::choose negative n } {
+    catch { math::choose -1 0 } msg
+    list $msg $::errorCode
+} {{first argument to math::choose must be non-negative} {ARITH DOMAIN {first argument to math::choose must be non-negative}}}
+
+test combinatorics-3.7 { math::choose negative k } {
+    math::choose 17 -1
+} 0
+
+test combinatorics-3.8 { math::choose excess k } {
+    math::choose 17 18
+} 0
+
+test combinatorics-3.9 {math::choose negative fraction } {
+    catch { math::choose 17 -0.5 } msg
+    list $msg $::errorCode
+} {{second argument to math::choose must be non-negative, or both must be integers} {ARITH DOMAIN {second argument to math::choose must be non-negative, or both must be integers}}}
+
+test combinatorics-3.10 { math::choose big args } {
+    if {![catch { 
+	math::choose 1500 750
+    } msg]} {
+	if { [string equal $msg Infinity] || [string equal $msg Inf] } {
+	    set result ok
+	} else {
+	    set result "result of choose was [list $msg],\
+	                should be Infinity"
+	}
+    } else {
+	if { [string equal [lrange $::errorCode 0 1] {ARITH OVERFLOW}] } {
+	    set result ok
+	} else {
+	    set result "error from choose was [list $::errorCode],\
+                        should be {ARITH IOVERFLOW *}"
+	}
+    }
+    set result
+} ok
+
+test combinatorics-4.1 { math::Beta, wrong num args } {
+    catch { math::Beta } msg
+    set msg
+} [tcltest::wrongNumArgs math::Beta {z w} 0]
+
+test combinatorics-4.2 { math::Beta, wrong num args } {
+    catch { math::Beta 1 } msg
+    set msg
+} [tcltest::wrongNumArgs math::Beta {z w} 1]
+
+test combinatorics-4.3 { math::Beta, bogus z } {
+    catch { math::Beta bogus 1 } msg
+    set msg
+} {expected a floating-point number but found "bogus"}
+
+test combinatorics-4.4 { math::Beta, bogus w } {
+    catch { math::Beta 1 bogus } msg
+    set msg
+} {expected a floating-point number but found "bogus"}
+
+test combinatorics-4.5 { math::Beta, negative z } {
+    catch { math::Beta 0 1 } msg
+    list $msg $::errorCode
+} {{first argument to math::Beta must be positive} {ARITH DOMAIN {first argument to math::Beta must be positive}}}
+
+test combinatorics-4.6 { math::Beta, negative w } {
+    catch { math::Beta 1 0 } msg
+    list $msg $::errorCode
+} {{second argument to math::Beta must be positive} {ARITH DOMAIN {second argument to math::Beta must be positive}}}
+
+test combinatorics-4.7 { math::Beta, test with Pascal } {
+    set maxError 0
+    set l {}
+    for { set n 0 } { $n < 100 } { incr n } {
+	lappend l 1.
+	for { set k [expr { $n - 1 }] } { $k > 0 } { set k $km1 } {
+	    set km1 [expr { $k - 1 }]
+	    set cnk [expr { [lindex $l $k] + [lindex $l $km1] }]
+	    lset l $k $cnk
+	    set w [expr { $k + 1 }]
+	    set z [expr { $n - $k + 1 }]
+	    set beta [expr { 1.0 / $cnk / ( $z + $w - 1 )}]
+	    set cbeta [math::Beta $z $w]
+	    set error [expr { abs( $cbeta - $beta ) / $beta }]
+	    if { $error > $maxError } {
+		set maxError $error
+	    }
+	}
+    }
+    if { $maxError > 5e-10 } {
+	error "max error in math::Beta was $maxError, specified to be 5e-10"
+    }
+    concat
+} {}
+
+    
+testsuiteCleanup
+

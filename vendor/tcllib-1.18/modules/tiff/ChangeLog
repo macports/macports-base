@@ -1,0 +1,103 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-03-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tiff.test: Added testsuite for the package, and example images.
+	* testimages/IMG_7898.tiff:
+	* testimages/IMG_7917.tiff:
+	* testimages/IMG_7950.tiff:
+
+	* tiff.man: Small formatting change in section LIMITATIONS,
+	  putting the information into a proper enumerated list. Put type
+	  codes for 'addEntry' into a list as well, and removed bad para
+	  in an example.
+
+	* tiff.tcl (::tiff::byteOrder): Fixed bad access to variable
+	  byteOrder.
+	* tiff.tcl (::tiff::dimensions): Fixed result of command
+	  'dimensions' to be the documented list of horizontal and
+	  vertical pixel counts instead of a tagged dictionary.
+	* tiff.tcl (::tiff::addEntry): Fixed use of bad variable name.
+	* tiff.man: Bumped version to 0.2.1
+	* pkgIndex.tcl:
+
+2008-02-29  Andreas Kupries  <andreask@activestate.com>
+
+	* tiff.tcl (::tiff::_unformat): Fixed missing closing bracket.
+	* tiff.man: Version bumped to 0.2
+	* pkgIndex.tcl:
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tiff.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-7-20 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* tiff.tcl: added nametotag and tagtoname, some other
+	small changes. Didnt increment version since module
+	hasnt yet appeared in a release
+	* tiff.man: Added variables section and documented
+	new procedures
+
+2006-02-01  Andreas Kupries <andreask@activestate.com>
+
+	* tiff.man: Fixed bad syntax in manpage.
+
+2006-1-31 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* tiff.tcl: typo in numImages, fix in _ifds
+
+2006-1-31 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* Typos in man page
+
+2005-1-28 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* New module for manipulating TIFF images

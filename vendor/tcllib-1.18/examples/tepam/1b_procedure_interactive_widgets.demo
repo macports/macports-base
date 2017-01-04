@@ -1,0 +1,261 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 1b_procedure_interactive_widgets.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 1b_procedure_interactive_widgets.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo shows how the interactive procedure calls open the argument entry form
+# with the different available widget types.
+
+   package require Tk
+   package require tepam
+   namespace import -force tepam::*; # Import tepam::procedure and tepam::argument_dialogbox
+
+#### Entry ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides simply entry widgets for the arguments that meet the
+# following criterias:
+# 1) No argument specific widget types are available
+# 2) No choice lists are defined for the arguments.
+
+   procedure entry_example {
+      -args {
+         {str -description "String argument"}
+         {val -type integer -default 0 -description "Integer argument"}
+      }
+   } {
+      return "str:'$str' val:'$val'"
+   }
+
+   entry_example -interactive
+
+#### Text ####
+
+DemoControl(IsExecutable) {1}
+
+# A multi line text widget is used for arguments that that have the type 'text'.
+
+   procedure text_example {
+      -args {
+         {txt -type text -description "Text argument"}
+      }
+   } {
+      return "txt:'$txt'"
+   }
+
+   text_example -interactive
+
+#### Checkbox ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides checkboxes for the arguments that meet the
+# following criterias:
+# 1) A tiny choice list is provided (with less or equal than 4 elements)
+# 2) No multiple selections are allowed
+
+   procedure checkbox_example {
+      -args {
+         {FontStyle -description "Font sytle" 
+                    -multiple -choices {bold italic underline} 
+                    -choicelabels {Bold Italic Underline} -default italic}
+      }
+   } {
+      return "FontStyle: $FontStyle"
+   }
+
+   checkbox_example -interactive
+
+#### Radiobox ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides radioboxes for the arguments that meet the
+# following criterias:
+# 1) A tiny choice list is provided (with less or equal than 4 elements)
+# 2) Multiple selections are allowed
+
+   procedure radiobox_example {
+      -args {
+         {Adjustment -description "Text adjustment" 
+                     -choices {left center right} 
+                     -choicelabels {Left Center Right} -default left}
+      }
+   } {
+      return "Adjustment: $Adjustment"
+   }
+
+   radiobox_example -interactive
+
+#### Checkbutton ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides checkbuttons for the arguments that meet the
+# following criterias:
+# 1) The argument is a flag/switch, e.g. the argument type is 'none'.
+
+   procedure checkbutton_example {
+      -args {
+         {-Capitalize -type none -description "Capitalize" -default 1}
+      }
+   } {
+      return "Capitalize: $Capitalize"
+   }
+
+   checkbutton_example -interactive
+
+#### Listbox ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides listboxes for the arguments that meet the
+# following criterias:
+# 1) A large choice list is provided (with more than 4 elements)
+# 2) No multiple selections are allowed
+
+   procedure listbox_example {
+      -args {
+         {Location -description "Picture location" 
+                   -choices {top left center right buttom} 
+                   -choicelabels {Top Left Center Right Buttom} -default center}
+      }
+   } {
+      return "Location: $Location"
+   }
+
+   listbox_example -interactive
+
+#### Disjoint listbox ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides disjoint listboxes for the arguments that meet the
+# following criterias:
+# 1) A large choice list is provided (with more than 4 elements)
+# 2) Multiple selections are allowed
+
+   procedure listbox_example {
+      -args {
+         {FontStyle -description "Font sytle" -multiple 
+                    -choices {bold italic underline overstrike capitalized superscript subscript} 
+                    -choicelabels {Bold Italic Underline Overstrike Capitalized Superscript Subscript} 
+                    -default {italic bold}}
+      }
+   } {
+      return "FontStyle: '$FontStyle'"
+   }
+
+   listbox_example -interactive
+
+#### Files ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides file selection widgets for the arguments that meet the
+# following criterias:
+# 1) The argument type is 'file' or 'existingfile'.
+
+   procedure file_example {
+      -return            -
+      -short_description "File copy"
+      -description       "This procedure allows copying a file."
+      -args {
+         {-source -type existingfile -description "Existing file" 
+                  -auxargs {-filetypes {{"Log files" *.log} {"All files" *.*}}}}
+         {-dest -type file -description "Archived new file"}
+      }
+   } {
+      return "source: '$source', dest: '$dest'"
+   }
+
+   file_example -interactive
+
+#### Directories ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides directory selection widgets for the arguments that meet the
+# following criterias:
+# 1) The argument type is 'directory' or 'existingdirectory'.
+
+   procedure directory_example {
+      -return            -
+      -short_description "File copy"
+      -description       "This procedure allows copying a file."
+      -args {
+         {-source -type existingdirectory -description "Source directory"}
+         {-dest -type directory -description "Destination directory"}
+      }
+   } {
+      return "source: '$source', dest: '$dest'"
+   }
+
+   directory_example -interactive
+
+#### Color ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides color selection widgets for the arguments that meet the
+# following criterias:
+# 1) The argument type is 'color'.
+
+  procedure color_example {
+      -args {
+         {color -type color -description "Color" -default red}
+      }
+   } {
+      return "color:'$color'"
+   }
+
+   color_example -interactive
+
+#### Font ####
+
+DemoControl(IsExecutable) {1}
+
+# The interactive entry form provides font selection widgets for the arguments that meet the
+# following criterias:
+# 1) The argument type is 'font'.
+
+  procedure font_example {
+      -args {
+         {font -type font -description "Font" -default {Arial 12 italic}}
+      }
+   } {
+      return "font:'$font'"
+   }
+
+   font_example -interactive
+
+##########################################################################
+# Id: 1b_procedure_interactive_widgets.demo
+# Modifications:
+#
+# Revision 1.3  2012/05/07 20:27:26  droll
+# * TEPAM version 0.4.0
+# * Add the new text procedure argument type and the text multi line data
+#   entry widget.
+#
+# Revision 1.2  2011/01/21 16:00:49  droll
+# * TEPAM version 0.2.0
+#
+# Revision 1.1  2010/02/11 21:54:38  droll
+# * TEPAM module checkin
+##########################################################################

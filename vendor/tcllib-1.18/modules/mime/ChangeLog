@@ -1,0 +1,796 @@
+2014-01-08  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Last commit forgot to update the package index,
+	  causing a mismatch. Fixed, likewise the Tcl requirement.
+
+2013-11-22  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl: (PoorYorick): general cleanup. use expr operators like
+	* mime.test: eq instead of string commands. (AK Notes): Version
+	  bumped to 1.6, requirement bumped to Tcl 8.5. (AK) Updated
+	  testsuite and doc Tcl requirements. Fixed the creative writing
+	  problem of the initialization code, present before PY cleanup.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-09  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl (::mime::buildmessage): [Bug 3565267]: Handle
+	* mime.man: possibility of 'errorCode' not set. Version
+	* pkgIndex.tcl: bumped to 1.5.6.
+
+2012-08-02  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.man: [Bug 3354014]: Fixed typo in option name. -parts is
+	  correct. (Note the trailing 's').
+
+2012-02-23  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.test: [Bug 3483716]: Added testcase, supplied by Christian
+	  Nassau. Thank you.
+
+2012-02-22  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl: [Bug 3483716]: Accepted patch by Christian Nassau
+	* pkgIndex.tcl: <cnassau@users.sourceforge.net> to handle (decode)
+	  the content transfer encodings base64 and quoted-printable. Bumped
+	  version to 1.5.5.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-20  Andreas Kupries <andreask@activestate.com>
+
+	* smtp.man: [ActiveState 89180]: Added documentation about the
+	  soft-dependencies required for SMTP authentication, i.e. SASL.
+
+2010-07-06  Andreas Kupries  <andreask@activestate.com>
+
+	* smtp.man: [Bug 3011581]: Accepted tweak to the documentation of
+	  the -header option proposed by <rich123@users.sf.net> to make
+	  the syntax clearer.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Bumped version to 1.5.4, for the change made on
+	* smtp.man: 2007-10-08 by Pat. Was a bugfix, should have bumped
+	* pkgInsdex.tcl: the version at that time.
+
+2008-05-23  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl (::mime::parsepart): [SF Tcllib Bug 1961881]. Accepted
+	* mime.man: patch, and extended. Now handling malformed input
+	* mime.test: without having to throw an eror, and without going
+	* pkgIndex.tcl: into an infinite loop. See also [Bug 631314], and
+	  Changelog entries 2003-06-06, 2003-06-25. The testcases
+	  mime-3.{7,8} are not redundant, but significantly different. 3.7
+	  actually has a terminating boundary, but misses the starting
+	  one, causing non-recognition of any terminating one. Bumped the
+	  version to 1.5.4.
+
+2007-11-05  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl (::mime::parsepart): Fixed [SF Tcllib Bug 1825092],
+	* mime.test: as reported by Max Strobel
+	* pkgIndex.tcl: <mstrhh@users.sourceforge.net>. The code parsing
+	* mime.man: multiparts assumed that eol sequences are always two
+	  characters (cr+lf), this however may not be the case. This
+	  caused the parser to miscount the last line in a part and
+	  wrongly remove its last character from the part. Extended the
+	  testsuite, and bumped the version to 1.5.3.
+
+2007-10-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* mime.tcl: bug #1658061: reset errorInfo after catches known
+	* smtp.tcl: to fail to avoid confusion.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl (::mime::word_encode): Unbreak the unconditional
+	  line-breaking performed by some of the base64 encoders we use.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.man: Fixed all warnings due to use of now deprecated
+	* smtp.man: commands. Added a section about how to give feedback.
+
+2007-01-25  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl: Expose -client option to enable user to supply the
+	* smtp.man: string used for the HELO/EHLO challenge. 
+	            Closes FR #1614860.
+
+2007-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl (word_encode): Ensured the return of the empty string
+	  when given the empty string.
+
+2006-11-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl: bug #827436 - ensure data section is terminated with
+	CRLF.CRLF on the non Trf code path.
+
+2006-10-25  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl: Applied patch for [SF Tcllib Bug 763731], fixing
+	* mime.man: word_encode's problem with creating words which are
+	* pkgIndex.tcl: too long. Version now is 1.5.2
+
+2006-10-24  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl (::mime::qp_encode): Moved the code for chopping off a
+	  superfluous newline into the branch actually adding it. The
+	  unconditional chop caused it to lose the last character if the
+	  branch was not taken. This bug was apparently introduced by the
+	  patch for [SF Tcllib RFE 503336], added 2002-01-16, by
+	  myself. Reported by Gustaf Neumann <neumann@wu-wien.ac.at>, with
+	  a patch.
+
+2006-10-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Rewritten to use new features for handling the
+	  environment.
+
+2006-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Updated the three tests affected by the bugfix (see
+	  2006-10-02 entry).
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-10-02  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl: Fixed both ::mime::copymessageaux and
+	* mime.man: ::mime::buildmessageaux to not generate too many
+	* pkgIndex.tcl: CRLF's at the end of bodies.
+	  See [SF Tcllib Bug 1213527, and [SF Tcllib Patch 1254934].
+	  Bumped version to 1.5.1.
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.man: Bumped version to 1.5
+	* mime.tcl:
+	* pkgIndex.tcl:
+
+2006-01-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Fixed handling of "env".
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Fixed use of duplicate test names.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Hooked into the new common test support code.
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* performance.tcl: Removed the unstructured benchmarks.
+	* mime.bench: New file, contains structured benchmarks for the
+	  module. This fixes [SF Tcllib Bug 1373935].
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* mime.tcl: Ensured that all accesses to the variable 'major'
+	  operate on a global variable. Fix for [SF Tcllib Bug 1394840],
+	  reported by George Orwell <orwellian@users.sourceforge.net>.
+
+2005-11-06  Benjamin Riefenstahl  <b.riefenstahl@turtle-trading.net>
+
+	* mime.tcl (parsedatetime): Add support for timezones with format
+	  +NNNN or -NNNN.  Add support for property "clock".
+	* mime.test (mime-9.x): Add testing of parsedatetime.=20
+
+2005-11-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl: Applied patch by Benjamin Riefenstahl fixing bugs in
+	  his patch for [SF Tcllib Bug 1276561], see 2005-10-04 entry.
+
+	  * (MONTHS_SHORT, MONTHS_LONG): Add a dummy entry at index 0. 
+	  * (parsedatetime): For month index, use "%m" + scan instead of
+	    wrong "%e".
+
+2005-10-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Synchronized version numbers to the 
+	* smtp.man:    implementation.
+
+2005-10-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl: Use the SASL module for authentication. Checked this
+	  against sendmail+cyrussasl and Microsoft SMTPd (for NTLM).
+
+2005-10-04  Andreas Kupries <andreask@activestate.com>
+
+	* mime.tcl: Applied patch for [SF Tcllib Bug 1276561] by Benjamin
+	  Riefenstahl. Fixes the handling of date/times, removing
+	  dependencies on the current locale.
+
+2005-09-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl (::smtp::auth_CRAM-MD5): Fix for bug #1242629 - qmail
+	doesn't like a multi-line response.
+
+2005-03-08  Andreas Kupries <andreask@activestate.com>
+
+	* mime.tcl (::mime::copymessageaux): Removed usage of the command
+	  'unstack'. Its presence is a bug ever since revision 1.3 (March
+	  9, 2000) of mime.tcl, when the converters (base64,
+	  quoted-printable) started to be used in immediate mode instead
+	  of attaching them to the output channel. This also means that we
+	  do not need the fallback implementation anymore either.
+
+	  Many thanks to Roy Terry <royterry@earthlink.net> for keeping up
+	  the nagging about [SF Tcllib Bug 754920] which demonstrated the
+	  problem.
+
+	  What happened is that the unpaired 'unstack' removes the outer
+	  .-transformation and a second call may close the channel. If
+	  that happens any further access to the channel errors out, and
+	  the mail server gets and transfers an incomplete mail message.
+	  It is a 'may' and not a 'will' because it seems that sometimes
+	  the channel has a refcount > 0 and then 'unstack' does
+	  nothing. This part made the reproduction difficult. It was
+	  originally suspected to be a problem in Trf itself, but is
+	  actually a problem in how it is used by mime.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-08-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl:     Do not try to authenticate if no username is
+	                supplied.
+
+2004-07-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.man:     Added mention of DIGEST-MD5 support and put some
+	                RFC references in.
+
+2004-07-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl:     Cleaned up some hardcoded settings left from
+	                development. (oops).
+
+2004-07-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl:     Added SASL mechanism DIGEST-MD5 authentication
+	support. Also redid md5 package version abstraction.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl:     Updated smtp to version 1.4, to reflect the
+	* smtp.man:     extensions made to it (Authentication). This
+	* pkgIndex.tcl: also distinguishes the main line version from the
+	                one in the 1.6 branch.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl:     Downgraded mime to version 1.3.6, and removed the
+	* mime.man:     -decode extension from the API. This branch is for
+	* pkgIndex.tcl: bugfixes only.
+
+2004-05-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Fixed [SF Tcllib Bug 954328]. Same bug in different
+	  guise. This package exclusively required md5 v2. This clashed
+	  with mime's requirement of v1. Now package smtp also adapts at
+	  runtime to whatever version of package md5 has been loaded.
+
+	* mime.test:
+	* mime.tcl: Fixed [SF Tcllib Bug 954328]. The package mime now
+	  adapts at runtime to whatever version of package md5 has been
+	  loaded.
+
+2004-05-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl (::smtp::wdata): Fixed [SF Tcllib Bug 951568]. Added
+	  handlers for the query/* commands from Trf. Also changed the
+	  default to sliently pass all unknowns in the future.
+
+2004-05-10  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl (copymessageaux): Applied the patch for [SF Tcllib Bug
+	  893516] on behalf of Marshall Rose. The problem was found by
+	  Todd Copeland <todd.copeland@pervasive.com>, he provided the
+	  patch as well.
+
+2004-05-04  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.man:
+	* mime.test:
+	* mime.tcl: Applied [SF Tcllib Patch 763712]. This extends the
+	  functionality of mime::getbody with decoding of the mime part
+	  based on the specified charset into the regular utf8
+	  form. Testsuite was updated and extended as well. Thanks to
+	  Matthew Walker <gunzel@users.sourceforge.net> for the
+	  work. Updated the documentation for mime on my own. Bumped
+	  version to 1.4.
+
+	* mime:test:
+	* mime.tcl: Applied [SF Tcllib Patch 758742], adding many more
+	  MIME types for encodings to the knowledge-base of the
+	  package. Thanks to Matthew Walker <gunzel@users.sourceforge.net>
+	  for the work, and Mikhail Teterin <kot@users.sourceforge.net>
+	  for prodding. Bumped version to 1.3.5.
+
+	* mime.test:
+	* mime.tcl (copymessageaux): Fixed [SF Tcllib Bug 620852]. Added
+	  '-nonewline' to the puts statements which wrote out the chunks
+	  read from the file associated with the mime part, converted or
+	  not. As the data was [read] we had no business of adding eol's
+	  during writing as well. Thanks to Jasper Taylor
+	  <jaspert@users.sourceforge.net> for the report, and his
+	  patience. Added a test for this as well, using files of similar
+	  size as originally provided.
+
+2004-03-18  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl: Added support for RFC 2554 - SMTP Authentication. This
+	included support for the SASL mechanisms CRAM-MD5 and PLAIN and
+	the Microsoft LOGIN mechanism. This has been tested against
+	Microsoft Exchange servers and Sendmail 8.12.
+	Added support for RFC 1870, the SIZE extension.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Fixed access to files, was not done with
+	  tcltest::testDirectory, causing them to be inaccessible
+	  for 8.4+. The result in mime-2.2 was also dependent on the exact
+	  order of keys retrieved from the array of parameters. Rewritten
+	  to take this into account.
+
+2004-01-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl: Better handling of failure in TLS setup. Added a
+	policy command to control TLS policy on failure.
+
+2004-01-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* smtp.tcl: Added support for the STARTTLS extension (RFC 3207).
+	This may also support old versions that report a TLS option in
+	reply to EHLO, but these are not tested.
+
+2003-11-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl (word_decode): Fixed [SF Tcllib Bug 764702], accepted
+	  the patch coming with the bugreport (both by Reinhard Speyerer
+	  <rspsf@users.sourceforge.net>). Command is now able to decode
+	  data in encoded utf-8.
+
+	* mime.test: Added test for the bug above.
+
+2003-11-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl (smtp::hear): Integrated fix for [Bug 836442]. Limiting
+	  seconds to 600 to prevent integer wraparound when setting up a
+	  timer event. Bug reported (and fix provided) by Andreas Otto,
+	  and accepted by Marshall Rose.
+
+2003-06-25  David N. Welton  <davidw@dedasys.com>
+
+	* mime.tcl (::mime::parsedatetime): Use string map instead of
+	regsub - it's faster.
+
+	* mime.test: Added tests which operate on the bad files below.
+
+	* badmail2.txt: Added second piece of mail for testing.  If they
+	turn out to be redundant, we can erase one.
+
+	* badmail1.txt: Added mail for testing that triggers bug 631314.
+
+2003-06-06  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.tcl (::mime::word_decode): Accept lower-case encoding
+	  specifiers. [Bug 732512]. Reported by Matthew Walker
+	  <gunzel@users.sourceforge.net>, plus patch. Patch accepted by
+	  Marshall Rose.
+
+	* mime.test: Two more tests checking the acceptance of lower-case
+	  encoding specifiers.
+
+	* mime.tcl (::mime::parsepart): Reactivated error command, revert
+	  to error on malformed mime input, instead of infinite
+	  looping. [Bug 631314] reported by David Welton.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl:  Applied patch for SF Tcllib bug #731759, as submitted
+	* mime.test: by Matthew Walker <gunzel@users.sourceforge.net> and
+	             accepted by Marshall Rose <mrose@users.sourceforge.net>.
+		     Update of the testsuite on my own.
+
+2003-04-25  Andreas Kupries  <andreask@activestate.com>
+
+	* mime.man: Added a section for known bugs, and recorded 447037 as
+	  such.
+
+2003-04-10  Andreas Kupries  <andreask@activestate.com>
+
+	* smtp.tcl:
+	* mime.tcl:
+	* mime.man:
+	* csmtp.man:
+	* pkgIndex.tcl: Fixed bug #614591. Set version of the package to
+	  to 1.3.3. Fixed equivalent of bug #648679.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.man: More semantic markup, less visual one.
+	* smtp.man:
+
+2003-01-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* mime.tcl (md5): Fix for bug # 630381. Use tcllib md5 to handle
+	  Trf transparency.
+
+2002-10-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.man: Changed -parse to -part in description of
+	  "::mime::initialize". Thanks to "Gerald W. Lester"
+	  <gerald.lester@cox.net> for finding this.
+
+2002-09-16  David N. Welton  <davidw@dedasys.com>
+
+	* smtp.man: Added example from http://mini.net/tcl/1256.
+
+2002-09-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.test: Extended field_decode tests with the examples from
+	  RFC 2047.
+
+	* mime.tcl: Integrated new implementation of 'field_decode'
+	  provided by Don Libes <don@libes.com>. This rewrite correctly
+	  decodes all seven examples of RFC 2047. The old version decoded
+	  only one correctly.
+
+2002-08-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl: Accepted patch in SF FR #595240, provided by Marshall
+	  T. Rose <mrose@users.sourceforge.net>. The patch makes the code
+	  more robust with respect to a common mime encoding error.
+
+	* tcllib/examples/mime: Added an example application making use of
+	  mime and smtp packages. Mbot is a highly-specialized filter for
+	  personal messages. Again this is code provided to us by Marshall
+	  T. Rose.
+
+	* smtp.tcl: Followup patch to patch SF #557520/2. A line of code
+	  initializing the options from the state was missing in one
+	  command, causing problems with the usage of -maxsecs. This was
+	  noted on c.l.t., by Acacio Cruz. The followup patch was provided
+	  by Todd Coram.
+
+2002-07-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Applied patch SF #557520/2 (== SF #558132) supplied by
+	  Todd Coram <tcoram@users.sourceforge.net>on behalf of Marshall
+	  Rose <mrose@users.sourceforge.net>. This patch dispenses with
+	  the automatic calculation of a timeout value and goes with a
+	  user-supplied value (new option -maxsecs) instead. Default for
+	  this option is 120 secs. This fixes bug SF #557040.
+
+	* performance.tcl: New file. Script supplied by Pascal Scheffers
+	  (see below) to test the performance of the mime package.
+
+	* mime.tcl: Applied patch SF #585455 supplied by Pascal Scheffers
+	  <pascalscheffers@users.sourceforge.net> on behalf of Marshall
+	  Rose <mrose@users.sourceforge.net>. This patch speeds up MIME
+	  processing by using [split \n] and list ops to iterate over the
+	  lines in the mail instead of using [string range] for doing it
+	  incrementally, copying unprocessed data down again and again.
+
+2002-06-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl: Fixed bug SF #548832. Report and patch by Michael
+	  A. Cleverly <cleverly@users.sourceforge.net>.
+
+2002-05-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl (smtp::initialize): Fixed SF bug #561416. The reporter
+	  is unknown and provided the fix too. Fix approved by Marshall
+	  Rose <mrose@users.sourceforge.net>.
+
+2002-05-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl: Accepted patch for SF bug #553784, by Don Porter
+	  <dgp@users.sourceforge.net>.
+
+	* smtp.tcl: Applied patch for SF bug #539952, on behalf of
+	  Marshall Rose <mrose@users.sourceforge.net>. The part of the
+	  patch regarding "mime.tcl" was already in the CVS, as part of
+	  the fix for SF #477088, see 2001-11-01.
+
+2002-04-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Applied patch for SF bug #547336 on behalf of Marshall
+	  Rose <mrose@users.sourceforge.net>. Bug was reported by Don
+	  Porter <dgp@users.sourceforge.net>. This removes the duplicate
+	  [package require Trf] we had before.
+
+2002-04-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.man: Added doctools manpage.
+	* smtp.man: Added doctools manpage.
+
+2002-04-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Accepted patch by Simon Scott
+	  <sjscott@users.sourceforge.net>, with slight modification. Fixes
+	  bug #533025.
+
+2002-02-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl: Accepted patch for bug #519623 by Rolf Ade
+	  <rolf@pointsman.de>.
+
+2002-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Version set to 1.3.2 to differentiate the development code from
+	  the 1.2 release containing 1.3.1.
+
+	* mime.n: Applied patch 511692 provided by Larry Virden
+	  <lvirden@users.sourceforge.net> fixing a formatting problem.
+
+2002-01-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.3.1
+
+2002-01-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Fixed bug #499242. Extended the non-trf branch of
+	  smtp::wtextaux to detect and transform bare LF's into proper
+	  CR/LF sequences.
+
+2002-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.tcl (qp_encode): Implemented FR #503336, added
+	  'no_softbreak' flag to qp_encode. Default value is false, giving
+	  the original behaviour. If set the encoded data is not broken
+	  into multiple lines, even if longer than 72 characters.
+
+2001-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mime.n: Clarified documentation for 'parseaddress' in the wake
+	  of bug #479174 as this is the command which actually handles the
+	  value of option -recipients mentionend below.
+
+	* smtp.n: Fixed bug #479144, clarified contents of value for
+	  -recipients. Bug reported by Darren New
+	  <dnew@users.sourceforge.net>.
+
+2001-11-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: Fixed bug #472009. Changes in the handling of
+	  script-level transformations cause the system to try to
+	  initialize the read side of the 'smtp::wdata'
+	  transformation. This fails. Added a dummy create/read branch to
+	  the switch. Reported by 'nobody/anonymous', but possibly Andreas
+	  Otto (deduced from the specified example).
+
+	* mime.tcl: Added informaton about 7bit, 8bit, and binary encoding
+	  to the places where it is missing. This fixes SF item
+	  #477088. Bug was reported by Oliver Bienert
+	  <obienert@users.sourceforge.net>.
+
+2001-10-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* mime.n:
+	* mime.tcl:
+	* smtp.n:
+	* smtp.tcl:
+	* pkgIndex.tcl: Version up to 1.3
+
+2001-09-12  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Added manpages for smtp and mime packages.
+
+2001-08-01  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* mime.tcl: made package require 8.3 and sped up qp_encode and
+	qp_decode.
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl: 
+	* mime.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* smtp.tcl:
+	* mime.tcl: Fixed dubious code reported by frink and procheck.
+
+2001-01-30  Eric Melski  <ericm@interwoven.com>
+
+	* mime.tcl: Applied patch from Peter MacDonald to correct problem
+	with mime::initialize failing when mailers neglect to include
+	the trailing boundary marker.
+
+2000-09-20  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * smtp.tcl
+        * mime.tcl: namespaced the procs that are created to replace
+        the Trf functions when Trf isn't available.  This way they
+        are not created in the global namespace, and there isn't any
+        risk that they will collide with other global functions.
+
+2000-09-04  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * README.xml
+        * README.txt
+        * README.html
+        * mime.tcl:  Added proc header comment blocks to all procedures.
+        Some are better than others, and they were written based on a
+        quick analysis of the code and the documentation in the README
+        file.  They should be updated as they change or are found to be
+        inaccurate.
+
+2000-09-01  Dan Kuchler  <kuchler@ajubasolutions.com>
+       
+        * mime.tcl
+        * mime.test: Integrated a patch from Laurent Riesterer 
+        (riesterer@celar.fr).  This patch added three new procedures
+        (mime::word_encode, mime::word_decode, and mime::field_decode)
+        The patch also adds support for word encoded items as defined
+        in RFC 2047.  Fixed a bug in the quoted printable encode function
+        mime::qp_encode
+
+2000-08-15  Dan Kuchler  <kuchler@ajubasolutions.com>
+
+        * mime.tcl
+        * smtp.tcl: Made fixes so that smtp::sendmessage and
+        mime::buildmessage work properly.  Fixed a bug where
+        the "." at the start of a line was not being replaced
+        by a ".." This was fine in base64 or in the default
+        quoted printable, but was clearly broken in 8-bit or
+        7-bit encodings.
+
+2000-08-11  Eric Melski  <ericm@ajubasolutions.com>
+
+	* README.xml: 
+	* README.html: 
+	* README.txtl: Clarified information about soft-dependancy on Trf.
+
+2000-08-03  Dan Kuchler <kuchler@ajubasolutions.com>
+
+	* README.txt
+	* README.xml
+	* README.html
+	* mime/smtp.tcl: Added a '-ports' option to smtp::sendmessage.
+	The '-ports' option takes a list that should mirror the list of
+	SMTP servers specified with the '-servers' flag. Documented the
+	mime::reversemapencodings, mime::mapencodings, and
+	smtp::buildmessage functions
+
+	* mime/mime.tcl: Added mime::mapencoding and
+	mime::reversemapencoding functions to map tcl encodings
+	to their charset types, and back again.
+
+	* mime/pkgIndex.tcl: Bumped the revision number from 1.1 to 1.2
+
+2000-06-21  Sandeep Tamhankar  <sandeep@scriptics.com>
+
+	* mime/smtp.tcl: Undid the #5693 fix.  It turns out there are
+	situations where this is the desired behavior.  The basic idea is
+	that the -recipients value is used in the SMTP envelope, and
+	should not be mixed with message headers.  Basically, they're two
+	totally different things.  I commented all the code and cleaned up
+	some of the areas where side effects were being used unnecessarily
+	and making the code hard to read.
+	
+2000-05-24  Sandeep Tamhankar  <sandeep@scriptics.com>
+
+	* mime/smtp.tcl: Fixed bug 5693, where the "To:" header wasn't
+	being sent with an e-mail when using the -recipients flag of
+	smtp::sendmessage.  Also, if -recipients was combined with -header
+	"To ..." or -header "Cc ...", it would send the message only to
+	-recipients (which is documented) but it would leave the Cc and To
+	headers, which are wrong.  This is also fixed.
+
+2000-05-23  Sandeep Tamhankar  <sandeep@scriptics.com>
+
+	* mime/mime.tcl
+	* mime/mime.test: Fixed bugs 5521 and 5659, where qp_encode and
+	qp_decode had numerous bugs.  See #5659 for details.
+
+2000-05-22  Sandeep Tamhankar  <sandeep@scriptics.com>
+
+	* mime/smtp.tcl: Fixed a bug where if the requested mail server
+	didn't exist (i.e. the host didn't have an SMTP server running),
+	smtp::sendmessage would continue executing until a horrific crash
+	at a later point.  I added the check and proper error reporting.
+
+2000-05-06  Sandeep Tamhankar  <sandeep@scriptics.com>
+
+	* mime/smtp.tcl: Fixed bug 5383, where smtp wouldn't work because
+	it had a dependency on Trf.  I've patched the code, and it seems
+	to work fine now.
+
+2000-04-25  Sandeep Tamhankar <sandeep@scriptics.com>
+
+	* modules/mime/mime.test: Added a somewhat rudimentary test suite
+	for TclMIME.  Found what I believe is a minor bug in the package,
+	but decided not to fix it (and just let the relevant test fail)
+	until I can discuss it with Brent.
+
+2000-03-07  Brent Welch <welch@scriptics.com>
+
+	* modules/mime/mime.tcl: Modified this to have a soft dependency on
+	the Trf package.  If it is available then the encoding and decoding
+	of MIME base64 and quoted-printable will run faster.
+	Also added mime::buildmessage that creates the structured MIME message
+	in a string and returns that - much like mime::copymessage that
+	copies the message to a channel.

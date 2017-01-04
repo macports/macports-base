@@ -1,0 +1,77 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::receive n 0.1]
+[keywords {character input}]
+[keywords control]
+[keywords {get character}]
+[keywords listener]
+[keywords receiver]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {General input from terminals}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::receive [opt 0.1]]
+[description]
+
+This package provides the most primitive commands for receiving
+characters to a terminal. They are in essence convenient wrappers
+around the builtin commands [cmd read] and [cmd fileevent].
+
+[list_begin definitions]
+[call [cmd ::term::receive::getch] [opt [arg chan]]]
+
+This command reads a single character from the channel with handle
+[arg chan] and returns it as the result of the command.
+
+[para]
+
+If not specified [arg chan] defaults to [const stdin].
+
+[para]
+
+It is the responsibility of the caller to make sure that the channel
+can provide single characters. On unix this can be done, for example,
+by using the command of package [package term::ansi::ctrl::unix].
+
+[call [cmd ::term::receive::listen] [arg cmd] [opt [arg chan]]]
+
+This command sets up a filevent listener for the channel with handle
+[arg chan] and invokes the command prefix [arg cmd] whenever
+characters have been received, or EOF was reached.
+
+[para]
+
+If not specified [arg chan] defaults to [const stdin].
+
+[para]
+
+The signature of the command prefix is
+
+[list_begin definitions]
+[call [arg cmd] [method process] [arg string]]
+
+This method is invoked when characters were received, and [arg string]
+holds them for processing.
+
+[call [arg cmd] [method eof]]
+
+This method is invoked when EOF was reached on the channel we listen
+on.  It will be the last call to be received by the callback.
+
+[list_end]
+
+[call [cmd ::term::receive::unlisten] [opt [arg chan]]]
+
+This command disables the filevent listener for the channel with handle
+[arg chan].
+
+[para]
+
+If not specified [arg chan] defaults to [const stdin].
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

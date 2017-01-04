@@ -1,0 +1,132 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin bench_lang_spec n 1.0]
+[see_also bench_intro]
+[see_also bench_lang_intro]
+[keywords {bench language}]
+[keywords benchmark]
+[keywords performance]
+[keywords specification]
+[keywords testing]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {bench language specification}]
+[category  {Benchmark tools}]
+[description]
+[para]
+
+This document specifies both names and syntax of all the commands
+which together are the bench language, version 1.
+
+As this document is intended to be a reference the commands are listed
+in alphabetical order, and the descriptions are relatively short.
+
+A beginner should read the more informally written
+[term {bench language introduction}] first.
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd bench_rm] [arg path]...]
+
+This command silently removes the files specified as its arguments and
+then returns the empty string as its result.
+
+The command is [emph trusted], there is no checking if the specified
+files are outside of whatever restricted area the benchmarks are run
+in.
+
+[call [cmd bench_tmpfile]]
+
+This command returns the path to a bench specific unique temporary
+file. The uniqueness means that multiple calls will return different
+paths. While the path may exist from previous runs, the command itself
+does [emph not] create aynthing.
+
+[para]
+
+The base location of the temporary files is platform dependent:
+
+[list_begin definitions]
+[def {Unix, and indeterminate platform}]
+[file /tmp]
+[def Windows]
+[var \$TEMP]
+[def {Anything else}]
+The current working directory.
+[list_end]
+[para]
+
+[call [cmd bench] [arg options]...]
+
+This command declares a single benchmark. Its result is the empty
+string. All parts of the benchmark are declared via options, and their
+values. The options can occur in any order. The accepted options are:
+
+[list_begin options]
+[opt_def -body script]
+
+The argument of this option declares the body of the benchmark, the
+Tcl script whose performance we wish to measure. This option, and
+[option -desc], are the two required parts of each benchmark.
+
+[opt_def -desc msg]
+
+The argument of this option declares the name of the benchmark. It has
+to be unique, or timing data from different benchmarks will be mixed
+together.
+
+[para]
+
+[emph Beware!] This requirement is not checked when benchmarks are
+executed, and the system will silently produce bogus data. This
+option, and [option -body], are the two required parts of each
+benchmark.
+
+[opt_def -ipost script]
+
+The argument of this option declares a script which is run immediately
+[emph after] each iteration of the body. Its responsibility is to
+release resources created by the body, or [option -ipre]-bodym which
+we do not wish to live into the next iteration.
+
+[opt_def -ipre script]
+
+The argument of this option declares a script which is run immediately
+[emph before] each iteration of the body. Its responsibility is to
+create the state of the system expected by the body so that we measure
+the right thing.
+
+[opt_def -iterations num]
+
+The argument of this option declares the maximum number of times to
+run the [option -body] of the benchmark. During execution this and the
+global maximum number of iterations are compared and the smaller of
+the two values is used.
+
+[para]
+
+This option should be used only for benchmarks which are expected or
+known to take a long time per run. I.e. reduce the number of times
+they are run to keep the overall time for the execution of the whole
+benchmark within manageable limits.
+
+[opt_def -post script]
+
+The argument of this option declares a script which is run
+[emph after] all iterations of the body have been run. Its
+responsibility is to release resources created by the body,
+or [option -pre]-body.
+
+[opt_def -pre script]
+
+The argument of this option declares a script which is run
+[emph before] any of the iterations of the body are run. Its
+responsibility is to create whatever resources are needed by the body
+to run without failing.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY bench]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

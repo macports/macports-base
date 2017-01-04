@@ -1,0 +1,79 @@
+This is stooop (a Simple Tcl Only Object Oriented Programming scheme)
+version 4.2. Stooop is implemented in a single sourceable file and
+uses simple techniques to provide object orientation to the great Tcl
+language.
+
+If you know C++ or Java, stooop will be easy to use for you. Using the
+familiar class, new, delete and virtual keywords and a few coding
+conventions, you can start object oriented Tcl code right away, as the
+following simple example shows:
+
+
+source stooop.tcl
+namespace import stooop::*
+
+class circle {
+    proc circle {this canvas diameter} {
+        set ($this,diameter) $diameter
+        set ($this,canvas) $canvas
+        set ($this,id) [$canvas create oval 0 0 $diameter $diameter]
+    }
+    proc ~circle {this} {
+        $($this,canvas) delete $($this,id)
+    }
+    proc move {this x y} {
+        $($this,canvas) move $($this,id) $x $y
+    }
+}
+
+pack [canvas .canvas]
+set c [new circle .canvas 50]
+update; after 1000
+circle::move $c 10 10
+update; after 1000
+delete $c
+
+
+Stooop supports single and multiple inheritance, data encapsulation
+(all member data is public), dynamic binding, nested classes, object
+copy, runtime type identification, optional runtime procedure and data
+access checking as well as tracing.
+
+As stooop is entirely written in Tcl, it will run on all Tcl supported
+platforms, including Windows and the Mac Intosh, if you have Tcl
+version 8.3 or above.
+
+The class, new, delete, virtual and classof commands are implemented
+as Tcl procedures.
+
+Stooop was implemented with a constant concern for performance. Member
+data is stored in Tcl associative arrays, which are best for random
+data access. Classes are implemented as namespaces to improve
+encapsulation and reduce naming interferences. Object oriented helper
+code is kept as small and as efficient as possible. Typically, only a
+couple of Tcl lines are added to a member procedure definition.
+Program startup time will be slightly increased due to some class and
+member procedures preprocessing, but runtime overhead is kept to a
+strict minimum. Use of object oriented techniques may actually improve
+the performance of your code.
+
+A full HTML documentation, simple demonstration script, graphical
+demonstration with composite pattern and test files are provided. You
+may also run the test suite and look at the test scripts for
+examples. There is also a utility for creating packages (in the Tcl
+sense) from stooop compatible class files.
+
+There is a companion package to stooop: scwoop (a Simple Composite
+Widget Object Oriented Package). Scwoop is implemented in a single
+sourceable file and uses simple techniques to provide composite widget
+(also known as mega widget) support to the great Tk widget library.
+Moodss (a Modular Object Oriented Dynamic SpreadSheet) implemented
+with stooop, scwoop, tkTable and BLT is also available on my website
+(at http://jfontain.free.fr/).
+
+Whether you like it (or hate it), please let me know. I would like to
+hear about bugs and improvements you would like to see. I will correct
+the bugs quickly, especially if you send me a test script.
+
+Copyright (c) 2001 by Jean-Luc Fontaine <jfontain@free.fr>.
+This code may be distributed under the same terms as Tcl.

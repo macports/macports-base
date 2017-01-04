@@ -1,0 +1,89 @@
+# -*- tcl -*- inifile.pcx
+# Syntax of the commands provided by package inifile.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register inifile
+pcx::tcldep   0.2.1 needs tcl 8.2
+
+namespace eval ::inifile {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.2.1 std ::ini::close \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.2.1 std ::ini::comment \
+    {checkSimpleArgs 4 4 {
+	checkChannelID
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 0.2.1 std ::ini::commit \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.2.1 std ::ini::delete \
+    {checkSimpleArgs 2 3 {
+	checkChannelID
+	checkWord
+	checkWord
+    }}
+pcx::check 0.2.1 std ::ini::exists \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.2.1 std ::ini::filename \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.2.1 std ::ini::get \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkWord
+    }}
+pcx::check 0.2.1 std ::ini::keys \
+    {checkSimpleArgs 2 2 {
+	checkChannelID
+	checkWord
+    }}
+# TODO: file open access mode
+pcx::check 0.2.1 std ::ini::open \
+    {checkSimpleArgs 1 2 {
+	checkWord
+	checkWord
+    }}
+pcx::check 0.2.1 std ::ini::revert \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.2.1 std ::ini::sections \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.2.1 std ::ini::set \
+    {checkSimpleArgs 4 4 {
+	checkChannelID
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 0.2.1 std ::ini::value \
+    {checkSimpleArgs 3 4 {
+	checkChannelID
+	checkWord
+	checkWord
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::inifile::init procedure for non-standard initialization.
+pcx::complete

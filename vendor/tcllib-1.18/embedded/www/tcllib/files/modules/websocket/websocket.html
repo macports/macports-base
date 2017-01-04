@@ -1,0 +1,496 @@
+
+<div class='fossil-doc' data-title='websocket - websocket client and server'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">websocket(n) 1.3.1 tcllib &quot;websocket client and server&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>websocket - Tcl implementation of the websocket protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Callbacks</a></li>
+<li class="doctools_section"><a href="#section3">API</a></li>
+<li class="doctools_section"><a href="#section4">Examples</a></li>
+<li class="doctools_section"><a href="#section5">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">http 2.7</b></li>
+<li>package require <b class="pkgname">logger</b></li>
+<li>package require <b class="pkgname">sha1</b></li>
+<li>package require <b class="pkgname">base64</b></li>
+<li>package require <b class="pkgname">websocket <span class="opt">?1.3.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::websocket::open</b> <i class="arg">url</i> <i class="arg">handler</i> <span class="opt">?<i class="arg">options</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::websocket::send</b> <i class="arg">sock</i> <i class="arg">type</i> <span class="opt">?<i class="arg">msg</i>?</span> <span class="opt">?<i class="arg">final</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::websocket::server</b> <i class="arg">sock</i></a></li>
+<li><a href="#4"><b class="cmd">::websocket::live</b> <i class="arg">sock</i> <i class="arg">path</i> <i class="arg">cb</i> <span class="opt">?<i class="arg">proto</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::websocket::test</b> <i class="arg">srvSock</i> <i class="arg">cliSock</i> <i class="arg">path</i> <span class="opt">?<i class="arg">hdrs</i>?</span> <span class="opt">?<i class="arg">qry</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::websocket::upgrade</b> <i class="arg">sock</i></a></li>
+<li><a href="#7"><b class="cmd">::websocket::takeover</b> <i class="arg">sock</i> <i class="arg">handler</i> <span class="opt">?<i class="arg">server</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::websocket::conninfo</b> <i class="arg">sock</i> <i class="arg">what</i></a></li>
+<li><a href="#9"><b class="cmd">::websocket::find</b> <span class="opt">?<i class="arg">host</i>?</span> <span class="opt">?<i class="arg">port</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">::websocket::configure</b> <i class="arg">sock</i> <i class="arg">args</i></a></li>
+<li><a href="#11"><b class="cmd">::websocket::loglevel</b> <span class="opt">?<i class="arg">loglvl</i>?</span></a></li>
+<li><a href="#12"><b class="cmd">::websocket::close</b> <i class="arg">sock</i> <span class="opt">?<i class="arg">code</i>?</span> <span class="opt">?<i class="arg">reason</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>NOTE: THIS DOCUMENTATION IS WORK IN PROGRESS...</p>
+<p>The websocket library is a pure Tcl implementation of the WebSocket
+specification covering the needs of both clients and servers.
+Websockets provide a way to upgrade a regular HTTP connection into a
+long-lived and continuous binary or text communication between the
+client and the server.  The library offers a high-level interface to
+receive and send data as specified in RFC 6455 (v. 13 of the
+protocol), relieving callers from all necessary protocol framing and
+reassembly.  It implements the ping facility specified by the
+standard, together with levers to control it.  Pings are server-driven
+and ensure the liveness of the connection across home (NAT) networks.
+The library has a number of introspection facilities to inquire about
+the current state of the connection, but also to receive notifications
+of incoming pings, if necessary.  Finally, the library contains a
+number of helper procedures to facilitate the upgrading handshaking in
+existing web servers.</p>
+<p>Central to the library is the procedure <b class="cmd">websocket::takeover</b> that
+will take over a regular socket and treat it as a WebSocket, thus
+performing all necessary protocol framing, packetisation and
+reassembly in servers and clients.  The procedure also takes a
+handler, a command that will be called back each time a (possibly
+reassembled) packet from the remote end is ready for delivery at the
+original caller.  While exported by the package, the command 
+<b class="cmd">websocket::takeover</b> is seldom called in applications, since the
+package provides other commands that are specifically tuned for the
+needs of clients and servers.</p>
+<p>Typically, clients will open a connection to a remote server by
+providing a WebSocket URL (<i class="term">ws:</i> or <i class="term">wss:</i> schemes) and the
+handler described above to the command <b class="cmd">websocket::open</b>. The
+opening procedure is a wrapper around the latest http::geturl
+implementations: it arranges to keep the socket created within the
+http library opened for reuse, but confiscates it from its (internal)
+map of known sockets for its own use.</p>
+<p>Servers will start by registering themselves through the command 
+<b class="cmd">::websocket::server</b> and a number of handlers for paths using the
+command <b class="cmd">::websocket::live</b>.  Then for each incoming client
+connection, they should test the incoming request to detect if it is
+an upgrade request using <b class="cmd">::websocket::test</b> and perform the final
+handshake to place the socket connection under the control of the
+websocket library and its central procedure using <b class="cmd">::websocket::upgrade</b>.</p>
+<p>Apart from these main commands, the package provides a number of
+commands for introspection and basic operations on the websockets that
+it has under its control.  As WebSockets connections are long-lived,
+most remaining communication with the library will be by way of
+callbacks, i.e. commands that are triggered whenever important events
+within the library have occur, but mostly whenever data has been
+received on a WebSocket.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Callbacks</a></h2>
+<p>A number of commands of the library take a handler handler command as
+an argument, a command which will be called back upon reception of
+data, but also upon important events within the library or events
+resulting from control messages sent by the remote end.  For each
+callback being performed, the following arguments will be appended:</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">sock</i></dt>
+<dd><p>The identifier of the WebSocket, as returned for example by 
+<b class="cmd">::websocket::open</b></p></dd>
+<dt><i class="arg">type</i></dt>
+<dd><p>A textual type describing the event or message content, can be one of
+the following</p>
+<dl class="doctools_definitions">
+<dt><b class="const">text</b></dt>
+<dd><p>Complete text message</p></dd>
+<dt><b class="const">binary</b></dt>
+<dd><p>Complete binary message</p></dd>
+<dt><b class="const">ping</b></dt>
+<dd><p>Incoming ping message</p></dd>
+<dt><b class="const">connect</b></dt>
+<dd><p>Notification of successful connection to server</p></dd>
+<dt><b class="const">disconnect</b></dt>
+<dd><p>Disconnection from remote end</p></dd>
+<dt><b class="const">close</b></dt>
+<dd><p>Pending closure of connection</p></dd>
+</dl></dd>
+<dt><i class="arg">msg</i></dt>
+<dd><p>Will contain the data of the message, whenever this is relevant,
+i.e. when the <i class="arg">type</i> is <b class="const">text</b>, <b class="const">binary</b> or
+<b class="const">ping</b> and whenever there is data available.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::websocket::open</b> <i class="arg">url</i> <i class="arg">handler</i> <span class="opt">?<i class="arg">options</i>?</span></a></dt>
+<dd><p>This command is used in clients to open a WebSocket to a remote
+websocket-enabled HTTP server.  The URL provided as an argument in
+<i class="arg">url</i> should start with ws: or wss:, which are the WebSockets
+counterpart of http: and https:. The <i class="arg">handler</i> is a command that
+will be called back on data reception or whenever important events
+occur during the life of the websocket.
+<b class="cmd">::websocket::open</b> will return a socket which serves as both the
+identifier of the websocket and of the physical low-level socket to
+the server.  This socket can be used in a number of other commands for
+introspection or for controlling the behaviour of the library.
+Being essentially a wrapper around the <b class="cmd">::http::geturl</b> command,
+this command provides mostly the same set of dash-led options than
+<b class="cmd">::http::geturl</b>.  Documented below are the options that differ
+from <b class="cmd">::http::geturl</b> and which are specific to the WebSocket
+library.</p>
+<dl class="doctools_definitions">
+<dt>-headers</dt>
+<dd><p>This option is supported, knowing that a number of headers will be
+automatically added internally in the library in order to be able to
+handshake the upgrading of the socket from a regular HTTP socket to a
+WebSocket with the server.</p></dd>
+<dt>-validate</dt>
+<dd><p>This option is not supported as it has no real point for WebSockets.</p></dd>
+<dt>-handler</dt>
+<dd><p>This option is used internally by the websocket library and cannot be
+used.</p></dd>
+<dt>-command</dt>
+<dd><p>This option is used internally by the websocket library and cannot be
+used.</p></dd>
+<dt>-protocol</dt>
+<dd><p>This option specifies a list of application protocols to handshake
+with the server.  This protocols might help the server triggering
+application specific features.</p></dd>
+<dt>-timeout</dt>
+<dd><p>This option is supported, but will implemented as part of the library
+to enable a number of finalising cleanups.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::websocket::send</b> <i class="arg">sock</i> <i class="arg">type</i> <span class="opt">?<i class="arg">msg</i>?</span> <span class="opt">?<i class="arg">final</i>?</span></a></dt>
+<dd><p>This command will send a fragment or a control message to the remote
+end of the WebSocket identified by <i class="arg">sock</i>.  The type of the
+message specified in <i class="arg">type</i> can either be an integer according to
+the specification or (preferrably) one of the following case
+insensitive strings: &quot;text&quot;, &quot;binary&quot; or &quot;ping&quot;.  The content of the
+message to send to the remote end is contained in <i class="arg">msg</i> and
+message fragmentation is made possible by the setting the argument
+<i class="arg">final</i> to non-true, knowing that the type of each fragment has
+then to be the same.
+The command returns the number of bytes that were effectively sent, or
+-1 on errors.  Serious errors, such as when <i class="arg">sock</i> does not
+identify a known WebSocket or when the connection is not stable yet
+will generate errors that must be catched.</p></dd>
+<dt><a name="3"><b class="cmd">::websocket::server</b> <i class="arg">sock</i></a></dt>
+<dd><p>This command registers the (accept) socket <i class="arg">sock</i> as the
+identifier fo an HTTP server that is capable of doing WebSockets.
+Paths onto which this server will listen for incoming connections
+should be declared using <b class="cmd">::websocket::live</b>.</p></dd>
+<dt><a name="4"><b class="cmd">::websocket::live</b> <i class="arg">sock</i> <i class="arg">path</i> <i class="arg">cb</i> <span class="opt">?<i class="arg">proto</i>?</span></a></dt>
+<dd><p>This procedure registers callbacks that will be performed on a
+WebSocket compliant server registered with <b class="cmd">::websocket::server</b>]
+whenever a client connects to a matching path and protocol. 
+<i class="arg">sock</i> is the listening socket of the websocket compliant server
+declared using <b class="cmd">::websocket::server</b>.  <i class="arg">path</i> is a glob-style
+path to match in client request, whenever this will occur.  <i class="arg">cb</i>
+is the command to callback (see Callbacks).  <i class="arg">proto</i> is a
+glob-style protocol name matcher.</p></dd>
+<dt><a name="5"><b class="cmd">::websocket::test</b> <i class="arg">srvSock</i> <i class="arg">cliSock</i> <i class="arg">path</i> <span class="opt">?<i class="arg">hdrs</i>?</span> <span class="opt">?<i class="arg">qry</i>?</span></a></dt>
+<dd><p>This procedure will test if the connection from an incoming client on
+socket <i class="arg">cliSock</i> and on the path <i class="arg">path</i> is the opening of a
+WebSocket stream within a known server <i class="arg">srvSock</i>.  The incoming
+request is not upgraded at once, instead a (temporary) context for the
+incoming connection is created.  This allows server code to perform a
+number of actions, if necessary, before the WebSocket stream
+connection goes live.  The text is made by analysing the content of
+the headers <i class="arg">hdrs</i> which should contain a dictionary list of the
+HTTP headers of the incoming client connection.
+The command will return <b class="const">1</b> if this is an incoming WebSocket
+upgrade request and <b class="const">0</b> otherwise.</p></dd>
+<dt><a name="6"><b class="cmd">::websocket::upgrade</b> <i class="arg">sock</i></a></dt>
+<dd><p>Upgrade the socket <i class="arg">sock</i> that had been deemed by
+<b class="cmd">::websocket::test</b> to be a WebSocket connection request to a true
+WebSocket as recognised by this library. As a result, the necessary
+connection handshake will be sent to the client, and the command will
+arrange for relevant callbacks to be made during the life of the
+WebSocket, notably using the specifications described by 
+<b class="cmd">::websocket::live</b>.</p></dd>
+<dt><a name="7"><b class="cmd">::websocket::takeover</b> <i class="arg">sock</i> <i class="arg">handler</i> <span class="opt">?<i class="arg">server</i>?</span></a></dt>
+<dd><p>Take over the existing opened socket <i class="arg">sock</i> to implement sending
+and receiving WebSocket framing on top of the socket.  The procedure
+arranges for <i class="arg">handler</i> to be called back whenever messages,
+control messages or other important internal events are received or
+occured.  <i class="arg">server</i> defaults to <b class="const">0</b> and can be set to 
+<b class="const">1</b> (or a boolean that evaluates to true) to specify that this is a
+WebSocket within a server.  Apart from specificities in the protocol,
+servers should ping their clients at regular intervals in order to
+keep the connection opened at all time.  When <i class="arg">server</i> is set to
+true, the library will arrange to send these pings automatically.</p></dd>
+<dt><a name="8"><b class="cmd">::websocket::conninfo</b> <i class="arg">sock</i> <i class="arg">what</i></a></dt>
+<dd><p>Provides callers with some introspection facilities in order to get
+some semi-internal information about an existing websocket
+connection. Depending on the value of the <i class="arg">what</i> argument, the
+procedure returns the following piece of information:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">peername</b></dt>
+<dd><p>Name (preferred) or IP of remote end.</p></dd>
+<dt><b class="const">sockname</b></dt>
+<dd><p>or <b class="const">name</b> Name or IP of local end.</p></dd>
+<dt><b class="const">closed</b></dt>
+<dd><p><b class="const">1</b> if the connection is closed, <b class="const">0</b> otherwise</p></dd>
+<dt><b class="const">client</b></dt>
+<dd><p><b class="const">1</b> if the connection is a client websocket, <b class="const">0</b> otherwise</p></dd>
+<dt><b class="const">server</b></dt>
+<dd><p><b class="const">1</b> if the connection is a server websocket, <b class="const">0</b> otherwise</p></dd>
+<dt><b class="const">type</b></dt>
+<dd><p><b class="const">server</b> if the connection is a server websocket, <b class="const">client</b> otherwise.</p></dd>
+<dt><b class="const">handler</b></dt>
+<dd><p>The handler command associated to the websocket</p></dd>
+<dt><b class="const">state</b></dt>
+<dd><p>The state of the websocket, which can be one of:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">CONNECTING</b></dt>
+<dd><p>Connection to remote end is in progress.</p></dd>
+<dt><b class="const">CONNECTED</b></dt>
+<dd><p>Connection is connected to remote end.</p></dd>
+<dt><b class="const">CLOSED</b></dt>
+<dd><p>Connection is closed.</p></dd>
+</dl></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::websocket::find</b> <span class="opt">?<i class="arg">host</i>?</span> <span class="opt">?<i class="arg">port</i>?</span></a></dt>
+<dd><p>Look among existing websocket connections for the ones that match the
+hostname and port number filters passed as parameters.  This lookup
+takes the remote end into account and the <i class="arg">host</i> argument is
+matched both against the hostname (whenever available) and the IP
+address of the remote end.  Both the <i class="arg">host</i> and <i class="arg">port</i>
+arguments are glob-style string matching filters and default to 
+<b class="const">*</b>, i.e. will match any host and/or port number.</p></dd>
+<dt><a name="10"><b class="cmd">::websocket::configure</b> <i class="arg">sock</i> <i class="arg">args</i></a></dt>
+<dd><p>This command takes a number of dash-led options (and their values) to
+configure the behaviour of an existing websocket connection.  The
+recognised options are the following (they can be shortened to the
+lowest common denominator):</p>
+<dl class="doctools_definitions">
+<dt><b class="const">-keepalive</b></dt>
+<dd><p>is the number of seconds between each
+keepalive pings being sent along the connection.  A zero or negative
+number will effectively turn off the feature.  In servers, 
+<b class="const">-keepalive</b> defaults to 30 seconds, and in clients, no pings 
+are initiated.</p></dd>
+<dt><b class="const">-ping</b></dt>
+<dd><p>is the text that is used during the automated
+pings.  This text defaults to the empty string, leading to an empty ping.</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">::websocket::loglevel</b> <span class="opt">?<i class="arg">loglvl</i>?</span></a></dt>
+<dd><p>Set or query the log level of the library, which defaults to error.
+Logging is built on top of the logger module, and the library makes
+use of the following levels: <b class="const">debug</b>, <b class="const">info</b>, <b class="const">notice</b>,
+<b class="const">warn</b> and <b class="const">error</b>.  When called with no argument, this procedure will
+simply return the current log level.  Otherwise <i class="arg">loglvl</i> should contain
+the desired log level.</p></dd>
+<dt><a name="12"><b class="cmd">::websocket::close</b> <i class="arg">sock</i> <span class="opt">?<i class="arg">code</i>?</span> <span class="opt">?<i class="arg">reason</i>?</span></a></dt>
+<dd><p>Gracefully close a websocket that was directly or indirectly passed to
+<b class="cmd">::websocket::takeover</b>.  The procedure will optionally send the 
+<i class="arg">code</i> and describing <i class="arg">reason</i> as part of the closure handshake.
+Good defaults are provided, so that reasons for a number of known codes will
+be sent back. Only the first 125 characters of a reason string will be kept and
+sent as part of the handshake. The known codes are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">1000</b></dt>
+<dd><p>Normal closure (the default <i class="arg">code</i> when none provided).</p></dd>
+<dt><b class="const">1001</b></dt>
+<dd><p>Endpoint going away</p></dd>
+<dt><b class="const">1002</b></dt>
+<dd><p>Protocol Error</p></dd>
+<dt><b class="const">1003</b></dt>
+<dd><p>Received incompatible data type</p></dd>
+<dt><b class="const">1006</b></dt>
+<dd><p>Abnormal closure</p></dd>
+<dt><b class="const">1007</b></dt>
+<dd><p>Received data not consistent with type</p></dd>
+<dt><b class="const">1008</b></dt>
+<dd><p>Policy violation</p></dd>
+<dt><b class="const">1009</b></dt>
+<dd><p>Received message too big</p></dd>
+<dt><b class="const">1010</b></dt>
+<dd><p>Missing extension</p></dd>
+<dt><b class="const">1011</b></dt>
+<dd><p>Unexpected condition</p></dd>
+<dt><b class="const">1015</b></dt>
+<dd><p>TLS handshake error</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Examples</a></h2>
+<p>The following example opens a websocket connection to the echo
+service, waits 400ms to ensure that the connection is really
+established and sends a single textual message which should be echoed
+back by the echo service.  A real example would probably use the
+<b class="const">connect</b> callback to know when connection to the remote
+server has been establish and would only send data at that time.</p>
+<pre class="doctools_example">
+package require websocket
+::websocket::loglevel debug
+proc handler { sock type msg } {
+    switch -glob -nocase -- $type {
+	co* {
+	    puts &quot;Connected on $sock&quot;
+	}
+	te* {
+	    puts &quot;RECEIVED: $msg&quot;
+	}
+	cl* -
+	dis* {
+	}
+    }
+    
+}
+proc test { sock } {
+    puts &quot;[::websocket::conninfo $sock type] from [::websocket::conninfo $sock sockname] to [::websocket::conninfo $sock peername]&quot;
+    
+    ::websocket::send $sock text &quot;Testing, testing...&quot;
+}
+set sock [::websocket::open ws://echo.websocket.org/ handler]
+after 400 test $sock
+vwait forever
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>websocket</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../../../../index.html#key445">http</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key445">http</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key295">net</a>, <a href="../../../../index.html#key446">rfc 6455</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div>

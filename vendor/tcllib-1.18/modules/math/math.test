@@ -1,0 +1,279 @@
+# Tests for math library. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: math.test,v 1.22 2009/12/04 17:37:47 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal math.tcl math
+}
+
+# -------------------------------------------------------------------------
+#
+# Create and register (in that order!) custom matching procedures
+#
+proc matchTolerant { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { abs($e-$a)>0.0001*abs($e) &&
+           abs($e-$a)>0.0001*abs($a)     } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+# tcltest 2.0-ism, we rely here only on 1.0 features
+#customMatch tolerant matchTolerant
+
+
+test math-1.1 {math::min, wrong num args} {
+    catch {math::min} msg
+    set msg
+} [tcltest::wrongNumArgs math::min {val args} 0]
+test math-1.2 {simple math::min} {
+    math::min 1
+} 1
+test math-1.3 {simple math::min} {
+    math::min 2 1
+} 1
+test math-1.4 {math::min} {
+    math::min 2 1 0
+} 0
+test math-1.5 {math::min with negative numbers} {
+    math::min 2 1 0 -10
+} -10
+test math-1.6 {math::min with floating point numbers} {
+    math::min 2 1 0 -10 -10.5
+} -10.5
+
+test math-2.1 {math::max, wrong num args} {
+    catch {math::max} msg
+    set msg
+} [tcltest::wrongNumArgs math::max {val args} 0]
+test math-2.2 {simple math::max} {
+    math::max 1
+} 1
+test math-2.3 {simple math::max} {
+    math::max 2 1
+} 2
+test math-2.4 {math::max} {
+    math::max 0 2 1 0
+} 2
+test math-2.5 {math::max with negative numbers} {
+    math::max 2 1 0 -10
+} 2
+test math-2.6 {math::max with floating point numbers} {
+    math::max 2 1 0 -10 10.5
+} 10.5
+
+test math-3.1 {math::mean, wrong num args} {
+    catch {math::mean} msg
+    set msg
+} [tcltest::wrongNumArgs math::mean {val args} 0]
+test math-3.2 {simple math::mean} {
+    math::mean 1
+} 1.0
+test math-3.3 {simple math::mean} {
+    math::mean 2 1
+} 1.5
+test math-3.4 {math::mean} {
+    math::mean 0 2 1 0
+} 0.75
+test math-3.5 {math::mean with negative numbers} {
+    math::mean 2 1 0 -11
+} -2.0
+test math-3.6 {math::mean with floating point numbers} {
+    matchTolerant 0.7 [math::mean 2 1 0 -10 10.5]
+} 1
+
+test math-4.1 {math::sum, wrong num args} {
+    catch {math::sum} msg
+    set msg
+} [tcltest::wrongNumArgs math::sum {val args} 0]
+test math-4.2 {math::sum} {
+    math::sum 1
+} 1
+test math-4.3 {math::sum} {
+    math::sum 1 2 3
+} 6
+test math-4.4 {math::sum} {
+    matchTolerant 1.6 [math::sum 0.1 0.2 0.3 1]
+} 1
+test math-4.5 {math::sum} {
+    math::sum -1 1
+} 0
+
+test math-5.1 {math::product, wrong num args} {
+    catch {math::product} msg
+    set msg
+} [tcltest::wrongNumArgs math::product {val args} 0]
+test math-5.2 {simple math::product} {
+    math::product 1
+} 1
+test math-5.3 {simple math::product} {
+    math::product 0 1 2 3 4 5 6 7
+} 0
+test math-5.4 {math::product} {
+    math::product 1 2 3 4 5
+} 120
+test math-5.5 {math::product with negative numbers} {
+    math::product 2 -10
+} -20
+test math-5.6 {math::product with floating point numbers} {
+    math::product 2 0.5
+} 1.0
+
+test math-6.1 {math::sigma, wrong num args} {
+    catch {math::sigma} msg
+    set msg
+} [tcltest::wrongNumArgs math::sigma {val1 val2 args} 0]
+test math-6.2 {simple math::sigma} {
+    catch {math::sigma 1} msg
+    set msg
+} [tcltest::wrongNumArgs math::sigma {val1 val2 args} 1]
+test math-6.3 {simple math::sigma} {
+    expr round([ math::sigma 100 120 ])
+} 14
+test math-6.4 {math::sigma} {
+    expr round([ math::sigma 100 110 100 100 ])
+} 5
+test math-6.5 {math::sigma with negative numbers} {
+    math::sigma 100 100 100 -100
+} 100.0
+test math-6.6 {math::sigma with floating point numbers} {
+    math::sigma 100 110 100 100.0
+} 5.0
+
+test math-7.1 {math::cov, wrong num args} {
+    catch {math::cov} msg
+    set msg
+} [tcltest::wrongNumArgs math::cov {val1 val2 args} 0]
+test math-7.2 {simple math::cov} {
+    catch {math::cov 1} msg
+    set msg
+} [tcltest::wrongNumArgs math::cov {val1 val2 args} 1]
+test math-7.3 {simple math::cov} {
+    math::cov 2 1
+} 100.0
+
+test math-7.4 {math::cov} {
+    if {![catch {
+	math::cov 0 2 1 0
+    } msg]} {
+	if { [string equal $msg Infinity] || [string equal $msg Inf] } {
+	    set result ok
+	} else {
+	    set result "result of cov was [list $msg],\
+	                should be Infinity"
+	}
+    } else {
+	if { [string equal [lrange $::errorCode 0 1] {ARITH DOMAIN}] } {
+	    set result ok
+	} else {
+	    set result "error from cov was [list $::errorCode],\
+                        should be {ARITH DOMAIN *}"
+	}
+    }
+    set result
+} ok
+test math-7.5 {math::cov with negative numbers} {
+    math::cov 100 100 100 -100
+} 200.0
+test math-7.6 {math::cov with floating point numbers} {
+    string range [ math::cov 100 110 100 100.0 ] 0 0
+} 4
+test math-7.7 {math::cov with zero mean} {
+    # Throw an error
+    catch {
+       math::cov 1 1 -2
+    } msg
+} 1
+
+test math-8.1 {math::stats, wrong num of args} {
+     catch { math::stats } msg
+     set msg
+} [tcltest::wrongNumArgs math::stats {val1 val2 args} 0]
+test math-8.2 {math::stats, wrong num of args} {
+     catch { math::stats 100 } msg
+     set msg
+} [tcltest::wrongNumArgs math::stats {val1 val2 args} 1]
+test math-8.3 { simple math::stats } {
+     foreach {a b c} [ math::stats 100 100 100 110 ] { break }
+     set a [ expr round($a) ]
+     set b [ expr round($b) ]
+     set c [ expr round($c) ]
+     list $a $b $c
+} {102 5 5}
+
+test math-9.1 { math::integrate, insufficient data points } {
+     catch { math::integrate {1 10 2 20 3 30 4 40} } msg
+     set msg
+} "at least 5 x,y pairs must be given"
+test math-9.2 { simple math::integrate } {
+     math::integrate {1 10 2 20 3 30 4 40 5 50 6 60 7 70 8 80 9 90 10 100}
+} {500.0 0.5}
+
+test math-10.1 { math::random } {
+    set result [expr round(srand(12345) * 1000)]
+    for {set i 0} {$i < 10} {incr i} {
+        lappend result [expr round([::math::random] * 1000)]
+    }
+    set result
+} {97 834 948 36 12 51 766 585 914 784 333}
+test math-10.2 { math::random value } {
+    set result {}
+    expr {srand(12345)}
+    for {set i 0} {$i < 10} {incr i} {
+        lappend result [::math::random 10]
+    }
+    set result
+} {8 9 0 0 0 7 5 9 7 3}
+test math-10.3 { math::random value value } {
+    set result {}
+    expr {srand(12345)}
+    for {set i 0} {$i < 10} {incr i} {
+        lappend result [::math::random 5 15]
+    }
+    set result
+} {13 14 5 5 5 12 10 14 12 8}
+test math-10.4 {math::random} {
+    list [catch {::math::random foo bar baz} msg] $msg
+} [list 1 "wrong # args: should be \"::math::random ?value1? ?value2?\""]
+
+test math-11.1 {math::fibonacci} {
+    set result {}
+    for {set i 0} {$i < 15} {incr i} {
+	lappend result [::math::fibonacci $i]
+    }
+    set result
+} [list 0 1 1 2 3 5 8 13 21 34 55 89 144 233 377]
+
+test math-12.1 {Safe Interpreter} {
+    ::safe::interpCreate safeInterp
+    #interp alias safeInterp puts {} puts
+
+    set result [interp eval safeInterp {
+	package require math
+	set result [math::cov 100 100 100 -100]
+    }]
+
+    interp delete safeInterp
+    set result
+} 200.0
+
+testsuiteCleanup

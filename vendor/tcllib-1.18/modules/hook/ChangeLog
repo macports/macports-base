@@ -1,0 +1,27 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-02-23  Andreas Kupries  <andreask@activestate.com>
+
+	* hook.man: [Bug 3167244]: Moved examples to their own lines to
+	  avoid placement of following text on the .CE lines, causing a
+	  staircase effect. The doctools should be fixed as well.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module 'hook'.

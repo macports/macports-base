@@ -1,0 +1,229 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# proc_namespace.test: 
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It validates the declaration and call of the procedure sub commands.
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: proc_namespaces.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+catch {namespace delete ::tepam}
+catch {namespace delete ns1}
+catch {namespace delete ns2}
+catch {rename Parent1 ""}
+catch {rename Child ""}
+
+testing {
+   useLocal tepam.tcl tepam
+}
+
+######## Main namespace ########
+
+   # Don't use the :: main space prefix
+
+      # Procedure declarations
+      test tepam-ns.main1.dcl.main "tepam, main namespace - parent procedure declaration" \
+               -body {tepam::procedure Parent1 {-args {p}} {return ::Parent1-[Child1 1]}} \
+               -result "" -output ""
+
+      test tepam-ns.main1.dcl.chld "tepam, main namespace - child procedure declaration" \
+               -body {tepam::procedure Child1 {-args {p}} {return ::Child1}} \
+               -result "" -output ""
+
+      # Execution
+      test tepam-ns.main1.exe1 "tepam, main namespace - parent procedure execution" \
+               -body {Parent1 Par} \
+               -result "::Parent1-::Child1" -output ""
+
+      test tepam-ns.main1.exe2 "tepam, main namespace - parent procedure execution" \
+               -body {::Parent1 Par} \
+               -result "::Parent1-::Child1" -output ""
+
+      # Help
+      test tepam-ns.main1.help1 "tepam, main namespace - parent procedure help" \
+               -body {Parent1 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*Parent1\s*SYNOPSIS\s*Parent1\s*<p>\s*$}
+
+      test tepam-ns.main1.help1 "tepam, main namespace - parent procedure help" \
+               -body {::Parent1 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*Parent1\s*SYNOPSIS\s*Parent1\s*<p>\s*$}
+
+   # Use the :: main space prefix
+
+      # Procedure declarations
+      test tepam-ns.main2.dcl.main "tepam, main namespace - parent procedure declaration" \
+               -body {tepam::procedure ::Parent2 {-args {p}} {return ::Parent2-[Child2 Par]}} \
+               -result "" -output ""
+
+      test tepam-ns.main2.dcl.chld "tepam, main namespace - child procedure declaration" \
+               -body {tepam::procedure ::Child2 {-args {p}} {return ::Child2}} \
+               -result "" -output ""
+
+      # Execution
+      test tepam-ns.main2.exe1 "tepam, main namespace - parent procedure execution" \
+               -body {Parent2 Par} \
+               -result "::Parent2-::Child2" -output ""
+
+      test tepam-ns.main2.exe2 "tepam, main namespace - parent procedure execution" \
+               -body {::Parent2 Par} \
+               -result "::Parent2-::Child2" -output ""
+
+      # Help
+      test tepam-ns.main2.help1 "tepam, main namespace - parent procedure help" \
+               -body {Parent2 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*Parent2\s*SYNOPSIS\s*Parent2\s*<p>\s*$}
+
+      test tepam-ns.main2.help2 "tepam, main namespace - parent procedure help" \
+               -body {::Parent2 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*Parent2\s*SYNOPSIS\s*Parent2\s*<p>\s*$}
+
+######## Namespace ::ns1 ########
+
+   namespace eval ::ns1 {}
+
+   # Only parent declared in this namespace
+      # Procedure declarations
+      test tepam-ns.ns1.dcl.1 "tepam, ns1 namespace - first parent procedure declaration" \
+               -body {tepam::procedure ::ns1::Parent2 {-args {p}} {return ::ns1::Parent2-[Child1 Par]}} \
+               -result "" -output ""
+
+      test tepam-ns.ns1.dcl.2 "tepam, ns1 namespace - second parent procedure declaration" \
+               -body {tepam::procedure ns1::Parent3 {-args {p}} {return ns1::Parent3-[Child2 Par]}} \
+               -result "" -output ""
+
+      # Execution
+      test tepam-ns.ns1.exe.1 "tepam, ns1 namespace - main parent procedure execution" \
+               -body {Parent1 Par} \
+               -result "::Parent1-::Child1" -output ""
+
+      test tepam-ns.ns1.exe.2 "tepam, ns1 namespace - first namespace parent procedure execution" \
+               -body {::ns1::Parent2 Par} \
+               -result "::ns1::Parent2-::Child1" -output ""
+
+      test tepam-ns.ns1.exe.3 "tepam, ns1 namespace - second namespace parent procedure execution" \
+               -body {::ns1::Parent3 Par} \
+               -result "ns1::Parent3-::Child2" -output ""
+
+
+   # Parent and children declared in this namespace
+      # Procedure declarations
+      
+      test tepam-ns.ns1.dcl.3 "tepam, ns1 namespace - namespace child procedure declaration" \
+               -body {tepam::procedure ::ns1::Child1 {-args {p}} {return ::ns1::Child1}} \
+               -result "" -output ""
+
+      # Execution
+      test tepam-ns.ns1.exe.4 "tepam, ns1 namespace - main parent procedure execution" \
+               -body {Parent1 Par} \
+               -result "::Parent1-::Child1" -output ""
+
+      test tepam-ns.ns1.exe.5 "tepam, ns1 namespace - first namespace parent procedure execution" \
+               -body {::ns1::Parent2 Par} \
+               -result "::ns1::Parent2-::ns1::Child1" -output ""
+
+      test tepam-ns.ns1.exe.6 "tepam, ns1 namespace - second namespace parent procedure execution" \
+               -body {::ns1::Parent3 Par} \
+               -result "ns1::Parent3-::Child2" -output ""
+
+      # Help
+      test tepam-ns.ns1.help1 "tepam, ns1 namespace - parent procedure help" \
+               -body {ns1::Parent2 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*ns1::Parent2\s*SYNOPSIS\s*ns1::Parent2\s*<p>\s*$}
+
+      test tepam-ns.ns1.help2 "tepam, ns1 namespace - parent procedure help" \
+               -body {::ns1::Parent2 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*ns1::Parent2\s*SYNOPSIS\s*ns1::Parent2\s*<p>\s*$}
+
+######## Namespace ::ns2 ########
+
+   namespace eval ::ns2 {
+
+   # Only parent declared in this namespace
+      # Procedure declarations
+      test tepam-ns.ns2.dcl.1 "tepam, ns2 namespace - parent procedure declaration" \
+               -body {tepam::procedure Parent4 {-args {p}} {return ::ns2::Parent4-[Child1 Par]}} \
+               -result "" -output ""
+
+      # Execution
+      test tepam-ns.ns2.exe.1 "tepam, ns2 namespace - main parent procedure execution" \
+               -body {Parent1 Par} \
+               -result "::Parent1-::Child1" -output ""
+
+      test tepam-ns.ns2.exe.2 "tepam, ns2 namespace - first namespace parent procedure execution" \
+               -body {::ns2::Parent4 Par} \
+               -result "::ns2::Parent4-::Child1" -output ""
+
+      test tepam-ns.ns2.exe.3 "tepam, ns2 namespace - second namespace parent procedure execution" \
+               -body {Parent4 Par} \
+               -result "::ns2::Parent4-::Child1" -output ""
+
+   # Parent and children declared in this namespace
+      # Procedure declarations
+      test tepam-ns.ns2.dcl.2 "tepam, ns2 namespace - child procedure declaration" \
+               -body {tepam::procedure Child1 {-args {p}} {return ::ns2::Child1}} \
+               -result "" -output ""
+
+      # Execution
+      test tepam-ns.ns2.exe.4 "tepam, ns2 namespace - main parent procedure execution" \
+               -body {Parent1 Par} \
+               -result "::Parent1-::Child1" -output ""
+
+      test tepam-ns.ns2.exe.5 "tepam, ns2 namespace - first namespace parent procedure execution" \
+               -body {::ns2::Parent4 Par} \
+               -result "::ns2::Parent4-::ns2::Child1" -output ""
+
+      test tepam-ns.ns2.exe.6 "tepam, ns2 namespace - second namespace parent procedure execution" \
+               -body {Parent4 Par} \
+               -result "::ns2::Parent4-::ns2::Child1" -output ""
+
+      # Help - verifies bug 3608952 of tepam 0.4.0: Help text is incorrect if procedure is part of non-default namespace
+
+      test tepam-ns.ns2.help1 "tepam, ns2 namespace - parent procedure help" \
+               -body {ns2::Parent4 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*ns2::Parent4\s*SYNOPSIS\s*ns2::Parent4\s*<p>\s*$}
+
+      test tepam-ns.ns2.help2 "tepam, ns2 namespace - parent procedure help" \
+               -body {::ns2::Parent4 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*ns2::Parent4\s*SYNOPSIS\s*ns2::Parent4\s*<p>\s*$}
+
+      test tepam-ns.ns2.help3 "tepam, ns2 namespace - parent procedure help" \
+               -body {Parent4 -help} \
+               -match regexp \
+               -result "" -output {^NAME\s*ns2::Parent4\s*SYNOPSIS\s*ns2::Parent4\s*<p>\s*$}
+
+}; # End  namespace ::ns2
+
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: bug_fixes.test
+# Modifications:
+#
+# Revision 1.1  2013/03/25 droll
+# * Added some tests to verify bug 3608952
+##########################################################################

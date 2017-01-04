@@ -1,0 +1,158 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin gpx n 0.9]
+[keywords gps]
+[keywords gpx]
+[copyright {2010, Keith Vetter <kvetter@gmail.com>}]
+[moddesc {GPS eXchange Format (GPX)}]
+[titledesc {Extracts waypoints, tracks and routes from GPX files}]
+[category  {File formats}]
+[require Tcl 8.5]
+[require gpx [opt 0.9]]
+[description]
+[para]
+
+This module parses and extracts waypoints, tracks, routes and
+metadata from a GPX (GPS eXchange) file. Both GPX version 1.0
+and 1.1 are supported.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::gpx::Create"] [arg gpxFilename] [opt [arg "rawXML"]]]
+
+The [cmd ::gpx::Create] is the first command called to process GPX
+data. It takes the GPX data from either the [arg rawXML]
+parameter if present or from the contents of [arg gpxFilename],
+and parses it using [emph tdom]. It returns a token value that is used
+by all the other commands.
+
+[call [cmd "::gpx::Cleanup"] [arg token]]
+
+This procedure cleans up resources associated with [arg token].
+It is [emph strongly] recommended that you call this
+function after you are done with a given GPX file.
+Not doing so will result in memory not being freed, and
+if your app calls [cmd ::gpx::Create] enough times, the
+memory leak could cause a performance hit...or worse.
+
+[call [cmd ::gpx::GetGPXMetadata] [arg token]]
+
+This procedure returns a dictionary of the metadata
+associated with the GPX data identified by [arg token].
+The format of the metadata dictionary is described
+below, but keys [emph version] and [emph creator]
+will always be present.
+
+[call [cmd ::gpx::GetWaypointCount] [arg token]]
+
+This procedure returns the number of waypoints defined in the GPX
+data identified by [arg token].
+
+[call [cmd ::gpx::GetAllWaypoints] [arg token]]
+
+This procedure returns the a list of waypoints defined in the GPX
+data identified by [arg token]. The format of each waypoint item
+is described below.
+
+[call [cmd ::gpx::GetTrackCount] [arg token]]
+
+This procedure returns the number of tracks defined in the GPX
+data identified by [arg token].
+
+[call [cmd ::gpx::GetTrackMetadata] [arg token] [arg whichTrack]]
+
+This procedure returns a dictionary of the metadata
+associated track number [arg whichTrack] (1 based) in
+the GPX data identified by [arg token].
+The format of the metadata dictionary is described below.
+
+[call [cmd ::gpx::GetTrackPoints] [arg token] [arg whichTrack]]
+
+The procedure returns a list of track points comprising track
+number [arg whichTrack] (1 based) in the GPX data identified by
+[arg token]. The format of the metadata dictionary is described below.
+
+[call [cmd ::gpx::GetRouteCount] [arg token]]
+
+This procedure returns the number of routes defined in the GPX
+data identified by [arg token].
+
+[call [cmd ::gpx::GetRouteMetadata] [arg token] [arg whichRoute]]
+
+This procedure returns a dictionary of the metadata
+associated route number [arg whichRoute] (1 based) in
+the GPX data identified by [arg token].
+The format of the metadata dictionary is described below.
+
+[call [cmd ::gpx::GetRoutePoints] [arg token] [arg whichRoute]]
+
+The procedure returns a list of route points comprising route
+number [arg whichRoute] (1 based) in the GPX data identified by
+[arg token]. The format of the metadata dictionary is described below.
+
+[list_end]
+
+[section "DATA STRUCTURES"]
+
+[list_begin definitions]
+
+[def "metadata dictionary"]
+
+The metadata associated with either the GPX document, a
+track, a route, a waypoint, a track point or route
+point is returned in a dictionary. The keys of that
+dictionary will be whatever optional GPX elements are
+present. The value for each key depends on the GPX schema
+for that element. For example, the value for a version
+key will be a string, while for a link key will be
+a sub-dictionary with keys [emph href] and optionally
+[emph text] and [emph type].
+
+[def "point item"]
+Each item in a track or route list of points consists of
+a list of three elements: [emph latitude], [emph longitude] and
+[emph "metadata dictionary"]. [emph Latitude] and [emph longitude]
+are decimal numbers. The [emph "metadata dictionary"] format is
+described above. For points in a track, typically there will
+always be ele (elevation) and time metadata keys.
+
+[list_end]
+
+[section "EXAMPLE"]
+
+[example {
+% set token [::gpx::Create myGpxFile.gpx]
+% set version [dict get [::gpx::GetGPXMetadata $token] version]
+% set trackCnt [::gpx::GetTrackCount $token]
+% set firstPoint [lindex [::gpx::GetTrackPoints $token 1] 0]
+% lassign $firstPoint lat lon ptMetadata
+% puts "first point in the first track is at $lat, $lon"
+% if {[dict exists $ptMetadata ele]} {
+     puts "at elevation [dict get $ptMetadata ele] meters"
+  }
+% ::gpx::Cleanup $token
+}]
+
+[section "REFERENCES"]
+
+[list_begin enumerated]
+
+[enum]
+   GPX: the GPS Exchange Format
+   ([uri http://www.topografix.com/gpx.asp])
+
+[enum]
+   GPX 1.1 Schema Documentation ([uri http://www.topografix.com/GPX/1/1/])
+
+[enum]
+   GPX 1.0 Developer's Manual ([uri http://www.topografix.com/gpx_manual.asp])
+
+[list_end]
+
+[section AUTHOR]
+Keith Vetter
+
+[vset CATEGORY gpx]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

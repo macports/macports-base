@@ -1,0 +1,23 @@
+[manpage_begin TEST z 3.14.15.926]
+[copyright **Copyright**]
+[description]
+Argument	::[arg Argument]::
+Class		::[class Class]::
+Command		::[cmd Command]::
+Comment		::[comment Comment]::
+Const		::[const Constant]::
+Emphasis	::[emph Emphasis]::
+File		::[file File/Path]::
+Function	::[fun Function]::
+Method		::[method Method]::
+Namespace	::[namespace Namespace]::
+Option		::[option Option]::
+Optional	::[opt Optional]::
+Package		::[package Package]::
+Syscmd		::[syscmd SystemCommand]::
+Term		::[term Term]::
+Type		::[type Type]::
+Uri		::[uri Uri]::
+Variable	::[var Variable]::
+Widget		::[widget Widget]::
+[manpage_end]

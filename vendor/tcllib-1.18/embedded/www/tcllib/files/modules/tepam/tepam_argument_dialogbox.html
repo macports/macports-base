@@ -1,0 +1,602 @@
+<div class='fossil-doc' data-title='tepam::argument_dialogbox - Tcl's Enhanced Procedure and Argument Manager'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tepam::argument_dialogbox(n) 0.5.0 tcllib &quot;Tcl's Enhanced Procedure and Argument Manager&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tepam::argument_dialogbox - TEPAM argument_dialogbox, reference manual</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">ARGUMENT DIALOGBOX CALL</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Context Definition Items</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Formatting and Display Options</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Global Custom Data Validation</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Data Entry Widget Items</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Entry Widget Item Attributes</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">APPLICATION SPECIFIC ENTRY WIDGETS</a></li>
+<li class="doctools_section"><a href="#section4">VARIABLES</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">Tk 8.3</b></li>
+<li>package require <b class="pkgname">tepam <span class="opt">?0.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">tepam::argument_dialogbox</b> <i class="arg">item_name item_attributes <span class="opt">?item_name item_attributes?</span> <span class="opt">?...?</span></i></a></li>
+<li><a href="#2"><b class="cmd">tepam::argument_dialogbox</b> {<i class="arg">item_name item_attributes <span class="opt">?item_name item_attributes?</span> <span class="opt">?...?</span></i>}</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">ARGUMENT DIALOGBOX CALL</a></h2>
+<p>TEPAM's <b class="cmd">argument_dialogbox</b> is a flexible and easily usable data entry form generator. Each data entry element of a form is defined via a <em>data entry item</em> that can be provided to <b class="cmd">argument_dialogbox</b> in two formats:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">tepam::argument_dialogbox</b> <i class="arg">item_name item_attributes <span class="opt">?item_name item_attributes?</span> <span class="opt">?...?</span></i></a></dt>
+<dd><p>Using this first format, each <em>data entry item</em> is defined via a pair of two arguments. The first one is the <em>item name</em> that defines the entry widget that has to be used in the form. The second argument, called <em>item attributes</em>, specifies the variable which is attributed to the data entry element as well as eventual formatting and context information.</p>
+<p>The <b class="cmd">argument_dialogbox</b> returns <b class="const">ok</b> if the entered data have been acknowledged (via the <em>OK</em> button) and validated by a data checker. If the entered data have been rejected (via the <em>Cancel</em> button) the <b class="cmd">argument_dialogbox</b> returns <b class="const">cancel</b>.</p>
+<p>A small example illustrates how the <b class="cmd">argument_dialogbox</b> can be employed:</p>
+<pre class="doctools_example">set DialogResult [<b class="cmd">tepam::argument_dialogbox</b> \
+   <b class="cmd">-title</b> &quot;Itinerary selection&quot; \
+   <b class="cmd">-file</b> {<i class="arg">-label &quot;Itinerary report&quot; -variable report_file</i>} \
+   <b class="cmd">-frame</b> {<i class="arg">-label &quot;Itinerary start&quot;</i>} \
+      <b class="cmd">-comment</b> {<i class="arg">-text &quot;Specify your itinerary start location&quot;</i>} \
+      <b class="cmd">-entry</b> {<i class="arg">-label &quot;City&quot; -variable start_city -type string</i>} \
+      <b class="cmd">-entry</b> {<i class="arg">-label &quot;Street&quot; -variable start_street -type string -optional 1</i>} \
+      <b class="cmd">-entry</b> {<i class="arg">-label &quot;Street number&quot; -variable start_street_nbr -type integer -optional 1</i>} \
+   <b class="cmd">-frame</b> {<i class="arg">-label &quot;Itinerary destination&quot;</i>} \
+      <b class="cmd">-comment</b> {<i class="arg">-text &quot;Specify your itinerary destination&quot;</i>} \
+      <b class="cmd">-entry</b> {<i class="arg">-label &quot;City&quot; -variable dest_city -type string</i>} \
+      <b class="cmd">-entry</b> {<i class="arg">-label &quot;Street&quot; -variable dest_street -type string -optional 1</i>} \
+      <b class="cmd">-entry</b> {<i class="arg">-label &quot;Street number&quot; -variable dest_street_nbr -type integer -optional 1</i>} \
+   <b class="cmd">-frame</b> {} \
+   <b class="cmd">-checkbutton</b> {<i class="arg">-label &quot;Don't use highways&quot; -variable no_highway</i>}]</pre>
+<p>This example opens a dialog box that has the title <em>Itinerary selection</em>. A first entry widget in this box allows selecting a report file. It follows two frames to define respectively an itinerary start and end location. Each of these locations that are described with a comment has three entry widgets to specify respectively the city, street and the street number. Bellow the second frame there is a check button that allows specifying if eventual highways should be ignored.</p></dd>
+<dt><a name="2"><b class="cmd">tepam::argument_dialogbox</b> {<i class="arg">item_name item_attributes <span class="opt">?item_name item_attributes?</span> <span class="opt">?...?</span></i>}</a></dt>
+<dd><p>Sometimes it is simpler to provide all the data entry item definitions in form of a single list to <b class="cmd">argument_dialogbox</b>, and not as individual arguments. The second format that is supported by <b class="cmd">argument_dialogbox</b> corresponds exactly to the first one, except that all item definitions are packed into a single list that is provided to <b class="cmd">argument_dialogbox</b>. The previous example can therefore also be written in the following way:</p>
+<pre class="doctools_example">set DialogResult [<b class="cmd">tepam::argument_dialogbox {</b>
+   <b class="cmd">-title</b> &quot;Itinerary selection&quot;
+   <b class="cmd">-file</b> {<i class="arg">-label &quot;Itinerary report&quot; -variable report_file</i>}
+   ...
+   <b class="cmd">-checkbutton</b> {<i class="arg">-label &quot;Don't use highways&quot; -variable no_highway</i>} <b class="cmd">}</b>]</pre>
+</dd>
+</dl>
+<p>The commands <b class="cmd">argument_dialogbox</b> as well as <b class="cmd"><a href="../../../../index.html#key41">procedure</a></b> are exported from the namespace <b class="namespace">tepam</b>. To use these commands without the <b class="namespace">tepam::</b> namespace prefix, it is sufficient to import them into the main namespace:</p>
+<pre class="doctools_example"><b class="cmd">namespace import tepam::*</b>
+set DialogResult [<b class="cmd">argument_dialogbox</b> \
+   -title &quot;Itinerary selection&quot;
+   ...</pre>
+<p>The following subsections explain the different argument item types that are accepted by the <b class="cmd">argument_dialogbox</b>, classified into three groups. The first data entry item definition format will be used in the remaining document, knowing that this format can always be transformed into the second format by putting all arguments into a single list that is then provided to <b class="cmd">argument_dialogbox</b>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Context Definition Items</a></h3>
+<p>The first item group allows specifying some context aspects of an argument dialog box. These items are taking a simple character string as item attribute:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-&lt;argument_name&gt;</b> <i class="arg">string</i> \
+   ...</pre>
+<p>The following items are classified into this group:</p>
+<dl class="doctools_definitions">
+<dt>-title <i class="arg">string</i></dt>
+<dd><p>The dialog box window's title which is by default <em>Dialog</em> can be changed with the <em>-title</em> item:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-title</b> &quot;System configuration&quot; \
+   ...</pre>
+</dd>
+<dt>-window <i class="arg">string</i></dt>
+<dd><p>The argument dialog box uses by default <em>.dialog</em> as dialog top level window. This path can be changed with the <em>-window</em> item:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-window</b> .dialog \
+   ...</pre>
+</dd>
+<dt>-parent <i class="arg">string</i></dt>
+<dd><p>By defining a parent window, the argument dialog box will be displayed beside this one. Without explicit parent window definition, the top-level window will be considered as parent window.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-parent</b> .my_appl \
+   ...</pre>
+</dd>
+<dt>-context <i class="arg">string</i></dt>
+<dd><p>If a context is defined the dialog box's state, e.g. the entered data as well as the window size and position, is  restored the next time the argument dialog box is called. The assignment of a context allows saving the dialog box' state in its context to distinguish between different usages of the argument dialog box.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-context</b> destination_definitions \
+   ...</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Formatting and Display Options</a></h3>
+<p>Especially for big, complex forms it becomes important that the different data entry widgets are graphically well organized and commented to provide an immediate and clear overview to the user. A couple of items allow structuring and commenting the dialog boxes.</p>
+<p>The items of this classification group require as item attributes a definition list, which contains itself attribute name and value pairs:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-&lt;argument_name&gt;</b> { <i class="arg">
+      <span class="opt">?-&lt;attribute_name&gt; &lt;attribute_value&gt;?</span>
+      <span class="opt">?-&lt;attribute_name&gt; &lt;attribute_value&gt;?</span>
+      <span class="opt">?...?</span></i>
+   }
+   ...</pre>
+<p>The following items are classified into this group:</p>
+<dl class="doctools_definitions">
+<dt>-frame <i class="arg">list</i></dt>
+<dd><p>The <em>-frame</em> item allows packing all following entry widgets into a labeled frame, until a next frame item is defined or until the last entry widget has been defined. It recognizes the following attributes inside the item attribute list:</p>
+<dl class="doctools_definitions">
+<dt>-label <i class="arg">string</i></dt>
+<dd><p>An optional frame label can be specified with the <i class="arg">-label</i> statement.</p></dd>
+</dl>
+<p>Example:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-frame</b> {<i class="arg">-label &quot;Destination address&quot;</i>}
+   ...</pre>
+<p>To close an open frame without opening a new one, an empty list has to be provided to the <i class="arg">-frame</i> statement.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-frame</b> {}
+   ...</pre>
+</dd>
+<dt>-sep [const {{}}]</dt>
+<dd><p>Entry widgets can be separated with the <i class="arg">-sep</i> statement which doesn't require additional definitions. The related definition list has to exist, but its content is ignored.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-sep</b> {}
+   ...</pre>
+</dd>
+<dt>-comment <i class="arg">string</i></dt>
+<dd><p>Comments and descriptions can be added with the <i class="arg">-text</i> attribute of the <i class="arg">-comment</i> item. Please note that each entry widget itself can also contain a <i class="arg">-text</i> attribute for comments and descriptions. But the <i class="arg">-comment</i> item allows for example adding a description between two frames.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-comment</b> {<i class="arg">-text &quot;Specify bellow the destination address&quot;</i>}
+   ...</pre>
+</dd>
+<dt>-yscroll <b class="const">0</b>|<b class="const">1</b>|<b class="const">auto</b></dt>
+<dd><p>This attribute allows controlling an eventual vertical scrollbar. Setting it to <b class="const">0</b> will permanently disable the scrollbar, setting it to <b class="const">1</b> will enable it. By default it is set to <b class="const">auto</b>. The scrollbar is enabled in this mode only if the vertical data entry form size exceeds 66% of the screen height.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-yscroll</b> <b class="const">auto</b>
+   ...</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Global Custom Data Validation</a></h3>
+<p>This item group allows specifying global custom checks to validate the entered data.</p>
+<dl class="doctools_definitions">
+<dt>-validatecommand <i class="arg">script</i></dt>
+<dd><p>Custom data checks can be performed via validation commands that are defined with the <i class="arg">-validatecommand</i> item. Example:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -entry {-label &quot;Your comment&quot; -variable YourCom} \
+   <b class="cmd">-validatecommand</b> {IllegalWordDetector $YourCom}</pre>
+<p>The validation command is executed in the context of the calling procedure, once all the basic data checks have been performed and data variables are assigned. All data is accessed via the data variables. Note that there is also an entry widget specific attribute <i class="arg">-validatecommand</i> that allows declaring custom checks for specific data entries.</p>
+<p>The attribute <i class="arg">-validatecommand</i> can be repeated to declare multiple custom checks.</p></dd>
+<dt>-validatecommand_error_text <i class="arg">string</i></dt>
+<dd><p>This item allows overriding the default error message for a global custom argument validation (defined by <i class="arg">-validatecommand</i>). Also this attribute can be repeated in case multiple checks are declared.</p></dd>
+<dt>-validatecommand2 <i class="arg">script</i></dt>
+<dd></dd>
+<dt>-validatecommand2_error_text <i class="arg">string</i></dt>
+<dd><p>These items are mainly for TEPAM internal usage.</p>
+<p>These items corrspond respectively to <i class="arg">-validatecommand</i> and <i class="arg">-validatecommand_error_text</i>. However, the data validation is not performed in the next upper stack level, but two stack levels higher.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Data Entry Widget Items</a></h3>
+<p>Data entry widgets are created with the widget items. These items require as item attributes a definition list, which contains itself attribute name and value pairs:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   ...
+   <b class="cmd">-&lt;argument_name&gt;</b> { <i class="arg">
+      <span class="opt">?-&lt;attribute_name&gt; &lt;attribute_value&gt;?</span>
+      <span class="opt">?-&lt;attribute_name&gt; &lt;attribute_value&gt;?</span>
+      <span class="opt">?...?</span></i>
+   }
+   ...</pre>
+<p>The attribute list can contain various attributes to describe and comment an entry widget and to constrain its entered value. All entry widgets are accepting a common set of attributes that are described in the section <span class="sectref"><a href="#subsection5">Entry Widget Item Attributes</a></span>.</p>
+<p>TEPAM defines a rich set of entry widgets. If necessary, this set can be extended with additional application specific entry widgets (see <span class="sectref"><a href="#section3">APPLICATION SPECIFIC ENTRY WIDGETS</a></span>):</p>
+<dl class="doctools_definitions">
+<dt>-entry <i class="arg">list</i></dt>
+<dd><p>The <i class="arg">-entry</i> item generates the simplest but most universal data entry widget. It allows entering any kind of data in form of single line strings.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-entry</b> {-label Name -variable Entry}</pre>
+</dd>
+<dt>-text <i class="arg">list</i></dt>
+<dd><p>The <i class="arg">-text</i> item generates a multi line text entry widget. The widget's height can be selected with the <i class="arg">-height</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-text</b> {-label Name -variable Text -height 5}</pre>
+</dd>
+<dt>-checkbox <i class="arg">list</i></dt>
+<dd><p>A group of check boxes is created with the <i class="arg">-checkbox</i> item. The number of check boxes and their option values are specified with a list assigned to the <i class="arg">-choices</i> attribute or via a variable declared with the <i class="arg">-choicevariable</i> attribute:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-checkbox</b> {-label &quot;Font sytle&quot; -variable FontStyle \
+               -choices {bold italic underline} -default italic}</pre>
+<p>If the check boxes' labels should differ from the option values, their labels can be defined with the <i class="arg">-choicelabels</i> attribute:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-checkbox</b> {-label &quot;Font sytle&quot; -variable FontStyle \
+              -choices {bold italic underline} \
+              -choicelabels {Bold Italic Underline} \
+              -default italic}</pre>
+<p>In contrast to a radio box group, a check box group allows selecting simultaneously several choice options. The selection is stored for this reason inside the defined variable in form of a list, even if only one choice option has been selected.</p></dd>
+<dt>-radiobox <i class="arg">list</i></dt>
+<dd><p>A group of radio boxes is created with the <i class="arg">-radiobox</i> item. The number of radio boxes and their option values are specified with a list assigned to the <i class="arg">-choices</i> attribute or via a variable declared with the <i class="arg">-choicevariable</i> attribute.</p>
+<p>In contrast to a check box group, a radio box group allows selecting simultaneously only one choice option. The selected option value is stored directly, and not in form of a list, inside the defined variable.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-radiobox</b> {-label &quot;Text adjustment&quot; -variable Adjustment \
+              -choices {left center right} -default left}</pre>
+<p>If the radio boxes' labels should differ from the option values, their labels can be defined with the <i class="arg">-choicelabels</i> attribute:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-radiobox</b> {-label &quot;Text adjustment&quot; -variable Adjustment \
+              -choices {left center right} \
+              -choicelabels {Left Center Right} -default left}</pre>
+</dd>
+<dt>-checkbutton <i class="arg">list</i></dt>
+<dd><p>The <i class="arg">-checkbutton</i> entry widget allows activating or deactivating a single choice option. The result written into the variable will either be <b class="const">0</b> if the check button was not activated or <b class="const">1</b> if it was activated. An eventually provided default value has also to be either <b class="const">0</b> or <b class="const">1</b>.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-checkbutton</b> {-label Capitalize -variable Capitalize -default 1}</pre>
+</dd>
+</dl>
+<p>Several types of list and combo boxes are available to handle selection lists.</p>
+<dl class="doctools_definitions">
+<dt>-combobox <i class="arg">list</i></dt>
+<dd><p>The combobox is a combination of a normal entry widget together with a drop-down list box. The combobox allows selecting from this drop-down list box a single element. The list of the available elements can be provided either as a list to the <i class="arg">-choices</i> attribute, or via a variable that is specified with the <i class="arg">-choicevariable</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-combobox</b> {-label &quot;Text size&quot; -variable Size -choices {8 9 10 12 15 18} -default 12}</pre>
+<p>And here is an example of using a variable to define the selection list:</p>
+<pre class="doctools_example">set TextSizes {8 9 10 12 15 18}
+tepam::argument_dialogbox \
+   <b class="cmd">-combobox</b> {-label &quot;Text size&quot; -variable Size -choicevariable TextSizes -default 12}</pre>
+</dd>
+<dt>-listbox <i class="arg">list</i></dt>
+<dd><p>In contrast to the combo box, the list box is always displayed by the <i class="arg">listbox</i> entry widget. Only one element is selectable unless the <i class="arg">-multiple_selection</i> attribute is set. The list box height can be selected with the <i class="arg">-height</i> attribute. If the height is not explicitly defined, the list box height is automatically adapted to the argument dialog box' size.
+The first example uses a variable to define the available choices:</p>
+<pre class="doctools_example">set set AvailableSizes
+for {set k 0} {$k&lt;16} {incr k} {lappend AvailableSizes [expr 1&lt;&lt;$k]}
+tepam::argument_dialogbox \
+   <b class="cmd">-listbox</b> {-label &quot;Distance&quot; -variable Distance \
+             -choicevariable AvailableSizes -default 6 -height 5}</pre>
+<p>Here is a multi-element selection example. Please note that also the default selection can contain multiple elements:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-listbox</b> {-label &quot;Text styles&quot; -variable Styles \
+             -choices {bold italic underline overstrike} \
+             -choicelabels {Bold Italic Underline Overstrike} \
+             -default {bold underline} -multiple_selection 1 \
+             -height 3}</pre>
+</dd>
+<dt>-disjointlistbox <i class="arg">list</i></dt>
+<dd><p>A disjoint list box has to be used instead of a normal list box if the selection order is important. The disjoint list box entry widget has in fact two list boxes, one to select elements and one to display the selected elements in the chosen order.</p>
+<p>Disjoint listboxes allow always selecting multiple elements. With the exception of the <i class="arg">-multiple_selection</i> attribute, disjointed list boxes are accepting the same attributes as the normal listbox, e.g. <i class="arg">-height, -choices, -choicevariable, -default</i>.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-disjointlistbox</b> {-label &quot;Preferred scripting languages&quot; -variable Languages \
+             -comment &quot;Please select your preferred languages in the order&quot; \
+             -choices {JavaScript Lisp Lua Octave PHP Perl Python Ruby Scheme Tcl} \
+             -default {Tcl Perl Python}}</pre>
+</dd>
+</dl>
+<p>The file and directory selectors are building a next group of data entry widgets. A paragraph of section <span class="sectref"><a href="#subsection5">Entry Widget Item Attributes</a></span> explains the widget specific attributes that allow specifying the targeted file types, active directory etc.</p>
+<dl class="doctools_definitions">
+<dt>-file <i class="arg">list</i></dt>
+<dd><p>The item <i class="arg">-file</i> creates a group composed by an entry widget together with a button that allows opening a file browser. The data type <i class="arg">file</i> is automatically selected for this entry if no data type has been explicitly defined with the <i class="arg">-type</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-file</b> {-label &quot;Image file&quot; -variable ImageF \
+          -filetypes {{&quot;GIF&quot; {*.gif}} {&quot;JPG&quot; {*.jpg}}} \
+          -initialfile &quot;picture.gif&quot;}</pre>
+</dd>
+<dt>-existingfile <i class="arg">list</i></dt>
+<dd><p>The item <i class="arg">-existingfile</i> creates a group composed by an entry widget together with a button that allows opening a browser to select an existing file. The data type <i class="arg">existingfile</i> is automatically selected for this entry if no data type has been explicitly defined with the <i class="arg">-type</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-existingfile</b> {-label &quot;Image file&quot; -variable ImageF \
+                  -filetypes {{&quot;GIF&quot; {*.gif}} {&quot;JPG&quot; {*.jpg}}} \
+                  -initialfile &quot;picture.gif&quot;}</pre>
+</dd>
+<dt>-directory <i class="arg">list</i></dt>
+<dd><p>The item <i class="arg">-directory</i> creates a group composed by an entry widget together with a button that allows opening a directory browser. The data type <i class="arg">directory</i> is automatically selected for this entry if no data type has been explicitly defined with the <i class="arg">-type</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-directory</b> {-label &quot;Report directory&quot; -variable ReportDir}</pre>
+</dd>
+<dt>-existingdirectory <i class="arg">list</i></dt>
+<dd><p>The item <i class="arg">-existingdirectory</i> creates a group composed by an entry widget together with a button that allows opening a browser to select an existing directory. The data type <i class="arg">existingdirectory</i> is automatically selected for this entry if no data type has been explicitly defined with the <i class="arg">-type</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-existingdirectory</b> {-label &quot;Report directory&quot; -variable ReportDir}</pre>
+</dd>
+</dl>
+<p>Finally, there is a last group of some other special data entry widgets.</p>
+<dl class="doctools_definitions">
+<dt>-color <i class="arg">list</i></dt>
+<dd><p>The color selector is composed by an entry widget together with a button that allows opening a color browser. The data type <i class="arg">color</i> is automatically selected for this entry widget type if no data type has been explicitly defined with the <i class="arg">-type</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-color</b> {-label &quot;Background color&quot; -variable Color -default red}</pre>
+</dd>
+<dt>-font <i class="arg">list</i></dt>
+<dd><p>The font selector is composed by an entry widget together with a button that allows opening a font browser. The data type <i class="arg">font</i> is automatically selected for this entry widget type if no data type has been explicitly defined with the <i class="arg">-type</i> attribute. The entry widget displays an example text in the format of the selected font.</p>
+<p>The font browser allows selecting by default the font families provided by the <b class="cmd">font families</b> Tk command as well as a reasonable set of different font sizes between 6 points and 40 points. Different sets of font families and font sizes can be specified respectively via the <i class="arg">-font_families</i> or <i class="arg">-font_sizes</i> attributes.</p>
+<p>If no default font is provided via the <i class="arg">-default</i> attribute, the default font of the label widget to display the selected font will be used as default selected font. If the font family of this label widget is not part of the available families the first available family is used as default. If the font size of this label widget is not part of the available sizes the next close available size is selected as default size.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-font</b> {-label &quot;Font&quot; -variable Font \
+          -font_sizes {8 10 12 16} \
+          -default {Arial 20 italic}}</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Entry Widget Item Attributes</a></h3>
+<p>All the entry widget items are accepting the following attributes:</p>
+<dl class="doctools_definitions">
+<dt>-text <i class="arg">string</i></dt>
+<dd><p>Eventual descriptions and comments specified with the <i class="arg">-text</i> attribute are displayed above the entry widget.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -entry {<b class="cmd">-text &quot;Please enter your name bellow&quot;</b> -variable Name}</pre>
+</dd>
+<dt>-label <i class="arg">string</i></dt>
+<dd><p>The label attribute creates left to the entry widget a label using the provided string as label text:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -entry {<b class="cmd">-label Name</b> -variable Name}</pre>
+</dd>
+<dt>-variable <i class="arg">string</i></dt>
+<dd><p>All entry widgets require a specified variable. After accepting the entered information with the OK button, the entry widget's data are stored inside the defined variables.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -existingdirectory {-label &quot;Report directory&quot; <b class="cmd">-variable ReportDir</b>}</pre>
+</dd>
+<dt>-default <i class="arg">string</i></dt>
+<dd><p>Eventual default data for the entry widgets can be provided via the <i class="arg">-default</i> attribute. The default value is overridden if an argument dialog box with a defined context is called another time. The value acknowledged in a previous call will be used in this case as default value.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -checkbox {-label &quot;Font sytle&quot; -variable FontStyle \
+               -choices {bold italic underline} <b class="cmd">-default italic</b>}</pre>
+</dd>
+<dt>-optional <b class="const">0</b>|<b class="const">1</b></dt>
+<dd><p>Data can be specified as optional or mandatory with the <i class="arg">-optional</i> attribute that requires either <b class="const">0</b> (mandatory) or <b class="const">1</b> (optional) as attribute data.</p>
+<p>In case an entry is optional and no data has been entered, e.g. the entry contains an empty character string, the entry will be considered as undefined and the assigned variable will not be defined.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -entry {-label &quot;City&quot; -variable start_city -type string} \
+   -entry {-label &quot;Street&quot; -variable start_street -type string <b class="cmd">-optional 0</b>} \
+   -entry {-label &quot;Street number&quot; -variable start_street_nbr -type integer <b class="cmd">-optional 1</b>} \</pre>
+</dd>
+<dt>-type <i class="arg">string</i></dt>
+<dd><p>If the data type is defined with the <i class="arg">-type</i> attribute the argument dialog box will automatically perform a data type check after acknowledging the entered values and before the dialog box is closed. If a type incompatible value is found an error message box appears and the user can correct the value.</p>
+<p>The argument dialog box accepts all types that have been specified by the TEPAM package and that are also used by <b class="cmd"><a href="tepam_procedure.html">tepam::procedure</a></b> (see the <em>tepam::procedure reference manual</em>).</p>
+<p>Some entry widgets like the file and directory widgets, as well as the color and font widgets are specifying automatically the default data type if no type has been specified explicitly with the <i class="arg">-type</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   <b class="cmd">-entry</b> {-label &quot;Street number&quot; -variable start_street_nbr <b class="cmd">-type integer</b>} \</pre>
+</dd>
+<dt>-range <i class="arg">string</i></dt>
+<dd><p>Values can be constrained with the <i class="arg">-range</i> attribute. The valid range is defined with a list containing the minimum valid value and a maximum valid value.</p>
+<p>The <i class="arg">-range</i> attribute has to be used only for numerical arguments, like integers and doubles.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -entry {-label Month -variable Month -type integer <b class="cmd">-range {1 12}</b>}</pre>
+</dd>
+<dt>-validatecommand <i class="arg">string</i></dt>
+<dd><p>Custom argument value validations can be performed via specific validation commands that are defined with the <i class="arg">-validatecommand</i> attribute. The provided validation command can be a complete script in which the pattern <em>%P</em> is placeholder for the argument value that has to be validated.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -entry {-label &quot;Your comment&quot; -variable YourCom \
+           <b class="cmd">-validatecommand</b> &quot;IllegalWordDetector %P&quot;}</pre>
+<p>While the purpose of this custom argument validation attribute is the validation of a specific argument, there is also a global data validation attribute <i class="arg">-validatecommand</i> that allows performing validation that involves multiple arguments.</p></dd>
+<dt>-validatecommand_error_text <i class="arg">string</i></dt>
+<dd><p>This attribute allows overriding the default error message for a custom argument validation (defined by <i class="arg">-validatecommand</i>).</p></dd>
+</dl>
+<p>Some other attributes are supported by the list and combo boxes as well as by the radio and check buttons.</p>
+<dl class="doctools_definitions">
+<dt>-choices <i class="arg">string</i></dt>
+<dd><p>Choice lists can directly be defined with the <i class="arg">-choices</i> attribute. This way to define choice lists is especially adapted for smaller, fixed selection lists.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -listbox {-label &quot;Text styles&quot; -variable Styles \
+             <b class="cmd">-choices {bold italic underline}</b> -default underline</pre>
+</dd>
+<dt>-choicelabels <i class="arg">string</i> <em>(only check and radio buttons)</em></dt>
+<dd><p>If the check and radio boxes' labels should differ from the option values, they can be defined with the <i class="arg">-choicelabels</i> attribute:</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -checkbox {-label &quot;Font sytle&quot; -variable FontStyle \
+              -choices {bold italic underline} \
+              <b class="cmd">-choicelabels {Bold Italic Underline}</b> </pre>
+</dd>
+<dt>-choicevariable <i class="arg">string</i></dt>
+<dd><p>Another way to define the choice lists is using the <i class="arg">-choicevariable</i> attribute. This way to define choice lists is especially adapted for huge and eventually variable selection lists.</p>
+<pre class="doctools_example">set TextSizes {8 9 10 12 15 18}
+tepam::argument_dialogbox \
+   -combobox {-label &quot;Text size&quot; -variable Size <b class="cmd">-choicevariable TextSizes</b>}</pre>
+</dd>
+<dt>-multiple_selection <b class="const">0</b>|<b class="const">1</b></dt>
+<dd><p>The list box item (<b class="cmd">-listbox</b>) allows by default selecting only one list element. By setting the <i class="arg">-multiple_selection</i> attribute to <b class="const">1</b>, multiple elements can be selected.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -listbox {-label &quot;Text styles&quot; -variable Styles \
+             -choices {bold italic underline} -default underline \
+             <b class="cmd">-multiple_selection 1</b> -height 3}</pre>
+</dd>
+</dl>
+<p>Some additional attributes are supported by the file and directory selection widgets.</p>
+<dl class="doctools_definitions">
+<dt>-filetypes <i class="arg">string</i></dt>
+<dd><p>The file type attribute is used by the <b class="cmd">-file</b> and <b class="cmd">-existingfile</b> items to define the file endings that are searched by the file browser.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -file {-label &quot;Image file&quot; -variable ImageF \
+          <b class="cmd">-filetypes {{&quot;GIF&quot; {*.gif}} {&quot;JPG&quot; {*.jpg}}}</b>}</pre>
+</dd>
+<dt>-initialfile <i class="arg">string</i></dt>
+<dd><p>The initial file used by the file browsers of the <b class="cmd">-file</b> and <b class="cmd">-existingfile</b> widgets are by default the file defined with the <i class="arg">-default</i> attribute, unless a file is specified with the <i class="arg">-initialfile</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -file {-variable ImageF <b class="cmd">-initialfile &quot;picture.gif&quot;</b>}</pre>
+</dd>
+<dt>-activedir <i class="arg">string</i></dt>
+<dd><p>The <i class="arg">-activedir</i> attribute will override the default active search directory used by the file browsers of all file and directory entry widgets. The default active search directory is defined by the directory of a specified initial file (<i class="arg">-initialfile</i>) if defined, and otherwise by the directory of the default file/directory, specified with the <i class="arg">-default</i> attribute.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -file &quot;-variable ImageF <b class="cmd">-activedir $pwd</b>&quot;</pre>
+</dd>
+</dl>
+<p>Finally, there is a last attribute supported by some widgets:</p>
+<dl class="doctools_definitions">
+<dt>-height <i class="arg">string</i></dt>
+<dd><p>All widgets containing a selection list (<b class="cmd">-listbox</b>, <b class="cmd">-disjointlistbox</b>, <b class="cmd">-font</b>) as well as the multi line <b class="cmd">-text</b> widget are accepting the <i class="arg">-height</i> attribute that defines the number of displayed rows of the selection lists.</p>
+<pre class="doctools_example">tepam::argument_dialogbox \
+   -listbox {-label &quot;Text size&quot; -variable Size \
+             -choices {8 9 10 12 15 18} -default 12 <b class="cmd">-height 3</b>}</pre>
+<p>If the no height has been explicitly specified the height of the widget will be dynamically adapted to the argument dialog box' size.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">APPLICATION SPECIFIC ENTRY WIDGETS</a></h2>
+<p>An application specific entry widget can be made available to the argument dialog box by adding a dedicated procedure to the <b class="namespace">tepam</b> namespace. This procedure has three arguments; the first one is the widget path, the second one a subcommand and the third argument has various purposes:</p>
+<pre class="doctools_example"><i class="arg">proc</i> tepam::ad_form(&lt;WidgetName&gt;) {W Command {Par &quot;&quot;}} {
+   <i class="arg">upvar Option Option; # if required</i>
+   <i class="arg">variable argument_dialogbox; # if required</i>
+   switch $Command {
+      &quot;create&quot; &lt;CreateCommandSequence&gt;
+      &quot;set_choice&quot; &lt;SetChoiceCommandSequence&gt;
+      &quot;set&quot; &lt;SetCommandv&gt;
+      &quot;get&quot; &lt;GetCommandSequence&gt;
+   }
+}</pre>
+<p><b class="cmd">Argument_dialogbox</b> takes care about the <i class="arg">-label</i> and <i class="arg">-text</i> attributes for all entry widgets. For any data entry widget it creates a frame into which the data entry widget components can be placed. The path to this frame is provided via the <i class="arg">W</i> argument.</p>
+<p>The entry widget procedure has to support 3 mandatory and an optional command that are selected via the argument <i class="arg">Command</i>:</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">create</i></dt>
+<dd><p>The entry widget is called a first time with the command <i class="arg">create</i> to build the data entry widget.</p>
+<p>The frames that are made available by <b class="cmd">argument_dialogbox</b> for the entry widgets are by default only extendable in the X direction. To make them also extendable in the Y direction, for example for extendable list boxes, the command <b class="cmd">ad_form(make_expandable) $W</b> has to be executed when an entry widget is built.</p></dd>
+<dt><i class="arg">set_choice</i></dt>
+<dd><p>The entry widget procedure is only called with the <i class="arg">set_choice</i> command if the <i class="arg">-choices</i> or <i class="arg">-choicevariable</i> has been specified. The command is therefore only relevant for list and combo boxes.</p>
+<p>The available selection list that is either specified with the <i class="arg">-choices</i> or <i class="arg">-choicevariable</i> attribute is provided via the <i class="arg">Par</i> argument to the entry widget procedure. This list can be used to initialize an available choice list.</p></dd>
+<dt><i class="arg">set</i></dt>
+<dd><p>If a default value is either defined via the <i class="arg">-default</i> attribute or via a preceding call the entry widget procedure is called with the <i class="arg">set</i> command. The argument <i class="arg">Par</i> contains in this case the value to which the entry widget has to be initialized.</p></dd>
+<dt><i class="arg">get</i></dt>
+<dd><p>The entry widget procedure's command <i class="arg">get</i> has to return the current value of the entry widget.</p></dd>
+</dl>
+<p>Eventually specified entry widget item attributes are available via the <b class="variable">Option</b> array variable of the calling procedure. This variable becomes accessible inside the entry widget procedure via the <b class="cmd">upvar</b> command.</p>
+<p>There may be a need to store some information in a variable. The array variable <b class="variable">argument_dialogbox</b> has to be used for this purpose together with array indexes starting with <em>&quot;$W,&quot;</em>, e.g. <em>argument_dialogbox($W,values)</em>.</p>
+<p>Examples of entry widget procedures are directly provided by the TEPAM package source file that specifies the standard entry widget procedures. The simplest procedure is the one for the basic <em>entry</em> widget:</p>
+<pre class="doctools_example">proc tepam::ad_form(entry) {W Command {Par &quot;&quot;}} {
+   switch $Command {
+      &quot;create&quot; {pack [entry \$W.entry] -fill x \
+                        -expand yes -pady 4 -side left}
+      &quot;set&quot; {\$W.entry insert 0 $Par}
+      &quot;get&quot; {return [\$W.entry get]}
+   }
+}</pre>
+<p>It is also possible to relay on an existing entry widget procedure to derive a new, more specific one. The <em>radiobox</em> widget is used for example, to create a new entry widget that allows selecting either <em>left</em>, <em>center</em> or <em>right</em>. The original <em>radiobox</em> widget is called with the <i class="arg">set_choice</i> command immediately after the <em>create</em> command, to define the fixed list of selection options.</p>
+<pre class="doctools_example">proc tepam::ad_form(rcl) {W Command {Par &quot;&quot;}} {
+   set Res [ad_form(radiobox) $W $Command $Par]
+   if {$Command==&quot;create&quot;} {
+      ad_form(radiobox) $W set_choice {left center right}
+   }
+   return $Res
+}</pre>
+<p>Please consult the TEPAM package source file to find additional and more complex examples of entry widget procedures.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">VARIABLES</a></h2>
+<p>The <b class="cmd">argument_dialogbox</b> is using two variables inside the namespace <b class="namespace">::tepam</b>:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">argument_dialogbox</b></dt>
+<dd><p>Application specific entry widget procedures can use this array variable to store their own data, using as index the widget path provided to the procedure, e.g. <em>argument_dialogbox($W,&lt;sub_index&gt;)</em>.</p></dd>
+<dt><b class="variable">last_parameters</b></dt>
+<dd><p>This array variable is only used by an argument dialog box if its context has been specified via the <i class="arg">-context</i> attribute. The argument dialog box' position and size as well as its entered data are stored inside this variable if the data are acknowledged and the form is closed. This allows the form to restore its previous state once it is called another time.</p>
+<p>To reuse the saved parameters not just in the actual application session but also in another one, it is sufficient to store the <b class="variable">last_parameter</b> array variable contents in a configuration file which is loaded the next time an application is launched.</p></dd>
+</dl>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="tepam_introduction.html">tepam(n)</a>, <a href="tepam_procedure.html">tepam::procedure(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key402">data entry form</a>, <a href="../../../../index.html#key403">parameter entry form</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Argument entry form, mega widget</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009-2013, Andreas Drollinger</p>
+</div>
+</div>

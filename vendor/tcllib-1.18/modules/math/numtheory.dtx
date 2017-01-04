@@ -1,0 +1,952 @@
+% 
+% \iffalse
+% 
+%<*pkg>
+%% Copyright (c) 2010 by Lars Hellstrom.  All rights reserved.
+%% See the file "license.terms" for information on usage and redistribution
+%% of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+%</pkg>
+%<*driver>
+\documentclass{tclldoc}
+\usepackage{amsmath,amsfonts}
+\usepackage{url}
+\newcommand{\Tcl}{\Tcllogo}
+\begin{document}
+\DocInput{numtheory.dtx}
+\end{document}
+%</driver>
+% \fi
+% 
+% \title{Number theory package}
+% \author{Lars Hellstr\"om}
+% \date{30 May 2010}
+% \maketitle
+% 
+% \begin{abstract}
+%   This package provides a command to test whether an integer is a 
+%   prime, but may in time come to house also other number-theoretic 
+%   operations.
+% \end{abstract}
+% 
+% \tableofcontents
+% 
+% \section*{Preliminaries}
+% 
+% \begin{tcl}
+%<*pkg>
+package require Tcl 8.5
+% \end{tcl}
+% \Tcl~8.4 is seriously broken with respect to arithmetic overflow, 
+% so we require 8.5. There are (as yet) no explicit 8.5-isms in the 
+% code, however.
+% \begin{tcl}
+package provide math::numtheory 1.0
+namespace eval ::math::numtheory {
+   namespace export isprime
+}
+%</pkg>
+% \end{tcl}
+% \setnamespace{math::numtheory}
+% 
+% \Tcl lib has its own test file boilerplate.
+% \begin{tcl}
+%<*test>
+source [file join\
+  [file dirname [file dirname [file join [pwd] [info script]]]]\
+  devtools testutilities.tcl]
+testsNeedTcl     8.5
+testsNeedTcltest 2
+testing {useLocal numtheory.tcl math::numtheory}
+%</test>
+% \end{tcl}
+% 
+% And the same is true for the manpage.
+% \begin{tcl}
+%<*man>
+[manpage_begin math::numtheory n 1.0]
+[copyright "2010 Lars Hellstr\u00F6m\ 
+  <Lars dot Hellstrom at residenset dot net>"]
+[moddesc   {Tcl Math Library}]
+[titledesc {Number Theory}]
+[category  Mathematics]
+[require Tcl [opt 8.5]]
+[require math::numtheory [opt 1.0]]
+
+[description]
+[para]
+This package is for collecting various number-theoretic operations, 
+though at the moment it only provides that of testing whether an 
+integer is a prime.
+
+[list_begin definitions]
+%</man>
+% \end{tcl}
+% 
+% 
+% \section{Primes}
+% 
+% The first (and so far only) operation provided is |isprime|, which 
+% tests if an integer is a prime.
+% \begin{tcl}
+%<*man>
+[call [cmd math::numtheory::isprime] [arg N] [
+   opt "[arg option] [arg value] ..."
+]]
+  The [cmd isprime] command tests whether the integer [arg N] is a 
+  prime, returning a boolean true value for prime [arg N] and a 
+  boolean false value for non-prime [arg N]. The formal definition of 
+  'prime' used is the conventional, that the number being tested is 
+  greater than 1 and only has trivial divisors.
+  [para]
+  
+  To be precise, the return value is one of [const 0] (if [arg N] is 
+  definitely not a prime), [const 1] (if [arg N] is definitely a 
+  prime), and [const on] (if [arg N] is probably prime); the latter 
+  two are both boolean true values. The case that an integer may be 
+  classified as "probably prime" arises because the Miller-Rabin 
+  algorithm used in the test implementation is basically probabilistic, 
+  and may if we are unlucky fail to detect that a number is in fact 
+  composite. Options may be used to select the risk of such 
+  "false positives" in the test. [const 1] is returned for "small" 
+  [arg N] (which currently means [arg N] < 118670087467), where it is 
+  known that no false positives are possible.
+  [para]
+  
+  The only option currently defined is:
+  [list_begin options]
+  [opt_def -randommr [arg repetitions]]
+    which controls how many times the Miller-Rabin test should be 
+    repeated with randomly chosen bases. Each repetition reduces the 
+    probability of a false positive by a factor at least 4. The 
+    default for [arg repetitions] is 4.
+  [list_end]
+  Unknown options are silently ignored.
+
+%</man>
+% \end{tcl}
+% 
+% 
+% \subsection{Trial division}
+% 
+% As most books on primes will tell you, practical primality 
+% testing algorithms typically start with trial division by a list 
+% of small known primes to weed out the low hanging fruit. This is 
+% also an opportunity to handle special cases that might arise for 
+% very low numbers (e.g.\ $2$ is a prime despite being even).
+% 
+% \begin{proc}{prime_trialdivision}
+%   This procedure is meant to be called as
+%   \begin{quote}
+%     |prime_trialdivision| \word{$n$}
+%   \end{quote}
+%   from \emph{within} a procedure that returns |1| if $n$ is a prime 
+%   and |0| if it is not. It does not return anything particular, but 
+%   \emph{it causes its caller to return provided} it is able to 
+%   decide what its result should be. This means one can slap it in 
+%   as the first line of a primality checker procedure, and then on 
+%   lines two and forth worry only about the nontrivial cases.
+%   \begin{tcl}
+%<*pkg>
+proc ::math::numtheory::prime_trialdivision {n} {
+    if {$n<2}      then {return -code return 0}
+%   \end{tcl}
+%   Integers less than $2$ aren't primes.\footnote{
+%     Well, at least as one usually defines the term for integers. 
+%     When considering the concept of prime in more general rings, 
+%     one may have to settle with accepting all associates of primes 
+%     as primes as well.
+%   } This saves us many worries by excluding negative numbers from 
+%   further considerations.
+%   \begin{tcl}
+    if {$n<4}      then {return -code return 1}
+%   \end{tcl}
+%   Everything else below \(2^2 = 4\) (i.e., $2$ and $3$) are primes.
+%   \begin{tcl}
+    if {$n%2 == 0} then {return -code return 0}
+%   \end{tcl}
+%   Remaining even numbers are then composite.
+%   \begin{tcl}
+    if {$n<9}      then {return -code return 1}
+%   \end{tcl}
+%   Now everything left below \(3^2 = 9\) (i.e., $5$ and $7$) are 
+%   primes. Having decided those, we can now do trial division with 
+%   $3$, $5$, and $7$ in one go.
+%   \begin{tcl}
+    if {$n%3 == 0} then {return -code return 0}
+    if {$n%5 == 0} then {return -code return 0}
+    if {$n%7 == 0} then {return -code return 0}
+%   \end{tcl}
+%   Any numbers less that \(11^2 = 121\) not yet eliminated are 
+%   primes; above that we know nothing.
+%   \begin{tcl}
+    if {$n<121}    then {return -code return 1}
+}
+%</pkg>
+%   \end{tcl}
+%   This procedure could be extended with more primes, pushing the 
+%   limit of what can be decided further up, but the returns are 
+%   diminishing, so we might be better off with a different method 
+%   for testing primality. No analysis of where the cut-off point 
+%   lies have been conducted (i.e., $7$ as last prime for trial 
+%   division was picked arbitrarily), but note that the optimum 
+%   probably depends on what distribution the input values will have.
+%   
+%   \begin{tcl}
+%<*test>
+test prime_trialdivision-1 "Trial division of 1" -body {
+   ::math::numtheory::prime_trialdivision 1
+} -returnCodes 2 -result 0
+test prime_trialdivision-2 "Trial division of 2" -body {
+   ::math::numtheory::prime_trialdivision 2
+} -returnCodes 2 -result 1
+test prime_trialdivision-3 "Trial division of 6" -body {
+   ::math::numtheory::prime_trialdivision 6
+} -returnCodes 2 -result 0
+test prime_trialdivision-4 "Trial division of 7" -body {
+   ::math::numtheory::prime_trialdivision 7
+} -returnCodes 2 -result 1
+test prime_trialdivision-5 "Trial division of 101" -body {
+   ::math::numtheory::prime_trialdivision 101
+} -returnCodes 2 -result 1
+test prime_trialdivision-6 "Trial division of 105" -body {
+   ::math::numtheory::prime_trialdivision 105
+} -returnCodes 2 -result 0
+%   \end{tcl}
+%   Note that extending the number of primes for trial division is 
+%   likely to change the results in the following two tests ($121$ 
+%   is composite, $127$ is prime).
+%   \begin{tcl}
+test prime_trialdivision-7 "Trial division of 121" -body {
+   ::math::numtheory::prime_trialdivision 121
+} -returnCodes 0 -result ""
+test prime_trialdivision-8 "Trial division of 127" -body {
+   ::math::numtheory::prime_trialdivision 127
+} -returnCodes 0 -result ""
+%</test>
+%   \end{tcl}
+% \end{proc}
+% 
+% 
+% \subsection{Pseudoprimality tests}
+% 
+% After trial division, the next thing tried is usually to test the 
+% claim of Fermat's little theorem: if $n$ is a prime, then \(a^{n-1} 
+% \equiv 1 \pmod{n}\) for all integers $a$ that are not multiples of 
+% $n$, in particular those \(0 < a < n\); one picks such an $a$ (more 
+% or less at random) and computes $a^{n-1} \bmod n$. Numbers that 
+% pass are said to be \emph{(Fermat) pseudoprimes (to base $a$)}. 
+% Most composite numbers quickly fail this test.
+% (One particular class that fails are the powers of primes, since 
+% the group of invertible elements in $\mathbb{Z}_n$ for \(n = p^{k+1}\) 
+% is cyclic\footnote{
+%   The easiest way to see that it is cyclic is probably to exhibit 
+%   an element of order $(p -\nobreak 1) p^k$. A good start is to 
+%   pick a primitive root $a$ of $\mathbb{Z}_p$ and compute its order 
+%   modulo $p^{k+1}$; this has to be a number on the form $(p 
+%   -\nobreak 1) p^r$. If \(r=k\) then $a$ is a primitive root and we're 
+%   done, otherwise $(p +\nobreak 1) a$ will be a primitive root 
+%   because $p+1$ can be shown to have order $p^k$ modulo $n$ and the 
+%   least common multiple of $(p -\nobreak 1) p^r$ and $p^k$ is 
+%   $(p -\nobreak 1) p^k$. To exhibit the order of $p+1$, one may 
+%   use induction on $k$ to show that \( (1 +\nobreak p)^N \equiv 1 
+%   \pmod{p^{k+1}}\) implies \(p^k \mid N\); in \((1 +\nobreak p)^N = 
+%   \sum_{i=0}^N \binom{N}{i} p^i\), the induction hypothesis implies 
+%   all terms with \(i>1\) vanish modulo $p^{k+1}$, leaving just 
+%   \(1+Np \equiv 1 \pmod{p^{k+1}}\).
+% } of order $(p -\nobreak 1) p^k$ rather than order $p^{k+1}-1$. 
+% Therefore it is only to bases $a$ of order dividing $p-1$ (i.e., a 
+% total of $p-1$ out of $p^{k+1}-1$) that prime powers are 
+% pseudoprimes. The chances of picking one of these are generally 
+% rather slim.)
+% 
+% Unfortunately, there are also numbers (the so-called \emph{Carmichael 
+% numbers}) which are pseudoprimes to every base $a$ they are coprime 
+% with. While the above trial division by $2$, $3$, $5$, and $7$ would 
+% already have eliminated all Carmichael numbers below \(29341 = 13 
+% \cdot 37 \cdot 61\), their existence means that there is a 
+% population of nonprimes which a Fermat pseudoprimality test is very 
+% likely to mistake for primes; this would usually not be acceptable.
+% 
+% \begin{proc}{Miller--Rabin}
+%   The Miller--Rabin test is a slight variation on the Fermat test, 
+%   where the computation of $a^{n-1} \bmod n$ is structured so that 
+%   additional consequences of $n$ being a prime can be tested. 
+%   Rabin~\cite{Rabin} 
+%   proved that any composite $n$ will for this test be revealed as 
+%   such by at least $3/4$ of all bases $a$, thus making it a valid 
+%   probabilistic test. (Miller~\cite{Miller} had first designed it as 
+%   a deterministic polynomial algorithm, but in that case the proof 
+%   that it works relies on the generalised Riemann hypothesis.)
+%   
+%   Given natural numbers $s$ and $d$ such that \(n-1 = 2^s d\), the 
+%   computation of $a^{n-1}$ is organised as $(a^d)^{2^s}$, where the 
+%   $s$ part is conveniently performed by squaring $s$ times. This is 
+%   of little consequence when $n$ is not a pseudoprime since one 
+%   will simply arrive at some \(a^{n-1} \not\equiv 1 \pmod{n}\), but 
+%   in the case that $n$ is a pseudoprime these repeated squarings will 
+%   exhibit some $x$ such that \(x^2 \equiv 1 \pmod{n}\), and this 
+%   makes it possible to test another property $n$ must have if it is 
+%   prime, namely that such an \(x \equiv \pm 1 \pmod{n}\).
+%   
+%   That implication is of course well known for real (and complex) 
+%   numbers, but even though what we're dealing with here is rather 
+%   residue classes modulo an integer, the proof that it holds is 
+%   basically the same. If $n$ is a prime, then the residue class 
+%   ring $\mathbb{Z}_n$ is a field, and hence the ring 
+%   $\mathbb{Z}_n[x]$ of polynomials over that field is a Unique 
+%   Factorisation Domain. As it happens, \(x^2 \equiv 1 \pmod{n}\) is 
+%   a polynomial equation, and $x^2-1$ has the known factorisation 
+%   \((x -\nobreak 1) (x +\nobreak 1)\). Since factorisations are 
+%   unique, and any zero $a$ of $x^2-1$ would give rise to a factor 
+%   $x-a$, it follows that \(x^2 \equiv 1 \pmod{n}\) implies \(x 
+%   \equiv 1 \pmod{n}\) or \(x \equiv -1 \pmod{n}\), as claimed. 
+%   But this assumes $n$ is a prime.
+%   
+%   If instead \(n = pq\) where \(p,q > 2\) are coprime, then there 
+%   will be additional solutions to \(x^2 \equiv 1 \pmod{n}\). 
+%   For example, if \(x \equiv 1 \pmod{p}\) and \(x \equiv -1 
+%   \pmod{q}\) (and such $x$ exist by the Chinese Remainder Theorem), 
+%   then \(x^2 \equiv 1 \pmod{p}\) and \(x^2 \equiv 1 \pmod{q}\), 
+%   from which follows \(x^2 \equiv 1 \pmod{pq}\), but \(x \not\equiv 
+%   1 \pmod{n}\) since \(x-1 \equiv -2 \not\equiv 0 \pmod{q}\), and 
+%   \(x \not\equiv -1 \pmod{n}\) since \(x+1 \equiv 2 \not\equiv 0 
+%   \pmod{p}\). The same argument applies when \(x \equiv -1 \pmod{p}\) 
+%   and \(x \equiv 1 \pmod{q}\), and in general, if $n$ has $k$ 
+%   distinct odd prime factors then one may construct $2^k$ distinct 
+%   solutions \(0<x<n\) to \(x^2 \equiv 1 \pmod{n}\). It is thus not 
+%   too hard to imagine that a ``random'' $a^d$ squaring to $1$ 
+%   modulo $n$ will be one of the nonstandard square roots of~$1$ 
+%   when $n$ is not a prime, even if the above is not a proof that 
+%   at least $3/4$ of all $a$ are witnesses to the compositeness 
+%   of~$n$.
+%   
+%   Getting down to the implementation, the actual procedure has the 
+%   call syntax
+%   \begin{quote}
+%     |Miller--Rabin| \word{n} \word{s} \word{d} \word{a}
+%   \end{quote}
+%   where all arguments should be integers such that \(n-1 = d2^s\), 
+%   \(d,s \geq 1\), and \(0 < a < n\). The procedure computes 
+%   $(a^d)^{2^s} \mod n$, and if in the course of doing this the 
+%   Miller--Rabin test detects that $n$ is composite then this procedure 
+%   will return |1|, otherwise it returns |0|.
+%   
+%   The first part of the procedure merely computes \(x = a^d \bmod n\), 
+%   using exponentiation by squaring. $x$, $a$, and $d$ are modified in 
+%   the loop, but $xa^d \bmod n$ would be an invariant quantity. 
+%   Correctness presumes the initial \(d \geq 1\).
+%   \begin{tcl}
+%<*pkg>
+proc ::math::numtheory::Miller--Rabin {n s d a} {
+    set x 1
+    while {$d>1} {
+        if {$d & 1} then {set x [expr {$x*$a % $n}]}
+        set a [expr {$a*$a % $n}]
+        set d [expr {$d >> 1}]
+    }
+    set x [expr {$x*$a % $n}]
+%   \end{tcl}
+%   The second part will $s-1$ times square $x$, while checking each 
+%   value for being \(\equiv \pm 1 \pmod{n}\). For most part, $-1$ 
+%   means everything is OK (any subsequent square would only 
+%   yield~$1$) whereas $1$ arrived at without a previous $-1$ signals 
+%   that $n$ cannot be prime. The only exception to the latter is 
+%   that $1$ before the first squaring (already \(a^d \equiv 1 
+%   \pmod{n}\)) is OK as well.
+%   \begin{tcl}
+    if {$x == 1} then {return 0}
+    for {} {$s>1} {incr s -1} {
+        if {$x == $n-1} then {return 0}
+        set x [expr {$x*$x % $n}]
+        if {$x == 1} then {return 1}
+    }
+%   \end{tcl}
+%   There is no need to square $x$ the $s$th time, because if at this 
+%   point \(x \not\equiv -1 \pmod{n}\) then $n$ cannot be a prime; if 
+%   \(x^2 \not\equiv 1 \pmod{n}\) it would fail to be a pseudoprime 
+%   and if \(x^2 \equiv 1 \pmod{n}\) then $x$ would be a nonstandard 
+%   square root of $1 \pmod{n}$, but it is not necessary to find out 
+%   which of these cases is at hand.
+%   \begin{tcl}
+    return [expr {$x != $n-1}]
+}
+%</pkg>
+%   \end{tcl}
+%   
+%   As for testing, the minimal allowed value of $n$ is $3$, which 
+%   is a prime.
+%   \begin{tcl}
+%<*test>
+test Miller--Rabin-1.1 "Miller--Rabin 3" -body {
+   list [::math::numtheory::Miller--Rabin 3 1 1 1]\
+     [::math::numtheory::Miller--Rabin 3 1 1 2]
+} -result {0 0}
+%   \end{tcl}
+%   To exercise the first part of the procedure, one may consider the 
+%   case \(s=1\) and \(d = 2^2+2^0 = 5\), i.e., \(n=11\). Here, \(2^5 
+%   \equiv -1 \pmod{11}\) whereas \(4^5 \equiv 1^5 \equiv 1 
+%   \pmod{11}\). A bug on the lines of not using the right factors in 
+%   the computation of $a^d$ would most likely end up with something 
+%   different here.
+%   \begin{tcl}
+test Miller--Rabin-1.2 "Miller--Rabin 11" -body {
+   list [::math::numtheory::Miller--Rabin 11 1 5 1]\
+     [::math::numtheory::Miller--Rabin 11 1 5 2]\
+     [::math::numtheory::Miller--Rabin 11 1 5 4]
+} -result {0 0 0}
+%   \end{tcl}
+%   $27$ will on the other hand be exposed as composite by most bases, 
+%   but $1$ and $-1$ do not spot it. It is known from the argument 
+%   about prime powers above that at least one of $2$ and \(8 = (3 
+%   +\nobreak 1) \cdot 2\) is a primitive root of $1$ in 
+%   $\mathbb{Z}_{27}$; it turns out to be $2$.
+%   \begin{tcl}
+test Miller--Rabin-1.3 "Miller--Rabin 27" -body {
+   list [::math::numtheory::Miller--Rabin 27 1 13 1]\
+     [::math::numtheory::Miller--Rabin 27 1 13 2]\
+     [::math::numtheory::Miller--Rabin 27 1 13 3]\
+     [::math::numtheory::Miller--Rabin 27 1 13 4]\
+     [::math::numtheory::Miller--Rabin 27 1 13 8]\
+     [::math::numtheory::Miller--Rabin 27 1 13 26]
+} -result {0 1 1 1 1 0}
+%   \end{tcl}
+%   Taking \(n = 65 = 1 + 2^6 = 5 \cdot 13\) instead focuses on the 
+%   second part of the procedure. By carefully choosing the base, it 
+%   is possible to force the result to come from:
+%   \begin{tcl}
+test Miller--Rabin-1.4 "Miller--Rabin 65" -body {
+%   \end{tcl}
+%   The first |return|
+%   \begin{tcl}
+   list [::math::numtheory::Miller--Rabin 65 6 1 1]\
+%   \end{tcl}
+%   the second |return|, first iteration
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 65 6 1 64]\
+%   \end{tcl}
+%   the third |return|, first iteration---\(14 \equiv 1 \pmod{13}\) 
+%   but \(14 \equiv -1 \pmod{5}\)
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 65 6 1 14]\
+%   \end{tcl}
+%   the second |return|, second iteration
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 65 6 1 8]\
+%   \end{tcl}
+%   the third |return|, second iteration---\(27 \equiv 1 \pmod{13}\) 
+%   but \(27^2 \equiv 2^2 \equiv -1 \pmod{5}\)
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 65 6 1 27]\
+%   \end{tcl}
+%   the final |return|
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 65 6 1 2]
+} -result {0 0 1 0 1 1}
+%   \end{tcl}
+%   There does however not seem to be any \(n=65\) choice of $a$ which 
+%   would get a |0| out of the final |return|.
+%   
+%   An $n$ which allows fully exercising the second part of the 
+%   procedure is \(17 \cdot 257 = 4369\), for which \(s=4\) 
+%   and \(d=273\). In order to have \(x^{2^{s-1}} \equiv -1 
+%   \pmod{n}\), it is necessary to have \(x^8 \equiv -1\) modulo both 
+%   $17$ and $257$, which is possible since the invertible elements 
+%   of $\mathbb{Z}_{17}$ form a cyclic group of order $16$ and the 
+%   invertible elements of $\mathbb{Z}_{257}$ form a cyclic group of 
+%   order $256$. Modulo $17$, an element of order $16$ is $3$, 
+%   whereas modulo $257$, an element of order $16$ is $2$.
+%   
+%   There is an extra complication in that what the caller can 
+%   specify is not the $x$ to be repeatedly squared, but the $a$ 
+%   which satisfies \(x \equiv a^d \pmod{n}\). Since \(d=273\) is 
+%   odd, raising something to that power is an invertible operation 
+%   modulo both $17$ and $257$, but it is necessary to figure out 
+%   what the inverse is. Since \(273 \equiv 1 \pmod{16}\), it turns 
+%   out that \(a^d \equiv a \pmod{17}\), and \(x=3\) becomes \(a=3\). 
+%   From \(273 \equiv 17 \pmod{256}\), it instead follows that \(x 
+%   \equiv a^d \pmod{257}\) is equivalent to \(a \equiv x^e 
+%   \pmod{257}\), where \(17e \equiv 1 \pmod{256}\). This has the 
+%   solution \(e = 241\), so the $a$ which makes \(x=2\) is \(a 
+%   = 2^{241} \bmod 257\). However, since \(x=2\) was picked on 
+%   account of having order $16$, hence \(2^{16} \equiv 1 
+%   \pmod{257}\), and \(241 \equiv 1 \pmod{16}\), it again turns out 
+%   that \(x=2\) becomes \(a=2\).
+%   
+%   For \(a = 2\), one may observe that \(a^{2^1} \equiv 4 
+%   \pmod{257}\), \(a^{2^2} \equiv 16 \pmod{257}\), \(a^{2^3} \equiv 
+%   -1 \pmod{257}\), and \(a^{2^4} \equiv 1 \pmod{257}\). For 
+%   \(a=3\), one may observe that \(a^{2^1} \equiv 9 \pmod{17}\), 
+%   \(a^{2^2} \equiv 13 \pmod{17}\), \(a^{2^3} \equiv -1 \pmod{17}\), 
+%   and \(a^{2^4} \equiv 1 \pmod{17}\). For solving simultaneous 
+%   equivalences, it is furthermore useful to observe that \(2057 
+%   \equiv 1 \pmod{257}\) and \(2057 \equiv 0 \pmod{17}\) whereas 
+%   \(2313 \equiv 1 \pmod{17}\) and \(2313 \equiv 0 \pmod{257}\).
+%   \begin{tcl}
+test Miller--Rabin-1.5 "Miller--Rabin 17*257" -body {
+%   \end{tcl}
+%   In order to end up at the first |return|, it is necessary to take 
+%   \(a \equiv 1 \pmod{17}\) and \(a \equiv 1 \pmod{257}\); the 
+%   solution \(a=1\) is pretty obvious.
+%   \begin{tcl}
+   list [::math::numtheory::Miller--Rabin 4369 4 273 1]\
+%   \end{tcl}
+%   In order to end up at the second |return| of the first iteration, 
+%   it is necessary to take \(a \equiv -1 \pmod{17}\) and 
+%   \(a \equiv -1 \pmod{257}\); the solution \(a \equiv -1 \pmod{n}\) 
+%   is again pretty obvious.
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 4368]\
+%   \end{tcl}
+%   Hitting the third |return| at the first iteration can be achieved 
+%   with \(a \equiv -1 \pmod{17}\) and \(a \equiv 1 \pmod{257}\); 
+%   now a solution is \(a \equiv 2057 - 2313 \equiv 4113 \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 4113]\
+%   \end{tcl}
+%   Hitting the second |return| at the second iteration happens if 
+%   \(a^2 \equiv -1\) modulo both prime factors, i.e., for \(a \equiv 
+%   16 \pmod{257}\) and \(a \equiv 13 \pmod{17}\). This has the 
+%   solution \(a \equiv 16 \cdot 2057 + 13 \cdot 2313 \equiv 1815 
+%   \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 1815]\
+%   \end{tcl}
+%   To hit the third |return| at the second iteration, one may keep 
+%   \(a \equiv 16 \pmod{257}\) but take \(a \equiv 1 \pmod{17}\). This 
+%   has the solution \(a \equiv 16 \cdot 2057 + 1 \cdot 2313 \equiv 273 
+%   \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 273]\
+%   \end{tcl}
+%   Hitting the second |return| at the third and final iteration happens 
+%   if \(a^4 \equiv -1\) modulo both prime factors, i.e., for \(a \equiv 
+%   4 \pmod{257}\) and \(a \equiv 9 \pmod{17}\). This has the 
+%   solution \(a \equiv 4 \cdot 2057 + 9 \cdot 2313 \equiv 2831 
+%   \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 2831]\
+%   \end{tcl}
+%   And as before, to hit the third |return| at the third and final 
+%   iteration one may keep the above \(a \equiv 9 \pmod{17}\) but 
+%   change the other to \(a \equiv 1 \pmod{257}\). This has the 
+%   solution \(a \equiv 1 \cdot 2057 + 9 \cdot 2313 \equiv 1029 
+%   \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 1029]\
+%   \end{tcl}
+%   To get a |0| out of the fourth |return|, one takes \(a \equiv 
+%   2 \pmod{257}\) and \(a \equiv 3 \pmod{17}\); this means \(a \equiv 
+%   2 \cdot 2057 + 3 \cdot 2313 \equiv 2315 \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 2315]\
+%   \end{tcl}
+%   Finally, to get a |1| out of the fourth |return|, one may take 
+%   \(a \equiv 1 \pmod{257}\) and \(a \equiv 3 \pmod{17}\); this means 
+%   \(a \equiv 1 \cdot 2057 + 3 \cdot 2313 \equiv 258 \pmod{n}\).
+%   \begin{tcl}
+     [::math::numtheory::Miller--Rabin 4369 4 273 258]
+} -result {0 0 1 0 1 0 1 0 1}
+%   \end{tcl}
+%   It would have been desirable from a testing point of view to also 
+%   find a value of $a$ that would make \(a^{n-1} \equiv -1 
+%   \pmod{n}\), since such an $a$ would catch an implementation error 
+%   of running the squaring loop one step too far, but that does not 
+%   seem possible; picking \(n=pq\) such that both $p-1$ and $q-1$ 
+%   are divisible by some power of $2$ implies that $n-1$ is 
+%   divisible by the same power of $2$.
+% \end{proc}
+% 
+% A different kind of test is to verify some exceptional numbers and 
+% boundaries that the |isprime| procedure relies on. First, $1373653$ 
+% appears prime when \(a=2\) or \(a=3\), but \(a=5\) is a witness to 
+% its compositeness.
+% \begin{tcl}
+test Miller--Rabin-2.1 "Miller--Rabin 1373653" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 1373653 2 343413 2]\
+     [::math::numtheory::Miller--Rabin 1373653 2 343413 3]\
+     [::math::numtheory::Miller--Rabin 1373653 2 343413 5]
+} -result {0 0 1}
+% \end{tcl}
+% $25326001$ is looking like a prime also to \(a=5\), but \(a=7\) 
+% exposes it.
+% \begin{tcl}
+test Miller--Rabin-2.2 "Miller--Rabin 25326001" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 2]\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 3]\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 5]\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 7]
+} -result {0 0 0 1}
+% \end{tcl}
+% $3215031751$ is a tricky composite that isn't exposed even by 
+% \(a=7\), but \(a=11\) will see through it.
+% \begin{tcl}
+test Miller--Rabin-2.3 "Miller--Rabin 3215031751" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 2]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 3]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 5]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 7]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 11]
+} -result {0 0 0 0 1}
+% \end{tcl}
+% Otherwise the lowest composite that these four will fail for is 
+% $118670087467$.
+% \begin{tcl}
+test Miller--Rabin-2.4 "Miller--Rabin 118670087467" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 2]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 3]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 5]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 7]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 11]
+} -result {0 0 0 0 1}
+%</test>
+% \end{tcl}
+% 
+% 
+% \subsection{Putting it all together}
+% 
+% \begin{proc}{isprime}
+%   The user level command for testing primality of an integer $n$ is 
+%   |isprime|. It has the call syntax
+%   \begin{quote}
+%     |math::numtheory::isprime| \word{n} 
+%     \begin{regblock}[\regstar]\word{option} 
+%     \word{value}\end{regblock}
+%   \end{quote}
+%   where the options may be used to influence the exact algorithm 
+%   being used. The call returns
+%   \begin{description}
+%     \item[0] if $n$ is found to be composite,
+%     \item[1] if $n$ is found to be prime, and
+%     \item[on] if $n$ is probably prime.
+%   \end{description}
+%   The reason there might be \emph{some} uncertainty is that the 
+%   primality test used is basically a probabilistic test for 
+%   compositeness---it may fail to find a witness for the 
+%   compositeness of a composite number $n$, even if the probability 
+%   of doing so is fairly low---and to be honest with the user, the 
+%   outcomes of ``definitely prime'' and ``probably prime'' return 
+%   different results. Since |on| is true when used as a boolean, you 
+%   usually need not worry about this fine detail. Also, for \(n < 
+%   10^{11}\) (actually a little more) the primality test is 
+%   deterministic, so you only encounter the ``probably prime'' 
+%   result for fairly high $n$.
+%   
+%   At present, the only option that is implemented is |-randommr|, 
+%   which controls how many rounds (by default 4) of the |Miller--Rabin| 
+%   test with random bases are run before returing |on|. Other options 
+%   are silently ignored.
+%   
+%   \begin{tcl}
+%<*pkg>
+proc ::math::numtheory::isprime {n args} {
+    prime_trialdivision $n
+%   \end{tcl}
+%   Implementation-wise, |isprime| begins with |prime_trialdivision|, 
+%   but relies on the Miller--Rabin test after that. To that end, it 
+%   must compute $s$ and $d$ such that \(n = d 2^s + 1\); while this 
+%   is fairly quick, it's nice not having to do it more than once, 
+%   which is why this step wasn't made part of the |Miller--Rabin| 
+%   procedure.
+%   \begin{tcl}
+    set d [expr {$n-1}]; set s 0
+    while {($d&1) == 0} {
+        incr s
+        set d [expr {$d>>1}]
+    }
+%   \end{tcl}
+%   The deterministic sequence of Miller--Rabin tests combines 
+%   information from \cite{PSW80,Jaeschke}, but most of these 
+%   numbers may also be found on Wikipedia~\cite{Wikipedia}.
+%   \begin{tcl}
+    if {[Miller--Rabin $n $s $d 2]} then {return 0}
+    if {$n < 2047} then {return 1}
+    if {[Miller--Rabin $n $s $d 3]} then {return 0}
+    if {$n < 1373653} then {return 1}
+    if {[Miller--Rabin $n $s $d 5]} then {return 0}
+    if {$n < 25326001} then {return 1}
+    if {[Miller--Rabin $n $s $d 7] || $n==3215031751} then {return 0}
+    if {$n < 118670087467} then {return 1}
+%   \end{tcl}
+%   \(3215031751 = 151 \cdot 751 \cdot 28351\) is a Carmichael 
+%   number~\cite[p.\,1022]{PSW80}.
+%   
+%   Having exhausted this list of limits below which |Miller--Rabin| 
+%   for \(a=2,3,5,7\) detects all composite numbers, we now have to 
+%   resort to picking bases at random and hoping we find one which 
+%   would reveal a composite $n$. In the future, one might want to 
+%   add the possibility of using a deterministic test (such as the 
+%   AKR~\cite{CL84} or AKS~\cite{AKS04} test) here instead.
+%   
+%   \begin{tcl}
+    array set O {-randommr 4}
+    array set O $args
+    for {set i $O(-randommr)} {$i >= 1} {incr i -1} {
+        if {[Miller--Rabin $n $s $d [expr {(
+%   \end{tcl}
+%   
+%   The probabilistic sequence of Miller--Rabin tests employs 
+%   \Tcl's built-in pseudorandom number generator |rand()| for 
+%   choosing bases, as this does not seem to be an application that 
+%   requires high quality randomness. It may however be observed 
+%   that since by now \(n > 10^{11}\), the space of possible bases $a$ 
+%   is always several times larger than the state space of |rand()|, 
+%   so there may be a point in tweaking the PRNG to avoid some less 
+%   useful values of $a$.
+%   
+%   It is a trivial observation that the intermediate $x$ values 
+%   computed by |Miller--Rabin| for \(a=a_1a_2\) are simply the 
+%   products of the corresponding values computed for \(a=a_1\) and 
+%   \(a=a_2\) respectively---hence chances are that if no 
+%   compositeness was detected for \(a=a_1\) or \(a=a_2\) then it 
+%   won't be detected for \(a=a_1a_2\) either. There is a slight 
+%   chance that something interesting could happen if \(a_1^{d2^k} 
+%   \equiv -1 \equiv a_2^{d2^k} \pmod{n}\) for some \(k>0\), since in 
+%   that case \((a_1a_2)^{d2^k} \equiv 1 \pmod{n}\) whereas no direct 
+%   conclusion can be reached about $(a_1a_2)^{d2^{k-1}}$, but this 
+%   seems a rather special case (and cannot even occur if \(n 
+%   \equiv 3 \pmod{4}\) since in that case \(s=1\)), so it seems 
+%   natural to prefer $a$ that are primes. Generating only prime $a$ 
+%   would be much work, but avoiding numbers divisible by $2$ or $3$ 
+%   is feasible.
+%   
+%   First turn |rand()| back into the integer it internally is, and 
+%   adjust it to be from $0$ and up.
+%   \begin{tcl}
+           (round(rand()*0x100000000)-1)
+%   \end{tcl}
+%   Then multiply by $3$ and set the last bit. This has the effect 
+%   that the range of the PRNG is now $\{1,3,7,9,13,15,\dotsb, 
+%   6n +\nobreak 1, 6n +\nobreak 3, \dotsb \}$.
+%   \begin{tcl}
+           *3 | 1) 
+%   \end{tcl}
+%   Finally add $10$ so that we get $11$, $13$, $17$, $19$, \dots
+%   \begin{tcl}
+           + 10
+        }]]} then {return 0}
+    }
+%   \end{tcl}
+%   That ends the |for| loop for |Miller--Rabin| with random bases.
+%   At this point, since the number in question passed the requested 
+%   number of Miller--Rabin rounds, it is proclaimed to be ``probably 
+%   prime''.
+%   \begin{tcl}
+    return on
+}
+%</pkg>
+%   \end{tcl}
+%   
+%   Tests of |isprime| would mostly be asking ``is $n$ a prime'' for 
+%   various interesting $n$. Several values of $n$ should be the same 
+%   as the previous tests:
+%   \begin{tcl}
+%<*test>
+test isprime-1.1 "1 is not prime" -body {
+   ::math::numtheory::isprime 1
+} -result 0
+test isprime-1.2 "0 is not prime" -body {
+   ::math::numtheory::isprime 0
+} -result 0
+test isprime-1.3 "-2 is not prime" -body {
+   ::math::numtheory::isprime -2
+} -result 0
+test isprime-1.4 "2 is prime" -body {
+   ::math::numtheory::isprime 2
+} -result 1
+test isprime-1.5 "6 is not prime" -body {
+   ::math::numtheory::isprime 6
+} -result 0
+test isprime-1.6 "7 is prime" -body {
+   ::math::numtheory::isprime 7
+} -result 1
+test isprime-1.7 "101 is prime" -body {
+   ::math::numtheory::isprime 101
+} -result 1
+test isprime-1.8 "105 is not prime" -body {
+   ::math::numtheory::isprime 105
+} -result 0
+test isprime-1.9 "121 is not prime" -body {
+   ::math::numtheory::isprime 121
+} -result 0
+test isprime-1.10 "127 is prime" -body {
+   ::math::numtheory::isprime 127
+} -result 1
+test isprime-1.11 "4369 is not prime" -body {
+   ::math::numtheory::isprime 4369
+} -result 0
+test isprime-1.12 "1373653 is not prime" -body {
+   ::math::numtheory::isprime 1373653
+} -result 0
+test isprime-1.13 "25326001 is not prime" -body {
+   ::math::numtheory::isprime 25326001
+} -result 0
+test isprime-1.14 "3215031751 is not prime" -body {
+   ::math::numtheory::isprime 3215031751
+} -result 0
+%   \end{tcl}
+%   To get consistent results for large non-primes, it is necessary 
+%   to reduce the number of random rounds and\slash or reset the PRNG.
+%   \begin{tcl}
+test isprime-1.15 "118670087467 may appear prime, but isn't" -body {
+   expr srand(1)
+   list\
+     [::math::numtheory::isprime 118670087467 -randommr 0]\
+     [::math::numtheory::isprime 118670087467 -randommr 1]
+} -result {on 0}
+%   \end{tcl}
+%   However, a few new can be added. On~\cite[p.\,925]{Jaeschke} we 
+%   can read that \(p=22 \mkern1mu 754 \mkern1mu 930 \mkern1mu 352 
+%   \mkern1mu 733\) is a prime, and $p (3p -\nobreak 2)\) is a 
+%   composite number that looks prime to |Miller--Rabin| for all 
+%   \(a \in \{2,3,5,7,11,13,17,19,23,29\}\).
+%   \begin{tcl}
+test isprime-1.16 "Jaeschke psi_10" -body {
+   expr srand(1)
+   set p 22754930352733
+   set n [expr {$p * (3*$p-2)}]
+   list\
+     [::math::numtheory::isprime $p -randommr 25]\
+     [::math::numtheory::isprime $n -randommr 0]\
+     [::math::numtheory::isprime $n -randommr 1]
+} -result {on on 0}
+%   \end{tcl}
+%   On the same page it is stated that \(p=137 \mkern1mu 716 \mkern1mu 
+%   125 \mkern1mu 329 \mkern1mu 053\) is a prime such that 
+%   $p (3p -\nobreak 2)\) is a composite number that looks prime to 
+%   |Miller--Rabin| for all \(a \in 
+%   \{2,3,5,7,11,13,17,19,23,29,31\}\).
+%   \begin{tcl}
+test isprime-1.17 "Jaeschke psi_11" -body {
+   expr srand(1)
+   set p 137716125329053
+   set n [expr {$p * (3*$p-2)}]
+   list\
+     [::math::numtheory::isprime $p -randommr 25]\
+     [::math::numtheory::isprime $n -randommr 0]\
+     [::math::numtheory::isprime $n -randommr 1]\
+     [::math::numtheory::isprime $n -randommr 2]
+} -result {on on on 0}
+%   \end{tcl}
+%   RFC~2409~\cite{RFC2409} lists a number of primes (and primitive 
+%   generators of their respective multiplicative groups). The 
+%   smallest of these is defined as \(p = 2^{768} - 2^{704} - 1 + 
+%   2^{64} \cdot \left( [2^{638} \pi] + 149686 \right)\) (where the 
+%   brackets probably denote rounding to the nearest integer), but 
+%   since high precision (roughly $200$ decimal digits would be 
+%   required) values of \(\pi = 3.14159\dots\) are a bit awkward to 
+%   get hold of, we might as well use the stated hexadecimal digit 
+%   expansion for~$p$. It might also be a good idea to verify that 
+%   this is given with most significant digit first.
+%   \begin{tcl}
+test isprime-1.18 "OAKLEY group 1 prime" -body {
+   set digits [join {
+      FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
+      29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
+      EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
+      E485B576 625E7EC6 F44C42E9 A63A3620 FFFFFFFF FFFFFFFF
+   } ""]
+   expr srand(1)
+   list\
+     [::math::numtheory::isprime 0x$digits]\
+     [::math::numtheory::isprime 0x[string reverse $digits]]
+} -result {on 0}
+%   \end{tcl}
+%   
+%   A quite different thing to test is that the tweaked PRNG really 
+%   produces only \(a \equiv 1,5 \pmod{6}\).
+%   \begin{tcl}
+test isprime-2.0 "PRNG tweak" -setup {
+   namespace eval ::math::numtheory {
+      rename Miller--Rabin _orig_Miller--Rabin
+      proc Miller--Rabin {n s d a} {
+         expr {$a>7 && $a%6!=1 && $a%6!=5}
+      }
+   }
+} -body {
+   ::math::numtheory::isprime 118670087467 -randommr 500
+} -result on -cleanup {
+   namespace eval ::math::numtheory {
+      rename Miller--Rabin ""
+      rename _orig_Miller--Rabin Miller--Rabin
+   }
+}
+%</test>
+%   \end{tcl}
+% \end{proc}
+% 
+% 
+% \section*{Closings}
+% 
+% \begin{tcl}
+%<*man>
+[list_end]
+
+[keywords {number theory} prime]
+[manpage_end]
+%</man>
+% \end{tcl}
+% 
+% \begin{tcl}
+%<test>testsuiteCleanup
+% \end{tcl}
+% 
+% 
+% \begin{thebibliography}{9}
+% 
+% \bibitem{AKS04}
+%   Manindra Agrawal, Neeraj Kayal, and Nitin Saxena:
+%   PRIMES is in P, 
+%   \textit{Annals of Mathematics} \textbf{160} (2004), no. 2, 
+%   781--793.
+%   
+% \bibitem{CL84}
+%   Henri Cohen and Hendrik W. Lenstra, Jr.:
+%   Primality testing and Jacobi sums,
+%   \textit{Mathematics of Computation} \textbf{42} (165) (1984), 
+%   297--330. 
+%   \texttt{doi:10.2307/2007581}
+% 
+% \bibitem{RFC2409}
+%   Dan Harkins and Dave Carrel.
+%   \textit{The Internet Key Exchange (IKE)},
+%   \textbf{RFC 2409} (1998).
+% 
+% \bibitem{Jaeschke}
+%   Gerhard Jaeschke: On strong pseudoprimes to several bases, 
+%   \textit{Mathematics of Computation} \textbf{61} (204), 1993, 
+%   915--926.
+%   \texttt{doi:\,10.2307/2153262}
+% 
+% \bibitem{Miller}
+%   Gary L. Miller: 
+%   Riemann's Hypothesis and Tests for Primality, 
+%   \textit{Journal of Computer and System Sciences} \textbf{13} (3) 
+%   (1976), 300--317. \texttt{doi:10.1145/800116.803773}
+% 
+% \bibitem{PSW80}
+%   C.~Pomerance, J.~L.~Selfridge, and S.~S.~Wagstaff~Jr.:
+%   The pseudoprimes to $25 \cdot 10^9$, 
+%   \textit{Mathematics of Computation} \textbf{35} (151), 1980,
+%   1003--1026.
+%   \texttt{doi: 10.2307/2006210}
+% 
+% \bibitem{Rabin}
+%   Michael O. Rabin:
+%   Probabilistic algorithm for testing primality, 
+%   \textit{Journal of Number Theory} \textbf{12} (1) (1980), 
+%   128--138. \texttt{doi:10.1016/0022-314X(80)90084-0}
+% 
+% \bibitem{Wikipedia}
+%   Wikipedia contributors:
+%   Miller--Rabin primality test, 
+%   \textit{Wikipedia, The Free Encyclopedia}, 2010. 
+%   Online, accessed 10 September 2010,
+%   \url{http://en.wikipedia.org/w/index.php?title=Miller%E2%80%93Rabin_primality_test&oldid=383901104}
+%   
+% \end{thebibliography}
+% 
+\endinput

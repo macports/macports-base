@@ -1,0 +1,26 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% CVS: @ID@ TEST.z
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+\section{AaA}\label{section2}
+1
+\section{BbB}\label{section3}
+22
+\subsection{BbB.cCc}\label{subsection1}
+333
+\subsection{BbB.dDd}\label{subsection2}
+4444
+\section{EeE}\label{section4}
+5555
+At {\bf AaA (\ref{section2})}.
+At {\bf \_\_undefined\_\_ (\ref{\_\_undefined\_\_})}.
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

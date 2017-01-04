@@ -1,0 +1,83 @@
+%PDF-1.4
+%едц
+5 0 obj
+<<
+/Length 6 0 R
+>>
+stream
+/Courier 12 Tf
+0 Tr
+12 TL
+BT
+(Hello) Tj
+
+ET
+
+endstream
+endobj
+
+6 0 obj
+45
+endobj
+
+4 0 obj
+<</Type /Page
+/Parent 2 0 R
+/Resources 3 0 R
+/MediaBox [0 0 595 842]
+/Contents [5 0 R]
+>>
+endobj
+
+7 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/Name /Courier
+/BaseFont /Courier
+>>
+endobj
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Count 1
+/Kids [4 0 R ]
+>>
+endobj
+
+3 0 obj
+<<
+/ProcSet[/PDF /Text /ImageC]
+/Font <<
+/Courier 7 0 R
+>>
+>>
+endobj
+
+xref
+0 8
+0000000000 65535 f 
+0000000347 00000 n 
+0000000397 00000 n 
+0000000456 00000 n 
+0000000131 00000 n 
+0000000014 00000 n 
+0000000112 00000 n 
+0000000237 00000 n 
+trailer
+<<
+/Size 8
+/Root 1 0 R
+>>
+
+startxref
+534
+%%EOF

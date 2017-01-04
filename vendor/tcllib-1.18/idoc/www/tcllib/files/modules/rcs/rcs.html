@@ -1,0 +1,351 @@
+<html><head>
+<title>rcs - RCS low level utilities</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'rcs.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2005, Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;   -- Copyright &copy; 2005, Colin McCormack &lt;coldstore@users.sourceforge.net&gt;
+   -->
+<! -- rcs.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">rcs(n) 2.0.2 tcllib &quot;RCS low level utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>rcs - RCS low level utilities</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">TEXT DICT DATA STRUCTURE</a></li>
+<li class="doctools_section"><a href="#section4">RCS PATCH FORMAT</a></li>
+<li class="doctools_section"><a href="#section5">RCS PATCH COMMAND LIST</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">rcs <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::rcs::text2dict</b> <i class="arg">text</i></a></li>
+<li><a href="#2"><b class="cmd">::rcs::dict2text</b> <i class="arg">dict</i></a></li>
+<li><a href="#3"><b class="cmd">::rcs::file2dict</b> <i class="arg">filename</i></a></li>
+<li><a href="#4"><b class="cmd">::rcs::dict2file</b> <i class="arg">filename</i> <i class="arg">dict</i></a></li>
+<li><a href="#5"><b class="cmd">::rcs::decodeRcsPatch</b> <i class="arg">text</i></a></li>
+<li><a href="#6"><b class="cmd">::rcs::encodeRcsPatch</b> <i class="arg">pcmds</i></a></li>
+<li><a href="#7"><b class="cmd">::rcs::applyRcsPatch</b> <i class="arg">text</i> <i class="arg">pcmds</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <i class="term">Revision Control System</i>, short <i class="term"><a href="../../../../index.html#key632">RCS</a></i>, is a set of
+applications and related data formats which allow a system to persist
+the history of changes to a text. It, and its relative SCCS are the
+basis for many other such systems, like <i class="term"><a href="../../../../index.html#key633">CVS</a></i>, etc.</p>
+<p>This package <em>does not</em> implement RCS.</p>
+<p>It only provides a number of low level commands which should be useful
+in the implementation of any revision management system, namely:</p>
+<ol class="doctools_enumerated">
+<li><p>The conversion of texts into and out of a data structures which allow
+the easy modification of such text by <i class="term">patches</i>, i.e. sequences
+of instructions for the transformation of one text into an other.</p></li>
+<li><p>And the conversion of one particular format for patches, the so-called
+<i class="term">RCS patches</i>, into and out of data structures which allow
+their easy application to texts.</p></li>
+</ol>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::rcs::text2dict</b> <i class="arg">text</i></a></dt>
+<dd><p>Converts the argument <i class="arg">text</i> into a dictionary containing and
+representing the same text in an indexed form and returns that
+dictionary as its result.
+More information about the format of the result can be found in
+section <span class="sectref"><a href="#section3">TEXT DICT DATA STRUCTURE</a></span>. This command returns the
+<i class="term">canonical</i> representation of the input.</p></dd>
+<dt><a name="2"><b class="cmd">::rcs::dict2text</b> <i class="arg">dict</i></a></dt>
+<dd><p>This command provides the complementary operation to
+<b class="cmd">::rcs::text2dict</b>. It converts a dictionary in the form described
+in section <span class="sectref"><a href="#section3">TEXT DICT DATA STRUCTURE</a></span> back into a text and
+returns that text as its result. The command does accept non-canonical
+representations of the text as its input.</p></dd>
+<dt><a name="3"><b class="cmd">::rcs::file2dict</b> <i class="arg">filename</i></a></dt>
+<dd><p>This command is identical to <b class="cmd">::rcs::text2dict</b>, except that it
+reads the text to convert from the file with path <i class="arg">filename</i>. The
+file has to exist and must be readable as well.</p></dd>
+<dt><a name="4"><b class="cmd">::rcs::dict2file</b> <i class="arg">filename</i> <i class="arg">dict</i></a></dt>
+<dd><p>This command is identical to <b class="cmd">::rcs::2dict2text</b>, except that it
+stores the resulting text in the file with path <i class="arg">filename</i>. The
+file is created if it did not exist, and must be writable. The result
+of the command is the empty string.</p></dd>
+<dt><a name="5"><b class="cmd">::rcs::decodeRcsPatch</b> <i class="arg">text</i></a></dt>
+<dd><p>Converts the <i class="arg">text</i> argument into a patch command list (PCL) as
+specified in the section <span class="sectref"><a href="#section5">RCS PATCH COMMAND LIST</a></span> and
+returns this list as its result.
+It is assumed that the input text is in <i class="term"><a href="../../../../index.html#key634">diff -n format</a></i>, also
+known as <i class="term"><a href="../../../../index.html#key631">RCS patch</a></i> format, as specified in the section
+<span class="sectref"><a href="#section4">RCS PATCH FORMAT</a></span>.
+Please note that the command ignores no-ops in the input, in other
+words the resulting PCL contains only instructions doing something.</p></dd>
+<dt><a name="6"><b class="cmd">::rcs::encodeRcsPatch</b> <i class="arg">pcmds</i></a></dt>
+<dd><p>This command provides the complementary operation to
+<b class="cmd">::rcs::decodeRcsPatch</b>. It convert a patch comand list (PCL) list
+as specified in the section <span class="sectref"><a href="#section5">RCS PATCH COMMAND LIST</a></span> back
+into a text in <span class="sectref"><a href="#section4">RCS PATCH FORMAT</a></span> and returns that text as its result.</p>
+<p>Note that this command and <b class="cmd">::rcs::decodeRcsPatch</b> are not exactly
+complementary, as the latter strips no-ops from its input, which the
+encoder cannot put back anymore into the generated RCS patch. In other
+words, the result of a decode/encode step may not match the original
+input at the character level, but it will match it at the functional
+level.</p></dd>
+<dt><a name="7"><b class="cmd">::rcs::applyRcsPatch</b> <i class="arg">text</i> <i class="arg">pcmds</i></a></dt>
+<dd><p>This operation applies a patch in the form of a PCL to a text given in
+the form of a dictionary and returns the modified text, again as
+dictionary, as its result.</p>
+<p>To handle actual text use the commands <b class="cmd">::rcs::text2dict</b> (or
+equivalent) and <b class="cmd">::rcs::decodeRcsPatch</b> to transform the inputs
+into data structures acceptable to this command. Analogously use the
+command <b class="cmd">::rcs::dict2text</b> (or equivalent) to transform the
+result of this command into actuall text as required.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">TEXT DICT DATA STRUCTURE</a></h2>
+<p>A text dictionary is a dictionary whose keys are integer numbers and
+text strings as the associated values. The keys represent the line
+numbers of a text and the values the text of that line.  Note that one
+text can have many representations as a dictionary, as the index
+values only have to be properly ordered for reconstruction, their
+exact values do not matter. Similarly the strings may actually span
+multiple physical lines.</p>
+<p>The text</p>
+<pre class="doctools_example">Hello World,
+how are you ?
+Fine, and you ?</pre>
+<p>for example can be represented by</p>
+<pre class="doctools_example">{{1 {Hello World,}} {2 {how are you ?}} {3 {Fine, and you ?}}}</pre>
+<p>or</p>
+<pre class="doctools_example">{{5 {Hello World,}} {8 {how are you ?}} {9 {Fine, and you ?}}}</pre>
+<p>or</p>
+<pre class="doctools_example">{{-1 {Hello World,
+how are you ?}} {4 {Fine, and you ?}}}</pre>
+<p>The first dictionary is the <i class="term">canonical</i> representation of the
+text, with line numbers starting at <b class="const">1</b>, increasing in steps of
+<b class="const">1</b> and without gaps, and each value representing exactly one
+physical line.</p>
+<p>All the commands creating dictionaries from text will return the
+canonical representation of their input text. The commands taking a
+dictionary and returning text will generally accept all
+representations, canonical or not.</p>
+<p>The result of applying a patch to a text dictionary will in general
+cause the dictionary to become non-canonical.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">RCS PATCH FORMAT</a></h2>
+<p>A <i class="term"><a href="../../../../index.html#key661">patch</a></i> is in general a series of instructions how to transform
+an input text T into a different text T', and also encoded in text
+form as well.</p>
+<p>The text format for patches understood by this package is a very
+simple one, known under the names <i class="term"><a href="../../../../index.html#key631">RCS patch</a></i> or
+<i class="term"><a href="../../../../index.html#key634">diff -n format</a></i>.</p>
+<p>Patches in this format contain only two different commands, for the
+deletion of old text, and addition of new text. The replacement of
+some text by a different text is handled as combination of a deletion
+following by an addition.</p>
+<p>The format is line oriented, with each line containing either a
+command or text data associated with the preceding command.
+The first line of a <i class="term"><a href="../../../../index.html#key631">RCS patch</a></i> is always a command line.</p>
+<p>The commands are:</p>
+<dl class="doctools_definitions">
+<dt>&quot;&quot;</dt>
+<dd><p>The empty line is a command which does nothing.</p></dd>
+<dt>&quot;a<b class="variable">start</b> <b class="variable">n</b>&quot;</dt>
+<dd><p>A line starting with the character <b class="const">a</b> is a command for the
+addition of text to the output. It is followed by <b class="variable">n</b> lines of
+text data. When applying the patch the data is added just between the
+lines <b class="variable">start</b> and <b class="variable">start</b>+1. The same effect is had by
+appending the data to the existing text on line <b class="variable">start</b>. A
+non-existing line <b class="variable">start</b> is created.</p></dd>
+<dt>&quot;d<b class="variable">start</b> <b class="variable">n</b>&quot;</dt>
+<dd><p>A line starting with the character <b class="const">d</b> is a command for the
+deletion of text from the output. When applied it deletes <b class="variable">n</b>
+lines of text, and the first line deleted is at index <b class="variable">start</b>.</p></dd>
+</dl>
+<p>Note that the line indices <b class="variable">start</b> always refer to the text which
+is transformed as it is in its original state, without taking the
+precending changes into account.</p>
+<p>Note also that the instruction have to be applied in the order they
+occur in the patch, or in a manner which produces the same result as
+in-order application.</p>
+<p>This is the format of results returned by the command
+<b class="cmd">::rcs::decodeRcsPatch</b> and accepted by the commands
+<b class="cmd">::rcs::encodeRcsPatch</b> and <b class="cmd">::rcs::appplyRcsPatch</b>
+resp.
+Note however that the decoder will strip no-op commands, and the
+encoder will not generate no-ops, making them not fully complementary
+at the textual level, only at the functional level.</p>
+<p>And example of a RCS patch is</p>
+<pre class="doctools_example">d1 2
+d4 1
+a4 2
+The named is the mother of all things.
+a11 3
+They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">RCS PATCH COMMAND LIST</a></h2>
+<p>Patch command lists (sort: PCL's) are the data structures generated by
+patch decoder command and accepted by the patch encoder and applicator
+commands. They represent RCS patches in the form of Tcl data
+structures.</p>
+<p>A PCL is a list where each element represents a single patch
+instruction, either an addition, or a deletion. The elements are lists
+themselves, where the first item specifies the command and the
+remainder represent the arguments of the command.</p>
+<dl class="doctools_definitions">
+<dt>a</dt>
+<dd><p>This is the instruction for the addition of text. It has two
+arguments, the index of the line where to add the text, and the text
+to add, in this order.</p></dd>
+<dt>d</dt>
+<dd><p>This is the instruction for the deletion of text. It has two
+arguments, the index of the line where to start deleting text, and the
+number of lines to delete, in this order.</p></dd>
+</dl>
+<p>This is the format returned by the patch decoder command and accepted
+as input by the patch encoder and applicator commands.</p>
+<p>An example for a patch command is shown below, it represents the
+example RCS patch found in section <span class="sectref"><a href="#section4">RCS PATCH FORMAT</a></span>.</p>
+<pre class="doctools_example">{{d 1 2} {d 4 1} {a 4 {The named is the mother of all things.
+}} {a 11 {They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!}}}</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>rcs</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../../../../index.html#key327">struct</a>, <a href="../textutil/textutil.html">textutil</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key633">CVS</a>, <a href="../../../../index.html#key632">RCS</a>, <a href="../../../../index.html#key631">RCS patch</a>, <a href="../../../../index.html#key630">SCCS</a>, <a href="../../../../index.html#key634">diff -n format</a>, <a href="../../../../index.html#key635">patching</a>, <a href="../../../../index.html#key637">text conversion</a>, <a href="../../../../index.html#key636">text differences</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005, Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2005, Colin McCormack &lt;coldstore@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

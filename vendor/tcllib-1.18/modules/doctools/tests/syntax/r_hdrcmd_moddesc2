@@ -1,0 +1,3 @@
+Doctools Error in macro at line 3, column 0:
+[moddesc foo]
+--> (FmtError) Manpage error (hdrcmd), "moddesc foo" : Command not allowed outside of the header section.

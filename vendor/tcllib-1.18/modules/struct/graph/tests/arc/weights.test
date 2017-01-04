@@ -1,0 +1,76 @@
+# -*- tcl -*-
+# Graph tests - arc weights
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: weights.test,v 1.1 2008/10/11 23:23:48 andreas_kupries Exp $
+
+# Syntax: graph arc weights
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-weights-1.0 {arc weights, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc weights a} res
+    mygraph destroy
+    set res
+} [tmTooMany {arc weights} {}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-weights-3.0 {arc weights, no arcs} {
+    SETUP
+    set res [mygraph arc weights]
+    mygraph destroy
+    set res
+} {}
+
+test graph-${impl}-${setimpl}-arc-weights-3.1 {arc weights, all arcs, one} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph arc setweight a 1
+    set res [mygraph arc weights]
+    mygraph destroy
+    set res
+} {a 1}
+
+test graph-${impl}-${setimpl}-arc-weights-3.2 {arc weights, all arcs, more} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph node insert 1
+    mygraph arc  insert 1 0 b
+    mygraph arc setweight a 2
+    mygraph arc setweight b 1
+    set res [dictsort [mygraph arc weights]]
+    mygraph destroy
+    set res
+} {a 2 b 1}
+
+test graph-${impl}-${setimpl}-arc-weights-3.3 {arc weights, none} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    set res [mygraph arc weights]
+    mygraph destroy
+    set res
+} {}
+
+test graph-${impl}-${setimpl}-arc-weights-3.4 {arc weights, some} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph node insert 1
+    mygraph arc  insert 1 0 b
+    mygraph arc setweight a 1
+    set res [mygraph arc weights]
+    mygraph destroy
+    set res
+} {a 1}
+
+# -------------------------------------------------------------------------

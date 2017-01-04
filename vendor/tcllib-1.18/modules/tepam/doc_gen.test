@@ -1,0 +1,150 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# doc_gen.test: 
+# This file is part of the TEPAM Doc Gen's regression test. It validates 
+# the generate and patch commands
+#
+# Copyright (C) 2013 Andreas Drollinger
+# 
+# Id: doc_gen.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+catch {namespace delete ::tepam::doc_gen}
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+   useLocal tepam_doc_gen.tcl tepam::doc_gen
+}
+
+set Dir test_doc_dir
+
+makeDirectory $Dir
+
+######## Declare the test procedures ########
+
+   tepam::procedure {display message} {
+      -return            -
+      -short_description "Displays a simple message box"
+      -description       "This procedure allows displaying a configurable message box. It supports the following message types:
+                          * Info
+                          * Warning
+                          * Error
+                          Font, foreground and background colors are free selectable.
+                          Optionally, all messages can be logged in a log file."
+      -args {
+         {-mtype -default Warning -choices {Info Warning Error} -description "M. type"}
+         {-font -type font -default {Arial 10 italic} -description "Message font"}
+         {-level -type integer -optional -range {1 10} -description "Message level"}
+         {-fg -type color -default black -description "Message color"}
+         {-bg -type color -optional -description "Background color"}
+         {-no_border -type none -description "Use a splash window style (no border)"}
+         {-log_file -type file -optional -description "Optional message log file"}
+         {text -type string -multiple -description "Multiple text lines to display"}
+      }
+      -example {
+         display message "The document hasn't yet been saved!"
+         display message -fg red -bg black "Please save first the document"
+      }
+   } {
+      puts "display message:"
+      foreach var {mtype font level fg bg no_border log_file text} {
+         if {[info exists $var]} {
+            puts  "  $var=[set $var]"
+         }
+      }
+   }
+
+   tepam::procedure {display status} {
+      -return            -
+      -short_description "Displays the program status"
+      -args {
+         {-font -type font -default {Arial 10 italic} -description "Message font"}
+         {-log_file -type file -optional -description "Optional message log file"}
+         {text -type string -multiple -description "Multiple text lines to display"}
+      }
+      -example {
+         display status "The program is in a critical state!"
+      }
+   } {
+      puts "display status:"
+      foreach var {font log_file text} {
+         if {[info exists $var]} {
+            puts  "  $var=[set $var]"
+         }
+      }
+   }
+   
+
+######## Generate: Generate all formats ########
+
+   # Generate all documentation, do not check the validity of the generated doc at this location
+      foreach Format {TXT POD HTML DT} {
+
+         if {$Format=="DT"} {
+            set DocStructureRegexp(display_message) {.*\[section "Arguments"\].*\[section "Example"\].*}
+            set DocStructureRegexp(display) {.*\[section "Example"\].*}
+         } else {
+            set DocStructureRegexp(display_message) {.*Name.*Synopsis.*Description.*Arguments.*Example.*}
+            set DocStructureRegexp(display) {.*Name.*Synopsis.*Description.*Example.*}
+            if {$Format=="TXT" || $Format=="POD"} {
+               set DocStructureRegexp(display_message) [string toupper $DocStructureRegexp(display_message)]
+               set DocStructureRegexp(display) [string toupper $DocStructureRegexp(display)]
+            }
+         }
+      
+         test tepam::doc_gen.nhf.all.$Format "tepam::doc_gen::generate, procedure with sub-procedures, no h/f, $Format" \
+                  -body {set Doc(nhf,display,$Format) [tepam::doc_gen::generate -format $Format display]} \
+                  -result $DocStructureRegexp(display) \
+                  -output "" -match regexp
+
+         test tepam::doc_gen.nhf.single.$Format "tepam::doc_gen::generate, procedure without sub-procedures, no h/f, $Format" \
+                  -body {set Doc(nhf,display_message,$Format) [tepam::doc_gen::generate -format $Format {display message}]} \
+                  -result $DocStructureRegexp(display_message) \
+                  -output "" -match regexp
+
+         test tepam::doc_gen.hf.all.$Format "tepam::doc_gen::generate, procedure with sub-procedures, with h/f, $Format" \
+                  -body {set Doc(hf,display,$Format) [tepam::doc_gen::generate -format $Format -header_footer display]} \
+                  -result $DocStructureRegexp(display) \
+                  -output "" -match regexp
+
+         test tepam::doc_gen.hf.single.$Format "tepam::doc_gen::generate, procedure without sub-procedures, with h/f, $Format" \
+                  -body {set Doc(hf,display_message,$Format) [tepam::doc_gen::generate -format $Format -header_footer {display message}]} \
+                  -result $DocStructureRegexp(display_message) \
+                  -output "" -match regexp
+
+         test tepam::doc_gen.file.all.$Format "tepam::doc_gen::generate, procedure with sub-procedures, safed in file, $Format" \
+                  -body {tepam::doc_gen::generate -dest_file $Dir/display__hf.$Format -format $Format -header_footer display} \
+                  -result "$Dir/display__hf.$Format" -output ""
+
+         test tepam::doc_gen.file.single.$Format "tepam::doc_gen::generate, procedure without sub-procedures, safed in file, $Format" \
+                  -body {tepam::doc_gen::generate -dest_file $Dir/display_message__hf.$Format -format $Format -header_footer {display message}} \
+                  -result "$Dir/display_message__hf.$Format" -output ""
+   }
+
+######## Check the documentation content ########
+
+
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: doc_gen.test
+# Modifications:
+#
+# Revision 1.1  2013/10/14 droll
+# * Initial checkin
+##########################################################################

@@ -1,0 +1,210 @@
+<html><head>
+<title>string::token - Text and string utilities</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'token.man' by tcllib/doctools with format 'html'
+   -->
+<! -- string::token.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">string::token(n) 1 tcllib &quot;Text and string utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>string::token - Regex based iterative lexing</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">string::token <span class="opt">?1?</span></b></li>
+<li>package require <b class="pkgname">fileutil</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::string token text</b> <i class="arg">lex</i> <i class="arg">string</i></a></li>
+<li><a href="#2"><b class="cmd">::string token file</b> <i class="arg">lex</i> <i class="arg">path</i></a></li>
+<li><a href="#3"><b class="cmd">::string token chomp</b> <i class="arg">lex</i> <i class="arg">startvar</i> <i class="arg">string</i> <i class="arg">resultvar</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands for regular expression based lexing
+(tokenization) of strings.</p>
+<p>The complete set of procedures is described below.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::string token text</b> <i class="arg">lex</i> <i class="arg">string</i></a></dt>
+<dd><p>This command takes an ordered dictionary <i class="arg">lex</i> mapping regular
+expressions to labels, and tokenizes the <i class="arg">string</i> according to
+this dictionary.</p>
+<p>The result of the command is a list of tokens, where each token
+is a 3-element list of label, start- and end-index in the <i class="arg">string</i>.</p>
+<p>The command will throw an error if it is not able to tokenize
+the whole string.</p></dd>
+<dt><a name="2"><b class="cmd">::string token file</b> <i class="arg">lex</i> <i class="arg">path</i></a></dt>
+<dd><p>This command is a convenience wrapper around
+<b class="cmd">::string token text</b> above, and <b class="cmd">fileutil::cat</b>, enabling
+the easy tokenization of whole files.
+<em>Note</em> that this command loads the file wholly into memory before
+starting to process it.</p>
+<p>If the file is too large for this mode of operation a command
+directly based on <b class="cmd">::string token chomp</b> below will be
+necessary.</p></dd>
+<dt><a name="3"><b class="cmd">::string token chomp</b> <i class="arg">lex</i> <i class="arg">startvar</i> <i class="arg">string</i> <i class="arg">resultvar</i></a></dt>
+<dd><p>This command is the work horse underlying <b class="cmd">::string token text</b>
+above. It is exposed to enable users to write their own lexers, which,
+for example may apply different lexing dictionaries according to some
+internal state, etc.</p>
+<p>The command takes an ordered dictionary <i class="arg">lex</i> mapping
+regular expressions to labels, a variable <i class="arg">startvar</i> which
+indicates where to start lexing in the input <i class="arg">string</i>, and a
+result variable <i class="arg">resultvar</i> to extend.</p>
+<p>The result of the command is a tri-state numeric code
+indicating one of</p>
+<dl class="doctools_definitions">
+<dt><b class="const">0</b></dt>
+<dd><p>No token found.</p></dd>
+<dt><b class="const">1</b></dt>
+<dd><p>Token found.</p></dd>
+<dt><b class="const">2</b></dt>
+<dd><p>End of string reached.</p></dd>
+</dl>
+<p>Note that recognition of a token from <i class="arg">lex</i> is started at the
+character index in <i class="arg">startvar</i>.</p>
+<p>If a token was recognized (status <b class="const">1</b>) the command will
+update the index in <i class="arg">startvar</i> to point to the first character of
+the <i class="arg">string</i> past the recognized token, and it will further extend
+the <i class="arg">resultvar</i> with a 3-element list containing the label
+associated with the regular expression of the token, and the start-
+and end-character-indices of the token in <i class="arg">string</i>.</p>
+<p>Neither <i class="arg">startvar</i> nor <i class="arg">resultvar</i> will be updated if
+no token is recognized at all.</p>
+<p>Note that the regular expressions are applied (tested) in the
+order they are specified in <i class="arg">lex</i>, and the first matching pattern
+stops the process. Because of this it is recommended to specify the
+patterns to lex with from the most specific to the most general.</p>
+<p>Further note that all regex patterns are implicitly prefixed
+with the constraint escape <b class="const">A</b> to ensure that a match starts
+exactly at the character index found in <i class="arg">startvar</i>.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>textutil</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key696">lexing</a>, <a href="../../../../index.html#key695">regex</a>, <a href="../../../../index.html#key280">string</a>, <a href="../../../../index.html#key694">tokenization</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+</div></body></html>

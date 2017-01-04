@@ -1,0 +1,154 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin transfer::data::source n 0.2]
+[keywords channel]
+[keywords copy]
+[keywords {data source}]
+[keywords transfer]
+[copyright {2006-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Data transfer facilities}]
+[titledesc {Data source}]
+[category  {Transfer module}]
+[require Tcl                    8.4]
+[require snit                   [opt 1.0]]
+[require transfer::copy         [opt 0.2]]
+[require transfer::data::source [opt 0.2]]
+[description]
+[para]
+
+This package provides objects mainly describing the origin of some
+data to transfer. They are also able to initiate transfers of the
+described information to a channel using the foundation package
+[package transfer::copy].
+
+[section API]
+[subsection {Package commands}]
+
+[list_begin definitions]
+
+[call [cmd transfer::data::source] \
+	[arg objectName] \
+	[opt [arg options]...]]
+
+This command creates a new data source object with an associated Tcl
+command whose name is [arg objectName].
+
+This [term object] command is explained in full detail in the sections
+[sectref {Object command}] and [sectref {Object methods}]. The set of
+supported [arg options] is explained in section [sectref {Options}].
+
+[para]
+
+The object command will be created under the current namespace if the
+[arg objectName] is not fully qualified, and in the specified
+namespace otherwise.
+
+The fully qualified name of the object command is returned as the
+result of the command.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::transfer::data::source] command have
+the following general form:
+
+[list_begin definitions]
+
+[call [arg objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object. Doing so while a transfer initiated
+by the object is active is safe as all data required for the transfer
+itself was copied, and the completion of the transfer will not try to
+access the initiating object anymore. i.e. the transfer is completely
+separate from the source object itself.
+
+[call [arg objectName] [method type]]
+
+This method returns a string describing the type of the data the
+object is refering to. The possible values and their meanings are:
+
+[list_begin definitions]
+[def [const undefined]]
+No data was specified at all, or it was specified incompletely. The
+object does not know the type.
+
+[def [const string]]
+The data to transfer is contained in a string.
+
+[def [const channel]]
+The data to transfer is contained in a channel.
+
+[list_end]
+
+[call [arg objectName] [method data]]
+
+This method returns a value depending on the type of the data the
+object refers to, through which the data can be accessed.
+
+The method throws an error if the type is [const undefined]. For type
+[const string] the returned result is the data itself, whereas for
+type [const channel] the returned result is the handle of the channel
+containing the data.
+
+[call [arg objectName] [method size]]
+
+This method returns a value depending on the type of the data the
+object refers to, the size of the data.
+
+The method throws an error if the type is [const undefined]. Return of
+a negative value signals that the object is unable to determine an
+absolute size upfront (like for data in a channel).
+
+[call [arg objectName] [method valid] [arg msgvar]]
+
+This method checks the configuration of the object for validity. It
+returns a boolean flag as result, whose value is [const True] if the
+object is valid, and [const False] otherwise. In the latter case the
+variable whose name is stored in [arg msgvar] is set to an error
+message describing the problem found with the configuration. Otherwise
+this variable is not touched.
+
+[call [arg objectName] [method transmit] [arg channel] [arg blocksize] [arg done]]
+
+This method initiates a transfer of the referenced data to the
+specified [arg channel].
+
+When the transfer completes the command prefix [arg done] is invoked,
+per the rules for the option [option -command] of command
+[cmd transfer::copy::do] in the package [package transfer::copy].
+
+The [arg blocksize] specifies the size of the chunks to transfer in
+one go. See the option [option -blocksize] of command
+[cmd transfer::copy::do] in the package [package transfer::copy].
+
+[list_end]
+
+[subsection Options]
+
+All data sources support the options listed below. It should be noted
+that the first four options are semi-exclusive, each specifying a
+different type of data source and associated content. If these options
+are specified more than once then the last option specified is used to
+actually configure the object.
+
+[list_begin options]
+[include include/dsource_options.inc]
+[list_end]
+
+[vset CATEGORY transfer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

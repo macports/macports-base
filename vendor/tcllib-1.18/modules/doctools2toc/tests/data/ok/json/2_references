@@ -1,0 +1,25 @@
+{
+    "doctools::toc" : {
+        "title" : "",
+        "items" : [{
+            "reference" : {
+                "id"    : "structure.man",
+                "desc"  : "doctoc serialization utilities",
+                "label" : "doctools::toc::structure"
+            }
+        },{
+            "reference" : {
+                "id"    : "parse.man",
+                "desc"  : "Parsing text in doctoc format",
+                "label" : "doctools::toc::parse"
+            }
+        },{
+            "reference" : {
+                "label" : "doctools::toc::introduction",
+                "desc"  : "DocTools - Tables of Contents",
+                "id"    : "introduction.man"
+            }
+        }],
+        "label" : "Table of Contents"
+    }
+}

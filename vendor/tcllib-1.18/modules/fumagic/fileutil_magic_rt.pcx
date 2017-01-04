@@ -1,0 +1,116 @@
+# -*- tcl -*- fileutil::magic::rt.pcx
+# Syntax of the commands provided by package fileutil::magic::rt.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register fileutil::magic::rt
+pcx::tcldep   1.0 needs tcl 8.4
+
+namespace eval ::fileutil::magic::rt {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.0 std ::fileutil::magic::rt::I \
+    {checkSimpleArgs 3 3 {
+	checkWholeNum
+	fileutil::magic::rt::checkType
+	checkInt
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::L \
+    {checkSimpleArgs 1 1 {
+	checkWholeNum
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::N \
+    {checkSimpleArgs 4 5 {
+	fileutil::magic::rt::checkType
+	checkWholeNum
+	{checkKeyword 1 {x < > <= >= == !=}}
+	checkInt
+	checkWord
+    }}
+# TODO: syntax of qualifiers.
+pcx::check 1.0 std ::fileutil::magic::rt::Nv \
+    {checkSimpleArgs 2 3 {
+	fileutil::magic::rt::checkType
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::Nvx \
+    {checkSimpleArgs 3 4 {
+	checkWholeNum
+	fileutil::magic::rt::checkType
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::Nx \
+    {checkSimpleArgs 5 6 {
+	checkWholeNum
+	fileutil::magic::rt::checkType
+	checkWholeNum
+	{checkKeyword 1 {x < > <= >= == !=}}
+	checkInt
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::R \
+    {checkSimpleArgs 1 1 {
+	checkWholeNum
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::S \
+    {checkSimpleArgs 3 4 {
+	checkWholeNum
+	{checkKeyword 1 {x < > <= >= == !=}}
+	checkInt
+	checkWord
+
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::Sx \
+    {checkSimpleArgs 4 -5 {
+	checkWholeNum
+	checkWholeNum
+	{checkKeyword 1 {x < > <= >= == !=}}
+	checkInt
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::close \
+    {checkAtEnd}
+# TODO: check string for the special placeholders
+pcx::check 1.0 std ::fileutil::magic::rt::emit \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::file_start \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+# TODO: syntax of complex offsets.
+pcx::check 1.0 std ::fileutil::magic::rt::offset \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::open \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+# TODO: check string for the special placeholders
+pcx::check 1.0 std ::fileutil::magic::rt::result \
+    {checkSimpleArgs 0 1 {
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::rt::resultv \
+    {checkSimpleArgs 0 1 {
+	checkWord
+    }}
+
+proc fileutil::magic::rt::checkType {t i} {
+    return [checkKeyword 1 {c s S i I Q Y date bedate ledate ldatebeldate leldate byte short beshort leshort long belong lelong ubyte ushort ubeshort uleshort ulong ubelong ulelong} $t $i]
+}
+
+# Initialization via pcx::init.
+# Use a ::fileutil::magic::rt::init procedure for non-standard initialization.
+pcx::complete

@@ -1,0 +1,45 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+term::ansi::send::import vt
+
+vt::init
+vt::clear
+vt::wr \n
+vt::wr {    }
+vt::sda_bgcyan
+vt::wr {[ Boxes II ]}
+vt::sda_reset
+vt::wr \n\n
+
+
+
+set symbols {fgyz{|}~}
+
+set     lines {}
+lappend lines {opqrs}
+lappend lines {}
+lappend lines {lqwqk}
+lappend lines {x x x}
+lappend lines {tqnqu}
+lappend lines {x x x}
+lappend lines {mqvqj}
+
+
+
+set foo {}
+foreach line $lines {
+    lappend foo "    \016$line\017  $line"
+}
+lappend foo {}
+lappend foo "   \016lqqqqqqqqk\017"
+lappend foo "   \016x\017$symbols\016x\017"
+lappend foo "   \016x${symbols}x\017"
+lappend foo "   \016mqqqqqqqqj\017"
+
+
+
+vt::wr	[join $foo \n]\n\n
+exit

@@ -1,0 +1,4 @@
+pt::grammar::peg
+    start := ?
+                 'a'
+    rules

@@ -1,0 +1,207 @@
+# -*- tcl -*-
+# Graph tests - walk
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: walk.test,v 1.3 2008/12/13 03:57:33 andreas_kupries Exp $
+
+# Syntax: graph walk NODE ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-walk-1.0 {walk, wrong#args, missing} {} {
+    SETUP
+    catch {mygraph walk} msg
+    mygraph destroy
+    set msg
+} [tmWrong walk {node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd} 0 {node args}]
+
+test graph-${impl}-${setimpl}-walk-1.1 {walk, wrong#args, missing} {} {
+    SETUP
+    catch {mygraph walk %0} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+test graph-${impl}-${setimpl}-walk-1.2 {walk, wrong#args, missing} {} {
+    SETUP
+    catch {mygraph walk %0 -dir} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+test graph-${impl}-${setimpl}-walk-1.3 {walk, wrong#args, missing} {} {
+    SETUP
+    catch {mygraph walk %0 -order} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+test graph-${impl}-${setimpl}-walk-1.4 {walk, wrong#args, missing} {} {
+    SETUP
+    catch {mygraph walk %0 -type} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+test graph-${impl}-${setimpl}-walk-1.5 {walk, wrong#args, missing} {} {
+    SETUP
+    catch {mygraph walk %0 -command} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-walk-2.0 {walk, missing node} {
+    SETUP
+    catch {mygraph walk node0 -command {}} msg
+    mygraph destroy
+    set msg
+} [MissingNode $MY node0]
+
+test graph-${impl}-${setimpl}-walk-2.1 {walk, unknown option} {
+    SETUPwalk
+    catch {mygraph walk i -foo x -command {}} msg
+    mygraph destroy
+    set msg
+} "unknown option \"-foo\": should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+test graph-${impl}-${setimpl}-walk-2.2 {walk, empty command} {
+    SETUPwalk
+    catch {mygraph walk i -command {}} msg
+    mygraph destroy
+    set msg
+} "no command specified: should be \"$MY walk node ?-dir forward|backward? ?-order pre|post|both? ?-type bfs|dfs? -command cmd\""
+
+test graph-${impl}-${setimpl}-walk-2.3 {walk, bad search type} {
+    SETUPwalk
+    catch {mygraph walk i -command foo -type foo} msg
+    mygraph destroy
+    set msg
+} {bad search type "foo": must be bfs or dfs}
+
+test graph-${impl}-${setimpl}-walk-2.4 {walk, bad search direction} {
+    SETUPwalk
+    catch {mygraph walk i -command foo -type dfs -dir oneway} msg
+    mygraph destroy
+    set msg
+} {bad search direction "oneway": must be backward or forward}
+
+test graph-${impl}-${setimpl}-walk-2.5 {walk, bad search order} {
+    SETUPwalk
+    catch {mygraph walk i -command foo -order none} msg
+    mygraph destroy
+    set msg
+} {bad search order "none": must be both, pre, or post}
+
+test graph-${impl}-${setimpl}-walk-2.6 {walk, bad order/type combination} {
+    SETUPwalk
+    catch {mygraph walk i -command foo -order both -type bfs} msg
+    mygraph destroy
+    set msg
+} {unable to do a both-order breadth first walk}
+
+test graph-${impl}-${setimpl}-walk-2.7 {walk, bad order/type combination} {
+    SETUPwalk
+    catch {mygraph walk i -command foo -order post -type bfs} msg
+    mygraph destroy
+    set msg
+} {unable to do a post-order breadth first walk}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+proc record {a g n} {global t ; lappend t $a $n ; return}
+
+test graph-${impl}-${setimpl}-walk-3.0 {walk, forward pre dfs, default} {
+    SETUPwalk
+    set t {}
+    mygraph walk i -command record
+    mygraph destroy
+    set t
+} [tmE  {enter i enter ii enter iii enter iv enter v enter vi enter viii enter ix enter vii} \
+	{enter i enter vii enter vi enter viii enter ix enter ii enter iii enter iv enter v}]
+
+test graph-${impl}-${setimpl}-walk-3.1 {walk, forward post dfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk i -order post -command record
+    mygraph destroy
+    set t
+} [tmE  {leave viii leave vi leave v leave iv leave iii leave ii leave ix leave vii leave i} \
+	{leave viii leave vi leave vii leave ix leave v leave iv leave iii leave ii leave i}]
+
+test graph-${impl}-${setimpl}-walk-3.1.1 {walk, forward post dfs} {
+    SETUP
+    mygraph node insert i ii iii
+    mygraph arc insert i  ii  1
+    mygraph arc insert i  iii 2
+    mygraph arc insert ii iii 3
+    set t [list ]
+    mygraph walk i -order post -command record
+    mygraph destroy
+    set t
+} [tmE  {leave iii leave ii leave i} \
+	{leave iii leave ii leave i}]
+
+test graph-${impl}-${setimpl}-walk-3.2 {walk, forward both dfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk i -order both -command record
+    mygraph destroy
+    set t
+} [tmE  {enter i enter ii enter iii enter iv enter v enter vi enter viii leave viii leave vi leave v leave iv leave iii leave ii enter ix leave ix enter vii leave vii leave i} \
+	{enter i enter vii enter vi enter viii leave viii leave vi leave vii enter ix leave ix enter ii enter iii enter iv enter v leave v leave iv leave iii leave ii leave i}]
+
+test graph-${impl}-${setimpl}-walk-3.3 {walk, forward pre bfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk i -type bfs -command record
+    mygraph destroy
+    set t
+} [tmE  {enter i enter ii enter ix enter vii enter iii enter vi enter iv enter viii enter v} \
+	{enter i enter vii enter ix enter ii enter vi enter iii enter viii enter iv enter v}]
+
+test graph-${impl}-${setimpl}-walk-3.4 {walk, backward pre bfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk ix -type bfs -dir backward -command record
+    mygraph destroy
+    set t
+} [tmE  {enter ix enter i enter viii enter vi enter v enter vii enter iv enter iii enter ii} \
+	{enter ix enter i enter viii enter vi enter vii enter v enter iv enter iii enter ii}]
+
+test graph-${impl}-${setimpl}-walk-3.5 {walk, backward pre dfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk ix -dir backward -command record
+    mygraph destroy
+    set t
+} [tmE  {enter ix enter i enter viii enter vi enter v enter iv enter iii enter ii enter vii} \
+	{enter ix enter i enter viii enter vi enter vii enter v enter iv enter iii enter ii}]
+
+test graph-${impl}-${setimpl}-walk-3.6 {walk, backward post dfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk ix -dir backward -order post -command record
+    mygraph destroy
+    set t
+} [tmE  {leave ii leave iii leave iv leave v leave vii leave vi leave viii leave i leave ix} \
+	{leave vii leave ii leave iii leave iv leave v leave vi leave viii leave i leave ix}]
+
+test graph-${impl}-${setimpl}-walk-3.7 {walk, backward both dfs} {
+    SETUPwalk
+    set t [list ]
+    mygraph walk ix -dir backward -order both -command record
+    mygraph destroy
+    set t
+} [tmE  {enter ix enter i enter viii enter vi enter v enter iv enter iii enter ii leave ii leave iii leave iv leave v enter vii leave vii leave vi leave viii leave i leave ix} \
+	{enter ix enter i enter viii enter vi enter vii leave vii enter v enter iv enter iii enter ii leave ii leave iii leave iv leave v leave vi leave viii leave i leave ix}]
+
+# -------------------------------------------------------------------------
+
+rename record {}
+
+# -------------------------------------------------------------------------

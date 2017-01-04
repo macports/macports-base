@@ -1,0 +1,121 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Join two CSV files by key
+
+package require csv
+package require cmdline
+
+# ----------------------------------------------------
+# csvuniq ?-sep sepchar? keycol1 file1.in keycol2 file2.in file.out|-
+#
+# Argument processing and checks.
+
+set sepChar ,
+set outer 0
+
+set usage "Usage: $argv0 ?-sep sepchar? ?-outer? key1 file1.in key2 file2.in file.out|-"
+
+while {[set ok [cmdline::getopt argv {sep.arg outer} opt val]] > 0} {
+    #puts stderr "= $opt $val"
+    switch -exact -- $opt {
+	sep   {set sepChar $val}
+	outer {set outer 1}
+    }
+}
+if {($ok < 0) || ([llength $argv] != 5)} {
+    puts stderr $usage
+    exit -1
+}
+
+foreach {keyA inA keyB inB out} $argv break
+
+if {
+    ![string is integer $keyA] ||
+    ($keyA < 0)                ||
+    ![string is integer $keyB] ||
+    ($keyB < 0)                ||
+    ![string compare $inA  ""] ||
+    ![string compare $inB  ""] ||
+    ![string compare $out ""]
+} {
+    puts stderr $usage
+    exit -1    
+}
+
+if {![string compare $out -]} {
+    set out stdout
+} else {
+    set out [open $out w]
+}
+
+set inA [open $inA r]
+set inB [open $inB r]
+
+# ----------------------------------------------------
+# Actual processing, uses the following information from the
+# commandline:
+#
+# inA     - channel for input A
+# inB     - channel for input B
+# out     - channel for output
+# sepChar - separator character
+# keyA    - key column in A
+# keyB    - key column in B
+
+# 1. Read input B completely into an array indexed by the contents of
+#    the key column. Store only the non-key information of input
+#    B. Note that B may contain several lines having the same key.
+#
+# 2. Read input A line by line and match its key information against
+#    the array. If there is no match ignore the record, else join the
+#    record with all records from the array and write the resulting
+#    records into the output.
+
+set bwidth 0
+
+array set map {}
+while {![eof $inB]} {
+    if {[gets $inB line] < 0} {
+	continue
+    }
+
+    set data [::csv::split $line $sepChar]
+    set key  [lindex   $data $keyB]
+    set data [lreplace $data $keyB $keyB]
+
+    if {[info exists map($key)]} {
+	lappend map($key) $data
+    } else {
+	set map($key) [list $data]
+    }
+    set bwidth [llength $data]
+}
+close $inB
+
+while {![eof $inA]} {
+    if {[gets $inA line] < 0} {
+	continue
+    }
+    set data [::csv::split $line $sepChar]
+    set key  [lindex   $data $keyA]
+
+    if {[info exists map($key)]} {
+	foreach record $map($key) {
+	    set res $data
+	    eval lappend res $record
+	    puts $out [::csv::join $res $sepChar]
+	}
+    } elseif {$outer} {
+	# Nothing was found, but an outer join was requested too =>
+	# append 'bwidth' empty cells to the data and write the new
+	# record.
+
+	for {set i 0} {$i < $bwidth} {incr i} {
+	    lappend data {}
+	}
+
+	puts $out [::csv::join $data $sepChar]
+    }
+}
+
+exit ; # automatically closes the channels

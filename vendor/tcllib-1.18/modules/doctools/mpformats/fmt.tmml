@@ -1,0 +1,288 @@
+# -*- tcl -*-
+#
+# $Id: fmt.tmml,v 1.27 2010/07/06 18:49:15 andreas_kupries Exp $
+#
+# [expand] definitions to convert a tcl based manpage definition
+# into TMML.
+#
+# Copyright (C) 2001 Joe English <jenglish@sourceforge.net>.
+# Freely redistributable.
+#
+# See also <URL: http://tmml.sourceforge.net>
+#
+# BUGS:
+#	+ Text must be preceded by [para] or one of the
+#	  list item macros, or else the output will be invalid.
+#
+######################################################################
+
+dt_source _common.tcl
+dt_source _xml.tcl
+
+######################################################################
+# Conversion specification.
+#
+# Two-pass processing.  The first pass collects text for the
+# SYNOPSIS, SEE ALSO, and KEYWORDS sections, and the second pass
+# produces output.
+#
+
+c_holdBuffers synopsis see_also keywords
+
+variable block {section dd li desc}	;# block context elements
+
+proc fmt_nl  	{}	{ emptyElement br }
+proc fmt_arg 	{text}	{ wrap $text m }
+proc fmt_cmd	{text}	{ wrap $text cmd }
+proc fmt_emph	{text}	{ wrap $text emph }
+proc fmt_opt 	{text}	{ wrap $text o }
+
+c_pass 1 fmt_example_begin {}	NOP
+c_pass 1 fmt_example_end {} 	NOP
+c_pass 1 fmt_example {code}	NOP
+c_pass 2 fmt_example_begin {}	{ sequence [xmlContext $::block] [start example] }
+c_pass 2 fmt_example_end   {}	{ end example }
+c_pass 2 fmt_example {code} 	{ sequence [xmlContext $::block] [wrap $code example] }
+
+proc fmt_comment {text} {xmlComment $text}
+proc fmt_sectref {text {id {}}} {
+    global SectionNames
+    if {$id == {}} {
+	set id [c_sectionId $text]
+    }
+    if {[info exists SectionNames($id)]} {
+	return "[startTag ref refid $id]$text[endTag ref]"
+    } else {
+	return [wrap $text emph]
+    }
+}
+proc fmt_syscmd  {text} {wrap $text syscmd}
+proc fmt_method  {text} {wrap $text method}
+proc fmt_option  {text} {wrap $text option}
+proc fmt_widget  {text} {wrap $text widget}
+proc fmt_fun     {text} {wrap $text fun}
+proc fmt_type    {text} {wrap $text type}
+proc fmt_package {text} {wrap $text package}
+proc fmt_class   {text} {wrap $text class}
+proc fmt_var     {text} {wrap $text variable}
+proc fmt_file    {text} {wrap $text file}
+proc fmt_namespace     {text} {wrap $text term}
+proc fmt_uri     {text {label {}}} {
+    # TMML ignores the label
+    wrap $text url
+}
+proc fmt_term    {text} {wrap $text term}
+proc fmt_const   {text} {wrap $text l}
+
+proc fmt_mdash {} { return "[markup &]mdash;" }
+proc fmt_ndash {} { return "[markup &]ndash;" }
+
+
+c_pass 1 fmt_manpage_begin {args} NOP
+c_pass 2 fmt_manpage_begin {title section version} {
+    set headInfo [list]
+    foreach copyrightLine [split [c_get_copyright] "\n"] {
+    	lappend headInfo [emptyElement info key copyright value $copyrightLine] 
+    }
+    # ... other metadata here if needed ...
+
+    sequence \
+	[xmlComment [c_provenance]] \
+	[start manpage \
+	    id  	[dt_fileid] \
+	    cat 	cmd \
+	    title	$title \
+	    version	$version \
+	    package	[dt_module]] \
+	[wrapLines? [join $headInfo \n] head] \
+	[start namesection] \
+	[wrap $title name] \
+	[wrap [c_get_title] desc] \
+	[end namesection] \
+	;
+}
+
+c_pass 1 fmt_moddesc   {desc} {c_set_module $desc}
+c_pass 1 fmt_titledesc {desc} {c_set_title $desc}
+c_pass 1 fmt_copyright {desc} {c_set_copyright $desc}
+
+c_pass 2 fmt_moddesc     {args} NOP
+c_pass 2 fmt_titledesc   {args} NOP
+c_pass 2 fmt_copyright   {desc} NOP
+
+c_pass 1 fmt_description {id} NOP
+c_pass 2 fmt_description {id} {
+    sequence \
+	[xmlContext manpage] \
+	[wrapLines? [c_held synopsis] syntax synopsis] \
+	[start section id $id] \
+	[wrap "DESCRIPTION" title] \
+	;
+}
+
+c_pass 1 fmt_section {name {id {}}} {c_newSection $name 1 end $id}
+c_pass 2 fmt_section {name {id {}}} {
+    if {$id == {}} { set id [c_sectionId $name] }
+    sequence \
+	[xmlContext manpage] \
+    	[start section id $id] \
+	[wrap [string toupper $name] title] \
+	;
+}
+
+c_pass 1 fmt_subsection {name {id {}}} {c_newSection $name 2 end $id}
+c_pass 2 fmt_subsection {name {id {}}} {
+    if {$id == {}} { set id [c_sectionId $name] }
+    sequence \
+	[xmlContext section] \
+    	[start subsection id $id] \
+	[wrap [string toupper $name] title] \
+	;
+}
+
+c_pass 1 fmt_para {} NOP
+c_pass 2 fmt_para {} { sequence [xmlContext section] [start p] }
+
+foreach {type gi} {
+    itemized	ul
+    enumerated	ol
+    definitions	dl
+    arguments	arglist
+    commands	commandlist
+    options	optlist
+    tkoptions	optionlist
+} {
+    set listTypes($type) $gi
+    lappend listGIs $gi
+}
+
+c_pass 1 fmt_list_begin {what {hint {}}} NOP
+c_pass 1 fmt_list_end {} NOP
+c_pass 2 fmt_list_begin {what {hint {}}} {
+    variable listTypes
+    sequence \
+    	[xmlContext $::block] \
+	[start $listTypes($what)] \
+	;
+}
+c_pass 2 fmt_list_end {} {
+    variable listGIs
+    sequence \
+	[xmlContext $listGIs] \
+	[end] \
+	;
+}
+
+c_pass 1 fmt_bullet {}	NOP
+c_pass 1 fmt_enum {} 		NOP
+c_pass 2 fmt_bullet {} 	{ sequence [xmlContext {ul ol}] [start li] }
+c_pass 2 fmt_enum {} 		{ sequence [xmlContext {ul ol}] [start li] }
+
+c_pass 1 fmt_lst_item {text} NOP
+c_pass 2 fmt_lst_item {text} {
+    sequence \
+    	[xmlContext dl] \
+	[start dle] \
+	[wrap $text dt] \
+	[start dd] \
+	;
+}
+
+c_pass 1 fmt_arg_def {type name {mode {}}} NOP
+c_pass 2 fmt_arg_def {type name {mode {}}} {
+    sequence \
+    	[xmlContext arglist] \
+	[start argdef] \
+	[wrap $type argtype] \
+	[wrap $name name] \
+	[wrap? $mode argmode] \
+	[start desc] \
+	;
+}
+
+c_pass 1 fmt_cmd_def {command} NOP
+c_pass 2 fmt_cmd_def {command} {
+    sequence \
+    	[xmlContext commandlist] \
+	[start commanddef] \
+	[wrap $command command] \
+	[start desc] \
+	;
+}
+
+c_pass 1 fmt_opt_def {name {arg {}}} NOP
+c_pass 2 fmt_opt_def {name {arg {}}} {
+    sequence \
+    	[xmlContext optlist] \
+	[start optdef] \
+	[wrap $name optname] \
+	[wrap? $arg optarg] \
+	[start desc] \
+	;
+}
+
+c_pass 1 fmt_tkoption_def {name dbname dbclass}  NOP
+c_pass 2 fmt_tkoption_def {name dbname dbclass} {
+    sequence \
+    	[xmlContext optionlist] \
+	[start optiondef] \
+	[wrap $name name] \
+	[wrap $dbname dbname] \
+	[wrap $dbclass dbclass] \
+	[start desc] \
+	;
+}
+
+c_pass 1 fmt_usage {cmd args} { c_hold synopsis [formatCall $cmd $args] }
+c_pass 2 fmt_usage {cmd args} NOP
+
+c_pass 1 fmt_call {cmd args} { c_hold synopsis [formatCall $cmd $args] }
+c_pass 2 fmt_call {cmd args} {
+    sequence \
+    	[xmlContext dl] \
+	[start dle] \
+	[wrap [formatCall $cmd $args] dt] \
+	[start dd] \
+	;
+}
+proc formatCall {cmd arglist} {
+    return "$cmd [join $arglist { }]"	;# OR: wrap "..." command
+}
+
+c_pass 1 fmt_require {pkg {version {}}} {
+    c_hold synopsis [formatRequire $pkg $version]
+}
+c_pass 2 fmt_require {pkg {version {}}} NOP
+proc formatRequire {pkg version} {
+    return "package require [wrap $pkg package] $version"
+}
+
+# Note: TMML apparently has no support for category data inside of the document.
+
+c_pass 1 fmt_see_also	{args} { holdWrapped see_also $args ref }
+c_pass 1 fmt_keywords   {args} { holdWrapped keywords $args keyword }
+c_pass 1 fmt_category	{args} NOP
+c_pass 2 fmt_see_also	{args} NOP
+c_pass 2 fmt_keywords	{args} NOP
+c_pass 2 fmt_category	{args} NOP
+
+# holdWrapped --
+#	Common factor of [see_also] and [keywords].
+#
+proc holdWrapped {buffer arglist gi} {
+    foreach arg $arglist { c_hold $buffer [wrap $arg $gi] }
+    return
+}
+
+c_pass 1 fmt_manpage_end {} NOP
+c_pass 2 fmt_manpage_end {} {
+    sequence \
+	[xmlContext manpage] \
+	[wrapLines? [c_held see_also] seealso] \
+	[wrapLines? [c_held keywords] keywords] \
+	[end manpage] \
+	;
+}
+
+#*EOF*
+

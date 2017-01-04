@@ -1,0 +1,24 @@
+Content-Type: multipart/form-data; boundary="---------------------------17661509020136"
+
+-----------------------------17661509020136
+Content-Disposition: form-data; name="field1"
+
+value
+-----------------------------17661509020136
+Content-Disposition: form-data; name="field2"
+
+another value
+-----------------------------17661509020136
+Content-Disposition: form-data; name="the_file_name"; filename="C:\Program Files\Netscape\Communicator\Program\nareadme.htm"
+Content-Type: text/html
+
+
+<center><h1>
+                  Netscape Address Book Sync for Palm Pilot
+                                         User Guide
+</h1></center>
+
+
+
+-----------------------------17661509020136--
+

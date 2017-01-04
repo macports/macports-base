@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>ftp Library Package 2.1 for Tcl/Tk help file</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<body>
+
+<p>
+<dl>
+  <dd>
+    <p><font face="Arial,Helvetica" color="#526e9c" size="+2"><b>FTP Library Package 2.1 for Tcl/Tk Manual Pages</b></font></p>
+  </dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>COMMAND</b></font></dd>
+  <dd><dl>  
+    <dd><b>ftp::MkDir</b><em>&nbsp; handle&nbsp; directory</em></dd>
+    <dd>&nbsp;</dd>
+    <dd>
+
+	The <b>ftp::MkDir</b> causes the directory specified in directory to
+	be created as a directory (if the directory is absolute) or as
+	a subdirectory of the current working directory (if directory
+	is relative).
+
+	<p>If the directory was successfully created, then the command
+	returns 1, if it fails 0. </p>
+	
+    </dd>
+  </dl></dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>EXAMPLE</b></font></dd>
+  <dd><dl>
+    <dd>
+	<pre># create directory
+ftp::MkDir $conn /incoming/newdir
+
+# or
+ftp::Cd $conn /incoming
+ftp::MkDir $conn newdir
+	</pre>
+		
+    </dd> 
+  </dl></dd> 
+</dl>
+</p>
+<p>
+[<a href="index.html">Contents</a>]&nbsp;
+[<b>Previous:</b> <a href="fhelp15.html">ftp::Newer</a>]&nbsp;
+[<b>Next:</b> <a href="fhelp17.html">ftp::RmDir</a>]
+</p>
+<p align="left"><hr noshade size="1"><font face="Arial,Helvetica" size="-1">&copy; 1999 <a href="mailto:Steffen.Traeger@t-online.de">Steffen Traeger</a></font></p>
+</body>
+</html>

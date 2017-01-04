@@ -1,0 +1,16 @@
+This directory contains some examples regarding the usage of struct
+funtionality. For example a small diff tool based on
+
+	struct::list longestCommonSubsequence.
+
+=======================================================================
+
+Example operations:
+
+	tclsh ./diff2.tcl diff.tcl diff2.tcl
+
+		Differences between the diff-tools in pseudo-'patch' form.
+
+	tclsh ./diff.tcl diff.tcl diff2.tcl
+
+		Differences between the diff-tools side by side.

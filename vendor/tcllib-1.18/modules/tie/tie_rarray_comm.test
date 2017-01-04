@@ -1,0 +1,218 @@
+# Tests for the tie module.                              -*- tcl -*- 
+#
+# Copyright (c) 2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# This is a tie for remote array ties, actually using separate
+# processes. This is based on the package "comm", also in Tcllib.
+#
+# RCS: @(#) $Id: tie_rarray_comm.test,v 1.11 2007/08/01 22:53:18 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use      comm/comm.tcl       comm
+    use      snit/snit.tcl       snit
+    use      cmdline/cmdline.tcl cmdline
+    useLocal tie.tcl             tie
+}
+testing {
+    useLocal tie_rarray.tcl tie::std::rarray
+}
+
+# -------------------------------------------------------------------------
+
+set comm_code    [tcllibPath comm/comm.tcl]
+set cmdline_code [tcllibPath cmdline/cmdline.tcl]
+set snit_code    [tcllibPath snit/snit.tcl]
+set tie_code     [localPath  tie.tcl]
+set tie_ra_code  [localPath  tie_rarray.tcl]
+
+# ------------------------------------------------------------------------
+#
+# First order of things is to spawn a separate tclsh into the background
+# and have it execute comm too, with some general code to respond to our
+# requests
+
+set path(spawn) [makeFile {
+    ##puts [set fh [open ~/foo w]] $argv ; close $fh
+
+    set master [lindex $argv 2]
+    source     [lindex $argv 1] ; # load 'snit'
+    source     [lindex $argv 0] ; # load 'comm'
+    # and wait for commands. But first send our
+    # own server socket to the initiator
+    ::comm::comm send $master [list slaveat [::comm::comm self]]
+    #comm::comm debug 1
+    vwait forever
+} spawn]
+
+proc slaveat {id} {
+    #puts "Slave @ $id"
+    proc slave {} [list return $id]
+    set ::go .
+}
+
+#puts "self @ [::comm::comm self]"
+
+exec [info nameofexecutable] $path(spawn) $comm_code $snit_code [::comm::comm self] &
+
+#puts "Waiting for spawned comm system to boot"
+# Wait for the slave to initialize itself.
+vwait ::go
+
+interp alias {} csend  {} comm::comm send [slave]
+interp alias {} csenda {} comm::comm send -async [slave]
+
+#puts "Running tests"
+#::comm::comm debug 1
+# ------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# We wish to test the regular remote communication, and circular
+# communication, i.e. (1) a tie from A to remote B, and (2) ties from
+# A to B and back.
+
+# We assume that the regular tests for 'rarray' were successful.
+
+test tie-rarray-comm-1.0 {init from remote} {
+    unset -nocomplain av ; array set av {}
+
+    csend {
+	unset -nocomplain av
+	array set av {a 3 ab 4 fox snarf foo bar x {a b}}
+    }
+
+    tie::tie av remotearray av {comm::comm send} [slave]
+    tie::untie av
+
+    set res [dictsort [array get av]]
+    unset av
+    set res
+} {a 3 ab 4 foo bar fox snarf x {a b}}
+
+test tie-rarray-comm-1.1 {persistence to remote} {
+    unset -nocomplain av ; array set av {}
+
+    csend {
+	unset -nocomplain av
+	array set av {a 1 b 2 c 3}
+    }
+
+    tie::tie av remotearray av {comm::comm send} [slave]
+
+    proc peek {} {
+	global r
+	lappend r [dictsort [csend {array get av}]]
+	return
+    }
+
+    set r {}               ; peek
+    set av(a) 4            ; peek
+    set av(ax) foo         ; peek
+    array unset av a*      ; peek
+    array set av {b 5 d 6} ; peek
+    set av(x) {a b}        ; peek
+    array unset av *       ; peek
+    array set av {b {d e}} ; peek
+
+    tie::untie av
+    rename peek {}
+    unset av
+    join $r \n
+} {a 1 b 2 c 3
+a 4 b 2 c 3
+a 4 ax foo b 2 c 3
+b 2 c 3
+b 5 c 3 d 6
+b 5 c 3 d 6 x {a b}
+
+b {d e}}
+
+
+
+# -------------------------------------------------------------------------
+# Circular ties between local and remote array
+
+test tie-rarray-comm-2.0 {circular init to remote} {
+    unset -nocomplain av ; array set av {}
+
+    csend {
+	unset -nocomplain av
+	array set av {a 3 ab 4 fox snarf foo bar}
+    }
+
+    tie::tie av remotearray av {comm::comm send} [slave]
+
+    csend [list source $cmdline_code]
+    csend [list source $snit_code]
+    csend [list source $tie_code]
+    csend [list source $tie_ra_code]
+    set msg [csend {
+	tie::tie av remotearray av {comm::comm send} $master
+    }] ; # {}
+    tie::untie av
+    csend {tie::untie av}
+
+    set res [dictsort [array get av]]
+    unset av
+    list $msg $res
+} {tie1 {a 3 ab 4 foo bar fox snarf}}
+
+test tie-rarray-comm-2.1 {circular persistence to remote} {
+    unset -nocomplain av ; array set av {}
+
+    csend {
+	unset -nocomplain av
+	array set av {a 1 b 2 c 3}
+    }
+
+    tie::tie av remotearray av {comm::comm send} [slave]
+    csend [list source $cmdline_code]
+    csend [list source $snit_code]
+    csend [list source $tie_code]
+    csend [list source $tie_ra_code]
+    set msg [csend {
+	tie::tie av remotearray av {comm::comm send} $master
+    }] ; # {}
+
+    proc peek {} {
+	global r
+	lappend r [dictsort [csend {array get av}]]
+	return
+    }
+
+    set r {}               ; peek
+    set av(a) 4            ; peek
+    set av(ax) foo         ; peek
+    array unset av a*      ; peek
+    array set av {b 5 d 6} ; peek
+
+    tie::untie av
+    rename peek {}
+    unset av
+    join $r \n
+} {a 1 b 2 c 3
+a 4 b 2 c 3
+a 4 ax foo b 2 c 3
+b 2 c 3
+b 5 c 3 d 6}
+
+# -------------------------------------------------------------------------
+# As part of the cleanup ensure that the slave we used here is killed.
+
+csenda {{exit}}
+::comm::comm abort
+
+interp alias {} csend
+removeFile spawn
+
+testsuiteCleanup
+return

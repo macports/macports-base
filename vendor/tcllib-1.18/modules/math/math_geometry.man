@@ -1,0 +1,456 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::geometry n 1.1.3]
+[keywords angle]
+[keywords distance]
+[keywords line]
+[keywords math]
+[keywords {plane geometry}]
+[keywords point]
+[copyright {2001 by Ideogramic ApS and other parties}]
+[copyright {2004 by Arjen Markus}]
+[copyright {2010 by Andreas Kupries}]
+[copyright {2010 by Kevin Kenny}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Geometrical computations}]
+[category  Mathematics]
+[require Tcl [opt 8.3]]
+[require math::geometry [opt 1.1.3]]
+
+[description]
+[para]
+The [package math::geometry] package is a collection of functions for
+computations and manipulations on two-dimensional geometrical objects,
+such as points, lines and polygons.
+
+[para]
+The geometrical objects are implemented as plain lists of coordinates.
+For instance a line is defined by a list of four numbers, the x- and
+y-coordinate of a first point and the x- and y-coordinates of a second
+point on the line.
+
+[para]
+The various types of object are recognised by the number of coordinate
+pairs and the context in which they are used: a list of four elements
+can be regarded as an infinite line, a finite line segment but also
+as a polyline of one segment and a point set of two points.
+
+[para]
+Currently the following types of objects are distinguished:
+[list_begin itemized]
+[item]
+[emph point] - a list of two coordinates representing the x- and
+y-coordinates respectively.
+
+[item]
+[emph line] - a list of four coordinates, interpreted as the x- and
+y-coordinates of two distinct points on the line.
+
+[item]
+[emph "line segment"] - a list of four coordinates, interpreted as the
+x- and y-coordinates of the first and the last points on the line
+segment.
+
+[item]
+[emph "polyline"] - a list of an even number of coordinates,
+interpreted as the x- and y-coordinates of an ordered set of points.
+
+[item]
+[emph "polygon"] - like a polyline, but the implicit assumption is that
+the polyline is closed (if the first and last points do not coincide,
+the missing segment is automatically added).
+
+[item]
+[emph "point set"] - again a list of an even number of coordinates, but
+the points are regarded without any ordering.
+
+[list_end]
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures:
+
+[list_begin definitions]
+
+[call [cmd ::math::geometry::+] [arg point1] [arg point2]]
+
+Compute the sum of the two vectors given as points and return it.
+The result is a vector as well.
+
+[call [cmd ::math::geometry::-] [arg point1] [arg point2]]
+
+Compute the difference (point1 - point2) of the two vectors
+given as points and return it. The result is a vector as well.
+
+[call [cmd ::math::geometry::p] [arg x] [arg y]]
+
+Construct a point from its coordinates and return it as the
+result of the command.
+
+[call [cmd ::math::geometry::distance] [arg point1] [arg point2]]
+
+Compute the distance between the two points and return it as the
+result of the command. This is in essence the same as
+
+[example {
+    math::geometry::length [math::geomtry::- point1 point2]
+}]
+
+[call [cmd ::math::geometry::length] [arg point]]
+
+Compute the length of the vector and return it as the
+result of the command.
+
+[call [cmd ::math::geometry::s*] [arg factor] [arg point]]
+
+Scale the vector by the factor and return it as the
+result of the command. This is a vector as well.
+
+[call [cmd ::math::geometry::direction] [arg angle]]
+
+Given the angle in degrees this command computes and returns
+the unit vector pointing into this direction. The vector for
+angle == 0 points to the right (up), and for angle == 90 up (north).
+
+[call [cmd ::math::geometry::h] [arg length]]
+
+Returns a horizontal vector on the X-axis of the specified length.
+Positive lengths point to the right (east).
+
+[call [cmd ::math::geometry::v] [arg length]]
+
+Returns a vertical vector on the Y-axis of the specified length.
+Positive lengths point down (south).
+
+[call [cmd ::math::geometry::between] [arg point1] [arg point2] [arg s]]
+
+Compute the point which is at relative distance [arg s] between the two
+points and return it as the result of the command. A relative distance of
+[const 0] returns [arg point1], the distance [const 1] returns [arg point2].
+Distances < 0 or > 1 extrapolate along the line between the two point.
+
+[call [cmd ::math::geometry::octant] [arg point]]
+
+Compute the octant of the circle the point is in and return it as the result
+of the command. The possible results are
+
+[list_begin enum]
+[enum] east
+[enum] northeast
+[enum] north
+[enum] northwest
+[enum] west
+[enum] southwest
+[enum] south
+[enum] southeast
+[list_end]
+
+Each octant is the arc of the circle +/- 22.5 degrees from the cardinal direction
+the octant is named for.
+
+[call [cmd ::math::geometry::rect] [arg nw] [arg se]]
+
+Construct a rectangle from its northwest and southeast corners and return
+it as the result of the command.
+
+[call [cmd ::math::geometry::nwse] [arg rect]]
+
+Extract the northwest and southeast corners of the rectangle and return
+them as the result of the command (a 2-element list containing the
+points, in the named order).
+
+[call [cmd ::math::geometry::angle] [arg line]]
+
+Calculate the angle from the positive x-axis to a given line
+(in two dimensions only).
+
+[list_begin arguments]
+[arg_def list line] Coordinates of the line
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::calculateDistanceToLine] [arg P] [arg line]]
+
+Calculate the distance of point P to the (infinite) line and return the
+result
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list line] List of four numbers, the coordinates of two points
+on the line
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::calculateDistanceToLineSegment] [arg P] [arg linesegment]]
+
+Calculate the distance of point P to the (finite) line segment and
+return the result.
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list linesegment] List of four numbers, the coordinates of the
+first and last points of the line segment
+[list_end]
+
+[para]
+
+[para]
+
+[call [cmd ::math::geometry::calculateDistanceToPolyline] [arg P] [arg polyline]]
+
+Calculate the distance of point P to the polyline and
+return the result. Note that a polyline needs not to be closed.
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list polyline] List of numbers, the coordinates of the
+vertices of the polyline
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::calculateDistanceToPolygon] [arg P] [arg polygon]]
+
+Calculate the distance of point P to the polygon and
+return the result. If the list of coordinates is not closed (first and last
+points differ), it is automatically closed.
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list polygon] List of numbers, the coordinates of the
+vertices of the polygon
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::findClosestPointOnLine] [arg P] [arg line]]
+
+Return the point on a line which is closest to a given point.
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list line] List of four numbers, the coordinates of two points
+on the line
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::findClosestPointOnLineSegment] [arg P] [arg linesegment]]
+
+Return the point on a [emph "line segment"] which is closest to a given
+point.
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list linesegment] List of four numbers, the first and last
+points on the line segment
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::findClosestPointOnPolyline] [arg P] [arg polyline]]
+
+Return the point on a [emph "polyline"] which is closest to a given
+point.
+
+[list_begin arguments]
+[arg_def list P] List of two numbers, the coordinates of the point
+
+[arg_def list polyline] List of numbers, the vertices of the polyline
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::lengthOfPolyline] [arg polyline]]
+
+Return the length of the [emph "polyline"] (note: it not regarded as a
+polygon)
+
+[list_begin arguments]
+[arg_def list polyline] List of numbers, the vertices of the polyline
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::movePointInDirection] [arg P] [arg direction] [arg dist]]
+
+Move a point over a given distance in a given direction and return the
+new coordinates (in two dimensions only).
+
+[list_begin arguments]
+[arg_def list P] Coordinates of the point to be moved
+[arg_def double direction] Direction (in degrees; 0 is to the right, 90
+upwards)
+[arg_def list dist] Distance over which to move the point
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::lineSegmentsIntersect] [arg linesegment1] [arg linesegment2]]
+
+Check if two line segments intersect or coincide. Returns 1 if that is
+the case, 0 otherwise (in two dimensions only). If an endpoint of one segment lies on
+the other segment (or is very close to the segment), they are considered to intersect
+
+[list_begin arguments]
+[arg_def list linesegment1] First line segment
+[arg_def list linesegment2] Second line segment
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::findLineSegmentIntersection] [arg linesegment1] [arg linesegment2]]
+
+Find the intersection point of two line segments. Return the coordinates
+or the keywords "coincident" or "none" if the line segments coincide or
+have no points in common (in two dimensions only).
+
+[list_begin arguments]
+[arg_def list linesegment1] First line segment
+[arg_def list linesegment2] Second line segment
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::findLineIntersection] [arg line1] [arg line2]]
+
+Find the intersection point of two (infinite) lines. Return the coordinates
+or the keywords "coincident" or "none" if the lines coincide or
+have no points in common (in two dimensions only).
+
+[list_begin arguments]
+[arg_def list line1] First line
+[arg_def list line2] Second line
+[list_end]
+
+See section [sectref References] for details on the algorithm and math behind it.
+
+[para]
+
+[call [cmd ::math::geometry::polylinesIntersect] [arg polyline1] [arg polyline2]]
+
+Check if two polylines intersect or not (in two dimensions only).
+
+[list_begin arguments]
+[arg_def list polyline1] First polyline
+[arg_def list polyline2] Second polyline
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::polylinesBoundingIntersect] [arg polyline1] [arg polyline2] [arg granularity]]
+
+Check whether two polylines intersect, but reduce
+the correctness of the result to the given granularity.
+Use this for faster, but weaker, intersection checking.
+[para]
+How it works:
+[para]
+Each polyline is split into a number of smaller polylines,
+consisting of granularity points each. If a pair of those smaller
+lines' bounding boxes intersect, then this procedure returns 1,
+otherwise it returns 0.
+
+[list_begin arguments]
+[arg_def list polyline1] First polyline
+[arg_def list polyline2] Second polyline
+[arg_def int granularity] Number of points in each part (<=1 means check
+every edge)
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::intervalsOverlap] [arg y1] [arg y2] [arg y3] [arg y4] [arg strict]]
+
+Check if two intervals overlap.
+
+[list_begin arguments]
+[arg_def double y1,y2] Begin and end of first interval
+[arg_def double y3,y4] Begin and end of second interval
+[arg_def logical strict] Check for strict or non-strict overlap
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::rectanglesOverlap] [arg P1] [arg P2] [arg Q1] [arg Q2] [arg strict]]
+
+Check if two rectangles overlap.
+
+[list_begin arguments]
+[arg_def list P1] upper-left corner of the first rectangle
+[arg_def list P2] lower-right corner of the first rectangle
+[arg_def list Q1] upper-left corner of the second rectangle
+[arg_def list Q2] lower-right corner of the second rectangle
+[arg_def list strict] choosing strict or non-strict interpretation
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::bbox] [arg polyline]]
+
+Calculate the bounding box of a polyline. Returns a list of four
+coordinates: the upper-left and the lower-right corner of the box.
+
+[list_begin arguments]
+[arg_def list polyline] The polyline to be examined
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::pointInsidePolygon] [arg P] [arg polyline]]
+
+Determine if a point is completely inside a polygon. If the point
+touches the polygon, then the point is not completely inside the
+polygon.
+
+[list_begin arguments]
+[arg_def list P] Coordinates of the point
+[arg_def list polyline] The polyline to be examined
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::rectangleInsidePolygon] [arg P1] [arg P2] [arg polyline]]
+
+Determine if a rectangle is completely inside a polygon. If polygon
+touches the rectangle, then the rectangle is not complete inside the
+polygon.
+
+[list_begin arguments]
+[arg_def list P1] Upper-left corner of the rectangle
+[arg_def list P2] Lower-right corner of the rectangle
+[para]
+[arg_def list polygon] The polygon in question
+[list_end]
+
+[para]
+
+[call [cmd ::math::geometry::areaPolygon] [arg polygon]]
+
+Calculate the area of a polygon.
+
+[list_begin arguments]
+[arg_def list polygon] The polygon in question
+[list_end]
+
+[list_end]
+
+[section References]
+
+[list_begin enumerated]
+[enum] [uri http:/wiki.tcl.tk/12070 {Polygon Intersection}]
+[enum] [uri http://en.wikipedia.org/wiki/Line-line_intersection]
+[enum] [uri http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/]
+[list_end]
+
+[vset CATEGORY {math :: geometry}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

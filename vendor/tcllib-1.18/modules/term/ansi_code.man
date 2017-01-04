@@ -1,0 +1,46 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::ansi::code n 0.2]
+[keywords control]
+[keywords declare]
+[keywords define]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {Helper for control sequences}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::ansi::code [opt 0.2]]
+[description]
+
+This package provides commands enabling the definition of control
+sequences in an easy manner.
+
+[para]
+
+[list_begin definitions]
+[call [cmd ::term::ansi::code::esc] [arg str]]
+
+This command returns the argument string, prefixed with the ANSI
+escape character, "\033."
+
+[call [cmd ::term::ansi::code::escb] [arg str]]
+
+This command returns the argument string, prefixed with a common ANSI
+escape sequence, "\033[lb]".
+
+[call [cmd ::term::ansi::code::define] [arg name] [arg escape] [arg code]]
+
+This command defines a procedure [arg name] which returns the control
+sequence [arg code], beginning with the specified escape sequence,
+either [const esc], or [const escb].
+
+[call [cmd ::term::ansi::code::const] [arg name] [arg code]]
+
+This command defines a procedure [arg name] which returns the control
+sequence [arg code].
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

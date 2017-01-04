@@ -1,0 +1,492 @@
+# hook.test -*- tcl -*-
+#
+#       This file contains the test suite for hook-0.1.tcl.
+#
+# Copyright (C) 2010 by Will Duquette
+#
+# See the file "license.terms" for information on usage and 
+# redistribution of this file, and for a DISCLAIMER OF ALL 
+# WARRANTIES.
+
+#-----------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+support {
+}
+testing {
+    useLocal hook.tcl hook
+}
+
+#-----------------------------------------------------------------------
+# Helper procs
+
+variable info
+array set info {
+    callList     {}
+    traceList    {}
+    errorList    {}
+}
+
+proc cleanup {} {
+    variable info
+    array set info {
+        callList  {}
+        traceList {}
+        errorList {}
+    }
+
+    foreach subject [hook bind] {
+        hook forget $subject
+    }
+
+    hook configure -errorcommand {} -tracecommand {}
+
+    # Ensure that auto-generated observers are repeatable.
+    set ::hook::observerCounter 0
+}
+
+proc TestBinding {subject hook observer args} {
+    variable info
+
+    lappend info(callList) [list $subject $hook $observer $args]
+
+    return
+}
+
+proc GetCalls {} {
+    variable info
+
+    return $info(callList)
+}
+
+proc TraceCommand {subject hook args observers} {
+    variable info
+
+    lappend info(traceList) [list $subject $hook $args $observers]
+}
+
+proc GetTrace {} {
+    variable info
+
+    return $info(traceList)
+}
+
+proc TestBind {subject hook observer} {
+    hook bind $subject $hook $observer \
+        [list TestBinding $subject $hook $observer]
+}
+
+proc ErrorCommand {call result opts} {
+    variable info
+
+    set opts [dict remove $opts -errorinfo -errorline]
+
+    lappend info(errorList) [list $call $result $opts]
+}
+
+proc GetError {} {
+    variable info
+
+    return $info(errorList)
+}
+
+if {[package vsatisfies [package provide Tcl] 8.6]} {
+    proc EResult {a b} { return $b }
+} else {
+    proc EResult {a b} { return $a }
+}
+
+#-----------------------------------------------------------------------
+# cget
+
+test cget-1.1 {unknown option name} -body {
+    hook cget -nonesuch
+} -returnCodes {
+    error
+} -result {unknown option "-nonesuch"}
+
+test cget-1.2 {retrieve option value} -body {
+    hook cget -errorcommand
+} -result {}
+
+#-----------------------------------------------------------------------
+# configure
+
+test configure-1.1 {unknown option name} -body {
+    hook configure -nonesuch
+} -returnCodes {
+    error
+} -result {unknown option "-nonesuch"}
+
+test configure-1.2 {missing option value} -body {
+    hook configure -errorcommand
+} -returnCodes {
+    error
+} -result {value for "-errorcommand" missing}
+
+test configure-2.1 {set values} -body {
+    hook configure -errorcommand foo -tracecommand bar
+
+    list [hook cget -errorcommand] [hook cget -tracecommand]
+} -cleanup {
+    hook configure -errorcommand {} -tracecommand {}
+} -result {foo bar}
+
+#-----------------------------------------------------------------------
+# bind
+
+test bind-1.1 {too many arguments} -body {
+    hook bind a b c d e
+} -returnCodes {
+    error
+} -result "wrong # args: should be \"hook bind ?subject? ?hook? ?observer? ?binding?\""
+
+test bind-2.1 {bindings can be made} -body {
+    hook bind S1 <H1> O1 {B1 arg1 arg2}
+    hook bind S1 <H1> O1
+} -cleanup {
+    cleanup
+} -result {B1 arg1 arg2}
+
+test bind-2.2 {bindings can be deleted} -body {
+    hook bind S1 <H1> O1 {B1 arg1 arg2}
+    hook bind S1 <H1> O1 {}
+    hook bind S1 <H1> O1
+} -cleanup {
+    cleanup
+} -result {}
+
+test bind-3.1 {bound observers can be queried} -body {
+    hook bind S1 <H1> O1 B1
+    hook bind S1 <H1> O2 B2
+    hook bind S2 <H1> O2 B3
+
+    set a [hook bind S1 <H1>]
+    set b [hook bind S2 <H1>]
+    set c [hook bind S2 <H2>]
+
+    list $a $b $c
+} -cleanup {
+    cleanup
+} -result {{O1 O2} O2 {}}
+
+test bind-3.2 {bound hooks can be queried} -body {
+    hook bind S1 <H1> O1 B1
+    hook bind S1 <H2> O2 B2
+    hook bind S2 <H3> O2 B3
+
+    set a [hook bind S1]
+    set b [hook bind S2]
+    set c [hook bind S3]
+
+    list $a $b $c
+} -cleanup {
+    cleanup
+} -result {{<H1> <H2>} <H3> {}}
+
+test bind-3.3 {bound subjects can be queried} -body {
+    hook bind S1 <H1> O1 B1
+    hook bind S1 <H2> O2 B2
+    hook bind S2 <H3> O2 B3
+
+    hook bind
+} -cleanup {
+    cleanup
+} -result {S1 S2}
+
+test bind-3.4 {deleted bindings can no longer be queried} -body {
+    hook bind S1 <H1> O1 B1
+    hook bind S1 <H1> O2 B2
+    hook bind S2 <H1> O2 B3
+
+    hook bind S1 <H1> O2 {}
+
+    set a [hook bind S1 <H1>]
+    set b [hook bind S2 <H1>]
+    set c [hook bind S2 <H2>]
+
+    list $a $b $c
+} -cleanup {
+    cleanup
+} -result {O1 O2 {}}
+
+
+test bind-4.1 {auto-generated observer is returned} -body {
+    hook bind S1 <H1> "" {B1 arg1 arg2}
+} -cleanup {
+    cleanup
+} -result {::hook::ob1}
+
+test bind-4.2 {auto-generated observer is a real observer} -body {
+    set ob [hook bind S1 <H1> "" {B1 arg1 arg2}]
+    hook bind S1 <H1> $ob
+} -cleanup {
+    cleanup
+} -result {B1 arg1 arg2}
+
+test bind-4.3 {successive calls get distinct observers} -body {
+    set a [hook bind S1 <H1> "" {B1 arg1 arg2}]
+    set b [hook bind S1 <H2> "" {B2 arg1 arg2}]
+    list $a $b
+} -cleanup {
+    cleanup
+} -result {::hook::ob1 ::hook::ob2}
+
+test bind-5.1 {binding deleted during hook call is not called} -body {
+    # If a subject/hook is called, and if a binding deletes some
+    # other binding to that same subject/hook, and if the second binding
+    # has not yet been called, it should not be called.
+
+    hook bind S1 <H1> O1 {hook bind S1 <H1> O2 ""}
+    TestBind S1 <H1> O2
+    TestBind S1 <H1> O3
+    hook call S1 <H1>
+
+    # Should see O3 but not O2.
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O3 {}}}
+
+test bind-5.2 {binding revised during hook call is called} -body {
+    # If a subject/hook is called, and if a binding changes some
+    # other observer's binding to that same subject/hook, and if the 
+    # other observer's binding has not yet been called, it is the
+    # changed binding that will be called.
+
+    hook bind S1 <H1> O1 {TestBind S1 <H1> O2}
+    hook bind S1 <H1> O2 {error "Rebind Failed"}
+
+    hook call S1 <H1>
+
+    # Should see O2 in result, instead of getting "Rebind Failed" error.
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O2 {}}}
+
+test bind-5.3 {binding added during hook call is not called} -body {
+    # If a subject/hook is called, and a binding adds a new binding
+    # for a new observer for this same subject/hook, the new binding
+    # will not be called this time around.
+
+    hook bind S1 <H1> O1 {TestBind S1 <H1> O3}
+    TestBind S1 <H1> O2
+
+    hook call S1 <H1>
+
+    # Should see O2 in result, but not O3
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O2 {}}}
+
+
+#-----------------------------------------------------------------------
+# forget
+
+test forget-1.1 {can forget safely when not yet initialized} -body {
+    hook forget NONESUCH
+} -result {}
+
+test forget-1.2 {can forget unbound entity safely} -body {
+    hook bind S1 <H1> O1 B1
+    hook forget NONESUCH
+    hook bind S1 <H1> O1
+} -cleanup {
+    cleanup
+} -result {B1}
+
+test forget-1.3 {can forget subject} -body {
+    hook bind S1 <H1> O1 B1
+    hook bind S2 <H2> O2 B2
+    hook bind S3 <H3> O3 B3
+    
+    hook forget S2
+    hook bind
+} -cleanup {
+    cleanup
+} -result {S1 S3}
+
+test forget-1.4 {can forget subject} -body {
+    hook bind S1 <H1> O1 B1
+    hook bind S2 <H2> O2 B2
+    hook bind S3 <H3> O3 B3
+    
+    hook forget O2
+    hook bind S2 <H2>
+} -cleanup {
+    cleanup
+} -result {}
+
+test forget-2.1 {observer forgotten during hook call is not called} -body {
+    # If an observer has a binding to a particular subject/hook, and if
+    # in a call to that subject/hook the observer is forgotten, and
+    # if that observer's binding has not yet been called, it should not
+    # be called.
+
+    hook bind S1 <H1> O1 {hook forget O2}
+    TestBind S1 <H1> O2
+    TestBind S1 <H1> O3
+
+    hook call S1 <H1>
+
+    # Should get O3 but not O2
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O3 {}}}
+
+test forget-2.2 {subject forgotten during hook call, no more calls} -body {
+    # If a subject/hook is called, and some binding forgets the subject,
+    # no uncalled bindings for that subject/hook should be called.
+
+    TestBind S1 <H1> O1
+    hook bind S1 <H1> O2 {hook forget S1}
+    TestBind S1 <H1> O3
+
+    hook call S1 <H1>
+
+    # Should get O1 but not O3
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O1 {}}}
+
+
+
+#-----------------------------------------------------------------------
+# call
+
+test call-1.1 {can call safely before anything is bound} -body {
+    hook call S1 <H1>
+} -result {}
+
+test call-1.2 {can call safely when hook isn't bound} -body {
+    hook bind S1 <H1> O1 B1
+    hook call S2 <H2>
+} -cleanup {
+    cleanup
+} -result {}
+
+test call-1.3 {bindings are executed} -body {
+    TestBind S1 <H1> O1
+    hook call S1 <H1>
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O1 {}}}
+
+test call-1.4 {multiple bindings are executed} -body {
+    TestBind S1 <H1> O1
+    TestBind S1 <H1> O2
+    hook call S1 <H1>
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O1 {}} {S1 <H1> O2 {}}}
+
+test call-1.5 {only relevant bindings are executed} -body {
+    TestBind S1 <H1> O1
+    TestBind S2 <H1> O2
+    hook call S1 <H1>
+    GetCalls
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> O1 {}}}
+
+test call-2.1 {errors propagate normally} -body {
+    hook bind S1 <H1> O1 {error "Simulated Error"}
+    hook call S1 <H1>
+} -returnCodes {
+    error
+} -cleanup {
+    cleanup
+} -result {Simulated Error}
+
+test call-2.2 {other exceptions propagate normally} -body {
+    hook bind S1 <H1> O1 {return -code break "Simulated Break"}
+    hook call S1 <H1>
+} -returnCodes {
+    break
+} -cleanup {
+    cleanup
+} -result {Simulated Break}
+
+
+#-----------------------------------------------------------------------
+# -errorcommand
+
+test errorerror-1.1 {error with -errorcommand {}} -body {
+    hook bind S1 <H1> O1 {error "simulated error"}
+    hook call S1 <H1>
+} -returnCodes {
+    error
+} -cleanup {
+    cleanup
+} -result {simulated error}
+
+test errorcommand-1.2 {error with -errorcommand set} -body {
+    hook configure -errorcommand ErrorCommand
+
+    hook bind S1 <H1> O1 {error "simulated error"}
+    hook call S1 <H1>
+    GetError
+} -cleanup {
+    cleanup
+} -result [EResult \
+	       {{{S1 <H1> {} O1} {simulated error} {-code 1 -level 0 -errorcode NONE}}} \
+	       {{{S1 <H1> {} O1} {simulated error} {-code 1 -level 0 -errorstack {INNER {error {simulated error}} UP 1 CALL {::hook::call S1 <H1>}} -errorcode NONE}}}]
+
+test errorcommand-1.3 {handled errors don't break sequence of calls} -body {
+    hook configure -errorcommand ErrorCommand
+
+    TestBind  S1 <H1> O1
+    hook bind S1 <H1> O2 {error "simulated error"}
+    TestBind  S1 <H1> O3
+    hook call S1 <H1>
+    list [GetCalls] [GetError]
+} -cleanup {
+    cleanup
+} -result [EResult \
+	       {{{S1 <H1> O1 {}} {S1 <H1> O3 {}}} {{{S1 <H1> {} O2} {simulated error} {-code 1 -level 0 -errorcode NONE}}}} \
+	       {{{S1 <H1> O1 {}} {S1 <H1> O3 {}}} {{{S1 <H1> {} O2} {simulated error} {-code 1 -level 0 -errorstack {INNER {error {simulated error}} UP 1 CALL {::hook::call S1 <H1>}} -errorcode NONE}}}}]
+
+test errorcommand-1.4 {-errorcommand handles other exceptions} -body {
+    hook configure -errorcommand ErrorCommand
+
+    hook bind S1 <H1> O1 {return -code break "simulated break"}
+    hook call S1 <H1>
+    GetError
+} -cleanup {
+    cleanup
+} -result {{{S1 <H1> {} O1} {simulated break} {-code 3 -level 1}}}
+
+
+#-----------------------------------------------------------------------
+# -tracecommand
+
+test tracecommand-1.1 {-tracecommand is called} -body {
+    TestBind S1 <H1> O1
+    TestBind S1 <H1> O2
+    TestBind S2 <H2> O2
+
+    hook configure -tracecommand TraceCommand
+    hook call S1 <H1>
+    hook call S2 <H2>
+    hook call S3 <H3>
+    GetTrace
+} -cleanup {
+    cleanup
+} -result {{S1 <H1> {} {O1 O2}} {S2 <H2> {} O2} {S3 <H3> {} {}}}
+
+#-----------------------------------------------------------------------
+# Clean up and finish
+
+::tcltest::cleanupTests

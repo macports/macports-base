@@ -1,0 +1,56 @@
+[comment {LISTS, ALL TYPES}]
+[manpage_begin ALL a 5]
+[copyright **Copyright**]
+[moddesc ..THE_MODULE..]
+[titledesc ..THE_TITLE..]
+[require AAA]
+[require BBB VVV]
+[require CCC [opt VVV]]
+[description]
+[list_begin commands]
+[cmd_def NAME] DESCRIPTION ::[cmd Command]::
+[cmd_def NAME] DESCRIPTION ::[comment Comment]::
+[cmd_def NAME] DESCRIPTION ::[const Constant]::
+[list_end]
+[section API]
+[list_begin definitions]
+[def TERM] DESCRIPTION ::[emph Emphasis]::
+[def TERM] DESCRIPTION ::[file File/Path]::
+[list_begin tkoptions]
+[tkoption_def NAME DBNAME CLASS] DESCRIPTION [sectref NARGLE]
+[tkoption_def NAME DBNAME CLASS] DESCRIPTION ::[fun Function]::
+[tkoption_def NAME DBNAME CLASS] DESCRIPTION ::[method Method]::
+[list_end]
+[def TERM] DESCRIPTION
+[call CMDNAME ...] DESCRIPTION ::[namespace Namespace]::
+[list_begin arguments]
+[arg_def TYPE NAME] DESCRIPTION ::[arg Argument]::
+[arg_def TYPE NAME] DESCRIPTION ::[option Option]::
+[arg_def TYPE NAME MODE] DESCRIPTION ::[opt Optional]::
+[example {
+    THE ARGUMENT IS USED IN THIS
+    AND/OR THAT MANNER
+}]
+[list_end]
+[call CMDNAME ...] DESCRIPTION ::[package Package]::
+[call CMDNAME ...] DESCRIPTION ::[syscmd SystemCommand]::
+[list_begin options]
+[opt_def NAME] DESCRIPTION ::[term Term]::
+[opt_def NAME] DESCRIPTION ::[type Type]::
+[opt_def NAME ARGUMENT] DESCRIPTION ::[uri Uri]::
+[list_end]
+[list_end]
+[subsection NARGLE]
+[list_begin enumerated]
+[enum] PARAGRAPH ::[uri Uri UriLabel]::
+[enum] PARAGRAPH ::[var Variable]::
+[enum] PARAGRAPH ::[widget Widget]::
+[list_begin itemized]
+[item] PARAGRAPH ::[class Class]::
+[item] PARAGRAPH
+[item] PARAGRAPH
+[list_end]
+[list_end]
+[keywords KEYA KEYZ]
+[see_also OTHER ELSE]
+[manpage_end]

@@ -1,0 +1,262 @@
+
+<div class='fossil-doc' data-title='tar - Tar file handling'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tar(n) 0.10 tcllib &quot;Tar file handling&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tar - Tar file creation, extraction &amp; manipulation</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">tar <span class="opt">?0.10?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::tar::contents</b> <i class="arg">tarball</i> <span class="opt">?<b class="option">-chan</b>?</span></a></li>
+<li><a href="#2"><b class="cmd">::tar::stat</b> <i class="arg">tarball</i> <span class="opt">?file?</span> <span class="opt">?<b class="option">-chan</b>?</span></a></li>
+<li><a href="#3"><b class="cmd">::tar::untar</b> <i class="arg">tarball</i> <i class="arg">args</i></a></li>
+<li><a href="#4"><b class="cmd">::tar::get</b> <i class="arg">tarball</i> <i class="arg">fileName</i> <span class="opt">?<b class="option">-chan</b>?</span></a></li>
+<li><a href="#5"><b class="cmd">::tar::create</b> <i class="arg">tarball</i> <i class="arg">files</i> <i class="arg">args</i></a></li>
+<li><a href="#6"><b class="cmd">::tar::add</b> <i class="arg">tarball</i> <i class="arg">files</i> <i class="arg">args</i></a></li>
+<li><a href="#7"><b class="cmd">::tar::remove</b> <i class="arg">tarball</i> <i class="arg">files</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Note: Starting with version 0.8 the tar reader commands
+(contents, stats, get, untar) support the GNU LongName extension
+(header type 'L') for large paths.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::tar::contents</b> <i class="arg">tarball</i> <span class="opt">?<b class="option">-chan</b>?</span></a></dt>
+<dd><p>Returns a list of the files contained in <i class="arg">tarball</i>. The order is not sorted and depends on the order
+files were stored in the archive.</p>
+<p>If the option <b class="option">-chan</b> is present <i class="arg">tarball</i> is interpreted as an open channel.
+It is assumed that the channel was opened for reading, and configured for binary input.
+The command will <em>not</em> close the channel.</p></dd>
+<dt><a name="2"><b class="cmd">::tar::stat</b> <i class="arg">tarball</i> <span class="opt">?file?</span> <span class="opt">?<b class="option">-chan</b>?</span></a></dt>
+<dd><p>Returns a nested dict containing information on the named <span class="opt">?file?</span> in <i class="arg">tarball</i>,
+or all files if none is specified. The top level are pairs of filename and info. The info is a dict with the keys
+&quot;<b class="const">mode</b> <b class="const">uid</b> <b class="const">gid</b> <b class="const">size</b> <b class="const">mtime</b> <b class="const">type</b> <b class="const">linkname</b> <b class="const">uname</b> <b class="const">gname</b>
+ <b class="const">devmajor</b> <b class="const">devminor</b>&quot;</p>
+<pre class="doctools_example">
+% ::tar::stat tarball.tar
+foo.jpg {mode 0644 uid 1000 gid 0 size 7580 mtime 811903867 type file linkname {} uname user gname wheel devmajor 0 devminor 0}
+</pre>
+<p>If the option <b class="option">-chan</b> is present <i class="arg">tarball</i> is interpreted as an open channel.
+It is assumed that the channel was opened for reading, and configured for binary input.
+The command will <em>not</em> close the channel.</p></dd>
+<dt><a name="3"><b class="cmd">::tar::untar</b> <i class="arg">tarball</i> <i class="arg">args</i></a></dt>
+<dd><p>Extracts <i class="arg">tarball</i>. <i class="arg">-file</i> and <i class="arg">-glob</i> limit the extraction
+to files which exactly match or pattern match the given argument. No error is
+thrown if no files match. Returns a list of filenames extracted and the file
+size. The size will be null for non regular files. Leading path seperators are
+stripped so paths will always be relative.</p>
+<dl class="doctools_options">
+<dt><b class="option">-dir</b> dirName</dt>
+<dd><p>Directory to extract to. Uses <b class="cmd">pwd</b> if none is specified</p></dd>
+<dt><b class="option">-file</b> fileName</dt>
+<dd><p>Only extract the file with this name. The name is matched against the complete path
+stored in the archive including directories.</p></dd>
+<dt><b class="option">-glob</b> pattern</dt>
+<dd><p>Only extract files patching this glob style pattern. The pattern is matched against the complete path
+stored in the archive.</p></dd>
+<dt><b class="option">-nooverwrite</b></dt>
+<dd><p>Dont overwrite files that already exist</p></dd>
+<dt><b class="option">-nomtime</b></dt>
+<dd><p>Leave the file modification time as the current time instead of setting it to the value in the archive.</p></dd>
+<dt><b class="option">-noperms</b></dt>
+<dd><p>In Unix, leave the file permissions as the current umask instead of setting them to the values in the archive.</p></dd>
+<dt><b class="option">-chan</b></dt>
+<dd><p>If this option is present <i class="arg">tarball</i> is interpreted as an open channel.
+It is assumed that the channel was opened for reading, and configured for binary input.
+The command will <em>not</em> close the channel.</p></dd>
+</dl>
+<pre class="doctools_example">
+% foreach {file size} [::tar::untar tarball.tar -glob *.jpg] {
+puts &quot;Extracted $file ($size bytes)&quot;
+}
+</pre>
+</dd>
+<dt><a name="4"><b class="cmd">::tar::get</b> <i class="arg">tarball</i> <i class="arg">fileName</i> <span class="opt">?<b class="option">-chan</b>?</span></a></dt>
+<dd><p>Returns the contents of <i class="arg">fileName</i> from the <i class="arg">tarball</i></p>
+<pre class="doctools_example">
+% set readme [::tar::get tarball.tar doc/README] {
+% puts $readme
+}
+</pre>
+<p>If the option <b class="option">-chan</b> is present <i class="arg">tarball</i> is interpreted as an open channel.
+It is assumed that the channel was opened for reading, and configured for binary input.
+The command will <em>not</em> close the channel.</p></dd>
+<dt><a name="5"><b class="cmd">::tar::create</b> <i class="arg">tarball</i> <i class="arg">files</i> <i class="arg">args</i></a></dt>
+<dd><p>Creates a new tar file containing the <i class="arg">files</i>. <i class="arg">files</i> must be specified
+as a single argument which is a proper list of filenames.</p>
+<dl class="doctools_options">
+<dt><b class="option">-dereference</b></dt>
+<dd><p>Normally <b class="cmd">create</b> will store links as an actual link pointing at a file that may
+or may not exist in the archive. Specifying this option will cause the actual file point to
+ by the link to be stored instead.</p></dd>
+<dt><b class="option">-chan</b></dt>
+<dd><p>If this option is present <i class="arg">tarball</i> is interpreted as an open channel.
+It is assumed that the channel was opened for writing, and configured for binary output.
+The command will <em>not</em> close the channel.</p></dd>
+</dl>
+<pre class="doctools_example">
+% ::tar::create new.tar [glob -nocomplain file*]
+% ::tar::contents new.tar
+file1 file2 file3
+</pre>
+</dd>
+<dt><a name="6"><b class="cmd">::tar::add</b> <i class="arg">tarball</i> <i class="arg">files</i> <i class="arg">args</i></a></dt>
+<dd><p>Appends <i class="arg">files</i> to the end of the existing <i class="arg">tarball</i>. <i class="arg">files</i> must be specified
+as a single argument which is a proper list of filenames.</p>
+<dl class="doctools_options">
+<dt><b class="option">-dereference</b></dt>
+<dd><p>Normally <b class="cmd">add</b> will store links as an actual link pointing at a file that may
+or may not exist in the archive. Specifying this option will cause the actual file point to
+ by the link to be stored instead.</p></dd>
+<dt><b class="option">-prefix</b> string</dt>
+<dd><p>Normally <b class="cmd">add</b> will store files under exactly the name specified as
+argument. Specifying a <span class="opt">?-prefix?</span> causes the <i class="arg">string</i> to be
+prepended to every name.</p></dd>
+<dt><b class="option">-quick</b></dt>
+<dd><p>The only sure way to find the position in the <i class="arg">tarball</i> where new
+files can be added is to read it from start, but if <i class="arg">tarball</i> was
+written with a &quot;blocksize&quot; of 1 (as this package does) then one can
+alternatively find this position by seeking from the end. The
+<span class="opt">?-quick?</span> option tells <b class="cmd">add</b> to do the latter.</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::tar::remove</b> <i class="arg">tarball</i> <i class="arg">files</i></a></dt>
+<dd><p>Removes <i class="arg">files</i> from the <i class="arg">tarball</i>. No error will result if the file does not exist in the
+tarball. Directory write permission and free disk space equivalent to at least the size of the tarball
+will be needed.</p>
+<pre class="doctools_example">
+% ::tar::remove new.tar {file2 file3}
+% ::tar::contents new.tar
+file3
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>tar</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key735">archive</a>, <a href="../../../../index.html#key734">tape archive</a>, <a href="../../../../index.html#key736">tar</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>File formats</p>
+</div>
+</div>

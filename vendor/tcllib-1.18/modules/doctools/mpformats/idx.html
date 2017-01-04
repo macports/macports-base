@@ -1,0 +1,314 @@
+## -*- tcl -*-
+# ### ### ### ######### ######### #########
+##
+# $Id: idx.html,v 1.8 2007/03/20 05:06:35 andreas_kupries Exp $
+#
+# Index Formatting Engine : docidx --> HTML.
+# Single-pass
+#
+# Copyright (c) 2003-2007 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+
+# ### ### ### ######### ######### #########
+## Requisites
+
+dt_source _idx_common.tcl
+dt_source _html.tcl
+
+# ### ### ### ######### ######### #########
+## API implementation
+
+rename idx_postprocess {}
+rename fmt_postprocess idx_postprocess
+
+proc fmt_plain_text {text} {return {}}
+
+proc fmt_index_begin {l t} {
+    global la ti
+    set la $l
+    set ti $t
+    return {}
+}
+
+proc fmt_key {text} {
+    global key lk ch
+    set lk $text
+    set key($lk) {}
+    set ch([F $lk]) .
+    return {}
+}
+
+proc fmt_manpage {f l} {Ref [dt_fmap $f] $l}
+proc fmt_url     {u l} {Ref $u           $l}
+
+proc fmt_index_end {} {
+    LoadKwid
+    set lines {}
+    if {![Get raw]} {
+	BeginHeader ; Meta ; EndHeader
+	BeginBody
+    }
+    BodyHeader ; Title ; Navbar
+    BeginIndex ; Keys ; EndIndex
+    if {![Get raw]} {
+	EndBody
+    }
+    return [join $lines \n]
+}
+
+# ### ### ### ######### ######### #########
+## Helper commands
+
+proc Ref {r l} {
+    global  key  lk
+    lappend key($lk) $r $l
+    return {}
+}
+
+proc F {text} {
+    return [string toupper [string index $text 0]]
+}
+
+proc LoadKwid {} {
+    global kwid
+    # Engine parameter - load predefined keyword anchors.
+    set             ki [Get kwid]
+    if {![llength  $ki]} return
+    array set kwid $ki
+    return
+}
+
+proc BeginHeader {} {
+    global la ti
+    upvar 1 lines lines
+    lappend lines [markup <html>]
+    lappend lines [ht_comment [c_provenance]]
+    lappend lines [ht_comment "$la"]
+    lappend lines [markup <head>]
+    lappend lines "[markup <title>] $la [markup </title>]"
+    return
+}
+
+proc Meta {} {
+    # Engine parameter - insert 'meta'
+    set meta [Get meta]
+    if {$meta == {}} return
+    upvar 1 lines lines
+    lappend lines [markup $meta]
+    return
+}
+
+proc EndHeader {} {
+    upvar 1 lines lines
+    lappend lines [markup </head>]
+    return
+}
+
+proc BeginBody {} {
+    upvar 1 lines lines
+    lappend lines [markup <body>]
+    return
+}
+
+proc BodyHeader {} {
+    upvar 1 lines lines
+    # Engine parameter - insert 'header'
+    set header [Get header]
+    if {$header == {}} return
+    lappend map @TITLE@ [TheTitle]
+    set header [string map $map $header]
+    lappend lines [markup $header]
+    return
+}
+
+proc TheTitle {} {
+    global la ti
+    set title ???
+    if {($la != {}) && ($ti != {})} {
+	set title "$la -- $ti"
+    } elseif {$la != {}} {
+	set title $la
+    } elseif {$ti != {}} {
+	set title $ti
+    }
+    return $title
+}
+
+proc Title {} {
+    upvar 1 lines lines
+    lappend lines "[markup <h3>] [TheTitle] [markup </h3>]"
+    return
+}
+
+proc Navbar {} {
+    global ch cnt dot
+    upvar 1 lines lines
+
+    set nav {}
+    foreach c [lsort -dict [array names ch]] {
+	set ref c[incr cnt]
+	set ch($c) $ref
+	lappend nav [ALink $ref $c]
+    }
+
+    lappend lines [markup "<hr><div class=\"#doctools_idxnav\">"]
+    lappend lines [join $nav $dot]
+    lappend lines [markup </div>]
+    return
+}
+
+proc BeginIndex {} {
+    upvar 1 lines lines
+    lappend lines [markup "<hr><table class=\"#doctools_idx\" width=\"100%\">"]
+    return
+}
+
+proc Keys {} {
+    global key
+    upvar 1 lines lines
+    set lc {}
+    foreach k [lsort -dict [array names key]] {
+	set c [F $k] ; if {$lc != $c} { Section $c ; set lc $c }
+	BeginKey   $k
+	References $k
+	EndKey
+    }
+    return
+}
+
+proc Section {c} {
+    global ch
+    upvar 1 lines lines
+    lappend lines [markup {<tr class="#doctools_idxheader"><th colspan="2">}]
+    lappend lines [markup "<a name=\"$ch($c)\">Keywords: $c</a>"]
+    lappend lines [markup </th></tr>]
+    return
+}
+
+proc BeginKey {k} {
+    upvar 1 lines lines
+    lappend lines [markup "<tr class=\"[Row]\" valign=top>"]
+    lappend lines [BeginColLeft][SetAnchor $k][markup </td>]
+    lappend lines [BeginColRight]
+    return
+}
+
+proc EndKey {} {
+    upvar 1 lines lines
+    lappend lines [markup </td></tr>]
+    return
+}
+
+proc References {k} {
+    global key dot
+    upvar 1 lines lines
+    set refs {}
+    foreach {ref label} $key($k) {
+	lappend refs [markup "<a href=\"$ref\"> $label </a>"]
+    }
+    lappend lines [join $refs $dot]
+    return
+}
+
+proc EndIndex {} {
+    upvar 1 lines lines
+    lappend lines [markup </table>]
+    # Engine parameter - insert 'footer'
+    set  footer [Get footer]
+    if {$footer == {}} return
+    lappend lines [markup "<hr>"]
+    lappend lines [markup $footer]
+    return
+}
+
+proc EndBody {} {
+    upvar 1 lines lines
+    lappend lines [markup "</body></html>"]
+    return
+}
+
+proc ALink {dst label} {
+    markup "<a href=\"#$dst\"> $label </a>"
+}
+
+proc BeginColLeft {} {
+    return [markup {<td class="#doctools_idxleft" width="35%">}]
+}
+
+proc BeginColRight {} {
+    return [markup {<td class="#doctools_idxright" width="65%">}]
+}
+
+proc SetAnchor {text} {
+    return [markup "<a name=[Anchor $text]> $text </a>"]
+}
+
+proc Anchor {text} {
+    global kwid cnt
+    if {[info exists kwid($text)]} {
+	return "\"$kwid($text)\""
+    }
+    set anchor key$cnt
+    incr cnt
+    return "\"$anchor\""
+}
+
+proc Row {} {
+    global even
+    set res [expr {$even
+    ? "\#doctools_idxeven"
+    : "\#doctools_idxodd"}]
+    Flip
+    return $res
+}
+
+proc Flip {} {
+    global even
+    set    even [expr {1-$even}]
+    return
+}
+
+# ### ### ### ######### ######### #########
+## Engine state
+
+# key  : string -> dict(ref -> label) "key formatting"
+# ch   : string -> '.'                "key starting characters"
+# lk   : string                       "last key"
+# la   : string "index label"
+# ti   : string "index title"
+# cnt  : int
+# kwid : string -> ...
+# even : bool
+
+global key  ; array set key  {}
+global ch   ; array set ch   {}
+global lk   ; set       lk   {}
+global la   ; set       la   {}
+global ti   ; set       ti   {}
+global cnt  ; set       cnt  0
+global kwid ; array set kwid {}
+global even ; set       even 1
+global dot  ; set dot   [markup { &#183; }]
+
+# ### ### ### ######### ######### #########
+## Engine parameters
+
+global    __var
+array set __var {
+    meta   {}
+    header {}
+    footer {}
+    kwid   {}
+    raw    0
+}
+proc Get               {varname}      {global __var ; return $__var($varname)}
+proc idx_listvariables {}             {global __var ; return [array names __var]}
+proc idx_varset        {varname text} {
+    global __var
+    if {![info exists __var($varname)]} {return -code error "Unknown engine variable \"$varname\""}
+    set __var($varname) $text
+    return
+}
+
+##
+# ### ### ### ######### ######### #########

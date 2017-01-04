@@ -1,0 +1,113 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_union.test,v 1.4 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-union-${setimpl}-1.0 {union, error} {
+    catch {grammar::fa::op::union} res
+    set res
+} {wrong # args: should be "grammar::fa::op::union fa fb ?mapvar?"}
+
+
+test faop-union-${setimpl}-1.1 {union, error} {
+    catch {grammar::fa::op::union a b c d} res
+    set res
+} {wrong # args: should be "grammar::fa::op::union fa fb ?mapvar?"}
+
+
+test faop-union-${setimpl}-1.2 {union, error} {
+    catch {grammar::fa::op::union a b} res
+    set res
+} {invalid command name "a"}
+
+
+test faop-union-${setimpl}-1.3 {union, error} {
+    grammar::fa a
+    catch {grammar::fa::op::union a b} res
+    a destroy
+    set res
+} {invalid command name "b"}
+
+
+test faop-union-${setimpl}-1.4 {union, error} {
+    grammar::fa a
+    grammar::fa b
+    catch {grammar::fa::op::union a b} res
+    a destroy
+    b destroy
+    set res
+} {Unable to union FAs without start/final states}
+
+
+test faop-union-${setimpl}-1.5 {union, error} {
+    grammar::fa a
+    grammar::fa b
+    a state add x
+    a start add x
+    catch {grammar::fa::op::union a b} res
+    a destroy
+    b destroy
+    set res
+} {Unable to union FAs without start/final states}
+
+
+test faop-union-${setimpl}-1.6 {union, error} {
+    grammar::fa a
+    grammar::fa b
+    a state add x
+    a final add x
+    catch {grammar::fa::op::union a b} res
+    a destroy
+    b destroy
+    set res
+} {Unable to union FAs without start/final states}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n fa fb fres rmap} {
+    0
+    {grammar::fa @ {x {1 0 {@ y}} y {0 1 {}}}}
+    {grammar::fa = {u {1 0 {= v}} v {0 1 {}}}}
+    {grammar::fa {= @} {x {0 0 {@ y}} y {0 0 {{} f.0}} u {0 0 {= v}} v {0 0 {{} f.0}} s.0 {1 0 {{} {x u}}} f.0 {0 1 {}}}}
+    {}
+
+    1
+    {grammar::fa @ {x {1 0 {@ y}} y {0 1 {}}}}
+    {grammar::fa = {x {1 0 {= y}} y {0 1 {}}}}
+    {grammar::fa {= @} {x {0 0 {@ y}} y {0 0 {{} f.0}} 0 {0 0 {= 1}} 1 {0 0 {{} f.0}} s.0 {1 0 {{} {x 0}}} f.0 {0 1 {}}}}
+    {0 x 1 y}
+} {
+    set key ${n}
+
+    test faop-union-${setimpl}-2.$key {union} {
+	grammar::fa a deserialize $fa
+	grammar::fa b deserialize $fb
+	grammar::fa::op::union a b map
+	set res [validate_serial $fres a]
+	lappend res [string equal $rmap [dictsort $map]]
+	a destroy
+	b destroy
+	set res
+    } {ok 1}
+
+    test faop-union-${setimpl}-3.$key {union, as method} {
+	grammar::fa a deserialize $fa
+	grammar::fa b deserialize $fb
+	a union b map
+	set res [validate_serial $fres a]
+	lappend res [string equal $rmap [dictsort $map]]
+	a destroy
+	b destroy
+	set res
+    } {ok 1}
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

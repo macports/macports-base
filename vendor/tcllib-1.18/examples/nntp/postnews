@@ -1,0 +1,144 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# This application is like 'postit', but written in tcl.
+# The only package used is 'nntp' from 'tcllib'.
+#
+# Takes two arguments: 
+# 1) The path to the file listing the articles to push
+#    into the NNTP network
+# 2) The name of the newsserver to push the articles to.
+#
+# The path to the spool directory is 1 level above the
+# article file.
+
+# Check number of arguments
+
+if {[llength $argv] != 2} {
+    puts stderr "$argv0: wrong # args, should be \"$argv0 articles newsserver\""
+    exit 1
+}
+
+# Retrieve arguments
+
+set articlefile [lindex $argv 0]
+set newsserver  [lindex $argv 1]
+
+# Validate file
+
+if {![file exists $articlefile]} {
+    puts stderr "$argv0: $articlefile does not exist"
+    exit 1
+}
+if {[file isdirectory $articlefile]} {
+    puts stderr "$argv0: $articlefile is not a file"
+    exit 1
+}
+if {![file readable $articlefile]} {
+    puts stderr "$argv0: $articlefile is not readable"
+    exit 1
+}
+
+# Get path and article information
+
+set spoolpath [file dirname [file dirname [file join [pwd] $articlefile]]]
+set articles  [split [read [set fh [open $articlefile r]]][close $fh] \n]
+
+puts "spooling from $spoolpath"
+
+# Now we are ready to deal with the newsserver
+
+package require nntp ; # from tcllib
+
+proc nntp_cmd {exit title cmd {oktitle {}}} {
+    global argv0 
+
+    puts -nonewline stdout $title
+    flush stdout
+    if {[catch {
+	set res [uplevel 1 $cmd]
+    } msg]} {
+	puts stdout " error: $msg"
+	#puts stderr "$argv0: nntp error: $msg"
+	if {$exit} {
+	    exit 1
+	}
+	return 0
+    } else {
+	if {$oktitle != {}} {
+	    puts stdout " $res $oktitle"
+	} else {
+	    puts stdout " $res"
+	}
+	return 1
+    }
+}
+
+# Introduce us to the server
+
+nntp_cmd 1 {open       } {set news [nntp::nntp $newsserver]}
+nntp_cmd 1 {mode reader} {$news mode_reader}
+
+# Iterate over all articles in the file.
+
+set lastgroup {}
+
+foreach article $articles {
+    set article [string trim $article]
+    if {$article == {}} {continue}
+
+    foreach {msgfile id} [split $article] {break}
+
+    # We have to validate the message files too.
+    # Invalid files are skipped.
+
+    set msgpath [file join $spoolpath $msgfile]
+
+    if {![file exists $msgpath]} {
+	puts stderr "article error: $msgfile does not exist"
+	continue
+    }
+    if {[file isdirectory $msgpath]} {
+	puts stderr "article error: $msgfile is not a file"
+	continue
+    }
+    if {![file readable $msgpath]} {
+	puts stderr "article error: $msgfile is not readable"
+	continue
+    }
+
+    set group [join [file split [file dirname $msgfile]] .]
+
+    if {[string compare $group $lastgroup] != 0} {
+
+	if {![nntp_cmd 0 {set group  } {$news group $group}]} {
+	    # Group does not exist or other error.
+	    # Skip the article, can't post it.
+	    continue
+	}
+
+	set lastgroup $group
+    }
+
+    # Group of the message is current, the message file itself is valid.
+    # Proceed and check for existence of the article on the server.
+    #                mode reader
+    if {[nntp_cmd 0 {stat       } {$news stat $id} {article is present, skip}]} {
+	continue
+    }
+
+    #continue
+
+    if {[catch {
+	set msg [read [set fh [open $msgpath r]]][close $fh]
+    }]} {
+	puts stderr "article error: $msgfile was deleted between check and actual posting"
+        continue
+    }
+
+    puts stdout "post [llength [split $msg \n]] lines $id"
+
+    nntp_cmd 0 {post       } {$news post $msg}
+}
+
+nntp_cmd 1 {quit       } {$news quit}
+exit

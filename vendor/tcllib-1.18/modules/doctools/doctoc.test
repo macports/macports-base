@@ -1,0 +1,319 @@
+# -*- tcl -*-
+# doctoc.test:  tests for the doctools::toc package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2003-2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: doctoc.test,v 1.14 2009/02/12 05:42:47 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    use textutil/expander.tcl textutil::expander
+}
+testing {
+    useLocal doctoc.tcl doctools::toc
+}
+
+# -------------------------------------------------------------------------
+
+array_unset env LANG*
+array_unset env LC_*
+set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+# -------------------------------------------------------------------------
+
+namespace import ::doctools::toc::new
+
+# search paths .............................................................
+
+test doctoc-1.0 {default search paths} {
+    llength $::doctools::toc::paths
+} 1
+
+test doctoc-1.1 {extend package search paths} {
+    ::doctools::toc::search [file dirname [info script]]
+    set     res [list]
+    lappend res [llength $::doctools::toc::paths]
+    lappend res [lindex  $::doctools::toc::paths 0]
+    set     res
+} [list 2 [file dirname [info script]]]
+
+test doctoc-1.2 {extend package search paths, error} {
+    catch {::doctools::toc::search foo} result
+    set     result
+} {doctools::toc::search: path does not exist}
+
+# format help .............................................................
+
+test doctoc-2.0 {format help} {
+    string length [doctools::toc::help]
+} 338
+
+# doctoc .............................................................
+
+test doctoc-3.0 {doctoc errors} {
+    catch {new} msg
+    set msg
+} [tcltest::wrongNumArgs "new" "name args" 0]
+
+test doctoc-3.1 {doctoc errors} {
+    catch {new set} msg
+    set msg
+} "command \"set\" already exists, unable to create doctoc object"
+
+test doctoc-3.2 {doctoc errors} {
+    new mydoctoc
+    catch {new mydoctoc} msg
+    mydoctoc destroy
+    set msg
+} "command \"mydoctoc\" already exists, unable to create doctoc object"
+
+test doctoc-3.3 {doctoc errors} {
+    catch {new mydoctoc -foo} msg
+    set msg
+} {wrong # args: doctools::new name ?opt val...??}
+
+# doctoc methods ......................................................
+
+test doctoc-4.0 {doctoc method errors} {
+    new mydoctoc
+    catch {mydoctoc} msg
+    mydoctoc destroy
+    set msg
+} "wrong # args: should be \"mydoctoc option ?arg arg ...?\""
+
+test doctoc-4.1 {doctoc errors} {
+    new mydoctoc
+    catch {mydoctoc foo} msg
+    mydoctoc destroy
+    set msg
+} "bad option \"foo\": must be cget, configure, destroy, format, map, search, warnings, parameters, or setparam"
+
+# cget ..................................................................
+
+test doctoc-5.0 {cget errors} {
+    new mydoctoc
+    catch {mydoctoc cget} result
+    mydoctoc destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::toc::_cget" "name option" 1]
+
+test doctoc-5.1 {cget errors} {
+    new mydoctoc
+    catch {mydoctoc cget foo bar} result
+    mydoctoc destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::toc::_cget" "name option"]
+
+test doctoc-5.2 {cget errors} {
+    new mydoctoc
+    catch {mydoctoc cget -foo} result
+    mydoctoc destroy
+    set result
+} {doctools::toc::_configure: Unknown option "-foo", expected -file, or -format}
+
+foreach {na nb option default newvalue} {
+    3  4 -file       {} foo
+    5  6 -format     {} html
+} {
+    test doctoc-5.$na {cget query} {
+	new mydoctoc
+	set res [mydoctoc cget $option]
+	mydoctoc destroy
+	set res
+    } $default ; # {}
+
+    test doctoc-5.$nb {cget set & query} {
+	new mydoctoc
+	mydoctoc configure $option $newvalue
+	set res [mydoctoc cget $option]
+	mydoctoc destroy
+	set res
+    } $newvalue ; # {}
+}
+
+# configure ..................................................................
+
+test doctoc-6.0 {configure errors} {
+    new mydoctoc
+    catch {mydoctoc configure -foo bar -glub} result
+    mydoctoc destroy
+    set result
+} {wrong # args: doctools::toc::_configure name ?opt val...??}
+# [tcltest::wrongNumArgs "::doctools::toc::_configure" "name ?option?|?option value...?" 1]
+
+test doctoc-6.1 {configure errors} {
+    new mydoctoc
+    catch {mydoctoc configure -foo} result
+    mydoctoc destroy
+    set result
+} {doctools::toc::_configure: Unknown option "-foo", expected -file, or -format}
+
+test doctoc-6.2 {configure retrieval} {
+    new mydoctoc
+    catch {mydoctoc configure} result
+    mydoctoc destroy
+    set result
+} {-file {} -format {}}
+
+foreach {n option illegalvalue result} {
+    3 -format     barf {doctools::toc::_configure: -format: Unknown format "barf"}
+} {
+    test doctoc-6.$n {configure illegal value} {
+	new mydoctoc
+	catch {mydoctoc configure $option $illegalvalue} result
+	mydoctoc destroy
+	set result
+    } $result
+}
+
+foreach {na nb option default newvalue} {
+    4  5 -file       {} foo
+    6  7 -format     {} html
+} {
+    test doctoc-6.$na {configure query} {
+	new mydoctoc
+	set res [mydoctoc configure $option]
+	mydoctoc destroy
+	set res
+    } $default ; # {}
+
+    test doctoc-6.$nb {configure set & query} {
+	new mydoctoc
+	mydoctoc configure $option $newvalue
+	set res [mydoctoc configure $option]
+	mydoctoc destroy
+	set res
+    } $newvalue ; # {}
+}
+
+test doctoc-6.8 {configure full retrieval} {
+    new mydoctoc -file foo -format html
+    catch {mydoctoc configure} result
+    mydoctoc destroy
+    set result
+} {-file foo -format html}
+
+# search ..................................................................
+
+test doctoc-7.0 {search errors} {
+    new mydoctoc
+    catch {mydoctoc search} result
+    mydoctoc destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::toc::_search" "name path" 1]
+
+test doctoc-7.1 {search errors} {
+    new mydoctoc
+    catch {mydoctoc search foo bar} result
+    mydoctoc destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::toc::_search" "name path"]
+
+test doctoc-7.2 {search errors} {
+    new mydoctoc
+    catch {mydoctoc search foo} result
+    mydoctoc destroy
+    set result
+} {mydoctoc search: path does not exist}
+
+test doctoc-7.3 {search, initial} {
+    new mydoctoc
+    set res [llength $::doctools::toc::doctocmydoctoc::paths]
+    mydoctoc destroy
+    set res
+} 0
+
+test doctoc-7.4 {extend object search paths} {
+    new mydoctoc
+    mydoctoc search [file dirname [info script]]
+    set     res [list]
+    lappend res [llength $::doctools::toc::doctocmydoctoc::paths]
+    lappend res [lindex  $::doctools::toc::doctocmydoctoc::paths 0]
+    mydoctoc destroy
+    set     res
+} [list 1 [file dirname [info script]]]
+
+# format & warnings .......................................................
+
+test doctoc-8.0 {format errors} {
+    new mydoctoc
+    catch {mydoctoc format} result
+    mydoctoc destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::toc::_format" "name text" 1]
+
+test doctoc-8.1 {format errors} {
+    new mydoctoc
+    catch {mydoctoc format foo bar} result
+    mydoctoc destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::toc::_format" "name text"]
+
+test doctoc-8.2 {format errors} {
+    new mydoctoc
+    catch {mydoctoc format foo} result
+    mydoctoc destroy
+    set result
+} {mydoctoc: No format was specified}
+
+
+test doctoc-8.3 {format} {
+    new mydoctoc -format wiki
+    set res [mydoctoc format {[toc_begin foo bar][item at snafu gnarf][toc_end]}]
+    lappend res [mydoctoc warnings]
+    mydoctoc destroy
+    set res
+} {Table of Contents '''foo''' '''bar''' {[[snafu]]:} at -- gnarf {}}
+
+
+# doctoc syntax .......................................................
+
+test doctoc-9.0 {doctoc syntax} {
+    new mydoctoc -format null
+    catch {mydoctoc format foo} result
+    mydoctoc destroy
+    set result
+} {Doctoc Error in plain text at line 1, column 0:
+[plain_text foo]
+--> (FmtError) TOC error (toc/plaintext), "plain_text foo" : Plain text beyond whitespace is not allowed..}
+
+test docidx-9.1 {doctoc syntax v1.1, empty toc, ok} {
+    new mydocidx -format null
+    set result [mydocidx format {[toc_begin TOC Test][toc_end]}]
+    mydocidx destroy
+    set result
+} {}
+
+test docidx-9.2 {doctoc syntax v1.1, mixing items and divisions, ok} {
+    new mydocidx -format null
+    set result [mydocidx format {[toc_begin TOC Test][item I1f i1 i1d][division_start D Df][item I2f i2 i2d][division_end][toc_end]}]
+    mydocidx destroy
+    set result
+} {}
+
+test docidx-9.3 {doctoc syntax v1.1, empty division, ok} {
+    new mydocidx -format null
+    set result [mydocidx format {[toc_begin TOC Test][division_start D Df][division_end][toc_end]}]
+    mydocidx destroy
+    set result
+} {}
+
+namespace forget ::doctools::toc::new
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

@@ -1,0 +1,127 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-09-13  Lars Hellstr\"om  <lars_h@users.sourceforge.net>
+
+        docstrip::util version is now 1.3.
+
+        * New docstrip::util feature:
+          In-file catalogue of file contents,
+          which can be used to create pkgIndex.tcl
+          entries or .tm files.
+        * Improved documentation of existing
+          docstrip::util commands.
+        * Changed docstrip::util::thefile to strip
+          away a final newline.
+        * Fixed bug #3036841.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcldocstrip.dtx: Moved a number of documentation cleanup changes
+	* docstrip.man:	into the master DTX file, and added category
+	* docstrip_util.man: information. 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-28  Andreas Kupries  <andreask@activestate.com>
+
+	* apps/tcldocstrip: Added a block of meta data.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcldocstrip.dtx: Modified the setup of the testsuite to match
+	  the other modules and packages in tcllib. The testsuite
+	  especially now handles execution in a too old a Tcl core
+	  properly.
+	* docstrip.test:      Regenerated.
+	* docstrip_util.test: Regenerated.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-04  Andreas Kupries <andreask@activestate.com>
+
+	* tcldocstrip.dtx:    Applied changes made by Lars to fix
+	* tcldocstrip.ins:    a number of bugs he found. I am doing
+	* tcldocstrip.stitch: it in his stead as he currently has
+	  trouble with the SF CVS. Also fixed a syntax error in the
+	  documentation.
+
+	* Regenerated the other files. One new file,
+	  "docstrip_util.test". All tests pass, regular and from within
+	  the test harness.
+
+2005-09-26  Andreas Kupries <andreask@activestate.com>
+
+	* tcldocstrip.dtx: Fixed the testsuite bug regarding access to
+	  files in the module under test.
+
+	* docstrip.test: Regenerated.
+
+2005-08-30  Andreas Kupries <andreask@activestate.com>
+
+	* tcldocstrip.dtx:
+	* docstrip_util.man: Fixed formatting problem in manpage. (Added a
+	  missing closing bracket, and removed bad splitting across lines).
+
+	* Added entry for a large commit done by Lars to the ChangeLog, on
+	  behalf on Lars. See entry immediately below.
+
+2005-08-28  Lars Hellstroem
+
+	* New docstrip::util commands: guards, thefile, patch, and
+	  import_unidiff. New -annotate option of docstrip::extract (used
+	  by docstrip::util::patch). patch and import_unidiff still lack
+	  .man documentation. The docstrip::util package still lacks
+	  tests.
+
+2005-02-14  Andreas Kupries <andreask@activestate.com>
+
+	* docstrip: New module, by Lars Hellstroem, to support literate programming.
+

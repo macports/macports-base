@@ -1,0 +1,110 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# bug_fixes.test:
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It validates the fix of various bugs
+#
+# Copyright (C) 2013 Andreas Drollinger
+# 
+# Id: bug_fixes.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+set tepam::named_arguments_first 0
+
+######## Bug 3608951 of tepam 0.4.0: Order of the arguments in the generated help text ########
+
+   tepam::procedure Procedure_named_arg_first1 {
+      -named_arguments_first 1
+      -args {-Named1 -Named2 Unnamed1 Unnamed2}
+   } {}
+
+   tepam::procedure Procedure_named_arg_first2 {
+      -named_arguments_first 1
+      -args {Unnamed1 Unnamed2 -Named1 -Named2}
+   } {}
+
+   tepam::procedure Procedure_unnamed_arg_first1 {
+      -named_arguments_first 0
+      -args {-Named1 -Named2 Unnamed1 Unnamed2}
+   } {}
+
+   tepam::procedure Procedure_unnamed_arg_first2 {
+      -named_arguments_first 0
+      -args {Unnamed1 Unnamed2 -Named1 -Named2}
+   } {}
+
+   test tepam-bug_fixes.help_text.nun1 "Bug fixes, NUN"  \
+      -body "Procedure_named_arg_first1 -help" \
+      -match glob \
+      -result "" -output "*Procedure_named_arg_first1*-Named1 <Named1>*-Named2 <Named2>*<Unnamed1>*<Unnamed2>*"
+
+      test tepam-bug_fixes.help_text.nun2 "Bug fixes, NUN"  \
+      -body "Procedure_named_arg_first2 -help" \
+      -match glob \
+      -result "" -output "*Procedure_named_arg_first2*-Named1 <Named1>*-Named2 <Named2>*<Unnamed1>*<Unnamed2>*"
+
+   test tepam-bug_fixes.help_text.unn1 "Bug fixes, unn"  \
+      -body "Procedure_unnamed_arg_first1 -help" \
+      -match glob \
+      -result "" -output "*Procedure_unnamed_arg_first1*<Unnamed1>*<Unnamed2>*-Named1 <Named1>*-Named2 <Named2>*"
+
+   test tepam-bug_fixes.help_text.unn2 "Bug fixes, unn"  \
+      -body "Procedure_unnamed_arg_first2 -help" \
+      -match glob \
+      -result "" -output "*Procedure_unnamed_arg_first2*<Unnamed1>*<Unnamed2>*-Named1 <Named1>*-Named2 <Named2>*"
+
+######## Bug 3608952 of tepam 0.4.0: Help text is incorrect if procedure is part of non-default namespace ######
+
+# This bug is verified by the updated test 'proc_namespaces.test'.
+
+######## Bug 3613644 of tepam 0.4.0: Incorrect namespace formatting results in no vars defined ######
+
+   namespace eval myns {
+      tepam::procedure myproc {
+         -args {
+            {-myvar -default myvalue}
+         }
+      } {
+         return $myvar
+      }
+   }
+
+   test tepam-bug_fixes.bug3613644.1 "Bug fixes, bug 3613644 (1)"  \
+      -body {puts "first try: [::myns::myproc]"} \
+      -result "" -output "first try: myvalue\n"
+
+   test tepam-bug_fixes.bug3613644.2 "Bug fixes, bug 3613644 (2)"  \
+      -body {puts "second try: [myns::myproc]"} \
+      -result "" -output "second try: myvalue\n"
+     
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: bug_fixes.test
+# Modifications:
+#
+# Revision 1.2  2013/10/14 droll
+# * Added test for reported bug 3613644
+#
+# Revision 1.1  2013/03/25 droll
+# * New test file, added tests to verify bug 3608951
+##########################################################################
