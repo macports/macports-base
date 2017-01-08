@@ -49,5 +49,6 @@ vendor/tcl8.*/unix/tclsh
 
 Makefile
 pkgIndex.tcl
+!vendor/tcllib*/**/pkgIndex.tcl
 
 /dist/
