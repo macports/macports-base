@@ -20,10 +20,10 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-port-exit \- Exit interactive mode
+port-exit \- Exit shell mode
 .SH "SYNOPSIS"
 .sp
-To be used only in interactive mode:
+To be used only in shell mode:
 .sp
 .nf
 \fBexit\fR
@@ -34,13 +34,13 @@ To be used only in interactive mode:
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBexit\fR or \fBquit\fR can only be used in interactive mode of \fBport\fR (see \fBport-interactive\fR(7))\&. It causes the interactive interpreter to exit\&.
+\fBexit\fR or \fBquit\fR can only be used when \fBport\fR is running in shell mode (see \fBport-shell\fR(7))\&. It causes \fBport\fR to exit\&.
 .SH "BUGS"
 .sp
 \fBport exit\fR and \fBport quit\fR can be used from the command line, but are no\-ops\&.
 .SH "SEE ALSO"
 .sp
-\fBport\fR(1), \fBport-interactive\fR(7)
+\fBport\fR(1), \fBport-shell\fR(7)
 .SH "AUTHORS"
 .sp
 .if n \{\

@@ -30,7 +30,7 @@ port \- Command line interface for MacPorts
 .fi
 .SH "DESCRIPTION"
 .sp
-\fBport\fR is designed to operate on individual or multiple \fIports\fR, optionally within a single call, based on the requested \fIaction\fR\&. If no \fIaction\fR is specified the port command enters interactive mode, in which commands are read via stdin\&. If no \fIportdir\fR or \fIportname\fR is specified for an \fIaction\fR, the current working directory is assumed\&. Batch commands may be passed via a \fIcmdfile\fR\&. Port \fIoptions\fR are passed as key=value pairs and take precedence over individual \fIportname\fR options as specified in its Portfile and system\-wide settings\&.
+\fBport\fR is designed to operate on individual or multiple \fIports\fR, optionally within a single call, based on the requested \fIaction\fR\&. If no \fIaction\fR is specified the port command enters shell mode, in which commands are read via stdin\&. If no \fIportdir\fR or \fIportname\fR is specified for an \fIaction\fR, the current working directory is assumed\&. Batch commands may be passed via a \fIcmdfile\fR\&. Port \fIoptions\fR are passed as key=value pairs and take precedence over individual \fIportname\fR options as specified in its Portfile and system\-wide settings\&.
 .sp
 Port \fIvariants\fR can be specified as \fI+name\fR, which indicates the variant is desired, or \fI\-name\fR, indicating the contrary\&. In case of ambiguities, a port can be fully specified with the \fI@version_revision+variants\fR format\&.
 .sp
@@ -1125,7 +1125,7 @@ Displays the path to the work directory for
 .PP
 cd
 .RS 4
-Changes the current working directory to the one containing portname\&. Only useful in interactive mode\&.
+Changes the current working directory to the one containing portname\&. Only useful in shell mode\&.
 .RE
 .PP
 file
