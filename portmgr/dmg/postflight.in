@@ -33,8 +33,8 @@
 
 #set -x
 
-# Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=2.3.1
+# Script identification:
+VERSION=2.4
 
 # Abstraction variables:
 PREFIX="@prefix@"
@@ -53,6 +53,8 @@ OUR_STRING="${OUR_BASESTRING} on ${TIMESTAMP}"
 
 OLD_MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 OLD_TCL_PACKAGE_DIR=/Library/Tcl
+OLD_TCL_FILES="tcl8/8.4/http-2.7.12.tm tcl8/8.4/platform-1.0.12.tm tcl8/8.4/platform-1.0.13.tm tcl8/8.5/tcltest-2.3.5.tm"
+OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 tcllib1.15 tcllib1.17"
 
 # Create config files from defaults if not present
 function setup_configs {
@@ -137,6 +139,16 @@ function delete_old_tcl_packages {
     if [[ -d "${OLD_MACPORTS_TCL_DIR}" ]]; then
         rm -vrf "${OLD_MACPORTS_TCL_DIR}"
     fi
+    for f in ${OLD_TCL_FILES}; do
+        if [[ -f "${TCL_PACKAGE_PATH}/${f}" ]]; then
+            rm -vf "${TCL_PACKAGE_PATH}/${f}"
+        fi
+    done
+    for d in ${OLD_VENDOR_DIRS}; do
+        if [[ -d "${TCL_PACKAGE_PATH}/${d}" ]]; then
+            rm -vrf "${TCL_PACKAGE_PATH}/${d}"
+        fi
+    done
 }
 
 # create the user to use for privilege dropping

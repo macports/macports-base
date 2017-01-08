@@ -64,11 +64,19 @@ destroot-tcllib: all-tcllib
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 
 install: install-tcl install-tclthread install-tclx install-tcllib
+
+TCL_PACKAGE_PATH=@TCL_PACKAGE_PATH@
+OLD_TCL_FILES=  $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.12.tm \
+                $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/platform-1.0.12.tm \
+                $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/platform-1.0.13.tm \
+                $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/tcltest-2.3.5.tm
 install-tcl:
+	rm -rf $(OLD_TCL_FILES)
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ @VENDOR_TCL_INSTALL@
 
 install-tclthread:
+	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/thread2.7.{0,2}
 	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ @VENDOR_TCLTHREAD_INSTALL@
 
@@ -77,6 +85,7 @@ install-tclx:
 	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ @VENDOR_TCLX_INSTALL@
 
 install-tcllib:
+	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tcllib1.1{5,7}
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
 
