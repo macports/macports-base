@@ -17,7 +17,7 @@ DESCRIPTION
 -----------
 *port* is designed to operate on individual or multiple 'ports', optionally
 within a single call, based on the requested 'action'. If no 'action' is
-specified the port command enters interactive mode, in which commands are read
+specified the port command enters shell mode, in which commands are read
 via stdin. If no 'portdir' or 'portname' is specified for an 'action', the
 current working directory is assumed. Batch commands may be passed via a
 'cmdfile'. Port 'options' are passed as key=value pairs and take precedence over
@@ -572,7 +572,7 @@ work::
 
 cd::
     Changes the current working directory to the one containing portname. Only
-    useful in interactive mode.
+    useful in shell mode.
 
 file::
     Displays the path to the Portfile for 'portname'.

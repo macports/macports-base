@@ -4,11 +4,11 @@ port-cd(1)
 
 NAME
 ----
-port-cd - Change the current working directory in interactive mode.
+port-cd - Change the current working directory in shell mode.
 
 SYNOPSIS
 --------
-To be used only in interactive mode:
+To be used only in shell mode:
 
 [cmdsynopsis]
 *cd*
@@ -16,10 +16,10 @@ To be used only in interactive mode:
 
 DESCRIPTION
 -----------
-*cd* can be used in interactive mode of *port* (see man:port-interactive[7]) to
-change the current working directory to the directory that contains a given
-port. The second parameter is not optional, as it usually is with *cd* in your
-shell.
+*cd* can be used when *port* is running in shell mode (see
+man:port-shell[7]) to change the current working directory to the directory
+that contains a given port. The second parameter is not optional, as it
+usually is with *cd* in your shell.
 
 BUGS
 ----
@@ -27,7 +27,7 @@ BUGS
 
 SEE ALSO
 --------
-man:port[1], man:port-interactive[7]
+man:port[1], man:port-shell[7]
 
 AUTHORS
 -------

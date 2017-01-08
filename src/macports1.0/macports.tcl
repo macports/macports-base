@@ -2742,7 +2742,7 @@ proc mportsync {{optionslist {}}} {
         }
     }
 
-    # refresh the quick index if necessary (batch or interactive run)
+    # refresh the quick index if necessary (batch or shell mode run)
     if {[info exists macports::ui_options(ports_commandfiles)]} {
         _mports_load_quickindex
     }

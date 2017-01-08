@@ -2727,7 +2727,7 @@ proc action_selfupdate { action portlist opts } {
     }
 
     if {$base_updated} {
-        # exit immediately if in batch/interactive mode
+        # exit immediately if in batch/shell mode
         return -999
     } else {
         return 0
@@ -4861,7 +4861,7 @@ proc process_command_file { in } {
     set noisy [expr {$isstdin && ![macports::ui_isset ports_quiet]}]
     if { $noisy } {
         puts "MacPorts [macports::version]"
-        puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
+        puts "Entering shell mode... (\"help\" for help, \"quit\" to quit)"
     }
 
     # Main command loop
@@ -5687,7 +5687,7 @@ set ui_options(notifications_append) portclient::notifications::append
 set remaining_args [lrange $cmd_argv $cmd_argn end]
 
 # If we have no arguments remaining after option processing then force
-# interactive mode
+# shell mode
 if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
     lappend ui_options(ports_commandfiles) -
 } elseif {[lookahead] eq "selfupdate" || [lookahead] eq "sync"} {
