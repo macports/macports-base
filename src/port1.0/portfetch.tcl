@@ -68,7 +68,7 @@ default fetch.type standard
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
 default bzr.revision {-1}
-default bzr.pre_args {"--builtin --no-aliases checkout --lightweight"}
+default bzr.pre_args {"--builtin --no-aliases checkout --lightweight --verbose"}
 default bzr.args ""
 default bzr.post_args {"-r ${bzr.revision} ${bzr.url} ${worksrcdir}"}
 
@@ -428,10 +428,10 @@ proc portfetch::gitfetch {args} {
     global worksrcpath patchfiles \
            git.url git.branch git.sha1 git.cmd
 
-    set options "-q"
+    set options "--progress"
     if {${git.branch} eq ""} {
         # if we're just using HEAD, we can make a shallow repo
-        set options "$options --depth=1"
+        append options " --depth=1"
     }
     set cmdstring "${git.cmd} clone $options ${git.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"
