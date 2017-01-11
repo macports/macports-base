@@ -24,28 +24,28 @@ test mpkg_main {
 } -constraints {
     darwin
 } -setup {
-    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs porturl
     env_init
 
     file mkdir $destpath
-    close [open $destpath/fondu-1_060102_1.pkg w+]
+    close [open $destpath/fondu-060102_1.pkg w+]
 
 } -body {
     if {[portmpkg::mpkg_main] != 0} {
         return "FAIL: cannot create pkg"
     }
-    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/PkgInfo]} {
+    if {![file exists $destpath/fondu-060102_1.mpkg/Contents/PkgInfo]} {
         return "FAIL: missing PkgInfo file"
     }
-    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Info.plist]} {
+    if {![file exists $destpath/fondu-060102_1.mpkg/Contents/Info.plist]} {
         return "FAIL: missing Info.plist file"
     }
-    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Resources]} {
+    if {![file exists $destpath/fondu-060102_1.mpkg/Contents/Resources]} {
         return "FAIL: missing Resources dir"
     }
-    if {![file exists $destpath/fondu-1_060102_1.mpkg/Contents/Packages/fondu-1_060102_1.pkg]} {
+    if {![file exists $destpath/fondu-060102_1.mpkg/Contents/Packages/fondu-060102_1.pkg]} {
         return "FAIL: missing pkg file"
     }
     return "Package mpkg successful."
@@ -59,7 +59,7 @@ test mpkg_main {
 test make_dependency_list {
     Make dependency list unit test.
 } -setup {
-    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs porturl
     env_init
@@ -90,8 +90,6 @@ test make_dependency_list {
 
 # Covered by mpkg_main
 # test make_one_package
-# test epoch_namestr
-# test revision_namestr
 # test package_mpkg
 
 

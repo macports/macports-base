@@ -118,43 +118,22 @@ proc portmpkg::make_one_package {portname mport} {
     }
 }
 
-proc portmpkg::epoch_namestr {portepoch} {
-    set portepoch_namestr ""
-    if {${portepoch} != 0} {
-        set portepoch_namestr "${portepoch}_"
-    }
-    return ${portepoch_namestr}
-}
-
-proc portmpkg::revision_namestr {portrevision} {
-    set portrevision_namestr ""
-    if {${portrevision} != 0} {
-        set portrevision_namestr "_${portrevision}"
-    }
-    return ${portrevision_namestr}
-}
-
-proc portmpkg::mpkg_path {portname portepoch portversion portrevision} {
+proc portmpkg::mpkg_path {portname portversion portrevision} {
     global package.destpath
-    set portepoch_namestr [portmpkg::epoch_namestr ${portepoch}]
-    set portrevision_namestr [portmpkg::revision_namestr ${portrevision}]
-    set mpkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.mpkg
-    return $mpkgpath
+    return "${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].mpkg"
 }
 
 proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
-    global portdbpath os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
+    global os.major destpath workpath prefix porturl description package.destpath package.flat long_description homepage
 
-    set mpkgpath [portmpkg::mpkg_path $portname $portepoch $portversion $portrevision]
+    set mpkgpath [portmpkg::mpkg_path $portname $portversion $portrevision]
 
-    set portepoch_namestr [portmpkg::epoch_namestr ${portepoch}]
-    set portrevision_namestr [portmpkg::revision_namestr ${portrevision}]
     if {${package.flat} && ${os.major} >= 10} {
-        set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
+        set pkgpath ${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}]-component.pkg
         set packages_path ${workpath}/mpkg_packages
         set resources_path ${workpath}/mpkg_resources
     } else {
-        set pkgpath ${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg
+        set pkgpath ${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].pkg
         set packages_path ${mpkgpath}/Contents/Packages
         set resources_path ${mpkgpath}/Contents/Resources
     }
@@ -190,9 +169,9 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
         }
     }
     if {${package.flat} && ${os.major} >= 10} {
-        lappend dependencies org.macports.${portname} ${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}-component.pkg
+        lappend dependencies org.macports.${portname} [portpkg::image_name ${portname} ${portversion} ${portrevision}]-component.pkg
     } else {
-        lappend dependencies ${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg
+        lappend dependencies [portpkg::image_name ${portname} ${portversion} ${portrevision}].pkg
     }
 
     # copy our own pkg into the mpkg

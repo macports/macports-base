@@ -119,16 +119,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     package.resources package.scripts portpkg::packagemaker \
     pkg_post_unarchive_deletions portpkg::language portpkg::pkgbuild
 
-    set portepoch_namestr ""
-    if {${portepoch} != 0} {
-        set portepoch_namestr "${portepoch}_"
-    }
-    set portrevision_namestr ""
-    if {${portrevision} != 0} {
-        set portrevision_namestr "_${portrevision}"
-    }
-
-    set pkgpath "${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg"
+    set pkgpath "${package.destpath}/[image_name $portname $portversion $portrevision].pkg"
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s version %s_%s_%s at %s"] ${portname} ${portepoch} ${portversion} ${portrevision} ${pkgpath}]"
 
@@ -239,6 +230,14 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     catch {file delete ${destpath}/private}
 
     return 0
+}
+
+proc portpkg::image_name {portname portversion portrevision} {
+    set ret "${portname}-${portversion}"
+    if {${portrevision} != 0} {
+        append ret "_${portrevision}"
+    }
+    return $ret
 }
 
 proc portpkg::write_PkgInfo {infofile} {
