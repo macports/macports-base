@@ -60,7 +60,7 @@ proc portpkg::pkg_start {args} {
     global packagemaker_path portpkg::packagemaker portpkg::pkgbuild \
            portpkg::language xcodeversion portpath porturl \
            package.resources package.scripts package.flat \
-           subport epoch version revision description long_description \
+           subport version revision description long_description \
            homepage workpath os.major
 
     if {[catch {findBinary pkgbuild /usr/bin/pkgbuild} pkgbuild]} {
@@ -95,11 +95,11 @@ proc portpkg::pkg_start {args} {
             set pkg_$variable [set $variable]
         }
     }
-    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $epoch $version $revision $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $version $revision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
 
     if {${package.flat} && ${os.major} >= 9} {
-        write_distribution "${workpath}/Distribution" $subport $epoch $version $revision
+        write_distribution "${workpath}/Distribution" $subport $version $revision
     }
 }
 
@@ -325,20 +325,13 @@ proc portpkg::write_description_plist {infofile portname portversion description
     close $infofd
 }
 
-proc portpkg::write_welcome_html {filename portname portepoch portversion portrevision long_description description homepage} {
+proc portpkg::write_welcome_html {filename portname portversion portrevision long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description eq ""} {
         set long_description $description
     }
 
     set portname [xml_escape $portname]
-    if {$portepoch != 0} {
-        set portepoch [xml_escape $portepoch]
-        set portepoch_str "${portepoch}_"
-    } else {
-        set portepoch ""
-        set portepoch_str ""
-    }
     set portversion [xml_escape $portversion]
     if {$portrevision != 0} {
         set portrevision [xml_escape $portrevision]
@@ -367,7 +360,7 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
-    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portepoch_str}${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
 </body>
 </html>"
 
@@ -409,42 +402,27 @@ proc portpkg::write_package_info {infofile} {
     close $infofd
 }
 
-proc portpkg::write_distribution {dfile portname portepoch portversion portrevision} {
+proc portpkg::write_distribution {dfile portname portversion portrevision} {
     global macosx_deployment_target
-    set portname [xml_escape $portname]
-    if {$portepoch != 0} {
-        set portepoch [xml_escape $portepoch]
-        set portepoch_str "${portepoch}_"
-    } else {
-        set portepoch ""
-        set portepoch_str ""
-    }
-    set portversion [xml_escape $portversion]
-    if {$portrevision != 0} {
-        set portrevision [xml_escape $portrevision]
-        set portrevision_str "_${portrevision}"
-    } else {
-        set portrevision ""
-        set portrevision_str ""
-    }
+    set portname_e [xml_escape $portname]
     set dfd [open $dfile w+]
     puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
-    <title>${portname}</title>
+    <title>${portname_e}</title>
     <options customize=\"never\"/>
     <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
     <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
     <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
     <choices-outline>
         <line choice=\"default\">
-            <line choice=\"org.macports.${portname}\"/>
+            <line choice=\"org.macports.${portname_e}\"/>
         </line>
     </choices-outline>
     <choice id=\"default\"/>
-    <choice id=\"org.macports.${portname}\" visible=\"false\">
-        <pkg-ref id=\"org.macports.${portname}\"/>
+    <choice id=\"org.macports.${portname_e}\" visible=\"false\">
+        <pkg-ref id=\"org.macports.${portname_e}\"/>
     </choice>
-    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portepoch_str}${portversion}${portrevision_str}-component.pkg</pkg-ref>
+    <pkg-ref id=\"org.macports.${portname_e}\">[xml_escape [image_name ${portname} ${portversion} ${portrevision}]]-component.pkg</pkg-ref>
 </installer-gui-script>
 "
     close $dfd

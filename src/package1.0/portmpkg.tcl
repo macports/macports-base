@@ -94,7 +94,7 @@ proc portmpkg::make_dependency_list {portname destination} {
         }
     }
 
-    lappend result [list $portinfo(name) $portinfo(epoch) $portinfo(version) $portinfo(revision) $mport]
+    lappend result [list $portinfo(name) $portinfo(version) $portinfo(revision) $mport]
     return $result
 }
 
@@ -146,25 +146,16 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     set deps [lsort -unique $deps]
     foreach dep $deps {
         set name [lindex $dep 0]
-        set epoch [lindex $dep 1]
-        set epoch_namestr ""
-        if {$epoch != 0} {
-            set epoch_namestr "${epoch}_"
-        }
-        set vers [lindex $dep 2]
-        set rev [lindex $dep 3]
-        set rev_namestr ""
-        if {$rev != 0} {
-            set rev_namestr "_${rev}"
-        }
-        set mport [lindex $dep 4]
+        set vers [lindex $dep 1]
+        set rev [lindex $dep 2]
+        set mport [lindex $dep 3]
         # don't re-package ourself
         if {$name ne $portname} {
             make_one_package $name $mport
             if {${package.flat} && ${os.major} >= 10} {
-                lappend dependencies org.macports.${name} ${name}-${epoch_namestr}${vers}${rev_namestr}-component.pkg
+                lappend dependencies org.macports.${name} [portpkg::image_name ${name} ${vers} ${rev}]-component.pkg
             } else {
-                lappend dependencies ${name}-${epoch_namestr}${vers}${rev_namestr}.pkg
+                lappend dependencies [portpkg::image_name ${name} ${vers} ${rev}].pkg
             }
         }
     }
@@ -191,7 +182,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
             set pkg_$variable [set $variable]
         }
     }
-    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portepoch $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
+    portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
 
     if {${package.flat} && ${os.major} >= 10} {
