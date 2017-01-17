@@ -72,15 +72,14 @@ test make_dependency_list {
     }
     # indices: 
     # 0 name
-    # 1 epoch
-    # 2 version
-    # 3 revision
+    # 1 version
+    # 2 revision
+    # 3 mport
     set res [lindex $res 0]
-    if {[llength $res] != 5 ||
+    if {[llength $res] != 4 ||
         [lindex $res 0] != $subport ||
-        [lindex $res 1] != 0 ||
-        [lindex $res 2] != 060102 ||
-        [lindex $res 3] != 1} {
+        [lindex $res 1] != 060102 ||
+        [lindex $res 2] != 1} {
             return "FAIL: incorrect dependency list entry: $res"
     }
     return "Dependency list successful."
