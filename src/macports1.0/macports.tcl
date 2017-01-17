@@ -3349,7 +3349,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
                 set supported_archs [_mportkey $depport supported_archs]
                 array unset variation_array
-                array set variation_array [[ditem_key $depport workername] eval {array get variations}]
+                array set variation_array [[ditem_key $depport workername] eval {array get requested_variations}]
                 mportclose $depport
                 set arch_mismatch 1
                 set has_universal 0
