@@ -97,3 +97,4 @@ clean: clean-tcl clean-tcllib clean-tclx clean-tclthread
 distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread
 	rm -f Makefile
 	rm -rf vendor-destroot
+	rm -f tclsh
