@@ -55,9 +55,19 @@ Release 2.4 (unreleased)
     - Use pkgbuild instead of PackageMaker.app in 'port pkg' on newer systems.
       (#42725, jmr in dd89bb8)
 
-Release 2.3.6 (2016-12-?? by ?)
+    - Fixed a bug that could cause installation of ports with large numbers of
+      dependencies to fail due to running out of file descriptors.
+      (#50986, jmr in 0fd195f)
+
+    - Fixed variants requested on the command line or in variants.conf not
+      being properly passed down to dependencies when +universal is added
+      by arch checking. (#53322, jmr in 4972592)
+
+    - Fixed building dmgs of ports with a non-zero revision.
+      (#51136, jmr in 62d7125, e0c7f1c, 75584d8)
+
     - Fix 'port info' output for multi-valued maintainers
-      (#52928)
+      (#52928, raimue in ba2002c)
 
 Release 2.3.5 (2016-11-16 by raimue)
     - Updated compiler selection for macOS 10.12 Sierra
