@@ -46,7 +46,7 @@ set_ui_prefix
 proc portdmg::dmg_main {args} {
     global subport version revision package.destpath UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}_${revision}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
 		seteuid 0; setegid 0
@@ -63,10 +63,10 @@ proc portdmg::package_dmg {portname portversion portrevision} {
 
     set tmp_image ${package.destpath}/${imagename}.tmp.dmg
     set final_image ${package.destpath}/${imagename}.dmg
-    set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
+    set pkgpath ${package.destpath}/${imagename}.pkg
 
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s version %s is up-to-date"] ${portname} ${portversion}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s version %s is up-to-date"] ${portname} ${portversion}_${portrevision}]"
         return 0
     }
 
