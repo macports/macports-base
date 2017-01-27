@@ -172,7 +172,7 @@ proc portlivecheck::livecheck_main {args} {
                     set updated_version 0
                     while {[gets $chan line] >= 0} {
                         set lastoff 0
-                        while {[regexp -start $lastoff -indices $the_re $line offsets]} {
+                        while {$lastoff >= 0 && [regexp -start $lastoff -indices $the_re $line offsets]} {
                             regexp -start $lastoff $the_re $line matched upver
                             set foundmatch 1
                             if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
