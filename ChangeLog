@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.4 (unreleased)
+Release 2.4 (2017-01-27 by jmr)
     - New action 'port reclaim' to clean inactive ports and unnecessary
       distfiles to get back disk space, developed during GSoC 2014.
       (ksammons in branch gsoc14-cleanup)
