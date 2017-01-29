@@ -122,6 +122,12 @@ namespace eval reclaim {
                     walk_files $currentPath $files_in_use unused
                 }
                 file {
+                    if {$item eq ".turd_MacPorts"} {
+                        # .turd_MacPorts files are created by MacPorts when creating the MacPorts
+                        # installer packages from the MacPorts port so that empty directories are
+                        # not deleted after destroot. Treat those files as if they were not there.
+                        continue
+                    }
                     if {[lsearch -exact -sorted $files_in_use $currentPath] == -1} {
                         ui_info "Found unused distfile $currentPath"
                         lappend unused $currentPath
