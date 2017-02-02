@@ -3563,6 +3563,15 @@ proc action_variants { action portlist opts } {
         }
 
         if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
+            # Add any global_variations to the variations specified for
+            # the port (default variants may change based on this)
+            array unset merged_variations
+            array set merged_variations [array get variations]
+            foreach {variation value} [array get global_variations] {
+                if {![info exists merged_variations($variation)]} {
+                    set merged_variations($variation) $value
+                }
+            }
             if {![info exists options(subport)]} {
                 if {[info exists portinfo(name)]} {
                     set options(subport) $portinfo(name)
@@ -3570,7 +3579,7 @@ proc action_variants { action portlist opts } {
                     set options(subport) $portname
                 }
             }
-            if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
