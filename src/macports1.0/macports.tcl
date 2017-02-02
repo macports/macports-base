@@ -4285,9 +4285,7 @@ proc mportselect {command {group ""} {version {}}} {
 
             # Update the selected version.
             set selected_version ${conf_path}/current
-            if {[file exists $selected_version]} {
-                file delete $selected_version
-            }
+            file delete $selected_version
             symlink $version $selected_version
             return
         }
