@@ -273,6 +273,13 @@ if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" > /dev/null; then
     fi
 fi
 
+# Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
+if (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null; then
+    echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
+else
+    write_setting DISPLAY ":0"
+fi
+
 # Postflight script is done with its job, update MacPorts and exit gracefully!
 update_macports
 echo "You have successfully installed the MacPorts system. Launch a terminal and try it out!"
