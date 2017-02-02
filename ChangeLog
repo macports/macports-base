@@ -2,6 +2,21 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.4.1 (unreleased)
+    - Avoid an infinite loop when livecheck.regex is empty.
+      (raimue in d33a8a0)
+
+    - Fixed detection of /opt/local/bin already in the user's PATH in the
+      installer postflight script. (barry-scott in dcb0788)
+
+    - Fixed the display of default variants by 'port variants' when the
+      defaults are affected by variants present in variants.conf.
+      (jmr in 9e63a61)
+
+    - Fixed 'port reclaim' deleting a file installed by the MacPorts installer
+      for technical reasons.
+      (cal in b0c0957, #53436)
+
 Release 2.4 (2017-01-27 by jmr)
     - New action 'port reclaim' to clean inactive ports and unnecessary
       distfiles to get back disk space, developed during GSoC 2014.
