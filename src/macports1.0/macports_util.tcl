@@ -108,7 +108,7 @@ proc ldindex {varName args} {
         set idx [lindex $args 0]
         set size [llength $var]
         set badrange? 0
-        if {[string is integer -strict $idx]} {
+        if {[string is entier -strict $idx]} {
             if {$idx < 0 || $idx >= $size} {
                 set badrange? 1
             }
@@ -116,7 +116,7 @@ proc ldindex {varName args} {
             if {$size == 0} {
                 set badrange? 1
             }
-        } elseif {[string match "end-*" $idx] && [string is integer -strict [string range $idx 4 end]]} {
+        } elseif {[string match "end-*" $idx] && [string is entier -strict [string range $idx 4 end]]} {
             set i [expr {$size - 1 - [string range $idx 4 end]}]
             if {$i < 0 || $i >= $size} {
                 set badrange? 1
