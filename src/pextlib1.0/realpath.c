@@ -35,6 +35,7 @@
 
 /* required for PATH_MAX and realpath(3) */
 #define _XOPEN_SOURCE 500
+#define _DARWIN_C_SOURCE
 
 #include <tcl.h>
 

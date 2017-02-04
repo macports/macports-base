@@ -36,14 +36,16 @@
 #include <config.h>
 #endif
 
-/* required for strdup(3) on Linux and OS X */
+#ifndef __APPLE__
+/* required for strdup(3) on Linux */
 #define _XOPEN_SOURCE 600L
 /* required for clearenv(3)/setenv(3)/unsetenv(3) on Linux */
 #define _BSD_SOURCE
-/* required for clearenv(3)/setenv(3)/unsetenv(3) on OS X */
-#define _DARWIN_C_SOURCE
 /* required for vasprintf(3) on Linux */
 #define _GNU_SOURCE
+#endif
+/* required for clearenv(3)/setenv(3)/unsetenv(3) on OS X */
+#define _DARWIN_C_SOURCE
 
 #include <sys/resource.h>
 #include <sys/types.h>
