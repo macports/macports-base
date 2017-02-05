@@ -635,7 +635,7 @@ proc portlint::lint_main {args} {
                         # if the last character of license name is a number or plus sign
                         # then a hyphen is missing
                         set license_end [string index $subtest end]
-                        if {"+" eq $license_end || [string is wideinteger -strict $license_end]} {
+                        if {"+" eq $license_end || [string is digit -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
                             incr errors
                         }

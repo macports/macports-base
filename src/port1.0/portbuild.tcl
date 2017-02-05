@@ -148,7 +148,7 @@ proc portbuild::build_getjobs {args} {
             }
         } catch {*} {}
     }
-    if {![string is wideinteger -strict $jobs] || $jobs <= 1} {
+    if {![string is integer -strict $jobs] || $jobs <= 1} {
         set jobs 1
     }
     return $jobs
@@ -177,7 +177,7 @@ proc portbuild::build_getjobsarg {args} {
         return ""
     }
     set jobs [option build.jobs]
-    if {![string is wideinteger -strict $jobs] || $jobs <= 1} {
+    if {![string is integer -strict $jobs] || $jobs <= 1} {
         return ""
     }
     return " -j$jobs"
