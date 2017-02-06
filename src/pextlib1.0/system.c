@@ -35,10 +35,11 @@
 #include <config.h>
 #endif
 
+#ifndef __APPLE__
 /* required for fdopen(3)/seteuid(2), among others */
+/* hides fgetln(3) on OS X */
 #define _XOPEN_SOURCE 600
-/* required for fgetln(3) on OS X */
-#define _DARWIN_C_SOURCE
+#endif
 
 #include <tcl.h>
 
@@ -58,8 +59,11 @@
 #include <signal.h>
 
 #include "system.h"
-#include "sip_copy_proc.h"
 #include "Pextlib.h"
+
+#if HAVE_TRACEMODE_SUPPORT
+#include "sip_copy_proc.h"
+#endif
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -265,13 +269,21 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             args[4] = "-c";
             args[5] = cmdstring;
             args[6] = NULL;
+#if HAVE_TRACEMODE_SUPPORT
             sip_copy_execve(sandbox_exec_path, args, environ);
+#else
+            execve(sandbox_exec_path, args, environ);
+#endif
         } else {
             args[0] = "sh";
             args[1] = "-c";
             args[2] = cmdstring;
             args[3] = NULL;
+#if HAVE_TRACEMODE_SUPPORT
             sip_copy_execve("/bin/sh", args, environ);
+#else
+            execve("/bin/sh", args, environ);
+#endif
         }
         exit(128);
         /*NOTREACHED*/
