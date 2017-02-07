@@ -151,22 +151,15 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
         set sortedlist [portlist_sortint $ilist]
         foreach i $sortedlist {
-            set ispec "[$i version]_[$i revision][$i variants]"
-            ##
-            # User Interaction Question
-            # Asking choice to select option in case of ambiguous uninstall
+            set portstr [format "%s @%s_%s%s" [$i name] [$i version] [$i revision] [$i variants]]
+            if {[$i state] eq "installed"} {
+                append portstr [msgcat::mc " (active)"]
+            }
+
             if {[info exists macports::ui_options(questions_multichoice)]} {
-                if { [$i state] eq "installed" } {
-                    lappend portilist "[$i name] @[$i version]_[$i revision][$i variants] (active)"
+                lappend portilist "$portstr"
             } else {
-                    lappend portilist "[$i name] @[$i version]_[$i revision][$i variants]"
-                }
-            } else {
-                if {[$i state] eq "installed"} {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] [$i name] $ispec]"
-                } else {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
-                }
+                ui_msg "$UI_PREFIX     $portstr"
             }
         }
         if {[info exists macports::ui_options(questions_multichoice)]} {
